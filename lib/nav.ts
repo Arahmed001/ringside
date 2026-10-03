@@ -2,7 +2,7 @@ import { msg } from "./i18n/t";
 
 export type IconName =
   | "rankings" | "titles" | "all-time" | "fighters" | "events" | "previews" | "fight-of-the-year" | "matchups" | "matchmaking"
-  | "corners" | "orgs" | "weigh-ins" | "money" | "analytics" | "style-map" | "data";
+  | "corners" | "orgs" | "weigh-ins" | "money" | "accountability" | "analytics" | "style-map" | "data";
 
 export interface NavItem { href: string; label: string; icon: IconName }
 export interface NavGroup { id: string; title: string; items: NavItem[] }
@@ -30,6 +30,7 @@ export const NAV_GROUPS: NavGroup[] = [
   ] },
   { id: "data", title: msg("Data and models"), items: [
     { href: "/analytics", label: msg("Analytics"), icon: "analytics" },
+    { href: "/accountability", label: msg("Track record"), icon: "accountability" },
     { href: "/map", label: msg("Style Map"), icon: "style-map" },
     { href: "/data", label: msg("Data"), icon: "data" },
   ] },
