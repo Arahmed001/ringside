@@ -19,6 +19,7 @@ import { WatchButton } from "@/components/Watch";
 import { BoutLine, BoxerCard, SectionTitle, Stat } from "@/components/ui";
 import { countryName, flag, fmtDate, pct } from "@/lib/format";
 import { countsInRecord, isDecision, isStoppage } from "@/lib/methods";
+import { EDIT_SOURCE } from "@/lib/accounts/edit-source";
 import { boxerTeam, currentOf, monthsWithCurrentTrainer, ROLE_LABEL } from "@/lib/team";
 import { avgRehydration, missCount, weightHistory } from "@/lib/weights";
 import { TeamTimeline, type TimelineRow } from "@/components/TeamTimeline";
@@ -82,6 +83,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
         return { from: v.stint.start, to: v.stint.end, label: name, sub: v.record.bouts ? `${v.record.wins}-${v.record.losses}-${v.record.draws}` : undefined, href, current: v.current };
       }),
     }));
+  const community = (w.stintsByBoxer.get(b.id) ?? []).filter((x) => x.source === EDIT_SOURCE && x.personId).map((x) => ({ id: x.id, person: w.people.get(x.personId!)?.name ?? "", role: x.role, start: x.start, sourceUrl: x.sourceUrl ?? null })).filter((x) => x.person);
   const teamNow = (["head_trainer", "gym", "manager", "promoter"] as const).map((r) => ({ role: r, v: currentOf(team, r) })).filter((x) => x.v);
   const honours = w.honoursByBoxer.get(b.id) ?? [];
   const HONOURS_SHOWN = 8;
@@ -190,6 +192,17 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
             </div>
           )}
           {timelineRows.length > 0 ? <TeamTimeline rows={timelineRows} today={w.today} /> : <p className="text-sm text-muted">{t("No team history on record yet.")}</p>}
+          {community.length > 0 && (
+            <div className="mt-4 text-xs text-muted">
+              <div className="mb-1 uppercase tracking-widest">{t("Community edits, checked by an editor")}</div>
+              <ul className="space-y-1">
+                {community.map((c) => (
+                  <li key={c.id}>{t("{person}, {role}, from {from}", { person: t.name(c.person), role: t(ROLE_LABEL[c.role]), from: c.start ?? "?" })}{c.sourceUrl && /^https?:\/\//.test(c.sourceUrl) && <> · <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer nofollow ugc" className="underline decoration-dotted hover:text-ink">{t("source")}</a></>}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <p className="mt-3 text-xs text-muted"><Link href={`/contribute?boxer=${b.slug}`} className="underline decoration-dotted hover:text-ink">{t("Suggest an edit to this team history")}</Link></p>
         </div>
       </section>
 

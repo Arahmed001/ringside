@@ -1,19 +1,17 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import Link from "@/components/L";
-import { useLocal } from "@/lib/useLocal";
+import { usePicks } from "@/lib/usePicks";
 import { useLocale, useT } from "@/components/i18n";
 import { grade, type PickInfo } from "@/lib/picks-grade";
 
-const KEY = "ringside:picks"; // the same store the home page's "Call the card" writes
-const EMPTY: Record<number, number> = {};
 const MIN_VERSUS = 10; // fewer shared fights than this say more about luck than about who is better
 
-/** Your pick'em record: graded against the results and against the model's pre-fight call. The picks never leave this browser. */
+/** Your pick'em record: graded against the results and against the model's pre-fight call. Picks come from your account when signed in, from this browser otherwise. */
 export function MyPicks() {
   const t = useT();
   const locale = useLocale();
-  const [picks, setPicks] = useLocal<Record<number, number>>(KEY, EMPTY);
+  const { picks, clearLocal, mode, loading } = usePicks();
   const ids = Object.keys(picks).join(",");
   const [loaded, setLoaded] = useState<{ ids: string; rows: PickInfo[] | null } | null>(null);
   useEffect(() => {
@@ -28,6 +26,7 @@ export function MyPicks() {
   const graded = useMemo(() => (loaded?.ids === ids && loaded.rows ? grade(picks, loaded.rows) : null), [loaded, ids, picks]);
   const date = (d: string) => new Date(d + "T12:00:00Z").toLocaleDateString(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
+  if (loading) return <p className="text-sm text-muted">{t("Loading your picks…")}</p>;
   if (!ids) {
     return (
       <div className="card p-6">
@@ -91,10 +90,15 @@ export function MyPicks() {
         </ul>
       </section>
 
-      <p className="text-xs text-muted">
-        {t("Your picks are saved only in this browser; the server sees just the fight numbers when this page loads.")}{" "}
-        <button onClick={() => { if (window.confirm(t("Clear all your picks from this browser?"))) setPicks({}); }} className="underline decoration-dotted hover:text-ink">{t("Clear my picks")}</button>
-      </p>
+      {mode === "account" ? (
+        <p className="text-xs text-muted">{t("Your picks are saved on your account. Picks lock when fight day begins, so they cannot be changed afterwards.")} <Link href="/leaderboard" className="underline decoration-dotted hover:text-ink">{t("See the leaderboard")}</Link></p>
+      ) : (
+        <p className="text-xs text-muted">
+          {t("Your picks are saved only in this browser; the server sees just the fight numbers when this page loads.")}{" "}
+          <Link href="/account" className="underline decoration-dotted hover:text-ink">{t("Sign in to keep them on every device")}</Link>{" · "}
+          <button onClick={() => { if (window.confirm(t("Clear all your picks from this browser?"))) clearLocal(); }} className="underline decoration-dotted hover:text-ink">{t("Clear my picks")}</button>
+        </p>
+      )}
     </div>
   );
 }

@@ -70,7 +70,7 @@ test("every table has a name, every text input has a label, and every svg is des
     for (const m of s.matchAll(/<input\b(?:=>|[^>])*>/g)) {
       if (/type="hidden"/.test(m[0])) continue;
       const around = s.slice(Math.max(0, m.index! - 300), m.index! + m[0].length + 60);
-      assert.ok(/aria-label|aria-labelledby/.test(m[0]) || /<label\b/.test(around), `${f}: an <input> with no label (${m[0].slice(0, 60)})`);
+      assert.ok(/aria-label|aria-labelledby/.test(m[0]) || /<label\b|<Field\b[^>]*label=/.test(around), `${f}: an <input> with no label (${m[0].slice(0, 60)})`);
     }
     for (const m of s.matchAll(/<svg\b[^>]*>/g)) assert.ok(/aria-hidden|role=|aria-label|\{\.\.\./.test(m[0]), `${f}: an <svg> that is neither described nor hidden`);
   }

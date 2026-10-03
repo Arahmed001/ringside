@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { NAV_GROUPS, NAV_KEY } from "../lib/nav";
+import { NAV_GROUPS, NAV_KEY, OFF_NAV } from "../lib/nav";
 
 const root = process.cwd();
 const read = (p: string) => fs.readFileSync(path.join(root, p), "utf8");
@@ -19,7 +19,7 @@ test("no section with an index page is missing from the navigation", () => {
   const dirs = fs.readdirSync(path.join(root, "app/[locale]"), { withFileTypes: true })
     .filter((d) => d.isDirectory() && !d.name.startsWith("[") && fs.existsSync(path.join(root, "app/[locale]", d.name, "page.tsx"))).map((d) => `/${d.name}`);
   const linked = new Set(items.map((i) => i.href));
-  assert.deepEqual(dirs.filter((d) => !linked.has(d)), [], "add these to lib/nav.ts");
+  assert.deepEqual(dirs.filter((d) => !linked.has(d) && !OFF_NAV.includes(d)), [], "add these to lib/nav.ts");
 });
 
 test("groups, labels and icons are complete, and everything has Arabic", () => {

@@ -12,8 +12,12 @@ export function tempDb(tag: string, now = "2026-10-03") {
   process.env.RINGSIDE_NOW = now;
   const file = path.join(os.tmpdir(), `ringside-test-${tag}-${process.pid}.db`);
   process.env.DATABASE_PATH = file;
-  for (const ext of ["", "-wal", "-shm"]) fs.rmSync(file + ext, { force: true });
-  return () => { for (const ext of ["", "-wal", "-shm"]) fs.rmSync(file + ext, { force: true }); };
+  // accounts live in their own file; give every test its own so none can read (or leave behind) a real one
+  const accounts = file.replace(/\.db$/, "-accounts.db");
+  process.env.ACCOUNTS_DB_PATH = accounts;
+  const files = [file, accounts].flatMap((f) => ["", "-wal", "-shm"].map((e) => f + e));
+  for (const f of files) fs.rmSync(f, { force: true });
+  return () => { for (const f of files) fs.rmSync(f, { force: true }); };
 }
 
 const boxer = (id: string, division = "Lightweight", extra: Partial<ProviderBoxer> = {}): ProviderBoxer => ({

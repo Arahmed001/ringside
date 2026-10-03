@@ -9,10 +9,10 @@ import { tEn, type T } from "./i18n/t";
  * model's pre-fight probability as written down in the ledger (its last snapshot strictly before the event date).
  * The server only ever sees the bout ids, and only for those few fights (never the whole card list).
  */
-export function pickInfos(db: DatabaseSync, w: World, ids: number[], t: T = tEn): PickInfo[] {
+export function pickInfos(db: DatabaseSync, w: World, ids: number[], t: T = tEn, cap = MAX_PICKS): PickInfo[] {
   const last = db.prepare("SELECT p_red FROM prediction_snapshots WHERE bout_id = ? AND locked_on < ? ORDER BY locked_on DESC LIMIT 1");
   const out: PickInfo[] = [];
-  for (const id of new Set(ids.slice(0, MAX_PICKS))) {
+  for (const id of new Set(ids.slice(0, cap))) {
     const b = w.boutById.get(id);
     if (!b) continue;
     const red = w.byId.get(b.redId), blue = w.byId.get(b.blueId);

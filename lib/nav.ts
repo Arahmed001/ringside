@@ -1,7 +1,7 @@
 import { msg } from "./i18n/t";
 
 export type IconName =
-  | "ask" | "rankings" | "titles" | "all-time" | "fighters" | "events" | "previews" | "fight-of-the-year" | "matchups" | "matchmaking" | "picks"
+  | "ask" | "rankings" | "titles" | "all-time" | "fighters" | "events" | "previews" | "fight-of-the-year" | "matchups" | "matchmaking" | "picks" | "leaderboard"
   | "upset-watch" | "trainers" | "corners" | "orgs" | "weigh-ins" | "money" | "accountability" | "analytics" | "style-map" | "data";
 
 export interface NavItem { href: string; label: string; icon: IconName }
@@ -24,6 +24,7 @@ export const NAV_GROUPS: NavGroup[] = [
     { href: "/matchmaking", label: msg("Matchmaking"), icon: "matchmaking" },
     { href: "/upset-watch", label: msg("Upset watch"), icon: "upset-watch" },
     { href: "/picks", label: msg("My picks"), icon: "picks" },
+    { href: "/leaderboard", label: msg("Leaderboard"), icon: "leaderboard" },
   ] },
   { id: "camps", title: msg("Camps and money"), items: [
     { href: "/people", label: msg("Corners"), icon: "corners" },
@@ -42,3 +43,6 @@ export const NAV_GROUPS: NavGroup[] = [
 
 /** localStorage key and the two values `<html data-nav>` takes. With no saved choice the rail follows the screen width (open from 1280 px). */
 export const NAV_KEY = "ringside-nav";
+
+/** Pages that exist but are not sections of the site: reached from the account menu or a link on another page, so they are not in the rail. */
+export const OFF_NAV = ["/account", "/contribute", "/review"];

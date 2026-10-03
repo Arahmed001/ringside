@@ -5,7 +5,7 @@
  * (route list, page inspection) so they are tested without a server; scripts/smoke.ts drives the server.
  */
 import type { World } from "./world";
-import { NAV_GROUPS } from "./nav";
+import { NAV_GROUPS, OFF_NAV } from "./nav";
 import { slugifyDivision } from "./divisions";
 import { LISTS } from "./records";
 import { belts } from "./lineage";
@@ -26,6 +26,7 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   const page = (path: string, label: string) => out.push({ path, kind: "page", label });
   page("/", "home");
   for (const g of NAV_GROUPS) for (const i of g.items) page(i.href, `nav: ${i.label}`);
+  for (const p of OFF_NAV) page(p, `off-nav: ${p}`); // reached from the account menu, not the rail
 
   const boxers = [...w.boxers].sort((a, b) => b.rating - a.rating);
   const star = boxers[0], retired = boxers.find((b) => !b.active && b.bouts > 5 && b !== star), woman = boxers.find((b) => b.sex === "female"), debut = w.boxers.find((b) => b.bouts <= 1);

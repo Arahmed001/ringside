@@ -137,6 +137,9 @@ export interface TeamStint {
   start: string | null;
   end: string | null;
   source: string;
+  /** The page a community edit rests on, and the words it quotes there. */
+  sourceUrl?: string | null;
+  note?: string | null;
 }
 
 export interface WeighIn {

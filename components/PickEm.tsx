@@ -1,17 +1,18 @@
 "use client";
-import { useLocal } from "@/lib/useLocal";
+import { useState } from "react";
+import { usePicks } from "@/lib/usePicks";
+import { explain } from "@/components/accountText";
 import { useT } from "@/components/i18n";
 import Link from "@/components/L";
 
 export interface PickBout { id: number; red: string; blue: string; redId: number; blueId: number; modelPickId: number; modelPct: number; label: string }
-const KEY = "ringside:picks";
-const EMPTY: Record<number, number> = {};
 
-/** Call it before the bell: pick winners, see how often you side with the model. Stored locally. */
+/** Call it before the bell: pick winners, see how often you side with the model. Saved on your account when signed in, in this browser otherwise. */
 export function PickEm({ bouts }: { bouts: PickBout[] }) {
   const t = useT();
-  const [picks, setPicks] = useLocal<Record<number, number>>(KEY, EMPTY);
-  const choose = (bout: number, id: number) => setPicks({ ...picks, [bout]: id });
+  const { picks, choose: save, mode } = usePicks();
+  const [problem, setProblem] = useState("");
+  const choose = async (bout: number, id: number) => { setProblem(""); const e = await save(bout, id); if (e) setProblem(explain(t, e)); };
   const made = bouts.filter((b) => picks[b.id]);
   const agree = made.filter((b) => picks[b.id] === b.modelPickId).length;
   return (
@@ -29,7 +30,7 @@ export function PickEm({ bouts }: { bouts: PickBout[] }) {
             {[{ id: b.redId, n: b.red, c: "#e5322d" }, null, { id: b.blueId, n: b.blue, c: "#4a8cff" }].map((s, i) => s === null ? (
               <span key="vs" className="text-xs uppercase tracking-widest text-muted">{b.label}</span>
             ) : (
-              <button key={s.id} onClick={() => choose(b.id, s.id)} aria-pressed={picks[b.id] === s.id}
+              <button key={s.id} onClick={() => void choose(b.id, s.id)} aria-pressed={picks[b.id] === s.id}
                 className="rounded-xl border px-3 py-2 text-start text-sm transition hover:border-white/30"
                 style={{ borderColor: picks[b.id] === s.id ? s.c : "var(--line)", background: picks[b.id] === s.id ? s.c + "22" : "var(--panel-2)", textAlign: i === 0 ? "left" : "right" }}>
                 <span className="font-semibold">{s.n}</span>
@@ -39,7 +40,14 @@ export function PickEm({ bouts }: { bouts: PickBout[] }) {
           </li>
         ))}
       </ul>
-      <p className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted"><span>{t("✦ marks the model’s pick. Picks are saved in this browser.")}</span><Link href="/picks" className="text-ink underline decoration-dotted hover:text-gold">{t("See how your picks did")}</Link></p>
+      <p role="status" aria-live="polite" className="mt-2 text-xs text-red-ink">{problem}</p>
+      <p className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+        <span>{mode === "account" ? t("✦ marks the model’s pick. Saved to your account; picks lock when fight day begins.") : t("✦ marks the model’s pick. Picks are saved in this browser.")}</span>
+        <span className="flex gap-3">
+          {mode === "local" && <Link href="/account" className="text-ink underline decoration-dotted hover:text-gold">{t("Sign in to keep them")}</Link>}
+          <Link href="/picks" className="text-ink underline decoration-dotted hover:text-gold">{t("See how your picks did")}</Link>
+        </span>
+      </p>
     </div>
   );
 }

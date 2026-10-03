@@ -141,7 +141,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
 
   const stints: TeamStint[] = (db.prepare("SELECT * FROM team_stints ORDER BY start_date, id").all() as Record<string, unknown>[]).map((r) => ({
     id: r.id as number, boxerId: r.boxer_id as number, role: r.role as TeamStint["role"], personId: (r.person_id as number) ?? null, orgId: (r.org_id as number) ?? null,
-    start: (r.start_date as string) ?? null, end: (r.end_date as string) ?? null, source: r.source as string,
+    start: (r.start_date as string) ?? null, end: (r.end_date as string) ?? null, source: r.source as string, sourceUrl: (r.source_url as string) ?? null, note: (r.note as string) ?? null,
   }));
   const stintsByBoxer = new Map<number, TeamStint[]>(), stintsByPerson = new Map<number, TeamStint[]>(), stintsByOrg = new Map<number, TeamStint[]>();
   for (const st of stints) {

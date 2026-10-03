@@ -3,6 +3,7 @@ import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
 import { ingest } from "./ingest";
+import { applyContributions } from "./accounts/contributions";
 
 const DB_PATH = process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db");
 
@@ -129,6 +130,7 @@ const ADDED_COLUMNS: [string, string, string][] = [
   ["events", "promoter_org_id", "INTEGER"], ["events", "broadcaster", "TEXT"], ["events", "attendance", "INTEGER"],
   ["wikidata_boxers", "ibhof_id", "TEXT"], ["wikidata_boxers", "olympedia_id", "TEXT"], ["wikidata_boxers", "awards", "TEXT"], ["wikidata_boxers", "extras_at", "TEXT"],
   ["bouts", "round_time", "TEXT"], ["bouts", "kd_red", "INTEGER"], ["bouts", "kd_blue", "INTEGER"], ["bouts", "odds_red", "REAL"],
+  ["team_stints", "source_url", "TEXT"], ["team_stints", "note", "TEXT"],
   ["bouts", "odds_blue", "REAL"], ["bouts", "contract_lb", "REAL"], ["bouts", "title_org_id", "INTEGER"], ["bouts", "title_vacant", "INTEGER"],
 ];
 
@@ -147,10 +149,18 @@ function addMissingColumns(db: DatabaseSync) {
 export function dbVersion(db: DatabaseSync): string {
   const dv = (db.prepare("PRAGMA data_version").get() as { data_version: number }).data_version;
   const run = (db.prepare("SELECT COALESCE(MAX(id), 0) AS m FROM ingest_runs").get() as { m: number }).m;
-  return `${dv}.${run}`;
+  return `${dv}.${run}.${g.__ringsideBump ?? 0}`;
 }
 
-const g = globalThis as unknown as { __ringsideDb?: DatabaseSync; __ringsideReady?: Promise<void> };
+const g = globalThis as unknown as { __ringsideDb?: DatabaseSync; __ringsideReady?: Promise<void>; __ringsideBump?: number };
+
+/** Our own writes do not move PRAGMA data_version, so code that changes the data on this connection (approving a community edit) calls this to make the cached world rebuild. */
+export const bumpDbVersion = () => { g.__ringsideBump = (g.__ringsideBump ?? 0) + 1; };
+
+/** Replays approved community edits (accounts database) into this database. Never lets a problem with the accounts file stop the site opening. */
+function syncCommunity(db: DatabaseSync) {
+  try { applyContributions(db); } catch (e) { console.error("community edits not applied:", (e as Error).message); }
+}
 
 /** Opens the DB, creating and seeding it from the configured provider on first run. */
 export async function getDb(): Promise<DatabaseSync> {
@@ -164,13 +174,14 @@ export async function getDb(): Promise<DatabaseSync> {
     if (!cols.includes("photo_credit")) db.exec("ALTER TABLE boxers ADD COLUMN photo_credit TEXT");
     addMissingColumns(db);
     syncNamesFromFile(db); // the committed Arabic names (i18n/names.ar.json) into this database
+    syncCommunity(db);
     g.__ringsideDb = db;
   }
   const db = g.__ringsideDb;
   if (!g.__ringsideReady) {
     const count = (db.prepare("SELECT COUNT(*) c FROM boxers").get() as { c: number }).c;
     // RINGSIDE_NO_SEED lets a script (the scale benchmark) load its own data into an empty database instead
-    g.__ringsideReady = count === 0 && !process.env.RINGSIDE_NO_SEED ? ingest(db).then(() => undefined) : Promise.resolve();
+    g.__ringsideReady = count === 0 && !process.env.RINGSIDE_NO_SEED ? ingest(db).then(() => { syncCommunity(db); }) : Promise.resolve();
   }
   try {
     await g.__ringsideReady;

@@ -12,6 +12,7 @@ const PATHS: Record<IconName | "menu" | "close" | "chevron", React.ReactNode> = 
   "fight-of-the-year": <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z" />,
   matchups: <path d="M4 8h13l-3-3M20 16H7l3 3" />,
   matchmaking: <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 8v8M8 12h8" />,
+  leaderboard: <path d="M6 20V11M12 20V4M18 20v-6M3 20h18" />,
   picks: <path d="M9 12l2 2 4-4M5 4h14a1 1 0 0 1 1 1v15l-4-3H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" />,
   corners: <path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2 20c0-3.5 3-6 7-6s7 2.5 7 6M17 5a3 3 0 0 1 0 6M22 20c0-2.5-2-4.5-4.5-5.4" />,
   "upset-watch": <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" />,

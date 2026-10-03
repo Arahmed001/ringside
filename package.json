@@ -23,7 +23,8 @@
     "i18n:names": "tsx scripts/i18n-names.ts",
     "data:ingest": "tsx scripts/ingest.ts",
     "research": "tsx scripts/research.ts",
-    "i18n:review": "tsx scripts/i18n-review.ts"
+    "i18n:review": "tsx scripts/i18n-review.ts",
+    "accounts": "tsx scripts/accounts.ts"
   },
   "dependencies": {
     "next": "^16.3.8",

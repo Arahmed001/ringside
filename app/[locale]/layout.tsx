@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { I18nProvider } from "@/components/i18n";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
 import { CommandPalette } from "@/components/CommandPalette";
+import { AccountMenu } from "@/components/AccountMenu";
 import { dirOf, isLocale, localePath } from "@/lib/i18n/config";
 import { clientDict, tFor } from "@/lib/i18n/dicts";
 import { abs, indexable, jsonLd, siteUrl } from "@/lib/seo";
@@ -64,15 +65,16 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
             </aside>
             <div className="min-w-0 flex-1">
               <header className="sticky top-0 z-20 border-b border-line/70 bg-bg/75 backdrop-blur-xl">
-                <div className="mx-auto flex max-w-7xl items-center gap-3 px-5 py-3">
+                <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-3 sm:gap-3 sm:px-5">
                   <MobileMenu logo={<Logo />}><NavGroups /></MobileMenu>
                   <div className="lg:hidden"><Logo /></div>
-                  <div className="ms-auto flex items-center gap-3">
+                  <div className="ms-auto flex items-center gap-2 sm:gap-3">
                     <form action={localePath(locale, "/boxers")} className="hidden w-72 lg:block" role="search">
                       <input name="q" aria-label={t("Search fighters")} placeholder={t("Ask anything… “southpaw welterweights with 10+ KOs”")} className="w-full rounded-xl border border-line bg-panel px-4 py-2 text-sm outline-none transition placeholder:text-muted focus:border-gold/60" />
                     </form>
                     <CommandPalette />
                     <LanguageSwitch />
+                    <AccountMenu />
                   </div>
                 </div>
               </header>

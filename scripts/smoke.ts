@@ -24,6 +24,8 @@ async function main() {
   const db = path.join(os.tmpdir(), `ringside-smoke-${process.pid}.db`);
   for (const ext of ["", "-wal", "-shm"]) fs.rmSync(db + ext, { force: true });
   process.env.DATABASE_PATH = db;
+  const accounts = db.replace(/\.db$/, "-accounts.db"); // never touch a real accounts file
+  process.env.ACCOUNTS_DB_PATH = accounts;
   process.env.RINGSIDE_NOW = "2026-10-03";
 
   // seed and read the league in this process, then let the server open the same file
@@ -40,7 +42,7 @@ async function main() {
   });
   server.stdout.on("data", (d) => log.push(String(d)));
   server.stderr.on("data", (d) => log.push(String(d)));
-  const stop = () => { try { server.kill("SIGTERM"); } catch { /* already gone */ } for (const ext of ["", "-wal", "-shm"]) fs.rmSync(db + ext, { force: true }); };
+  const stop = () => { try { server.kill("SIGTERM"); } catch { /* already gone */ } for (const f of [db, accounts]) for (const ext of ["", "-wal", "-shm"]) fs.rmSync(f + ext, { force: true }); };
   process.on("exit", stop);
 
   let ready = false;

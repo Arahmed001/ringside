@@ -22,6 +22,12 @@ export interface FetcherOptions {
   sleep?: (ms: number) => Promise<void>;
   now?: () => number;
   maxBytes?: number;
+  /**
+   * For addresses someone else typed in (not a researcher's own list): follow redirects only within the same site, at most 3, each hop checked,
+   * and ask `hostCheck` about the host (and every hop) before touching it. Returns a reason to refuse, or null.
+   */
+  strictRedirects?: boolean;
+  hostCheck?: (host: string) => Promise<string | null>;
 }
 
 interface Robots { allow: string[]; disallow: string[]; crawlDelay?: number }
@@ -60,10 +66,10 @@ const privateHost = (h: string) => /^(localhost|.*\.local|.*\.internal)$/.test(h
 export class PoliteFetcher {
   private robots = new Map<string, Robots>();
   private last = new Map<string, number>();
-  private o: Required<Omit<FetcherOptions, "cacheDir" | "fetchImpl">> & Pick<FetcherOptions, "cacheDir" | "fetchImpl">;
+  private o: Required<Omit<FetcherOptions, "cacheDir" | "fetchImpl" | "hostCheck">> & Pick<FetcherOptions, "cacheDir" | "fetchImpl" | "hostCheck">;
   constructor(opts: FetcherOptions) {
     if (!opts.contact || !/@|^https?:\/\//.test(opts.contact)) throw new Error("PoliteFetcher needs a contact (an email address or URL) for its User-Agent; set RESEARCH_CONTACT.");
-    this.o = { delayMs: 3000, cacheTtlMs: 14 * 86400_000, extraBlocked: [], sleep: (ms) => new Promise((r) => setTimeout(r, ms)), now: () => Date.now(), maxBytes: 2_000_000, ...opts };
+    this.o = { delayMs: 3000, cacheTtlMs: 14 * 86400_000, extraBlocked: [], sleep: (ms) => new Promise((r) => setTimeout(r, ms)), now: () => Date.now(), maxBytes: 2_000_000, strictRedirects: false, ...opts };
   }
   get userAgent() { return `RingsideResearch/0.1 (+${this.o.contact})`; }
 
@@ -88,6 +94,7 @@ export class PoliteFetcher {
       const c = JSON.parse(fs.readFileSync(cp, "utf8")) as { at: number; status: number; text: string };
       if (this.o.now() - c.at < this.o.cacheTtlMs) return { ok: true, url: rawUrl, text: c.text, fromCache: true, status: c.status };
     }
+    if (this.o.hostCheck) { const why = await this.o.hostCheck(u.hostname); if (why) return { ok: false, url: rawUrl, reason: "bad-url", detail: why }; }
     const f = this.o.fetchImpl ?? fetch;
     const headers = { "user-agent": this.userAgent, accept: "text/html,text/plain;q=0.9" };
 
@@ -105,8 +112,22 @@ export class PoliteFetcher {
 
     await this.wait(host, (rules.crawlDelay ?? 0) * 1000);
     let res: Response;
-    try { res = await f(rawUrl, { headers, redirect: "follow", signal: AbortSignal.timeout(20000) }); }
-    catch (e) { return { ok: false, url: rawUrl, reason: "network", detail: (e as Error).message }; }
+    try {
+      if (!this.o.strictRedirects) res = await f(rawUrl, { headers, redirect: "follow", signal: AbortSignal.timeout(20000) });
+      else {
+        let at = rawUrl;
+        for (let hop = 0; ; hop++) {
+          res = await f(at, { headers, redirect: "manual", signal: AbortSignal.timeout(20000) });
+          const loc = res.status >= 300 && res.status < 400 ? res.headers.get("location") : null;
+          if (!loc) break;
+          let next: URL;
+          try { next = new URL(loc, at); } catch { return { ok: false, url: rawUrl, reason: "bad-url", detail: "a redirect to something that is not a URL" }; }
+          if (hop >= 3 || !/^https?:$/.test(next.protocol) || hostOf(next.href) !== host || privateHost(next.hostname)) return { ok: false, url: rawUrl, reason: "blocked", detail: "the page redirects somewhere other than the same site (not followed)" };
+          if (this.o.hostCheck) { const why = await this.o.hostCheck(next.hostname); if (why) return { ok: false, url: rawUrl, reason: "bad-url", detail: why }; }
+          at = next.href;
+        }
+      }
+    } catch (e) { return { ok: false, url: rawUrl, reason: "network", detail: (e as Error).message }; }
     if ([401, 403, 429, 451].includes(res.status)) return { ok: false, url: rawUrl, reason: "blocked", detail: `HTTP ${res.status}: the site refused automated access (not retried, not worked around)` };
     if (!res.ok) return { ok: false, url: rawUrl, reason: "http", detail: `HTTP ${res.status}` };
     const type = res.headers.get("content-type") ?? "";

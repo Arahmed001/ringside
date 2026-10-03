@@ -22,7 +22,7 @@ const SOURCES: Source[] = [
   { name: msg("Athletic commission results"), supplies: msg("Official and pre-fight weights, officials, purses (US states such as Nevada)"), licence: msg("Public records"), status: "planned", note: msg("Automated requests to the Nevada site are blocked, so files must be downloaded manually. A parser is not built.") },
   { name: msg("BoxRec"), supplies: msg("The most complete records, trainers and weigh-ins in boxing"), licence: msg("Scraping prohibited by its terms"), status: "blocked", note: msg("Not used. Data is licensed to partners; an enquiry is the only legitimate route. Only the numeric ID is stored, as a cross-reference.") },
   { name: msg("CompuBox"), supplies: msg("Punch statistics"), licence: msg("Paid"), status: "planned", note: msg("The schema and charts are ready; needs a licence.") },
-  { name: msg("Editors"), supplies: msg("Corrections and trainer/manager history with sources"), licence: msg("Contributor terms"), status: "planned", note: msg("Every row already carries a source field to make this auditable.") },
+  { name: msg("Editors"), supplies: msg("Corrections and trainer/manager history with sources"), licence: msg("Contributor terms"), status: "built", note: msg("Anyone signed in can suggest an edit with a source; an editor checks it first. Approved edits are marked as community edits with their link.") },
 ];
 const STATUS_STYLE: Record<Source["status"], string> = { built: "!border-win/40 !text-win", partly: "!border-gold/40 !text-gold", planned: "", blocked: "!border-red/40 !text-red-ink" };
 const SEVERITY: Record<string, string> = { error: msg("error"), warning: msg("warning"), info: msg("info") };

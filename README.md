@@ -33,6 +33,8 @@ English at `/`, Arabic at `/ar`. UI text is keyed by its English sentence (`i18n
 The Arabic is machine-written. `npm run i18n:review -- export` builds an offline sheet a native speaker can edit, approve and flag in; `-- import` applies the file they send back, and nothing counts as reviewed until it does. The data page shows how much has been checked. See `docs/arabic-review.md`.
 
 ## Ask the data
+`/account` has sign-in (a name and a password, no email), and a signed-in visitor's pick'em picks are kept on the account, lock when fight day begins and feed `/leaderboard` (one published scoring rule, the model on the same fights as the bar to beat). Anyone signed in can suggest a trainer or manager for a fighter at `/contribute`, with a source link and the quoted words; editors approve them in `/review`, and an approved edit appears marked as a community edit with its link. The accounts live in their own SQLite file next to the database; `docs/accounts.md` has the design, the limits and `npm run accounts` for operators.
+
 `/ask` answers plain-English or Arabic questions (who has the most knockouts among women, compare two fighters, longest title reigns at welterweight ...) from the database, with the tables behind every answer. It works without an AI key, using patterns; with `ANTHROPIC_API_KEY` set, Claude picks the queries and writes the answer, but only from the query results, and any number it invents is thrown away. Model calls are limited per visitor and per day (`AI_*` settings).
 
 ## Upset watch and trainer impact
