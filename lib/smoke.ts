@@ -126,6 +126,12 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
   if (!new RegExp(`<html[^>]*lang="${locale}"`).test(body)) bad.push(`<html lang> is not "${locale}"`);
   if (!new RegExp(`<html[^>]*dir="${dir}"`).test(body)) bad.push(`<html dir> is not "${dir}"`);
   if (!/<h1[\s>]/i.test(body)) bad.push("no <h1>");
+  if (route.label === "home") {
+    // the home page's two commitments: one heading (the next fight, or the brand line between seasons) and a question box that goes to /ask
+    if ((body.match(/<h1[\s>]/gi) ?? []).length !== 1) bad.push("the home page should have exactly one <h1>");
+    if (!/<h2[^>]*\sid="ask"/.test(body)) bad.push("the home page has no ask-the-data section");
+    if (!new RegExp(`<form[^>]*\\saction="${locale === "ar" ? "/ar" : ""}/ask"`).test(body)) bad.push("the home page's question box does not go to /ask");
+  }
   const text = visibleText(body);
   const slips: [RegExp, string][] = [
     [/\bundefined\b/, "the word 'undefined'"], [/\bNaN\b/, "NaN"], [/\[object Object\]/, "[object Object]"], [/(?<![A-Za-z])-?Infinity\b/, "Infinity"],

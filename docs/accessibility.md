@@ -74,3 +74,6 @@ Round 26: text that is English by nature on the Arabic site (a data source's nam
 ## Round 29: On this day
 `/on-this-day` in both languages: today, a crowded day, an empty day and 29 February at 375 px: axe-core 4.13 reported 0 violations on all eight and nothing overflowed. The left rail still scrolls with the extra item at 640 px high and marks the page `aria-current`. The previous and next day links carry a visually hidden "Previous day:" / "Next day:" so the date alone is not the whole link text out of context. Not tested: a screen reader, and text spacing (1.4.12) on this page.
 
+## Round 30: the combined home page
+`/` in both languages at 375 px: axe-core 4.13 reported 0 violations, nothing overflowed at 375 or 320 px, and there is exactly one `h1` (the matchup, or the brand line when no fight is booked). "Ask the data" is a labelled section (`aria-labelledby`) with the question box labelled by name; the hero's three-line `h1` ("Morishita / VS / Hartmann") reads as one heading. Not tested: a screen reader, text spacing (1.4.12) on the new layout, and the desktop Arabic layout beyond a look.
+

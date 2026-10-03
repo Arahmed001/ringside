@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
 import { overview, biggestUpsets } from "@/lib/analytics";
@@ -10,31 +11,26 @@ import { Poster } from "@/components/Poster";
 import { Headshot } from "@/components/Portrait";
 import { ProbBar } from "@/components/charts";
 import { PickEm } from "@/components/PickEm";
+import { AskResults } from "@/components/AskResults";
+import { askData } from "@/lib/ask";
+import { exampleQuestions } from "@/lib/ask/examples";
+import { clientId } from "@/lib/ai-guard";
+import { getNames } from "@/lib/i18n/names";
 import { WatchlistStrip } from "@/components/Watch";
 import { BoxerCard, SectionTitle } from "@/components/ui";
 import { ScoreBadge } from "@/components/Awards";
 import { WatchCard } from "@/components/WatchCard";
 import { upsetWatch } from "@/lib/upsets";
 import { featuredYear, fightsOfYear, resultLine } from "@/lib/fight-score";
-import { daysUntil, fmtDate, flag, methodLabel } from "@/lib/format";
-import { recordStr } from "@/lib/world";
+import { daysUntil, fmtDate, methodLabel } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
 import { localePath } from "@/lib/i18n/config";
-import { msg } from "@/lib/i18n/t";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({ path: "/", title: t("Boxing ratings, rankings and predictions"), description: t("Every fighter, every fight, every number. Ratings, rankings, predictions and AI scouting for professional boxing.") }));
 
 /** Posters shown in the "Coming up" strip; the full calendar is one click away. */
 const STRIP = 12;
-
-const EXAMPLES = [
-  msg("knockout artists with 15+ KOs"),
-  msg("technicians with 20+ wins"),
-  msg("young heavyweights with reach over 190"),
-  msg("Japanese lightweights"),
-  msg("undefeated fighters"),
-];
 
 export default async function Home() {
   const t = await getT();
@@ -59,72 +55,79 @@ export default async function Home() {
     return { id: b.id, red: t.name(r.name), blue: t.name(u.name), redId: r.id, blueId: u.id, modelPickId: redFav ? r.id : u.id, modelPct: Math.round(Math.max(pr.pA, pr.pB) * 100), label: t.locale === "en" ? `${r.sex === "female" ? "W " : ""}${b.weightClass.replace("weight", "")}` : divisionLabel(b.weightClass, r.sex, t) };
   });
 
+  const surname = (n: string) => t.name(n).split(" ").slice(-1)[0];
+  // the live answer under the question box: the first example question, answered from the database (cached per language and day; hidden when the league cannot answer it)
+  const examples = exampleQuestions(w, t);
+  const answer = await askData(examples[0], { w, t, names: await getNames(t.locale) }, clientId(await headers()));
+
   return (
     <div className="space-y-16 overflow-x-clip">
-      {/* Hero */}
-      <section className={`rise grid items-center gap-10 ${next ? "lg:grid-cols-[1.15fr_.85fr]" : ""}`}>
-        <div>
-          <div className="eyebrow mb-3">{t("Boxing intelligence · {fighters} fighters · {bouts} bouts", { fighters: o.boxers, bouts: o.bouts.toLocaleString("en-US") })}</div>
-          <h1 className="font-display text-6xl font-extrabold uppercase leading-[.92] sm:text-8xl">{t("Every fighter.")}<br /><span className="text-red-ink">{t("Every number.")}</span></h1>
-          <p className="mt-5 max-w-xl text-lg text-muted">{t("Ratings, rankings, win-probabilities and AI scouting for the whole sport, in one place. Ask in plain English.")}</p>
-          <form action={localePath(t.locale, "/boxers")} className="mt-7 flex max-w-xl gap-2">
-            <input name="q" aria-label={t("Search fighters")} placeholder={t("Try: {example}", { example: t(EXAMPLES[0]) })} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-5 py-3.5 outline-none transition placeholder:text-muted focus:border-gold/60" />
-            <button className="rounded-2xl bg-red-btn px-6 text-white font-display text-lg font-bold uppercase tracking-wide transition hover:brightness-90">{t("Ask")}</button>
-          </form>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {EXAMPLES.map((q) => <Link key={q} href={`/boxers?q=${encodeURIComponent(q)}`} className="chip transition hover:text-ink">{t(q)}</Link>)}
+      {/* Hero: the next fight is the page (direction A) */}
+      {next && p ? (
+        <section className="rise grid items-end gap-10 lg:grid-cols-[minmax(0,27rem)_1fr]">
+          <div className="relative mx-auto w-full max-w-md">
+            <div className="absolute -inset-8 -z-10 rounded-[2rem] bg-red/25 blur-3xl live" />
+            <Link href={`/events/${next.event.id}`} className="block transition hover:scale-[1.015]"><Poster event={next.event} main={next.main} red={next.red} blue={next.blue} /></Link>
           </div>
-          {!next && <p className="mt-6 max-w-xl rounded-xl border border-line bg-panel px-4 py-3 text-sm text-muted">{t("No upcoming fights are scheduled yet.")}</p>}
-          <p className="mt-3 text-sm text-muted">{t("Want an answer rather than a list?")} <Link href="/ask" className="text-ink underline decoration-dotted hover:text-gold">{t("Ask the data")}</Link></p>
+          <div>
+            <div className="eyebrow mb-3">{t.n(daysUntil(next.event.date), "In {n} day", "In {n} days")} · {fmtDate(next.event.date, undefined, t.locale)} · {t.name(next.event.venue)}</div>
+            <h1 className={`font-display font-extrabold uppercase ${t.locale === "ar" ? "text-6xl leading-[1.25] sm:text-8xl" : "text-7xl leading-[.9] sm:text-9xl"}`}>
+              <span>{surname(next.red.name)}</span><br /><span className="text-2xl font-bold text-gold sm:text-4xl">{t("VS")}</span><br /><span className="text-red-ink">{surname(next.blue.name)}</span>
+            </h1>
+            <p className="mt-5 max-w-xl text-lg text-muted">{t("{a} vs {b}", { a: t.name(next.red.name), b: t.name(next.blue.name) })} · {next.main.title ? t.name(next.main.title) : divisionLabel(next.main.weightClass, next.red.sex, t)}</p>
+            <div className="mt-6 max-w-xl"><ProbBar a={t.name(next.red.name)} b={t.name(next.blue.name)} pA={p.pA} pB={p.pB} pDraw={p.pDraw} /></div>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">
+              <span className="chip !border-gold/40 !text-gold">✦ {t(p.confidence)}</span>
+              <span className="chip">{p.koProb > 0.5 ? t("Stoppage likely · {pct}% KO/TKO", { pct: Math.round(p.koProb * 100) }) : t("Distance likely · {pct}% KO/TKO", { pct: Math.round(p.koProb * 100) })}</span>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Link href={`/previews/${next.main.id}`} className="rounded-xl bg-red-btn px-5 py-2.5 font-display text-lg font-bold uppercase text-white transition hover:brightness-90">{t("Read the preview")}</Link>
+              <Link href={`/compare?a=${next.red.slug}&b=${next.blue.slug}`} className="rounded-xl border border-line bg-panel2 px-5 py-2.5 font-display text-lg font-bold uppercase transition hover:border-white/30">{t("Full matchup breakdown")}</Link>
+            </div>
+          </div>
+        </section>
+      ) : (
+        <section className="rise">
+          <h1 className="font-display text-6xl font-extrabold uppercase leading-[.92] sm:text-8xl">{t("Every fighter.")}<br /><span className="text-red-ink">{t("Every number.")}</span></h1>
+          <p className="mt-6 max-w-xl rounded-xl border border-line bg-panel px-4 py-3 text-sm text-muted">{t("No upcoming fights are scheduled yet.")}</p>
+        </section>
+      )}
+
+      {/* The question box is the product, with a real answer under it (direction C) */}
+      <section aria-labelledby="ask" className="max-w-3xl">
+        <div className="eyebrow mb-2">{t("Boxing intelligence · {fighters} fighters · {bouts} bouts", { fighters: o.boxers, bouts: o.bouts.toLocaleString("en-US") })}</div>
+        <h2 id="ask" className="font-display text-5xl font-extrabold uppercase leading-[.95] sm:text-6xl">{t("Ask the data")}<span className="text-red-ink">.</span></h2>
+        <p className="mt-3 max-w-2xl text-lg text-muted">{t("Ratings, rankings, win-probabilities and AI scouting for the whole sport, in one place. Ask in plain English.")}</p>
+        <form action={localePath(t.locale, "/ask")} className="mt-6 flex gap-2">
+          <input name="q" aria-label={t("Ask the data")} placeholder={t("Who has the most knockouts among women?")} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-6 py-5 text-lg outline-none transition placeholder:text-muted focus:border-gold/60" />
+          <button className="rounded-2xl bg-red-btn px-9 font-display text-2xl font-bold uppercase tracking-wide text-white transition hover:brightness-90">{t("Ask")}</button>
+        </form>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {examples.slice(0, 5).map((e) => <Link key={e} href={`/ask?q=${encodeURIComponent(e)}`} className="chip transition hover:text-ink">{e}</Link>)}
         </div>
-        {next && (
-        <div className="relative mx-auto w-full max-w-sm">
-          <div className="absolute -inset-6 -z-10 rounded-[2rem] bg-red/20 blur-3xl live" />
-          <Link href={`/events/${next.event.id}`} className="block transition hover:scale-[1.015]">
-            <Poster event={next.event} main={next.main} red={next.red} blue={next.blue} />
-          </Link>
-        </div>
+        {answer?.understood && (
+          <div className="mt-8">
+            <div className="eyebrow mb-2">{t("Try: {example}", { example: examples[0] })}</div>
+            <AskResults a={answer} compact={{ rows: 5 }} />
+          </div>
         )}
       </section>
 
-      {next && p && (
-      <section>
-        <SectionTitle eyebrow={t.n(daysUntil(next.event.date), "In {n} day", "In {n} days")} title={t("Next main event")} href={`/events/${next.event.id}`} cta={t("Full card")} />
-        <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-          <div className="card p-6">
-            <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4">
-              {[next.red, next.blue].map((b, i) => (
-                <Link key={b.id} href={`/boxers/${b.slug}`} className={`flex flex-col items-center gap-2 text-center ${i === 1 ? "order-3" : ""}`}>
-                  <Headshot boxer={b} size={104} />
-                  <div className="font-display text-2xl font-bold leading-tight">{t.name(b.name)}</div>
-                  <div className="text-xs text-muted">{flag(b.country)} {t("{record} · {n} KO · Elo {elo}", { record: recordStr(b), n: b.kos, elo: Math.round(b.rating) })}</div>
-                </Link>
-              ))}
-              <div className="order-2 text-center font-display text-3xl font-extrabold text-gold">{t("VS")}</div>
-            </div>
-            <div className="mt-6"><ProbBar a={t.name(next.red.name)} b={t.name(next.blue.name)} pA={p.pA} pB={p.pB} pDraw={p.pDraw} /></div>
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted">
-              <span className="chip !border-gold/40 !text-gold">✦ {t(p.confidence)}</span>
-              <span className="chip">{p.koProb > 0.5 ? t("Stoppage likely · {pct}% KO/TKO", { pct: Math.round(p.koProb * 100) }) : t("Distance likely · {pct}% KO/TKO", { pct: Math.round(p.koProb * 100) })}</span>
-              <Link href={`/previews/${next.main.id}`} className="chip !border-gold/40 hover:!text-gold">{t("Read the preview")}</Link>
-              <Link href={`/compare?a=${next.red.slug}&b=${next.blue.slug}`} className="ms-auto inline-block py-1 text-ink hover:text-gold">{t("Full matchup breakdown")} <span className="inline-block rtl:rotate-180">→</span></Link>
-            </div>
+      {next && (
+      <section className={`grid gap-5 ${ups.length > 1 ? "lg:grid-cols-[1.4fr_1fr]" : "max-w-xl"}`}>
+        {ups.length > 1 && (
+        <div>
+          <SectionTitle eyebrow={t("Fight calendar")} title={t("Coming up")} href="/events" cta={upcoming.length > STRIP + 1 ? t.n(upcoming.length, "All {n} upcoming card", "All {n} upcoming cards") : undefined} />
+          <div className="-mx-5 flex gap-4 overflow-x-auto px-5 pb-3">
+            {ups.slice(1).map((e) => (
+              <Link key={e.event.id} href={`/events/${e.event.id}`} className="card-hover w-44 shrink-0">
+                <Poster event={e.event} main={e.main} red={e.red} blue={e.blue} />
+              </Link>
+            ))}
           </div>
-          <PickEm bouts={pickBouts} />
         </div>
-      </section>
-      )}
-
-      {ups.length > 1 && (
-      <section>
-        <SectionTitle eyebrow={t("Fight calendar")} title={t("Coming up")} href="/events" cta={upcoming.length > STRIP + 1 ? t.n(upcoming.length, "All {n} upcoming card", "All {n} upcoming cards") : undefined} />
-        <div className="-mx-5 flex gap-4 overflow-x-auto px-5 pb-3">
-          {ups.slice(1).map((e) => (
-            <Link key={e.event.id} href={`/events/${e.event.id}`} className="card-hover w-52 shrink-0">
-              <Poster event={e.event} main={e.main} red={e.red} blue={e.blue} />
-            </Link>
-          ))}
-        </div>
+        )}
+        <PickEm bouts={pickBouts} />
       </section>
       )}
 

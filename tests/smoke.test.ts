@@ -32,6 +32,18 @@ test("each rendering slip is caught: undefined, NaN, [object Object], Infinity, 
   for (const ok of ["<p>An undefeated champion</p>", "<p>Nan Okafor lost</p>", "<p>Rated 1,500 (null of ...)</p>".replace("null of", "one of")]) assert.deepEqual(bad(html(ok)), [], ok);
 });
 
+test("the home page must keep one heading and a question box that goes to /ask, in either language", () => {
+  const home: SmokeRoute = { path: "/", kind: "page", label: "home" };
+  const good = (lang: "en" | "ar") => html(`<h2 id="ask">Ask</h2><form class="x" action="${lang === "ar" ? "/ar" : ""}/ask"><input name="q"></form>`, lang, lang === "ar" ? "rtl" : "ltr").replace("<h1>Title</h1>", "<h1>One</h1>");
+  assert.deepEqual(bad(good("en"), "en", 200, "text/html", home), []);
+  assert.deepEqual(bad(good("ar"), "ar", 200, "text/html", home), []);
+  assert.ok(bad(good("en").replace("<h1>One</h1>", "<h1>One</h1><h1>Two</h1>"), "en", 200, "text/html", home).some((m) => /exactly one/.test(m)), "two headings");
+  assert.ok(bad(good("en").replace('id="ask"', 'id="other"'), "en", 200, "text/html", home).some((m) => /ask-the-data section/.test(m)), "no ask section");
+  assert.ok(bad(good("en").replace('action="/ask"', 'action="/boxers"'), "en", 200, "text/html", home).some((m) => /does not go to \/ask/.test(m)), "the old search form");
+  assert.ok(bad(good("ar").replace('action="/ar/ask"', 'action="/ask"'), "ar", 200, "text/html", home).some((m) => /does not go to/.test(m)), "an Arabic page whose form drops the /ar prefix");
+  assert.deepEqual(bad(good("en").replace('id="ask"', 'id="other"'), "en", 200, "text/html", page), [], "other pages are not held to this");
+});
+
 test("language, direction, heading, status and content type are all enforced", () => {
   assert.ok(bad(html("<p>x</p>", "en", "ltr"), "ar").some((m) => /lang/.test(m)), "an English page served for an Arabic URL");
   assert.ok(bad(html("<p>x</p>", "ar", "ltr"), "ar").some((m) => /dir/.test(m)), "Arabic that is not right-to-left");

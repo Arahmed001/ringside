@@ -99,6 +99,7 @@
    "app/[locale]/design/home/page.tsx",
    "app/[locale]/events/[id]/opengraph-image.tsx",
    "app/[locale]/money/page.tsx",
+   "app/[locale]/page.tsx",
    "app/[locale]/previews/[id]/opengraph-image.tsx",
    "components/LiveLedger.tsx",
    "components/MyPicks.tsx",
@@ -1240,12 +1241,6 @@
   "key": "{record} · {country}",
   "files": [
    "components/Poster.tsx"
-  ]
- },
- {
-  "key": "{record} · {n} KO · Elo {elo}",
-  "files": [
-   "app/[locale]/page.tsx"
   ]
  },
  {
@@ -4824,7 +4819,6 @@
  {
   "key": "Full card",
   "files": [
-   "app/[locale]/page.tsx",
    "app/[locale]/previews/[id]/page.tsx",
    "app/[locale]/previews/page.tsx"
   ]
@@ -5387,12 +5381,6 @@
   ]
  },
  {
-  "key": "Japanese lightweights",
-  "files": [
-   "app/[locale]/page.tsx"
-  ]
- },
- {
   "key": "Journeyman",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -5447,12 +5435,6 @@
   "key": "Knockout Artist",
   "files": [
    "lib/i18n/dynamic-keys.ts"
-  ]
- },
- {
-  "key": "knockout artists with 15+ KOs",
-  "files": [
-   "app/[locale]/page.tsx"
   ]
  },
  {
@@ -6466,8 +6448,7 @@
  {
   "key": "Next main event",
   "files": [
-   "app/[locale]/design/home/page.tsx",
-   "app/[locale]/page.tsx"
+   "app/[locale]/design/home/page.tsx"
   ]
  },
  {
@@ -8352,8 +8333,7 @@
   "key": "Search fighters",
   "files": [
    "app/[locale]/boxers/page.tsx",
-   "app/[locale]/layout.tsx",
-   "app/[locale]/page.tsx"
+   "app/[locale]/layout.tsx"
   ]
  },
  {
@@ -8385,6 +8365,12 @@
   "key": "See how your picks did",
   "files": [
    "components/PickEm.tsx"
+  ]
+ },
+ {
+  "key": "See the full answer and how it was worked out",
+  "files": [
+   "components/AskResults.tsx"
   ]
  },
  {
@@ -8505,6 +8491,7 @@
  {
   "key": "Showing {n} of {total}.",
   "files": [
+   "components/AskResults.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -9130,12 +9117,6 @@
   "key": "Technician",
   "files": [
    "lib/i18n/dynamic-keys.ts"
-  ]
- },
- {
-  "key": "technicians with 20+ wins",
-  "files": [
-   "app/[locale]/page.tsx"
   ]
  },
  {
@@ -10181,12 +10162,6 @@
   ]
  },
  {
-  "key": "undefeated fighters",
-  "files": [
-   "app/[locale]/page.tsx"
-  ]
- },
- {
   "key": "under {n}%",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
@@ -10488,12 +10463,6 @@
   ]
  },
  {
-  "key": "Want an answer rather than a list?",
-  "files": [
-   "app/[locale]/page.tsx"
-  ]
- },
- {
   "key": "warning",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -10772,6 +10741,7 @@
   "key": "Who has the most knockouts among women?",
   "files": [
    "app/[locale]/design/home/page.tsx",
+   "app/[locale]/page.tsx",
    "lib/ask/examples.ts"
   ]
  },
@@ -11225,12 +11195,6 @@
   "files": [
    "components/MyPicks.tsx",
    "components/PickStanding.tsx"
-  ]
- },
- {
-  "key": "young heavyweights with reach over 190",
-  "files": [
-   "app/[locale]/page.tsx"
   ]
  },
  {
