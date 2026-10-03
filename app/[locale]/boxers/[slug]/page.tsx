@@ -3,6 +3,7 @@ import { localePath } from "@/lib/i18n/config";
 import { abs } from "@/lib/seo";
 import { JsonLd } from "@/components/JsonLd";
 import { CareerMoneyCard } from "@/components/Money";
+import { TitlesCard, NextFightCard } from "@/components/TitlesCard";
 import { notFound } from "next/navigation";
 import { getWorld, recordStr } from "@/lib/world";
 import { rankOf } from "@/lib/rankings";
@@ -182,6 +183,8 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
           <WeightChart points={wHist} />
         </section>
       )}
+
+      <section className="grid gap-5 lg:grid-cols-2"><TitlesCard w={w} boxer={b} /><NextFightCard w={w} boxer={b} /></section>
 
       <CareerMoneyCard w={w} boxer={b} />
 

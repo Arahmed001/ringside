@@ -162,11 +162,14 @@ test("ingestMoney adds figures to an existing database, replaces per source, and
   assert.equal(money.eventMoney(w2, (db.prepare("SELECT id FROM events WHERE external_id = ?").get(row.event) as { id: number }).id).rows.length >= 2, true);
 });
 
-test("the demo league itself is byte-identical with money added (money has its own random stream)", async () => {
+test("the demo league itself is untouched by money and belts: only title labels differ from the original league", async () => {
   const { demoProvider } = await import("../lib/providers/demo");
   const p = demoProvider(new Date("2026-10-03"));
   const h = crypto.createHash("sha1");
-  for (const k of ["fetchBoxers", "fetchEvents", "fetchBouts", "fetchPeople", "fetchOrgs", "fetchStints", "fetchWeighIns", "fetchOfficials", "fetchScorecards", "fetchCorners", "fetchPunchStats"] as const)
-    h.update(JSON.stringify(await (p[k] as () => Promise<unknown>)()));
-  assert.equal(h.digest("hex"), "a756f32cb042b1b216235aee10c1806e642b9dcf");
+  for (const k of ["fetchBoxers", "fetchEvents", "fetchBouts", "fetchPeople", "fetchOrgs", "fetchStints", "fetchWeighIns", "fetchOfficials", "fetchScorecards", "fetchCorners", "fetchPunchStats"] as const) {
+    let rows = (await (p[k] as () => Promise<unknown[]>)()) as Record<string, unknown>[];
+    if (k === "fetchBouts") rows = rows.map((b) => ({ ...b, title: null, titleOrgExternalId: undefined, titleVacant: undefined })); // belts are applied by their own pass, after every result exists; this hash is what the generator before the belts pass produced with its titles removed
+    h.update(JSON.stringify(rows));
+  }
+  assert.equal(h.digest("hex"), "e8bd955d216fb2d852a7bb9308ef820867c13f76");
 });

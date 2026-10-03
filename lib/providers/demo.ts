@@ -1,5 +1,6 @@
 import { mulberry32 } from "../prng";
 import { demoMoney } from "./demo-money";
+import { applyDemoBelts } from "./demo-belts";
 import { WEIGHT_CLASSES } from "../types";
 import type { Method } from "../types";
 import { DIVISIONS } from "../divisions";
@@ -579,6 +580,9 @@ export function demoProvider(now = new Date(), opts: DemoOptions = {}): DataProv
     finalizeEvent(evExt, cards[cards.length - 1], t);
   }
   void simBy;
+
+  // belts come from their own random stream, once every result exists; they relabel title fights and never touch a result
+  applyDemoBelts(events, bouts, boxers, now);
 
   // money comes from its own random stream, after everything else, so the league itself is unchanged by it
   let money: ReturnType<typeof demoMoney> | undefined;

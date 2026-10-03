@@ -44,7 +44,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
   const t = tFor(locale);
   const ar = locale === "ar";
   const NAV = [
-    ["/rankings", t("Rankings")], ["/boxers", t("Fighters")], ["/events", t("Events")], ["/compare", t("Matchups")], ["/people", t("Corners")],
+    ["/rankings", t("Rankings")], ["/titles", t("Titles")], ["/boxers", t("Fighters")], ["/events", t("Events")], ["/compare", t("Matchups")], ["/people", t("Corners")],
     ["/weights", t("Weigh-ins")], ["/money", t("Money")], ["/analytics", t("Analytics")], ["/map", t("Style Map")], ["/data", t("Data")],
   ] as const;
   const site = {
