@@ -232,6 +232,12 @@
   ]
  },
  {
+  "key": "{day}: On this day",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
   "key": "{division} · {n} rounds",
   "plural": "{division} · {n} round",
   "files": [
@@ -357,6 +363,13 @@
   ]
  },
  {
+  "key": "{n} birthdays",
+  "plural": "{n} birthday",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
   "key": "{n} bouts",
   "plural": "{n} bout",
   "files": [
@@ -475,6 +488,13 @@
   ]
  },
  {
+  "key": "{n} fighters born",
+  "plural": "{n} fighter born",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
   "key": "{n} fighters ever",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
@@ -493,6 +513,7 @@
   "files": [
    "app/[locale]/accountability/page.tsx",
    "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/on-this-day/page.tsx",
    "app/[locale]/trainers/page.tsx",
    "lib/records.ts"
   ]
@@ -2508,6 +2529,12 @@
   ]
  },
  {
+  "key": "Birthdays",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
   "key": "Birthplace",
   "files": [
    "lib/coverage.ts"
@@ -2532,9 +2559,21 @@
   ]
  },
  {
+  "key": "Born {year}",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
   "key": "Born in {place}",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Born on this date",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
   ]
  },
  {
@@ -2612,6 +2651,12 @@
   "key": "Boxing gyms, promotions and sanctioning bodies: who trains and signs the fighters, how many events each promotes and which belts they sanction.",
   "files": [
    "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "Boxing history",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
   ]
  },
  {
@@ -2886,6 +2931,12 @@
   ]
  },
  {
+  "key": "Change day",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
   "key": "Change password",
   "files": [
    "components/AccountPanel.tsx"
@@ -3021,6 +3072,18 @@
   "key": "Close menu",
   "files": [
    "components/RailControls.tsx"
+  ]
+ },
+ {
+  "key": "Closest earlier day",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
+  "key": "Closest later day",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
   ]
  },
  {
@@ -4544,6 +4607,12 @@
   ]
  },
  {
+  "key": "Fights on this date",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
   "key": "Fights scored",
   "files": [
    "app/[locale]/accountability/page.tsx"
@@ -5218,6 +5287,12 @@
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "in {n} different years",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
   ]
  },
  {
@@ -6346,6 +6421,12 @@
   ]
  },
  {
+  "key": "Next day",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
   "key": "Next event {date}",
   "files": [
    "components/LiveLedger.tsx"
@@ -6754,6 +6835,12 @@
   ]
  },
  {
+  "key": "Nothing is on record for {day}.",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
   "key": "Nothing is waiting.",
   "files": [
    "components/ReviewQueue.tsx"
@@ -6889,6 +6976,14 @@
   ]
  },
  {
+  "key": "On this day",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx",
+   "lib/nav.ts",
+   "lib/search.ts"
+  ]
+ },
+ {
   "key": "One night's pay",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -6916,6 +7011,12 @@
   "key": "Only fighters who changed trainer tell a trainer's effect apart from their fighters' ability. A trainer whose fighters never left is pulled toward zero, however good the results.",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Only results in the database are listed, and a birthday only where the exact date is known. A fight on 29 February appears on 29 February only.",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
   ]
  },
  {
@@ -7404,6 +7505,12 @@
   "key": "Previews for every main event and co-main on the upcoming calendar: what is at stake, the tale of the tape, form, the model's pick and how it expects each fight to end.",
   "files": [
    "app/[locale]/previews/page.tsx"
+  ]
+ },
+ {
+  "key": "Previous day",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
   ]
  },
  {
@@ -7932,7 +8039,8 @@
  {
   "key": "Results",
   "files": [
-   "app/[locale]/events/page.tsx"
+   "app/[locale]/events/page.tsx",
+   "app/[locale]/on-this-day/page.tsx"
   ]
  },
  {
@@ -8390,6 +8498,18 @@
   "key": "Showing the {perStyle} highest-rated fighters of each style: {shown} of {total} with eight or more bouts. All of them shaped the projection.",
   "files": [
    "app/[locale]/map/page.tsx"
+  ]
+ },
+ {
+  "key": "Showing the {shown} highest-rated of {total} fighters.",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
+  "key": "Showing the {shown} most important of {total} fights.",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
   ]
  },
  {
@@ -9185,6 +9305,18 @@
   ]
  },
  {
+  "key": "The fights decided and the fighters born on this date in boxing history, from every year in the database, with the best fights first.",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
+  "key": "The fights decided and the fighters born on this date, in every year the database covers. When a day is crowded the title fights and the highest-scoring fights come first.",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
   "key": "The fights where the winner had the lowest chance in the model's eyes before the first bell.",
   "files": [
    "app/[locale]/accountability/page.tsx"
@@ -9769,6 +9901,12 @@
   ]
  },
  {
+  "key": "Today",
+  "files": [
+   "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
   "key": "Too close to call",
   "files": [
    "lib/upsets.ts"
@@ -10241,6 +10379,7 @@
   "files": [
    "app/[locale]/compare/page.tsx",
    "app/[locale]/fight-of-the-year/page.tsx",
+   "app/[locale]/on-this-day/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/people/page.tsx",
    "components/Awards.tsx",

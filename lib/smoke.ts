@@ -4,6 +4,7 @@
  * placeholder or "undefined", lose their heading or come back in the wrong language or direction. Pure helpers here
  * (route list, page inspection) so they are tested without a server; scripts/smoke.ts drives the server.
  */
+import { countOn, shiftDay } from "./on-this-day";
 import type { World } from "./world";
 import { NAV_GROUPS, OFF_NAV } from "./nav";
 import { slugifyDivision } from "./divisions";
@@ -67,6 +68,14 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   for (const l of [LISTS.find((x) => x.subject === "boxer"), LISTS.find((x) => x.subject === "bout"), LISTS.find((x) => x.subject === "reign")]) if (l) page(`/all-time/${l.id}`, `all-time: ${l.id}`);
   const y = fightYears(w)[0];
   if (y !== undefined) page(`/fight-of-the-year/${y}`, "fight of the year");
+
+  // on this day: the busiest date, one with nothing on it, the leap day, and a date that does not exist (a 404, not a quietly different page)
+  const days = Array.from({ length: 366 }, (_, i) => shiftDay("01-01", i)).map((k) => ({ k, n: countOn(w, k).fights + countOn(w, k).births }));
+  const busiest = days.reduce((a, b) => (b.n > a.n ? b : a)), quiet = days.find((d) => d.n === 0);
+  if (busiest.n > 0) page(`/on-this-day?d=${busiest.k}`, "on this day: busiest date");
+  if (quiet) page(`/on-this-day?d=${quiet.k}`, "on this day: a date with nothing on it");
+  page("/on-this-day?d=02-29", "on this day: leap day");
+  out.push({ path: "/on-this-day?d=02-30", kind: "missing", label: "on this day: a date that does not exist" });
 
   if (star) {
     out.push({ path: `/api/fighters?q=${q(star.name.slice(0, 4))}`, kind: "api", label: "api: fighter search" });

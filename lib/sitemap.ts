@@ -13,7 +13,7 @@ export interface SitemapPath { path: string; lastmod: string }
 /** URLs per sitemap file. Every path is listed once per language, so a file holds twice this many <url> entries (the limit is 50,000). */
 export const PATHS_PER_FILE = 10000;
 
-const STATIC = ["/", "/rankings", "/boxers", "/events", "/compare", "/people", "/orgs", "/weights", "/money", "/titles", "/matchmaking", "/previews", "/all-time", "/fight-of-the-year", "/upset-watch", "/trainers", "/ask", "/analytics", "/accountability", "/map", "/data"];
+const STATIC = ["/", "/rankings", "/boxers", "/events", "/compare", "/people", "/orgs", "/weights", "/money", "/titles", "/matchmaking", "/previews", "/all-time", "/fight-of-the-year", "/on-this-day", "/upset-watch", "/trainers", "/ask", "/analytics", "/accountability", "/map", "/data"];
 
 /**
  * Every page worth indexing, locale-free, with when it last changed. Thin pages are left out on purpose: of the bouts, only
