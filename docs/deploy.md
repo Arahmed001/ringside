@@ -51,6 +51,16 @@ Put the key in your host's secret store, not in the image or the repository.
 
 The site renders with no data at all and with data but nothing upcoming: the home page says no fights are scheduled and drops the poster and calendar, the style map is empty until someone has eight bouts, rankings and analytics read zero rather than NaN. Both states are exercised in CI (`npm run smoke -- --feed empty` and `-- --feed sparse`, 68 and 95 pages in both languages) and by tests that call every aggregate and every Ask-the-data tool on those leagues. Before this was checked the home page and the style map returned a 500 in both states, which a real feed would have hit between seasons.
 
+## When a page breaks
+
+A visitor gets the site's own error page (in their language, with the navigation still there, a Try again button and a short reference number) and never a stack trace, a message or a path; if the root layout itself fails, a plain bilingual page with the same reference. The server writes **one line of JSON** to stderr per error:
+
+```json
+{"at":"2026-10-03T15:33:42.396Z","level":"error","event":"request_error","digest":"1624447259","method":"GET","path":"/boxers/ramil-abad","route":"/[locale]/boxers/[slug]","type":"render","source":"react-server-components","error":"Error","message":"...","stack":["at ...","..."]}
+```
+
+The reference on the error page is that `digest`, so a report of "reference 1624447259" finds its line with `docker logs ringside 2>&1 | grep '"digest":"1624447259"'` (add `| jq .` for layout). The line has the path without its query string (a search is somebody's question), no headers, cookies or bodies, a message cut at 500 characters and the first six stack lines. It does contain the real error message, so treat the logs as internal. Anything that reads container logs (a log shipper, a platform alert on `"level":"error"`) can use it as is.
+
 ## Sizing
 
 Measured on a production build with the demo league (968 fighters, 7,466 bouts; one Node process, one core, Apple laptop, a browser on the same machine, so network time is not in these numbers):

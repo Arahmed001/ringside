@@ -80,6 +80,22 @@ test("the Arabic dictionary covers every key, with matching placeholders and no 
   assert.ok(latinOnly.length < 80, `${latinOnly.length} entries have no Arabic letters; expected only abbreviations and brand names: ${latinOnly.slice(0, 15).join(" | ")}`);
 });
 
+test("the committed key files are current, so the browser is sent every string a client component uses", async () => {
+  // i18n/client-keys.json decides which Arabic strings are shipped to the browser. It had not been regenerated for four rounds, so every
+  // string added to a client component since (account forms, sign-in, pick'em messages, the review queue) showed in English on the Arabic
+  // site while every check passed, because the dictionary itself was complete. `npm run i18n:extract` rewrites both files.
+  const { found } = extractKeys();
+  const keys = [...found.values()].sort((x, y) => x.key.localeCompare(y.key));
+  const read = (f: string) => JSON.parse(fs.readFileSync(path.join(process.cwd(), "i18n", f), "utf8"));
+  assert.deepEqual(read("client-keys.json"), keys.filter((k) => k.client).map((k) => k.key), "i18n/client-keys.json is stale: run npm run i18n:extract");
+  assert.deepEqual(read("keys.json").map((k: { key: string }) => k.key), keys.map((k) => k.key), "i18n/keys.json is stale: run npm run i18n:extract");
+  const { clientDict } = await import("../lib/i18n/dicts");
+  const shipped = clientDict("ar");
+  for (const k of keys.filter((x) => x.client)) assert.ok(k.key in shipped, `the Arabic for "${k.key}" is not sent to the browser`);
+  for (const sample of ["Sign in", "Create account", "Try again", "Where you are signed in"]) assert.ok(typeof shipped[sample] === "string" && shipped[sample] !== sample, sample);
+  assert.deepEqual(clientDict("en"), {}, "English is the key itself: nothing to ship");
+});
+
 test("source rules that keep the site translatable and right-to-left safe", () => {
   const files: string[] = [];
   const walk = (d: string) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) walk(p); else if (/\.tsx?$/.test(e.name)) files.push(p); } };
