@@ -12,7 +12,7 @@ The first request creates `data/ringside.db` and seeds it with the demo roster (
 To regenerate the demo data, stop the server, delete `data/`, and start again.
 
 ## Optional settings (copy `.env.example` to `.env.local`)
-- `ANTHROPIC_API_KEY`: Claude-written search parsing and scouting reports. Without it everything falls back to rules.
+- `ANTHROPIC_API_KEY`: Claude-written search parsing, scouting reports and fight previews. Without it everything falls back to rules. `AI_DAILY_BUDGET` (default 1,000 calls per day), `AI_CLIENT_LIMIT` and `AI_CLIENT_WINDOW_MS` cap what visitors can spend (PLAN.md §21).
 - `BOXING_PROVIDER=licensed` plus `BOXING_API_URL` / `BOXING_API_KEY`: use a real data feed (adapter still to be written, see `lib/providers/licensed.ts`).
 - `WIKIMEDIA_CONTACT` and `npm run media:resolve`: fetch freely licensed fighter photos from Wikimedia Commons (real fighters only).
 
