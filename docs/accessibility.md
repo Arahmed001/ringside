@@ -71,3 +71,6 @@ Round 20: the paging links are a `nav` named "Pages" with `rel=prev/next`, the y
 
 Round 26: text that is English by nature on the Arabic site (a data source's name, a validator message, the wordmark) is now marked `lang="en"`, so a screen reader pronounces it as English rather than reading Latin letters with Arabic rules; the smoke run checks the Arabic pages for any other English.
 
+## Round 29: On this day
+`/on-this-day` in both languages: today, a crowded day, an empty day and 29 February at 375 px: axe-core 4.13 reported 0 violations on all eight and nothing overflowed. The left rail still scrolls with the extra item at 640 px high and marks the page `aria-current`. The previous and next day links carry a visually hidden "Previous day:" / "Next day:" so the date alone is not the whole link text out of context. Not tested: a screen reader, and text spacing (1.4.12) on this page.
+

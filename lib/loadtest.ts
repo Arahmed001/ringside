@@ -8,4 +8,4 @@ export function summarise(latencies: number[], seconds: number): Summary {
 
 /** Pages worth hitting: every kind of view, in both languages, with the cheap JSON endpoints the type-ahead uses. */
 export const LOAD_PATHS = ["/", "/rankings", "/boxers/ramil-abad", "/events", "/analytics", "/map", "/all-time/greatest", "/ar", "/boxers?page=2", "/compare?a=ramil-abad&b=tomas-villalba",
-  "/matchmaking", "/trainers", "/upset-watch", "/fight-of-the-year", "/money", "/titles", "/people", "/api/search?q=ram", "/api/fighters?q=ram"];
+  "/matchmaking", "/trainers", "/upset-watch", "/fight-of-the-year", "/on-this-day", "/money", "/titles", "/people", "/api/search?q=ram", "/api/fighters?q=ram"];

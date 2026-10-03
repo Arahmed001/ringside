@@ -47,6 +47,9 @@ A grouped left rail on desktop that collapses to icons (the choice is remembered
 ## Fight of the year and all-time lists
 `/fight-of-the-year` picks the best fight of each year by a published 0-100 score (knockdowns, finish, action, matchup, upset, stakes, comeback) and shows why. `/all-time` has sixteen record lists (greatest of all time, longest reigns, biggest upsets, fastest knockouts ...) with sex and division filters. Both only cover the fights in the data, and say so.
 
+## On this day
+`/on-this-day` lists the fights decided and the fighters born on a calendar date (today by default; `?d=MM-DD` for another, with previous / next links and a pointer to the nearest day that has anything), across every year in the database. A crowded day shows title fights and the highest fight scores first, at most three from any one year. Only results on record and exact birth dates are used. `lib/on-this-day.ts`, PLAN.md section 53.
+
 ## Accessibility
 WCAG 2.2 AA is the target in both languages: skip link, visible focus, text colours measured at 4.5:1 or better, no text under 12px, charts that state their numbers, and a list view of the style map. See `docs/accessibility.md` for what was tested and what was not.
 

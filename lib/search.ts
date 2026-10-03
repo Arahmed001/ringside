@@ -17,6 +17,7 @@ export const PAGES: { href: string; label: string; words: string }[] = [
   { href: "/titles", label: msg("Title lineages"), words: "titles belts champions lineage reigns world continental" },
   { href: "/all-time", label: msg("All-time lists"), words: "all-time records greatest of all time goat longest reign most knockouts fastest knockout biggest upsets best fights" },
   { href: "/fight-of-the-year", label: msg("Fight of the year"), words: "fight of the year foty best fight award greatest fights" },
+  { href: "/on-this-day", label: msg("On this day"), words: "on this day today in boxing history anniversary birthday born date calendar" },
   { href: "/upset-watch", label: msg("Upset watch"), words: "upset watch underdog danger longshot alerts feed surprises" },
   { href: "/trainers", label: msg("Trainer impact"), words: "trainer impact effect camp coach head trainer switch changing trainer underdog" },
   { href: "/ask", label: msg("Ask the data"), words: "ask question answer ai chat natural language query data who has the most" },
