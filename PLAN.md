@@ -456,7 +456,30 @@ CI proved the code compiles and the unit tests pass, but nothing ever rendered a
 - **Finding, not fixed (framework behaviour):** for an unknown URL or a fighter, event or bout that does not exist, the server returns the correct **404 status and a `noindex` tag**, but the HTML body is empty; the not-found page ("Not on the card") reaches the visitor only through the streamed payload that the browser renders. A visitor with JavaScript sees the page in both languages (checked in Chromium); one without sees a blank page. Next's streaming documentation describes this class of behaviour. Impact is small (search engines get 404 and noindex; no-JavaScript visitors on a missing page), so it is recorded here and the smoke check asserts what is true: a 404, `noindex`, and the heading present in the response.
 - **Not done:** it samples one page per kind rather than every fighter (a data-dependent crash on a rare record would need a bigger sample or the real feed's edge cases); it does not run a browser, so client-only breakage is not seen; with a real data feed the sample should be re-checked against that feed's rarest records.
 
-## 34. The finish estimate learns from the matchup (round 15, 2026-10-03)
+## 33. Native Arabic review (round 15, 2026-10-03)
+I cannot be the native speaker, so this builds what a real review needs and refuses to claim one has happened. `lib/i18n/review.ts` (checks, review status, import), `lib/i18n/review-sheet.ts` (the offline sheet), `scripts/i18n-review.ts` (`export`, `import`, `status`, `qa`), `i18n/ar.review.json` (who approved or edited what, with a hash of the exact Arabic they saw), a "Arabic review" panel on `/data`, `docs/arabic-review.md`.
+- **Nothing is "reviewed" unless a person says so,** and an approval stops counting the moment the text changes (it becomes "changed since review"). Today: 0 of 1,533 strings and 0 of 1,848 names reviewed, and the page says so.
+- **The sheet** is one offline HTML file: strings ordered most-seen first, filters, in-place editing with live placeholder checks, plural forms with example numbers, flag-with-note, a terminology tab, a names tab, seven questions for decisions only a native speaker can make (Latin abbreviations, register, gender, number and plural forms, boxing terms, name conventions, statistics wording), and progress saved in the browser. The reviewer returns one JSON file.
+- **Import validates** (unknown keys, changed placeholders or tags, missing plural forms, empty text are rejected one string at a time; wrong format or no reviewer name refuses the whole file) and is idempotent. A test caught a real bug here: a file that edited and then approved the same string recorded the hash of the old text.
+- **Mechanical checks** found one hard issue and 78 notes across all strings; my own skim of the 25 gendered pairs and 40 random strings found the Arabic grammatical and idiomatic, with one real defect (a dropped "after 2015", fixed). That is spot-checking by a non-native reader, not a review, and the docs say so.
+- **Risks left:** the Arabic names live only in the local, uncommitted database (1,848 machine transliterations of mostly fictional names); reviewed names need a durable home before real data arrives. A sheet is tied to a dictionary build, but imports go by key, so an older sheet still imports (changed strings are simply compared by hash later).
+- Tests: `tests/arabic-review.test.ts` (11): each check, status and staleness, import rules and idempotence, the sheet (offline, valid script, safe against markup in the data), the real dictionary, and the real CLI run on a copy (export, import, names, glossary, status); seven mutations broken on purpose, all caught.
+
+## 34. Deployment readiness (round 14, 2026-10-03)
+
+**What is here.** `Dockerfile` (two stages, production dependencies plus `tsx` for the maintenance scripts, runs as the unprivileged `node` user), `.dockerignore`, `GET /api/health` (200 once the database is open and the world is built, 503 with no detail otherwise), a CI job that builds the image, runs it on an empty volume and waits for the health check, and `docs/deploy.md` (persistence, settings, backups, updating).
+
+**Decisions.**
+- **One instance, one volume.** The database, the live ledger and the AI cost counters are all per process. Scaling out is a design change (shared store), not a setting; the doc says so.
+- **`next start`, not `output: "standalone"`.** The app reads fonts, the fitted model and the glossary by path at run time; standalone tracing would have to be taught each. The cost is image size (about 600 MB of `node_modules`).
+- **The fitted model lives in the volume.** `data/model-fit.json` is a symlink to `/data/model-fit.json`, so `npm run model:fit` inside the container survives a redeploy with no code change.
+- **Health reports counts only.** No paths, versions or error text; the reason goes to the server log.
+
+**Checked here:** the production build with a production-only install (`npm ci --omit=dev` plus `tsx`) starts, builds the world, answers `/api/health` and pages, and `model:fit` writes through the symlink into the volume. **Not checked here:** the image itself (no Docker daemon in this environment). The CI `docker` job is the first real build; read its result before trusting the Dockerfile. No hosting provider is chosen.
+
+**Tests:** `tests/health.test.ts` (2, mutation-checked: a leaked error message fails it).
+
+## 35. The finish estimate learns from the matchup (round 15, 2026-10-03)
 
 §29 fitted the early-finish estimate on two inputs (both fighters' KO rates and KO-loss rates). §29 left open whether anything else earns a place. This round tried each candidate on the same held-out fights and kept what clears the same bar as everywhere else (`|z| >= 2` on the training fights, then the fit must beat the hand-set rule by `MIN_GAIN`).
 
@@ -467,4 +490,3 @@ CI proved the code compiles and the unit tests pass, but nothing ever rendered a
 - **Old reports still work:** a `model-fit.json` from before this applies with the new terms at zero. `npm run model:fit` prints each input's z, whether it was kept, and the KO-rates-only comparison.
 - **Honest limits.** The demo league is synthetic: its generator may build these effects in, so the *sizes* above are not evidence about real boxing; the *procedure* (propose, test on later fights, keep only what earns its place) is what carries over. Mismatch and weight class are the obvious candidates; referee and judge tendencies, scheduled rounds against real round-by-round data and styles are still untried. The fit is not yet shown on the Track record page beyond "fitted to results".
 - **Tests:** `tests/finish-fit.test.ts` (12, mutation-checked: inverting the mismatch, keeping every input and a heavyweight counted as lighter each fail) and `tests/finish-division.test.ts` (2, a hand-made league where a fighter moves up: using the fighter's current class instead of the fight's fails).
-

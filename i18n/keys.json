@@ -370,6 +370,12 @@
   ]
  },
  {
+  "key": "{n} changed since",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "{n} cm",
   "files": [
    "app/[locale]/compare/page.tsx",
@@ -1965,6 +1971,24 @@
   "key": "Apply",
   "files": [
    "components/RecordsFilter.tsx"
+  ]
+ },
+ {
+  "key": "Arabic review",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Arabic sentences and labels",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Arabic spellings of names",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -5064,6 +5088,12 @@
   ]
  },
  {
+  "key": "last on {date}",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Latest",
   "files": [
    "app/[locale]/page.tsx"
@@ -5766,6 +5796,12 @@
   ]
  },
  {
+  "key": "Names reviewed",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Nations",
   "files": [
    "app/[locale]/analytics/page.tsx"
@@ -6102,6 +6138,12 @@
   ]
  },
  {
+  "key": "none yet",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "not disclosed",
   "files": [
    "components/Money.tsx"
@@ -6157,6 +6199,12 @@
  },
  {
   "key": "Not yet",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "not yet checked by a person",
   "files": [
    "app/[locale]/data/page.tsx"
   ]
@@ -7176,6 +7224,12 @@
   ]
  },
  {
+  "key": "Reviewed by a person",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Right",
   "files": [
    "components/LiveLedger.tsx",
@@ -7761,6 +7815,12 @@
   ]
  },
  {
+  "key": "Strings",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Style",
   "files": [
    "app/[locale]/compare/page.tsx",
@@ -7970,6 +8030,12 @@
   "key": "The AI budget for today is used up, so this answer comes from rules instead.",
   "files": [
    "components/AskResults.tsx"
+  ]
+ },
+ {
+  "key": "The Arabic on this site was written by a machine. A string counts as reviewed only when a native speaker approved or edited it, and only for the exact wording they saw: if the text changes afterwards it goes back to unchecked. Expect mistakes in anything not yet reviewed.",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -9256,6 +9322,12 @@
   ]
  },
  {
+  "key": "Who has checked the translation",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Who has done the most, in every way that can be counted from the fights on record. Each list says how it is worked out, and the scored ones show their parts.",
   "files": [
    "app/[locale]/all-time/page.tsx"
@@ -9575,6 +9647,12 @@
   "key": "Won the vacant belt",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Written by a machine",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
