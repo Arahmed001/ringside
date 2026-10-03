@@ -464,3 +464,17 @@ I cannot be the native speaker, so this builds what a real review needs and refu
 - **Mechanical checks** found one hard issue and 78 notes across all strings; my own skim of the 25 gendered pairs and 40 random strings found the Arabic grammatical and idiomatic, with one real defect (a dropped "after 2015", fixed). That is spot-checking by a non-native reader, not a review, and the docs say so.
 - **Risks left:** the Arabic names live only in the local, uncommitted database (1,848 machine transliterations of mostly fictional names); reviewed names need a durable home before real data arrives. A sheet is tied to a dictionary build, but imports go by key, so an older sheet still imports (changed strings are simply compared by hash later).
 - Tests: `tests/arabic-review.test.ts` (11): each check, status and staleness, import rules and idempotence, the sheet (offline, valid script, safe against markup in the data), the real dictionary, and the real CLI run on a copy (export, import, names, glossary, status); seven mutations broken on purpose, all caught.
+
+## 34. Deployment readiness (round 14, 2026-10-03)
+
+**What is here.** `Dockerfile` (two stages, production dependencies plus `tsx` for the maintenance scripts, runs as the unprivileged `node` user), `.dockerignore`, `GET /api/health` (200 once the database is open and the world is built, 503 with no detail otherwise), a CI job that builds the image, runs it on an empty volume and waits for the health check, and `docs/deploy.md` (persistence, settings, backups, updating).
+
+**Decisions.**
+- **One instance, one volume.** The database, the live ledger and the AI cost counters are all per process. Scaling out is a design change (shared store), not a setting; the doc says so.
+- **`next start`, not `output: "standalone"`.** The app reads fonts, the fitted model and the glossary by path at run time; standalone tracing would have to be taught each. The cost is image size (about 600 MB of `node_modules`).
+- **The fitted model lives in the volume.** `data/model-fit.json` is a symlink to `/data/model-fit.json`, so `npm run model:fit` inside the container survives a redeploy with no code change.
+- **Health reports counts only.** No paths, versions or error text; the reason goes to the server log.
+
+**Checked here:** the production build with a production-only install (`npm ci --omit=dev` plus `tsx`) starts, builds the world, answers `/api/health` and pages, and `model:fit` writes through the symlink into the volume. **Not checked here:** the image itself (no Docker daemon in this environment). The CI `docker` job is the first real build; read its result before trusting the Dockerfile. No hosting provider is chosen.
+
+**Tests:** `tests/health.test.ts` (2, mutation-checked: a leaked error message fails it).
