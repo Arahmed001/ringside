@@ -57,6 +57,7 @@ Every approximation is counted. In a healthy feed these counts are small; a big 
 | `drawInferred` / `resultMissing` | No draw value | See the table above | Check the sample |
 | `scheduleUnavailable` | The `/v2/fights/schedule` endpoint was refused (403/404), as it can be on a plan that does not include it | The coming fights are asked for from the list endpoint instead (from today on, soonest first) | Check upcoming fights still arrive; the refusal's own message is shown in the log |
 | `upcomingUnavailable` | The list showed no coming fights, and both the schedule endpoint and a date-ranged list were refused | History only; no coming fights | The live ledger needs coming fights to predict. Not what the free plan did (its list includes them), but a plan could differ |
+| `divisionFromFight` | The feed gave a fighter no division (2 of 20 in the first sample; the validator rejects "Unknown" and would drop the fighter and their fights) | The division of their most recent fight | Fine for a fighter who fights in their own class; a fighter with no recognised fight stays unknown and is reported by the validator |
 | `liveTreatedAsUpcoming` | `LIVE` fights | Treated as not yet decided | Fine |
 | `fightsSkipped` | A fight with no date or fewer than two fighters | Skipped | Check the count |
 | `boutsDroppedUnknownFighter` | A fighter's record could not be fetched | The bouts involving them are dropped, not stored with a hole | Re-run; a persistent one is a data gap |

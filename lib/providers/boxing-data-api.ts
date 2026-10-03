@@ -42,12 +42,12 @@ export interface ApiFight {
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
   | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter"
-  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "birthYearFromAge" | "birthYearUnknown" | "physicalsConverted" | "turnedProFromFirstFight" | "physicalsImputed" | "stanceDefaulted" | "locationUnparsed" | "divisionUnknown",
+  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "divisionFromFight" | "birthYearFromAge" | "birthYearUnknown" | "physicalsConverted" | "turnedProFromFirstFight" | "physicalsImputed" | "stanceDefaulted" | "locationUnparsed" | "divisionUnknown",
   number
 >;
 const emptyNotes = (): Notes => ({
   ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
-  birthYearFromAge: 0, birthYearUnknown: 0, physicalsConverted: 0, turnedProFromFirstFight: 0, physicalsImputed: 0, stanceDefaulted: 0, locationUnparsed: 0, divisionUnknown: 0,
+  birthYearFromAge: 0, birthYearUnknown: 0, physicalsConverted: 0, turnedProFromFirstFight: 0, physicalsImputed: 0, stanceDefaulted: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0,
 });
 
 export const fighterId = (id: string) => `bda-f-${id}`;
@@ -180,15 +180,21 @@ export function imputePhysicals(rows: Loose[], notes: Notes): Loose[] {
 
 /** Settles `active` (fought in the last 30 months, or has a fight coming up) and a missing `turnedPro` (the first fight we saw), which need the fights. */
 export function finishBoxers(rows: Loose[], bouts: ProviderBout[], eventDates: Map<string, string>, notes: Notes): ProviderBoxer[] {
-  const first = new Map<string, string>(), last = new Map<string, string>();
+  const first = new Map<string, string>(), last = new Map<string, string>(), lastClass = new Map<string, string>();
   for (const b of bouts) {
     const d = eventDates.get(b.eventExternalId);
     if (!d) continue;
     for (const id of [b.redExternalId, b.blueExternalId]) {
       if (!first.has(id) || d < first.get(id)!) first.set(id, d);
-      if (!last.has(id) || d > last.get(id)!) last.set(id, d);
+      if (!last.has(id) || d > last.get(id)!) { last.set(id, d); if (normalizeDivision(b.weightClass)) lastClass.set(id, b.weightClass); }
     }
   }
+  // a fighter the feed gives no division for (the validator rejects "Unknown") fights at a known one: the division of their most recent fight
+  rows = rows.map((r) => {
+    if (normalizeDivision(r.weightClass) || !lastClass.has(r.externalId)) return r;
+    notes.divisionFromFight++;
+    return { ...r, weightClass: lastClass.get(r.externalId)! };
+  });
   const cutoff = new Date(nowMs() - 30 * 30.4 * 86400000).toISOString().slice(0, 10);
   return imputePhysicals(rows, notes).map((r) => {
     let turnedPro = r.turnedPro;

@@ -459,3 +459,20 @@ test("saved responses can be replayed with no requests: the same league comes ou
   assert.equal((await again("https://x.example/v2/fights/")).status, 404, "a page that was saved once is served once");
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test("a fighter with no division in the feed takes the division of their most recent fight, counted; one with no fights stays unknown for the validator to report", () => {
+  const n = notes();
+  const loose = ["a", "b", "c", "d"].map((id) => B.mapFighter(fighter(id, id.toUpperCase(), id === "d" ? { division: { name: "Cruiserweight" } } : { division: null }), n)!);
+  assert.ok(loose.slice(0, 3).every((r) => r.weightClass === "Unknown"), "the feed gave none");
+  const mk = (id: string, red: string, blue: string, ev: string, weightClass: string) => ({ externalId: id, eventExternalId: ev, redExternalId: `bda-f-${red}`, blueExternalId: `bda-f-${blue}`, weightClass, rounds: 12, winnerExternalId: null, method: null, endRound: null, title: null, position: 0 });
+  const bouts = [mk("1", "a", "d", "e1", "Middleweight"), mk("2", "a", "d", "e2", "Super Middleweight"), mk("3", "b", "d", "e1", "Not A Division")];
+  const dates = new Map([["e1", "2025-01-01"], ["e2", "2026-05-01"]]);
+  const out = Object.fromEntries(B.finishBoxers(loose, bouts, dates, n).map((r) => [r.name, r]));
+  assert.equal(out.A.weightClass, "Super Middleweight", "the most recent fight's class, not the first");
+  assert.equal(out.B.weightClass, "Unknown", "its only fight has an unrecognised class: nothing to go on");
+  assert.equal(out.C.weightClass, "Unknown", "no fights at all");
+  assert.equal(out.D.weightClass, "Cruiserweight", "a division the feed gave is kept");
+  assert.equal(n.divisionFromFight, 1);
+  const { issues } = sanitizeFeed({ ...emptyFeed(), boxers: [out.A, out.D], events: [{ externalId: "e1", name: "x", date: "2025-01-01", venue: "v", city: "c", country: "k" }, { externalId: "e2", name: "y", date: "2026-05-01", venue: "v", city: "c", country: "k" }], bouts: bouts.slice(0, 2) }, { today: "2026-10-03" });
+  assert.deepEqual(issues.filter((i) => i.code === "unknown_division"), [], "the validator no longer rejects the fighter");
+});
