@@ -11,6 +11,7 @@
     "wikidata:import": "tsx scripts/import-wikidata.ts",
     "vendor:sample": "tsx scripts/vendor-sample.ts",
     "vendor:backfill": "tsx scripts/vendor-backfill.ts",
+    "vendor:explain": "tsx scripts/vendor-explain.ts",
     "venues:resolve": "tsx scripts/resolve-venues.ts",
     "model:fit": "tsx scripts/fit-model.ts",
     "data:check": "tsx scripts/check-feed.ts",
