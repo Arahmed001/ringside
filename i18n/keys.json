@@ -100,6 +100,7 @@
    "app/[locale]/money/page.tsx",
    "app/[locale]/previews/[id]/opengraph-image.tsx",
    "components/LiveLedger.tsx",
+   "components/MyPicks.tsx",
    "lib/predict.ts"
   ]
  },
@@ -496,6 +497,12 @@
   ]
  },
  {
+  "key": "{n} fights it called before the bell",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "{n} fights match. The first is {fight}, {result}.",
   "plural": "{n} fight matches. The first is {fight}, {result}.",
   "files": [
@@ -660,6 +667,12 @@
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
    "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} still to come",
+  "files": [
+   "components/MyPicks.tsx"
   ]
  },
  {
@@ -1129,6 +1142,12 @@
   "key": "{p} picked the winner · higher rating won {e}",
   "files": [
    "components/LiveLedger.tsx"
+  ]
+ },
+ {
+  "key": "{p} right",
+  "files": [
+   "components/MyPicks.tsx"
   ]
  },
  {
@@ -2243,6 +2262,12 @@
   ]
  },
  {
+  "key": "Best {n}",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "Best fight of {year}",
   "files": [
    "lib/ask/examples.ts"
@@ -2544,8 +2569,15 @@
   ]
  },
  {
+  "key": "Call fights before the bell, then see how you did, how long your streak runs and whether you can beat the model.",
+  "files": [
+   "app/[locale]/picks/page.tsx"
+  ]
+ },
+ {
   "key": "Call the card",
   "files": [
+   "components/MyPicks.tsx",
    "components/PickEm.tsx"
   ]
  },
@@ -2697,9 +2729,21 @@
   ]
  },
  {
+  "key": "Clear all your picks from this browser?",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "Clear favourite",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Clear my picks",
+  "files": [
+   "components/MyPicks.tsx"
   ]
  },
  {
@@ -2891,6 +2935,12 @@
   "key": "Corrections and trainer/manager history with sources",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Couldn’t load your picks. Try again in a moment.",
+  "files": [
+   "components/MyPicks.tsx"
   ]
  },
  {
@@ -3777,6 +3827,7 @@
  {
   "key": "Fight night pick’em",
   "files": [
+   "app/[locale]/picks/page.tsx",
    "components/PickEm.tsx"
   ]
  },
@@ -5218,6 +5269,12 @@
   ]
  },
  {
+  "key": "Loading your picks…",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "Loading your watchlist…",
   "files": [
    "components/Watch.tsx"
@@ -5536,6 +5593,12 @@
   ]
  },
  {
+  "key": "Model: {name} {p}",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "Model: {pct}%",
   "files": [
    "components/PickEm.tsx"
@@ -5678,6 +5741,14 @@
   "key": "Multi-belt champions",
   "files": [
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "My picks",
+  "files": [
+   "app/[locale]/picks/page.tsx",
+   "lib/nav.ts",
+   "lib/search.ts"
   ]
  },
  {
@@ -5914,6 +5985,12 @@
   ]
  },
  {
+  "key": "No prediction on file yet",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "No qualifying fighters in this division yet.",
   "files": [
    "app/[locale]/rankings/[division]/page.tsx"
@@ -5923,6 +6000,12 @@
   "key": "no recognised filters",
   "files": [
    "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "No result to grade",
+  "files": [
+   "components/MyPicks.tsx"
   ]
  },
  {
@@ -6085,6 +6168,12 @@
   ]
  },
  {
+  "key": "Nothing graded yet",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "Nothing matches that.",
   "files": [
    "components/CommandPalette.tsx"
@@ -6191,6 +6280,12 @@
   "key": "Olympedia ID (Wikidata)",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "On the {n} fights you both called: you were right and the model wrong on {a}, the model was right and you wrong on {b}, you were both right on {c} and both wrong on {d}.",
+  "files": [
+   "components/MyPicks.tsx"
   ]
  },
  {
@@ -6457,6 +6552,12 @@
   "key": "picks made",
   "files": [
    "components/PickEm.tsx"
+  ]
+ },
+ {
+  "key": "Picks made",
+  "files": [
+   "components/MyPicks.tsx"
   ]
  },
  {
@@ -7038,6 +7139,12 @@
   ]
  },
  {
+  "key": "Result not in yet",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "Results",
   "files": [
    "app/[locale]/events/page.tsx"
@@ -7071,7 +7178,8 @@
  {
   "key": "Right",
   "files": [
-   "components/LiveLedger.tsx"
+   "components/LiveLedger.tsx",
+   "components/MyPicks.tsx"
   ]
  },
  {
@@ -7293,6 +7401,12 @@
   "key": "Seats about {n} (general figure)",
   "files": [
    "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "See how your picks did",
+  "files": [
+   "components/PickEm.tsx"
   ]
  },
  {
@@ -7586,6 +7700,12 @@
   ]
  },
  {
+  "key": "Still to come",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "stoppage chance",
   "files": [
    "app/[locale]/previews/[id]/opengraph-image.tsx"
@@ -7614,6 +7734,12 @@
   "key": "Stopped in round {r} of {n}",
   "files": [
    "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "Streak",
+  "files": [
+   "components/MyPicks.tsx"
   ]
  },
  {
@@ -8064,6 +8190,12 @@
   ]
  },
  {
+  "key": "The model had no prediction on file for these fights, so there is nothing to compare yet.",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "The model has no real favourite here: the “underdog” is the slightly less likely fighter, and a win for either would not be a surprise.",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
@@ -8091,6 +8223,12 @@
   "key": "The model sees a near coin-flip: {name} {pct}%",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "The model, same fights",
+  "files": [
+   "components/MyPicks.tsx"
   ]
  },
  {
@@ -8416,6 +8554,12 @@
   "key": "Too few fights",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Too few fights to say who is better yet (under {n}).",
+  "files": [
+   "components/MyPicks.tsx"
   ]
  },
  {
@@ -9442,7 +9586,8 @@
  {
   "key": "Wrong",
   "files": [
-   "components/LiveLedger.tsx"
+   "components/LiveLedger.tsx",
+   "components/MyPicks.tsx"
   ]
  },
  {
@@ -9471,9 +9616,21 @@
   ]
  },
  {
+  "key": "You against the model",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "You have asked a lot in a short time, so this answer comes from rules instead of AI.",
   "files": [
    "components/AskResults.tsx"
+  ]
+ },
+ {
+  "key": "You have not made any picks yet. Call the card on the home page and your record builds here, fight by fight.",
+  "files": [
+   "components/MyPicks.tsx"
   ]
  },
  {
@@ -9483,15 +9640,45 @@
   ]
  },
  {
+  "key": "You: {name}",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "young heavyweights with reach over 190",
   "files": [
    "app/[locale]/page.tsx"
   ]
  },
  {
+  "key": "Your fight-night picks, graded against the results and against the Ringside model's call before the bell.",
+  "files": [
+   "app/[locale]/picks/page.tsx"
+  ]
+ },
+ {
+  "key": "Your picks",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
+  "key": "Your picks are saved only in this browser; the server sees just the fight numbers when this page loads.",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "Your question",
   "files": [
    "app/[locale]/ask/page.tsx"
+  ]
+ },
+ {
+  "key": "Your record",
+  "files": [
+   "components/MyPicks.tsx"
   ]
  },
  {
