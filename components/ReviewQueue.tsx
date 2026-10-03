@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "@/components/L";
 import { useT } from "@/components/i18n";
 import { api, useAccount } from "@/lib/useAccount";
-import { explain } from "@/components/accountText";
+import { explain } from "@/lib/account-text";
 import type { ContributionView } from "@/lib/accounts/contributions";
 
 type Tab = "pending" | "approved" | "rejected";

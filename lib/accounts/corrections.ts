@@ -454,12 +454,39 @@ export function applyCorrections(main: DatabaseSync, acc: DatabaseSync | null = 
   return out;
 }
 
-/** Active corrections for a fighter and for the fights they were in, for the "corrected from a source" note on their page. */
-export interface CorrectionNote { id: number; targetType: TargetType; targetExt: string; field: string; value: string; sourceUrl: string; appliedAt: string | null }
+/** An active correction, for the "corrected from a source" / "provided by the fighter" note on a page. */
+export interface CorrectionNote { id: number; targetType: TargetType; targetExt: string; field: string; value: string; sourceUrl: string | null; byOwner: boolean; appliedAt: string | null }
+const noteRows = (acc: DatabaseSync): Record<string, string | number | null>[] =>
+  acc.prepare("SELECT id, target_type, target_ext, field, proposed_value, source_url, by_owner, applied_at FROM reports WHERE status = 'accepted' AND state IN ('active','vendor_changed') AND field != 'other' ORDER BY id").all() as Record<string, string | number | null>[];
+const toNote = (r: Record<string, string | number | null>): CorrectionNote => ({ id: Number(r.id), targetType: r.target_type as TargetType, targetExt: r.target_ext as string, field: r.field as string, value: r.proposed_value as string, sourceUrl: (r.source_url as string | null) ?? null, byOwner: r.by_owner === 1, appliedAt: (r.applied_at as string | null) ?? null });
+
+/** Active corrections for a fighter and for the fights they were in. */
 export function correctionsFor(boxerExt: string, boutExts: string[], acc: DatabaseSync | null = accountsDbIfAny()): CorrectionNote[] {
   if (!acc) return [];
-  const rows = acc.prepare("SELECT id, target_type, target_ext, field, proposed_value, source_url, applied_at FROM reports WHERE status = 'accepted' AND state IN ('active','vendor_changed') AND field != 'other' ORDER BY id").all() as Record<string, string>[];
   const bouts = new Set(boutExts);
-  return rows.filter((r) => (r.target_type === "boxer" ? r.target_ext === boxerExt : bouts.has(r.target_ext)))
-    .map((r) => ({ id: Number(r.id), targetType: r.target_type as TargetType, targetExt: r.target_ext, field: r.field, value: r.proposed_value, sourceUrl: r.source_url, appliedAt: r.applied_at ?? null }));
+  return noteRows(acc).filter((r) => (r.target_type === "boxer" ? r.target_ext === boxerExt : bouts.has(r.target_ext as string))).map(toNote);
+}
+
+/** What a fighter's page says about corrections: the fighter's own details, then the fights they were in (by the fight's database id). */
+export function boxerPageNotes(main: DatabaseSync, boxerId: number, acc: DatabaseSync | null = accountsDbIfAny()): { boxer: CorrectionNote[]; bouts: (CorrectionNote & { boutId: number })[] } {
+  if (!acc) return { boxer: [], bouts: [] };
+  const rows = noteRows(acc);
+  if (!rows.length) return { boxer: [], bouts: [] };
+  const ext = (main.prepare("SELECT external_id e FROM boxers WHERE id = ?").get(boxerId) as { e: string } | undefined)?.e;
+  const mine = new Map((main.prepare("SELECT id, external_id e FROM bouts WHERE red_id = ? OR blue_id = ?").all(boxerId, boxerId) as { id: number; e: string }[]).map((b) => [b.e, b.id]));
+  return {
+    boxer: rows.filter((r) => r.target_type === "boxer" && r.target_ext === ext).map(toNote),
+    bouts: rows.filter((r) => r.target_type === "bout" && mine.has(r.target_ext as string)).map((r) => ({ ...toNote(r), boutId: mine.get(r.target_ext as string)! })),
+  };
+}
+/** The same for one fight page, by the fight's database id. */
+export function boutPageNotes(main: DatabaseSync, boutId: number, acc: DatabaseSync | null = accountsDbIfAny()): CorrectionNote[] {
+  if (!acc) return [];
+  const ext = (main.prepare("SELECT external_id e FROM bouts WHERE id = ?").get(boutId) as { e: string } | undefined)?.e;
+  return ext ? noteRows(acc).filter((r) => r.target_type === "bout" && r.target_ext === ext).map(toNote) : [];
+}
+
+/** The fighters an account is the verified owner of (the report form tells them their own corrections apply at once). */
+export function myOwned(userId: number, main: DatabaseSync, acc: DatabaseSync = accountsDb()): { slug: string; name: string }[] {
+  return ownedBy(userId, acc).flatMap((o) => { const b = main.prepare("SELECT slug, name FROM boxers WHERE external_id = ?").get(o.boxerExt) as { slug: string; name: string } | undefined; return b ? [{ slug: b.slug, name: b.name }] : []; });
 }

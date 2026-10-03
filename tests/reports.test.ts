@@ -456,6 +456,42 @@ test("through the route, a verified owner's correction is applied and the page w
   main.prepare("UPDATE boxers SET nickname = ? WHERE external_id = ?").run(boxer.nickname, String(boxer.e));
 });
 
+test("what a page says about corrections: only an accepted one (or a fighter's own) shows, with where it came from; an open or rejected report shows nothing", async () => {
+  const { main, acc, alice, eddie, ollie, C } = await get();
+  const ko = main.prepare("SELECT x.id, x.external_id e, x.red_id r, x.blue_id u, x.end_round er, x.rounds FROM bouts x WHERE x.method = 'KO' AND x.end_round IS NOT NULL AND x.end_round > 1 ORDER BY x.id LIMIT 1").get() as { id: number; e: string; r: number; u: number; er: number; rounds: number };
+  const quiet = () => ({ fight: C.boutPageNotes(main, ko.id), red: C.boxerPageNotes(main, ko.r) });
+  assert.deepEqual(quiet().fight, [], "nothing before anyone reports");
+  const sent = C.submitReport(alice, { kind: "error", targetType: "bout", targetExt: ko.e, field: "end_round", proposed: String(ko.er - 1), sourceUrl: SRC_BOUT, quote: QUOTE }, main, acc);
+  assert.ok(sent.ok);
+  assert.deepEqual(C.boutPageNotes(main, ko.id), [], "an open report is private: nothing shows on the page");
+  const fanSite = C.submitReport(alice, { kind: "error", targetType: "bout", targetExt: ko.e, field: "method", proposed: "TKO", sourceUrl: SRC, quote: QUOTE }, main, acc);
+  assert.ok(fanSite.ok);
+  assert.deepEqual(C.reviewReport(eddie, (fanSite as { id: number }).id, "accepted", "Looks right to me.", main, acc), { ok: false, error: "source_not_owner" });
+  assert.ok(C.reviewReport(eddie, (fanSite as { id: number }).id, "noted", "Not the commission's page; the feed stands.", main, acc).ok);
+  assert.deepEqual(C.boutPageNotes(main, ko.id), [], "a report that could only be noted shows nothing on the page");
+  assert.ok(C.reviewReport(eddie, (sent as { id: number }).id, "accepted", "Matches the commission's record.", main, acc).ok, "the .gov host is official");
+  const fight = C.boutPageNotes(main, ko.id);
+  assert.equal(fight.length, 1);
+  assert.deepEqual({ ...fight[0] }, { id: (sent as { id: number }).id, targetType: "bout", targetExt: ko.e, field: "end_round", value: String(ko.er - 1), sourceUrl: SRC_BOUT, byOwner: false, appliedAt: fight[0].appliedAt });
+  const onRed = C.boxerPageNotes(main, ko.r);
+  assert.equal(onRed.bouts.length, 1); assert.equal(onRed.bouts[0].boutId, ko.id, "the fighter's page lists it against the fight");
+  assert.deepEqual(C.boxerPageNotes(main, ko.u).bouts.map((n) => n.boutId), [ko.id], "and on the opponent's page too");
+  // a fighter's own correction carries no source and says it is theirs
+  const own = C.myOwned(ollie.id, main, acc);
+  assert.ok(own.length >= 1 && own.every((o) => typeof o.slug === "string" && o.name), "the fighters an account is confirmed as");
+  const ownerExt = (main.prepare("SELECT external_id e FROM boxers WHERE slug = ?").get(own[0].slug) as { e: string }).e;
+  const id = (main.prepare("SELECT id FROM boxers WHERE external_id = ?").get(ownerExt) as { id: number }).id;
+  const h = (main.prepare("SELECT height_cm h FROM boxers WHERE id = ?").get(id) as { h: number }).h;
+  const done = C.submitReport(ollie, { kind: "error", targetType: "boxer", targetExt: ownerExt, field: "height_cm", proposed: String(h + 2) }, main, acc);
+  assert.ok(done.ok && done.applied);
+  const mineNotes = C.boxerPageNotes(main, id).boxer.filter((n) => n.byOwner);
+  assert.deepEqual(mineNotes.map((n) => [n.field, n.value, n.sourceUrl]), [["height_cm", String(h + 2), null]], "a fighter's own correction has no source and is marked as theirs");
+  assert.deepEqual(C.myOwned(alice.id, main, acc), [], "someone who is not linked owns nothing");
+  // retiring the correction takes the note off the page
+  assert.ok(C.settleFlagged(eddie, (sent as { id: number }).id, "retire", "Commission corrected itself again.", main, acc).ok);
+  assert.deepEqual(C.boutPageNotes(main, ko.id), []);
+});
+
 test("the operator commands: owner links an account to a fighter, owners lists it, unowner removes it, and a mistake says what was wrong", async () => {
   const { spawnSync } = await import("node:child_process");
   const { DatabaseSync } = await import("node:sqlite");

@@ -39,6 +39,20 @@ export function explain(t: T, code: string | undefined): string {
     case "own": return t("You cannot decide your own proposal.");
     case "note_required": return t("Say why, in a few words.");
     case "this_session": return t("That is this device: use Sign out.");
+    case "target_unknown": return t("That fighter or fight could not be found.");
+    case "kind_invalid": return t("Choose what kind of report this is.");
+    case "field_invalid": return t("Choose which detail is wrong.");
+    case "value_invalid": return t("That value does not look right for this detail.");
+    case "no_change": return t("That is what the site already shows.");
+    case "bout_not_finished": return t("This fight has no result yet, so there is nothing to correct.");
+    case "method_needed": return t("Say how the fight ended.");
+    case "method_mismatch": return t("That way of ending does not fit the result.");
+    case "note_short": return t("Say a little more (at least a couple of sentences).");
+    case "contact_long": return t("The contact detail is too long.");
+    case "duplicate_open": return t("Someone has already reported exactly this and it is waiting for review.");
+    case "too_many_open": return t("You have 20 reports waiting. Wait for a decision, or withdraw one.");
+    case "source_not_owner": return t("This source is not published by the owner of that fact, so it cannot change what the site shows. Note it instead.");
+    case "not_a_correction": return t("That request is not a correction.");
     case "network": return t("Could not reach the server. Check your connection and try again.");
     default: return t("Something went wrong. Try again.");
   }
