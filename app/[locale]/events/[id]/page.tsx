@@ -2,6 +2,7 @@ import Link from "@/components/L";
 import { localePath } from "@/lib/i18n/config";
 import { abs } from "@/lib/seo";
 import { JsonLd } from "@/components/JsonLd";
+import { CreditedPicture } from "@/components/CreditedPicture";
 import { EventMoney } from "@/components/Money";
 import { notFound } from "next/navigation";
 import { getWorld, recordStr } from "@/lib/world";
@@ -52,7 +53,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         },
         competitor: [red, blue].map((f) => ({ "@type": "Person", name: t.name(f.name), url: abs(localePath(t.locale, `/boxers/${f.slug}`)) })),
       }} />
-      <div className="min-w-0 lg:sticky lg:top-24 lg:self-start"><Poster event={e} main={main} red={red} blue={blue} /></div>
+      <div className="min-w-0 space-y-4 lg:sticky lg:top-24 lg:self-start"><Poster event={e} main={main} red={red} blue={blue} />{venue?.picture && <CreditedPicture picture={venue.picture} alt={t("Photo of {venue}", { venue: t.name(e.venue) })} imgClassName="max-h-52" />}</div>
       <div className="min-w-0">
         <div className="eyebrow mb-2">{e.status === "cancelled" ? t("Cancelled") : e.status === "postponed" ? t.n(daysUntil(e.date), "Postponed · now {n} day away", "Postponed · now {n} days away") : e.upcoming ? t.n(daysUntil(e.date), "In {n} day", "In {n} days") : t("Final results")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase leading-none">{t.name(e.name)}</h1>

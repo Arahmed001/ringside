@@ -178,5 +178,7 @@ export interface Honour { boxerId: number; kind: "hall_of_fame" | "award" | "tit
 /** One reign on a belt, from a Wikipedia champions list (lib/importers/wikipedia-champions.ts). Dates are ISO prefixes: "1991-01-11", "1995-03" or "1990". Linked to a fighter only through a Wikidata ID. */
 export interface TitleReign { boxerId: number; org: string; division: string; category: string; status: string | null; start: string | null; end: string | null; current: boolean; defences: number | null; endNote: string | null; source: string }
 /** A venue verified against Wikidata (lib/importers/venues.ts). Capacity is a general figure, not the boxing configuration. */
-export interface Venue { name: string; city: string; wikidataId: string; label: string; lat: number | null; lon: number | null; capacity: number | null }
+export interface Venue { name: string; city: string; wikidataId: string; label: string; lat: number | null; lon: number | null; capacity: number | null; picture: Picture | null }
+/** A picture of an organisation, a belt or a venue, free-licensed, with the credit it has to carry. */
+export interface Picture { url: string; credit: PhotoCredit }
 export interface Earning extends Provenance { boxerId: number; year: number; totalUsd: number; ringUsd: number | null; offRingUsd: number | null }

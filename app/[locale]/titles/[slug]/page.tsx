@@ -11,6 +11,8 @@ import { getT } from "@/lib/i18n/server";
 import { msg } from "@/lib/i18n/t";
 import { metaFor } from "@/lib/seo-server";
 import { JsonLd } from "@/components/JsonLd";
+import { CreditedPicture } from "@/components/CreditedPicture";
+import { bodyCode } from "@/lib/bodies";
 import { abs } from "@/lib/seo";
 import { localePath } from "@/lib/i18n/config";
 
@@ -43,16 +45,20 @@ export default async function BeltPage({ params }: { params: Promise<{ slug: str
   const champ = belt.current ? w.byId.get(belt.current.boxerId) : undefined;
   const name = (id: number | null) => (id === null ? "" : t.name(w.byId.get(id)?.name ?? ""));
   const reigns = [...belt.reigns].reverse();
+  const code = bodyCode(belt.orgName), beltPicture = code ? w.beltPicture(code) : null;
   const bout = (r: Reign) => w.boutById.get(r.boutId);
   const days = (n: number) => (n >= 730 ? t("{n} years", { n: (n / 365.25).toFixed(1) }) : n >= 60 ? t("{n} months", { n: Math.round(n / 30.4) }) : t.n(n, "{n} day", "{n} days"));
 
   return (
     <div className="space-y-10">
       <JsonLd data={{ "@type": "Dataset", name: `${beltLabel(belt, t)} · ${divisionLabel(belt.division, belt.sex, t)}`, url: abs(localePath(t.locale, `/titles/${belt.slug}`)), inLanguage: t.locale, creator: { "@type": "Organization", name: "Ringside" } }} />
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-6">
+       <div>
         <div className="eyebrow mb-2"><Link href="/titles" className="inline-block py-1 hover:text-ink">{t("Title lineages")}</Link> · {divisionLabel(belt.division, belt.sex, t)}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase leading-none">{beltLabel(belt, t)}</h1>
         <p className="mt-2 text-muted">{divisionLabel(belt.division, belt.sex, t)} · {t("{from} to {to}", { from: fmtDate(belt.firstDate, { month: "short", year: "numeric" }, t.locale), to: fmtDate(belt.lastDate, { month: "short", year: "numeric" }, t.locale) })} · <Link href={`/rankings/${slugifyDivision(belt.division)}${belt.sex === "female" ? "?sex=female" : ""}`} className="hover:text-ink">{t("Division rankings")}</Link></p>
+       </div>
+       {beltPicture && code && <CreditedPicture picture={beltPicture} alt={t("A {body} championship belt", { body: code })} imgClassName="max-h-28" />}
       </div>
 
       {champ && belt.current && (

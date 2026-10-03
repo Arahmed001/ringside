@@ -78,23 +78,55 @@ export const licenceAccepted = (license: string): boolean => !NON_FREE.test(lice
 
 const stripHtml = (s: string) => s.replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#0?39;/g, "'").replace(/\s+/g, " ").trim();
 
-async function imageFor(fileName: string): Promise<Omit<MediaMatch, "wikidataId" | "confidence"> | { reject: string }> {
+export interface ImageRules {
+  /** logos are mostly SVG, which Commons serves as a PNG thumbnail; a photo must be a raster file */
+  allowSvg?: boolean;
+  /** smallest acceptable width in pixels (a raster file's own; an SVG has no real size) */
+  minWidth?: number;
+}
+
+/**
+ * One Commons file, accepted only under a free licence and not marked non-free; carries the author and licence for the credit line. A file marked
+ * "trademarked" (a logo, usually) keeps that on its credit: free to show, still somebody's mark.
+ */
+export async function imageFor(fileName: string, rules: ImageRules = {}): Promise<Omit<MediaMatch, "wikidataId" | "confidence"> | { reject: string }> {
   const r = await api<{ query?: { pages?: { missing?: boolean; imageinfo?: { thumburl?: string; url: string; width: number; mime: string; descriptionurl: string; extmetadata?: Record<string, { value: string }> }[] }[] } }>(COMMONS, {
     action: "query", titles: `File:${fileName}`, prop: "imageinfo", iiprop: "url|extmetadata|mime|size", iiurlwidth: "480",
   });
   const info = r.query?.pages?.[0]?.imageinfo?.[0];
   if (!info) return { reject: "image not on Commons" };
-  if (!/^image\/(jpeg|png|webp)$/.test(info.mime)) return { reject: `unsupported type ${info.mime}` };
-  if (info.width < 250) return { reject: "image too small" };
+  const svg = info.mime === "image/svg+xml";
+  if (!(rules.allowSvg && svg) && !/^image\/(jpeg|png|webp)$/.test(info.mime)) return { reject: `unsupported type ${info.mime}` };
+  if (!svg && info.width < (rules.minWidth ?? 250)) return { reject: "image too small" };
   const m = info.extmetadata ?? {};
   if (m.NonFree?.value === "true") return { reject: "non-free image" };
   const license = stripHtml(m.LicenseShortName?.value ?? "");
   if (!licenceAccepted(license)) return { reject: `licence not accepted: ${license || "unknown"}` };
   const artist = stripHtml(m.Artist?.value ?? "") || stripHtml(m.Credit?.value ?? "") || "Unknown author";
+  const restricted = /trademark/i.test(stripHtml(m.Restrictions?.value ?? ""));
   return {
     fileTitle: fileName, thumbUrl: info.thumburl ?? info.url, pageUrl: info.descriptionurl,
-    license, licenseUrl: m.LicenseUrl?.value ?? null, credit: `${artist.slice(0, 120)}, ${license}`,
+    license, licenseUrl: m.LicenseUrl?.value ?? null, credit: `${artist.slice(0, 120)}, ${license}${restricted ? " (trademark of its owner)" : ""}`,
   };
+}
+
+/**
+ * The first usable image on one property of a Wikidata item we are already linked to: P18 (image) or P154 (logo image). The first file that passes the
+ * licence rules wins; if none does, the reason of the last one is the answer.
+ */
+export async function mediaByEntity(qid: string, prop: "P18" | "P154", none: string, rules: ImageRules = {}): Promise<Outcome> {
+  const ents = await api<{ entities?: Record<string, Entity> }>(WIKIDATA, { action: "wbgetentities", ids: qid, props: "claims", languages: "en" });
+  const e = ents.entities?.[qid];
+  if (!e) return { status: "no_match", reason: "entity not found" };
+  const files = claimValues(e, prop).filter((v): v is string => typeof v === "string");
+  if (!files.length) return { status: "no_match", reason: none };
+  let lastReject = "no usable image";
+  for (const f of files) {
+    const img = await imageFor(f, rules);
+    if ("reject" in img) { lastReject = img.reject; continue; }
+    return { status: "matched", match: { wikidataId: qid, confidence: "high", ...img } };
+  }
+  return { status: "no_match", reason: lastReject };
 }
 
 export async function findHeadshot(s: Subject): Promise<Outcome> {
@@ -130,17 +162,4 @@ export async function findHeadshot(s: Subject): Promise<Outcome> {
 }
 
 /** Headshot for a Wikidata entity we are ALREADY linked to (by BoxRec ID or name + birth year), so no name search or birth-year check is needed. */
-export async function headshotByEntity(qid: string): Promise<Outcome> {
-  const ents = await api<{ entities?: Record<string, Entity> }>(WIKIDATA, { action: "wbgetentities", ids: qid, props: "claims", languages: "en" });
-  const e = ents.entities?.[qid];
-  if (!e) return { status: "no_match", reason: "entity not found" };
-  const files = claimValues(e, "P18").filter((v): v is string => typeof v === "string");
-  if (!files.length) return { status: "no_match", reason: "boxer has no image on Wikidata" };
-  let lastReject = "no usable image";
-  for (const f of files) {
-    const img = await imageFor(f);
-    if ("reject" in img) { lastReject = img.reject; continue; }
-    return { status: "matched", match: { wikidataId: qid, confidence: "high", ...img } };
-  }
-  return { status: "no_match", reason: lastReject };
-}
+export const headshotByEntity = (qid: string): Promise<Outcome> => mediaByEntity(qid, "P18", "boxer has no image on Wikidata");
