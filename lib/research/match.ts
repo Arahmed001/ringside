@@ -52,8 +52,8 @@ export function matchFacts(db: DatabaseSync, facts: CheckedFact[], opts: { allow
     if (valueKeys.length ? !valueKeys.some(ok) : !strong) { held.push(f); continue; }
     const lone = valueKeys.length ? valueKeys.some((k) => ok(k) && says(k) === "single_source") : f.status === "single_source";
     // "disclosed" is only honoured from an official host; anyone else claiming it is reported
-    const basis = f.basis === "disclosed" && !isOfficialHost(f.host, opts.officialHosts) ? "reported" : f.basis;
-    const note = [f.note, lone ? "single source" : undefined, basis !== f.basis ? "published by a non-official site" : undefined].filter(Boolean).join("; ") || undefined;
+    const basis = f.basis === "disclosed" && !(f.doc ? f.doc.official : isOfficialHost(f.host, opts.officialHosts)) ? "reported" : f.basis;
+    const note = [f.note, lone ? "single source" : undefined, basis !== f.basis ? (f.doc ? "from a document that is not an official record" : "published by a non-official site") : undefined, f.doc ? `document ${f.doc.file} (sha256 ${f.doc.sha256.slice(0, 12)}), ${f.doc.issuer}, received ${f.doc.receivedAt}${f.doc.form === "transcription" ? ", transcribed" : ""}` : undefined].filter(Boolean).join("; ") || undefined;
     const common = { basis, source: f.source, sourceUrl: f.sourceUrl, retrievedAt: f.accessedAt ?? today, note } as const;
     const num = (k: string) => (typeof f.values[k] === "number" && ok(k) ? (f.values[k] as number) : undefined);
 

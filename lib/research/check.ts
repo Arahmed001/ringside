@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { hostOf, numberStated, squash } from "./text";
 import { VALUE_KEYS, type CheckedFact, type FactKind, type FieldStatus, type ResearchFact } from "./types";
 import type { FetchOutcome } from "./fetcher";
+import type { DocOutcome } from "./documents";
 import type { Decision } from "./decisions";
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
@@ -26,7 +27,7 @@ function subjectKey(f: ResearchFact): string {
   return eventKey(f);
 }
 
-export const factId = (f: ResearchFact) => crypto.createHash("sha1").update(`${f.kind}|${subjectKey(f)}|${f.sourceUrl}|${JSON.stringify(f.values)}`).digest("hex").slice(0, 12);
+export const factId = (f: ResearchFact) => crypto.createHash("sha1").update(`${f.kind}|${subjectKey(f)}|${f.sourceUrl ?? `document:${f.document}`}|${JSON.stringify(f.values)}`).digest("hex").slice(0, 12);
 
 /** Problems with the claim itself, before anything is fetched. */
 export function shapeProblems(f: ResearchFact): string[] {
@@ -49,7 +50,9 @@ export function shapeProblems(f: ResearchFact): string[] {
   if (f.kind === "broadcast" && (!f.values?.broadcaster || !PLATFORMS.has(String(f.values.platform)))) p.push("broadcast needs broadcaster and platform (ppv, streaming, subscription or free-tv)");
   if (!BASES.has(f.basis)) p.push("basis must be disclosed, reported or estimated");
   if (!f.source?.trim()) p.push("source is required");
-  if (!/^https?:\/\//.test(f.sourceUrl ?? "")) p.push("sourceUrl must be an http(s) link");
+  if (f.sourceUrl !== undefined && f.document !== undefined) p.push("give a sourceUrl or a document, not both");
+  else if (f.document !== undefined) { if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(f.document) || f.document.includes("..")) p.push("document must be the plain name of a registered document"); }
+  else if (!/^https?:\/\//.test(f.sourceUrl ?? "")) p.push("sourceUrl must be an http(s) link (or name a registered document)");
   if (!f.quote?.trim()) p.push("quote is required: the exact words from the page");
   else if (f.quote.split(/\s+/).length > 80) p.push("quote is too long: copy only the passage that holds the figure (about 40 words)");
   return p;
@@ -57,7 +60,8 @@ export function shapeProblems(f: ResearchFact): string[] {
 
 export type PageGetter = (url: string) => Promise<FetchOutcome>;
 
-export interface CheckOptions { getPage: PageGetter; officialHosts?: string[]; tolerance?: number; decisions?: Decision[] }
+export type DocumentGetter = (name: string) => DocOutcome;
+export interface CheckOptions { getPage: PageGetter; getDocument?: DocumentGetter; officialHosts?: string[]; tolerance?: number; decisions?: Decision[] }
 
 /**
  * Checks every claim and decides what can be published.
@@ -76,12 +80,22 @@ export async function checkFacts(input: ResearchFact[], opts: CheckOptions): Pro
   const page = (u: string) => pages.get(u) ?? pages.set(u, opts.getPage(u)).get(u)!;
 
   for (const f of input) {
-    const c: CheckedFact = { ...f, id: factId(f), host: hostOf(f.sourceUrl ?? ""), status: "single_source", reasons: [] };
+    const c: CheckedFact = { ...f, id: factId(f), host: f.document !== undefined ? "" : hostOf(f.sourceUrl ?? ""), status: "single_source", reasons: [] };
     const bad = shapeProblems(f);
     if (bad.length) { c.status = "invalid"; c.reasons = bad; out.push(c); continue; }
-    const res = await page(f.sourceUrl);
-    if (!res.ok) { c.status = "unconfirmed"; c.reasons = [`could not read the page: ${res.reason}: ${res.detail}`]; out.push(c); continue; }
-    if (!squash(res.text).includes(squash(f.quote))) { c.status = "unconfirmed"; c.reasons = ["the quote is not on the page (word for word)"]; out.push(c); continue; }
+    let res: { ok: true; text: string } | { ok: false; reason: string; detail: string };
+    if (f.document !== undefined) { // evidence that is a file: proven by the hash recorded when a person registered it
+      const d: DocOutcome | { ok: false; reason: string; detail: string } = opts.getDocument?.(f.document) ?? { ok: false, reason: "no-store", detail: "no document store was given to the checker" };
+      if (d.ok) {
+        // the issuer's domain stands in for the host, so a document and a page from the same issuer count as one source
+        c.host = hostOf(`https://${d.entry.issuerHost}/`) || d.entry.issuerHost;
+        c.doc = { file: d.entry.file, sha256: d.entry.sha256, issuer: d.entry.issuer, receivedAt: d.entry.receivedAt, official: d.entry.official && d.entry.form === "original", form: d.entry.form };
+      }
+      res = d;
+    } else res = await page(f.sourceUrl!);
+    const noun = f.document !== undefined ? "document" : "page";
+    if (!res.ok) { c.status = "unconfirmed"; c.reasons = [`could not read the ${noun}: ${res.reason}: ${res.detail}`]; out.push(c); continue; }
+    if (!squash(res.text).includes(squash(f.quote))) { c.status = "unconfirmed"; c.reasons = [`the quote is not in the ${noun} (word for word)`]; out.push(c); continue; }
     const missing = Object.entries(f.values).filter(([, v]) => typeof v === "number" && !numberStated(v, f.quote)).map(([k]) => k);
     if (missing.length) { c.status = "unconfirmed"; c.reasons = [`the quote does not state: ${missing.join(", ")}`]; out.push(c); continue; }
     const textVals = Object.entries(f.values).filter(([k, v]) => typeof v === "string" && k === "broadcaster" && !squash(f.quote).includes(squash(String(v))));
@@ -115,7 +129,7 @@ export async function checkFacts(input: ResearchFact[], opts: CheckOptions): Pro
     for (const m of members) (byHost.get(m.host) ?? byHost.set(m.host, []).get(m.host)!).push(m);
     const val = (m: CheckedFact) => m.values[field] as number;
     const reps = [...byHost.values()].map((l) => l[0]);
-    const official = (m: CheckedFact) => m.basis === "disclosed" && isOfficialHost(m.host, opts.officialHosts);
+    const official = (m: CheckedFact) => m.basis === "disclosed" && (m.doc ? m.doc.official : isOfficialHost(m.host, opts.officialHosts));
     // the biggest set of hosts that agree with one another
     let cluster: CheckedFact[] = [];
     for (const r of reps) { const c = reps.filter((o) => within(val(o), val(r))); if (c.length > cluster.length) cluster = c; }

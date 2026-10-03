@@ -31,7 +31,7 @@ export const KNOWN_ENV = [
   "RINGSIDE_NOW", "DESIGN_LAB",
 ] as const;
 /** Settings that exist for tests and tooling and are deliberately not in .env.example. */
-export const INTERNAL_ENV = ["I18N_DIR", "REVIEW_OUT", "RINGSIDE_NO_SEED"] as const;
+export const INTERNAL_ENV = ["I18N_DIR", "REVIEW_OUT", "RINGSIDE_NO_SEED", "RESEARCH_DIR"] as const;
 /** Edit distance, for "did you mean". Cheap, and only ever run on a handful of names. */
 export function distance(a: string, b: string): number {
   const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array<number>(b.length).fill(0)]);
