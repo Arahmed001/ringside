@@ -71,3 +71,50 @@ test("enrichment links by BoxRec ID or by unique name + birth year, and only fil
   wd.enrichFromWikidata(db);
   assert.equal(got(mine[1].id).bp, "Elsewhere", "a blank field is filled");
 });
+
+const ex = (b: string, extra: Record<string, { value: string }>) => ({ b: lit(`http://www.wikidata.org/entity/${b}`), ...extra });
+
+test("extras query asks for the Hall of Fame, Olympedia and award properties", () => {
+  const q = wd.extrasQuery(["Q1", "Q2"]);
+  assert.match(q, /VALUES \?b \{ wd:Q1 wd:Q2 \}/);
+  assert.match(q, /wdt:P4474/); assert.match(q, /wdt:P8286/); assert.match(q, /pq:P585/);
+});
+
+test("extras parse: IDs validated, awards deduplicated, ordered by year, kinds told apart", () => {
+  const e = wd.parseExtras([
+    ex("Q10", { hof: lit("modern/leonardray"), oly: lit("12345"), award: lit("http://www.wikidata.org/entity/Q572227"), awardLabel: lit("International Boxing Hall of Fame"), awardYear: lit("1997-01-01T00:00:00Z") }),
+    ex("Q10", { award: lit("http://www.wikidata.org/entity/Q572227"), awardLabel: lit("International Boxing Hall of Fame"), awardYear: lit("1997-01-01T00:00:00Z") }),
+    ex("Q10", { award: lit("http://www.wikidata.org/entity/Q137999389"), awardLabel: lit("WBC World Light Heavyweight Champion") }),
+    ex("Q10", { award: lit("http://www.wikidata.org/entity/Q7634895"), awardLabel: lit("BWAA Fighter of the Year"), awardYear: lit("1981-01-01T00:00:00Z") }),
+    ex("Q10", { award: lit("http://www.wikidata.org/entity/Q999"), awardLabel: lit("Q999") }),
+    ex("Q11", { hof: lit("../etc/passwd"), oly: lit("abc") }),
+  ]);
+  const a = e.get("Q10")!;
+  assert.equal(a.ibhofId, "modern/leonardray"); assert.equal(a.olympediaId, "12345");
+  assert.deepEqual(a.awards.map((x) => [x.label, x.year, x.kind]), [
+    ["BWAA Fighter of the Year", 1981, "award"], ["International Boxing Hall of Fame", 1997, "hall_of_fame"], ["WBC World Light Heavyweight Champion", null, "title"],
+  ], "one row per award and year; an unresolved label (bare Q-id) is dropped; undated awards sort last");
+  const b = e.get("Q11")!;
+  assert.equal(b.ibhofId, null, "a path-traversal-looking ID is rejected"); assert.equal(b.olympediaId, null, "a non-numeric Olympedia ID is rejected");
+});
+
+test("enrichment copies IDs and honours to linked fighters, replaces Wikidata's own rows, never touches other sources", () => {
+  const [f] = db.prepare("SELECT id, name, birth_year FROM boxers ORDER BY id DESC LIMIT 1").all() as { id: number; name: string; birth_year: number }[];
+  db.prepare("INSERT INTO wikidata_boxers (qid, name, birth_year, ibhof_id, olympedia_id, awards) VALUES (?,?,?,?,?,?)").run(
+    "QH", f.name, f.birth_year, "classic/test", "999", JSON.stringify([{ qid: "Q1", label: "International Boxing Hall of Fame", year: 2005, kind: "hall_of_fame" }, { qid: "Q2", label: "Fighter of the Year", year: 2001, kind: "award" }]));
+  db.prepare("INSERT INTO honours (boxer_id, kind, label, year, source) VALUES (?,?,?,?,?)").run(f.id, "award", "Editor's pick", 2020, "editor");
+  const s = wd.enrichFromWikidata(db);
+  const boxer = db.prepare("SELECT ibhof_id h, olympedia_id o FROM boxers WHERE id = ?").get(f.id) as { h: string | null; o: string | null };
+  assert.equal(boxer.h, "classic/test"); assert.equal(boxer.o, "999");
+  assert.ok(s.honours.hallOfFame >= 1 && s.honours.olympedia >= 1 && s.honours.rows >= 2);
+  const rows = () => db.prepare("SELECT kind, label, year, source FROM honours WHERE boxer_id = ? ORDER BY source, year").all(f.id) as { kind: string; label: string; year: number; source: string }[];
+  assert.deepEqual(rows().map((r) => `${r.source}:${r.label}:${r.year}`), ["editor:Editor's pick:2020", "wikidata:Fighter of the Year:2001", "wikidata:International Boxing Hall of Fame:2005"]);
+  // Wikidata drops one award upstream: it disappears here, the editor's row stays, and a second run adds no duplicates
+  db.prepare("UPDATE wikidata_boxers SET awards = ? WHERE qid = 'QH'").run(JSON.stringify([{ qid: "Q1", label: "International Boxing Hall of Fame", year: 2005, kind: "hall_of_fame" }]));
+  wd.enrichFromWikidata(db); wd.enrichFromWikidata(db);
+  assert.deepEqual(rows().map((r) => `${r.source}:${r.label}`), ["editor:Editor's pick", "wikidata:International Boxing Hall of Fame"]);
+  // a feed-supplied ID is never overwritten
+  db.prepare("UPDATE boxers SET ibhof_id = 'feed/own' WHERE id = ?").run(f.id);
+  wd.enrichFromWikidata(db);
+  assert.equal((db.prepare("SELECT ibhof_id h FROM boxers WHERE id = ?").get(f.id) as { h: string }).h, "feed/own");
+});
