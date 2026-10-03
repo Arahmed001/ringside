@@ -96,6 +96,7 @@
   "files": [
    "app/[locale]/bouts/[id]/opengraph-image.tsx",
    "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/events/[id]/opengraph-image.tsx",
    "app/[locale]/money/page.tsx",
    "app/[locale]/previews/[id]/opengraph-image.tsx",
@@ -177,7 +178,7 @@
   ]
  },
  {
-  "key": "{count} · showing top {n}",
+  "key": "{count} · showing {from}–{to}",
   "files": [
    "app/[locale]/boxers/page.tsx"
   ]
@@ -360,7 +361,8 @@
   "plural": "{n} bout",
   "files": [
    "app/[locale]/analytics/page.tsx",
-   "app/[locale]/boxers/[slug]/page.tsx"
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/design/home/page.tsx"
   ]
  },
  {
@@ -587,9 +589,22 @@
   ]
  },
  {
+  "key": "{n} more players have fewer than {min} graded picks and are not ranked yet.",
+  "plural": "{n} more player has fewer than {min} graded picks and is not ranked yet.",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
   "key": "{n} moves, Elo over six fights",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} of the picks saved in this browser were added to your account.",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -1175,6 +1190,12 @@
   ]
  },
  {
+  "key": "{person}, {role}, from {from}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{record} · {country}",
   "files": [
    "components/Poster.tsx"
@@ -1395,6 +1416,12 @@
   ]
  },
  {
+  "key": "✦ marks the model’s pick. Saved to your account; picks lock when fight day begins.",
+  "files": [
+   "components/PickEm.tsx"
+  ]
+ },
+ {
   "key": "✦ Written by Claude",
   "files": [
    "components/ScoutingReport.tsx"
@@ -1422,6 +1449,12 @@
   "key": "200+ lb",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "3 to 24 letters, digits or underscores. This is what others see on the leaderboard.",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -1527,6 +1560,12 @@
   ]
  },
  {
+  "key": "a deleted account",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
   "key": "A different measure",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -1611,6 +1650,12 @@
   ]
  },
  {
+  "key": "A right pick scores 1 point plus the model’s doubt about it: calling an 80% favourite right is worth 1.2, calling the 20% underdog right is worth 1.8. A wrong pick scores 0.",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
   "key": "A split decision: the judges scored it {cards}",
   "files": [
    "lib/fight-score.ts"
@@ -1680,6 +1725,12 @@
   "key": "A win the model saw coming: {p} for {name}.",
   "files": [
    "lib/recap.ts"
+  ]
+ },
+ {
+  "key": "Account",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -1761,6 +1812,18 @@
   ]
  },
  {
+  "key": "Add or correct who trains or manages a fighter, with a source an editor can check.",
+  "files": [
+   "app/[locale]/contribute/page.tsx"
+  ]
+ },
+ {
+  "key": "Admin",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
   "key": "Against",
   "files": [
    "lib/ask/tools.ts"
@@ -1835,6 +1898,7 @@
  {
   "key": "All division rankings",
   "files": [
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -1968,9 +2032,40 @@
   ]
  },
  {
+  "key": "Anyone signed in can suggest an edit with a source; an editor checks it first. Approved edits are marked as community edits with their link.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Anything else the editor should know (optional)",
+  "files": [
+   "components/ContributeForm.tsx"
+  ]
+ },
+ {
   "key": "Apply",
   "files": [
    "components/RecordsFilter.tsx"
+  ]
+ },
+ {
+  "key": "Approve",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Approved",
+  "files": [
+   "components/ContributeForm.tsx",
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Approved and published.",
+  "files": [
+   "components/ReviewQueue.tsx"
   ]
  },
  {
@@ -2032,6 +2127,7 @@
   "key": "Ask",
   "files": [
    "app/[locale]/ask/page.tsx",
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -2063,6 +2159,7 @@
   "key": "Ask the data",
   "files": [
    "app/[locale]/ask/page.tsx",
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx",
    "lib/nav.ts",
    "lib/search.ts"
@@ -2071,6 +2168,8 @@
  {
   "key": "Assistant trainer",
   "files": [
+   "components/ContributeForm.tsx",
+   "components/ReviewQueue.tsx",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -2078,6 +2177,12 @@
   "key": "at ${price} each",
   "files": [
    "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "At least 10 characters. A few words make a good password.",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -2184,7 +2289,8 @@
  {
   "key": "Back to the ring",
   "files": [
-   "app/[locale]/not-found.tsx"
+   "app/[locale]/not-found.tsx",
+   "components/ErrorView.tsx"
   ]
  },
  {
@@ -2295,6 +2401,12 @@
   "key": "Best fight of {year}",
   "files": [
    "lib/ask/examples.ts"
+  ]
+ },
+ {
+  "key": "Best streak",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
   ]
  },
  {
@@ -2521,6 +2633,12 @@
   ]
  },
  {
+  "key": "Browse by year",
+  "files": [
+   "app/[locale]/events/page.tsx"
+  ]
+ },
+ {
   "key": "Build it",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
@@ -2601,6 +2719,7 @@
  {
   "key": "Call the card",
   "files": [
+   "app/[locale]/leaderboard/page.tsx",
    "components/MyPicks.tsx",
    "components/PickEm.tsx"
   ]
@@ -2717,6 +2836,12 @@
   ]
  },
  {
+  "key": "Change password",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
   "key": "Change the fight",
   "files": [
    "components/MatchupLab.tsx"
@@ -2729,15 +2854,45 @@
   ]
  },
  {
+  "key": "Check the quote on the page",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
   "key": "Checked before anything is written",
   "files": [
    "app/[locale]/data/page.tsx"
   ]
  },
  {
+  "key": "Checked by code: the page could not be read (blocked, gone or not text).",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Checked by code: the quote is NOT on the page.",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Checked by code: the quote is on the page.",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
   "key": "Chin",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Choose a role.",
+  "files": [
+   "components/accountText.ts"
   ]
  },
  {
@@ -2853,6 +3008,7 @@
  {
   "key": "Coming up",
   "files": [
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -2866,6 +3022,12 @@
   "key": "Common opponents and more",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Community edits, checked by an editor",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -2923,6 +3085,12 @@
   ]
  },
  {
+  "key": "Copy them exactly, up to 300 characters. Editors check that they are really on the page.",
+  "files": [
+   "components/ContributeForm.tsx"
+  ]
+ },
+ {
   "key": "Corner & camp",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -2962,6 +3130,12 @@
   ]
  },
  {
+  "key": "Could not reach the server. Check your connection and try again.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
   "key": "Couldn’t load your picks. Try again in a moment.",
   "files": [
    "components/MyPicks.tsx"
@@ -2983,6 +3157,18 @@
   "key": "Coverage: {withFin} of {events} completed cards have gate or PPV figures and {purses} purses are on file ({disclosed} official, {reported} reported, {estimated} estimated). Rankings below cover only what is on file.",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Create account",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Create an account",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
   ]
  },
  {
@@ -3053,6 +3239,12 @@
   ]
  },
  {
+  "key": "Current password",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
   "key": "Current rankings",
   "files": [
    "app/[locale]/rankings/page.tsx"
@@ -3079,6 +3271,8 @@
  {
   "key": "Cutman",
   "files": [
+   "components/ContributeForm.tsx",
+   "components/ReviewQueue.tsx",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -3116,9 +3310,21 @@
   ]
  },
  {
+  "key": "Dates cannot be in the future.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
   "key": "Days as champion of one belt in one reign. A reign that is still running counts up to today.",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Decided by {name} on {date}",
+  "files": [
+   "components/ReviewQueue.tsx"
   ]
  },
  {
@@ -3149,6 +3355,18 @@
   "key": "Defences",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Delete for good",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Delete my account",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -3295,6 +3513,18 @@
   ]
  },
  {
+  "key": "Down for the count",
+  "files": [
+   "components/ErrorView.tsx"
+  ]
+ },
+ {
+  "key": "Download everything we hold about me",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
   "key": "DQ",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -3387,9 +3617,28 @@
   ]
  },
  {
+  "key": "Editor",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Editor’s note: {note}",
+  "files": [
+   "components/ContributeForm.tsx"
+  ]
+ },
+ {
   "key": "Editors",
   "files": [
-   "app/[locale]/data/page.tsx"
+   "app/[locale]/data/page.tsx",
+   "app/[locale]/review/page.tsx"
+  ]
+ },
+ {
+  "key": "Editors check suggested team-history edits against their sources.",
+  "files": [
+   "app/[locale]/review/page.tsx"
   ]
  },
  {
@@ -3462,9 +3711,39 @@
   ]
  },
  {
+  "key": "Enter a full web address (https://…) for the source.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "Enter the end date as year-month-day, or leave it empty.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "Enter the person’s name (letters only, no links).",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "Enter the start date as year-month-day.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
   "key": "error",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Error",
+  "files": [
+   "components/ErrorView.tsx"
   ]
  },
  {
@@ -3537,6 +3816,12 @@
   ]
  },
  {
+  "key": "Events in {year}",
+  "files": [
+   "app/[locale]/events/page.tsx"
+  ]
+ },
+ {
   "key": "Events promoted",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
@@ -3594,6 +3879,7 @@
  {
   "key": "Every fighter.",
   "files": [
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -3618,6 +3904,7 @@
  {
   "key": "Every number.",
   "files": [
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -3625,12 +3912,6 @@
   "key": "Every reign",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
-  ]
- },
- {
-  "key": "Every row already carries a source field to make this auditable.",
-  "files": [
-   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -3656,6 +3937,12 @@
   "files": [
    "app/[locale]/boxers/page.tsx",
    "components/RecordsFilter.tsx"
+  ]
+ },
+ {
+  "key": "Everyone’s graded picks, scored the same way. Sign in and call the card to join.",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
   ]
  },
  {
@@ -3807,6 +4094,7 @@
  {
   "key": "Fight calendar",
   "files": [
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/events/page.tsx",
    "app/[locale]/page.tsx"
   ]
@@ -3851,6 +4139,7 @@
  {
   "key": "Fight night pick’em",
   "files": [
+   "app/[locale]/leaderboard/page.tsx",
    "app/[locale]/picks/page.tsx",
    "components/PickEm.tsx"
   ]
@@ -3970,6 +4259,7 @@
    "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "app/[locale]/weights/page.tsx",
+   "components/ContributeForm.tsx",
    "components/StyleMap.tsx",
    "components/TenureTable.tsx",
    "components/TrainerImpactCard.tsx",
@@ -4048,6 +4338,7 @@
   "files": [
    "app/[locale]/analytics/page.tsx",
    "app/[locale]/boxers/page.tsx",
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "components/TenureTable.tsx",
@@ -4274,6 +4565,12 @@
   ]
  },
  {
+  "key": "Forgot password",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
   "key": "Form",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
@@ -4294,6 +4591,7 @@
  {
   "key": "From",
   "files": [
+   "components/ContributeForm.tsx",
    "components/TrainerImpactCard.tsx"
   ]
  },
@@ -4346,9 +4644,16 @@
  {
   "key": "Full matchup breakdown",
   "files": [
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/previews/[id]/page.tsx",
    "components/Matchmaking.tsx"
+  ]
+ },
+ {
+  "key": "Full name",
+  "files": [
+   "components/ContributeForm.tsx"
   ]
  },
  {
@@ -4540,6 +4845,8 @@
  {
   "key": "Head trainer",
   "files": [
+   "components/ContributeForm.tsx",
+   "components/ReviewQueue.tsx",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -4696,6 +5003,12 @@
   ]
  },
  {
+  "key": "How it is scored",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
   "key": "How much head trainers change their fighters' results, estimated with a model that separates a trainer's effect from their fighters' own ability, with honest error bars, plus what happens when fighters change trainer.",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -4789,6 +5102,7 @@
   "key": "In {n} days",
   "plural": "In {n} day",
   "files": [
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/previews/[id]/page.tsx"
@@ -4968,6 +5282,12 @@
   ]
  },
  {
+  "key": "Know who trains or manages a fighter, or since when? Tell us, with the page that says so. An editor reads the source before anything is published, and what is published is marked as a community edit with its link.",
+  "files": [
+   "app/[locale]/contribute/page.tsx"
+  ]
+ },
+ {
   "key": "KO",
   "files": [
    "app/[locale]/analytics/page.tsx",
@@ -5094,6 +5414,12 @@
   ]
  },
  {
+  "key": "last used {date}",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
   "key": "Latest",
   "files": [
    "app/[locale]/page.tsx"
@@ -5109,6 +5435,13 @@
   "key": "Layoff",
   "files": [
    "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "Leaderboard",
+  "files": [
+   "components/AccountPanel.tsx",
+   "lib/nav.ts"
   ]
  },
  {
@@ -5283,6 +5616,7 @@
  {
   "key": "Live underdogs",
   "files": [
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/upset-watch/page.tsx"
   ]
  },
@@ -5308,6 +5642,14 @@
   "key": "Loading your watchlist…",
   "files": [
    "components/Watch.tsx"
+  ]
+ },
+ {
+  "key": "Loading…",
+  "files": [
+   "components/AccountPanel.tsx",
+   "components/ContributeForm.tsx",
+   "components/ReviewQueue.tsx"
   ]
  },
  {
@@ -5444,6 +5786,8 @@
   "files": [
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
+   "components/ContributeForm.tsx",
+   "components/ReviewQueue.tsx",
    "lib/search.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
@@ -5518,6 +5862,12 @@
   "key": "MD",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Member",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -5777,6 +6127,7 @@
   "key": "My picks",
   "files": [
    "app/[locale]/picks/page.tsx",
+   "components/AccountPanel.tsx",
    "lib/nav.ts",
    "lib/search.ts"
   ]
@@ -5790,9 +6141,22 @@
   ]
  },
  {
+  "key": "Name",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx",
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
   "key": "Name “{text}”",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Names are shown on the leaderboard unless you turn that off. Do not use your real name if you would rather not be found.",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -5830,6 +6194,18 @@
   "key": "New champion: {name}, {belt}.",
   "files": [
    "lib/night.ts"
+  ]
+ },
+ {
+  "key": "New password",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "New password again",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -5878,7 +6254,14 @@
  {
   "key": "Next main event",
   "files": [
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Next page",
+  "files": [
+   "components/ui.tsx"
   ]
  },
  {
@@ -6063,6 +6446,12 @@
   ]
  },
  {
+  "key": "No upcoming fights are scheduled yet.",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
   "key": "No upcoming fights on file",
   "files": [
    "components/LiveLedger.tsx"
@@ -6091,6 +6480,12 @@
   "key": "No wins yet.",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Nobody is on the board yet. Be the first: create an account and call the next card.",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
   ]
  },
  {
@@ -6141,6 +6536,13 @@
   "key": "none yet",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Not accepted",
+  "files": [
+   "components/ContributeForm.tsx",
+   "components/ReviewQueue.tsx"
   ]
  },
  {
@@ -6210,6 +6612,12 @@
   ]
  },
  {
+  "key": "Note (needed to reject)",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
   "key": "Nothing beyond the ratings: the model sees no extra reason for an upset.",
   "files": [
    "components/WatchCard.tsx"
@@ -6219,6 +6627,18 @@
   "key": "Nothing graded yet",
   "files": [
    "components/MyPicks.tsx"
+  ]
+ },
+ {
+  "key": "Nothing here yet.",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Nothing is waiting.",
+  "files": [
+   "components/ReviewQueue.tsx"
   ]
  },
  {
@@ -6237,6 +6657,13 @@
   "key": "Nothing to grade yet",
   "files": [
    "components/LiveLedger.tsx"
+  ]
+ },
+ {
+  "key": "now",
+  "files": [
+   "components/ContributeForm.tsx",
+   "components/ReviewQueue.tsx"
   ]
  },
  {
@@ -6343,15 +6770,33 @@
   ]
  },
  {
+  "key": "One-time code",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
   "key": "Only cards with figures on file are counted, so a year can look small because data is thin, not because the money was.",
   "files": [
    "app/[locale]/money/page.tsx"
   ]
  },
  {
+  "key": "Only editors can review edits.",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
   "key": "Only fighters who changed trainer tell a trainer's effect apart from their fighters' ability. A trainer whose fighters never left is pulled toward zero, however good the results.",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Only your name and your pick’em score are shown, never your individual picks.",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -6429,6 +6874,24 @@
   ]
  },
  {
+  "key": "Overlaps someone already listed in this role.",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Page {page} of {pages}",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "Pages",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
   "key": "Paid",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -6444,6 +6907,24 @@
   "key": "Partly built",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Password",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Password again",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Password changed. Your other devices were signed out.",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -6513,6 +6994,12 @@
   ]
  },
  {
+  "key": "Per pick",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
   "key": "per tenure",
   "files": [
    "app/[locale]/people/[slug]/page.tsx"
@@ -6545,7 +7032,8 @@
  {
   "key": "Person",
   "files": [
-   "app/[locale]/people/[slug]/page.tsx"
+   "app/[locale]/people/[slug]/page.tsx",
+   "components/ContributeForm.tsx"
   ]
  },
  {
@@ -6567,6 +7055,12 @@
   ]
  },
  {
+  "key": "Pick a fighter from the list.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
   "key": "Pick any two fighters — even from different eras or weights — and see win probability, how the fight likely ends, and what drives the number.",
   "files": [
    "app/[locale]/compare/page.tsx"
@@ -6582,6 +7076,18 @@
   "key": "Pick two different fighters to build the fight.",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "Pick’em leaderboard",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
+  "key": "Pick’em standings",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
   ]
  },
  {
@@ -6633,6 +7139,12 @@
   ]
  },
  {
+  "key": "Points",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
   "key": "Portrait of {name}",
   "files": [
    "components/Portrait.tsx"
@@ -6666,6 +7178,7 @@
  {
   "key": "Pound for pound",
   "files": [
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/rankings/page.tsx",
    "lib/ask/tools.ts"
@@ -6763,6 +7276,18 @@
   ]
  },
  {
+  "key": "Previous page",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "Privacy",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
   "key": "Pro debut",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -6809,6 +7334,18 @@
   "key": "Promotions",
   "files": [
    "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "Proposed by {name}",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Proposer’s note: {note}",
+  "files": [
+   "components/ReviewQueue.tsx"
   ]
  },
  {
@@ -6898,6 +7435,18 @@
   ]
  },
  {
+  "key": "Quote the words from the page that say it (at least a short sentence).",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "Rank",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
   "key": "Rankings",
   "files": [
    "app/[locale]/rankings/page.tsx",
@@ -6958,6 +7507,7 @@
  {
   "key": "Ratings, rankings, win-probabilities and AI scouting for the whole sport, in one place. Ask in plain English.",
   "files": [
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -7002,10 +7552,17 @@
   "key": "Read the preview",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/previews/page.tsx",
    "components/WatchCard.tsx"
+  ]
+ },
+ {
+  "key": "Read the source, have the quote checked on the live page, then approve or reject. Approving publishes the edit at once, marked as a community edit with its link. You cannot decide your own proposal.",
+  "files": [
+   "app/[locale]/review/page.tsx"
   ]
  },
  {
@@ -7073,6 +7630,7 @@
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/compare/page.tsx",
+   "app/[locale]/leaderboard/page.tsx",
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
@@ -7125,6 +7683,12 @@
   ]
  },
  {
+  "key": "Reference: {code}",
+  "files": [
+   "components/ErrorView.tsx"
+  ]
+ },
+ {
   "key": "Rehydrates +{n} lb",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -7152,6 +7716,18 @@
   "key": "Reigns",
   "files": [
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Reject",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Rejected.",
+  "files": [
+   "components/ReviewQueue.tsx"
   ]
  },
  {
@@ -7224,6 +7800,14 @@
   ]
  },
  {
+  "key": "Review queue",
+  "files": [
+   "app/[locale]/review/page.tsx",
+   "components/AccountPanel.tsx",
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
   "key": "Reviewed by a person",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -7232,6 +7816,7 @@
  {
   "key": "Right",
   "files": [
+   "app/[locale]/leaderboard/page.tsx",
    "components/LiveLedger.tsx",
    "components/MyPicks.tsx"
   ]
@@ -7240,6 +7825,12 @@
   "key": "Ring rust (past 12 mo)",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Ringside",
+  "files": [
+   "app/[locale]/account/page.tsx"
   ]
  },
  {
@@ -7258,6 +7849,12 @@
   "key": "Ringside demo build · All fighters, fights and events shown are <b>fictional, simulated data</b>. Ratings are Elo-style and unofficial.",
   "files": [
    "app/[locale]/layout.tsx"
+  ]
+ },
+ {
+  "key": "Role",
+  "files": [
+   "components/ContributeForm.tsx"
   ]
  },
  {
@@ -7333,6 +7930,12 @@
   ]
  },
  {
+  "key": "Same rule, on the {n} fights the field called",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
   "key": "Sanctioning bodies",
   "files": [
    "app/[locale]/orgs/page.tsx"
@@ -7343,6 +7946,12 @@
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx",
    "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Say why, in a few words.",
+  "files": [
+   "components/accountText.ts"
   ]
  },
  {
@@ -7448,7 +8057,8 @@
  {
   "key": "Search for a fighter…",
   "files": [
-   "app/[locale]/matchmaking/page.tsx"
+   "app/[locale]/matchmaking/page.tsx",
+   "components/ContributeForm.tsx"
   ]
  },
  {
@@ -7470,6 +8080,12 @@
   ]
  },
  {
+  "key": "See the leaderboard",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "selected features",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -7479,6 +8095,18 @@
   "key": "Selected features",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Send for review",
+  "files": [
+   "components/ContributeForm.tsx"
+  ]
+ },
+ {
+  "key": "Set new password",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -7548,6 +8176,12 @@
   ]
  },
  {
+  "key": "Show me on the leaderboard",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
   "key": "Show the map",
   "files": [
    "components/StyleMap.tsx"
@@ -7590,9 +8224,90 @@
   ]
  },
  {
+  "key": "Sign in",
+  "files": [
+   "components/AccountMenu.tsx",
+   "components/AccountPanel.tsx",
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Sign in as an editor to review edits.",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Sign in first.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "Sign in or create an account",
+  "files": [
+   "components/ContributeForm.tsx"
+  ]
+ },
+ {
+  "key": "Sign in to keep them",
+  "files": [
+   "components/PickEm.tsx"
+  ]
+ },
+ {
+  "key": "Sign in to keep them on every device",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
+  "key": "Sign in to keep your picks on every device, join the leaderboard and suggest corrections.",
+  "files": [
+   "app/[locale]/account/page.tsx"
+  ]
+ },
+ {
+  "key": "Sign in to suggest an edit. Every edit needs a source, and an editor reads it before it is published.",
+  "files": [
+   "components/ContributeForm.tsx"
+  ]
+ },
+ {
+  "key": "Sign out",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Sign out everywhere else",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Signed in",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Signed in {date}",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
   "key": "Signed now",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Signed out of {n} other devices.",
+  "plural": "Signed out of {n} other device.",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -7663,6 +8378,24 @@
   ]
  },
  {
+  "key": "Someone has already decided this.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "Something broke on our side while building this page. Try again; if it keeps happening, go back to the home page.",
+  "files": [
+   "components/ErrorView.tsx"
+  ]
+ },
+ {
+  "key": "Something went wrong. Try again.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
   "key": "Sort by",
   "files": [
    "app/[locale]/people/page.tsx"
@@ -7675,9 +8408,21 @@
   ]
  },
  {
+  "key": "source",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Source",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Source page",
+  "files": [
+   "components/ContributeForm.tsx"
   ]
  },
  {
@@ -7742,9 +8487,21 @@
   ]
  },
  {
+  "key": "Standings",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
   "key": "Star a fighter (☆ Watch on any profile) and their next fight shows up here.",
   "files": [
    "components/Watch.tsx"
+  ]
+ },
+ {
+  "key": "Starts long before the fighter’s first fight on record.",
+  "files": [
+   "components/ReviewQueue.tsx"
   ]
  },
  {
@@ -7811,7 +8568,9 @@
  {
   "key": "Strength",
   "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "components/ContributeForm.tsx",
+   "components/ReviewQueue.tsx"
   ]
  },
  {
@@ -7878,6 +8637,20 @@
   "key": "Successful defences added up over every reign.",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Suggest an edit",
+  "files": [
+   "app/[locale]/contribute/page.tsx",
+   "components/AccountPanel.tsx",
+   "components/ContributeForm.tsx"
+  ]
+ },
+ {
+  "key": "Suggest an edit to this team history",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -7966,6 +8739,12 @@
   ]
  },
  {
+  "key": "Team history",
+  "files": [
+   "app/[locale]/contribute/page.tsx"
+  ]
+ },
+ {
   "key": "Team history rows by source: {stints}. Weigh-ins by source: {weighIns}. Wikidata staged: {staged} boxers, {linked} linked to our fighters.",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -8015,9 +8794,81 @@
   ]
  },
  {
+  "key": "Thank you. An editor will check the source before this is published.",
+  "files": [
+   "components/ContributeForm.tsx"
+  ]
+ },
+ {
+  "key": "That code is wrong or has expired.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "That fight is not on the card any more.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "That fighter is not in this bout.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "That is this device: use Sign out.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "That name and password do not match.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "That name is reserved.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "That name is taken.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "That no longer exists.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
   "key": "That page doesn’t exist, or the fighter or event was removed.",
   "files": [
    "app/[locale]/not-found.tsx"
+  ]
+ },
+ {
+  "key": "That password is not right.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "That password is too easy to guess.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "That password is too long.",
+  "files": [
+   "components/accountText.ts"
   ]
  },
  {
@@ -8123,6 +8974,12 @@
   ]
  },
  {
+  "key": "The end date is before the start date.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
   "key": "The fight calendar: upcoming cards with their main events and win probabilities, plus recent results and how each main event ended.",
   "files": [
    "app/[locale]/events/page.tsx"
@@ -8186,6 +9043,12 @@
   "key": "The latest card was {event} on {date}, headlined by {fight}.",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "The likelier side is always the better pick on average, so there is nothing to gain from backing underdogs to look bold. Picks lock when fight day begins, and only graded fights count (not draws, no-contests or cancellations).",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
   ]
  },
  {
@@ -8346,15 +9209,45 @@
   ]
  },
  {
+  "key": "The note is too long.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
   "key": "The numbers do not favour either side on this point.",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
   ]
  },
  {
+  "key": "The password must not contain your name.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "The password needs at least 10 characters.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
   "key": "The people behind the fights",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "The quote does not contain the person’s name.",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "The quote is too long: copy only the passage that says it (300 characters at most).",
+  "files": [
+   "components/accountText.ts"
   ]
  },
  {
@@ -8367,6 +9260,12 @@
   "key": "The rating weight is fitted on {n} past bouts (held-out log-loss {fit} vs {base} for plain Elo). Other weights are hand-set; see Data & model for how each compares.",
   "files": [
    "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "The Ringside model",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
   ]
  },
  {
@@ -8406,9 +9305,21 @@
   ]
  },
  {
+  "key": "The source check is not set up on this server.",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
   "key": "The trainer with the largest estimated effect is {name} ({effect} Elo, {verdict}); the ranges are wide, so treat this as a lean, not a ranking.",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "The two passwords are not the same.",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -8421,6 +9332,12 @@
   "key": "The winner was knocked down along the way.",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
+  "key": "The words on that page that say it",
+  "files": [
+   "components/ContributeForm.tsx"
   ]
  },
  {
@@ -8439,6 +9356,12 @@
   "key": "There are not enough completed fights to check the model yet.",
   "files": [
    "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "There is no email on file to send a reset link to. Ask whoever runs this site for a one-time code, then enter it here with your name and a new password.",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -8507,6 +9430,36 @@
   "key": "They have never met.",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "This device",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "This fight is locked: picks close when fight day begins.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "This is already in the data.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "This person is not in the data yet (a new page will be created).",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "This removes your name, your picks and your sign-ins for good. Edits you proposed stay in the record without your name. Enter your password to confirm.",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -8650,6 +9603,12 @@
   "key": "Too few rounds on the record to pin down a style; every fight right now is a data point.",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Too many tries. Wait a while and try again.",
+  "files": [
+   "components/accountText.ts"
   ]
  },
  {
@@ -8797,9 +9756,16 @@
   ]
  },
  {
+  "key": "Try again",
+  "files": [
+   "components/ErrorView.tsx"
+  ]
+ },
+ {
   "key": "Try: {example}",
   "files": [
    "app/[locale]/ask/page.tsx",
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -8918,9 +9884,21 @@
   ]
  },
  {
+  "key": "Unknown device",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
   "key": "Unsupervised · PCA projection",
   "files": [
    "app/[locale]/map/page.tsx"
+  ]
+ },
+ {
+  "key": "Until (leave empty if still working together)",
+  "files": [
+   "components/ContributeForm.tsx"
   ]
  },
  {
@@ -8938,6 +9916,7 @@
  {
   "key": "Upcoming cards",
   "files": [
+   "app/[locale]/design/home/page.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -8980,6 +9959,7 @@
  {
   "key": "Upset watch",
   "files": [
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/previews/page.tsx",
    "app/[locale]/trainers/page.tsx",
@@ -8994,6 +9974,18 @@
   "key": "Upsets to expect",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Use 3 to 24 letters, digits or underscores.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "Use more than one or two different characters.",
+  "files": [
+   "components/accountText.ts"
   ]
  },
  {
@@ -9063,6 +10055,7 @@
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
    "app/[locale]/compare/page.tsx",
+   "app/[locale]/design/home/page.tsx",
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
    "app/[locale]/page.tsx",
@@ -9095,6 +10088,18 @@
   ]
  },
  {
+  "key": "Waiting",
+  "files": [
+   "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Waiting for review",
+  "files": [
+   "components/ContributeForm.tsx"
+  ]
+ },
+ {
   "key": "Want an answer rather than a list?",
   "files": [
    "app/[locale]/page.tsx"
@@ -9104,6 +10109,12 @@
   "key": "warning",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "We keep a name, a scrambled copy of your password, your picks and the edits you propose. No email, no tracking. You can download all of it, or delete it, from this page once you are signed in.",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -9186,6 +10197,12 @@
   "key": "what actually happened",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "What an account is for",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -9297,6 +10314,12 @@
   ]
  },
  {
+  "key": "Where you are signed in",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
   "key": "Who",
   "files": [
    "components/RecordsFilter.tsx",
@@ -9322,6 +10345,12 @@
   ]
  },
  {
+  "key": "Who calls fights best: scored on graded picks, with the Ringside model on the same fights as the bar to beat.",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
   "key": "Who gets underdogs over the line",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -9342,6 +10371,7 @@
  {
   "key": "Who has the most knockouts among women?",
   "files": [
+   "app/[locale]/design/home/page.tsx",
    "lib/ask/examples.ts"
   ]
  },
@@ -9584,6 +10614,18 @@
   ]
  },
  {
+  "key": "Withdraw",
+  "files": [
+   "components/ContributeForm.tsx"
+  ]
+ },
+ {
+  "key": "Withdrawn",
+  "files": [
+   "components/ContributeForm.tsx"
+  ]
+ },
+ {
   "key": "within 1.5 lb",
   "files": [
    "lib/weights.ts"
@@ -9706,6 +10748,30 @@
   ]
  },
  {
+  "key": "You are not allowed to do that.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "You are ranked after {n} graded picks. People who turned their picks private are not listed.",
+  "files": [
+   "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
+  "key": "You can propose corrections to a fighter’s team history, with a source an editor can check.",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "You cannot decide your own proposal.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
   "key": "You have asked a lot in a short time, so this answer comes from rules instead of AI.",
   "files": [
    "components/AskResults.tsx"
@@ -9715,6 +10781,24 @@
   "key": "You have not made any picks yet. Call the card on the home page and your record builds here, fight by fight.",
   "files": [
    "components/MyPicks.tsx"
+  ]
+ },
+ {
+  "key": "You have not suggested anything yet.",
+  "files": [
+   "components/ContributeForm.tsx"
+  ]
+ },
+ {
+  "key": "You have reached the limit.",
+  "files": [
+   "components/accountText.ts"
+  ]
+ },
+ {
+  "key": "You or someone else has already proposed this.",
+  "files": [
+   "components/accountText.ts"
   ]
  },
  {
@@ -9736,9 +10820,27 @@
   ]
  },
  {
+  "key": "Your account",
+  "files": [
+   "app/[locale]/account/page.tsx"
+  ]
+ },
+ {
+  "key": "Your account: {name}",
+  "files": [
+   "components/AccountMenu.tsx"
+  ]
+ },
+ {
   "key": "Your fight-night picks, graded against the results and against the Ringside model's call before the bell.",
   "files": [
    "app/[locale]/picks/page.tsx"
+  ]
+ },
+ {
+  "key": "Your pick’em picks follow you across devices and count on the leaderboard.",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -9748,9 +10850,27 @@
   ]
  },
  {
+  "key": "Your picks are hidden from the leaderboard.",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Your picks are saved on your account. Picks lock when fight day begins, so they cannot be changed afterwards.",
+  "files": [
+   "components/MyPicks.tsx"
+  ]
+ },
+ {
   "key": "Your picks are saved only in this browser; the server sees just the fight numbers when this page loads.",
   "files": [
    "components/MyPicks.tsx"
+  ]
+ },
+ {
+  "key": "Your picks count on the leaderboard.",
+  "files": [
+   "components/AccountPanel.tsx"
   ]
  },
  {
@@ -9763,6 +10883,12 @@
   "key": "Your record",
   "files": [
    "components/MyPicks.tsx"
+  ]
+ },
+ {
+  "key": "Your suggestions",
+  "files": [
+   "components/ContributeForm.tsx"
   ]
  },
  {

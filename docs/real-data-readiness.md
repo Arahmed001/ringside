@@ -11,10 +11,17 @@ Ringside runs on a fictional league. This is what stands between it and a real f
 
 ## The first run (about 20 requests, free)
 
+Set the key through a prompt (never shown, never saved in your history). On a Mac (zsh):
+
 ```bash
-export BOXING_API_KEY=...            # the RapidAPI key from the free plan
-npm run vendor:sample -- --fights 10 --save-raw   # --save-raw keeps every raw response in data/vendor-samples/raw/ (gitignored)
-npm run data:check -- --file data/vendor-samples/boxing-data-api-<date>.json
+read -s "BOXING_API_KEY?RapidAPI key: "; export BOXING_API_KEY; echo
+```
+
+Then take the sample (`--save-raw` keeps every raw response in `data/vendor-samples/raw/`, gitignored) and check it; the script prints the exact file name at the end, so use that one in place of the date:
+
+```bash
+npm run vendor:sample -- --fights 10 --save-raw
+npm run data:check -- --file data/vendor-samples/boxing-data-api-2026-10-03.json
 ```
 
 Look at the printed list of approximations and the validator's findings, then open the sample and check these against what the docs only imply. Each one is a place the adapter makes an assumption:

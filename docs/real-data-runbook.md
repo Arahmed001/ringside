@@ -11,11 +11,28 @@ Everything here is one command, `npm run vendor:backfill`, in four modes. It res
 - [ ] **A new database file** for the real league: `DATABASE_PATH=/path/real.db`. Never the demo database: the command refuses to load into one that holds other fighters, because real and invented fighters would share the same rankings.
 - [ ] The readiness checklist read once (`docs/real-data-readiness.md`): the footer wording, photos, a way to report errors.
 
+Set the key through a prompt, so it is never shown on screen and never saved in your shell history. On a Mac (zsh):
+
 ```bash
-export BOXING_API_KEY='...'                      # from your shell or secret store, never from a file in the repo
-export DATABASE_PATH=/data/real.db               # a NEW file
-export BOXING_API_STORAGE_CONFIRMED=1            # once the vendor has agreed in writing (silences the provisional warning); =0 refuses to store at all
+read -s "BOXING_API_KEY?RapidAPI key: "; export BOXING_API_KEY; echo
 ```
+
+(In bash: `read -s -p "RapidAPI key: " BOXING_API_KEY; export BOXING_API_KEY; echo`.) Paste the key and press Enter. `echo ${#BOXING_API_KEY}` should then print about 50, and the command stops at once with a clear message if what you pasted cannot be a key (a placeholder such as `...` or `…`). Never keep the key in a file in the repository.
+
+Then the database, a **new** file in a folder that exists (not the placeholder path in any example you copied):
+
+```bash
+mkdir -p $HOME/ringside-real
+export DATABASE_PATH=$HOME/ringside-real/real.db
+```
+
+In a container use the volume instead (`/data/real.db`). Finally, once the vendor has agreed in writing (this silences the provisional warning; `=0` refuses to store at all):
+
+```bash
+export BOXING_API_STORAGE_CONFIRMED=1
+```
+
+**A note on pasting commands.** A Mac's zsh does not treat `#` as the start of a comment, so a command pasted with a trailing `# comment` fails in confusing ways (`export: not valid in this context`, `cd: too many arguments`). The commands in this document carry no trailing comments; if you copy one from elsewhere, drop the comment, or run `setopt interactive_comments` once.
 
 In a container the cache must live on the volume, not in the image: add `--cache-dir /data/vendor-cache` to every command below. The default (`data/vendor-cache/` under the project) is inside the container's disposable layer.
 
