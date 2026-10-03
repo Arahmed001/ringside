@@ -18,6 +18,12 @@ export interface ResearchFact {
   /** Calendar year (earning). */
   year?: number;
   /**
+   * Earning only: which published ranking the figure comes from, e.g. "Forbes 2024 list (12 months to 1 May 2024)". Lists cover
+   * different periods, so figures from different lists are never compared with each other (Forbes and Sportico "disagree" about
+   * the same year only because they measure different twelve months). Omit it for a one-off figure with no ranking behind it.
+   */
+  list?: string;
+  /**
    * event_financials: gateUsd ticketsSold capacity siteFeeUsd ppvBuys ppvPriceUsd ppvRevenueUsd sponsorshipUsd
    * purse: guaranteedUsd bonusUsd totalUsd     earning: totalUsd ringUsd offRingUsd
    * broadcast: broadcaster platform(ppv|streaming|subscription|free-tv) region viewersAvg viewersPeak
@@ -47,11 +53,14 @@ export const VALUE_KEYS: Record<FactKind, { numeric: string[]; text: string[] }>
 /**
  * verified       quote confirmed on the live page, numbers match the quote, and two independent sources agree (or one official one does)
  * single_source  quote confirmed, but only one source: held back unless you promote with --allow-single-source
- * conflict       sources disagree by more than 5%: a person has to look
+ * conflict       sources disagree by more than 5%: a person has to look, or records a decision (decisions.ts)
+ * excluded       a recorded decision took the claim out of the cross-check, with the reason and evidence (never published)
  * unconfirmed    the page could not be fetched (blocked, paywalled, gone), or the quote or numbers are not on it
  * invalid        the claim itself is malformed
  */
-export type FactStatus = "verified" | "single_source" | "conflict" | "unconfirmed" | "invalid";
+export type FactStatus = "verified" | "single_source" | "conflict" | "unconfirmed" | "invalid" | "excluded";
+/** Per value: the same words, except that a claim is only "excluded" or "conflict" for the values that are. */
+export type FieldStatus = "verified" | "single_source" | "conflict" | "excluded";
 
 export interface CheckedFact extends ResearchFact {
   id: string;
@@ -60,4 +69,8 @@ export interface CheckedFact extends ResearchFact {
   reasons: string[];
   /** Other sources that agree (hosts), for the review trail. */
   agreeing?: string[];
+  /** Status of each numeric value on its own: one conflicting value no longer holds back the others. */
+  fields?: Record<string, FieldStatus>;
+  /** The recorded decision that excluded this claim (or some of its values), for the review trail. */
+  decision?: { reason: string; why: string; decidedBy: string; date: string; fields?: string[] };
 }

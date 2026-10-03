@@ -40,20 +40,32 @@ export function matchFacts(db: DatabaseSync, facts: CheckedFact[], opts: { allow
     return hits.length === 1 ? hits[0] : hits.length ? "more than one bout matches" : "no bout in the database between those fighters on that date";
   };
 
+  // earnings from one list are one row however many outlets repeat the list: first claim wins, later ones only fill gaps
+  const earningRow = new Map<string, MoneyRows["earnings"][number]>();
+
   for (const f of facts) {
-    const strong = f.status === "verified" || (opts.allowSingleSource && f.status === "single_source");
-    if (!strong) { held.push(f); continue; }
+    const strong = f.status === "verified" || (!!opts.allowSingleSource && f.status === "single_source");
+    // each value stands on its own status, so one disputed value does not hold back the others; older files without per-value status use the claim's
+    const valueKeys = Object.keys(f.fields ?? {});
+    const says = (k: string) => f.fields?.[k];
+    const ok = (k: string) => { const s = says(k); return s ? s === "verified" || (!!opts.allowSingleSource && s === "single_source") : strong; };
+    if (valueKeys.length ? !valueKeys.some(ok) : !strong) { held.push(f); continue; }
+    const lone = valueKeys.length ? valueKeys.some((k) => ok(k) && says(k) === "single_source") : f.status === "single_source";
     // "disclosed" is only honoured from an official host; anyone else claiming it is reported
     const basis = f.basis === "disclosed" && !isOfficialHost(f.host, opts.officialHosts) ? "reported" : f.basis;
-    const note = [f.note, f.status === "single_source" ? "single source" : undefined, basis !== f.basis ? "published by a non-official site" : undefined].filter(Boolean).join("; ") || undefined;
+    const note = [f.note, lone ? "single source" : undefined, basis !== f.basis ? "published by a non-official site" : undefined].filter(Boolean).join("; ") || undefined;
     const common = { basis, source: f.source, sourceUrl: f.sourceUrl, retrievedAt: f.accessedAt ?? today, note } as const;
-    const num = (k: string) => (typeof f.values[k] === "number" ? (f.values[k] as number) : undefined);
+    const num = (k: string) => (typeof f.values[k] === "number" && ok(k) ? (f.values[k] as number) : undefined);
 
     if (f.kind === "earning") {
       allBoxers ??= boxers.all() as { ext: string; name: string }[];
       const hit = allBoxers.filter((b) => sameBoxer(b.name, f.fighter!));
       if (hit.length !== 1) { unmatched.push({ fact: f, reason: hit.length ? "more than one fighter has that name" : "no such fighter in the database" }); continue; }
-      rows.earnings.push({ boxerExternalId: hit[0].ext, year: f.year!, totalUsd: num("totalUsd")!, ringUsd: num("ringUsd"), offRingUsd: num("offRingUsd"), ...common });
+      const row = { boxerExternalId: hit[0].ext, year: f.year!, totalUsd: num("totalUsd")!, ringUsd: num("ringUsd"), offRingUsd: num("offRingUsd"), ...common, ...(f.list ? { source: f.list } : {}) };
+      const key = f.list ? `${row.boxerExternalId}|${row.year}|${row.source}` : "";
+      const have = key ? earningRow.get(key) : undefined;
+      if (have) { have.totalUsd ??= row.totalUsd; have.ringUsd ??= row.ringUsd; have.offRingUsd ??= row.offRingUsd; }
+      else { rows.earnings.push(row); if (key) earningRow.set(key, row); }
       used.push(f); continue;
     }
     const b = findBout(f);

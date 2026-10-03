@@ -17,16 +17,30 @@ A researcher never writes to the database. It writes **claims** to `data/researc
 | `event_financials` | `event` | `gateUsd ticketsSold capacity siteFeeUsd ppvBuys ppvPriceUsd ppvRevenueUsd sponsorshipUsd` |
 | `purse` | `event` (the bout's two boxers), `fighter` | `guaranteedUsd bonusUsd totalUsd` |
 | `broadcast` | `event` | `broadcaster` `platform` (ppv, streaming, subscription, free-tv) `region` `viewersAvg viewersPeak` |
-| `earning` | `fighter`, `year` | `totalUsd ringUsd offRingUsd` |
+| `earning` | `fighter`, `year`, and `list` (the ranking: `Forbes 2024 list`, `Sportico 2024 list`) | `totalUsd ringUsd offRingUsd` |
 
 `basis`: **disclosed** only for an official record (a commission's purse disclosure, a company filing, the promoter's own statement); **reported** when a named
 outlet cites people or documents; **estimated** when the page calls it an estimate or it is worked out from other figures. `npm run research -- check` then:
 
 1. rejects malformed claims;
 2. **fetches the page again, in code**, and requires the `quote` to be on it word for word and every number claimed to be stated in the quote (an invented quote or a misread figure is `unconfirmed`);
-3. groups claims by what they describe and requires **two independent sites** (at least one not Wikipedia) within 5% of each other, or one official `.gov` record, to call a figure `verified`; a lone site is `single_source` (held back unless you promote with `--allow-single-source`); sites that disagree are a `conflict` for a person to settle;
+3. groups claims by what they describe and requires **two independent sites** (at least one not Wikipedia) within 5% of each other, or one official `.gov` record, to call a figure `verified`; a lone site is `single_source` (held back unless you promote with `--allow-single-source`); sites that disagree are a `conflict` for a person to settle (see "Settling a conflict"). Each value on a claim has its own status (`fields` in `checked.jsonl`), so one disputed value does not hold back the others, and `promote` publishes value by value;
 4. `promote` matches verified claims to fighters, cards and bouts already in the database by date (a day either side) and both boxers' names, and refuses to guess: anything it cannot pin to exactly one bout is listed as unmatched. A site claiming `disclosed` that is not an official host is downgraded to `reported`.
 5. `apply` writes the rows (replaced per source, so re-running never duplicates) through the same quality gate the vendor feeds use.
+
+## Settling a conflict
+Most conflicts are not disagreements. Check which of these it is before deciding anything:
+- **Different lists.** Forbes counts twelve months to 1 May, Sportico counts the calendar year, so Canelo's "2024" is $85 million on one and $73 million on the other. Put each figure's ranking in `list`; earnings are compared only within one list, and `promote` writes one row per list (the row's source is the list's name, so a re-run replaces it and never duplicates).
+- **A floor against a round number.** "At least 650,000" and "around 700,000" are compatible. An early "over 800,000" is a lower bound, not a rival to 830,000.
+- **A computed figure.** Buys times price is arithmetic on another claim, not a second source.
+- **One origin repeated.** Three sites quoting one reporter's number are one source. The checker counts sites, not origins, so read the quotes before trusting a "verified".
+- **A real disagreement.** Then find a tie-break: a page that is itself evidence (a contemporaneous price list, a second independent outlet), add it to `data/research/inbox/` as a claim like any other and run `check`. Often that settles it with no decision at all (De La Hoya–Mayweather: HBO's own $54.95 list price beat Fox's "$50").
+
+When a claim should still not count, record it in `data/research/decisions.jsonl`, one line each:
+```json
+{"action":"exclude","claims":["fed1a53ff257"],"fields":["ppvPriceUsd"],"why":"outlier","reason":"…what the evidence shows, in a sentence…","evidence":["https://…"],"decidedBy":"you","date":"2026-10-03"}
+```
+`why` is `outlier`, `floor`, `preliminary`, `derived`, `hearsay` or `different-list`. A decision can only **take a figure out of the comparison**, never put one in: what is left is judged as usual, so it still needs two independent sources to be verified, and an excluded claim is never published (status `excluded`, with the reason shown in `docs/research-results.md`). Claims are named by id, which hashes their values; if a claim is edited the decision no longer matches, `check` prints `STALE decision`, and a test fails until someone looks. A test also fails while any `conflict` is left open in `checked.jsonl`. `npm run research -- lint` checks the decisions file offline.
 
 ## What researchers may and may not do
 - Read pages one at a time, as a person would: no bulk crawling, no downloading whole sites, no scraping behind logins or paywalls, no CAPTCHA solving, no changing identity to get round a block. A 403, 429 or challenge page means that source is closed to us; note it and move on.
