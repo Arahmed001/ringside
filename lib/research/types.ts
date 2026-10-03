@@ -33,8 +33,10 @@ export interface ResearchFact {
   basis: MoneyBasis;
   /** Who published it: "Nevada Athletic Commission", "ESPN", "Wikipedia (CC BY-SA 4.0)". */
   source: string;
-  /** The exact page the figure was read from. */
-  sourceUrl: string;
+  /** The exact page the figure was read from. Exactly one of `sourceUrl` and `document`. */
+  sourceUrl?: string;
+  /** Instead of a page: the name of a document registered in data/research/manual (a PDF from a records request). See lib/research/documents.ts. */
+  document?: string;
   /** A short passage copied word for word from that page that contains the figure(s) (at most about 40 words). */
   quote: string;
   accessedAt?: string;
@@ -67,6 +69,8 @@ export interface CheckedFact extends ResearchFact {
   host: string;
   status: FactStatus;
   reasons: string[];
+  /** For a claim read from a registered document: what it was, copied from the manifest at check time (the hash proves it was unchanged). */
+  doc?: { file: string; sha256: string; issuer: string; receivedAt: string; official: boolean; form: "original" | "transcription" };
   /** Other sources that agree (hosts), for the review trail. */
   agreeing?: string[];
   /** Status of each numeric value on its own: one conflicting value no longer holds back the others. */
