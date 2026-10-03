@@ -44,12 +44,12 @@ export interface ApiFight {
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
   | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter"
-  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "divisionFromFight" | "birthYearFromAge" | "birthYearUnknown" | "physicalsConverted" | "turnedProFromFirstFight" | "physicalsImputed" | "stanceDefaulted" | "locationUnparsed" | "divisionUnknown",
+  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "divisionFromFight" | "birthYearFromAge" | "birthYearUnknown" | "physicalsConverted" | "turnedProFromFirstFight" | "physicalsImputed" | "stanceDefaulted" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
   ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
-  birthYearFromAge: 0, birthYearUnknown: 0, physicalsConverted: 0, turnedProFromFirstFight: 0, physicalsImputed: 0, stanceDefaulted: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0,
+  birthYearFromAge: 0, birthYearUnknown: 0, physicalsConverted: 0, turnedProFromFirstFight: 0, physicalsImputed: 0, stanceDefaulted: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, windowTooBig: 0,
 });
 
 export const fighterId = (id: string) => `bda-f-${id}`;
@@ -232,7 +232,7 @@ export class HttpError extends Error { constructor(message: string, readonly sta
 export interface BoxingDataApiOptions {
   key: string; baseUrl?: string; fetchImpl?: typeof fetch;
   /** Hard cap on requests per load (the free tier is 100 a month). Default 90. A retry counts as a request, as it does for the vendor. */
-  maxRequests?: number; pageSize?: number; since?: string; maxFights?: number; /** days of upcoming fights to include (default 60; 0 for none) */ scheduleDays?: number; gapMs?: number; /** save every raw response here, so a mapping can be fixed offline without spending more requests */ rawDir?: string; log?: (m: string) => void;
+  maxRequests?: number; pageSize?: number; since?: string; /** documents reachable by page number (the docs say 10,000): a list longer than that is read in date windows. Default 10,000. */ offsetLimit?: number; maxFights?: number; /** days of upcoming fights to include (default 60; 0 for none) */ scheduleDays?: number; gapMs?: number; /** save every raw response here, so a mapping can be fixed offline without spending more requests */ rawDir?: string; log?: (m: string) => void;
   /**
    * A read-through cache of every successful response (the backfill's checkpoint): a re-run after a crash, a rate limit or a closed laptop
    * costs only the requests that never completed, and a mapping fix costs none. This is vendor data on disk, so it is only for "ingest"
@@ -370,8 +370,10 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     // the list endpoint (newest first) and the schedule endpoint (the coming weeks); a fight in both is taken once
     const collect = async (endpoint: string, params: Record<string, string | number | undefined>, cap: number) => {
       let taken = 0;
-      for (let page = 1; taken < cap; page++) {
-        const r = await get<ApiFight[]>(endpoint, { ...params, page_size: Math.min(o.pageSize ?? 100, cap), page_num: page });
+      const size = Math.min(o.pageSize ?? 100, cap);
+      const LIMIT = o.offsetLimit ?? 10_000;
+      const reachable = Math.max(1, Math.floor(LIMIT / size)); // pages a page number can reach
+      const consume = (r: Envelope<ApiFight[]>) => {
         for (const f of r.data ?? []) {
           if (taken >= cap) break;
           if (f.id && seen.has(f.id)) continue;
@@ -380,10 +382,42 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
           seen.add(f.id); taken++;
           events.set(m.event.externalId, m.event); bouts.push(m.bout); m.fighterIds.forEach((i) => ids.add(i));
         }
-        const total = r.pagination?.total_pages ?? page;
-        if (page % 25 === 0) log(`fight pages: ${page} of ${total}`);
-        if (page >= total || !(r.data ?? []).length) break;
-      }
+      };
+      // pages 1..total of one query; `first` is page 1 when the caller already has it
+      const walk = async (q: Record<string, string | number | undefined>, first?: Envelope<ApiFight[]>) => {
+        for (let page = 1; taken < cap; page++) {
+          const r = page === 1 && first ? first : await get<ApiFight[]>(endpoint, { ...q, page_size: size, page_num: page });
+          consume(r);
+          const total = r.pagination?.total_pages ?? page;
+          if (page % 25 === 0) log(`fight pages: ${page} of ${total}`);
+          if (page >= total || !(r.data ?? []).length) break;
+          if (page >= reachable) break; // the next page number is past what the API will give
+        }
+      };
+      const probe = await get<ApiFight[]>(endpoint, { ...params, page_size: size, page_num: 1 });
+      const total = probe.pagination?.total_pages ?? 1;
+      if (endpoint !== "/v2/fights/" || total < reachable) return walk(params, probe);
+      // The list is longer than a page number can reach (or the API stopped counting at the limit). What happens past it is not known (an error, or an
+      // empty page that looks like the end), so rather than depend on either, ask for the history in date windows, splitting any window that is still
+      // too long. Only a list this long gets here: a plan with a short history never sends a date range (a limited plan refuses one).
+      const from = String(params.date_from ?? "1900-01-01"), to = String(params.date_to ?? addDays(todayIso(), o.scheduleDays ?? 60));
+      log(`the fight list is longer than ${LIMIT} documents (${total} pages): reading it in date windows`);
+      let windows = 0;
+      const window = async (f: string, t: string): Promise<void> => {
+        const q = { ...params, date_from: f, date_to: t };
+        const first = await get<ApiFight[]>(endpoint, { ...q, page_size: size, page_num: 1 });
+        const pages = first.pagination?.total_pages ?? 1;
+        if (pages >= reachable && f < t) {
+          const mid = addDays(f, Math.floor((Date.parse(t) - Date.parse(f)) / 86400000 / 2));
+          await window(f, mid); await window(addDays(mid, 1), t);
+          return;
+        }
+        if (pages >= reachable) { notes.windowTooBig++; log(`${f}: more fights than a page number can reach (${pages} pages); the ones that can be reached are loaded`); }
+        windows++;
+        await walk(q, first);
+      };
+      await window(from, to);
+      log(`read in ${windows} date windows`);
     };
     // the API rejects date_from without date_to ("InvalidDateRange"), so a start date always comes with an end
     await collect("/v2/fights/", { date_from: o.since, date_to: o.since ? todayIso() : undefined, date_sort: "DESC" }, limit);

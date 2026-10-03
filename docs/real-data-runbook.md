@@ -83,6 +83,31 @@ A running app notices the change by itself: its next request rebuilds the in-mem
 - [ ] The site is indexable and says nothing about "fictional" (`isDemoData()` is false once `BOXING_PROVIDER` is not `demo`): set `SITE_URL`, then decide deliberately that it is ready for search engines and the public.
 - [ ] **The live ledger** now has real coming fights to predict. It starts its clock the first time the running app builds the world; keep the app running.
 
+## Rehearse it first, for nothing: `npm run vendor:rehearse`
+
+Before a plan is bought, the whole procedure can be run at full size against a stand-in vendor on your own machine (`lib/vendor-mock.ts`, the real answer shapes, nothing leaves the machine):
+
+```bash
+npm run vendor:rehearse
+npm run vendor:rehearse -- --fighters 3000 --fights 25000 --beyond silent
+```
+
+It runs the real `vendor:backfill` (`--plan`, `--check`, the load, `--update`), then kills a fresh fetch part way and runs it again, and prints eleven checks (every fight and fighter loaded, every career record adding up, the update costing a few hundred requests, the second run making exactly the requests the first did not finish, no half-written answer on disk). Measured on the machine this was written on, **19,000 fighters and 160,000 fights over 35 years**:
+
+| Step | Time | Peak memory | Requests |
+|---|---|---|---|
+| `--plan` (read the list) | 21 s | 211 MB | 1,635 |
+| `--check` (fetch, validate, reconcile) | 37 s | 453 MB | 20,635 (cache 108 MB) |
+| the load | 11 s | 516 MB | 0 (all cached) |
+| `--update` (the daily job) | 4.7 s | 339 MB | 392 |
+| a crash 45% through, then run again | 9.5 s | | 11,322 (exactly the unfinished ones) |
+
+**These are the machine's own times, with the stand-in answering instantly.** A real vendor adds its delay to every request: at the default `--gap-ms 300` the first fetch is about 20,000 requests, so **about an hour and three quarters** of waiting, and a daily update of 400 requests about two minutes. The database came to 54 MB. Give the container at least 768 MB (`docs/deploy.md`).
+
+**What the rehearsal does not show:** the stand-in's data is perfectly consistent (every career record adds up), a real feed will not be; it does not rate-limit; and what the real API does past the page limit is not known (below). Treat it as proof that the plumbing holds at size, not that the vendor's data will be clean.
+
+**Why the list is read in date windows.** The vendor's docs say page numbers stop at 10,000 documents; a full history is about 160,000 fights. What happens beyond that (an error, or an empty page that looks like the end of the list) is not known, and the rehearsal showed that the loader as first written would have failed on one and silently stopped at the newest 10,000 fights on the other. So when the list is longer than a page number can reach, it is asked for in date windows, each split in two until it fits (about 35 windows for 160,000 fights, 1,635 list requests). A plan with a short history never sends a date range (a limited plan refuses one), so the free plan is read exactly as before. A single day with more fights than a page number can reach is loaded as far as it can be and counted (`windowTooBig`); `--offset-limit` changes the 10,000.
+
 ## What "verified" means here, and what it does not
 
 **Nothing in this tool can prove the vendor's facts are true.** That needs a primary source (a commission record, the fight itself), and no code can supply one. What it can prove is whether the feed agrees with itself, and the one figure in the feed that can contradict the fights we hold is each fighter's **career record**. The vendor says "19-0-1"; the fights we loaded either add up to that or they do not.
@@ -128,6 +153,7 @@ In a container, run it with the container's own environment: `docker exec ringsi
 | `left out because a fighter could not be fetched` | Some fighter requests failed even after retries | Run the same command again |
 | `already holds N fighter(s) that did not come from this feed` | You pointed at the demo or another league | Use a new `DATABASE_PATH` |
 | `The validator found N error(s)` | Rows the checks reject | Read the list; fix the cause; or `--allow-errors` |
+| `windowTooBig` in `approximated or skipped` | One day had more fights than a page number can reach, so the ones beyond were not loaded | Rare (needs thousands of fights on one date); the record check will show the fighters who are short. Ask the vendor how to read past the limit |
 | `Nothing was loaded, because only N% of fighters ...` | Too few fighters' loaded fights add up to the vendor's career records (fights missing) | The plan's history is shorter than the careers, or fighters failed to fetch. Get a plan with the full history, or re-run; `--min-complete` / `--allow-partial` only if you accept shorter records on the site |
 | `... have MORE wins, losses or draws ... than the vendor's own career total` | The feed contradicts itself | Read the names listed; usually a stale cached record (`--refresh`) or a duplicated fight at the vendor |
 | `nothing to update yet` | `--update` on a database with no completed card | Run the backfill first |
