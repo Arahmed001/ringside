@@ -9,6 +9,8 @@ import { getT } from "@/lib/i18n/server";
 import { msg } from "@/lib/i18n/t";
 import { metaFor } from "@/lib/seo-server";
 import { isDemoData } from "@/lib/seo";
+import { siteContact, vendorCredit } from "@/lib/site-info";
+import Link from "@/components/L";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({
   path: "/data", title: t("Data & model"),
@@ -41,6 +43,7 @@ export default async function DataPage() {
   const fit = loadFit();
   const ar = await arabicReviewStatus();
   const demo = isDemoData();
+  const contact = siteContact(), credit = vendorCredit();
   const act = activeWeights();
   const eloScale = act.rating / DEFAULT_WEIGHTS.rating;
 
@@ -104,6 +107,24 @@ export default async function DataPage() {
           </div>
         </section>
       )}
+
+      {credit && (
+        <section aria-labelledby="credit">
+          <SectionTitle eyebrow={t("Credit")} title={t("Data supplier")} />
+          <div className="card p-4 text-sm" id="credit">
+            <p>{t.rich("Fight, fighter and event data: <a>{name}</a>.", { name: credit.name, a: (c) => <a href={credit.url} lang="en" dir="ltr" target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-gold">{c}</a> })}{credit.termsUrl && <> · <a href={credit.termsUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-gold">{t("Licence terms")}</a></>}</p>
+            <p className="mt-2 text-xs text-muted">{t("Ringside adds its own ratings, rankings and predictions on top of this data; those are Ringside’s, not the supplier’s.")}</p>
+          </div>
+        </section>
+      )}
+
+      <section aria-labelledby="mistakes">
+        <SectionTitle eyebrow={t("Corrections")} title={t("Spotted a mistake?")} />
+        <div className="card p-4 text-sm" id="mistakes">
+          <p>{t.rich("Signed-in readers can <a>report a mistake</a> on any fighter or fight page. An editor reads the source before anything changes, and a fight’s result is corrected only from a page its commission or sanctioning body published.", { a: (c) => <Link href="/report" className="underline decoration-dotted hover:text-gold">{c}</Link> })}</p>
+          {contact && <p className="mt-2">{t("Not signed in? Write to")} <a href={contact.href} lang="en" dir="ltr" {...(contact.href.startsWith("mailto:") ? {} : { target: "_blank", rel: "noopener noreferrer" })} className="underline decoration-dotted hover:text-gold">{contact.label}</a></p>}
+        </div>
+      </section>
 
       <section>
         <SectionTitle eyebrow={t("Where facts come from")} title={t("Source registry")} />
