@@ -108,6 +108,27 @@ test("--plan reads the fight list, prices the fighters, and writes nothing: no c
   assert.doesNotMatch(r.out, /PROVISIONALLY/);
 });
 
+test("--plan with --cache-dir keeps the fight-list pages, so the --check that follows asks for no list page; storing switched off refuses it before anything is created", async () => {
+  const dir = path.join(root, "cache-plan");
+  const m = mark();
+  const plan = await run(["--plan", "--cache-dir", dir], { DATABASE_PATH: dbFile });
+  assert.equal(plan.code, 0, plan.out);
+  assert.match(plan.out, /fights 4, events 4, fighters 6/);
+  assert.match(plan.out, /PROVISIONALLY/, "keeping the pages is storing, and says so until storing is confirmed");
+  assert.ok(fs.readdirSync(dir).some((f) => /fights/.test(f)), "the list pages are on disk");
+  assert.ok(!fs.existsSync(dbFile), "still no database");
+  const listAsked = since(m).filter((p) => p.startsWith("/v2/fights")).length;
+  assert.ok(listAsked >= 2, "the plan paid for the list");
+  const m2 = mark();
+  const check = await run(["--check", "--cache-dir", dir], { DATABASE_PATH: dbFile, BOXING_API_STORAGE_CONFIRMED: "1" });
+  assert.match(check.out, /fetched: 6 fighters/, check.out);
+  assert.equal(since(m2).filter((p) => p.startsWith("/v2/fights")).length, 0, "the list came from the cache: not one list request");
+  const off = path.join(root, "cache-plan-off");
+  const refused = await run(["--plan", "--cache-dir", off], { DATABASE_PATH: dbFile, BOXING_API_STORAGE_CONFIRMED: "0" });
+  assert.equal(refused.code, 1); assert.match(refused.out, /switched off/);
+  assert.ok(!fs.existsSync(off), "nothing was created");
+});
+
 test("storing switched off (BOXING_API_STORAGE_CONFIRMED=0) refuses before anything is created: no cache, no empty database", async () => {
   const r = await run(["--cache-dir", cache], { DATABASE_PATH: dbFile, BOXING_API_STORAGE_CONFIRMED: "0" });
   assert.equal(r.code, 1);

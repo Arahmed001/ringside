@@ -365,7 +365,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
           const wait = Number.isFinite(after) && after > 0 ? Math.min(after, 3600) * 1000 : RATE_STEPS_MS[Math.min(rateWaits, RATE_STEPS_MS.length - 1)];
           if (waited + wait > o.patienceMs!) throw new HttpError(`Boxing Data API rate limit on ${p} still in force after waiting ${Math.round(waited / 60000)} minute(s): ${said}. Run the same command again later: everything fetched so far is cached. (--per-hour spaces the requests under the limit instead.)`, 429);
           rateWaits++; waited += wait; attempt--; // this refusal does not use up the ordinary retries
-          log(`rate limit on ${p} ("${said}"); waiting ${Math.round(wait / 60000 * 10) / 10} minute(s), then carrying on. What is fetched is cached, so Ctrl-C is safe`);
+          log(`rate limit on ${p} ("${said}"); waiting ${Math.round(wait / 60000 * 10) / 10} minute(s), then carrying on. ${o.cacheDir ? "What is fetched is cached, so Ctrl-C is safe" : "Nothing is being cached in this mode, so stopping loses what has been read (give --cache-dir to keep it)"}`);
           await sleep(wait);
           continue;
         }

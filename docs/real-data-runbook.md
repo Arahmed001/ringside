@@ -44,6 +44,14 @@ npm run vendor:backfill -- --plan
 
 Reads the fight list in memory (no cache, no database, so nothing is stored and there is nothing to confirm) and prints how many fights, events and distinct fighters the feed has and how many requests and minutes the fighters will cost. Nothing is written. If the numbers surprise you, stop here. On the free plan this shows only the last few weeks: that is the plan's date range, not the league.
 
+**On a plan with an hourly limit, give the plan a cache directory.** The fight list is about 500 requests (477 pages on the full feed), which is an hour of Mega's allowance by itself, and `--per-hour 450` spaces them 8 seconds apart: the plan takes **an hour or more**, and a rate-limit wait is normal in the middle of it. Without `--cache-dir` the plan keeps nothing, so stopping it (or running it twice) pays that hour again. With it:
+
+```bash
+npm run vendor:backfill -- --plan --per-hour 450 --cache-dir $HOME/ringside-real/vendor-cache
+```
+
+the list pages are kept there (that is storing, so it says "provisional" until `BOXING_API_STORAGE_CONFIRMED=1`, and `=0` refuses it before anything is created), Ctrl-C is safe, and the `--check` or load that follows, with the same `--cache-dir`, asks for no list page at all. Still no database is touched.
+
 ## 2. Fetch and inspect: `--check`
 
 ```bash
