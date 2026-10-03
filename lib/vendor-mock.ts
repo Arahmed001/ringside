@@ -98,12 +98,12 @@ function apiFighter(w: MockWorld, id: string) {
 }
 
 export interface MockResponse { status: number; body: unknown }
-export interface MockStats { requests: number; byPath: Record<string, number>; pastLimit: number; refused: number }
+export interface MockStats { requests: number; byPath: Record<string, number>; pastLimit: number; refused: number; /** fighter ids asked for, in the order asked */ fighterOrder: string[] }
 
 /** The vendor as a function of a URL: what it answers, and counts what it was asked. */
 export function mockVendor(w: MockWorld, o: MockOptions = {}) {
   const limit = o.offsetLimit ?? 10_000;
-  const stats: MockStats = { requests: 0, byPath: {}, pastLimit: 0, refused: 0 };
+  const stats: MockStats = { requests: 0, byPath: {}, pastLimit: 0, refused: 0, fighterOrder: [] };
   const clock = o.now ?? Date.now;
   const perHour = new Map<number, number>();
   let accepted = 0;
@@ -138,7 +138,7 @@ export function mockVendor(w: MockWorld, o: MockOptions = {}) {
     }
     if (p === "/v2/fights/schedule") return { status: 200, body: env(w.fights.filter((f) => f.status === "NOT_STARTED").map((f) => apiFight(w, f))) };
     const m = p.match(/^\/v2\/fighters\/(.+)$/);
-    if (m && w.fighters.has(m[1])) return { status: 200, body: env(apiFighter(w, m[1])) };
+    if (m && w.fighters.has(m[1])) { stats.fighterOrder.push(m[1]); return { status: 200, body: env(apiFighter(w, m[1])) }; }
     return { status: 404, body: { message: "not found" } };
   };
   const fetchImpl = (async (input: RequestInfo | URL) => {

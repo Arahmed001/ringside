@@ -99,6 +99,47 @@ export function reconcileDb(db: DatabaseSync, vendor: Map<string, CareerRecord>,
   return reconcile(boxers.filter((b) => !wanted || wanted.has(b.external_id)).map((b) => ({ externalId: b.external_id, name: b.name })), loaded, vendor, recent);
 }
 
+export interface Core {
+  /** fighters whose loaded fights add up exactly to the vendor's career record AND whose opponents in those fights are in the core too */
+  fighters: Set<string>;
+  /** fighters whose record was complete on its own, before the opponents were considered */
+  completeAlone: number;
+}
+
+/**
+ * The part of a partial load that is right. A fighter's record is exactly the vendor's only if every fight that counts in it is loaded, which also needs the
+ * opponent in each of them to be loaded; but an opponent whose own record falls short is not in the core, so the fight would not be loaded, and the record
+ * would fall short again. So the core is the largest set of fighters that are complete AND whose opponents are all in it, found by taking out, again and
+ * again, any fighter with a counted fight against someone who is out. Every record in it equals the vendor's total; nothing in it is a guess.
+ * Fights that count for nothing (cancelled, no result yet) do not hold a fighter in or out.
+ */
+export function coherentCore(feed: Pick<FeedData, "boxers" | "bouts">, vendor: Map<string, CareerRecord>): Core {
+  const rec = reconcileFeed({ ...feed } as FeedData, vendor);
+  const bad = new Set([...rec.partials, ...rec.conflicts].map((m) => m.externalId));
+  const alone = new Set(feed.boxers.map((b) => b.externalId).filter((id) => vendor.has(id) && !bad.has(id)));
+  const completeAlone = alone.size;
+  const foes = new Map<string, string[]>();
+  const link = (a: string, b: string) => { const l = foes.get(a); if (l) l.push(b); else foes.set(a, [b]); };
+  for (const b of feed.bouts) {
+    if (b.status === "cancelled" || !(b.winnerExternalId || b.method === "DRAW")) continue;
+    link(b.redExternalId, b.blueExternalId); link(b.blueExternalId, b.redExternalId);
+  }
+  const queue = [...alone].filter((id) => (foes.get(id) ?? []).some((o) => !alone.has(o)));
+  while (queue.length) {
+    const id = queue.pop()!;
+    if (!alone.delete(id)) continue;
+    for (const o of foes.get(id) ?? []) if (alone.has(o)) queue.push(o); // o has a counted fight against someone now out
+  }
+  return { fighters: alone, completeAlone };
+}
+
+/** A feed cut down to a set of fighters: those fighters, the fights between two of them, and the events that still have a fight. */
+export function restrictFeed(feed: FeedData, keep: Set<string>): FeedData {
+  const bouts = feed.bouts.filter((b) => keep.has(b.redExternalId) && keep.has(b.blueExternalId));
+  const events = new Set(bouts.map((b) => b.eventExternalId));
+  return { ...feed, boxers: feed.boxers.filter((b) => keep.has(b.externalId)), bouts, events: feed.events.filter((e) => events.has(e.externalId)) };
+}
+
 export interface GateOptions { minComplete: number; allowPartial: boolean; allowConflicts: boolean }
 /** Whether a load may go ahead, and if not, why in plain words. Conflicts always need a deliberate override; partial records need either enough complete ones or an override. */
 export function recordGate(r: Reconciliation, o: GateOptions): { ok: boolean; reasons: string[] } {
