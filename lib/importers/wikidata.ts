@@ -140,10 +140,11 @@ export function parseBindings(bindings: Binding[]): Map<string, WikidataBoxer> {
   return out;
 }
 
+const GAP_MS = Number(process.env.WIKIDATA_GAP_MS ?? 1200); // tests set this to 0
 let lastCall = 0;
 export async function sparql(query: string): Promise<Binding[]> {
   for (let attempt = 0; attempt < 4; attempt++) {
-    const wait = lastCall + 1200 - Date.now(); // one request at a time, ~1/s: well inside WDQS limits
+    const wait = lastCall + GAP_MS - Date.now(); // one request at a time, ~1/s: well inside WDQS limits
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));
     lastCall = Date.now();
     const res = await fetch(WDQS, {
@@ -173,18 +174,55 @@ export async function listBoxerIds(limit = Infinity, pageSize = 5000): Promise<s
   return ids;
 }
 
-export interface ImportSummary { listed: number; stored: number; batches: number }
+export interface ImportSummary { listed: number; stored: number; batches: number; skipped: number }
+export interface ImportOptions {
+  limit?: number;
+  batch?: number;
+  extras?: boolean; // also fetch Hall of Fame / Olympedia IDs and awards (a second query per batch)
+  extrasOnly?: boolean; // fetch only the extras, for boxers already staged without them (no listing, no biography query)
+  maxAgeDays?: number; // boxers fetched more recently than this are skipped, which is what makes an interrupted run resumable
+  force?: boolean; // ignore maxAgeDays
+  log?: (m: string) => void;
+}
 
-export async function importWikidata(db: DatabaseSync, opts: { limit?: number; batch?: number; extras?: boolean; log?: (m: string) => void } = {}): Promise<ImportSummary> {
-  const { limit = Infinity, batch = 120, extras = true, log = () => {} } = opts;
-  const ids = await listBoxerIds(limit);
-  log(`listed ${ids.length} boxer ids`);
+/**
+ * Stages boxers from Wikidata. Each batch is committed on its own and boxers fetched in the last `maxAgeDays` are skipped,
+ * so a full run (about 165 batches, 2 requests each, roughly 7 minutes) that is interrupted simply continues where it stopped.
+ * Boxers staged before the extras existed are filled in with `extrasOnly`, without re-fetching their biographies.
+ */
+export async function importWikidata(db: DatabaseSync, opts: ImportOptions = {}): Promise<ImportSummary> {
+  const { limit = Infinity, batch = 120, extras = true, extrasOnly = false, maxAgeDays = 30, force = false, log = () => {} } = opts;
+  const setExtras = db.prepare("UPDATE wikidata_boxers SET ibhof_id = ?, olympedia_id = ?, awards = ?, extras_at = ? WHERE qid = ?");
+  const empty = (qid: string): WikidataExtras => ({ qid, ibhofId: null, olympediaId: null, awards: [] });
+
+  if (extrasOnly) {
+    const todo = (db.prepare("SELECT qid FROM wikidata_boxers WHERE extras_at IS NULL ORDER BY qid LIMIT ?").all(Number.isFinite(limit) ? limit : -1) as { qid: string }[]).map((r) => r.qid);
+    log(`${todo.length} staged boxers have no extras yet`);
+    let stored = 0, batches = 0;
+    for (let i = 0; i < todo.length; i += batch) {
+      const chunk = todo.slice(i, i + batch);
+      const more = parseExtras(await sparql(extrasQuery(chunk)));
+      const now = new Date().toISOString();
+      db.exec("BEGIN");
+      for (const q of chunk) { const x = more.get(q) ?? empty(q); setExtras.run(x.ibhofId, x.olympediaId, JSON.stringify(x.awards), now, q); stored++; }
+      db.exec("COMMIT");
+      batches++;
+      log(`extras batch ${batches}: ${Math.min(i + batch, todo.length)}/${todo.length}`);
+    }
+    return { listed: todo.length, stored, batches, skipped: 0 };
+  }
+
+  const listed = await listBoxerIds(limit);
+  log(`listed ${listed.length} boxer ids`);
+  const cutoff = new Date(Date.now() - maxAgeDays * 86400000).toISOString();
+  const fresh = force ? new Set<string>() : new Set((db.prepare("SELECT qid FROM wikidata_boxers WHERE fetched_at > ?").all(cutoff) as { qid: string }[]).map((r) => r.qid));
+  const ids = listed.filter((q) => !fresh.has(q));
+  const skipped = listed.length - ids.length;
+  if (skipped) log(`skipping ${skipped} boxers fetched in the last ${maxAgeDays} days (use --force to refetch)`);
   const up = db.prepare(`INSERT INTO wikidata_boxers (qid, name, birth_date, birth_year, birth_place, country, height_cm, weight_kg, image_file, boxrec_id, residence, death_date, teachers, fetched_at)
     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(qid) DO UPDATE SET name=excluded.name, birth_date=excluded.birth_date, birth_year=excluded.birth_year, birth_place=excluded.birth_place,
     country=excluded.country, height_cm=excluded.height_cm, weight_kg=excluded.weight_kg, image_file=excluded.image_file, boxrec_id=excluded.boxrec_id, residence=excluded.residence,
     death_date=excluded.death_date, teachers=excluded.teachers, fetched_at=excluded.fetched_at`);
-  // a separate statement: the biography upsert above must not blank extras when --no-extras skips that query
-  const setExtras = db.prepare("UPDATE wikidata_boxers SET ibhof_id = ?, olympedia_id = ?, awards = ? WHERE qid = ?");
   let stored = 0, batches = 0;
   for (let i = 0; i < ids.length; i += batch) {
     const chunk = ids.slice(i, i + batch);
@@ -193,16 +231,16 @@ export async function importWikidata(db: DatabaseSync, opts: { limit?: number; b
     const now = new Date().toISOString();
     db.exec("BEGIN");
     for (const b of parsed.values()) {
-      const x = more.get(b.qid);
       up.run(b.qid, b.name, b.birthDate, b.birthYear, b.birthPlace, b.country, b.heightCm, b.weightKg, b.imageFile, b.boxrecId, b.residence, b.deathDate, JSON.stringify(b.teachers), now);
-      if (x) setExtras.run(x.ibhofId, x.olympediaId, JSON.stringify(x.awards), b.qid);
+      // a boxer with no row in the extras answer simply has none: that is a result, so it is recorded as checked
+      if (extras) { const x = more.get(b.qid) ?? empty(b.qid); setExtras.run(x.ibhofId, x.olympediaId, JSON.stringify(x.awards), now, b.qid); }
       stored++;
     }
     db.exec("COMMIT");
     batches++;
     log(`batch ${batches}: ${Math.min(i + batch, ids.length)}/${ids.length}`);
   }
-  return { listed: ids.length, stored, batches };
+  return { listed: listed.length, stored, batches, skipped };
 }
 
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();

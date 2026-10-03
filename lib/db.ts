@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS punch_stats (
 CREATE TABLE IF NOT EXISTS wikidata_boxers (
   qid TEXT PRIMARY KEY, name TEXT, birth_date TEXT, birth_year INTEGER, birth_place TEXT, country TEXT, height_cm INTEGER, weight_kg REAL,
   image_file TEXT, boxrec_id TEXT, residence TEXT, death_date TEXT, teachers TEXT, matched_boxer_id INTEGER, match_method TEXT, fetched_at TEXT,
-  ibhof_id TEXT, olympedia_id TEXT, awards TEXT
+  ibhof_id TEXT, olympedia_id TEXT, awards TEXT, extras_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_wd_boxrec ON wikidata_boxers(boxrec_id);
 CREATE INDEX IF NOT EXISTS idx_wd_year ON wikidata_boxers(birth_year);
@@ -121,7 +121,7 @@ const ADDED_COLUMNS: [string, string, string][] = [
   ["boxers", "birth_date", "TEXT"], ["boxers", "birth_place", "TEXT"], ["boxers", "residence", "TEXT"], ["boxers", "wikidata_id", "TEXT"],
   ["boxers", "boxrec_id", "TEXT"], ["boxers", "ibhof_id", "TEXT"], ["boxers", "olympedia_id", "TEXT"], ["boxers", "aliases", "TEXT"], ["boxers", "debut_date", "TEXT"], ["boxers", "retired_date", "TEXT"],
   ["events", "promoter_org_id", "INTEGER"], ["events", "broadcaster", "TEXT"], ["events", "attendance", "INTEGER"],
-  ["wikidata_boxers", "ibhof_id", "TEXT"], ["wikidata_boxers", "olympedia_id", "TEXT"], ["wikidata_boxers", "awards", "TEXT"],
+  ["wikidata_boxers", "ibhof_id", "TEXT"], ["wikidata_boxers", "olympedia_id", "TEXT"], ["wikidata_boxers", "awards", "TEXT"], ["wikidata_boxers", "extras_at", "TEXT"],
   ["bouts", "round_time", "TEXT"], ["bouts", "kd_red", "INTEGER"], ["bouts", "kd_blue", "INTEGER"], ["bouts", "odds_red", "REAL"],
   ["bouts", "odds_blue", "REAL"], ["bouts", "contract_lb", "REAL"], ["bouts", "title_org_id", "INTEGER"], ["bouts", "title_vacant", "INTEGER"],
 ];
