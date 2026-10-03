@@ -110,7 +110,7 @@ export function parseExtras(bindings: Binding[]): Map<string, WikidataExtras> {
     if (!e.arabicName) e.arabicName = cleanArabicName(b.ar?.value);
     if (!e.enwiki) e.enwiki = cleanWikiTitle(b.enwiki?.value);
     const nick = cleanNickname(b.nick?.value);
-    if (nick) { seenNicks.get(qid)?.add(nick) ?? seenNicks.set(qid, new Set([nick])); }
+    if (nick) { const seen = seenNicks.get(qid) ?? new Set<string>(); seen.add(nick); seenNicks.set(qid, seen); }
     if (!e.ibhofId && hof && /^[\w-]+(\/[\w-]+)*$/.test(hof)) e.ibhofId = hof;
     if (!e.olympediaId && oly && /^\d+$/.test(oly)) e.olympediaId = oly;
     const aq = b.award?.value.split("/").pop(), al = label(b, "awardLabel");
