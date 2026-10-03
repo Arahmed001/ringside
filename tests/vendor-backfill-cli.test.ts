@@ -13,7 +13,7 @@ import { DatabaseSync } from "node:sqlite";
  * storage is confirmed, a resumable fetch, a refusal to mix the feed into another league, a backup before writing into a database that has
  * data, and a daily update that picks up a result that arrived late.
  */
-const KEY = "sk-cli-test-key";
+const KEY = "sk-cli-test-key-0123456789abcdef0123456789";
 const TODAY = "2026-10-03";
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "bda-cli-"));
 after(() => fs.rmSync(root, { recursive: true, force: true }));
@@ -252,6 +252,16 @@ test("a wrong key stops the run with the vendor's own message, and never prints 
   const r = await run(["--plan"], { BOXING_API_KEY: "wrong-key-value-xyz" });
   assert.equal(r.code, 1);
   assert.match(r.out, /403 on \/v2\/fights\/: Invalid API key\./); assert.ok(!r.out.includes("wrong-key-value-xyz"));
+});
+
+test("a pasted placeholder instead of the key (an ellipsis, a space) stops the run before any request, and says what to do", async () => {
+  for (const bad of ["…", "...", "your key here"]) {
+    const n = mark();
+    const r = await run(["--plan"], { BOXING_API_KEY: bad });
+    assert.equal(r.code, 1, bad);
+    assert.match(r.out, /not a plausible API key/); assert.match(r.out, /read -s/);
+    assert.equal(since(n).length, 0, `no request for ${JSON.stringify(bad)}`);
+  }
 });
 
 test("a career the loaded fights do not add up to is refused: a short record is a false statement, so it needs a deliberate override or a lower bar", async () => {
