@@ -172,6 +172,8 @@ export interface Broadcast extends Provenance {
   eventId: number; broadcaster: string; platform: "ppv" | "streaming" | "subscription" | "free-tv"; region: string; viewersAvg: number | null; viewersPeak: number | null;
 }
 export interface Honour { boxerId: number; kind: "hall_of_fame" | "award" | "title"; label: string; year: number | null; source: string }
+/** One reign on a belt, from a Wikipedia champions list (lib/importers/wikipedia-champions.ts). Dates are ISO prefixes: "1991-01-11", "1995-03" or "1990". Linked to a fighter only through a Wikidata ID. */
+export interface TitleReign { boxerId: number; org: string; division: string; category: string; status: string | null; start: string | null; end: string | null; current: boolean; defences: number | null; endNote: string | null; source: string }
 /** A venue verified against Wikidata (lib/importers/venues.ts). Capacity is a general figure, not the boxing configuration. */
 export interface Venue { name: string; city: string; wikidataId: string; label: string; lat: number | null; lon: number | null; capacity: number | null }
 export interface Earning extends Provenance { boxerId: number; year: number; totalUsd: number; ringUsd: number | null; offRingUsd: number | null }

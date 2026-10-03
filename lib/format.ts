@@ -8,6 +8,9 @@ const INTL: Record<Locale, string> = { en: "en-US", ar: "ar-u-nu-latn-ca-gregory
 
 export const fmtDate = (d: string, opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric", year: "numeric" }, locale: Locale = "en") =>
   new Date(d + "T12:00:00Z").toLocaleDateString(INTL[locale], { ...opts, timeZone: "UTC" });
+/** A date that may be only a month ("1995-03") or a year ("1990"), as the title lists give them: shown at the precision it was stated, never padded to a day. */
+export const fmtPartialDate = (d: string, locale: Locale = "en") =>
+  d.length >= 10 ? fmtDate(d, undefined, locale) : d.length === 7 ? fmtDate(`${d}-01`, { month: "short", year: "numeric" }, locale) : d;
 /** Country name in the visitor's language (the data holds English names). */
 const regionNames = new Map<string, Intl.DisplayNames>();
 export const COUNTRY_CODE: Record<string, string> = {

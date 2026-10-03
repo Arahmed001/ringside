@@ -410,6 +410,7 @@
   "key": "{n} defences",
   "plural": "{n} defence",
   "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/titles/[slug]/page.tsx",
    "app/[locale]/titles/page.tsx",
    "components/ReignTimeline.tsx",
@@ -1158,6 +1159,12 @@
   "key": "{now} training now · {ever} ever · {pct}% wins",
   "files": [
    "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "{org} {division} champion",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -4732,6 +4739,12 @@
   ]
  },
  {
+  "key": "From Wikipedia (CC BY-SA 4.0), a reference and not an official record:",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Full bout details",
   "files": [
    "app/[locale]/events/[id]/page.tsx",
@@ -5242,6 +5255,12 @@
   "key": "Interactive tale of the tape",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Interim champion",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -7394,6 +7413,7 @@
  {
   "key": "present",
   "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
    "components/ReignTimeline.tsx",
    "components/TeamTimeline.tsx",
    "components/TenureTable.tsx",
@@ -7847,6 +7867,12 @@
   "key": "Reference: {code}",
   "files": [
    "components/ErrorView.tsx"
+  ]
+ },
+ {
+  "key": "Regular champion",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -8847,6 +8873,12 @@
   ]
  },
  {
+  "key": "Super champion",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Super Featherweight",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -9698,6 +9730,12 @@
   ]
  },
  {
+  "key": "Title history",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Title lineage",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
@@ -10074,6 +10112,18 @@
   "key": "Underdogs do worse",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Undisputed champion",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Unified champion",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -10906,6 +10956,12 @@
   "key": "Won the vacant belt",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "World title reign on record (Wikipedia lists)",
+  "files": [
+   "lib/coverage.ts"
   ]
  },
  {
