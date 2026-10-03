@@ -58,3 +58,10 @@ test("the phone drawer is a native modal dialog that closes on Esc, the backdrop
   assert.match(c, /e\.target === dialog\.current/); assert.match(c, /closest\("a"\)/);
   assert.match(c, /min-width: 1024px/);
 });
+
+test("the design lab cannot be reached in a production build", () => {
+  const src = fs.readFileSync(path.join(root, "app/[locale]/design/home/page.tsx"), "utf8");
+  assert.match(src, /NODE_ENV === "production" && process\.env\.DESIGN_LAB !== "1"\) notFound\(\)/, "the lab must 404 in production unless DESIGN_LAB=1");
+  assert.match(src, /robots: \{ index: false/, "and stay out of search results when it is on");
+  assert.ok(!NAV_GROUPS.some((g) => g.items.some((i) => i.href.startsWith("/design"))), "it is not in the navigation");
+});

@@ -78,6 +78,7 @@ Every choice below serves that. The risk is turning drama into noise, so drama i
 | 2026-10-03 | Dark editorial direction, red/blue corner semantics | Boxing's own visual language (corners, ring lights) doubles as a data encoding |
 | 2026-10-03 | Replaced Inter with Geist for body text | Inter is the converged default; Geist is as legible, and has tabular numerals |
 | 2026-10-03 | Arabic edition: mirrored layout, fixed red/blue corners, Plex Arabic + Tajawal + Amiri | Reading order flips, data encoding does not |
+| 2026-10-03 | Dark scrim behind the poster header (black .72 to 0 over the top 112 units), sub-line 11px at 85% white | Measured over every poster (29 per language), the header lines were 2.4:1 on some colour schemes; now 5.3:1 or better, and `tests/a11y.test.ts` checks every scheme in `lib/poster-colors.ts` |
 | 2026-10-03 | Added Instrument Serif italic for nicknames | One deliberate departure from category norms; gives the program/announcer feel |
 
 ## Arabic (RTL)
@@ -87,6 +88,6 @@ Every choice below serves that. The risk is turning drama into noise, so drama i
 
 ## Still to do
 1. ~~Look at every page at 375, 768 and 1280px and fix whatever is off.~~ Done by measurement for reflow and accessibility (docs/accessibility.md, rounds 9 and 14); the visual review of desktop layouts is still partial (the screenshot tool letterboxes wide viewports).
-2. Generate two or three alternative home-page directions with `/design-shotgun` and compare.
+2. ~~Generate alternative home-page directions.~~ Three are built from the real components at `/design/home?v=a|b|c` (development only; 404 in production unless `DESIGN_LAB=1`): **A Program cover** (the next fight is the page), **B Control room** (status row, pound-for-pound, main event and picks side by side), **C Ask first** (a live answer under the question box). **Waiting for a choice**; the live home is unchanged. Delete `app/[locale]/design` once one is chosen.
 3. Run `/design-review` and `/qa` and fix what they find.
-4. Check text contrast on generated posters over bright accent colours.
+4. ~~Check text contrast on generated posters over bright accent colours.~~ Done in round 19 (see the decision above). Not checked: a poster with a licensed photo background (the feed's own art is used as is).

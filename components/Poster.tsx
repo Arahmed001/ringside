@@ -1,14 +1,10 @@
 import type { BoutRow, BoxerFull, EventRow } from "@/lib/types";
 import { portraitUrl } from "@/lib/art-url";
 import { hash, pickBy } from "@/lib/hash";
+import { HEADER_SCRIM, POSTER_HUES } from "@/lib/poster-colors";
 import { divisionLabel } from "@/lib/divisions";
 import { getT } from "@/lib/i18n/server";
 import { countryName, fmtDate } from "@/lib/format";
-
-const HUES: [string, string, string][] = [
-  ["#7a1118", "#1a0507", "#ff5a4d"], ["#10306b", "#050a1a", "#5aa0ff"], ["#6b4a10", "#150f04", "#ffd36a"],
-  ["#14583f", "#04120d", "#58e0a8"], ["#4a1a6b", "#0e0415", "#c58bff"], ["#6b2a10", "#150804", "#ff9a5a"],
-];
 
 /** A real (licensed) photo when we have one, otherwise the generated portrait. */
 function Fighter({ boxer, x }: { boxer: BoxerFull; x: number }) {
@@ -25,7 +21,7 @@ export async function Poster({ event, main, red, blue, className = "" }: { event
     return <img src={event.posterUrl} alt={t.name(event.name)} className={`aspect-[5/7] w-full rounded-2xl object-cover ${className}`} />;
   }
   const h = hash(event.name + event.date);
-  const [c0, c1, accent] = pickBy(h, 1, HUES);
+  const [c0, c1, accent] = pickBy(h, 1, POSTER_HUES);
   const u = `p${event.id}`;
   const sur = (n: string) => { const last = t.name(n).split(" ").slice(-1)[0]; return t.locale === "en" ? last.toUpperCase() : last; };
   const rs = sur(red.name), bs = sur(blue.name);
@@ -39,6 +35,7 @@ export async function Poster({ event, main, red, blue, className = "" }: { event
         <linearGradient id={`${u}-bg`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={c0} /><stop offset="1" stopColor={c1} /></linearGradient>
         <radialGradient id={`${u}-spot`} cx="50%" cy="30%" r="60%"><stop offset="0" stopColor={accent} stopOpacity=".5" /><stop offset="1" stopColor={accent} stopOpacity="0" /></radialGradient>
         <linearGradient id={`${u}-fade`} x1="0" y1="0" x2="0" y2="1"><stop offset=".55" stopColor={c1} stopOpacity="0" /><stop offset="1" stopColor={c1} /></linearGradient>
+        <linearGradient id={`${u}-top`} x1="0" y1="0" x2="0" y2="1">{HEADER_SCRIM.stops.map(([o, a]) => <stop key={o} offset={o} stopColor="#000" stopOpacity={a} />)}</linearGradient>
         <clipPath id={`${u}-l`}><polygon points="0,70 232,70 168,420 0,420" /></clipPath>
         <clipPath id={`${u}-r`}><polygon points="232,70 400,70 400,420 168,420" /></clipPath>
       </defs>
@@ -51,11 +48,13 @@ export async function Poster({ event, main, red, blue, className = "" }: { event
       <g clipPath={`url(#${u}-r)`}><Fighter boxer={blue} x={150} /></g>
       <line x1="232" y1="70" x2="168" y2="420" stroke={accent} strokeWidth="3" />
       <rect width="400" height="560" fill={`url(#${u}-fade)`} />
+      {/* a dark band behind the header lines: measured over every poster hue, the accent and grey lines were 2.4:1 without it */}
+      <rect width="400" height={HEADER_SCRIM.height} fill={`url(#${u}-top)`} />
       {/* header */}
       <text x="200" y="38" textAnchor="middle" fill={accent} fontSize="13" letterSpacing="6" fontWeight="700" style={{ fontFamily: "var(--font-display)" }}>
         {main.title ? up(t.name(main.title)) : info}
       </text>
-      <text x="200" y="58" textAnchor="middle" fill="#fff" fillOpacity=".55" fontSize="10" letterSpacing="4" style={{ fontFamily: "var(--font-display)" }}>
+      <text x="200" y="58" textAnchor="middle" fill="#fff" fillOpacity=".85" fontSize="11" letterSpacing="4" style={{ fontFamily: "var(--font-display)" }}>
         {main.title ? info : up(t("Main event"))}
       </text>
       {/* names */}

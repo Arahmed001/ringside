@@ -82,3 +82,19 @@ test("screen-reader-only text inside a scrolling table cannot widen the page, an
   assert.match(css, /input\[type="range"\]\.rs \{[^}]*height: 24px/);
   assert.match(css, /::-webkit-slider-thumb \{[^}]*width: 24px; height: 24px/);
 });
+
+test("poster header text stays readable on every generated colour scheme", async () => {
+  const { POSTER_HUES, textContrast } = await import("../lib/poster-colors");
+  const lines: [string, number, (hue: [string, string, string]) => [string, number]][] = [
+    ["event or title line (13px, accent)", 38, (h) => [h[2], 1]],
+    ["weight and rounds line (11px, white at 85%)", 58, () => ["#ffffff", 0.85]],
+    ["postponed notice (12px, gold)", 78, () => ["#ffd36a", 1]],
+  ];
+  for (const hue of POSTER_HUES) for (const [name, y, f] of lines) {
+    const [fill, op] = f(hue);
+    assert.ok(textContrast(hue, y, fill, op) >= 4.5, `${name} on ${hue[0]} is ${textContrast(hue, y, fill, op).toFixed(2)}:1`);
+  }
+  // the same check must be able to fail: without the scrim the old numbers come back (2.4:1 measured on a rendered poster)
+  const { HEADER_SCRIM } = await import("../lib/poster-colors");
+  assert.ok(HEADER_SCRIM.stops[0][1] >= 0.5);
+});
