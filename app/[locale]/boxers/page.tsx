@@ -1,3 +1,5 @@
+import { headers } from "next/headers";
+import { clientId } from "@/lib/ai-guard";
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
 import { parseQuery, applyFilters, describeFilters } from "@/lib/ai";
@@ -19,7 +21,7 @@ export default async function Boxers({ searchParams }: { searchParams: Promise<{
   let chips: string[] = [];
   let source: "ai" | "rules" | null = null;
   if (q.trim()) {
-    const { filters, source: s } = await parseQuery(q, w);
+    const { filters, source: s } = await parseQuery(q, w, clientId(await headers()));
     source = s;
     chips = describeFilters(filters, t);
     results = applyFilters(results, filters, w, await getNames(t.locale));

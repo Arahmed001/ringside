@@ -46,7 +46,7 @@ async function Trainers({ sort, w }: { sort: string; w: W }) {
   rows.sort((a, b) => key(b) - key(a));
   return (
     <section>
-      <SectionTitle eyebrow={t("Head trainers with 4+ fights on record")} title={t("Trainer leaderboard")} />
+      <SectionTitle eyebrow={t("Head trainers with 4+ fights on record")} title={t("Trainer leaderboard")} href="/trainers" cta={t("Trainer impact: what the data can say")} />
       <div className="mb-3 flex flex-wrap gap-2 text-xs"><span className="text-muted">{t("Sort by")}</span>{[["elo", msg("Elo change")], ["win", msg("Win rate")], ["fighters", msg("Fighters")], ["titles", msg("Title wins")]].map(([k, l]) => <Link key={k} href={`/people?role=trainer&sort=${k}`} className={`chip ${sort === k ? "!border-gold/50 !text-gold" : ""}`}>{t(l)}</Link>)}</div>
       <div className="card overflow-x-auto p-4">
         <table className="w-full text-sm">

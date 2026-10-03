@@ -12,11 +12,16 @@ import { countryName } from "./format";
 import { DIVISIONS } from "./divisions";
 import { normalize } from "./fighter-search";
 import { dictOf } from "./i18n/dicts";
+import { AiLimited, reserveAiCall } from "./ai-guard";
+import { Lru } from "./lru";
 
 const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
 export const hasKey = () => !!process.env.ANTHROPIC_API_KEY;
 
-export async function claude(system: string, user: string, maxTokens = 600): Promise<string> {
+/** One model call. `client` identifies the visitor for the per-client limit; throws AiLimited when a limit says no (see ai-guard.ts). */
+export async function claude(system: string, user: string, maxTokens = 600, client?: string): Promise<string> {
+  const verdict = reserveAiCall(client);
+  if (verdict !== "ok") throw new AiLimited(verdict);
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01" },
@@ -154,20 +159,42 @@ export function heuristicParse(q: string, countries: string[]): Filters {
   return f;
 }
 
-export async function parseQuery(q: string, w: World): Promise<{ filters: Filters; source: "ai" | "rules" }> {
+const MAX_QUERY = 200;
+const queryCache = new Lru<string, { filters: Filters; source: "ai" | "rules" }>(2000);
+const queryInflight = new Map<string, Promise<{ filters: Filters; source: "ai" | "rules" }>>();
+
+/**
+ * Turns a plain-English search into filters. With a key Claude parses it; the answer is cached per day and query (so a repeat
+ * search costs nothing) and concurrent identical searches share one call. A refused call (see ai-guard.ts) answers with the rules
+ * for this request only: it is not cached, so it never stops someone else from getting the model's answer.
+ */
+export async function parseQuery(q: string, w: World, client?: string): Promise<{ filters: Filters; source: "ai" | "rules" }> {
   const countries = [...new Set(w.boxers.map((b) => b.country))];
-  if (hasKey()) {
+  q = q.trim().slice(0, MAX_QUERY);
+  if (!hasKey()) return { filters: heuristicParse(q, countries), source: "rules" };
+  const key = `${w.today}|${q.toLowerCase().replace(/\s+/g, " ")}`;
+  const hit = queryCache.get(key);
+  if (hit) return hit;
+  const running = queryInflight.get(key);
+  if (running) return running;
+  const job = (async () => {
+    let cacheable = true;
+    let out: { filters: Filters; source: "ai" | "rules" };
     try {
       const sys = `You turn boxing database search requests into JSON filters. The request may be in English or Arabic. Respond with ONLY a JSON object, no prose.
 Allowed keys: weightClass (one of ${WEIGHT_CLASSES.join(", ")}), stance (Orthodox|Southpaw|Switch), sex (male|female), country (one of ${countries.join(", ")}), active (bool), undefeated (bool), minWins, minKOs (ints), minKoRate, maxKoRate (0-1), minLosses, debutAfter, debutBefore (years), minReach (cm), minAge, maxAge, archetype (Knockout Artist|Volume Boxer|Technician|Iron-Chin Brawler|Counter-Puncher|Journeyman|Prospect), text (name fragment), trainer, manager, gym, promoter, bornIn (name fragments), trainerCurrent, missedWeight, newTrainer (bools), sort (rating|wins|kos|koRate|age|reach). Omit keys that do not apply.`;
-      const out = await claude(sys, q, 300);
-      const json = JSON.parse(out.slice(out.indexOf("{"), out.lastIndexOf("}") + 1));
-      return { filters: sanitize(json, countries), source: "ai" };
-    } catch {
-      /* fall through to rules */
+      const reply = await claude(sys, q, 300, client);
+      const json = JSON.parse(reply.slice(reply.indexOf("{"), reply.lastIndexOf("}") + 1));
+      out = { filters: sanitize(json, countries), source: "ai" };
+    } catch (e) {
+      if (e instanceof AiLimited) cacheable = false; // this visitor is over a limit; the next one may not be
+      out = { filters: heuristicParse(q, countries), source: "rules" };
     }
-  }
-  return { filters: heuristicParse(q, countries), source: "rules" };
+    if (cacheable) queryCache.set(key, out);
+    return out;
+  })().finally(() => queryInflight.delete(key));
+  queryInflight.set(key, job);
+  return job;
 }
 
 function sanitize(j: Record<string, unknown>, countries: string[]): Filters {
@@ -277,7 +304,7 @@ export function describeFilters(f: Filters, t: T = tEn): string[] {
 
 /* ---------- Scouting reports ---------- */
 
-const reportCache = new Map<string, { text: string; source: "ai" | "rules" }>();
+const reportCache = new Lru<string, { text: string; source: "ai" | "rules" }>(2000);
 
 const STYLE_TEXT: Record<string, [string, string]> = { // [male, female]; Arabic verbs and pronouns are gendered
   "Knockout Artist": [msg("He fights to finish: short fights, heavy shots, and opponents who rarely hear the final bell."), msg("She fights to finish: short fights, heavy shots, and opponents who rarely hear the final bell.")],
@@ -309,11 +336,12 @@ export function rulesReport(b: BoxerFull, w: World, t: T = tEn): string {
   return parts.join(" ");
 }
 
-export async function scoutingReport(b: BoxerFull, w: World, t: T = tEn) {
+export async function scoutingReport(b: BoxerFull, w: World, t: T = tEn, client?: string) {
   const key = `${b.slug}|${w.today}|${t.locale}`;
   const cached = reportCache.get(key);
   if (cached) return cached;
   let result = { text: rulesReport(b, w, t), source: "rules" as "ai" | "rules" };
+  let cacheable = true;
   if (hasKey()) {
     try {
       const recent = (w.boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming && x.method).slice(-6).map((x) => {
@@ -325,12 +353,12 @@ export async function scoutingReport(b: BoxerFull, w: World, t: T = tEn) {
       const language = t.locale === "ar" ? " Write in clear Modern Standard Arabic, the way a Saudi sports desk would; keep fighter names exactly as given in the facts and write numbers with Western digits (0-9)." : "";
       const text = await claude(
         `You are a boxing analyst writing a short scouting report (90-130 words, 2 paragraphs) for a stats site. Use ONLY the facts supplied; do not invent opponents, titles, or biography. Note that this is a fictional demo dataset only if asked. Plain text, no headings.${language}`,
-        facts, 400,
+        facts, 400, client,
       );
       result = { text: text.trim(), source: "ai" };
-    } catch { /* keep rules */ }
+    } catch (e) { if (e instanceof AiLimited) cacheable = false; /* keep rules; a refused call is not remembered */ }
   }
-  reportCache.set(key, result);
+  if (cacheable) reportCache.set(key, result);
   return result;
 }
 
