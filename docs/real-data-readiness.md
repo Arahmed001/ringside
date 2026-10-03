@@ -12,7 +12,7 @@ Ringside runs on a fictional league. This is what stands between it and a real f
 
 ```bash
 export BOXING_API_KEY=...            # the RapidAPI key from the free plan
-npm run vendor:sample -- --fights 10
+npm run vendor:sample -- --fights 10 --save-raw   # --save-raw keeps every raw response in data/vendor-samples/raw/ (gitignored)
 npm run data:check -- --file data/vendor-samples/boxing-data-api-<date>.json
 ```
 
@@ -23,12 +23,22 @@ Look at the printed list of approximations and the validator's findings, then op
 | Auth is `x-rapidapi-key` plus `x-rapidapi-host` | `get()` | A 401/403 on the first call; change the two header names |
 | A list endpoint's `data` is an array, `pagination.total_pages` is right | `collect()` | Zero fights loaded, or a loop that stops early; read one raw response |
 | `page_size` up to 100 is allowed | `pageSize` | A 400 or a short page; set a smaller `pageSize` |
-| `location` looks like "City, Region, Country" | `parseLocation` | `locationUnparsed` is high and countries read "Unknown"; check the real format |
+| ~~`location` looks like "City, Region, Country"~~ | `parseLocation` | **Wrong; the real format is "City, Region"** (see above); handled |
 | Event `date` is a UTC instant, so an evening card in the Americas can land on the next calendar day | `mapFight` | Wrong event dates by a day. This matters: the live ledger grades on the last snapshot strictly before the event date. If the feed has a venue time zone or a local date, use it |
 | A drawn decision is `outcome: UD/MD/SD/PTS` with no winner | `mapFight` | A genuine draw is stored as "no result yet", or a fight with a missing winner is stored as a draw. `drawInferred` and `resultMissing` count both |
 | Outcomes beyond `UD/MD/SD/TKO/KO/PTS` (DQ, RTD, no contest, technical decision) exist in the data | `mapFight` | They become "no result yet". Look for them in the sample and extend the mapping |
 | `fighter_1` is the red corner | `mapFight` | The feed has no corner colours; the choice only affects which side is labelled red, and a 50% call counts as red |
 | `/v2/fights/` also returns future fights, or only `/schedule` does | `load()` | Handled either way (deduplicated by id), but check upcoming fights actually arrive |
+
+## What the first free-tier runs showed (2026-10-03)
+
+- The key and the plain list call (`/v2/fights/`, no dates) work. **The list includes coming fights**: its first record was a `NOT_STARTED` fight six days away. So the live ledger has something to predict on the free plan, and the adapter takes coming fights from the list and skips the schedule request when the list already has them.
+- **The free plan has an allowed date range.** `/v2/fights/schedule` (60 days ahead) answered `403 DateOutOfRange`. How far the range reaches, backwards or forwards, is not known yet; the history depth is the thing to learn before paying for a backfill (`--save-raw` keeps the responses to look at the oldest date).
+- **A start date needs an end date.** `date_from` alone is `400 InvalidDateRange`; the adapter always sends both.
+- **`location` is "City, Region", not "City, Country"** (`"Quebec City, Quebec"`). The adapter maps US states, Canadian provinces, UK nations, Australian and Mexican states to their country, and counts each inference (`locationCountryInferred`). Anything else is taken as the country as written. Regions that are also country names ("Georgia") are not guessed (`locationRegionAmbiguous`). A region outside those lists would be stored as the country, so scan the sample's countries.
+- **Dates:** the event's `date` has a midnight time (a plain date, which the adapter uses); the fight's `date` has a real time with no time zone (looks like UTC). The two can fall on different days for an evening card; the sample will show whether `event.date` is the local date.
+- Fields the docs did not mention but the real record has: `card_billing` ("Main Card", a possible card order), `statistics` (null here; might carry punch statistics for some fights), `slug`.
+- Fighters carry `nationality_code` (ISO), which could drive flags: the app's flag table has ten countries today, so most real fighters would show a blank flag.
 
 ## What the feed does not say, and what the adapter does about it
 
@@ -42,11 +52,15 @@ Every approximation is counted. In a healthy feed these counts are small; a big 
 | `turnedProFromFirstFight` | No debut year | The year of the first fight in the feed, which may be later than the real debut | Fine once the whole career is loaded |
 | `ptsAsUnanimousDecision` | `PTS` is "points", not a decision type | `UD`, which claims unanimity the feed did not | Acceptable for ratings, wrong on a bout page's wording; consider a neutral "decision" method |
 | `drawInferred` / `resultMissing` | No draw value | See the table above | Check the sample |
+| `scheduleUnavailable` | The `/v2/fights/schedule` endpoint was refused (403/404), as it can be on a plan that does not include it | The coming fights are asked for from the list endpoint instead (from today on, soonest first) | Check upcoming fights still arrive; the refusal's own message is shown in the log |
+| `upcomingUnavailable` | The list showed no coming fights, and both the schedule endpoint and a date-ranged list were refused | History only; no coming fights | The live ledger needs coming fights to predict. Not what the free plan did (its list includes them), but a plan could differ |
 | `liveTreatedAsUpcoming` | `LIVE` fights | Treated as not yet decided | Fine |
 | `fightsSkipped` | A fight with no date or fewer than two fighters | Skipped | Check the count |
 | `boutsDroppedUnknownFighter` | A fighter's record could not be fetched | The bouts involving them are dropped, not stored with a hole | Re-run; a persistent one is a data gap |
 | `stanceDefaulted` | No stance | Orthodox | The page says Orthodox for someone whose stance is unknown. Small, but a made-up fact about a real person |
-| `locationUnparsed` | Location with no comma | The whole text as the city, country "Unknown" | Check the real format |
+| `locationUnparsed` | Location with no comma | The whole text as the city, country "Unknown" | Check which these are |
+| `locationCountryInferred` | The feed gives a region ("Quebec"), not a country | The region's country (Canada) | Scan the sample's countries for a region the lists do not cover |
+| `locationRegionAmbiguous` | A region that is also a country's name ("Georgia") | Left as written | Fix by hand, or decide a rule |
 | `divisionUnknown` | A division name Ringside does not know | Kept as written | It will not appear in the rankings pages; map it in `lib/divisions.ts` |
 
 Not in the feed at all, so absent from the real-data version of the site: punch statistics, judges' scorecards by judge (scores are an unlabelled list of strings), referees, weigh-ins, trainers and managers, odds, purses, venue capacity, photos, round time, knockdowns, and the card order within an event (bouts are ordered as the feed returns them). The pages that show these already hide when the data is absent; the money pages and "style" analyses will be thin or empty. **Check each section page against an empty league before going public.**
