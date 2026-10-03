@@ -1,5 +1,5 @@
 import type { BoutRow, BoxerFull, EventRow } from "@/lib/types";
-import { Portrait } from "./Portrait";
+import { portraitUrl } from "@/lib/art-url";
 import { hash, pickBy } from "@/lib/hash";
 import { divisionLabel } from "@/lib/divisions";
 import { getT } from "@/lib/i18n/server";
@@ -11,9 +11,10 @@ const HUES: [string, string, string][] = [
 ];
 
 /** A real (licensed) photo when we have one, otherwise the generated portrait. */
-function Fighter({ boxer, uid, x }: { boxer: BoxerFull; uid: string; x: number }) {
+function Fighter({ boxer, x }: { boxer: BoxerFull; x: number }) {
   if (boxer.photoUrl) return <image href={boxer.photoUrl} x={x} y="50" width="280" height="350" preserveAspectRatio="xMidYMin slice" />;
-  return <svg x={x} y="50" width="280" height="350" viewBox="0 0 120 150"><Portrait boxer={boxer} uid={uid} /></svg>;
+  // an external image rather than a nested copy of the portrait: the poster text stays inline (it uses the page fonts), the art is cached
+  return <image href={portraitUrl(boxer.slug)} x={x} y="50" width="280" height="350" preserveAspectRatio="xMidYMid meet" />;
 }
 
 /** Generated promo art for the main event. Replaced by `event.posterUrl` when a licensed feed supplies one. */
@@ -46,8 +47,8 @@ export async function Poster({ event, main, red, blue, className = "" }: { event
       {/* ring ropes */}
       {[0, 1, 2].map((i) => <path key={i} d={`M-10 ${380 + i * 26} Q200 ${352 + i * 26} 410 ${380 + i * 26}`} stroke={accent} strokeOpacity={0.35 - i * 0.08} strokeWidth="3" fill="none" />)}
       {/* fighters */}
-      <g clipPath={`url(#${u}-l)`}><Fighter boxer={red} uid={`${u}r`} x={-30} /></g>
-      <g clipPath={`url(#${u}-r)`}><Fighter boxer={blue} uid={`${u}b`} x={150} /></g>
+      <g clipPath={`url(#${u}-l)`}><Fighter boxer={red} x={-30} /></g>
+      <g clipPath={`url(#${u}-r)`}><Fighter boxer={blue} x={150} /></g>
       <line x1="232" y1="70" x2="168" y2="420" stroke={accent} strokeWidth="3" />
       <rect width="400" height="560" fill={`url(#${u}-fade)`} />
       {/* header */}
