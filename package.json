@@ -30,7 +30,8 @@
     "i18n:review": "tsx scripts/i18n-review.ts",
     "accounts": "tsx scripts/accounts.ts",
     "backup": "tsx scripts/backup.ts",
-    "loadtest": "tsx scripts/loadtest.ts"
+    "loadtest": "tsx scripts/loadtest.ts",
+    "doctor": "tsx scripts/doctor.ts"
   },
   "dependencies": {
     "next": "^16.3.8",

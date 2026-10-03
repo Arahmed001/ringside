@@ -590,6 +590,13 @@
   ]
  },
  {
+  "key": "{n} more graded picks and you are ranked",
+  "plural": "{n} more graded pick and you are ranked",
+  "files": [
+   "components/PickStanding.tsx"
+  ]
+ },
+ {
   "key": "{n} more players have fewer than {min} graded picks and are not ranked yet.",
   "plural": "{n} more player has fewer than {min} graded picks and is not ranked yet.",
   "files": [
@@ -1203,6 +1210,12 @@
   ]
  },
  {
+  "key": "{points} points from {graded} graded picks ({per} a pick).",
+  "files": [
+   "components/PickStanding.tsx"
+  ]
+ },
+ {
   "key": "{record} · {country}",
   "files": [
    "components/Poster.tsx"
@@ -1257,6 +1270,12 @@
   "key": "{result}. Fight score {score} out of 100. The top ten fights of {year} and why each scored as it did.",
   "files": [
    "app/[locale]/fight-of-the-year/[year]/page.tsx"
+  ]
+ },
+ {
+  "key": "{right} right, {wrong} wrong",
+  "files": [
+   "components/PickStanding.tsx"
   ]
  },
  {
@@ -1347,6 +1366,12 @@
   "key": "#{rank} fight of {year}",
   "files": [
    "components/Awards.tsx"
+  ]
+ },
+ {
+  "key": "#{rank} of {n} players",
+  "files": [
+   "components/PickStanding.tsx"
   ]
  },
  {
@@ -2024,6 +2049,12 @@
    "app/[locale]/page.tsx",
    "lib/nav.ts",
    "lib/search.ts"
+  ]
+ },
+ {
+  "key": "And {n} more below.",
+  "files": [
+   "components/PickStanding.tsx"
   ]
  },
  {
@@ -2865,6 +2896,12 @@
   "key": "Change password",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Change that",
+  "files": [
+   "components/PickStanding.tsx"
   ]
  },
  {
@@ -4793,6 +4830,12 @@
   ]
  },
  {
+  "key": "Got it",
+  "files": [
+   "components/PickStanding.tsx"
+  ]
+ },
+ {
   "key": "Graded",
   "files": [
    "components/LiveLedger.tsx"
@@ -6718,6 +6761,12 @@
   ]
  },
  {
+  "key": "Nothing graded yet.",
+  "files": [
+   "components/PickStanding.tsx"
+  ]
+ },
+ {
   "key": "Nothing here yet.",
   "files": [
    "components/ReviewQueue.tsx"
@@ -7956,7 +8005,8 @@
   "files": [
    "app/[locale]/leaderboard/page.tsx",
    "components/LiveLedger.tsx",
-   "components/MyPicks.tsx"
+   "components/MyPicks.tsx",
+   "components/PickStanding.tsx"
   ]
  },
  {
@@ -8232,7 +8282,8 @@
  {
   "key": "See the leaderboard",
   "files": [
-   "components/MyPicks.tsx"
+   "components/MyPicks.tsx",
+   "components/PickStanding.tsx"
   ]
  },
  {
@@ -8477,6 +8528,12 @@
   "key": "Since {date}",
   "files": [
    "components/LiveLedger.tsx"
+  ]
+ },
+ {
+  "key": "Since you last looked",
+  "files": [
+   "components/PickStanding.tsx"
   ]
  },
  {
@@ -9320,6 +9377,12 @@
   "key": "The model picked the winner",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "The model scores {points} on the {n} of those fights it called.",
+  "files": [
+   "components/PickStanding.tsx"
   ]
  },
  {
@@ -10917,7 +10980,8 @@
   "key": "Wrong",
   "files": [
    "components/LiveLedger.tsx",
-   "components/MyPicks.tsx"
+   "components/MyPicks.tsx",
+   "components/PickStanding.tsx"
   ]
  },
  {
@@ -10949,6 +11013,12 @@
   "key": "You against the model",
   "files": [
    "components/MyPicks.tsx"
+  ]
+ },
+ {
+  "key": "You are hidden from the leaderboard, so only you see this.",
+  "files": [
+   "components/PickStanding.tsx"
   ]
  },
  {
@@ -11014,7 +11084,8 @@
  {
   "key": "You: {name}",
   "files": [
-   "components/MyPicks.tsx"
+   "components/MyPicks.tsx",
+   "components/PickStanding.tsx"
   ]
  },
  {
@@ -11075,6 +11146,12 @@
   "key": "Your picks count on the leaderboard.",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Your place",
+  "files": [
+   "components/PickStanding.tsx"
   ]
  },
  {

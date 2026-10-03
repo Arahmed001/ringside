@@ -31,6 +31,7 @@ async function call(h: Handler, method: string, body?: unknown, o: { cookie?: st
 }
 const routes = async () => ({
   sessions: await import("../app/api/account/sessions/route"),
+  standing: await import("../app/api/account/standing/route"),
   signup: (await import("../app/api/account/signup/route")).POST, login: (await import("../app/api/account/login/route")).POST,
   logout: (await import("../app/api/account/logout/route")).POST, me: (await import("../app/api/account/me/route")).GET,
   password: (await import("../app/api/account/password/route")).POST, del: (await import("../app/api/account/delete/route")).POST,
@@ -660,4 +661,113 @@ test("expired sessions and reset codes can be purged, and live ones are left alo
   assert.equal((db.prepare("SELECT COUNT(*) c FROM sessions").get() as { c: number }).c, before - gone.sessions);
   assert.equal(userForToken(old.token, db, now), null);
   assert.equal(userForToken(live.token, db, now)?.username, "sess_two", "a live session survives the purge");
+});
+
+
+// ---------- the person's own place, and the recap ----------
+test("a place on the board is one more than the players strictly ahead; equal scores share it", async () => {
+  const { rankIn } = await import("../lib/accounts/leaderboard");
+  const lb = { field: [{ points: 20, accuracy: 0.9 }, { points: 15, accuracy: 0.8 }, { points: 15, accuracy: 0.8 }, { points: 15, accuracy: 0.7 }, { points: 9, accuracy: 0.5 }] };
+  assert.deepEqual([22, 20, 15.5, 15, 14.9, 9, 0].map((p) => rankIn(lb, p, 0.8)), [1, 2, 2, 2, 5, 5, 6], "20 at 0.8 trails the leader on accuracy; 9 at 0.8 is not behind 9 at 0.5");
+  assert.equal(rankIn(lb, 15, 0.75), 4, "same points, lower accuracy than the two at 0.8: behind them, ahead of 0.7");
+  assert.equal(rankIn(lb, 15, 0.8), 2, "tied with two others: all share place 2");
+  assert.equal(rankIn({ field: [] }, 5, 1), 1, "alone on an empty board");
+});
+
+test("my standing agrees with the board for the same person, is counted when hidden, and shows how many picks are still needed", async () => {
+  const { db } = await world();
+  const { getWorld } = await import("../lib/world");
+  const { leaderboard, myStanding, MIN_RANKED } = await import("../lib/accounts/leaderboard");
+  const { accountsDb } = await import("../lib/accounts/store");
+  const { tEn } = await import("../lib/i18n/t");
+  const acc = accountsDb(), w = await getWorld();
+  const decided = db.prepare(`SELECT b.external_id be, b.red_id r, b.blue_id u, b.winner_id win FROM bouts b JOIN events e ON e.id=b.event_id WHERE e.date < '2026-09-01' AND b.winner_id IS NOT NULL AND b.method IN ('UD','KO','TKO','SD','MD') LIMIT 30 OFFSET 40`).all() as { be: string; r: number; u: number; win: number }[];
+  const ext = (id: number) => (db.prepare("SELECT external_id e FROM boxers WHERE id = ?").get(id) as { e: string }).e;
+  const mk = async (name: string, ip: string) => { await asUser(name, ip); return (acc.prepare("SELECT id FROM users WHERE username = ?").get(name) as { id: number }).id; };
+  const ins = acc.prepare("INSERT INTO picks (user_id, bout_ext, boxer_ext, picked_at) VALUES (?,?,?,?)");
+  const strong = await mk("place_strong", "10.70.0.1"), middle = await mk("place_middle", "10.70.0.2"), hidden = await mk("place_hidden", "10.70.0.3"), fresh = await mk("place_fresh", "10.70.0.4");
+  decided.slice(0, 14).forEach((d, i) => { ins.run(strong, d.be, ext(d.win), "2026-01-01T00:00:00Z"); ins.run(middle, d.be, ext(i % 2 ? d.win : d.win === d.r ? d.u : d.r), "2026-01-01T00:00:00Z"); ins.run(hidden, d.be, ext(d.win), "2026-01-01T00:00:00Z"); });
+  decided.slice(14, 17).forEach((d) => ins.run(fresh, d.be, ext(d.win), "2026-01-01T00:00:00Z"));
+  acc.prepare("UPDATE users SET picks_public = 0 WHERE id = ?").run(hidden);
+  const lb = leaderboard(db, w, tEn, acc);
+  for (const [name, id] of [["place_strong", strong], ["place_middle", middle]] as const) {
+    const onBoard = lb.standings.find((x) => x.username === name)!, mine = myStanding(db, w, tEn, id, acc, lb);
+    assert.equal(mine.rank, onBoard.rank, `${name}: the place on the board and the person's own place are the same`);
+    assert.ok(Math.abs(mine.points - onBoard.points) < 1e-9 && mine.graded === onBoard.graded && mine.right === onBoard.right);
+    assert.equal(mine.public, true); assert.equal(mine.ranked, lb.field.length);
+  }
+  const strongNow = myStanding(db, w, tEn, strong, acc, lb), middleNow = myStanding(db, w, tEn, middle, acc, lb);
+  assert.ok(strongNow.rank! < middleNow.rank!, "all right beats half right");
+  assert.equal(strongNow.wrong, 0); assert.ok(strongNow.model === null || strongNow.model.fights <= strongNow.graded);
+  const h = myStanding(db, w, tEn, hidden, acc, lb);
+  assert.equal(h.public, false, "hidden from the board");
+  assert.ok(!lb.standings.some((x) => x.username === "place_hidden"), "and not on it");
+  assert.equal(h.rank, strongNow.rank, "but counted for them, with the place their score would take (it ties the strong player)");
+  const f = myStanding(db, w, tEn, fresh, acc, lb);
+  assert.deepEqual([f.rank, f.graded, f.stillNeeded, f.minRanked], [null, 3, MIN_RANKED - 3, MIN_RANKED]);
+  assert.deepEqual(myStanding(db, w, tEn, 999999, acc, lb).graded, 0, "a person with no picks has an empty record, not an error");
+});
+
+test("the recap reports each graded fight once: dismissing moves the mark forward and never back", async () => {
+  const { db } = await world();
+  const { getWorld } = await import("../lib/world");
+  const { picksRecap, markRecapSeen } = await import("../lib/accounts/leaderboard");
+  const { accountsDb } = await import("../lib/accounts/store");
+  const { tEn } = await import("../lib/i18n/t");
+  const acc = accountsDb(), w = await getWorld();
+  const uid = (acc.prepare("SELECT id FROM users WHERE username = 'place_middle'").get() as { id: number }).id;
+  const r = picksRecap(db, w, tEn, uid, acc)!;
+  assert.ok(r, "fights were graded and never shown");
+  assert.equal(r.right + r.wrong, 14); assert.equal(r.right, 7, "the middle player was right on every second fight");
+  assert.ok(r.items.length === 5 && r.items.every((i, k) => k === 0 || r.items[k - 1].date >= i.date), "the five newest, newest first");
+  assert.match(r.through, /^\d{4}-\d{2}-\d{2}$/);
+  markRecapSeen(uid, r.through, acc);
+  assert.equal(picksRecap(db, w, tEn, uid, acc), null, "dismissed: nothing new");
+  markRecapSeen(uid, "2000-01-01", acc);
+  assert.equal(picksRecap(db, w, tEn, uid, acc), null, "an older date does not bring them back");
+  markRecapSeen(uid, "not a date", acc);
+  assert.equal((acc.prepare("SELECT picks_seen_through s FROM users WHERE id = ?").get(uid) as { s: string }).s, r.through, "junk is ignored");
+  // a fight decided after the mark shows up on its own
+  const later = db.prepare(`SELECT b.external_id be, b.red_id r, b.winner_id win FROM bouts b JOIN events e ON e.id=b.event_id WHERE e.date > ? AND e.date < '2026-10-03' AND b.winner_id IS NOT NULL AND b.method IN ('UD','KO','TKO') LIMIT 1`).get(r.through) as { be: string; r: number; win: number } | undefined;
+  if (later) {
+    acc.prepare("INSERT INTO picks (user_id, bout_ext, boxer_ext, picked_at) VALUES (?,?,?,?)").run(uid, later.be, (db.prepare("SELECT external_id e FROM boxers WHERE id = ?").get(later.win) as { e: string }).e, "2026-01-01T00:00:00Z");
+    const again = picksRecap(db, w, tEn, uid, acc)!;
+    assert.deepEqual([again.right, again.wrong], [1, 0]);
+  }
+  const nobody = (acc.prepare("INSERT INTO users (username, pw_hash, created_at) VALUES ('recap_none', 'x', '2026-01-01') RETURNING id").get() as { id: number }).id;
+  assert.equal(picksRecap(db, w, tEn, nobody, acc), null, "no picks, no recap");
+});
+
+test("the standing endpoint is for the signed-in person only, answers in their language, and the recap can be dismissed", async () => {
+  const r = await routes();
+  const c = await asUser("place_api", "10.70.1.1");
+  assert.equal((await call(r.standing.GET, "GET")).status, 401);
+  assert.equal((await call(r.standing.POST, "POST", { through: "2026-01-01" })).status, 401);
+  assert.equal((await call(r.standing.POST, "POST", { through: "2026-01-01" }, { cookie: c, origin: "https://evil.example" })).status, 403, "cross-site is refused");
+  const empty = await call(r.standing.GET, "GET", undefined, { cookie: c });
+  assert.equal(empty.status, 200);
+  assert.deepEqual([empty.json.standing.graded, empty.json.standing.rank, empty.json.recap], [0, null, null]);
+  // a person with graded picks, asked in Arabic: the fight names come back in Arabic
+  const { accountsDb } = await import("../lib/accounts/store");
+  const { db } = await world();
+  const acc = accountsDb();
+  const uid = (acc.prepare("SELECT id FROM users WHERE username = 'place_api'").get() as { id: number }).id;
+  const d = db.prepare(`SELECT b.external_id be, b.winner_id win FROM bouts b JOIN events e ON e.id=b.event_id WHERE e.date < '2026-09-01' AND b.winner_id IS NOT NULL AND b.method = 'UD' LIMIT 2 OFFSET 5`).all() as { be: string; win: number }[];
+  for (const x of d) acc.prepare("INSERT INTO picks (user_id, bout_ext, boxer_ext, picked_at) VALUES (?,?,?,?)").run(uid, x.be, (db.prepare("SELECT external_id e FROM boxers WHERE id = ?").get(x.win) as { e: string }).e, "2026-01-01T00:00:00Z");
+  const en = await call(r.standing.GET, "GET", undefined, { cookie: c }, `${HOST}/api/account/standing?lang=en`), ar = await call(r.standing.GET, "GET", undefined, { cookie: c }, `${HOST}/api/account/standing?lang=ar`);
+  assert.equal(en.json.recap.right + en.json.recap.wrong, 2);
+  assert.ok(/[\u0600-\u06ff]/.test(ar.json.recap.items[0].fight) && !/[\u0600-\u06ff]/.test(en.json.recap.items[0].fight), "names follow the language asked for");
+  assert.equal((await call(r.standing.POST, "POST", { through: en.json.recap.through }, { cookie: c })).status, 200);
+  assert.equal((await call(r.standing.GET, "GET", undefined, { cookie: c })).json.recap, null, "dismissed");
+});
+
+test("an accounts file from before the recap is upgraded on open", async () => {
+  const { accountsDb, closeAccountsDb, accountsPath } = await import("../lib/accounts/store");
+  accountsDb(); closeAccountsDb();
+  const { DatabaseSync } = await import("node:sqlite");
+  const old = new DatabaseSync(accountsPath());
+  old.exec("ALTER TABLE users DROP COLUMN picks_seen_through;");
+  old.close();
+  const cols = (accountsDb().prepare("PRAGMA table_info(users)").all() as { name: string }[]).map((x) => x.name);
+  assert.ok(cols.includes("picks_seen_through"));
 });

@@ -12,6 +12,10 @@ export const onRequestError: Instrumentation.onRequestError = async (err, reques
  */
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
+  // What this server was configured to do, and anything about that which is probably a mistake (never a secret). `npm run doctor` checks the files too.
+  const { configLine, problemLines } = await import("./lib/doctor");
+  console.log(configLine(process.env));
+  for (const l of problemLines(process.env)) console.error(l);
   const { warmWorld, scheduleDailyWarm } = await import("./lib/warm");
   if (process.env.NODE_ENV === "production") await warmWorld();
   else void warmWorld();

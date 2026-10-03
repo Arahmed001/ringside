@@ -45,6 +45,12 @@ Known limits, said plainly: usernames are not moderated (an operator can `disabl
 
 The leaderboard grades every public player's picks, which measured about 0.2 s at 500 players with 100 picks each and **1.9 s, blocking, at 5,000**. Pages therefore use `leaderboardCached`: one result per language, rebuilt when the day, the sports database, any pick, or the set of public players changes (each of those has a test that fails if it is dropped from the cache key). Beyond tens of thousands of players it needs a database-side aggregate instead.
 
+## Your place and the recap (`/picks`, signed in)
+
+A card shows the person's own place ("#4 of 31 players"), or how many more graded picks they need to be ranked, with their points and points a pick and, when the model called at least three of the same fights, the model's score on those fights. It counts **whether or not they are on the public board**: someone who hid themselves still sees where their score would put them, and is told that only they see it. The place is worked out from the cached leaderboard (`rankIn`: one more than the ranked players strictly ahead; equal points and accuracy share a place, as on the board), and a test checks that a person's own place equals their row on the board.
+
+Under it, a recap of what was graded since they last looked: right and wrong counts and the five newest fights. It is kept by a mark, not a clock: `users.picks_seen_through` holds the date of the latest graded fight they were shown, "Got it" moves it to the latest graded fight, and the recap is the graded picks on fights after the mark (so each fight is reported once, a result that arrives hours late is still reported, and the mark never moves backwards or accepts a junk date). New fights are therefore reported, old ones are not, however long they stay away. `GET /api/account/standing?lang=ar` returns both; `POST {through}` dismisses.
+
 ## Operator commands
 
 ```bash

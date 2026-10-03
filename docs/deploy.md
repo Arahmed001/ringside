@@ -102,6 +102,16 @@ Snapshots land in `/data/backups/<timestamp>/` (`ringside.db`, `accounts.db`, `m
 
 **Restoring:** stop the container, replace `ringside.db` and/or `accounts.db` in `/data` with the files from a snapshot (delete the old `-wal` and `-shm` files beside them), start it again. Run `verify` on the snapshot first. Restoring `ringside.db` rolls the ledger back to that day, so predictions locked since then are gone; restoring `accounts.db` rolls back sign-ups and picks the same way. A restore has not been rehearsed on a real host: do it once, on a copy, before you need it.
 
+## Before the first visitor: `npm run doctor`
+
+```
+npm run doctor -- --production        # --strict makes warnings fail too; --json for a machine to read
+```
+
+Checks the settings and the files they point to, and prints what it found with the fix beside each problem: Node version, the data folder is writable, both databases open and pass `quick_check` and have their tables (and the sports one has fights in it), `accounts.db` is not readable by other users, the newest backup is under two days old, free disk, `SITE_URL` is a real https origin, the licensed key looks like a key (a pasted `…` does not) and storing is confirmed, `INDEXABLE` is not inviting search engines to index fictional data, numbers are numbers, and **misspelt setting names** (`SITE_URLL`, `INDEXABEL`, `anthropic_api_key`), which are otherwise ignored without any error. It never prints a secret. Exit code 1 means something failed; run it from the same environment as the server (it reads `.env.local` like the other scripts).
+
+The server also logs one JSON line when it starts (`"event":"config"`: provider, public origin, whether it is indexable, whether the model is on, and the ids of any problems) and one `config_problem` line per setting problem, with the fix. It does not look at the disk, so it adds nothing to start-up; `doctor` is the full check.
+
 ## Updating
 
 Build a new image and replace the container with the same volume. The schema migrates forward on start (`ADDED_COLUMNS` in `lib/db.ts`). Downgrading to an older image against a newer database is not supported.

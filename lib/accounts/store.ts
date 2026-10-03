@@ -56,6 +56,9 @@ export function accountsDb(): DatabaseSync {
   const cols = (db.prepare("PRAGMA table_info(sessions)").all() as { name: string }[]).map((c) => c.name);
   if (!cols.includes("label")) db.exec("ALTER TABLE sessions ADD COLUMN label TEXT");
   if (!cols.includes("last_seen")) db.exec("ALTER TABLE sessions ADD COLUMN last_seen TEXT");
+  // the date of the latest graded fight a person has been shown in their pick'em recap
+  const ucols = (db.prepare("PRAGMA table_info(users)").all() as { name: string }[]).map((c) => c.name);
+  if (!ucols.includes("picks_seen_through")) db.exec("ALTER TABLE users ADD COLUMN picks_seen_through TEXT");
   try { fs.chmodSync(file, 0o600); } catch { /* not supported on every filesystem */ }
   g.__accountsDb = { file, db };
   return db;

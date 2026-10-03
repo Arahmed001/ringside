@@ -27,7 +27,7 @@ Keep the reply (the PDF and the email) as it came. It is the evidence.
 
 For each figure in a reply, write a claim as in `docs/research.md`, with `source` = "California State Athletic Commission (public records response)", `basis` = `disclosed` (an official record), `quote` = the line as the document words it, and `sourceUrl` = see below. Kinds: `purse` (one per boxer) and `event_financials` (gate, tickets, attendance).
 
-**The one gap:** `npm run research -- check` confirms a claim by fetching its web page again and finding the quote. A PDF that arrived by email has no page to fetch, and the checker reads HTML and text only. Until it can check a local document (a planned change: PLAN §49), such claims cannot reach "verified" by code. The honest options meanwhile:
+**The one gap:** `npm run research -- check` confirms a claim by fetching its web page again and finding the quote. A PDF that arrived by email has no page to fetch, and the checker reads HTML and text only. Until it can check a local document (a planned change: PLAN §52), such claims cannot reach "verified" by code. The honest options meanwhile:
 - put them in `data/research/inbox/` as usual: they will show as `unconfirmed`, and nothing is published for them;
 - or, only for a figure the owner has read in the document himself or herself, settle it with a `decisions.jsonl` entry that says so.
 
