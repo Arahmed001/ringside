@@ -23,6 +23,8 @@ import { todayIso } from "../lib/clock";
 import { describePlan, foreignFighters, updateSince } from "../lib/vendor-backfill";
 import { describeReconciliation, reconcileDb, reconcileFeed, recordGate } from "../lib/vendor-verify";
 
+/** how many days the vendor's career totals may trail a result before a surplus counts as a contradiction (daily update audit only; a load is strict) */
+const LAG_DAYS = Number(process.env.VENDOR_LAG_DAYS ?? 7);
 const argv = process.argv.slice(2);
 const arg = (k: string) => { const i = argv.indexOf(`--${k}`); return i > -1 ? argv[i + 1] : undefined; };
 const flag = (k: string) => argv.includes(`--${k}`);
@@ -113,7 +115,7 @@ async function main() {
   const report = await ingest(db!, provider, { strict: !flag("allow-errors") });
   log(`loaded: ${Object.entries(report.counts).filter(([, v]) => v > 0).map(([k, v]) => `${k} ${v}`).join(", ")}; ${report.errors} error(s), ${report.warnings} warning(s) (run ${report.runId})`);
   if (update) { // the feed held only recent fights, so judge the careers as the database now has them
-    const rec = reconcileDb(db!, provider.vendorRecords(), raw.boxers.map((b) => b.externalId));
+    const rec = reconcileDb(db!, provider.vendorRecords(), raw.boxers.map((b) => b.externalId), { today: todayIso(), days: LAG_DAYS });
     console.log("after the update:");
     for (const line of describeReconciliation(rec)) console.log(line);
   }

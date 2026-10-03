@@ -241,6 +241,23 @@ test("--update is the daily job: it sees today's result and fresh career records
   assert.equal(since(m2).length, 6, "a second update asks again for everything in the window: yesterday's cached answers would hide today's results");
 });
 
+test("--update's audit tells a total that trails yesterday's result (lagging) from a contradiction about an old fight (still a conflict); neither changes the data or the exit code", async () => {
+  state.g3Finished = true;
+  try {
+    // the vendor has not yet counted g3 (2026-10-02, yesterday): Cy Three is 1 win short of the fights we hold, Ace One 1 loss
+    state.skew = { f3: { wins: -1 }, f1: { losses: -1 } };
+    const lag = await run(["--update", "--cache-dir", cache], live);
+    assert.equal(lag.code, 0, lag.out);
+    const after = lag.out.slice(lag.out.indexOf("after the update"));
+    assert.match(after, /2 career total\(s\) probably lagging/); assert.match(after, /Cy Three loaded 2-0-0 vs vendor 1-0-0/); assert.ok(!/CONFLICT/.test(after), after);
+    // the vendor contradicts an OLD fight (g1, 2026-08-15): Ace One has a win we hold and it has none
+    state.skew = { f1: { wins: -1 } };
+    const old = await run(["--update", "--cache-dir", cache], live);
+    assert.equal(old.code, 0, old.out);
+    assert.match(old.out.slice(old.out.indexOf("after the update")), /1 CONFLICT.*Ace One loaded 1-1-0 vs vendor 0-1-0/);
+  } finally { state.skew = {}; }
+});
+
 test("--update on an empty database says to backfill first, and loads nothing", async () => {
   const db3 = path.join(root, "third.db");
   const r = await run(["--update", "--cache-dir", path.join(root, "cache3")], { DATABASE_PATH: db3, BOXING_API_STORAGE_CONFIRMED: "1" });

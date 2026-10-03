@@ -59,8 +59,38 @@ test("reconciling the database (the daily update): the same check over what is s
   assert.deepEqual(reconcileDb(db, new Map([["A", rec(2, 0, 0)], ["B", rec(0, 1, 0)]]), ["B"]).checked, 1, "only the fighters asked about");
 });
 
+test("the daily update's audit: a surplus that only the last few days' fights cause is 'lagging' (the vendor's totals trail its results), anything older is still a conflict, and without the allowance the check is strict", async () => {
+  const db = await (await import("../lib/db")).getDb();
+  const { ingest } = await import("../lib/ingest");
+  const f = miniFeed(); // 2025-01-10: A beats B
+  const older = { ...f, events: [...f.events, { ...f.events[0], externalId: "E0", name: "Older Night", date: "2024-06-01" }], bouts: [...f.bouts, { ...f.bouts[0], externalId: "E0-1", eventExternalId: "E0", position: 0 }] } as FeedData;
+  await ingest(db, providerOf(older)); // A has beaten B twice: 2024-06-01 and 2025-01-10
+  const lag = { today: "2025-01-12", days: 7 };
+  // the vendor has counted the old win but not yet the new one: 1-0-0 against our 2-0-0 and 0-2-0
+  const trailing = new Map([["A", rec(1, 0, 0)], ["B", rec(0, 1, 0)]]);
+  const strict = reconcileDb(db, trailing);
+  assert.deepEqual([strict.conflict, strict.lagging], [2, 0], "without the allowance it is a conflict, as for a load");
+  const r = reconcileDb(db, trailing, undefined, lag);
+  assert.deepEqual([r.conflict, r.lagging, r.complete], [0, 2, 0]);
+  assert.deepEqual(r.laggards.map((m) => `${m.name} ${m.loaded} vs ${m.vendor}`), ["Fighter A 2-0-0 vs 1-0-0", "Fighter B 0-2-0 vs 0-1-0"]);
+  assert.match(describeReconciliation(r).join("\n"), /2 career total\(s\) probably lagging.*Fighter A loaded 2-0-0 vs vendor 1-0-0.*next day's update/);
+  assert.ok(!/CONFLICT/.test(describeReconciliation(r).join("\n")));
+  // one recent fight cannot explain a surplus of two: the vendor says A has no wins at all
+  const wrong = reconcileDb(db, new Map([["A", rec(0, 0, 0)], ["B", rec(0, 1, 0)]]), undefined, lag);
+  assert.deepEqual([wrong.conflict, wrong.lagging], [1, 1], "A is a conflict (two wins loaded, one of them recent, vendor has none); B is only lagging");
+  assert.equal(wrong.conflicts[0].name, "Fighter A");
+  // the same surplus with the recent window moved past the fight is a conflict again: the fight is not recent any more
+  const late = reconcileDb(db, trailing, undefined, { today: "2025-03-01", days: 7 });
+  assert.deepEqual([late.conflict, late.lagging], [2, 0]);
+  // a record that adds up, and a short one, are not touched by the allowance
+  assert.equal(reconcileDb(db, new Map([["A", rec(2, 0, 0)], ["B", rec(0, 2, 0)]]), undefined, lag).complete, 2);
+  assert.equal(reconcileDb(db, new Map([["A", rec(3, 0, 0)], ["B", rec(0, 2, 0)]]), undefined, lag).partial, 1);
+  // a load is strict: reconcileFeed has no allowance at all
+  assert.equal(reconcileFeed(older, new Map([["A", rec(1, 0, 0)], ["B", rec(0, 1, 0)]])).conflict, 2);
+});
+
 const bad = (checked: number, complete: number, partial: number, conflict: number) => ({
-  checked, complete, partial, conflict, noVendorRecord: 0, share: checked ? complete / checked : 0,
+  checked, complete, partial, conflict, noVendorRecord: 0, lagging: 0, laggards: [], share: checked ? complete / checked : 0,
   conflicts: Array.from({ length: conflict }, (_, i) => ({ externalId: `c${i}`, name: `Conflicted ${i}`, loaded: "5-0-0", vendor: "4-0-0" })),
   partials: Array.from({ length: partial }, (_, i) => ({ externalId: `p${i}`, name: `Partial ${i}`, loaded: "1-0-0", vendor: "20-0-0" })),
 });
