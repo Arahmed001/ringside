@@ -219,6 +219,7 @@
  {
   "key": "{from} to {to}",
   "files": [
+   "app/[locale]/accountability/page.tsx",
    "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
@@ -268,6 +269,12 @@
   "key": "{lb} lb catchweight",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "{lo}–{hi}% confidence: right {o}% of {n} fights",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -415,6 +422,7 @@
   "key": "{n} fights",
   "plural": "{n} fight",
   "files": [
+   "app/[locale]/accountability/page.tsx",
    "app/[locale]/boxers/[slug]/page.tsx",
    "lib/records.ts"
   ]
@@ -869,6 +877,12 @@
   ]
  },
  {
+  "key": "{p} vs {o}",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "{pct}% from official records",
   "files": [
    "components/Money.tsx"
@@ -977,6 +991,12 @@
   "key": "{winner} <m>upset</m> {loser}",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "{winner} beat {loser}",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -1155,6 +1175,12 @@
   ]
  },
  {
+  "key": "A backtest, not a live record",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "A big reach gap: {a} cm against {b} cm",
   "files": [
    "lib/matchmaking.ts"
@@ -1275,6 +1301,12 @@
   ]
  },
  {
+  "key": "A toss-up: the model saw no clear favourite",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "A unification: champions of different bodies in the same division",
   "files": [
    "lib/matchmaking.ts"
@@ -1296,6 +1328,18 @@
   "key": "Accuracy",
   "files": [
    "components/PunchStats.tsx"
+  ]
+ },
+ {
+  "key": "Accuracy by division",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "Accuracy by year",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -1332,6 +1376,12 @@
   "key": "active fighters",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Actually won",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -1439,7 +1489,7 @@
  {
   "key": "All-time",
   "files": [
-   "app/[locale]/layout.tsx"
+   "lib/nav.ts"
   ]
  },
  {
@@ -1492,8 +1542,8 @@
   "key": "Analytics",
   "files": [
    "app/[locale]/analytics/page.tsx",
-   "app/[locale]/layout.tsx",
    "app/[locale]/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -1702,6 +1752,12 @@
   ]
  },
  {
+  "key": "Before every fight the model gives each fighter a win probability. This page checks those numbers against what actually happened, using only what was known before each opening bell.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "Before the bell",
   "files": [
    "app/[locale]/previews/page.tsx"
@@ -1766,6 +1822,12 @@
   "key": "Biggest purse",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Biggest surprises, by the model's own numbers",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -1998,9 +2060,21 @@
   ]
  },
  {
+  "key": "Calibration chart",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "Call the card",
   "files": [
    "components/PickEm.tsx"
+  ]
+ },
+ {
+  "key": "Camps and money",
+  "files": [
+   "lib/nav.ts"
   ]
  },
  {
@@ -2121,6 +2195,12 @@
   ]
  },
  {
+  "key": "Close menu",
+  "files": [
+   "components/RailControls.tsx"
+  ]
+ },
+ {
   "key": "Closing odds",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
@@ -2132,6 +2212,12 @@
   "files": [
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/previews/page.tsx"
+  ]
+ },
+ {
+  "key": "Collapse menu",
+  "files": [
+   "components/RailControls.tsx"
   ]
  },
  {
@@ -2240,7 +2326,7 @@
  {
   "key": "Corners",
   "files": [
-   "app/[locale]/layout.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -2375,7 +2461,7 @@
  {
   "key": "Data",
   "files": [
-   "app/[locale]/layout.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -2383,6 +2469,12 @@
   "key": "Data & model",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Data and models",
+  "files": [
+   "lib/nav.ts"
   ]
  },
  {
@@ -2455,6 +2547,12 @@
   "key": "Different weight divisions in which a fighter has been champion of a belt.",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Discover",
+  "files": [
+   "lib/nav.ts"
   ]
  },
  {
@@ -2559,6 +2657,12 @@
   ]
  },
  {
+  "key": "Draws, no-contests and fights where either fighter had no earlier bout in the database are left out.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "Dream-fight builder",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
@@ -2584,9 +2688,21 @@
   ]
  },
  {
+  "key": "Each fight is scored with the same model and settings as the predictor page, using ratings, records, age and layoff as they stood before the fight.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "Early (R1–3)",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Early finishes",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -2704,8 +2820,8 @@
   "key": "Events",
   "files": [
    "app/[locale]/events/page.tsx",
-   "app/[locale]/layout.tsx",
    "app/[locale]/orgs/[slug]/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -2808,6 +2924,12 @@
   ]
  },
  {
+  "key": "Everything on this page is computed from the results in the database: nothing is estimated by an AI, and every figure can be reproduced.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "Everything: fictional fighters, trainers, weigh-ins, scorecards, punch stats",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -2817,6 +2939,12 @@
   "key": "Exact birth date",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Expand menu",
+  "files": [
+   "components/RailControls.tsx"
   ]
  },
  {
@@ -2948,6 +3076,7 @@
    "app/[locale]/all-time/page.tsx",
    "app/[locale]/fight-of-the-year/[year]/page.tsx",
    "app/[locale]/fight-of-the-year/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -2990,6 +3119,7 @@
   "files": [
    "app/[locale]/events/page.tsx",
    "app/[locale]/previews/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -3122,10 +3252,10 @@
   "files": [
    "app/[locale]/analytics/page.tsx",
    "app/[locale]/boxers/page.tsx",
-   "app/[locale]/layout.tsx",
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "lib/coverage.ts",
+   "lib/nav.ts",
    "lib/records.ts",
    "lib/search.ts"
   ]
@@ -3169,7 +3299,15 @@
  {
   "key": "Fights",
   "files": [
+   "app/[locale]/accountability/page.tsx",
+   "lib/nav.ts",
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Fights scored",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -3406,6 +3544,7 @@
   "key": "Gyms, promotions & bodies",
   "files": [
    "app/[locale]/orgs/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts",
    "lib/seo-server.ts"
   ]
@@ -3521,6 +3660,12 @@
   ]
  },
  {
+  "key": "Higher-rated fighter won {p} · a coin flip is 50%",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "Highest knockout rate",
   "files": [
    "lib/records.ts"
@@ -3581,6 +3726,12 @@
   ]
  },
  {
+  "key": "How good is the win model? See its track record",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
   "key": "How he wins",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -3605,6 +3756,18 @@
   ]
  },
  {
+  "key": "How often the pick won (%)",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "How often the Ringside win model picks the winner, whether its percentages can be trusted, where it is overconfident and its biggest misses, checked against every completed fight.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "How she wins",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -3614,6 +3777,12 @@
   "key": "How the score works",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
+  "key": "How this is computed",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -3677,6 +3846,30 @@
   "key": "Is it calibrated? ({model}, held-out fights)",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "It said",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "Its finish estimates are about right.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "Its finish estimates run high: fewer fights end early than it expects.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "Its finish estimates run low: more fights end early than it expects.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -4066,6 +4259,18 @@
   ]
  },
  {
+  "key": "Log loss",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "Log loss punishes confident misses: 0.693 is what a coin flip scores, and lower is better. Plain Elo is the rating-only expectation.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "log-loss · {acc} correct · Brier {brier}",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -4114,9 +4319,15 @@
   ]
  },
  {
+  "key": "Lower is better · plain Elo {e} · coin flip {c}",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "Main",
   "files": [
-   "app/[locale]/layout.tsx"
+   "components/SideNav.tsx"
   ]
  },
  {
@@ -4190,6 +4401,7 @@
    "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
    "components/TitlesCard.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -4209,7 +4421,7 @@
   "key": "Matchups",
   "files": [
    "app/[locale]/compare/page.tsx",
-   "app/[locale]/layout.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -4229,6 +4441,12 @@
    "app/[locale]/titles/page.tsx",
    "components/RecordsFilter.tsx",
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Menu",
+  "files": [
+   "components/RailControls.tsx"
   ]
  },
  {
@@ -4286,6 +4504,12 @@
   ]
  },
  {
+  "key": "Model accountability",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "Model estimates; the split between stoppage and points follows each fighter’s finishing record.",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
@@ -4310,10 +4534,22 @@
   ]
  },
  {
+  "key": "Model's confidence",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "Model's confidence in its pick (%)",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "Money",
   "files": [
-   "app/[locale]/layout.tsx",
-   "lib/coverage.ts"
+   "lib/coverage.ts",
+   "lib/nav.ts"
   ]
  },
  {
@@ -4870,6 +5106,12 @@
   ]
  },
  {
+  "key": "Over-confident: it picks the winner less often than its percentages claim.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "Overall: round 1 accounts for {p} of all stoppages.",
   "files": [
    "app/[locale]/analytics/page.tsx"
@@ -4972,6 +5214,12 @@
   ]
  },
  {
+  "key": "Perfect calibration",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "Period",
   "files": [
    "components/TenureTable.tsx"
@@ -5017,6 +5265,12 @@
   "key": "Pick two different fighters to build the fight.",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "Picked the winner",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -5137,6 +5391,12 @@
   "files": [
    "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "Predicted vs actual share of fights ending inside the distance",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -5286,9 +5546,9 @@
  {
   "key": "Rankings",
   "files": [
-   "app/[locale]/layout.tsx",
    "app/[locale]/rankings/page.tsx",
    "app/[locale]/titles/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -6111,8 +6371,8 @@
  {
   "key": "Style Map",
   "files": [
-   "app/[locale]/layout.tsx",
    "app/[locale]/map/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -6334,6 +6594,12 @@
   ]
  },
  {
+  "key": "The fights where the winner had the lowest chance in the model's eyes before the first bell.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "The fights worth making right now, who any fighter should face next, and a dream-fight builder. Every pairing is scored on how close, relevant, entertaining, bookable, fresh and meaningful it would be.",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
@@ -6388,6 +6654,12 @@
   ]
  },
  {
+  "key": "The model expected {p} of fights to end inside the distance; {o} did.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "The model favours {name} at {pct}%",
   "files": [
    "app/[locale]/previews/[id]/opengraph-image.tsx",
@@ -6401,15 +6673,39 @@
   ]
  },
  {
+  "key": "The model gave the winner {p}",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "The model gives a {pct}% chance that this ends before the final bell.",
   "files": [
    "lib/preview.ts"
   ]
  },
  {
+  "key": "The model picked the loser",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "The model picked the winner",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "The model sees a near coin-flip: {name} {pct}%",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "The model's call before the fight",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
   ]
  },
  {
@@ -6506,6 +6802,18 @@
   "key": "Their careers did not overlap",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "There are not enough completed fights to check the model yet.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "These are the calls the model would have made before each of the {n} completed fights in the database, rebuilt from what was known at the time: ratings, records and layoffs up to each fighter's previous bout. Its settings were chosen with these results in view, so the headline figures use the most recent quarter of fights ({from} to {to}), the period it was not fitted on.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -6610,9 +6918,9 @@
  {
   "key": "Titles",
   "files": [
-   "app/[locale]/layout.tsx",
    "app/[locale]/people/page.tsx",
    "components/TitlesCard.tsx",
+   "lib/nav.ts",
    "lib/records.ts"
   ]
  },
@@ -6720,6 +7028,14 @@
   ]
  },
  {
+  "key": "Track record",
+  "files": [
+   "app/[locale]/accountability/page.tsx",
+   "app/[locale]/bouts/[id]/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
   "key": "Trained by {name}",
   "files": [
    "lib/ai.ts"
@@ -6809,6 +7125,12 @@
   "key": "undefeated fighters",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Under-confident: it picks the winner more often than its percentages claim, so they sit too close to 50%.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -6974,8 +7296,8 @@
  {
   "key": "Weigh-ins",
   "files": [
-   "app/[locale]/layout.tsx",
    "app/[locale]/weights/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -6987,9 +7309,27 @@
   ]
  },
  {
+  "key": "Weights in use: hand-set defaults, not yet fitted to results.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "Weights in use: the Elo scale is fitted to results (×{k} the plain Elo expectation); the other terms are hand-set.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "WEL",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Well calibrated: when the model is confident, it is right about as often as it says.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -7062,6 +7402,12 @@
   "key": "When knockouts land",
   "files": [
    "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "When the model says 70%, is it right 70% of the time?",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {

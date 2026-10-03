@@ -108,3 +108,29 @@ input[type="range"].rs::-moz-range-track { background: transparent; }
   h1.text-5xl { font-size: 2.25rem; line-height: 1.05; }
   h1.text-6xl, h1.text-7xl, h1.text-8xl { font-size: 2.5rem; line-height: 1; }
 }
+
+/* ---- Side navigation ----
+   The rail is open (15rem) from 1280 px and icons only (4rem) below, unless the visitor chose: <html data-nav="expanded|collapsed">
+   (set from localStorage before the first paint). Collapsed means the labels are visually hidden, not removed, so every link keeps its name. */
+:root { --rail-w: 4rem; }
+@media (min-width: 1280px) { :root { --rail-w: 15rem; } }
+html[data-nav="collapsed"] { --rail-w: 4rem; }
+html[data-nav="expanded"] { --rail-w: 15rem; }
+.rail { width: var(--rail-w); transition: width .2s cubic-bezier(.2,.8,.2,1); }
+.rail-rule { display: none; }
+.rail-chevron { transition: transform .2s; }
+@media (max-width: 1279.98px) {
+  html:not([data-nav="expanded"]) .rail .rail-collapsible { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  html:not([data-nav="expanded"]) .rail .rail-rule { display: block; }
+  html:not([data-nav="expanded"]) .rail .rail-chevron { transform: rotate(180deg); }
+}
+@media (min-width: 1280px) {
+  html[data-nav="collapsed"] .rail .rail-collapsible { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  html[data-nav="collapsed"] .rail .rail-rule { display: block; }
+  html[data-nav="collapsed"] .rail .rail-chevron { transform: rotate(180deg); }
+}
+/* the chevron points toward the edge it will move; in Arabic the rail is on the right, so it flips (rtl:rotate-180 in the markup) */
+html[dir="rtl"] .rail .rail-chevron { transform-origin: center; }
+.drawer::backdrop { background: rgb(0 0 0 / .6); }
+body:has(dialog[open]) { overflow: hidden; }
+@media (prefers-reduced-motion: reduce) { .rail, .rail-chevron { transition: none; } }

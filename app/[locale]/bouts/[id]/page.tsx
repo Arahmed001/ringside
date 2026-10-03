@@ -6,7 +6,8 @@ import { Headshot } from "@/components/Portrait";
 import { ScoreCards } from "@/components/ScoreCards";
 import { PunchStats } from "@/components/PunchStats";
 import { SectionTitle } from "@/components/ui";
-import { flag, fmtDate, methodLabel } from "@/lib/format";
+import { flag, fmtDate, methodLabel, pct } from "@/lib/format";
+import { callOf } from "@/lib/accountability";
 import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
 import type { T } from "@/lib/i18n/t";
@@ -63,6 +64,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
   const pre = w.boutPre.get(b.id);
   const eloP = pre ? 1 / (1 + Math.pow(10, (pre.blue - pre.red) / 400)) : null;
   const mkt = implied(b.oddsRed, b.oddsBlue);
+  const call = callOf(w, b.id);
   const db = await getDb();
   const punches = (db.prepare("SELECT bout_id AS boutId, boxer_id AS boxerId, round, thrown, landed, power_thrown AS powerThrown, power_landed AS powerLanded, jab_thrown AS jabThrown, jab_landed AS jabLanded FROM punch_stats WHERE bout_id = ? ORDER BY round").all(b.id)) as unknown as PunchLine[];
   const winner = b.winnerId ? (b.winnerId === red.id ? red : blue) : null;
@@ -150,6 +152,17 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
             {cards.length === 0 && offs.filter((o) => o.role === "judge").map((o) => <div key={o.personId} className="flex justify-between gap-3"><dt className="text-muted">{t("Judge {n}", { n: o.seat ?? "" })}</dt><dd>{t.name(w.people.get(o.personId)?.name ?? "")}</dd></div>)}
           </dl>
           {oddsBlock(t, b.oddsRed, b.oddsBlue, mkt, eloP)}
+          {call && (
+            <div className="mt-4 border-t border-line/60 pt-3 text-sm">
+              <div className="mb-1 flex justify-between gap-3"><span className="text-muted">{t("The model's call before the fight")}</span><span className="tabular"><b className="text-red-ink">{pct(call.pRed)}</b> / <b className="text-blue">{pct(1 - call.pRed)}</b></span></div>
+              <div className="flex justify-between gap-3 text-xs">
+                {Math.max(call.pRed, 1 - call.pRed) < 0.52
+                  ? <span className="text-muted">{t("A toss-up: the model saw no clear favourite")}</span>
+                  : <span className={call.correct ? "text-win" : "text-red-ink"}>{call.correct ? t("The model picked the winner") : t("The model picked the loser")}</span>}
+                <Link href="/accountability" className="text-muted underline decoration-dotted hover:text-ink">{t("Track record")}</Link>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
