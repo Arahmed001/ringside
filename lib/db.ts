@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { ingest } from "./ingest";
 import { applyContributions } from "./accounts/contributions";
+import { REIGN_SCHEMA } from "./importers/wikipedia-champions";
 
 const DB_PATH = process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db");
 
@@ -121,6 +122,7 @@ CREATE INDEX IF NOT EXISTS idx_bouts_red ON bouts(red_id);
 CREATE INDEX IF NOT EXISTS idx_bouts_blue ON bouts(blue_id);
 CREATE INDEX IF NOT EXISTS idx_bouts_event ON bouts(event_id);
 CREATE INDEX IF NOT EXISTS idx_rh_boxer ON rating_history(boxer_id, date);
+${REIGN_SCHEMA}
 `;
 
 /** Columns added after the first release; lets an older ringside.db keep working. */
