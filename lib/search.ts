@@ -15,6 +15,8 @@ export const PAGES: { href: string; label: string; words: string }[] = [
   { href: "/rankings", label: msg("Rankings"), words: "rankings pound for pound p4p divisions" },
   { href: "/previews", label: msg("Fight previews"), words: "previews preview upcoming fights predictions picks what to watch" },
   { href: "/titles", label: msg("Title lineages"), words: "titles belts champions lineage reigns world continental" },
+  { href: "/all-time", label: msg("All-time lists"), words: "all-time records greatest of all time goat longest reign most knockouts fastest knockout biggest upsets best fights" },
+  { href: "/fight-of-the-year", label: msg("Fight of the year"), words: "fight of the year foty best fight award greatest fights" },
   { href: "/matchmaking", label: msg("Matchmaking"), words: "matchmaking fights to make next opponent dream fight builder" },
   { href: "/boxers", label: msg("Fighters"), words: "fighters boxers search" },
   { href: "/events", label: msg("Events"), words: "events cards calendar schedule results" },

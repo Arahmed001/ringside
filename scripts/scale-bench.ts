@@ -101,6 +101,16 @@ async function main() {
   const mn = await import("../lib/money");
   await time("money page: leaderboards, broadcasters, years", () => { mn.moneyCoverage(w2); mn.topGates(w2, 8); mn.topPpv(w2, 8); mn.topPurses(w2, 10); mn.topEarners(w2, 10); mn.topEarners(w2, 8, 2026); mn.broadcasterTable(w2); mn.revenueByYear(w2); return mn.moneyCoverage(w2).purses; }, (n) => `${n.toLocaleString()} purses`);
   await time("event page: money panel + fighter career pay", () => { const e = w2.events[Math.floor(w2.events.length / 2)]; mn.eventMoney(w2, e.id); for (const b of w2.boutsByEvent.get(e.id) ?? []) mn.boutPurses(w2, b.id); mn.careerMoney(w2, mid.id); });
+  const fs2 = await import("../lib/fight-score"), rc = await import("../lib/records");
+  // a fresh world so the first visitor's cost (punch totals, scoring a year, every list) is what is measured
+  invalidateWorld(); const w3 = await getWorld();
+  await time("home: fight of the year card (cold: punch totals + one year scored)", () => { const y = fs2.featuredYear(w3); return y ? fs2.fightsOfYear(w3, y).length : 0; }, (n) => `${n} fights scored`);
+  await time("fight-of-the-year page: every year's winner", () => fs2.fightOfTheYear(w3), (r) => `${r.length} years`);
+  await time("fight-of-the-year/[year]: top ten with reasons", () => fs2.fightsOfYear(w3, fs2.fightYears(w3)[1]).slice(0, 10).length);
+  await time("all-time hub: top 5 of every list", () => { for (const l of rc.LISTS) rc.recordList(w3, l.id, {}, 5); });
+  await time("all-time/[list]: top 50 of the legacy score, filtered", () => rc.recordList(w3, "greatest", { sex: "female", division: "Welterweight" }, 50));
+  await time("bout page: fight score and rank", () => fs2.fightRank(w3, someBout.id));
+  await time("fighter profile: records and awards", () => rc.recordsOf(w3, mid.id, 10));
   await time("data page: coverage queries", () => coverage());
   await time("model fit: features + regression", () => runFit(w2), (r) => `${r.rows.train + r.rows.test} bouts`);
 
