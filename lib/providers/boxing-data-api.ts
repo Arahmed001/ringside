@@ -284,7 +284,20 @@ export function storageStatus(): "confirmed" | "provisional" {
   return v === "1" ? "confirmed" : "provisional";
 }
 
+/**
+ * An API key is printable ASCII with no spaces, and a real one is long (RapidAPI's are about 50 characters). Anything else (a space, an accent,
+ * an ellipsis "…", or a stand-in like "..." or "your-key") is a placeholder pasted by mistake; sending it fails with a cryptic message deep inside
+ * the HTTP library, or a 403 that looks like a bad plan. The length is only checked when the key will go to a real server (no injected fetch).
+ */
+export const MIN_KEY_LENGTH = 16;
+export function assertPlausibleKey(key: string, willBeSent = true): void {
+  if (!/^[\x21-\x7e]+$/.test(key) || (willBeSent && key.length < MIN_KEY_LENGTH)) {
+    throw new Error("BOXING_API_KEY is not a plausible API key (it has a space, an accent or an ellipsis such as `…`, or it is too short): it looks like a placeholder was pasted instead of the real key (a real one is about 50 characters). Set the real one with `read -s \"BOXING_API_KEY?RapidAPI key: \"; export BOXING_API_KEY` (docs/real-data-runbook.md).");
+  }
+}
+
 export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiProvider {
+  assertPlausibleKey(o.key, !o.fetchImpl);
   if (o.purpose === "ingest" && storageStatus() === "provisional") (o.log ?? (() => {}))(STORAGE_WARNING);
   const base = (o.baseUrl ?? "https://boxing-data-api.p.rapidapi.com").replace(/\/+$/, "");
   const host = new URL(base).host;
