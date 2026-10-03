@@ -27,14 +27,16 @@ export function updateSince(db: DatabaseSync, today: string, overlapDays = 14): 
 }
 
 /** What `--plan` prints: the size of the job and a rough time for it. */
-export function describePlan(p: BackfillPlan, o: { gapMs: number; msPerRequest?: number }): string[] {
-  const ms = o.gapMs + (o.msPerRequest ?? 250); // the wait between requests plus a typical round trip
+export function describePlan(p: BackfillPlan, o: { gapMs: number; msPerRequest?: number; perHour?: number }): string[] {
+  const paced = o.perHour && o.perHour > 0 ? 3_600_000 / o.perHour : 0; // an hourly limit sets the pace when it is slower than the spacing
+  const ms = Math.max(o.gapMs + (o.msPerRequest ?? 250), paced); // the wait between requests plus a typical round trip
   const mins = Math.ceil((p.fighterRequests * ms) / 60000);
   return [
     `fights ${p.fights}, events ${p.events}, fighters ${p.fighters}`,
     `fight list pages fetched to find out: ${p.requestsMade} request(s)`,
     `fighters already in the cache (free): ${p.fightersCached}`,
-    `fighters still to fetch: ${p.fighterRequests} request(s), about ${mins} minute(s) at ${o.gapMs} ms between requests`,
+    paced > 0 ? `fighters still to fetch: ${p.fighterRequests} request(s), about ${mins >= 120 ? `${Math.round(mins / 6) / 10} hours` : `${mins} minute(s)`} at ${o.perHour} requests an hour`
+      : `fighters still to fetch: ${p.fighterRequests} request(s), about ${mins} minute(s) at ${o.gapMs} ms between requests`,
     `total still to spend: about ${p.fighterRequests} request(s) (plus any retries)`,
   ];
 }

@@ -19,6 +19,14 @@ export interface MockOptions {
   totalPages?: "true" | "capped";
   /** the cheapest plan: only this many days back are visible (omit for full history) */
   historyDays?: number;
+  /**
+   * The plan's own limits, refused the way the real gateway refused the first full run (HTTP 429 with a JSON message, no Retry-After):
+   * `hourlyLimit` requests in any clock hour ("You have exceeded the rate limit per hour for your plan, MEGA, by the API provider"), and `monthlyQuota`
+   * requests in all ("You have exceeded the MONTHLY quota ..."). A refused request is not counted. `now` is the clock (ms), so a test can move it.
+   */
+  hourlyLimit?: number;
+  monthlyQuota?: number;
+  now?: () => number;
 }
 
 export interface MockFight {
@@ -90,18 +98,25 @@ function apiFighter(w: MockWorld, id: string) {
 }
 
 export interface MockResponse { status: number; body: unknown }
-export interface MockStats { requests: number; byPath: Record<string, number>; pastLimit: number }
+export interface MockStats { requests: number; byPath: Record<string, number>; pastLimit: number; refused: number }
 
 /** The vendor as a function of a URL: what it answers, and counts what it was asked. */
 export function mockVendor(w: MockWorld, o: MockOptions = {}) {
   const limit = o.offsetLimit ?? 10_000;
-  const stats: MockStats = { requests: 0, byPath: {}, pastLimit: 0 };
+  const stats: MockStats = { requests: 0, byPath: {}, pastLimit: 0, refused: 0 };
+  const clock = o.now ?? Date.now;
+  const perHour = new Map<number, number>();
+  let accepted = 0;
   const visible = o.historyDays === undefined ? undefined : day(w.today, -o.historyDays);
   const sorted = { DESC: [...w.fights].sort((x, y) => (x.date < y.date ? 1 : x.date > y.date ? -1 : x.id < y.id ? -1 : 1)), ASC: [] as MockFight[] };
   sorted.ASC = [...sorted.DESC].reverse();
   const env = (data: unknown, extra: object = {}) => ({ metadata: {}, pagination: { page: 1, total_pages: 1, next_page: null }, error: {}, data, ...extra });
   const handle = (rawUrl: string): MockResponse => {
     const u = new URL(rawUrl, "http://mock"), p = u.pathname, q = u.searchParams;
+    const hour = Math.floor(clock() / 3_600_000);
+    if (o.monthlyQuota !== undefined && accepted >= o.monthlyQuota) { stats.refused++; return { status: 429, body: { message: "You have exceeded the MONTHLY quota for Requests on your current plan, MEGA. Upgrade your plan at https://rapidapi.com/" } }; }
+    if (o.hourlyLimit !== undefined && (perHour.get(hour) ?? 0) >= o.hourlyLimit) { stats.refused++; return { status: 429, body: { message: "You have exceeded the rate limit per hour for your plan, MEGA, by the API provider" } }; }
+    accepted++; perHour.set(hour, (perHour.get(hour) ?? 0) + 1);
     stats.requests++; stats.byPath[p.startsWith("/v2/fighters/") ? "/v2/fighters/*" : p] = (stats.byPath[p.startsWith("/v2/fighters/") ? "/v2/fighters/*" : p] ?? 0) + 1;
     if (p === "/v2/fights/") {
       const from = q.get("date_from"), to = q.get("date_to");
