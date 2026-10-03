@@ -17,8 +17,38 @@ export const COUNTRY_CODE: Record<string, string> = {
   Egypt: "EG", Morocco: "MA", Jordan: "JO", Iraq: "IQ", Syria: "SY", Lebanon: "LB", Kuwait: "KW", Bahrain: "BH", Qatar: "QA", Oman: "OM", Yemen: "YE", Algeria: "DZ", Tunisia: "TN", Libya: "LY", Sudan: "SD",
   "United Arab Emirates": "AE", Venezuela: "VE", Panama: "PA", "Dominican Republic": "DO", Nicaragua: "NI", Armenia: "AM", Belarus: "BY", Georgia: "GE", Kenya: "KE", Uganda: "UG", Tanzania: "TZ", Indonesia: "ID", "South Korea": "KR", China: "CN", India: "IN", Turkey: "TR",
 };
+/** "Türkiye", "Côte d’Ivoire", "St. Lucia & the Grenadines" and "turkey" all normalise alike: lower case, no accents or punctuation, "&" as "and". */
+const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/&/g, "and").replace(/[’'.]/g, "").replace(/\bthe\b/g, "").replace(/\s+/g, " ").trim();
+
+/** Names the data and the press use that the platform's own region names do not (checked by the round-trip test in tests/countries.test.ts). */
+const ALIASES: Record<string, string> = {
+  usa: "US", us: "US", "united states of america": "US", uk: "GB", "great britain": "GB", britain: "GB", "northern ireland": "GB", "republic of ireland": "IE",
+  "russian federation": "RU", turkey: "TR", turkiye: "TR", "czech republic": "CZ", "ivory coast": "CI", "cape verde": "CV", swaziland: "SZ", macedonia: "MK",
+  burma: "MM", myanmar: "MM", bosnia: "BA", "bosnia herzegovina": "BA", holland: "NL", uae: "AE", korea: "KR", "viet nam": "VN", "east timor": "TL",
+  "hong kong": "HK", macau: "MO", palestine: "PS", "democratic republic of congo": "CD", "dr congo": "CD", drc: "CD", congo: "CG", "republic of congo": "CG",
+};
+
+let byName: Map<string, string> | null = null;
+function countryNames(): Map<string, string> {
+  if (byName) return byName;
+  const dn = new Intl.DisplayNames(["en"], { type: "region" });
+  const m = new Map<string, string>();
+  for (let a = 65; a <= 90; a++) for (let b = 65; b <= 90; b++) {
+    const code = String.fromCharCode(a, b), n = dn.of(code);
+    if (n && n !== code && n !== "Unknown Region") m.set(norm(n), code); // an unassigned code comes back as itself
+  }
+  for (const [k, v] of Object.entries(ALIASES)) m.set(norm(k), v);
+  for (const [k, v] of Object.entries(COUNTRY_CODE)) m.set(norm(k), v);
+  return (byName = m);
+}
+/** ISO country code for a country as written ("Denmark", "Côte d’Ivoire", "usa", "DK"), or undefined when it is not a country we can name. */
+export function countryCode(c: string): string | undefined {
+  const names = countryNames(), key = norm(c);
+  if (/^[a-z]{2}$/.test(key) && [...names.values()].includes(key.toUpperCase())) return key.toUpperCase();
+  return names.get(key);
+}
 export function countryName(c: string, locale: Locale = "en"): string {
-  const code = COUNTRY_CODE[c];
+  const code = countryCode(c);
   if (!code || locale === "en") return c;
   let dn = regionNames.get(locale);
   if (!dn) { dn = new Intl.DisplayNames([locale], { type: "region" }); regionNames.set(locale, dn); }
@@ -26,11 +56,19 @@ export function countryName(c: string, locale: Locale = "en"): string {
 }
 export const pct = (x: number, digits = 0) => `${(x * 100).toFixed(digits)}%`;
 export const daysUntil = (d: string) => Math.ceil((Date.parse(d + "T12:00:00Z") - nowMs()) / 86400000);
-export const FLAGS: Record<string, string> = {
-  "United States": "🇺🇸", Mexico: "🇲🇽", "United Kingdom": "🇬🇧", Japan: "🇯🇵", Ukraine: "🇺🇦",
-  Philippines: "🇵🇭", Nigeria: "🇳🇬", Argentina: "🇦🇷", "Saudi Arabia": "🇸🇦", Germany: "🇩🇪",
+/** A flag for England, Scotland or Wales is an emoji tag sequence (a black flag, the letters "gbeng", a terminator); Northern Ireland has none and uses the UK's. */
+const tagFlag = (tag: string) => String.fromCodePoint(0x1f3f4, ...[...tag].map((ch) => 0xe0000 + ch.charCodeAt(0)), 0xe007f);
+const NATIONS: Record<string, string> = { england: tagFlag("gbeng"), scotland: tagFlag("gbsct"), wales: tagFlag("gbwls") };
+const flagCache = new Map<string, string>();
+/** The flag emoji for any country by name (or ISO code), a white flag when it cannot be told. */
+export const flag = (c: string): string => {
+  const hit = flagCache.get(c);
+  if (hit !== undefined) return hit;
+  const code = countryCode(c);
+  const out = NATIONS[norm(c)] ?? (code ? String.fromCodePoint(...[...code].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65)) : "🏳️");
+  flagCache.set(c, out);
+  return out;
 };
-export const flag = (c: string) => FLAGS[c] ?? "🏳️";
 /** Short result label: "KO R4", "UD", "DQ R3", "Draw". */
 export const methodLabel = (m: string | null, r: number | null, t: T = tEn) =>
   !m ? "—" : m === "DRAW" ? t("Draw") : m === "TDRAW" ? (r ? t("Tech draw R{r}", { r }) : t("Tech draw")) : m === "NC" ? t("No contest") : endsEarly(m) && r ? t("{m} R{r}", { m: t(m), r }) : t(m);
