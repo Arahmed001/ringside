@@ -37,8 +37,8 @@ export default async function Boxers({ searchParams }: { searchParams: Promise<{
       <div className="eyebrow mb-2">{t("Fighter database")}</div>
       <h1 className="font-display text-5xl font-extrabold uppercase">{t("Find a fighter")}</h1>
       <form className="mt-5 flex max-w-2xl gap-2">
-        <input name="q" defaultValue={q} placeholder={t("Ask in plain English — “southpaw welterweights with 10+ KOs after 2015”")} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-5 py-3.5 outline-none transition placeholder:text-muted/70 focus:border-gold/60" />
-        <button className="rounded-2xl bg-red px-6 font-display text-lg font-bold uppercase transition hover:brightness-110">{t("Search")}</button>
+        <input name="q" defaultValue={q} placeholder={t("Ask in plain English — “southpaw welterweights with 10+ KOs after 2015”")} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-5 py-3.5 outline-none transition placeholder:text-muted focus:border-gold/60" />
+        <button className="rounded-2xl bg-red-btn px-6 text-white font-display text-lg font-bold uppercase transition hover:brightness-90">{t("Search")}</button>
       </form>
       <div className="mt-4 flex gap-1.5">
         {([[undefined, t("Everyone")], ["male", t("Men")], ["female", t("Women")]] as const).map(([v, label]) => <Link key={label} href={qs({ sex: v })} className={`chip ${(sex ?? undefined) === v ? "!border-gold/50 !text-gold" : ""}`}>{label}</Link>)}

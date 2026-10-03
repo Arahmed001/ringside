@@ -14,7 +14,7 @@ export function Sparkline({ data, w = 560, h = 160, color = "#e5322d", labels }:
   const id = `sp${Math.abs(Math.round(data[0] * 7 + data.length))}`;
   const peak = data.indexOf(Math.max(...data));
   return (
-    <Svg viewBox={`0 0 ${w} ${h}`} className="ltr-fixed w-full" label={msg("Rating over time")}>
+    <Svg viewBox={`0 0 ${w} ${h}`} className="ltr-fixed w-full" label={msg("Rating over time")} descKey={msg("From {first} to {last}, peak {peak}")} descVars={{ first: Math.round(data[0]), last: Math.round(data[data.length - 1]), peak: Math.round(data[peak]) }}>
       <defs><linearGradient id={id} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={color} stopOpacity=".4" /><stop offset="1" stopColor={color} stopOpacity="0" /></linearGradient></defs>
       <line x1={pad} x2={w - pad} y1={y(1500)} y2={y(1500)} stroke="#fff" strokeOpacity=".12" strokeDasharray="4 6" />
       <path d={area} fill={`url(#${id})`} />
@@ -47,7 +47,7 @@ export function Donut({ parts, size = 170, center }: { parts: { label: string; v
   const offsets = parts.map((_, i) => parts.slice(0, i).reduce((s, q) => s + (q.value / total) * c, 0));
   return (
     <div className="flex flex-wrap items-center gap-6">
-      <Svg viewBox="0 0 160 160" width={size} height={size} label={msg("Distribution")}>
+      <Svg viewBox="0 0 160 160" width={size} height={size} label={msg("Distribution")} decorative>
         <circle cx="80" cy="80" r={r} fill="none" stroke="#1a1a21" strokeWidth="20" />
         {parts.map((p, i) => {
           const len = (p.value / total) * c;
@@ -69,7 +69,7 @@ export function ColumnChart({ data, h = 170 }: { data: { label: string; a: numbe
   const max = Math.max(...data.map((d) => d.a), 1);
   const bw = 100 / data.length;
   return (
-    <Svg viewBox={`0 0 100 ${h / 3.2}`} preserveAspectRatio="none" className="ltr-fixed w-full" style={{ height: h }} label={msg("Column chart")}>
+    <Svg viewBox={`0 0 100 ${h / 3.2}`} preserveAspectRatio="none" className="ltr-fixed w-full" style={{ height: h }} label={msg("Column chart")} desc={data.map((d) => `${d.label} ${d.a}`).join(", ")}>
       {data.map((d, i) => {
         const hh = (d.a / max) * (h / 3.2 - 8);
         const kh = ((d.b ?? 0) / max) * (h / 3.2 - 8);
@@ -88,12 +88,12 @@ export function Heatmap({ rows, cols }: { rows: { label: string; cells: number[]
   const max = Math.max(...rows.flatMap((r) => r.cells), 0.01);
   return (
     <div className="overflow-x-auto">
-      <table className="ltr-fixed w-full border-separate border-spacing-[3px] text-[10px]">
-        <thead><tr><th />{cols.map((c) => <th key={c} className="font-normal text-muted">{c}</th>)}</tr></thead>
+      <table className="ltr-fixed w-full border-separate border-spacing-[3px] text-xs">
+        <thead><tr><td />{cols.map((c) => <th key={c} scope="col" className="font-normal text-muted">{c}</th>)}</tr></thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.label}>
-              <td className="whitespace-nowrap pe-2 text-end text-xs text-muted">{r.label}</td>
+              <th scope="row" className="whitespace-nowrap pe-2 text-end text-xs font-normal text-muted">{r.label}</th>
               {r.cells.map((v, i) => <HeatCell key={i} label={r.label} round={i + 1} pct={Math.round(v * 100)} bg={v === 0 ? "#15151b" : `rgba(229,50,45,${0.12 + (v / max) * 0.88})`} />)}
             </tr>
           ))}
@@ -108,7 +108,7 @@ export function Radar({ axes, color = "#d9b25f", size = 220 }: { axes: { label: 
   const pt = (i: number, k: number) => [cx + Math.sin((i / n) * 2 * Math.PI) * R * k, cy - Math.cos((i / n) * 2 * Math.PI) * R * k];
   const poly = (k: (i: number) => number) => axes.map((_, i) => pt(i, k(i)).join(",")).join(" ");
   return (
-    <Svg viewBox="0 0 220 220" width={size} height={size} label={msg("Attribute radar")}>
+    <Svg viewBox="0 0 220 220" width={size} height={size} label={msg("Attribute radar")} desc={axes.map((a) => `${a.label} ${Math.round(a.v * 100)}`).join(", ")}>
       {[0.25, 0.5, 0.75, 1].map((k) => <polygon key={k} points={poly(() => k)} fill="none" stroke="#fff" strokeOpacity=".09" />)}
       {axes.map((_, i) => <line key={i} x1={cx} y1={cy} x2={pt(i, 1)[0]} y2={pt(i, 1)[1]} stroke="#fff" strokeOpacity=".09" />)}
       <polygon points={poly((i) => Math.max(0.04, Math.min(1, axes[i].v)))} fill={color} fillOpacity=".25" stroke={color} strokeWidth="2" />

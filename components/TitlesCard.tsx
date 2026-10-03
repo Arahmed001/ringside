@@ -15,7 +15,7 @@ export async function TitlesCard({ w, boxer }: { w: World; boxer: BoxerFull }) {
   if (!held.length) return null;
   const live = held.filter((h) => h.reign.end === null && !h.belt.stale).length;
   return (
-    <section className="card p-5" aria-labelledby={`titles-${boxer.id}`}>
+    <section className="card min-w-0 p-5" aria-labelledby={`titles-${boxer.id}`}>
       <div className="eyebrow mb-1" id={`titles-${boxer.id}`}>{t("Titles")}</div>
       <div className="font-display text-2xl font-bold">{live ? t.n(live, "Current champion: {n} belt", "Current champion: {n} belts") : t.n(held.length, "{n} reign on record", "{n} reigns on record")}</div>
       <ul className="mt-3 divide-y divide-line/60 text-sm">
@@ -39,10 +39,10 @@ export async function NextFightCard({ w, boxer }: { w: World; boxer: BoxerFull }
   const top = suggestOpponents(w, boxer, 3, t);
   if (!top.length) return null;
   return (
-    <section className="card p-5" aria-labelledby={`next-${boxer.id}`}>
+    <section className="card min-w-0 p-5" aria-labelledby={`next-${boxer.id}`}>
       <div className="mb-3 flex items-end justify-between gap-3">
         <div><div className="eyebrow mb-1" id={`next-${boxer.id}`}>{t("Matchmaking")}</div><div className="font-display text-2xl font-bold">{boxer.sex === "female" ? t("Who should she fight next?") : t("Who should he fight next?")}</div></div>
-        <Link href={`/matchmaking?a=${boxer.slug}#next`} className="shrink-0 text-sm text-muted hover:text-ink">{t("More opponents")} <span className="inline-block rtl:rotate-180">→</span></Link>
+        <Link href={`/matchmaking?a=${boxer.slug}#next`} className="inline-block shrink-0 py-1 text-sm text-muted hover:text-ink">{t("More opponents")} <span className="inline-block rtl:rotate-180">→</span></Link>
       </div>
       <ol className="space-y-3">
         {top.map((p, i) => (
@@ -55,7 +55,7 @@ export async function NextFightCard({ w, boxer }: { w: World; boxer: BoxerFull }
             </div>
             <Link href={`/compare?a=${boxer.slug}&b=${p.b.slug}`} className="shrink-0 text-end" title={t("Fight score out of 100: how close, relevant, entertaining, bookable, fresh and meaningful the fight is")}>
               <div className="font-display text-xl font-extrabold leading-none text-gold tabular">{p.score}</div>
-              <div className="text-[10px] uppercase tracking-widest text-muted">{t("fight score")}</div>
+              <div className="text-xs uppercase tracking-widest text-muted">{t("fight score")}</div>
             </Link>
           </li>
         ))}

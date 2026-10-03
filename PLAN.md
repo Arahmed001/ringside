@@ -280,7 +280,7 @@ First item of the survey's prioritised plan (`docs/data-sources-survey.md` §12)
 - **Checked live:** 40 real boxers imported through the real query service: 2 Hall of Fame IDs, 9 Olympedia IDs, 5 with awards (Golovkin: Hall of Fame 2026; Fury: Ring Fighter of the Year 2015). Pages checked in both languages against seeded rows. The demo league has no honours (its fighters are fictional), so the block only appears once real fighters are linked.
 - **Not done:** venues and dated events from Wikidata (the same survey item) are not imported; a full run over all ~19.6k boxers has not been done (about 165 batches, two requests each); BWAA award names have no Arabic form; the IBHOF link is plain `http://` because that is the formatter Wikidata publishes.
 
-## 15. Page weight and cold start (round 8, 2026-10-03)
+## 16. Page weight and cold start (round 8, 2026-10-03)
 
 Both open items from §10.3.
 
@@ -290,7 +290,7 @@ Both open items from §10.3.
 - **Warm-up** (`instrumentation.ts`, `lib/warm.ts`): the world is built when the server starts (production waits for it before accepting requests; `next dev` builds in the background) and again just after each UTC midnight, so no visitor pays for it. The log line `[ringside] world ready in N ms: F fighters, B bouts` shows what it cost. A failure is logged and the first request retries instead of keeping the server down. Not scheduled when `RINGSIDE_NOW` pins the clock. In `next start` on an empty database the first request after start took 157 ms (the world was already built and shared).
 - **Not done:** with real photos the `<img>` tags point at Commons or the feed directly (hotlinking, mirroring is still an open item in §3); event posters are still inline SVG (about 7 KB each now, down from about 25 KB); the synchronous build freeze at scale is unchanged (§10.2).
 
-## 16. Venues from Wikidata (round 9, 2026-10-03)
+## 17. Venues from Wikidata (round 9, 2026-10-03)
 
 The survey (§12 item 1) listed "venues and dated events" as a Wikidata import. Checked live before building: **it does not work for professional boxing.** Wikidata's boxing events are 427 "sporting events", 278 Olympic events, 201 multi-sport-Games events and 119 "boxing competition" items, i.e. amateur championships and Games located at *city* level ("1955 European Amateur Boxing Championships, Berlin"). There are no structured pro fight cards, and no venues attached to them. What Wikidata does have is good data on the *arenas themselves* (coordinates, capacity), so the venue names on our own events are resolved to it instead.
 
@@ -300,7 +300,7 @@ The survey (§12 item 1) listed "venues and dated events" as a Wikidata import. 
 - **Tests** (`tests/venues.test.ts`, mocked network shaped like the live responses): acceptance, district fallback and its basis, name normalisation and aliases, every refusal reason, the O2 alias trap, MSG-style ambiguity, median capacity and bad values, the worker's order and retry window, and that only matched venues reach the world. Breaking the city/country rule or the label tie-break each makes a test fail.
 - **Not done / limits:** a venue that was renamed or rebuilt is matched to whatever Wikidata calls it now, regardless of the card's date (the reason MSG is left ambiguous rather than guessed); the match is by name, so a real feed that spells a venue differently from Wikidata's label and aliases will miss; no venue pages or map yet.
 
-## 17. Resumable Wikidata import (round 9, 2026-10-03)
+## 18. Resumable Wikidata import (round 9, 2026-10-03)
 
 A full import (all ~19.6k boxers) is about 165 batches of 120, two requests each, roughly 7 minutes of polite requests; the first version had no way to continue after an interruption, and a database staged before §15 had to refetch every biography just to get Hall of Fame IDs, Olympedia IDs and awards.
 
@@ -310,7 +310,10 @@ A full import (all ~19.6k boxers) is about 165 batches of 120, two requests each
 - **Tests** (`tests/wikidata-import.test.ts`, a fake Query Service): batching, extras recorded even when empty, skip and `--force`, continuing after an interruption, the age window, `--extras-only` (no listing, no biography query, biography rows untouched, a second run makes no requests), `--limit`, `--no-extras`. Removing the skip, or the "checked even when empty" rule, fails tests. `WIKIDATA_GAP_MS` (default 1200) lets tests run without waiting.
 - **Not done:** a full run has not been made (the database here is a throwaway container; run `npm run wikidata:import && npm run wikidata:import -- --enrich` on your machine with `WIKIMEDIA_CONTACT` set).
 
-## 18. Guarding the AI bill (round 9, 2026-10-03)
+## 19. Accessibility and design pass (round 9, 2026-10-03)
+axe-core over 46 pages (23 x en/ar) went from 9 rule failures to 0; reflow checked at 320 and 768 px; keyboard (skip link, focus ring, `aria-current`, palette trap and live count) checked in the browser; text-safe red and red-button tokens; charts carry their numbers; the style map has a list view; 10-11px text raised to 12px; `tests/a11y.test.ts` guards the rules that need no browser. **Not done:** no real screen reader, no light theme, weigh-in chart and posters lack data summaries. Details in `docs/accessibility.md`.
+
+## 20. Guarding the AI bill (round 9, 2026-10-03)
 
 Found by reading every path that reaches the Anthropic API from anonymous traffic: (1) the plain-English search on `/boxers?q=` called the model for **every distinct query with no cache**, so anyone could run up the bill (or exhaust the key's rate limit) by searching for anything; (2) scouting reports and previews were cached per fighter or bout, day and language, but in a `Map` that was never trimmed, so it grew for as long as the server stayed up; (3) nothing limited how many different fighters or bouts one visitor could ask about.
 

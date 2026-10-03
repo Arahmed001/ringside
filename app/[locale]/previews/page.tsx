@@ -43,16 +43,16 @@ export default async function Previews() {
                 const fav = p.pA >= p.pB ? red : blue;
                 return (
                   <Link key={b.id} href={`/previews/${b.id}`} className="card card-hover min-w-0 p-5">
-                    <div className="mb-3 flex items-center justify-between gap-2 text-[11px] uppercase tracking-widest text-muted">
+                    <div className="mb-3 flex items-center justify-between gap-2 text-xs uppercase tracking-widest text-muted">
                       <span>{i === 0 ? t("Main event") : t("Co-main")} · {divisionLabel(b.weightClass, red.sex, t)}</span>
-                      {b.title && <span className="chip !border-gold/40 !px-2 !py-0 text-[10px] !text-gold">{t.name(b.title)}</span>}
+                      {b.title && <span className="chip !border-gold/40 !px-2 !py-0 text-xs !text-gold">{t.name(b.title)}</span>}
                     </div>
-                    <div className="ltr-fixed grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                    <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
                       {[red, blue].map((f, k) => (
                         <div key={f.id} className={`flex min-w-0 flex-col items-center gap-1 text-center ${k === 1 ? "order-3" : ""}`}>
                           <Headshot boxer={f} size={56} />
                           <div className="w-full truncate font-display text-lg font-bold leading-tight" dir="auto">{t.name(f.name)}</div>
-                          <div className="text-[11px] text-muted tabular">{recordStr(f)}</div>
+                          <div className="text-xs text-muted tabular">{recordStr(f)}</div>
                         </div>
                       ))}
                       <div className="order-2 font-display text-xl font-extrabold text-gold">{t("VS")}</div>

@@ -58,10 +58,10 @@ export function CommandPalette() {
 
   if (!open) {
     return (
-      <button type="button" onClick={show} aria-label={t("Search everything (Ctrl+K)")}
+      <button type="button" onClick={show} aria-label={t("Search everything (Ctrl+K)")} aria-keyshortcuts="Control+K Meta+K"
         className="flex shrink-0 items-center gap-2 rounded-xl border border-line bg-panel px-3 py-1.5 text-sm text-muted transition hover:border-gold/60 hover:text-ink">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-        <span className="hidden sm:inline">{t("Search")}</span><kbd className="hidden rounded border border-line px-1.5 text-[11px] sm:inline" dir="ltr">⌘K</kbd>
+        <span className="hidden sm:inline">{t("Search")}</span><kbd className="hidden rounded border border-line px-1.5 text-xs sm:inline" dir="ltr">⌘K</kbd>
       </button>
     );
   }
@@ -77,8 +77,9 @@ export function CommandPalette() {
             else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(0, a - 1)); }
             else if (e.key === "Enter" && hits[active]) { e.preventDefault(); go(hits[active]); }
             else if (e.key === "Escape") { e.preventDefault(); close(); }
+            else if (e.key === "Tab") e.preventDefault(); // the box is the only control in the dialog, so keep focus in it
           }}
-          className="w-full border-b border-line bg-transparent px-5 py-4 text-base outline-none placeholder:text-muted/70" />
+          className="w-full border-b border-line bg-transparent px-5 py-4 text-base outline-none placeholder:text-muted" />
         <ul id={`${id}-list`} role="listbox" className="max-h-[50vh] overflow-auto p-2">
           {term.length >= 2 && answered && hits.length === 0 && <li className="px-3 py-6 text-center text-sm text-muted">{t("Nothing matches that.")}</li>}
           {term.length >= 2 && !answered && <li className="px-3 py-6 text-center text-sm text-muted">{t("Searching…")}</li>}
@@ -101,7 +102,9 @@ export function CommandPalette() {
             );
           })}
         </ul>
-        <div className="flex gap-4 border-t border-line px-4 py-2 text-[11px] text-muted"><span>↑↓ {t("to move")}</span><span>↵ {t("to open")}</span><span>Esc {t("to close")}</span><span className="ms-auto">{shown ? t.n(shown, "{n} result", "{n} results") : ""}</span></div>
+        <div className="flex gap-4 border-t border-line px-4 py-2 text-xs text-muted"><span>↑↓ {t("to move")}</span><span>↵ {t("to open")}</span><span>Esc {t("to close")}</span><span className="ms-auto">{shown ? t.n(shown, "{n} result", "{n} results") : ""}</span></div>
+        {/* Spoken when the list changes; the visible count is in the footer. */}
+        <p role="status" aria-live="polite" className="sr-only">{term.length >= 2 ? (!answered ? t("Searching…") : shown ? t.n(shown, "{n} result", "{n} results") : t("Nothing matches that.")) : ""}</p>
       </div>
     </div>
   );

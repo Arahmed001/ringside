@@ -18,7 +18,7 @@ const BASIS_STYLE = { disclosed: "!border-win/40 !text-win", reported: "", estim
 export async function BasisChip({ p }: { p: Provenance }) {
   const t = await getT();
   const tip = `${t(BASIS_HELP[p.basis])} ${t("Source: {source}", { source: p.source })}${p.retrievedAt ? ` · ${fmtDate(p.retrievedAt, undefined, t.locale)}` : ""}${p.note ? ` · ${p.note}` : ""}`;
-  const cls = `chip !px-2 !py-0 text-[10px] ${BASIS_STYLE[p.basis]}`;
+  const cls = `chip !px-2 !py-0 text-xs ${BASIS_STYLE[p.basis]}`;
   return p.sourceUrl
     ? <a href={p.sourceUrl} target="_blank" rel="noopener noreferrer" title={tip} className={`${cls} hover:text-ink`}>{t(BASIS_LABEL[p.basis])} ↗</a>
     : <span title={tip} className={cls}>{t(BASIS_LABEL[p.basis])}</span>;
@@ -27,9 +27,9 @@ export async function BasisChip({ p }: { p: Provenance }) {
 async function Cell({ label, value, sub, p }: { label: string; value: string; sub?: string; p?: Provenance }) {
   return (
     <div className="rounded-xl bg-panel2/60 p-3">
-      <div className="text-[11px] uppercase tracking-widest text-muted">{label}</div>
+      <div className="text-xs uppercase tracking-widest text-muted">{label}</div>
       <div className="font-display text-2xl font-bold leading-tight tabular">{value}</div>
-      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-muted">{sub && <span>{sub}</span>}{p && <BasisChip p={p} />}</div>
+      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted">{sub && <span>{sub}</span>}{p && <BasisChip p={p} />}</div>
     </div>
   );
 }
@@ -59,7 +59,7 @@ export async function EventMoney({ w, event }: { w: World; event: EventRow }) {
       )}
       {broadcasts.length > 0 && (
         <div className="mt-4">
-          <div className="mb-2 text-[11px] uppercase tracking-widest text-muted">{t("Where it aired")}</div>
+          <div className="mb-2 text-xs uppercase tracking-widest text-muted">{t("Where it aired")}</div>
           <ul className="flex flex-wrap gap-2">
             {broadcasts.map((b) => (
               <li key={`${b.broadcaster}|${b.region}`} className="flex items-center gap-2 rounded-xl bg-panel2/60 px-3 py-2 text-sm">
@@ -74,7 +74,7 @@ export async function EventMoney({ w, event }: { w: World; event: EventRow }) {
       )}
       {purseRows.length > 0 && (
         <div className="mt-4">
-          <div className="mb-2 text-[11px] uppercase tracking-widest text-muted">{t("Fighter purses")}</div>
+          <div className="mb-2 text-xs uppercase tracking-widest text-muted">{t("Fighter purses")}</div>
           <ul className="divide-y divide-line/60 text-sm">
             {purseRows.map(({ b, purses }) => (
               <li key={b.id} className="grid gap-x-4 gap-y-1 py-2 sm:grid-cols-2">
@@ -83,7 +83,7 @@ export async function EventMoney({ w, event }: { w: World; event: EventRow }) {
                   return (
                     <div key={f2.id} className="flex items-center justify-between gap-3">
                       <Link href={`/boxers/${f2.slug}`} className="min-w-0 truncate hover:text-gold">{t.name(f2.name)}</Link>
-                      {p ? <span className="flex shrink-0 items-center gap-2"><b className="tabular">{usd(p.totalUsd)}</b>{p.bonusUsd ? <span className="text-[11px] text-muted">{t("incl. {amount} PPV share", { amount: usd(p.bonusUsd) })}</span> : null}<BasisChip p={p} /></span> : <span className="text-xs text-muted">{t("not disclosed")}</span>}
+                      {p ? <span className="flex shrink-0 items-center gap-2"><b className="tabular">{usd(p.totalUsd)}</b>{p.bonusUsd ? <span className="text-xs text-muted">{t("incl. {amount} PPV share", { amount: usd(p.bonusUsd) })}</span> : null}<BasisChip p={p} /></span> : <span className="text-xs text-muted">{t("not disclosed")}</span>}
                     </div>
                   );
                 })}
@@ -124,7 +124,7 @@ export async function CareerMoneyCard({ w, boxer }: { w: World; boxer: BoxerFull
               {y.offRing ? <span className="h-full bg-gold/35" style={{ width: `${(y.offRing / peak) * 100}%` }} /> : null}
             </span>
             <span className="w-14 text-end tabular">{usd(y.ring + (y.offRing ?? 0))}</span>
-            <span className={`w-2 text-[10px] ${y.basis === "disclosed" ? "text-win" : "text-muted"}`} aria-hidden>{y.basis === "disclosed" ? "●" : y.basis === "reported" ? "◐" : "○"}</span>
+            <span className={`w-2 text-xs ${y.basis === "disclosed" ? "text-win" : "text-muted"}`} aria-hidden>{y.basis === "disclosed" ? "●" : y.basis === "reported" ? "◐" : "○"}</span>
           </li>
         ))}
       </ul>

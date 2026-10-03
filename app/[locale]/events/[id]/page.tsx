@@ -72,11 +72,11 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
               <div key={b.id} className={`card p-4 ${cancelled ? "opacity-60" : ""}`}>
                 <div className="mb-3 flex items-center justify-between text-xs text-muted">
                   <span className="uppercase tracking-widest">{i === 0 ? t("Main event") : i === 1 ? t("Co-main") : t("Undercard")} · {divisionLabel(b.weightClass, r.sex, t)} · {t.n(b.rounds, "{n} rd", "{n} rds")}</span>
-                  {cancelled ? <span className="chip !border-red/40 !text-red">{t("Cancelled")}</span> : b.title && <span className="chip !border-gold/40 !text-gold">{t.name(b.title)}</span>}
+                  {cancelled ? <span className="chip !border-red/40 !text-red-ink">{t("Cancelled")}</span> : b.title && <span className="chip !border-gold/40 !text-gold">{t.name(b.title)}</span>}
                 </div>
-                <div className="ltr-fixed grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
                   {[r, u].map((f, k) => (
-                    <Link key={f.id} href={`/boxers/${f.slug}`} className={`flex items-center gap-3 ${k === 1 ? "order-3 flex-row-reverse text-end" : ""}`}>
+                    <Link key={f.id} href={`/boxers/${f.slug}`} className={`flex flex-col items-center gap-2 text-center sm:flex-row sm:gap-3 sm:text-start ${k === 1 ? "order-3 sm:flex-row-reverse sm:text-end" : ""}`}>
                       <Headshot boxer={f} size={52} />
                       <div className="min-w-0">
                         <div className={`font-display text-xl font-bold leading-tight ${b.winnerId === f.id ? "text-win" : ""}`}>{b.winnerId === f.id && "✓ "}{t.name(f.name)}</div>
@@ -84,9 +84,9 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
                       </div>
                     </Link>
                   ))}
-                  <Link href={`/bouts/${b.id}`} className="order-2 text-center transition hover:opacity-80" title={t("Full bout details")}><div className="font-display text-xl font-bold text-gold">{t("VS")}</div>{b.method && <div className="text-[11px] tabular text-muted">{methodLabel(b.method, b.endRound, t)}</div>}</Link>
+                  <Link href={`/bouts/${b.id}`} className="order-2 text-center transition hover:opacity-80" title={t("Full bout details")}><div className="font-display text-xl font-bold text-gold">{t("VS")}</div>{b.method && <div className="text-xs tabular text-muted">{methodLabel(b.method, b.endRound, t)}</div>}</Link>
                 </div>
-                {b.upcoming && !cancelled && <div className="mt-3 text-end"><Link href={`/previews/${b.id}`} className="text-sm text-muted hover:text-gold">{t("Read the preview")} <span className="inline-block rtl:rotate-180">→</span></Link></div>}
+                {b.upcoming && !cancelled && <div className="mt-3 text-end"><Link href={`/previews/${b.id}`} className="inline-block py-1 text-sm text-muted hover:text-gold">{t("Read the preview")} <span className="inline-block rtl:rotate-180">→</span></Link></div>}
                 {b.upcoming && !cancelled && <div className="mt-4"><ProbBar a={t.name(r.name)} b={t.name(u.name)} pA={p.pA} pB={p.pB} pDraw={p.pDraw} /></div>}
               </div>
             );

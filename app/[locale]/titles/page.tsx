@@ -56,8 +56,8 @@ export default async function Titles({ searchParams }: { searchParams: Promise<{
                 return (
                   <Link key={b.slug} href={`/titles/${b.slug}`} className="card card-hover min-w-0 p-4">
                     <div className="mb-2 flex items-center justify-between gap-2">
-                      <div className="truncate text-[11px] uppercase tracking-widest text-gold">{beltLabel(b, t)}</div>
-                      {b.stale && <span className="chip !px-2 !py-0 text-[10px]">{t("dormant")}</span>}
+                      <div className="truncate text-xs uppercase tracking-widest text-gold">{beltLabel(b, t)}</div>
+                      {b.stale && <span className="chip !px-2 !py-0 text-xs">{t("dormant")}</span>}
                     </div>
                     {champ && b.current ? (
                       <div className="flex items-center gap-3">
@@ -65,7 +65,7 @@ export default async function Titles({ searchParams }: { searchParams: Promise<{
                         <div className="min-w-0">
                           <div className="truncate font-display text-xl font-bold leading-tight">{t.name(champ.name)}</div>
                           <div className="text-xs text-muted">{t("since {date}", { date: fmtDate(b.current.start, { month: "short", year: "numeric" }, t.locale) })} · {t.n(b.current.defenses.length, "{n} defence", "{n} defences")}</div>
-                          {(holders.get(champ.id) ?? 0) > 1 && !b.stale && <span className="chip mt-1 !border-gold/40 !px-2 !py-0 text-[10px] !text-gold">{t("holds {n} belts", { n: holders.get(champ.id) ?? 0 })}</span>}
+                          {(holders.get(champ.id) ?? 0) > 1 && !b.stale && <span className="chip mt-1 !border-gold/40 !px-2 !py-0 text-xs !text-gold">{t("holds {n} belts", { n: holders.get(champ.id) ?? 0 })}</span>}
                         </div>
                       </div>
                     ) : <div className="text-sm text-muted">{t("Vacant")}</div>}

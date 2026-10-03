@@ -1,6 +1,6 @@
 # Design System: Ringside
 
-> Status: **proposal, not yet verified in a browser.** It was written while the shell and dev server were unavailable, so it is based on the existing code and design principles, not on competitor screenshots, AI mockups or a live visual review. Run `/design-review` against the running app to check it.
+> Status: **verified in a browser for accessibility (docs/accessibility.md); the visual direction is still a proposal.** It was written while the shell and dev server were unavailable, so it is based on the existing code and design principles, not on competitor screenshots, AI mockups or a live visual review. Run `/design-review` against the running app to check it.
 
 ## Product Context
 - **What this is:** a boxing database with ratings, rankings, predictions and AI scouting, as a far more beautiful and analytical alternative to BoxRec.
@@ -35,7 +35,8 @@ Every choice below serves that. The risk is turning drama into noise, so drama i
 - **Semantic:** win `#3ecf8e`, loss uses red, draw/neutral uses muted.
 - **Archetype colours** (style map and badges) are a separate categorical set in `lib/style.ts`. Do not reuse them elsewhere.
 - **Dark mode:** the only mode for now. A light "newsprint" theme is a possible later addition and would need its own tuned palette, not an inversion.
-- **Contrast:** muted text on panel is about 5.7:1 (hand-calculated, not tool-checked), so keep it for secondary text only, never for essential labels below 12px.
+- **Contrast (measured, tests/a11y.test.ts enforces it):** text `#ecebe6` 14.5-16.7:1, muted 5.3-6.1:1, gold 8.6-9.9:1, blue 5.3-6.2:1, green 8.7-10:1 on the three surfaces. The brand red `#e5322d` is only 4.0-4.6:1, so it is for fills, bars and large type; **small red text uses `--red-ink #ff5a54`** (`text-red-ink`, 5.6-6.5:1) and **a red button is `--red-btn #c9261f` with white text** (`bg-red-btn`, 5.5:1). Nothing under 12px.
+- **Focus and keyboard:** one gold 2px ring (`:focus-visible`) on every control; a "Skip to content" link is the first tab stop; the current page in the header has `aria-current` and gold text. Never signal state by colour or opacity alone (legend toggles use `aria-pressed` and a strike-through).
 
 ## Spacing
 - **Base unit:** 4px. **Density:** comfortable on content pages, compact in tables.

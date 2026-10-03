@@ -21,14 +21,14 @@ export async function ReignTimeline({ w, belt }: { w: World; belt: Belt }) {
           const who = w.byId.get(r.boxerId);
           return (
             <Link key={r.n} href={`/boxers/${who?.slug ?? ""}`} title={`${t.name(who?.name ?? "")} · ${r.start} → ${r.end ?? t("present")} · ${t.n(r.defenses.length, "{n} defence", "{n} defences")}`}
-              className="absolute top-1.5 bottom-1.5 overflow-hidden rounded-lg px-1.5 text-[10px] font-semibold leading-[2.6rem] text-black/80 transition hover:brightness-110"
+              className="absolute top-1.5 bottom-1.5 overflow-hidden rounded-lg px-1.5 text-xs font-semibold leading-[2.6rem] text-black/80 transition hover:brightness-110"
               style={{ left: `${left}%`, width: `${Math.max(0.6, right - left)}%`, background: SHADES[i % SHADES.length] }}>
               {right - left > 7 ? t.name(who?.name ?? "").split(" ").slice(-1)[0] : ""}
             </Link>
           );
         })}
       </div>
-      <div className="relative mt-1 h-4 text-[10px] text-muted">
+      <div className="relative mt-1 h-4 text-xs text-muted">
         {Array.from({ length: Math.floor((y1 - y0) / step) + 1 }, (_, k) => y0 + k * step).map((y) => (
           <span key={y} className="absolute -translate-x-1/2 tabular" style={{ left: `${Math.min(97, Math.max(1, pos(`${y}-01-01`)))}%` }}>{y}</span>
         ))}

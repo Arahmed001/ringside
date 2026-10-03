@@ -54,7 +54,7 @@ export function FighterPicker({ name, label, initial, minBouts = 0, placeholder 
           else if (e.key === "Enter" && showing && active >= 0 && hits[active]) { e.preventDefault(); pick(hits[active]); }
           else if (e.key === "Escape") setOpen(false);
         }}
-        className="w-full rounded-xl border border-line bg-panel2 px-3 py-2.5 text-sm outline-none placeholder:text-muted/70 focus:border-gold/60"
+        className="w-full rounded-xl border border-line bg-panel2 px-3 py-2.5 text-sm outline-none placeholder:text-muted focus:border-gold/60"
       />
       {showing && (
         <ul id={listId} role="listbox" className="absolute z-20 mt-1 max-h-72 w-full overflow-auto rounded-xl border border-line bg-panel shadow-[0_18px_40px_-18px_rgba(0,0,0,.8)]">

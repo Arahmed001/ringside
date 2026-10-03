@@ -63,8 +63,8 @@ export default async function Weights() {
                   <div className={`growy w-8 rounded-t-md ${e.winRate >= 0.5 ? "bg-win/80" : "bg-red/80"}`} style={{ height: `${(e.winRate / maxEdge) * 100}%` }} />
                 </div>
                 <div className="mt-2 font-display text-lg font-bold tabular">{pct(e.winRate)}</div>
-                <div className="text-center text-[10px] leading-tight text-muted">{t(e.label)}</div>
-                <div className="text-[10px] text-muted/70 tabular">{t("n={n}", { n: e.n })}</div>
+                <div className="text-center text-xs leading-tight text-muted">{t(e.label)}</div>
+                <div className="text-xs text-muted tabular">{t("n={n}", { n: e.n })}</div>
               </li>
             ))}
           </ul>
@@ -76,14 +76,14 @@ export default async function Weights() {
         <SectionTitle eyebrow={t("{n} on record", { n: total })} title={t("Recent missed weights")} />
         <div className="card overflow-x-auto p-4">
           <table className="w-full text-sm">
-            <thead><tr className="text-start text-[11px] uppercase tracking-widest text-muted"><th className="py-2">{t("Fighter")}</th><th>{t("Date")}</th><th>{t("Over the limit")}</th><th>{t("Opponent")}</th><th className="text-end">{t("Result")}</th></tr></thead>
+            <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th className="py-2">{t("Fighter")}</th><th>{t("Date")}</th><th>{t("Over the limit")}</th><th>{t("Opponent")}</th><th className="text-end">{t("Result")}</th></tr></thead>
             <tbody>{misses.map((m) => (
               <tr key={`${m.boutId}-${m.boxer.id}`} className="border-t border-line/60">
                 <td className="py-2"><Link href={`/boxers/${m.boxer.slug}`} className="flex items-center gap-3"><Headshot boxer={m.boxer} size={28} /><b>{t.name(m.boxer.name)}</b></Link></td>
                 <td className="text-muted tabular">{fmtDate(m.date, { month: "short", day: "numeric", year: "numeric" }, t.locale)}</td>
-                <td className="tabular text-red">{t("+{n} lb", { n: m.over.toFixed(1) })} <span className="text-xs text-muted">{t("(limit {n})", { n: m.limitLb })}</span></td>
+                <td className="tabular text-red-ink">{t("+{n} lb", { n: m.over.toFixed(1) })} <span className="text-xs text-muted">{t("(limit {n})", { n: m.limitLb })}</span></td>
                 <td className="text-muted">{t.name(m.opponent)}</td>
-                <td className="text-end"><Link href={`/bouts/${m.boutId}`} className={`chip ${m.won ? "!border-win/40 !text-win" : m.won === false ? "!border-red/40 !text-red" : ""}`}>{m.won === null ? t("Draw") : m.won ? t("Won") : t("Lost")}</Link></td>
+                <td className="text-end"><Link href={`/bouts/${m.boutId}`} className={`chip ${m.won ? "!border-win/40 !text-win" : m.won === false ? "!border-red/40 !text-red-ink" : ""}`}>{m.won === null ? t("Draw") : m.won ? t("Won") : t("Lost")}</Link></td>
               </tr>
             ))}</tbody>
           </table>
