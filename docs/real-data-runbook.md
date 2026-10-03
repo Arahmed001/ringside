@@ -68,6 +68,26 @@ Two settings deal with it, and both are safe to combine:
 
 A refusal that says a **quota** is used up (monthly, daily) is never waited for: it ends the run at once with the vendor's words, because waiting an hour fixes nothing; check the plan and the key's app in the RapidAPI dashboard. And a 429 now ends the run instead of being counted as "fighter skipped" (a plan that refuses one fighter refuses the next).
 
+### Taking the league in stages (`--fighters N`, `--complete-only`)
+
+At 450 requests an hour the whole fighter fetch is about three days. Rather than wait for all of it, a first load can be **the N most recently active fighters**: ranked by the date of their latest fight (a coming fight counts), fetched newest first, and only the fights between two of them are loaded (the others are counted as `boutsOutsideSelection`, "left for a later run", not as a failure). Run again with a bigger N, or none, and only the fighters not yet fetched cost anything: the first ones are in the cache.
+
+```
+npm run vendor:backfill -- --plan --fighters 5000 --per-hour 450 --cache-dir $HOME/ringside-real/vendor-cache
+```
+
+`--plan` needs no fighter request at all, and for the whole list and for 1,000, 2,500, 5,000, 10,000 and 20,000 fighters it prints, from the fight list alone: the fights that would load, the share of fighters who have **every** fight in the list loaded, how many sit in **groups chosen whole**, and the time to fetch. Read those two numbers before spending the hours:
+
+- *Every fight loaded* is the usual meaning of "complete": the fighter's own record can come out right, but his opponents at the edge of the choice can still show short records (a 19-0-1 fighter shown as 1-0), because their other opponents were not taken.
+- *Groups chosen whole* is stricter and is the honest one: fighters are linked through their opponents, and the group a fighter belongs to is the whole chain of opponents' opponents. A record is certain to be right only when the entire group is in. Until most of the league is chosen this number is **much smaller** than the first, because the boxing graph is one big connected group; do not expect it to be large early on.
+
+Then:
+
+- `--check --fighters N` fetches the N fighters and prints the `records:` line as always, so it says how many of them add up to the vendor's own career totals. The load is refused unless 90% do (`--allow-partial` waives it, and then the short records go on the site as they are: say so to anyone who asks).
+- `--complete-only` (with or without `--fighters`) loads **only the part that is right**: fighters whose loaded fights add up exactly to the vendor's career record and whose opponents do too, repeated until nothing short remains. Every record on the site is then the vendor's total; the cost is a smaller league, and it can be small early (it prints how many it kept and how many fighters it left out only because an opponent's record is short). An empty core is an error. It also waives the gate for what it leaves out, because nothing short is loaded.
+- Neither flag is for `--update`; the daily update fetches the fighters of the recent fights, all of them. Do the staged loads first, finish with a run with no `--fighters` (everything), and only then switch to the daily update.
+
+
 ## 3. Load: no flags
 
 ```bash

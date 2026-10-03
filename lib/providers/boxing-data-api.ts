@@ -1,3 +1,4 @@
+import { previewSelection, rankByRecency, selectionSizes, type SelectionPreview } from "../vendor-selection";
 import type { DataProvider, ProviderBoxer, ProviderBout, ProviderEvent } from "./index";
 import fs from "node:fs";
 import path from "node:path";
@@ -43,12 +44,12 @@ export interface ApiFight {
 
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
-  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter"
+  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection"
   | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "divisionFromFight" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
+  ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, windowTooBig: 0,
 });
 
@@ -231,6 +232,12 @@ export interface BoxingDataApiOptions {
    */
   perHour?: number;
   /**
+   * Fetch only this many fighters: the ones with the most recent (or coming) fight first. The fights between two of them are loaded and no others, so a
+   * first load of a few thousand fighters is a league that holds together, in hours instead of days; a later run with a larger number (or none) only
+   * fetches the rest, the first ones being in the cache. Unset: every fighter in the list.
+   */
+  maxFighters?: number;
+  /**
    * When the gateway refuses with a rate limit (a 429 that is not a used-up quota), wait and try the same request again, for up to this many ms in all for
    * that request: 1, 2, 5, then 10 minutes at a time (or the Retry-After it gives). A refusal that says the quota is used up is never waited for: it ends
    * the run at once with the vendor's own words. Default 0 (give up after `retries`). Everything fetched so far is in the cache either way.
@@ -250,6 +257,10 @@ export interface BackfillPlan {
   fighterRequests: number;
   /** requests made so far (list pages) */
   requestsMade: number;
+  /** what taking only the most recently active fighters would give, for a few sizes (from the fight list alone; nothing is fetched to know it) */
+  selection?: SelectionPreview[];
+  /** set when `maxFighters` is in force: fighters, fighterRequests and fightersCached then count only the chosen ones, and this is how many the list holds */
+  allFighters?: number;
 }
 /** A fighter's career record as the vendor states it (wins, losses, draws): the only independent figure in the feed to check the loaded fights against. */
 export interface CareerRecord { wins: number; losses: number; draws: number }
@@ -465,12 +476,24 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
   }
   const fightsOnce = () => (listed ??= listFights());
 
-  async function load() {
+  /** the fighters this run fetches (raw ids, most recently active first), and the ones it leaves for a later run */
+  async function chooseFighters() {
     const { events, bouts, ids } = await fightsOnce();
+    const dateOf = new Map([...events.values()].map((e) => [e.externalId, e.date]));
+    const ranked = rankByRecency(bouts, dateOf); // external ids
+    const n = o.maxFighters && o.maxFighters > 0 ? Math.min(o.maxFighters, ranked.length) : ranked.length;
+    const cut = fighterId("").length;
+    return { ranked, chosen: ranked.slice(0, n).map((x) => x.slice(cut)), left: new Set(ranked.slice(n)), total: ids.size };
+  }
+
+  async function load() {
+    const { events, bouts } = await fightsOnce();
+    const { chosen, left, total } = await chooseFighters();
+    if (left.size) log(`taking the ${chosen.length} most recently active of ${total} fighters; the other ${left.size} are left for a later run (their fights are not loaded)`);
     const rows: Loose[] = [];
     let n = 0, cachedFighters = 0;
     const started = Date.now();
-    for (const id of ids) {
+    for (const id of chosen) {
       const before = hits;
       try {
         const raw = (await get<ApiFighter>(`/v2/fighters/${id}`)).data;
@@ -484,11 +507,15 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
       if (hits > before) cachedFighters++;
       if (++n % 100 === 0) {
         const perRequest = (Date.now() - started) / Math.max(1, n - cachedFighters); // cached fighters cost nothing, so time per fighter actually fetched
-        log(`fighters: ${n} of ${ids.size}${cachedFighters ? ` (${cachedFighters} from the cache)` : ""}, at most ${Math.ceil(((ids.size - n) * perRequest) / 60000)} min to go`);
+        log(`fighters: ${n} of ${chosen.length}${cachedFighters ? ` (${cachedFighters} from the cache)` : ""}, at most ${Math.ceil(((chosen.length - n) * perRequest) / 60000)} min to go`);
       }
     }
     const have = new Set(rows.map((r) => r.externalId));
-    const keep = bouts.filter((b) => { const ok = have.has(b.redExternalId) && have.has(b.blueExternalId); if (!ok) notes.boutsDroppedUnknownFighter++; return ok; });
+    const keep = bouts.filter((b) => {
+      const ok = have.has(b.redExternalId) && have.has(b.blueExternalId);
+      if (!ok) { if (left.has(b.redExternalId) || left.has(b.blueExternalId)) notes.boutsOutsideSelection++; else notes.boutsDroppedUnknownFighter++; }
+      return ok;
+    });
     const eventDates = new Map([...events.values()].map((e) => [e.externalId, e.date]));
     return { boxers: finishBoxers(rows, keep, eventDates, notes), events: [...events.values()], bouts: keep };
   }
@@ -499,8 +526,13 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     notes: () => ({ ...notes }), requests: () => used, cacheHits: () => hits, bytes: () => downloaded, vendorRecords: () => new Map(careers),
     async plan() {
       const { events, bouts, ids } = await fightsOnce();
-      const cached = o.cacheDir && !o.refresh ? [...ids].filter((id) => fromCache(cacheFile(`/v2/fighters/${id}`, {}))).length : 0;
-      return { fights: bouts.length, events: events.size, fighters: ids.size, fightersCached: cached, fighterRequests: ids.size - cached, requestsMade: used };
+      const { ranked, chosen } = await chooseFighters();
+      const cached = o.cacheDir && !o.refresh ? chosen.filter((id) => fromCache(cacheFile(`/v2/fighters/${id}`, {}))).length : 0;
+      const limited = chosen.length < ids.size;
+      return {
+        fights: bouts.length, events: events.size, fighters: chosen.length, fightersCached: cached, fighterRequests: chosen.length - cached, requestsMade: used,
+        selection: selectionSizes(ranked.length).map((n) => previewSelection(bouts, ranked, n)), ...(limited ? { allFighters: ids.size } : {}),
+      };
     },
   };
 }

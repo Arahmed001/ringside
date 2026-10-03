@@ -31,12 +31,19 @@ export function describePlan(p: BackfillPlan, o: { gapMs: number; msPerRequest?:
   const paced = o.perHour && o.perHour > 0 ? 3_600_000 / o.perHour : 0; // an hourly limit sets the pace when it is slower than the spacing
   const ms = Math.max(o.gapMs + (o.msPerRequest ?? 250), paced); // the wait between requests plus a typical round trip
   const mins = Math.ceil((p.fighterRequests * ms) / 60000);
-  return [
-    `fights ${p.fights}, events ${p.events}, fighters ${p.fighters}`,
+  const time = (requests: number) => { const m = Math.ceil((requests * ms) / 60000); return m >= 120 ? `${Math.round(m / 6) / 10} hours` : `${m} minute(s)`; };
+  const lines = [
+    p.allFighters ? `fights ${p.fights}, events ${p.events}, fighters ${p.fighters} chosen of ${p.allFighters} (the most recently active first)` : `fights ${p.fights}, events ${p.events}, fighters ${p.fighters}`,
     `fight list pages fetched to find out: ${p.requestsMade} request(s)`,
     `fighters already in the cache (free): ${p.fightersCached}`,
-    paced > 0 ? `fighters still to fetch: ${p.fighterRequests} request(s), about ${mins >= 120 ? `${Math.round(mins / 6) / 10} hours` : `${mins} minute(s)`} at ${o.perHour} requests an hour`
+    paced > 0 ? `fighters still to fetch: ${p.fighterRequests} request(s), about ${time(p.fighterRequests)} at ${o.perHour} requests an hour`
       : `fighters still to fetch: ${p.fighterRequests} request(s), about ${mins} minute(s) at ${o.gapMs} ms between requests`,
     `total still to spend: about ${p.fighterRequests} request(s) (plus any retries)`,
   ];
+  if (p.selection && (p.selection.length > 1 || p.allFighters)) {
+    lines.push("", "taking only the most recently active fighters (--fighters N) would load, from the fight list alone:");
+    for (const s of p.selection) lines.push(`  ${String(s.fighters).padStart(6)} fighters: ${String(s.fights).padStart(6)} fights; ${(s.share * 100).toFixed(0).padStart(3)}% of the fighters have every fight in the list loaded; ${String(s.closed).padStart(6)} sit in groups chosen whole; about ${time(s.fighters)} to fetch`);
+    lines.push("  (A record is right only if every fight is loaded. 'every fight loaded' lets a fighter's opponents show a short record; 'groups chosen whole' is what --complete-only could keep at most, where nobody's record is short. A fighter's career in the list can also be shorter than the vendor's total, which only fetching shows: --check says.)");
+  }
+  return lines;
 }

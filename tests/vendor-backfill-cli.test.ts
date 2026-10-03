@@ -229,7 +229,7 @@ test("--update is the daily job: it sees today's result and fresh career records
   const r = await run(["--update", "--cache-dir", cache], live);
   assert.equal(r.code, 0, r.out);
   assert.match(r.out, /updating from 2026-09-18/, "the latest card in the database (2026-10-02) less 14 days");
-  assert.deepEqual(since(m), ["/v2/fights/", "/v2/fights/schedule", "/v2/fighters/f3", "/v2/fighters/f1", "/v2/fighters/f5", "/v2/fighters/f6"], "the list, the coming weeks, and every fighter in the window fetched fresh: a cached record predates the result");
+  assert.deepEqual(since(m), ["/v2/fights/", "/v2/fights/schedule", "/v2/fighters/f5", "/v2/fighters/f6", "/v2/fighters/f3", "/v2/fighters/f1"], "the list, the coming weeks, and every fighter in the window fetched fresh, the most recently active first (the coming fight's two, then the latest result's): a cached record predates the result");
   assert.match(r.out, /after the update:\nrecords: 4 of 4 fighters \(100\.0%\)/, `the careers as the database now has them, checked against the vendor's totals: ${r.out.slice(r.out.indexOf("after the update"))}`);
   const db = new DatabaseSync(dbFile, { readOnly: true });
   assert.equal(count(db, "SELECT COUNT(*) c FROM bouts WHERE external_id = 'bda-b-g3' AND method = 'UD' AND winner_id = (SELECT id FROM boxers WHERE external_id = 'bda-f-f3')"), 1, "the late result is in");
