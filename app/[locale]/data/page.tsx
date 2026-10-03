@@ -1,8 +1,9 @@
 import { coverage } from "@/lib/coverage";
 import { loadFit } from "@/lib/model-fit";
 import { activeWeights, DEFAULT_WEIGHTS } from "@/lib/model";
-import { SectionTitle } from "@/components/ui";
+import { SectionTitle, Stat } from "@/components/ui";
 import { pct } from "@/lib/format";
+import { arabicReviewStatus } from "@/lib/i18n/review-status";
 import { getT } from "@/lib/i18n/server";
 import { msg } from "@/lib/i18n/t";
 import { metaFor } from "@/lib/seo-server";
@@ -32,6 +33,7 @@ export default async function DataPage() {
   const t = await getT();
   const cov = await coverage();
   const fit = loadFit();
+  const ar = await arabicReviewStatus();
   const demo = (process.env.BOXING_PROVIDER ?? "demo") === "demo";
   const act = activeWeights();
   const eloScale = act.rating / DEFAULT_WEIGHTS.rating;
@@ -111,6 +113,17 @@ export default async function DataPage() {
             ))}</tbody>
           </table>
         </div>
+      </section>
+
+      <section aria-labelledby="languages">
+        <SectionTitle eyebrow={t("Who has checked the translation")} title={t("Arabic review")} />
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4" id="languages">
+          <Stat label={t("Strings")} value={ar.total.toLocaleString("en-US")} sub={t("Arabic sentences and labels")} />
+          <Stat label={t("Reviewed by a person")} value={ar.reviewed.toLocaleString("en-US")} sub={ar.changed ? t("{n} changed since", { n: ar.changed }) : ar.lastReview ? t("last on {date}", { date: ar.lastReview.at }) : t("none yet")} />
+          <Stat label={t("Written by a machine")} value={(ar.machine + ar.changed).toLocaleString("en-US")} sub={t("not yet checked by a person")} />
+          <Stat label={t("Names reviewed")} value={`${ar.namesReviewed.toLocaleString("en-US")} / ${ar.names.toLocaleString("en-US")}`} sub={t("Arabic spellings of names")} />
+        </div>
+        <p className="mt-3 max-w-3xl text-xs text-muted">{t("The Arabic on this site was written by a machine. A string counts as reviewed only when a native speaker approved or edited it, and only for the exact wording they saw: if the text changes afterwards it goes back to unchecked. Expect mistakes in anything not yet reviewed.")}</p>
       </section>
 
       <section>

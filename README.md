@@ -26,6 +26,9 @@ See `PLAN.md` §8 for what data exists, the data model, and what each script doe
 ## Languages
 English at `/`, Arabic at `/ar`. UI text is keyed by its English sentence (`i18n/ar.json`); proper names have their own table. `npm run i18n:check` lists missing entries; `npm run i18n:translate` fills them with Claude (`ANTHROPIC_API_KEY` in `.env.local`); `npm run i18n:names -- auto` does the same for names. See `docs/i18n.md`. Set `SITE_URL` for canonical URLs and sitemaps; the demo league is `noindex` until a real provider is configured.
 
+## Arabic review
+The Arabic is machine-written. `npm run i18n:review -- export` builds an offline sheet a native speaker can edit, approve and flag in; `-- import` applies the file they send back, and nothing counts as reviewed until it does. The data page shows how much has been checked. See `docs/arabic-review.md`.
+
 ## Ask the data
 `/ask` answers plain-English or Arabic questions (who has the most knockouts among women, compare two fighters, longest title reigns at welterweight ...) from the database, with the tables behind every answer. It works without an AI key, using patterns; with `ANTHROPIC_API_KEY` set, Claude picks the queries and writes the answer, but only from the query results, and any number it invents is thrown away. Model calls are limited per visitor and per day (`AI_*` settings).
 
