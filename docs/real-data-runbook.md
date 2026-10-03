@@ -1,12 +1,12 @@
 # Real data runbook: the first load, then every day
 
-For the day a plan with full history is bought. **Storing the vendor's data is on by default while its written answer on storage is pending** (the owner's decision): every run that stores says so, until `BOXING_API_STORAGE_CONFIRMED=1` records that the vendor agreed in writing. If it says no, the data has to go: see "Undoing it" (a separate database file and a cache directory make that a clean delete). See `docs/real-data-readiness.md` for what the adapter does and does not know.
+For the day a plan with full history is bought. **The vendor has confirmed that its data may be stored (to the owner, 2026-10-03):** set `BOXING_API_STORAGE_CONFIRMED=1` and keep the vendor's message where you can find it. Until it is set, every run that stores says so. If it says no, the data has to go: see "Undoing it" (a separate database file and a cache directory make that a clean delete). See `docs/real-data-readiness.md` for what the adapter does and does not know.
 
 Everything here is one command, `npm run vendor:backfill`, in four modes. It resumes after any interruption, backs up before writing, and refuses the mistakes that are easy to make (the wrong database, a half-fetched league, a failing validator).
 
 ## 0. Before you start
 
-- [ ] The vendor's **written** answer that a historical backfill may be stored and kept (`docs/boxing-data-api-enquiry.md`): pending. Until it comes, everything below stores provisionally and says so. Also which plan has the full history.
+- [x] The vendor's answer that a historical backfill may be stored and kept (`docs/boxing-data-api-enquiry.md`): received 2026-10-03. Check the message also says the data may be **kept after you drop to a cheaper plan**, and that the plan you buy has the **full history** (and how far back it goes).
 - [ ] That plan subscribed, and its request allowance known (Mega is listed at 500,000 a month; the first load is thousands, a day's update is tens).
 - [ ] **A new database file** for the real league: `DATABASE_PATH=/path/real.db`. Never the demo database: the command refuses to load into one that holds other fighters, because real and invented fighters would share the same rankings.
 - [ ] The readiness checklist read once (`docs/real-data-readiness.md`): the footer wording, photos, a way to report errors.
@@ -26,7 +26,7 @@ mkdir -p $HOME/ringside-real
 export DATABASE_PATH=$HOME/ringside-real/real.db
 ```
 
-In a container use the volume instead (`/data/real.db`). Finally, once the vendor has agreed in writing (this silences the provisional warning; `=0` refuses to store at all):
+In a container use the volume instead (`/data/real.db`). Finally, now that the vendor has agreed (this silences the "not yet confirmed" warning; `=0` refuses to store at all):
 
 ```bash
 export BOXING_API_STORAGE_CONFIRMED=1
@@ -170,6 +170,6 @@ In a container, run it with the container's own environment: `docker exec ringsi
 
 | Where | What | Notes |
 |---|---|---|
-| `data/vendor-cache/` or `--cache-dir` | Every API answer, as received | The vendor's data on disk: counts as storage under their terms (provisional until confirmed). Gitignored; never commit it |
+| `data/vendor-cache/` or `--cache-dir` | Every API answer, as received | The vendor's data on disk: counts as storage under their terms (confirmed by the vendor, 2026-10-03). Gitignored; never commit it |
 | The database | The league, ratings, the live ledger | The ledger cannot be rebuilt: back it up and copy the backups off the volume |
 | `backups/` beside the database | Rolling copies (14) | Made before every load into a database with data |
