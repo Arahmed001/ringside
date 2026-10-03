@@ -3,7 +3,7 @@ import { getDb, dbVersion } from "./db";
 import { applyFittedWeights } from "./model-fit";
 import { currentYear, todayIso } from "./clock";
 import { countsInRecord, isStoppage } from "./methods";
-import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, Honour, EventFinancials, EventRow, Purse, Method, Official, Org, Person, Scorecard, Status, TeamStint, WeighIn } from "./types";
+import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, Honour, Venue, EventFinancials, EventRow, Purse, Method, Official, Org, Person, Scorecard, Status, TeamStint, WeighIn } from "./types";
 
 export interface World {
   today: string;
@@ -38,6 +38,7 @@ export interface World {
   pursesByBoxer: Map<number, Purse[]>;
   broadcastsByEvent: Map<number, Broadcast[]>;
   earningsByBoxer: Map<number, Earning[]>;
+  venueOf: (e: { venue: string; city: string }) => Venue | null; // only venues verified on Wikidata
   honoursByBoxer: Map<number, Honour[]>; // hall of fame first, then awards, then titles; each by year
 }
 
@@ -185,6 +186,11 @@ function buildWorld(db: DatabaseSync, key: string): World {
     push(honoursByBoxer, r.boxer_id as number, { boxerId: r.boxer_id as number, kind: r.kind as Honour["kind"], label: r.label as string, year: n0(r.year), source: r.source as string });
   for (const list of honoursByBoxer.values()) list.sort((a, b) => (KIND_ORDER[a.kind] ?? 3) - (KIND_ORDER[b.kind] ?? 3) || (a.year ?? 9999) - (b.year ?? 9999));
 
+  const venues = new Map<string, Venue>();
+  for (const r of db.prepare("SELECT * FROM venues WHERE status = 'matched'").all() as Record<string, unknown>[])
+    venues.set(`${r.name}|${r.city}`, { name: r.name as string, city: r.city as string, wikidataId: r.wikidata_id as string, label: r.label as string, lat: n0(r.lat), lon: n0(r.lon), capacity: n0(r.capacity) });
+  const venueOf = (e: { venue: string; city: string }) => venues.get(`${e.venue}|${e.city}`) ?? null;
+
   const boutsByEvent = new Map<number, BoutRow[]>();
   for (const b of bouts) push(boutsByEvent, b.eventId, b);
   for (const list of boutsByEvent.values()) list.sort((a, b) => b.position - a.position);
@@ -241,7 +247,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
     people, peopleBySlug: new Map([...people.values()].map((p) => [p.slug, p])), roles,
     orgs, orgsBySlug: new Map([...orgs.values()].map((o) => [o.slug, o])),
     stints, stintsByBoxer, stintsByPerson, stintsByOrg, weighInsByBout, weighInsByBoxer, officialsByBout, officialsByPerson, scorecardsByBout, cornersByBout,
-    financialsByEvent, pursesByBout, pursesByBoxer, broadcastsByEvent, earningsByBoxer, honoursByBoxer,
+    financialsByEvent, pursesByBout, pursesByBoxer, broadcastsByEvent, earningsByBoxer, honoursByBoxer, venueOf,
   };
   return g.__world;
 }
