@@ -17,7 +17,8 @@ import { Sparkline, Radar, Donut } from "@/components/charts";
 import { ScoutingReport } from "@/components/ScoutingReport";
 import { WatchButton } from "@/components/Watch";
 import { BoutLine, BoxerCard, SectionTitle, Stat } from "@/components/ui";
-import { countryName, flag, fmtDate, pct } from "@/lib/format";
+import { countryName, flag, fmtDate, fmtPartialDate, pct } from "@/lib/format";
+import { msg } from "@/lib/i18n/t";
 import { countsInRecord, isDecision, isStoppage } from "@/lib/methods";
 import { EDIT_SOURCE } from "@/lib/accounts/edit-source";
 import { boxerTeam, currentOf, monthsWithCurrentTrainer, ROLE_LABEL } from "@/lib/team";
@@ -86,7 +87,12 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const community = (w.stintsByBoxer.get(b.id) ?? []).filter((x) => x.source === EDIT_SOURCE && x.personId).map((x) => ({ id: x.id, person: w.people.get(x.personId!)?.name ?? "", role: x.role, start: x.start, sourceUrl: x.sourceUrl ?? null })).filter((x) => x.person);
   const teamNow = (["head_trainer", "gym", "manager", "promoter"] as const).map((r) => ({ role: r, v: currentOf(team, r) })).filter((x) => x.v);
   const honours = w.honoursByBoxer.get(b.id) ?? [];
-  const HONOURS_SHOWN = 8;
+  const reigns = w.reignsByBoxer.get(b.id) ?? [];
+  const REIGN_STATUS: Record<string, string> = {
+  "super champion": msg("Super champion"), "unified champion": msg("Unified champion"), "undisputed champion": msg("Undisputed champion"),
+  "regular champion": msg("Regular champion"), "interim champion": msg("Interim champion"),
+};
+const HONOURS_SHOWN = 8;
   const bioAge = b.birthDate ? Math.floor((Date.parse(w.today) - Date.parse(b.birthDate)) / (365.25 * 86400000)) : null;
   let nextBlock = null as React.ReactNode;
   if (upcoming) {
@@ -177,6 +183,26 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
                 {honours.length > HONOURS_SHOWN && <li className="chip">{t("+{n} more", { n: honours.length - HONOURS_SHOWN })}</li>}
               </ul>
               <p className="mt-2 text-xs text-muted">{t("From Wikidata (CC0).")}</p>
+            </div>
+          )}
+          {reigns.length > 0 && (
+            <div className="mt-4 border-t border-line/60 pt-3">
+              <div className="eyebrow mb-2">{t("Title history")}</div>
+              <ul className="space-y-1 text-sm">
+                {reigns.map((r) => (
+                  <li key={`${r.source}|${r.division}|${r.category}|${r.start}`}>
+                    <span className="font-semibold">{t("{org} {division} champion", { org: r.org, division: divisionLabel(r.division, b.sex, t) })}</span>
+                    {r.status && REIGN_STATUS[r.status.toLowerCase()] && <span className="chip ms-2">{t(REIGN_STATUS[r.status.toLowerCase()])}</span>}
+                    <span className="text-muted"> · {r.start ? fmtPartialDate(r.start, t.locale) : "?"} – {r.current ? t("present") : r.end ? fmtPartialDate(r.end, t.locale) : "?"}{r.defences !== null ? ` · ${t.n(r.defences, "{n} defence", "{n} defences")}` : ""}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-xs text-muted">
+                {t("From Wikipedia (CC BY-SA 4.0), a reference and not an official record:")}{" "}
+                {[...new Set(reigns.map((r) => r.source))].map((src, i) => (
+                  <span key={src}>{i ? " · " : ""}<a href={`https://en.wikipedia.org/wiki/${src}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{src.replace(/_/g, " ")}</a></span>
+                ))}
+              </p>
             </div>
           )}
         </div>

@@ -1,0 +1,328 @@
+{{Short description|None}}
+{{About|the men's titles|the women's|List of IBF female world champions}}
+{{Use dmy dates|date=December 2019}}
+This is a '''list of IBF world champions''', showing every world champion recognized by the [[International Boxing Federation]] (IBF). The IBF is one of the four major governing bodies in [[professional boxing]], and has awarded world champions in 17 different [[weight class (boxing)|weight classes]] since 1983.
+
+Boxers who won the title but were stripped due to the title bout being overturned to a [[no contest (combat sports)|no contest]] are not listed.
+
+{|class="wikitable"
+|-
+|style="background:#7CB9E8;" width=5px| ||Current champion
+|-
+|style="background:#ffffbf;" width=5px| ||Most consecutive title defenses
+|}
+
+==Heavyweight==
+
+{| class="wikitable sortable" style="width:80%;"
+|-
+!No.
+!Name
+!Reign
+!Defenses
+|- align=center
+!1
+|align=left |  [[Larry Holmes]]<br>({{small|awarded inaugural title}})
+|11 Dec 1983 – 21 Sep 1985
+|3
+|- align=center
+!2
+|align=left |  [[Michael Spinks]]
+|21 Sep 1985 – 26 Feb 1987
+|2
+|- align=center
+!colspan=4|{{small|Spinks was stripped of the title for refusing to fight [[mandatory challenger]] Tony Tucker.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |title=Michael Spinks stripped of IBF heavyweight title |url=https://www.newspapers.com/image/344203055/ |work=The Times and Democrat |location=Orangeburg, South Carolina |agency=Associated Press |date=27 February 1987 |access-date=18 May 2018 |via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!3
+|align=left |  [[Tony Tucker]]<br/>({{small|def. [[Buster Douglas]]}})
+|30 May – 1 Aug 1987
+|0
+|- align=center
+!4
+|align=left |  [[Mike Tyson]]
+|1 Aug 1987 – 11 Feb 1990
+|6
+|- align=center
+!5
+|align=left |  [[Buster Douglas]]
+|11 Feb – 25 Oct 1990
+|0
+|- align=center
+!6
+|align=left |  [[Evander Holyfield]]
+|25 Oct 1990 – 13 Nov 1992
+|3
+|- align=center
+!7
+|align=left |  [[Riddick Bowe]]
+|13 Nov 1992 – 6 Nov 1993
+|1
+|- align=center
+!8
+|align=left |  Evander Holyfield (2)
+|6 Nov 1993 – 22 Apr 1994 
+|0
+|- align=center
+!9
+|align=left |  [[Michael Moorer]]
+|22 Apr – 5 Nov 1994
+|0
+|- align=center
+!10
+|align=left |  [[George Foreman]]
+|5 Nov 1994 – 29 Jun 1995
+|1
+|- align=center
+!colspan=4|{{small|Foreman vacated the title after refusing to participate in an IBF-mandated rematch with [[Axel Schulz]].<ref>{{cite news |last=Malamud |first=Allan |date=29 June 1995 |title=Foreman Relinquishes IBF Title |url=http://articles.latimjies.com/1995-06-29/sports/sp-18373_1_george-foreman |url-status=dead |work=The Los Angeles Times |archive-url=https://web.archive.org/web/20170312195903/http://articles.latimes.com/1995-06-29/sports/sp-18373_1_george-foreman |archive-date=12 March 2017 |access-date=19 May 2018}}</ref>}}
+|- align=center
+!11
+|align=left |  Michael Moorer (2)<br/>({{small|def. [[Axel Schulz]]}})
+|22 Jun 1996 – 8 Nov 1997
+|2
+|- align=center
+!12
+|align=left |  Evander Holyfield (3)
+|8 Nov 1997 – 13 Nov 1999
+|2
+|- align=center
+!13
+|align=left |  [[Lennox Lewis]]
+|13 Nov 1999 – 22 Apr 2001
+|3
+|- align=center
+!14
+|align=left |  [[Hasim Rahman]]
+|22 Apr – 17 Nov 2001
+|0
+|- align=center
+!15
+|align=left |  Lennox Lewis (2)
+|17 Nov 2001 – 5 Sep 2002
+|1
+|- align=center
+!colspan=4|{{small|Lewis vacated the IBF title after refusing to negotiate terms with mandatory challenger Chris Byrd and by being given US$1&nbsp;million and a Range Rover by promoter [[Don King (boxing promoter)|Don King]] to do so, because King wished to promote a fight between Byrd and Evander Holyfield for the vacant title.<ref>{{cite news |last=Smith |first=Tim |date=6 September 2002 |title=Lewis drops IBF belt |url=http://www.nydailynews.com/archives/sports/lewis-drops-ibf-belt-tournament-title-works-article-1.503759 |url-status=dead |work=Daily News |archive-url=https://web.archive.org/web/20180601170114/http://www.nydailynews.com/archives/sports/lewis-drops-ibf-belt-tournament-title-works-article-1.503759 |archive-date=1 June 2018 |access-date=1 June 2018}}</ref>}}
+|- align=center
+!16
+|align=left |  [[Chris Byrd]]<br/>({{small|def. [[Evander Holyfield]]}})
+|14 Dec 2002 – 22 Apr 2006
+|4
+|- align=center
+!17
+|align=left |  [[Wladimir Klitschko]]
+|22 Apr 2006 – 28 Nov 2015
+|style="background:#ffffbf;"| 18
+|- align=center
+!18
+|align=left |  [[Tyson Fury]]
+|28 Nov – 8 Dec 2015
+|0
+|- align=center
+!colspan=4|{{small|Fury was stripped of the title for agreeing to a rematch with Wladimir Klitschko instead of fighting mandatory challenger [[Vyacheslav Glazkov]].}}<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=8 December 2015 |title=Tyson Fury: World heavyweight champion stripped of IBF title |url=https://www.bbc.com/sport/boxing/35047606 |url-status=live |work=BBC |archive-url=https://web.archive.org/web/20170921232000/https://www.bbc.com/sport/boxing/35047606 |archive-date=21 September 2017 |access-date=18 May 2018}}</ref>
+|- align=center
+!19
+|align=left |  [[Charles Martin (boxer)|Charles Martin]]<br/>({{small|def. [[Vyacheslav Glazkov]]}})
+|16 Jan – 9 Apr 2016
+|0
+|- align=center
+!20
+|align=left |  [[Anthony Joshua]]
+|9 Apr 2016 – 1 Jun 2019
+|6
+|- align=center
+!21
+|align=left |  [[Andy Ruiz Jr.]]
+|1 Jun – 7 Dec 2019
+|0
+|- align=center
+!22
+|align=left |  Anthony Joshua (2)
+|7 Dec 2019 – 25 Sep 2021
+|1
+|- align=center
+!23
+|align=left | [[Oleksandr Usyk]]
+|25 Sep 2021 – 25 Jun 2024
+|3
+|- align=center
+!colspan=4|{{small|Usyk vacated the title after opting to rematch Tyson Fury instead of facing his mandatory challenger [[Daniel Dubois]].}}<ref>{{cite web |author=IBF |date=26 June 2024 |title=IBF Heavyweight title status|url=https://www.ibf-usba-boxing.com/ibf-heavyweight-title-status/|url-status=live |work=IBF|archive-url=https://web.archive.org/web/20240626175044/https://www.ibf-usba-boxing.com/ibf-heavyweight-title-status/|archive-date=26 June 2024|access-date=27 June 2024}}</ref>
+|-
+!24
+|align="left"|[[Daniel Dubois]]<br>({{small|interim champion promoted}})
+| style="text-align:center;"| 26 Jun 2024 – 19 Jul 2025
+| style="text-align:center;"|1
+|-align=center
+|-
+!25
+|align=left|Oleksandr Usyk (2)
+|align=center| 19 Jul 2025 – 26 Jun 2026
+| align=center|0
+|- align=center
+! colspan="4" |{{small|Usyk vacated the title.<ref>{{cite news |first=Nate|last=Pardo-Marrero |date=26 June 2026 |title=Oleksandr Usyk vacates world heavyweight titles ... but isn't retiring|url= https://www.ringmagazine.com/news/20e4YDDpJkydbG2AGruyRE|url-status=live |work=Ring Magazine|archive-url= https://web.archive.org/web/20260626172307/https://www.ringmagazine.com/news/20e4YDDpJkydbG2AGruyRE|archive-date=26 June 2026 |access-date=26 June 2026}}</ref>}}
+|- align=center
+!26
+|align=left |[[Filip Hrgović]]<br/>({{small|def. [[Moses Itauma]]}})
+|style="background:#7CB9E8;"|29 Aug 2026 – present
+|0
+|}
+
+==Flyweight==
+{| class="wikitable sortable" style="width:80%;"
+|-
+!No.
+!Name
+!Reign
+!Defenses
+|- align=center
+!1
+|align=left |  [[Kwon Soon-chun]]<br/>({{small|def. Rene Busayong}})
+|24 Dec 1983 – 20 Dec 1985
+|6
+|- align=center
+!2
+|align=left |  [[Chung Jong-kwan]]
+|20 Dec 1985 – 27 Apr 1986
+|0
+|- align=center
+!3
+|align=left |  [[Jung Bi-won]]
+|27 Apr – 2 Aug 1986
+|0
+|- align=center
+!4
+|align=left |  [[Shin Hi-sup]]
+|2 Aug 1986 – 22 Feb 1987
+|1
+|- align=center
+!5
+|align=left |  [[Dodie Boy Peñalosa]]
+|22 Feb – 5 Sep 1987
+|0
+|- align=center
+!6
+|align=left |  [[Choi Chang-ho]]
+|5 Sep 1987 – 16 Jan 1988
+|0
+|- align=center
+!7
+|align=left |  [[Rolando Bohol]]
+|16 Jan – 5 Oct 1988
+|1
+|- align=center
+!8
+|align=left |  [[Duke McKenzie]]
+|5 Oct 1988 – 7 Jun 1989
+|1
+|- align=center
+!9
+|align=left |  [[Dave McAuley]]
+|7 Jun 1989 – 11 Jun 1992
+|5
+|- align=center
+!10
+|align=left |  [[Rodolfo Blanco]]
+|11 Jun – 29 Nov 1992
+|0
+|- align=center
+!11
+|align=left |  [[Pichit Sitbangprachan]]
+|29 Nov 1992 – 25 Nov 1994
+|5
+|- align=center
+!colspan=4|{{small|Sitbangprachan retires.<ref>{{cite news|date=29 November 1994|work=The Times-News|title=Thailand Boxer would rather give up title than defend it
+|url=https://www.newspapers.com/newspage/568122469/ |location=Twin Falls, Idaho|access-date=9 November 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!12
+|align=left |  [[Francisco Tejedor]]<br/>({{small|def. Jose Luis Zepeda}})
+|18 Feb – 22 Apr 1995
+|0
+|- align=center
+!13
+|align=left |  [[Danny Romero (boxer)|Danny Romero]]
+|22 Apr 1995 – 1 Jan 1996
+|1
+|- align=center
+!colspan=4|{{small|Romero, citing he could no longer make the 112-pound limit, vacated the title to move up to junior bantamweight.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |title=Romero to vacate IBF flyweight title |url=https://www.newspapers.com/image/273431070/ |work=Honolulu Star-Bulletin |location=Honolulu, Hawaii |date=2 January 1996 |access-date=23 May 2018 |via=Newspapers.com |url-access=subscription }}</ref> }}
+|- align=center
+!14
+|align=left |  [[Mark Johnson (boxer)|Mark Johnson]]<br/>({{small|def. Francisco Tejedor}})
+|4 May 1996 – Sep 7, 1998
+|style="background:#ffffbf;"|7
+|- align=center
+!colspan=4|{{small|Johnson, citing weight problems, vacated the title to move up to junior bantamweight and pursue a fight with Johnny Tapia,<ref>{{cite news |last=Frauenheim |first=Norm |date=7 September 1998 |title=Latest flap too familiar for Tyson |url=https://www.newspapers.com/image/124139650/ |work=Arizona Republic |location=Phoenix, Arizona |access-date=26 May 2018 |via=Newspapers.com |url-access=subscription }}</ref> which never materialized. }}
+|- align=center
+!15
+|align=left |  [[Irene Pacheco]]<br/>({{small|def. Luis Cox Coronado}})
+|10 Apr 1999 – 16 Dec 2004
+|6
+|- align=center
+!16
+|align=left |  [[Vic Darchinyan]]
+|16 Dec 2004 – 7 Jul 2007
+|5
+|- align=center
+!17
+|align=left |  [[Nonito Donaire]]
+|7 Jul 2007 – 14 Jul 2009
+|3
+|- align=center
+!colspan=4|{{small|Donaire vacated the title after choosing to move up to junior bantamweight. The title is vacated on IBF's July 2009 rankings posted on 14 July.<ref>{{cite web
+|url=https://www.ibf-usba-boxing.com/index.php?option=com_usboxing&task=ratingpdf&month=7&year=2009&gender=male&oid=1
+|title=IBF ratings
+|date=14 July 2009
+|publisher=IBF
+|access-date=4 October 2021}}</ref>}}
+|- align=center
+!18
+|align=left |  [[Moruti Mthalane]]<br/>({{small|def. [[Julio César Miranda]]}})
+|20 Nov 2009 – 13 Jan 2014
+|4
+|- align=center
+!colspan=4|{{small|Mthalane vacated the title and withdrew from a fight with mandatory challenger Amnat Ruenroeng citing the low purse offered.<ref>{{cite news |last=Magasela |first=Bongani |date=16 January 2014 |title=Mthalane gives up his IBF title |url=https://www.sowetanlive.co.za/sport/2014-01-16-mthalane-gives-up-his-ibf-title/ |url-status=live |work=Sowetan Live |archive-url=https://web.archive.org/web/20180522225841/https://www.sowetanlive.co.za/sport/2014-01-16-mthalane-gives-up-his-ibf-title/ |archive-date=22 May 2018 |access-date=22 May 2018}}</ref>  }}
+|- align=center
+!19
+|align=left |  [[Amnat Ruenroeng]]<br/>({{small|def. Rocky Fuentes}})
+|22 Jan 2014 – 28 May 2016
+|5
+|- align=center
+!20
+|align=left |  [[John Riel Casimero]]
+|28 May – 20 Dec 2016
+|1
+|- align=center
+!colspan=4|{{small|Casimero vacated the title to move up to junior bantamweight.<ref>{{cite news |last=Rafael |first=Dan |date=20 December 2016 |title=John Riel Casimero vacates flyweight belt, eyes junior bantamweight titleholders |url=http://www.espn.com/boxing/story/_/id/18322387/john-riel-casimero-vacates-flyweight-belt-eyes-junior-bantamweight-titleholders |url-status=live |work=ESPN |archive-url=https://web.archive.org/web/20170105214404/http://www.espn.com/boxing/story/_/id/18322387/john-riel-casimero-vacates-flyweight-belt-eyes-junior-bantamweight-titleholders |archive-date=5 January 2017 |access-date=21 May 2018}}</ref>}}
+|- align=center
+!21
+|align=left |  [[Donnie Nietes]]<br/>({{small|def. [[Eaktwan BTU Ruaviking|Komgrich Nantapech]]}})
+|29 Apr 2017 – 11 Apr 2018
+|1
+|- align=center
+!colspan=4|{{small|Nietes vacated the title to move up to junior bantamweight.<ref>{{cite news |last=Rafael |first=Dan |date=11 April 2018 |title=Donnie Nietes vacates flyweight belt, moves up for 115-pound shot |url=http://www.espn.com/boxing/story/_/id/23120752/donnie-nietes-vacates-flyweight-title-move-weight |url-status=live |work=ESPN |archive-url=https://web.archive.org/web/20180520013420/http://www.espn.com/boxing/story/_/id/23120752/donnie-nietes-vacates-flyweight-title-move-weight |archive-date=20 May 2018 |access-date=20 May 2018}}</ref>}}
+|- align=center
+!22
+|align=left |  Moruti Mthalane (2)<br/>({{small|def. [[Muhammad Waseem]]}})
+|15 Jul 2018 – 30 Apr 2021
+|3
+|-align=center
+!23
+|align=left| [[Sunny Edwards]]
+|30 Apr 2021 – 16 Dec 2023
+|4
+|-align=center
+!24
+|align=left| [[Jesse Rodriguez]]
+|16 Dec 2023 – 27 Mar 2024
+|0
+|- align=center
+!colspan=4|{{small|Rodriguez vacated the title to move up to junior bantamweight.<ref>{{cite web |author=IBF |date=29 March 2024 |title=IBF Flyweight title status|url= https://www.ibf-usba-boxing.com/ibf-jr-bantamweight-title-status/|url-status=live |work=IBF|archive-url= https://web.archive.org/web/20240528225646/https://www.ibf-usba-boxing.com/ibf-jr-bantamweight-title-status/|archive-date=28 May 2024|access-date=28 May 2024}}</ref><ref>{{cite web |last=Donovan |first=Jake |date=29 March 2024 |title=Jesse 'Bam' Rodriguez relinquishes IBF 112-pound belt; Angel Ayala-David Apolinario title fight ordered|url=https://www.ringtv.com/667320-jesse-bam-rodriguez-relinquishes-ibf-112-pound-belt-angel-ayala-david-apolinario-title-fight-ordered/|url-status=live |work=The Ring |archive-url=https://web.archive.org/web/20240330074148/https://www.ringtv.com/667320-jesse-bam-rodriguez-relinquishes-ibf-112-pound-belt-angel-ayala-david-apolinario-title-fight-ordered/|archive-date=30 March 2024|access-date=30 March 2024}}</ref>}}
+|- align=center
+!25
+|align=left |[[Ángel Ayala]]<br/>({{small|def. [[Dave Apolinario]]}})
+|9 Aug 2024 – 29 Mar 2025
+|0
+|- align=center
+!26
+|align=left |[[Masamichi Yabuki]]
+|style="background:#7CB9E8;"|29 Mar 2025 – Present
+|2
+|}
+

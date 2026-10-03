@@ -1,0 +1,900 @@
+{{Short description|none}}
+{{Use dmy dates|date=December 2019}}
+
+This is a '''list of WBC world champions''', showing every world champion certificated by the [[World Boxing Council]] (WBC). The WBC is one of the four major governing bodies in [[professional boxing]], and certifies world champions in 18 different [[weight class (boxing)|weight classes]]. In 1963, the year of its foundation, the WBC inaugurated titles in all divisions with the exception of [[light flyweight]], [[super flyweight]], [[super bantamweight]], [[super middleweight]], [[cruiserweight (boxing)|cruiserweight]] and [[bridgerweight]], which were inaugurated in the subsequent decades. The most recent title inaugurated by the WBC is in the bridgerweight division in 2021.
+
+Boxers who won the title but were stripped due to the title bout being overturned to a [[no contest (combat sports)|no contest]] are not listed.
+
+{|class="wikitable"
+|-
+|  style="background:#7cb9e8; width:5px;"| ||Current champion
+|-
+|  style="background:#ffffbf; width:5px;"| ||Most consecutive title defenses
+|}
+
+== Bridgerweight ==
+{| class="wikitable sortable" style="width:80%;"
+|-
+!No.
+!Name
+!Reign
+!Defenses
+|- style="text-align:center;"
+!1
+| style="text-align:left;"| [[Óscar Rivas]]<br>({{small|def. [[Ryan Rozicki]]}})
+|22 Oct 2021 – 6 Jan 2023
+|0
+|-
+!colspan=4|{{small|Rivas is declared champion in recess after suffering an injury.<ref>{{cite news | author=WBC|date=6 January 2023 |title=WBC bridgerweight division status|url= https://wbcboxing.com/en/wbc-bridgerweight-division-status/|url-status=live |work=WBC|archive-url= https://web.archive.org/web/20230106225611/https://wbcboxing.com/en/wbc-bridgerweight-division-status/|archive-date=6 Jan 2023|access-date=24 May 2024}}</ref>}}
+|- style="text-align:center;"
+!2
+| style="text-align:left;"| [[Łukasz Różański]]<br>({{small|def. [[Alen Babić]]}})
+|22 Apr 2023 – 24 May 2024
+|0
+|- style="text-align:center;"
+!3
+| style="text-align:left;"| [[Lawrence Okolie]]
+|24 May – 8 Oct 2024
+|0
+|-
+!colspan=4|{{small|Okolie vacated the title to move up to heavyweight.<ref>{{cite news | last=Donovan|first=Jake|date=8 October 2024 |title=Lawrence Okolie vacates WBC bridgerweight title, will now campaign at heavyweight|url=https://www.ringtv.com/713937-lawrence-okolie-vacates-wbc-bridgerweight-title-will-now-campaign-at-heavyweight|url-status=live |work=The Ring|archive-url= https://web.archive.org/web/20241008215522/https://www.ringtv.com/713937-lawrence-okolie-vacates-wbc-bridgerweight-title-will-now-campaign-at-heavyweight/|archive-date=8 Oct 2024|access-date=8 Oct 2024}}</ref>}}
+|- style=“text-align:center;”
+!4
+| style="text-align:left;"| [[Kevin Lerena]]<br>({{small|interim champion promoted}})
+|align=center|8 Oct 2024 – 30 May 2026
+|align=center|1
+|-
+!5
+| style=“text-align:left;”| [[Ryad Merhy]]
+|style="background:#7CB9E8;" align=center|30 May 2026 – Present
+|align=center|0
+|}
+
+==Lightweight==
+{| class="wikitable sortable" style="width:80%;"
+|-
+!No.
+!Name
+!Reign
+!Defenses
+|-
+!1
+|align="left"| [[Carlos Ortiz (boxer)|Carlos Ortiz]] <br>({{small|def. Douglas Vaillant}})
+| style="text-align:center;"| 7 Apr 1963 – 10 Apr 1965
+| style="text-align:center;"| 3
+|-
+!2
+|align="left"| [[Ismael Laguna]] 
+| style="text-align:center;"| 10 Apr – 13 Nov 1965
+| style="text-align:center;"| 0
+|-
+!3
+|align="left"| Carlos Ortiz (2)
+| style="text-align:center;"| 13 Nov 1965 – 25 Oct 1966
+| style="text-align:center;"| 2
+|- align=center
+!colspan=4|{{small|Ortiz was stripped of the title after the WBC accused the referee for his title defense against [[Sugar Ramos]], of doing a [[long count]].<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=25 October 1966|location=New York, New York|title=Sked Ortiz "Title" fight for Jan. 29 in Mexico
+|url=https://www.newspapers.com/newspage/461912135/ |work=Daily News|access-date=18 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!4
+|align="left"| Carlos Ortiz (3)<br>({{small|def. [[Sugar Ramos]]}})
+| style="text-align:center;"| 1 Jul 1967 – 29 Jun 1968
+| style="text-align:center;"| 1
+|-
+!5
+|align="left"| [[Carlos Cruz (boxer)|Carlos Cruz]] 
+| style="text-align:center;"| 29 Jun 1968 – 18 Feb 1969
+| style="text-align:center;"| 1
+|-
+!6
+|align="left"| [[Mando Ramos]] 
+| style="text-align:center;"| 18 Feb 1969 – 3 Mar 1970 
+| style="text-align:center;"| 1
+|-
+!7
+|align="left"| Ismael Laguna (2)
+| style="text-align:center;"| 3 Mar – 16 Sep 1970
+| style="text-align:center;"| 1
+|- align=center
+!colspan=4|{{small|Laguna is stripped of the title.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=16 September 1970|location=Modesto, California|title=Ismael Laguna is stripped of Lightweight championship
+|url=https://www.newspapers.com/newspage/690833733/ |work=Modesto Bee|access-date=18 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!8
+|align="left"| [[Ken Buchanan]]<br>({{small|def. Rubén Navarro}})
+| style="text-align:center;"| 12 Feb – 25 Jun 1971
+| style="text-align:center;"| 0
+|- align=center
+!colspan=4|{{small|Buchanan is stripped of the title for failing to defend his title against [[Pedro Carrasco]].<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=26 June 1971|location=Asbury Park, New Jersey|title=Buchanan loses WBC title|url=https://www.newspapers.com/newspage/144436795/ |work=Asbury Park Press|access-date=18 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!9
+|align="left"| [[Pedro Carrasco]]<br>({{small|def. [[Mando Ramos]]}})
+| style="text-align:center;"| 5 Nov 1971 – 18 Feb 1972
+| style="text-align:center;"| 0
+|-
+!10
+|align="left"| [[Mando Ramos]]
+| style="text-align:center;"| 18 Feb – 15 Sep 1972
+| style="text-align:center;"| 1
+|-
+!11
+|align="left"| [[Chango Carmona]]
+| style="text-align:center;"| 15 Sep – 10 Nov 1972
+| style="text-align:center;"| 0
+|-
+!12
+|align="left"| [[Rodolfo González (boxer)|Rodolfo González]]
+| style="text-align:center;"| 10 No 1972 – 11 Apr 1974 
+| style="text-align:center;"| 2
+|-
+!13
+|align="left"| [[Guts Ishimatsu]]
+| style="text-align:center;"| 11 Apr 1974 – 8 May 1976
+| style="text-align:center;"| 5
+|-
+!14
+|align="left"| [[Esteban de Jesús]]
+| style="text-align:center;"| 8 May 1976 – 21 Jan 1978
+| style="text-align:center;"| 3
+|-
+!15
+|align="left"| [[Roberto Durán]]
+| style="text-align:center;"| 21 Jan 1978 – 7 Feb 1979
+| style="text-align:center;"| 0
+|- align=center
+!colspan=4|{{small|Durán vacates the title to move up to welterweight.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=7 February 1979|location=Victoria, British Columbia|title=Duran seeks Welter title
+|url=https://www.newspapers.com/newspage/507567115/ |work=Times Colonist|access-date=18 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!16
+|align="left"| [[Jim Watt (boxer)|Jim Watt]]<br>({{small|def. Alfredo Pitalua}})
+| style="text-align:center;"| 17 Apr 1979 – 20 Jun 1981 
+| style="text-align:center;"| 4
+|-
+!17
+|align="left"| [[Alexis Argüello]]
+| style="text-align:center;"| 20 Jun 1981 – 15 Feb 1983
+| style="text-align:center;"| 4
+|- align=center
+!colspan=4|{{small|Argüello vacates the title to move up to super lightweight.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=16 February 1983|location=Twin Falls, Idaho|title=Arguello yields WBC lightweight championship
+|url=https://www.newspapers.com/newspage/566896287/ |work=The Times-News|access-date=18 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!18
+|align="left"| [[Edwin Rosario]]<br>({{small|def. [[José Luis Ramírez]]}})
+| style="text-align:center;"| 1 May 1983 – 3 Nov 1984
+| style="text-align:center;"| 2
+|-
+!19
+|align="left"| [[José Luis Ramírez]]
+| style="text-align:center;"| 3 Nov 1984 – 29 Apr 1987 
+| style="text-align:center;"| 0
+|-
+!20
+|align="left"| [[Héctor Camacho]]
+| style="text-align:center;"| 10 Aug 1985 – 29 Apr 1987
+| style="text-align:center;"| 2
+|- align=center
+!colspan=4|{{small|Camacho is stripped of the title for failing to make a title defense.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=30 April 1987|location=Sydney, New South Wales|title=Camacho stripped of title
+|url=https://www.newspapers.com/newspage/121245092/ |work=The Sydney Morning Herald|access-date=26 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!21
+|align="left"| José Luis Ramírez (2)<br>({{small|def. Terrence Alli}})
+| style="text-align:center;"| 19 Jul 1987 – 29 Oct 1988
+| style="text-align:center;"| 2
+|-
+!22
+|align="left"| [[Julio César Chávez]]
+| style="text-align:center;"| 29 Oct 1988 – 25 Jun 1989
+| style="text-align:center;"| 0
+|- align=center
+!colspan=4|{{small|Chávez won the WBC super lightweight title on 13 May. The earliest report of the lightweight title being vacated was on 25 June 1989.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=16 September 1970|location=Sydney, Australia|title=Fenech comeback - it's in his hands
+|url=https://www.newspapers.com/newspage/123581909/ |work=Sydney Morning Herald|access-date=18 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!23
+|align="left"| [[Pernell Whitaker]]<br>({{small|def. [[José Luis Ramírez]]}})
+| style="text-align:center;"| 20 Aug 1989 – 13 Apr 1992
+| style="text-align:center;"| 6
+|- align=center
+!colspan=4|{{small|Whitaker vacates the title to move up to super lightweight.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=14 April 1992|location=Dayton, Ohio|title=Whitaker abandons WBC lightweight title
+|url=https://www.newspapers.com/newspage/409025821/ |work=Dayton Daily News|access-date=18 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!24
+|align="left"| [[Miguel Ángel González (boxer)|Miguel Ángel González]]<br>({{small|def. Wilfrido Rocha}})
+| style="text-align:center;"| 24 Aug 1992 – 29 Feb 1996
+|  style="background:#ffffbf; text-align:center;"| 10
+|-
+!colspan=4|{{small|González vacates his title to move up to super lightweight. The earliest report of the lightweight title being vacated was on 29 February 1996.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=29 February 1996|location=Biloxi, Mississippi|title=At Paris Jean Baptiste Mendy France vs Lamar Murphy Miami 12 for vacant WBC lightweight title
+|url=https://www.newspapers.com/newspage/744260918/|work=Sun Herald|access-date=18 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!25
+|align="left"| [[Jean Baptiste Mendy]]<br>({{small|def. Lamar Murphy}})
+| style="text-align:center;"| 20 Apr 1996 – 1 Mar 1997
+| style="text-align:center;"| 0
+|-
+!26
+|align="left"| [[Stevie Johnston]]
+| style="text-align:center;"| 1 Mar 1997 – 13 Jun 1998
+| style="text-align:center;"| 3
+|-
+!27
+|align="left"| [[César Bazán]]
+| style="text-align:center;"| 13 Jun 1998 – 27 Feb 1999
+| style="text-align:center;"| 2
+|-
+!28
+|align="left"| Stevie Johnston (2)
+| style="text-align:center;"| 27 Feb 1999 – 17 Jun 2000
+| style="text-align:center;"| 4
+|-
+!29
+|align="left"| [[José Luis Castillo]]
+| style="text-align:center;"| 17 Jun 2000 – 20 Apr 2002
+| style="text-align:center;"| 3
+|-
+!30
+|align="left"| [[Floyd Mayweather Jr.]]
+| style="text-align:center;"| 20 Apr 2002 – 30 May 2004
+| style="text-align:center;"| 3
+|- align=center
+!colspan=4|{{small|[[José Luis Castillo]] and [[Juan Lazcano]] was originally fighting for the interim title<ref>{{cite news |last=Thompson|first=Trae |date=9 April 2004|location=Fort Worth, Texas|title=Waco junior middleweight finally getting a title shot
+|url=https://www.newspapers.com/newspage/649654720/ |work=Fort Worth Star-Telegram|access-date=21 October 2021| via=Newspapers.com |url-access=subscription }}</ref> but was later changed for the vacant world title on 30 May, just days after Mayweather Jr. won at the super lightweight division.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=30 May 2004|location=El Paso, Texas|title=Title
+|url=https://www.newspapers.com/newspage/432297956/ |work=El Paso Times|access-date=21 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!31
+|align="left"| José Luis Castillo (2)<br>({{small|def. [[Juan Lazcano]]}})
+| style="text-align:center;"| 5 Jun 2004 – 7 May 2005
+| style="text-align:center;"| 2
+|-
+!32
+|align="left"| [[Diego Corrales]]
+| style="text-align:center;"| 7 May 2005 – 6 Oct 2006
+| style="text-align:center;"| 0
+|- align=center
+!colspan=4|{{small|Corrales is stripped of the title for being overweight in his fight against Casamayor.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=7 October 2006|location=Baltimore, Maryland|title=Corrales misses weight:fight on|url=https://www.newspapers.com/newspage/248949355/ |work=The Baltimore Sun|access-date=21 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!33
+|align="left"| [[Joel Casamayor]]<br>({{small|def. [[Diego Corrales]]}})
+| style="text-align:center;"| 7 Oct 2006 – 22 Feb 2007
+| style="text-align:center;"| 0
+|- align=center
+!colspan=4|{{small|Casamayor is stripped of the title for refusing to fight his mandatory challenger.<ref>{{Cite news|author=Team Casamayor|date=22 February 2007|url= https://www.boxingscene.com/casamayor-statement-on-being-stripped--7494 |title=Casamayor statement on being stripped |url-status=live|work=Boxingscene|archive-url= https://archive.today/20210927124737/https://www.boxingscene.com/casamayor-statement-on-being-stripped--7494 |archive-date=27 September 2021|access-date=27 September 2021}}</ref>}}
+|-
+!34
+|align="left"| [[David Díaz (boxer)|David Díaz]]<br>({{small|interim champion promoted}})
+| style="text-align:center;"| 22 Feb 2007 – 28 Jun 2008
+| style="text-align:center;"| 1
+|-
+!35
+|align="left"| [[Manny Pacquiao]]
+| style="text-align:center;"| 28 Jun 2008 – 24 Feb 2009
+| style="text-align:center;"| 0
+|-
+!colspan=4|{{small|Pacquiao vacates the title to move up to super lightweight.<ref>{{cite news |last=Fischer|first=Doug |date=25 February 2009|title= Pacquiao officially vacates title
+|url= http://www.ringtv.com/blog/374/pacquiao_officially_vacates_title|url-status=dead|work=The Ring|archive-url= https://web.archive.org/web/20090228105523/http://www.ringtv.com/blog/374/pacquiao_officially_vacates_title|archive-date=28 February 2009 |access-date=28 February 2009}}</ref>}}
+|-
+!36
+|align="left"| [[Edwin Valero]]<br>({{small|def. [[Antonio Pitalúa]]}})
+| style="text-align:center;"| 4 Apr 2009 – 9 Feb 2010
+| style="text-align:center;"| 2
+|- align=center
+!colspan=4|{{small|Valero is declared champion in recess after receiving a deep cut in his fight against [[Antonio DeMarco]].<ref>{{cite news |last=Dower |first=Jim |date=9 February 2010|title= Valero Designated "Champion In Recess" – Soto To Fight For Vacant WBC Title|url= https://www.boxingnews24.com/2010/02/valero-designated-"champion-in-recess"-soto-to-fight-for-vacant-wbc-title-news/|url-status=live |work=Boxingnews24 |archive-url= https://web.archive.org/web/20210531134939/https://www.boxingnews24.com/2010/02/valero-designated-"champion-in-recess"-soto-to-fight-for-vacant-wbc-title-news/ |archive-date=31 May 2021 |access-date=31 May 2021}}</ref>}}
+|-
+!37
+|align="left"| [[Humberto Soto]]<br>({{small|def. [[David Díaz (boxer)|David Díaz]]}})
+| style="text-align:center;"| 13 Mar 2010 – 1 Jul 2011
+| style="text-align:center;"| 4
+|- align=center
+!colspan=4|{{small|Soto vacates the title to move up to super lightweight.<ref>{{cite news |last=Cordero |first=Gabriel |date=1 July 2011|title=Soto gives up WBC 135lb title |url= http://www.fightnews.com/Boxing/soto-gives-up-wbc-135lb-title-88690|url-status=dead |work=Fight News |archive-url= https://web.archive.org/web/20120927032443/http://www.fightnews.com/Boxing/soto-gives-up-wbc-135lb-title-88690 |archive-date=27 September 2012 |access-date=31 July 2021}}</ref>}}
+|-
+!38
+|align="left"| [[Antonio DeMarco]]<br>({{small|def. [[Jorge Linares]]}})
+| style="text-align:center;"| 15 Oct 2011 – 17 Nov 2012
+| style="text-align:center;"| 2
+|-
+!39
+|align="left"| [[Adrien Broner]]
+| style="text-align:center;"| 17 Nov 2012 – 29 Jan 2014
+| style="text-align:center;"| 1
+|- align=center
+!colspan=4|{{small|Broner is stripped of his title for failing to defend his title for almost a year.<ref>{{cite news |last=Rafael |first=Dan |date=30 January 2014|title=Broner finally out as titlist at 135|url= https://www.espn.com/blog/dan-rafael/post/_/id/7275/broner-finally-out-as-titlist-at-135?fb_comment_id=225207704329044_444464 |url-status=live |work=ESPN |archive-url= https://web.archive.org/web/20210531133150/https://www.espn.com/blog/dan-rafael/post/_/id/7275/broner-finally-out-as-titlist-at-135 |archive-date=31 May 2021 |access-date=31 May 2021}}</ref>}}
+|-
+!40
+|align="left"| [[Omar Figueroa Jr.]]<br>({{small|interim champion promoted}})
+| style="text-align:center;"| 29 Jan – 10 Nov 2014
+| style="text-align:center;"| 2
+|- align=center
+!colspan=4|{{small|Figueroa Jr. is declared champion in recess because of injury.<ref>{{cite news |last=Rafael |first=Dan |date=11 November 2014|title= Jorge Linares-Javier Prieto Dec. 30 |url= https://www.espn.com/boxing/story/_/id/11856242/omar-figueroa-stripped-lightweight-world-title |url-status=live |work=ESPN |archive-url= https://web.archive.org/web/20171104215757/http://www.espn.com/boxing/story/_/id/11856242/omar-figueroa-stripped-lightweight-world-title |archive-date=4 November 2017 |access-date=31 May 2021}}</ref>}}
+|-
+!41
+|align="left"| [[Jorge Linares]]<br>({{small|def. [[Javier Prieto (boxer)|Javier Prieto]]}})
+| style="text-align:center;"| 30 Dec 2014 – 22 Feb 2016
+| style="text-align:center;"| 2
+|- align=center
+!colspan=4|{{small|Linares is declared champion in recess because of fractured hand.<ref>{{cite news |last=Rafael |first=Dan |date=23 February 2016|title=Jorge Linares stripped of lightweight belt|url= http://www.espn.com/boxing/story/_/id/14830556/jorge-linares-stripped-lightweight-title-make-defense|url-status=live |work=ESPN |archive-url= https://web.archive.org/web/20190405075005/http://www.espn.com/boxing/story/_/id/14830556/jorge-linares-stripped-lightweight-title-make-defense|archive-date=5 April 2019 |access-date=31 July 2021}}</ref>}}
+|-
+!42
+|align="left"| [[Dejan Zlatičanin]]<br>({{small|def. Franklin Mamani}})
+| style="text-align:center;"| 11 Jun 2016 – 28 Jan 2017 
+| style="text-align:center;"| 0
+|-
+!43
+|align="left"| [[Mikey Garcia]]
+| style="text-align:center;"| 28 Jan 2017 – 25 Apr 2019
+| style="text-align:center;"| 1
+|- align=center
+!colspan=4|{{small|Garcia vacates the title to move up to welterweight.<ref>{{cite news |last=Rafael |first=Dan |date=25 April 2019|title=Mikey Garcia vacates WBC lightweight belt |url= https://www.espn.com/boxing/story/_/id/26604078/mikey-garcia-vacates-wbc-lightweight-belt|url-status=live |work=ESPN |archive-url= https://web.archive.org/web/20210428094435/https://www.espn.com/boxing/story/_/id/26604078/mikey-garcia-vacates-wbc-lightweight-belt |archive-date=28 April 2021 |access-date=31 July 2021}}</ref>}}
+|-
+!44
+|align="left"| [[Vasiliy Lomachenko]]<br>({{small|def. [[Luke Campbell (boxer)|Luke Campbell]]}})
+| style="text-align:center;"| 31 Aug – 23 Oct 2019
+| style="text-align:center;"| 0
+|- align=center
+!colspan=4|{{small|Lomachenko is designated by the WBC as Franchise champion.<ref>{{cite news |last=Rafael |first=Dan |date=24 October 2019|title= WBC gives plans for titlists, names Vasiliy Lomachenko 'franchise champ'|url= https://www.espn.com/boxing/story/_/id/27914825/wbc-gives-plans-titlists-names-vasiliy-lomachenko-franchise-champ |url-status=live |work=ESPN |archive-url= https://web.archive.org/web/20210111174451/https://www.espn.com/boxing/story/_/id/27914825/wbc-gives-plans-titlists-names-vasiliy-lomachenko-franchise-champ |archive-date=11 January 2021 |access-date=31 May 2021}}</ref>}}
+|-
+!45
+|align="left"| [[Devin Haney]]<br>({{small|interim champion promoted}})
+|align=center|23 Oct – 12 Dec 2019
+| style="text-align:center;"| 1
+|- 
+!colspan=4|{{small|Haney is declared champion in recess after injuring his right shoulder.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=12 December 2019|title=Devin Haney named Champion in recess
+|url= https://wbcboxing.com/en/devin-haney-named-champion-in-recess|url-status=live |work=WBC|archive-url= https://web.archive.org/web/20210706032724/https://wbcboxing.com/en/devin-haney-named-champion-in-recess/amp/|archive-date=6 July 2021 |access-date=5 July 2021}}</ref>}}
+|-
+!46
+|align="left"| Devin Haney (2)<br>({{small|reinstated}}){{small|<ref>{{cite news | author=WBC|date=22 April 2020 |title=Status of the lightweight division|url= https://wbcboxing.com/en/status-of-the-wbc-lightweight-division/|url-status=dead |work=WBC|archive-url= https://web.archive.org/web/20200517083704/https://wbcboxing.com/en/status-of-the-wbc-lightweight-division/|archive-date=17 May 2020|access-date=27 September 2024}}</ref>}}
+|  style="text-align:center;"| 22 Apr 2020 – 1 Aug 2023
+| style="text-align:center;"| 6
+|-
+!colspan=4|{{small|Haney is declared champion in recess after opting to challenge for the WBC super lightweight title.<ref>{{cite news | author=WBC|date=1 August 2023 |title=Update of WBC lightweight and super lightweight divisions|url= https://wbcboxing.com/en/update-of-wbc-lightweight-and-super-lightweight-divisions/|url-status=live |work=WBC|archive-url= https://web.archive.org/web/20230802015708/https://wbcboxing.com/en/update-of-wbc-lightweight-and-super-lightweight-divisions/|archive-date=2 August 2023|access-date=2 August 2023}}</ref>}}
+|-
+!47
+|align="left"|[[Shakur Stevenson]]<br>({{small|def. [[Edwin De Los Santos]]}})
+|  style="text-align:center;"| 16 Nov 2023 – 4 Feb 2026
+| style="text-align:center;"| 3
+|-
+!colspan=4|{{small|Stevenson is stripped of the title days after winning the WBO super lightweight title.<ref>{{cite news | author=WBC|date=1 August 2023 |title=Status of the WBC lightweight division – February 2026|url= https://wbcboxing.com/en/status-of-the-wbc-lightweight-division-february-2026/|url-status=live |work=WBC|archive-url= https://web.archive.org/web/20260204213157/https://wbcboxing.com/en/status-of-the-wbc-lightweight-division-february-2026/|archive-date=4 February 2026|access-date=4 February 2026}}</ref>}}
+|- align=center
+!48
+|align="left"|[[William Zepeda]]<br>({{small|def. [[Lamont Roach Jr.]]}})
+| style="background:#7cb9e8;"|1 Aug 2026 – present
+| 0
+|}
+
+==Light flyweight==
+{| class="wikitable sortable" style="width:80%;"
+|-
+!No.
+!Name
+!Reign
+!Defenses
+|-
+!1
+|align="left"| [[Franco Udella]]<br>({{small|def. Valentin Martinez}})
+| style="text-align:center;"|4 Apr – 29 Aug 1975
+| style="text-align:center;"|1
+|- align=center
+! colspan="4" |{{small|Udella was stripped of the title after withdrawing from a 12 September bout against Rafael Lovera due to a fever.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=29 August 1975 |title=WBC Dethrones Champ Udella |url=https://www.newspapers.com/image/270994965/ |work=The Pensacola News |location=Pensacola, Florida |agency=Associated Press |access-date=10 July 2019 |via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!2
+|align="left"| [[Luis Estaba]]<br>({{small|def. Rafael Lovera}})
+| style="text-align:center;"|13 Sep 1975 – 19 Feb 1978
+| style="text-align:center;"|11
+|-
+!3
+|align="left"| [[Freddy Castillo]]
+| style="text-align:center;"|19 Feb – 6 May 1978
+| style="text-align:center;"|0
+|-
+!4
+|align="left"| [[Netrnoi Sor Vorasingh]]
+| style="text-align:center;"|6 May – 30 Sep 1978
+| style="text-align:center;"|1
+|-
+!5
+|align="left"| [[Kim Sung-jun (boxer)|Kim Sung-Jun]]
+| style="text-align:center;"|30 Sep 1978 – 3 Jan 1980
+| style="text-align:center;"|3
+|-
+!6
+|align="left"| [[Shigeo Nakajima]]
+| style="text-align:center;"|3 Jan – 24 Mar 1980
+| style="text-align:center;"|0
+|-
+!7
+|align="left"| [[Hilario Zapata]]
+| style="text-align:center;"|24 Ma 1980 – 6 Feb 1982
+| style="text-align:center;"|8
+|-
+!8
+|align="left"| [[Amado Ursua]]
+| style="text-align:center;"|6 Feb – 13 Apr 1982
+| style="text-align:center;"|0
+|-
+!9
+|align="left"| [[Tadashi Tomori]]
+| style="text-align:center;"|13 Apr – 20 Jul 1982
+| style="text-align:center;"|0
+|-
+!10
+|align="left"| Hilario Zapata (2)
+| style="text-align:center;"|20 Jul 1982 – 26 Mar 1983
+| style="text-align:center;"|2
+|-
+!11
+|align="left"| [[Chang Jung-koo|Chang Jung-Koo]]
+| style="text-align:center;"|26 Mar 1983 – 14 Oct 1988
+|  style="background:#ffffbf; text-align:center;"|15
+|- align=center
+! colspan="4" |{{small|Jung-koo vacates the title due to being exhausted by [[Insomnia|chronic insomnia]].<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=14 October 1988|location=San Francisco, California|title=Say goodnight champ
+|url=https://www.newspapers.com/newspage/461496171/ |work=The San Francisco Examiner|access-date=21 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- 
+!12
+|align="left"| [[Germán Torres]]<br>({{small|def. Kang Soon-Jung}})
+| style="text-align:center;"|11 Dec 1988 – 19 Mar 1989
+| style="text-align:center;"|0
+|-
+!13
+|align="left"| [[Lee Yul-woo|Lee Yul-Woo]]
+| style="text-align:center;"|19 Mar – 25 Jun 1989
+| style="text-align:center;"|0
+|-
+!14
+|align="left"| [[Humberto González]]
+| style="text-align:center;"|25 Jun 1989 – 19 Dec 1990
+| style="text-align:center;"|5
+|-
+!15
+|align="left"| [[Rolando Pascua]]
+| style="text-align:center;"|19 Dec 1990 – 25 Mar 1991
+| style="text-align:center;"|0
+|-
+!16
+|align="left"| [[Melchor Cob Castro]]
+| style="text-align:center;"|25 Mar – 3 Jun 1991
+| style="text-align:center;"|0
+|-
+!17
+|align="left"| Humberto González (2)
+| style="text-align:center;"|3 Jun 1991 – 13 Mar 1993
+| style="text-align:center;"|4
+|-
+!18
+|align="left"| [[Michael Carbajal]]
+| style="text-align:center;"|13 Mar 1993 – 19 Feb 1994
+| style="text-align:center;"|2
+|-
+!19
+|align="left"| Humberto González (3)
+| style="text-align:center;"|19 Feb 1994 – 15 Jul 1995
+| style="text-align:center;"|3
+|-
+!20
+|align="left"| [[Saman Sorjaturong]]
+| style="text-align:center;"|15 Jul 1995 – 17 Oct 1999
+| style="text-align:center;"|10
+|-
+!21
+|align="left"| [[Choi Yo-sam|Choi Yo-Sam]]
+| style="text-align:center;"|17 Oct 1999 – 6 Jul 2002
+| style="text-align:center;"|3
+|-
+!22
+|align="left"| [[Jorge Arce]]
+| style="text-align:center;"|6 Jul 2002 – 23 Feb 2005
+| style="text-align:center;"|7
+|- align=center
+! colspan="4" |{{small|The title is vacated when a report of a bout for the vacant title was released on 23 February.<ref>{{cite news |last=Freitag|first=Karl|date=23 February 2005 |title=Ringbytes…
+|url=http://www.fightnews.com/ |url-status=dead |work=Fight News|archive-url=https://web.archive.org/web/20050223100438/http://www.fightnews.com:80/ |archive-date=23 February 2005 |access-date=10 July 2019}}</ref>}}
+|- 
+!23
+|align="left"| [[Eric Ortiz]]<br>({{small|def. [[José Antonio Aguirre (boxer)|José Antonio Aguirre]]}})
+| style="text-align:center;"|11 Mar – 10 Sep 2005 
+| style="text-align:center;"| 0
+|-
+!24
+|align="left"| [[Brian Viloria]]
+| style="text-align:center;"|10 Sep 2005 – 10 Aug 2006
+| style="text-align:center;"|1
+|-
+!25
+|align="left"| [[Omar Niño Romero]]
+| style="text-align:center;"|10 Aug 2006 – 1 Feb 2007
+| style="text-align:center;"|0
+|- align=center
+! colspan="4" |{{small|Niño was stripped of his title after testing positive for methamphetamine following his rematch against Brian Viloria on 18 Nov 2006.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=1 February 2007 |title=Nino stripped of WBC title after positive meth test
+|url=https://www.espn.com/sports/boxing/news/story?id=2751414 |url-status=live |work=ESPN |agency=Associated Press |archive-url=https://web.archive.org/web/20190711000402/https://www.espn.com/sports/boxing/news/story?id=2751414 |archive-date=11 July 2019 |access-date=10 July 2019}}</ref>}}
+|- 
+!26
+|align="left"| [[Édgar Sosa (boxer)|Édgar Sosa]]<br>({{small|def. [[Brian Viloria]]}})
+| style="text-align:center;"|14 Apr 2007 – 21 Nov 2009
+| style="text-align:center;"|10
+|-
+!27
+|align="left"| [[Rodel Mayol]]
+| style="text-align:center;"|21 Nov 2009 – 19 Jun 2010
+| style="text-align:center;"|1
+|-
+!28
+|align="left"| Omar Niño Romero (2)
+| style="text-align:center;"|19 Jun – 6 Nov 2010
+| style="text-align:center;"|1
+|-
+!29
+|align="left"| [[Gilberto Keb Baas]]
+| style="text-align:center;"|6 Nov 2010 – 30 Apr 2011
+| style="text-align:center;"|1
+|-
+!30
+|align="left"| [[Adrián Hernández (boxer)|Adrián Hernández]]
+| style="text-align:center;"|30 Apr – 23 Dec 2011
+| style="text-align:center;"|1
+|-
+!31
+|align="left"| [[Kompayak Porpramook]]
+| style="text-align:center;"|23 Dec 2011 – 6 Oct 2012
+| style="text-align:center;"|1
+|-
+!32
+|align="left"| Adrián Hernández (2)
+| style="text-align:center;"|6 Oct 2012 – 6 Apr 2014
+| style="text-align:center;"|4
+|-
+!33
+|align="left"| [[Naoya Inoue]]
+| style="text-align:center;"|6 Apr – 3 Nov 2014
+| style="text-align:center;"|1
+|- align=center
+!colspan=4|{{small|Inoue vacates the title to move up to super flyweight.<ref>{{cite news |last=Koizumi|first=Joe |date=7 November 2014 |title=Inoue to have ambitious shot at Narvaez
+|url=http://www.fightnews.com/Boxing/inoue-to-have-ambitious-shot-at-narvaez-267840|url-status=dead |work=Fightnews|archive-url=https://web.archive.org/web/20141109005944/http://www.fightnews.com/Boxing/inoue-to-have-ambitious-shot-at-narvaez-267840|archive-date=9 November 2014|access-date=10 August 2024}}</ref>}}
+|-
+!34
+|align="left"| [[Pedro Guevara (boxer)|Pedro Guevara]]<br>({{small|def. [[Akira Yaegashi]]}})
+| style="text-align:center;"|30 Dec 2014 – 28 Nov 2015
+| style="text-align:center;"|2
+|-
+!35
+|align="left"| [[Yu Kimura (boxer)|Yu Kimura]]
+| style="text-align:center;"|28 Nov 2015 – 4 Mar 2016
+| style="text-align:center;"|0
+|-
+!36
+|align="left"| [[Ganigan López]]
+| style="text-align:center;"|4 Mar 2016 – 20 May 2017
+| style="text-align:center;"|1
+|-
+!37
+|align="left"| [[Kenshiro Teraji]]
+| style="text-align:center;"|20 May 2017 – 22 Sep 2021
+| style="text-align:center;"|8
+|-
+!38
+|align="left"| [[Masamichi Yabuki]]
+| style="text-align:center;"|22 Sep 2021 – 19 Mar 2022
+| style="text-align:center;"|0
+|-
+!39
+|align="left"| Kenshiro Teraji (2)
+| style="text-align:center;"|19 Mar 2022 – 15 Jul 2024
+| style="text-align:center;"|4
+|- align=center
+!colspan=4|{{small|Teraji vacates the title to move up to flyweight.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=15 July 2024 |title=Kenshiro Teraji will move up to the flyweight division
+|url=https://wbcboxing.com/en/kenshiro-teraji-will-move-up-to-the-flyweight-division/|url-status=live |work=WBC |archive-url=https://web.archive.org/web/20240810122710/https://wbcboxing.com/en/kenshiro-teraji-will-move-up-to-the-flyweight-division/|archive-date=10 August 2024|access-date=10 August 2024}}</ref>}}
+|-
+!40
+|align="left"| [[Panya Pradabsri]]<br>({{small|def. [[Carlos Cañizales]]}})
+|  style="text-align:center;"|26 Dec 2024 – 1 Aug 2025
+| style="text-align:center;"|0
+|-
+!41
+|align="left"| [[Carlos Cañizales]]
+|  style="text-align:center;"|1 Aug – 28 Nov 2025
+| style="text-align:center;"|0
+|- align=center
+!colspan=4|{{small|Cañizales is declared champion in recess.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=28 November 2025 |title=WBC Light Flyweight Status
+|url=https://wbcboxing.com/en/wbc-light-flyweight-status/|url-status=live |work=WBC |archive-url=https://web.archive.org/web/20251129095857/https://wbcboxing.com/en/wbc-light-flyweight-status/|archive-date=29 November 2025|access-date=29 November 2025}}</ref>}}
+|-align=center
+!42
+|align=left| [[Knockout CP Freshmart]]<br>({{small|def. Junior Zarate}})
+|4 Dec 2025 – 15 Mar 2026
+|0
+|- align=center
+!43
+|align=left| [[Shokichi Iwata]]
+|style="background:#7CB9E8;"|15 Mar 2026 – present
+|1
+|}
+
+==Featherweight==
+{| class="wikitable sortable" style="width:80%;"
+|-
+!No.
+!Name
+!Reign
+!Defenses
+|-
+!1
+|align="left"| [[Sugar Ramos]]<br>({{small|def. [[Davey Moore (boxer, born 1933)|Davey Moore]]}})
+| style="text-align:center;"| 21 Mar 1963 – 26 Sep 1964
+| style="text-align:center;"| 3
+|-
+!2
+|align="left"| [[Vicente Saldivar|Vicente Saldívar]] 
+| style="text-align:center;"| 26 Sep 1964 – 14 Oct 1967             
+| style="text-align:center;"| 7
+|-
+!colspan=4|{{small|Saldívar retires for the first time.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=15 October 1967|location=Jackson, Tennessee|title=Salvidar Ahead
+|url=https://www.newspapers.com/newspage/282003086/ |work=The Jackson Sun|access-date=20 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!3
+|align="left"| [[Howard Winstone]]<br>({{small|def. Mitsunori Seki}})
+| style="text-align:center;"| 23 Jan – 24 Jul 1968
+| style="text-align:center;"| 0
+|-
+!4
+|align="left"| [[José Legrá]]
+| style="text-align:center;"| 24 Jul 1968 – 21 Jan 1969
+| style="text-align:center;"| 0
+|-
+!5
+|align="left"| [[Johnny Famechon]]
+| style="text-align:center;"| 21 Jan 1969 – 9 May 1970
+| style="text-align:center;"| 2
+|-
+!6
+|align="left"| Vicente Saldívar (2)
+| style="text-align:center;"| 9 May – 11 Dec 1970
+| style="text-align:center;"| 0
+|-
+!7
+|align="left"| [[Kuniaki Shibata]]
+| style="text-align:center;"| 11 Dec 1970 – 19 May 1972
+| style="text-align:center;"| 2
+|-
+!8
+|align="left"| [[Clemente Sánchez]]
+| style="text-align:center;"| 19 May – 16 Dec 1972
+| style="text-align:center;"| 0
+|- align=center
+!colspan=4|{{small|Sánchez is stripped of the title after failing to make weight against [[José Legrá]].<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=17 December 1972|location=Los Angeles, California|title=Sanchez loses title to Legra
+|url=https://www.newspapers.com/newspage/385800304/ |work=Los Angeles Times|access-date=20 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!9
+|align="left"| José Legrá (2)<br>({{small|def. [[Clemente Sánchez]]}})
+| style="text-align:center;"| 16 Dec 1972 – 5 May 1973
+| style="text-align:center;"| 0
+|-
+!10
+|align="left"| [[Éder Jofre]]
+| style="text-align:center;"| 5 May 1973 – 17 Jun 1974
+| style="text-align:center;"| 1
+|-
+!colspan=4|{{small|Jofre is stripped of the title due to inactivity.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=19 June 1974|location=Spokane, Washington|title=WBC takes Jofre title
+|url=https://www.newspapers.com/newspage/571154836/ |work=The Spokesman-Review|access-date=20 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!11
+|align="left"| [[Bobby Chacon]]<br>({{small|def. [[Alfredo Marcano]]}})
+| style="text-align:center;"| 7 Sep 1974 – 20 Jun 1975
+| style="text-align:center;"| 1
+|-
+!12
+|align="left"| [[Rubén Olivares]]
+| style="text-align:center;"| 20 Jun – 20 Sep 1975
+| style="text-align:center;"| 0
+|-
+!13
+|align="left"| [[David Kotei]]
+| style="text-align:center;"| 20 Sep 1975 – 13 Nov 1976
+| style="text-align:center;"| 2
+|-
+!14
+|align="left"| [[Danny Lopez (boxer)|Danny López]]        
+| style="text-align:center;"| 13 Nov 1976 – 2 Feb 1980
+| style="text-align:center;"| 8
+|-
+!15
+|align="left"| [[Salvador Sánchez]]
+| style="text-align:center;"| 2 Feb 1980 – 12 Aug 1982
+|  style="background:#ffffbf; text-align:center;"| 9
+|- align=center
+!colspan=4|{{small|Sánchez died thus making the title vacant.<ref>{{cite news|author=<!--Staff writer(s)/no by-line.-->|date=12 August 1982|title=Lightweight champion Sanchez dies in crash|work= The Daily Reporter|url= https://news.google.com/newspapers?id=OWErAAAAIBAJ&sjid=ldkEAAAAIBAJ&pg=3039,1914039&dq=salvador+sanchez+dies&hl=en|access-date=8 October 2021}}</ref>}}
+|-
+!16
+|align="left"| [[Juan Laporte]]<br>({{small|def. Mario Miranda}})
+| style="text-align:center;"| 15 Sep 1982 – 31 Mar 1984
+| style="text-align:center;"| 2
+|-
+!17
+|align="left"| [[Wilfredo Gómez]]
+| style="text-align:center;"| 31 Mar – 8 Dec 1984
+| style="text-align:center;"| 0
+|-
+!18
+|align="left"| [[Azumah Nelson]] 
+| style="text-align:center;"| 8 Dec 1984 – 27 Jan 1988
+| style="text-align:center;"| 6
+|-
+!colspan=4|{{small|Nelson vacates the title to move up to super featherweight.<ref name=AzuVac>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=28 January 1988|location=Victoria, Australia|title=Fenech to try for third world title 
+|url=https://www.newspapers.com/newspage/126606212/ |work=The Age|access-date=20 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!19
+|align="left"| [[Jeff Fenech]]<br>({{small|def. [[Victor Callejas]]}})
+| style="text-align:center;"| 7 Mar 1988 – 18 Apr 1990
+| style="text-align:center;"| 3
+|-
+!colspan=4|{{small|Fenech vacates the title to move up to super featherweight.<ref>{{cite news |agency=Associated Press|date= 18 April 1990|location=Los Angeles, California|title=Fenech to try for 4th world title
+|url=https://www.newspapers.com/newspage/175501910/ |work=Los Angeles Times|access-date=20 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-
+!20
+|align="left"| [[Marcos Villasana]]<br>({{small|def. [[Paul Hodkinson]]}})
+| style="text-align:center;"| 2 Jun 1990 – 14 Nov 1991
+| style="text-align:center;"| 3
+|-
+!21
+|align="left"| [[Paul Hodkinson]]
+| style="text-align:center;"| 14 Nov 1991 – 28 Apr 1993
+| style="text-align:center;"| 3
+|-
+!22
+|align="left"| [[Gregorio Vargas]]
+| style="text-align:center;"| 28 Apr – 4 Dec 1993
+| style="text-align:center;"| 0
+|-
+!23
+|align="left"| [[Kevin Kelley (boxer)|Kevin Kelley]]
+| style="text-align:center;"| 4 Dec 1993 – 7 Jan 1995
+| style="text-align:center;"| 2
+|-
+!24
+|align="left"| [[Alejandro González (boxer)|Alejandro González]]
+| style="text-align:center;"| 7 Jan – 23 Sep 1995
+| style="text-align:center;"| 2
+|-
+!25
+|align="left"| [[Manuel Medina (boxer)|Manuel Medina]]
+| style="text-align:center;"| 23 Sep – 11 Dec 1995
+| style="text-align:center;"| 0
+|-
+!26
+|align="left"| [[Luisito Espinosa]]
+| style="text-align:center;"| 11 Dec 1995 – 15 May 1999
+| style="text-align:center;"| 7
+|-
+!27
+|align="left"| [[César Soto]]
+| style="text-align:center;"| 15 May – 22 Oct 1999
+| style="text-align:center;"| 0
+|-
+!28
+|align="left"| [[Naseem Hamed]]
+| style="text-align:center;"| 22 Oct 1999 – 9 Jan 2000
+| style="text-align:center;"| 0
+|-
+!colspan=4|{{small|Hamed vacates the title due to his commitment to his WBO title.<ref>{{cite news|author=<!--Staff writer(s)/no by-line.-->|date=11 January 2000|title=Boxing: 'Prince' Naseem Hamed stripped of WBC belt|work= Raidió Teilifís Éireann|url-status=live|url= https://www.rte.ie/sport/boxing/2000/0111/147287-boxing/|archive-date=8 August 2021|archive-url= https://web.archive.org/web/20210808001849/https://www.rte.ie/sport/boxing/2000/0111/147287-boxing/ |access-date=8 August 2021}}</ref>}}
+|-
+!29
+|align="left"| [[Guty Espadas Jr.]]<br>({{small|def. [[Luisito Espinosa]]}})
+| style="text-align:center;"| 14 Apr 2000 – 17 Feb 2001
+| style="text-align:center;"| 1
+|-
+!30
+|align="left"| [[Érik Morales]]
+| style="text-align:center;"| 17 Feb 2001 – 22 Jun 2002
+| style="text-align:center;"| 1
+|-
+!31
+|align="left"| [[Marco Antonio Barrera]]
+| style="text-align:center;"| 22 Jun 2002
+| style="text-align:center;"| 0
+|- align=center
+!colspan=4|{{small|Barrera declines the title after winning against Morales.<ref>{{cite news|last=Smith|first=Tim|date=23 June 2002|title= Barrera avenges loss to Morales|url= https://www.nydailynews.com/2002/06/23/barrera-avenges-loss-to-morales/|url-status=live|work=New York Daily News|archive-url= https://web.archive.org/web/20250201130708/https://www.nydailynews.com/2002/06/23/barrera-avenges-loss-to-morales/|archive-date=1 February 2025|access-date=1 February 2025}}</ref><ref>{{cite news|author=<!--Staff writer(s)/no by-line.-->|date=24 June 2002|title=Barrera snobe le WBC |work= Libération|url-status=live|language=French|url= https://www.liberation.fr/sports/2002/06/24/barrera-snobe-le-wbc_408065/|archive-date=16 September 2021|archive-url= https://web.archive.org/web/20210916194343/https://www.liberation.fr/sports/2002/06/24/barrera-snobe-le-wbc_408065/ |access-date=8 October 2021}}</ref>}}
+|-
+!32
+|align="left"| Érik Morales (2) <br>({{small|def. [[Paulie Ayala]]}})
+| style="text-align:center;"| 16 Nov 2002 – 5 Oct 2003
+| style="text-align:center;"| 2
+|- align=center
+!colspan=4|{{small|Morales vacates the title to move up to super featherweight.<ref>{{cite news|last=Guttierrez|first=Paul|date=5 October 2003|title= No Doubt for Morales This Time|url-status=live|work=Los Angeles Times|url=https://www.latimes.com/archives/la-xpm-2003-oct-05-sp-staples5-story.html|archive-date=8 August 2021|archive-url= https://web.archive.org/web/20210808002545/https://www.latimes.com/archives/la-xpm-2003-oct-05-sp-staples5-story.html|access-date=8 August 2021}}</ref>}}
+|-
+!33
+|align="left"| [[Chi In-jin|Chi In-Jin]]<br>({{small|def. [[Michael Brodie]]}})
+| style="text-align:center;"| 10 Apr 2004 – 29 Jan 2006
+| style="text-align:center;"| 3
+|-
+!34
+|align="left"| [[Takashi Koshimoto]]
+| style="text-align:center;"| 29 Jan – 30 Jul 2006
+| style="text-align:center;"| 0
+|-
+!35
+|align="left"| [[Rodolfo López]]
+| style="text-align:center;"| 30 Jul – 17 Dec 2006
+| style="text-align:center;"| 0
+|-
+!36
+|align="left"| Chi In-Jin (2)
+| style="text-align:center;"| 17 Dec 2006 – 31 Jul 2007
+| style="text-align:center;"| 0
+|- align=center
+!colspan=4|{{small|Chi vacates the title.<ref>{{cite news|last=Koizumi|first=Joe|date=1 August 2007|title=Chi renounces WBC 126lb belt!|url= http://www.fightnews.com/fightnews_2/headlines//EElVAylZlkaLdHyOGD.html|work=Fightnews|archive-url=https://web.archive.org/web/20070930152258/http://www.fightnews.com/fightnews_2/headlines//EElVAylZlkaLdHyOGD.html|archive-date=30 September 2007|access-date=3 August 2021}}</ref>}}
+|-
+!37
+|align="left"| [[Jorge Linares]]<br>({{small|interim champion promoted}})
+| style="text-align:center;"| 31 Jul 2007 – 13 Aug 2008
+| style="text-align:center;"| 1
+|- align=center
+!colspan=4|{{small|Linares vacates the title to move up to super featherweight.<ref>{{cite news|last=Vester|first=Mark|date=13 August 2008|title=Jorge Linares Vacates, Oscar Larios New WBC Champ|work=Boxingscene|url=https://www.boxingscene.com/jorge-linares-vacates-oscar-larios-new-wbc-champ--15387|url-status=live|archive-url=https://archive.today/20210805125445/https://www.boxingscene.com/jorge-linares-vacates-oscar-larios-new-wbc-champ--15387|archive-date=5 August 2021|access-date=5 August 2021}}</ref>}}
+|-
+!38
+|align="left"| [[Óscar Larios]]<br>({{small|interim champion promoted}})
+| style="text-align:center;"| 13 Aug 2008 – 12 Mar 2009
+| style="text-align:center;"| 2
+|-
+!39
+|align="left"| [[Takahiro Ao]]
+| style="text-align:center;"| 12 Mar – 14 Jul 2009
+| style="text-align:center;"| 0
+|-
+!40
+|align="left"| [[Elio Rojas]]
+| style="text-align:center;"| 14 Jul 2009 – 27 Sep 2010
+| style="text-align:center;"| 1
+|-
+!colspan=4|{{small|Rojas injured his hand and required surgery.<ref>{{cite news|last=Rafael|first=Dan|date=28 July 2010|title=Salido to fight Gamboa with Rojas out|work=ESPN|url= https://www.espn.com/sports/boxing/news/story?id=5418002 |url-status=live|archive-url=https://web.archive.org/web/20211021112404/https://www.espn.com/sports/boxing/news/story?id=5418002 |archive-date=21 October 2021|access-date=21 October 2021}}</ref> The title was later vacated when a bout between [[Hozumi Hasegawa]] and [[Juan Carlos Burgos]] was announced for the vacant title.<ref>{{cite news|last=Gonzalez|first=Jhonny|date=27 September 2010|title=Hasegawa vs Burgos, Tajbert vs Aoh Catching Steam|work=Boxingscene|url=https://www.boxingscene.com/hasegawa-vs-burgos-tajbert-vs-aoh-catching-steam--31314|url-status=live|archive-url=https://archive.today/20211021112049/https://www.boxingscene.com/hasegawa-vs-burgos-tajbert-vs-aoh-catching-steam--31314|archive-date=21 October 2021|access-date=21 October 2021}}</ref> Rojas was then declared champion in recess during WBC's convention held on November.<ref>{{cite news|author=Boxing Bob Newman|date=3 November 2010|title=WBC title situation|work=Fightnews|url= http://www.fightnews.com/Boxing/wbc-title-situation-65529|url-status=dead|archive-url= https://web.archive.org/web/20101107024747/http://www.fightnews.com/Boxing/wbc-title-situation-65529 |archive-date=7 November 2010|access-date=21 October 2021}}</ref>}}
+|-
+!41
+|align="left"| [[Hozumi Hasegawa]]<br>({{small|def. [[Juan Carlos Burgos]]}})
+| style="text-align:center;"| 26 Nov 2010 – 8 Apr 2011
+| style="text-align:center;"| 0
+|-
+!42
+|align="left"| [[Jhonny González]]
+| style="text-align:center;"| 8 Apr 2011 – 14 Sep 2012
+| style="text-align:center;"| 4
+|-
+!43
+|align="left"| [[Daniel Ponce de León]]
+| style="text-align:center;"| 14 Sep 2012 – 4 May 2013
+| style="text-align:center;"| 0
+|-
+!44
+|align="left"| [[Abner Mares]]
+| style="text-align:center;"| 4 May – 24 Aug 2013
+| style="text-align:center;"| 0
+|-
+!45
+|align="left"| Jhonny González (2)
+| style="text-align:center;"| 24 Aug 2013 – 28 Mar 2015
+| style="text-align:center;"| 2
+|-
+!46
+|align="left"| [[Gary Russell Jr.]]
+| style="text-align:center;"| 28 Mar 2015 – 22 Jan 2022
+| style="text-align:center;"| 5
+|-
+!47
+|align="left"| [[Mark Magsayo]]
+|  align=center| 22 Jan – 9 Jul 2022
+| style="text-align:center;"| 0
+|-
+!48
+|align="left"| [[Rey Vargas]]
+|  style=" text-align:center;"| 9 Jul 2022 – 18 Oct 2024
+| style="text-align:center;"| 1
+|- align=center
+!colspan=4|{{small|Vargas is declared champion in recess.<ref>{{cite news|last=Stumberg|first=Patrick|date=18 October 2024|title=Brandon Figueroa elevated to WBC featherweight champion ahead of Stephen Fulton rematch|work=Badlefthook|url= https://www.badlefthook.com/2024/10/18/24274000/brandon-figueroa-elevated-wbc-featherweight-champion-ahead-of-stephen-fulton-rematch|url-status=live|archive-url=https://web.archive.org/web/20241105211117/https://www.badlefthook.com/2024/10/18/24274000/brandon-figueroa-elevated-wbc-featherweight-champion-ahead-of-stephen-fulton-rematch|archive-date=5 November 2024|access-date=24 October 2024}}</ref>}}
+|-
+!49
+|align="left"| [[Brandon Figueroa]]<br>({{small|interim champion promoted}})
+|  style="text-align:center;"| 18 Oct 2024 – 1 Feb 2025
+| style="text-align:center;"| 0
+|-
+!50
+|align="left"| [[Stephen Fulton (boxer)|Stephen Fulton]]
+|  style="text-align:center;"| 1 Feb – 12 Dec 2025
+| style="text-align:center;"| 0
+|- align=center
+!colspan=4|{{small|Fulton vacated the title to stay at the higher weight classes.<ref>{{cite news|last=Stumberg|first=Patrick|date=12 December 2025|title=Stephen Fulton vacates title, Carrington vs Castro upgraded|work=Yahoo Sports|url= https://sports.yahoo.com/articles/stephen-fulton-vacates-title-carrington-151716496.html|url-status=live|archive-url=https://web.archive.org/web/20251218205208/https://sports.yahoo.com/articles/stephen-fulton-vacates-title-carrington-151716496.html|archive-date=18 December 2025|access-date=18 December 2025}}</ref>}}
+|-
+!51
+|align="left"|[[Bruce Carrington]]<br>({{small|def. [[Carlos Castro (boxer)|Carlos Castro]]}})
+|  style="background:#7cb9e8; text-align:center;"|31 Jan 2026 – present
+| style="text-align:center;"| 1
+|}
+

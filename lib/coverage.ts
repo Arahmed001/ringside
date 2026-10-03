@@ -45,6 +45,7 @@ function computeCoverage(db: DatabaseSync): Coverage {
         { field: msg("Hall of Fame ID (Wikidata)"), have: n("SELECT COUNT(*) c FROM boxers WHERE ibhof_id IS NOT NULL"), of: boxers },
         { field: msg("Olympedia ID (Wikidata)"), have: n("SELECT COUNT(*) c FROM boxers WHERE olympedia_id IS NOT NULL"), of: boxers, note: msg("amateur pedigree") },
         { field: msg("Honours or awards on record"), have: n("SELECT COUNT(DISTINCT boxer_id) c FROM honours"), of: boxers },
+        { field: msg("World title reign on record (Wikipedia lists)"), have: n("SELECT COUNT(DISTINCT boxer_id) c FROM title_reigns WHERE boxer_id IS NOT NULL"), of: boxers },
         { field: msg("BoxRec ID (cross-reference only)"), have: n("SELECT COUNT(*) c FROM boxers WHERE boxrec_id IS NOT NULL"), of: boxers },
         { field: msg("Photo (licensed or Wikimedia)"), have: n("SELECT COUNT(*) c FROM boxers WHERE photo_url IS NOT NULL"), of: boxers, note: msg("otherwise a generated portrait") },
         { field: msg("Current head trainer"), have: n("SELECT COUNT(DISTINCT boxer_id) c FROM team_stints WHERE role='head_trainer' AND end_date IS NULL"), of: activeBoxers, note: msg("active fighters") },
