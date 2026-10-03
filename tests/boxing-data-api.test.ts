@@ -398,3 +398,81 @@ test("when the list already shows coming fights, the schedule endpoint is not as
   assert.ok(!asked.includes("/v2/fights/schedule"), "no redundant (and, on the free plan, refused) schedule request");
   assert.equal(p.notes().scheduleUnavailable, 0);
 });
+
+// a fighter record as the real API sent it (first free-tier sample, 2026-10-03): birth_year, not age; reach only in inches
+const ZAREN: B.ApiFighter & Record<string, unknown> = {
+  id: "68289564162efadfc8bc584c", name: "Oliver Zaren", alias: "Great Dane", gender: "m", birth_year: 1999,
+  height: null, height_ft: "6'1\"", height_cm: 187, height_in: null, nationality: "Denmark", nationality_code: "DK", nickname: "Great Dane",
+  reach: null, reach_cm: null, reach_in: 70, stance: "southpaw", stats: { wins: 19, losses: 0, draws: 1, total_bouts: 20 }, debut: "2019",
+  division: { id: "671513530ad13034eb882657", name: "Super Middleweight", weight_lb: 168 },
+};
+
+test("the real fighter record: birth_year is used as given, reach comes from inches, nothing is approximated", () => {
+  const n = notes();
+  const m = B.mapFighter(ZAREN, n)!;
+  assert.equal(m.birthYear, 1999, "the feed's own birth year, not derived from an age");
+  assert.equal(m.heightCm, 187); assert.equal(m.reachCm, 178, "70 in = 177.8 cm");
+  assert.equal(m.stance, "Southpaw"); assert.equal(m.nickname, "Great Dane"); assert.equal(m.country, "Denmark");
+  assert.equal(m.weightClass, "Super Middleweight"); assert.equal(m.turnedPro, 2019);
+  assert.equal(n.birthYearUnknown, 0); assert.equal(n.birthYearFromAge, 0); assert.equal(n.stanceDefaulted, 0);
+  assert.equal(n.physicalsConverted, 1, "the one inch-to-cm conversion is counted");
+  assert.equal(B.imputePhysicals([m], n)[0].reachCm, 178, "so nothing needs imputing");
+  assert.equal(n.physicalsImputed, 0);
+});
+
+test("birth_year is only trusted when plausible; otherwise an age, then 'unknown'", () => {
+  const n = notes();
+  assert.equal(B.mapFighter({ ...ZAREN, birth_year: 0, age: 30 }, n)!.birthYear, 2026 - 30); assert.equal(n.birthYearFromAge, 1);
+  assert.equal(B.mapFighter({ ...ZAREN, birth_year: 2025 }, n)!.birthYear, 0, "a 1-year-old boxer is not a birth year"); 
+  assert.equal(B.mapFighter({ ...ZAREN, birth_year: 1850 }, n)!.birthYear, 0);
+  assert.equal(B.mapFighter({ ...ZAREN, birth_year: null, age: null }, n)!.birthYear, 0);
+  assert.equal(n.birthYearUnknown, 3);
+});
+
+test("lengths come from whichever form the feed gives: cm, inches, 6'1\", or the docs' combined text; and null when none", () => {
+  const n = notes();
+  assert.equal(B.lengthCm(187, 74, "6'1\"", n), 187, "cm wins when present");
+  assert.equal(n.physicalsConverted, 0);
+  assert.equal(B.lengthCm(null, 70, null, n), 178);
+  assert.equal(B.lengthCm(null, null, "6'1\"", n), 185, "6 ft 1 in");
+  assert.equal(B.lengthCm(null, null, "6' 9\" / 206 cm", n), 206, "the combined text's centimetres");
+  assert.equal(B.lengthCm(null, null, "85\" / 216 cm", n), 216);
+  assert.equal(B.lengthCm(null, null, "70\"", n), 178, "inches alone");
+  assert.equal(B.lengthCm(null, null, "6'", n), 183, "feet alone");
+  assert.equal(n.physicalsConverted, 6);
+  assert.equal(B.lengthCm(null, null, null, n), null); assert.equal(B.lengthCm(0, 0, "", n), null); assert.equal(B.lengthCm(null, null, "n/a", n), null);
+  assert.equal(n.physicalsConverted, 6, "nothing converted when nothing was there");
+});
+
+test("saved responses can be replayed with no requests: the same league comes out, and a request that was never saved is a 404", async () => {
+  const fs = await import("node:fs"), os = await import("node:os"), path = await import("node:path");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "bda-replay-"));
+  const live = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: mockFetch(standard).impl, rawDir: dir });
+  const [boxers, events, bouts] = [await live.fetchBoxers(), await live.fetchEvents(), await live.fetchBouts()];
+  const replay = B.boxingDataApiProvider({ key: "replay", purpose: "evaluation", fetchImpl: B.replayFetch(dir) });
+  assert.deepEqual([await replay.fetchBoxers(), await replay.fetchEvents(), await replay.fetchBouts()], [boxers, events, bouts], "identical output from the saved responses alone");
+  assert.deepEqual(replay.notes(), live.notes());
+  const miss = await B.replayFetch(dir)("https://boxing-data-api.p.rapidapi.com/v2/fighters/never-saved");
+  assert.equal(miss.status, 404); assert.match(String((await miss.json() as { message: string }).message), /not in the saved responses/);
+  const again = B.replayFetch(dir);
+  await again("https://x.example/v2/fights/");
+  assert.equal((await again("https://x.example/v2/fights/")).status, 404, "a page that was saved once is served once");
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("a fighter with no division in the feed takes the division of their most recent fight, counted; one with no fights stays unknown for the validator to report", () => {
+  const n = notes();
+  const loose = ["a", "b", "c", "d"].map((id) => B.mapFighter(fighter(id, id.toUpperCase(), id === "d" ? { division: { name: "Cruiserweight" } } : { division: null }), n)!);
+  assert.ok(loose.slice(0, 3).every((r) => r.weightClass === "Unknown"), "the feed gave none");
+  const mk = (id: string, red: string, blue: string, ev: string, weightClass: string) => ({ externalId: id, eventExternalId: ev, redExternalId: `bda-f-${red}`, blueExternalId: `bda-f-${blue}`, weightClass, rounds: 12, winnerExternalId: null, method: null, endRound: null, title: null, position: 0 });
+  const bouts = [mk("1", "a", "d", "e1", "Middleweight"), mk("2", "a", "d", "e2", "Super Middleweight"), mk("3", "b", "d", "e1", "Not A Division")];
+  const dates = new Map([["e1", "2025-01-01"], ["e2", "2026-05-01"]]);
+  const out = Object.fromEntries(B.finishBoxers(loose, bouts, dates, n).map((r) => [r.name, r]));
+  assert.equal(out.A.weightClass, "Super Middleweight", "the most recent fight's class, not the first");
+  assert.equal(out.B.weightClass, "Unknown", "its only fight has an unrecognised class: nothing to go on");
+  assert.equal(out.C.weightClass, "Unknown", "no fights at all");
+  assert.equal(out.D.weightClass, "Cruiserweight", "a division the feed gave is kept");
+  assert.equal(n.divisionFromFight, 1);
+  const { issues } = sanitizeFeed({ ...emptyFeed(), boxers: [out.A, out.D], events: [{ externalId: "e1", name: "x", date: "2025-01-01", venue: "v", city: "c", country: "k" }, { externalId: "e2", name: "y", date: "2026-05-01", venue: "v", city: "c", country: "k" }], bouts: bouts.slice(0, 2) }, { today: "2026-10-03" });
+  assert.deepEqual(issues.filter((i) => i.code === "unknown_division"), [], "the validator no longer rejects the fighter");
+});
