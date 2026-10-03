@@ -1,0 +1,122 @@
+import { DatabaseSync } from "node:sqlite";
+import fs from "node:fs";
+import path from "node:path";
+import { ingest } from "./ingest";
+
+const DB_PATH = process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db");
+
+const SCHEMA = `
+CREATE TABLE IF NOT EXISTS boxers (
+  id INTEGER PRIMARY KEY, external_id TEXT UNIQUE, slug TEXT UNIQUE, name TEXT, nickname TEXT,
+  country TEXT, birth_year INTEGER, stance TEXT, height_cm INTEGER, reach_cm INTEGER,
+  weight_class TEXT, turned_pro INTEGER, active INTEGER, rating REAL DEFAULT 1500, photo_url TEXT, photo_credit TEXT,
+  birth_date TEXT, birth_place TEXT, residence TEXT, wikidata_id TEXT, boxrec_id TEXT, aliases TEXT, debut_date TEXT, retired_date TEXT
+);
+CREATE TABLE IF NOT EXISTS boxer_media (
+  boxer_id INTEGER PRIMARY KEY REFERENCES boxers(id), status TEXT, reason TEXT, wikidata_id TEXT, file_title TEXT,
+  thumb_url TEXT, page_url TEXT, license TEXT, license_url TEXT, credit TEXT, checked_at TEXT
+);
+CREATE TABLE IF NOT EXISTS events (
+  id INTEGER PRIMARY KEY, external_id TEXT UNIQUE, name TEXT, date TEXT, venue TEXT, city TEXT, country TEXT, poster_url TEXT,
+  promoter_org_id INTEGER, broadcaster TEXT, attendance INTEGER
+);
+CREATE TABLE IF NOT EXISTS bouts (
+  id INTEGER PRIMARY KEY, external_id TEXT UNIQUE, event_id INTEGER REFERENCES events(id),
+  red_id INTEGER REFERENCES boxers(id), blue_id INTEGER REFERENCES boxers(id),
+  weight_class TEXT, rounds INTEGER, winner_id INTEGER, method TEXT, end_round INTEGER,
+  title TEXT, position INTEGER,
+  round_time TEXT, kd_red INTEGER, kd_blue INTEGER, odds_red REAL, odds_blue REAL, contract_lb REAL, title_org_id INTEGER, title_vacant INTEGER
+);
+CREATE TABLE IF NOT EXISTS rating_history (
+  boxer_id INTEGER, bout_id INTEGER, date TEXT, rating REAL, opp_rating REAL
+);
+CREATE TABLE IF NOT EXISTS people (
+  id INTEGER PRIMARY KEY, external_id TEXT UNIQUE, slug TEXT UNIQUE, name TEXT, country TEXT, wikidata_id TEXT
+);
+CREATE TABLE IF NOT EXISTS orgs (
+  id INTEGER PRIMARY KEY, external_id TEXT UNIQUE, slug TEXT UNIQUE, name TEXT, kind TEXT, country TEXT, city TEXT
+);
+CREATE TABLE IF NOT EXISTS team_stints (
+  id INTEGER PRIMARY KEY, boxer_id INTEGER REFERENCES boxers(id), role TEXT, person_id INTEGER, org_id INTEGER,
+  start_date TEXT, end_date TEXT, source TEXT
+);
+CREATE TABLE IF NOT EXISTS weigh_ins (
+  bout_id INTEGER, boxer_id INTEGER, official_lb REAL, fight_night_lb REAL, limit_lb REAL, made_weight INTEGER, source TEXT,
+  PRIMARY KEY (bout_id, boxer_id)
+);
+CREATE TABLE IF NOT EXISTS officials (
+  bout_id INTEGER, role TEXT, person_id INTEGER, seat INTEGER
+);
+CREATE TABLE IF NOT EXISTS scorecards (
+  bout_id INTEGER, judge_id INTEGER, seat INTEGER, red_score INTEGER, blue_score INTEGER
+);
+CREATE TABLE IF NOT EXISTS corners (
+  bout_id INTEGER, boxer_id INTEGER, role TEXT, person_id INTEGER
+);
+CREATE TABLE IF NOT EXISTS punch_stats (
+  bout_id INTEGER, boxer_id INTEGER, round INTEGER, thrown INTEGER, landed INTEGER, power_thrown INTEGER, power_landed INTEGER,
+  jab_thrown INTEGER, jab_landed INTEGER, PRIMARY KEY (bout_id, boxer_id, round)
+);
+CREATE TABLE IF NOT EXISTS wikidata_boxers (
+  qid TEXT PRIMARY KEY, name TEXT, birth_date TEXT, birth_year INTEGER, birth_place TEXT, country TEXT, height_cm INTEGER, weight_kg REAL,
+  image_file TEXT, boxrec_id TEXT, residence TEXT, death_date TEXT, teachers TEXT, matched_boxer_id INTEGER, match_method TEXT, fetched_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_wd_boxrec ON wikidata_boxers(boxrec_id);
+CREATE INDEX IF NOT EXISTS idx_wd_year ON wikidata_boxers(birth_year);
+CREATE INDEX IF NOT EXISTS idx_stints_boxer ON team_stints(boxer_id);
+CREATE INDEX IF NOT EXISTS idx_stints_person ON team_stints(person_id);
+CREATE INDEX IF NOT EXISTS idx_stints_org ON team_stints(org_id);
+CREATE INDEX IF NOT EXISTS idx_weigh_boxer ON weigh_ins(boxer_id);
+CREATE INDEX IF NOT EXISTS idx_officials_bout ON officials(bout_id);
+CREATE INDEX IF NOT EXISTS idx_score_bout ON scorecards(bout_id);
+CREATE INDEX IF NOT EXISTS idx_corners_bout ON corners(bout_id);
+CREATE INDEX IF NOT EXISTS idx_bouts_red ON bouts(red_id);
+CREATE INDEX IF NOT EXISTS idx_bouts_blue ON bouts(blue_id);
+CREATE INDEX IF NOT EXISTS idx_bouts_event ON bouts(event_id);
+CREATE INDEX IF NOT EXISTS idx_rh_boxer ON rating_history(boxer_id, date);
+`;
+
+/** Columns added after the first release; lets an older ringside.db keep working. */
+const ADDED_COLUMNS: [string, string, string][] = [
+  ["boxers", "birth_date", "TEXT"], ["boxers", "birth_place", "TEXT"], ["boxers", "residence", "TEXT"], ["boxers", "wikidata_id", "TEXT"],
+  ["boxers", "boxrec_id", "TEXT"], ["boxers", "aliases", "TEXT"], ["boxers", "debut_date", "TEXT"], ["boxers", "retired_date", "TEXT"],
+  ["events", "promoter_org_id", "INTEGER"], ["events", "broadcaster", "TEXT"], ["events", "attendance", "INTEGER"],
+  ["bouts", "round_time", "TEXT"], ["bouts", "kd_red", "INTEGER"], ["bouts", "kd_blue", "INTEGER"], ["bouts", "odds_red", "REAL"],
+  ["bouts", "odds_blue", "REAL"], ["bouts", "contract_lb", "REAL"], ["bouts", "title_org_id", "INTEGER"], ["bouts", "title_vacant", "INTEGER"],
+];
+
+function addMissingColumns(db: DatabaseSync) {
+  for (const [table, col, type] of ADDED_COLUMNS) {
+    const have = (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map((c) => c.name);
+    if (!have.includes(col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${type}`);
+  }
+}
+
+const g = globalThis as unknown as { __ringsideDb?: DatabaseSync; __ringsideReady?: Promise<void> };
+
+/** Opens the DB, creating and seeding it from the configured provider on first run. */
+export async function getDb(): Promise<DatabaseSync> {
+  if (!g.__ringsideDb) {
+    fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+    const db = new DatabaseSync(DB_PATH);
+    db.exec("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
+    db.exec(SCHEMA);
+    // Tiny forward-only migration for databases created before a column existed.
+    const cols = (db.prepare("PRAGMA table_info(boxers)").all() as { name: string }[]).map((c) => c.name);
+    if (!cols.includes("photo_credit")) db.exec("ALTER TABLE boxers ADD COLUMN photo_credit TEXT");
+    addMissingColumns(db);
+    g.__ringsideDb = db;
+  }
+  const db = g.__ringsideDb;
+  if (!g.__ringsideReady) {
+    const count = (db.prepare("SELECT COUNT(*) c FROM boxers").get() as { c: number }).c;
+    g.__ringsideReady = count === 0 ? ingest(db) : Promise.resolve();
+  }
+  try {
+    await g.__ringsideReady;
+  } catch (e) {
+    g.__ringsideReady = undefined; // don't cache a failed seed: retry on the next request
+    throw e;
+  }
+  return db;
+}

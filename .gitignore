@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+data/*.db*
+.env*.local
+data/model-fit.json
+
+# keep the documented template even though .env* is ignored
+!.env.example

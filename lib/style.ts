@@ -1,0 +1,83 @@
+import type { BoxerFull } from "./types";
+import type { World } from "./world";
+
+export const ARCHETYPES = ["Knockout Artist", "Volume Boxer", "Technician", "Iron-Chin Brawler", "Counter-Puncher", "Journeyman", "Prospect"] as const;
+export type Archetype = (typeof ARCHETYPES)[number];
+
+export function archetype(b: BoxerFull): Archetype {
+  if (b.bouts < 8) return "Prospect";
+  if (b.winRate < 0.4) return "Journeyman";
+  const finishLoss = b.losses ? b.koLosses / b.losses : 0;
+  if (b.koRate >= 0.55) return "Knockout Artist";
+  if (b.koRate >= 0.4 && finishLoss <= 0.35) return "Iron-Chin Brawler";
+  if (b.koRate <= 0.3 && b.winRate >= 0.6) return "Technician";
+  if (b.avgRounds >= 7 && b.koRate < 0.4) return "Volume Boxer";
+  return "Counter-Puncher";
+}
+
+export const ARCH_COLOR: Record<Archetype, string> = {
+  "Knockout Artist": "#ff4d4d",
+  "Volume Boxer": "#4a9dff",
+  "Technician": "#d9b25f",
+  "Iron-Chin Brawler": "#ff8a3d",
+  "Counter-Puncher": "#7ee0b4",
+  Journeyman: "#6b6b78",
+  Prospect: "#9a9aa6",
+};
+
+function vector(b: BoxerFull, w: World): number[] {
+  const hist = w.history.get(b.id) ?? [];
+  return [
+    b.koRate, b.winRate,
+    (b.age - 30) / 8,
+    b.avgRounds / 12,
+    b.losses ? b.koLosses / b.losses : 0,
+    b.stance === "Southpaw" ? 1 : 0,
+    (b.reachCm - b.heightCm) / 10,
+    Math.min(1, b.bouts / 40),
+    (b.rating - 1500) / 200,
+    hist.length > 3 ? (hist[hist.length - 1].rating - hist[hist.length - 4].rating) / 60 : 0,
+  ];
+}
+
+const dist = (x: number[], y: number[]) => Math.sqrt(x.reduce((s, v, i) => s + (v - y[i]) ** 2, 0));
+
+export function similarTo(b: BoxerFull, w: World, n = 5) {
+  const vb = vector(b, w);
+  return w.boxers
+    .filter((o) => o.id !== b.id && o.bouts >= 5)
+    .map((o) => ({ boxer: o, d: dist(vb, vector(o, w)) }))
+    .sort((x, y) => x.d - y.d)
+    .slice(0, n)
+    .map((x) => ({ boxer: x.boxer, match: Math.max(0, Math.round(100 - x.d * 38)) }));
+}
+
+/** Projects all fighters to 2-D with PCA (power iteration) for the style map. */
+export function styleMap(w: World) {
+  const pool = w.boxers.filter((b) => b.bouts >= 8);
+  const X = pool.map((b) => vector(b, w));
+  const d = X[0].length, n = X.length;
+  const mean = Array.from({ length: d }, (_, j) => X.reduce((s, r) => s + r[j], 0) / n);
+  const sd = Array.from({ length: d }, (_, j) => Math.sqrt(X.reduce((s, r) => s + (r[j] - mean[j]) ** 2, 0) / n) || 1);
+  const Z = X.map((r) => r.map((v, j) => (v - mean[j]) / sd[j]));
+  const cov = Array.from({ length: d }, (_, i) => Array.from({ length: d }, (_, j) => Z.reduce((s, r) => s + r[i] * r[j], 0) / n));
+  const power = (m: number[][], skip?: number[]) => {
+    let v = Array.from({ length: d }, (_, i) => 1 + i * 0.13);
+    for (let it = 0; it < 120; it++) {
+      let nv = m.map((row) => row.reduce((s, x, j) => s + x * v[j], 0));
+      if (skip) { const dot = nv.reduce((s, x, j) => s + x * skip[j], 0); nv = nv.map((x, j) => x - dot * skip[j]); }
+      const norm = Math.sqrt(nv.reduce((s, x) => s + x * x, 0)) || 1;
+      v = nv.map((x) => x / norm);
+    }
+    return v;
+  };
+  const p1 = power(cov);
+  const p2 = power(cov, p1);
+  const pts = Z.map((r, i) => ({
+    boxer: pool[i], x: r.reduce((s, v, j) => s + v * p1[j], 0), y: r.reduce((s, v, j) => s + v * p2[j], 0),
+    arch: archetype(pool[i]),
+  }));
+  const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y);
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  return pts.map((p) => ({ ...p, x: (p.x - x0) / (x1 - x0), y: (p.y - y0) / (y1 - y0) }));
+}
