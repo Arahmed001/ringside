@@ -22,6 +22,8 @@ test("attributes a screen reader announces are checked, in the title and descrip
 
 test("what is allowed: the brand, units and abbreviations, other organisations' names, scripts and styles, and anything marked lang=\"en\"", () => {
   assert.deepEqual(arabicLeaks(page("<p>رينغسايد · Ringside · Elo 1650 · 12 lb · KO · TKO · PPV</p>")), [], "lb is two letters, KO and PPV are short capitals, Ringside and Elo are listed");
+  assert.deepEqual(arabicLeaks(page("<p>log-loss · 68.0% صحيح · Brier 0.213</p>")), [], "the two statistics terms the Data page keeps in Latin");
+  assert.equal(arabicLeaks(page("<p>log-loss · 68.0% صحيح · Brier score is poor</p>")).length, 1, "only the terms are allowed, not the English around them");
   assert.deepEqual(arabicLeaks(page("<p>معرّف BoxRec وكذلك Wikidata و CompuBox</p>")), []);
   assert.deepEqual(arabicLeaks(page("<script>window.x = 'This is a long English sentence';</script><style>.a{content:'Some English words'}</style><p>نص</p>")), []);
   assert.deepEqual(arabicLeaks(page('<p>مثال: <span lang="en" dir="ltr">earning rows have no source URL</span></p>')), [], "text marked as English on purpose is not a leak");
