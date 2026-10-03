@@ -42,7 +42,7 @@ export default async function Home() {
   const p = next ? predict(next.red, next.blue, t) : null;
   const p4p = pound4pound(w, 8);
   const recent = eventViews(w, recentEvents(w, 5));
-  const upset = biggestUpsets(w.bouts.length ? { ...w, bouts: w.bouts.filter((b) => b.date >= `${currentYear() - 1}-01-01`) } : w, 1)[0];
+  const upset = biggestUpsets(w, 1, `${currentYear() - 1}-01-01`)[0]; // the `since` argument, so it is cached (a spread copy of the world is a new object every request, and never hits the cache)
 
   const watchTop = upsetWatch(w, t).find((x) => x.tier === "live") ?? null;
   const fy = featuredYear(w);

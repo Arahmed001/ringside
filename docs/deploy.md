@@ -76,6 +76,22 @@ What to do with it: give the container **at least 768 MB**, or cap the heap (`NO
 
 `npm run loadtest -- --base https://your-host --conc 50 --total 1000 --each` repeats this against any server you own (`--each` times every page alone to find a slow one). It is one Node process: past a few hundred requests a second it is measuring itself.
 
+### The first visitor, and what start-up now does about it
+
+Measured with `npm run coldcheck` on the 20x test world (159,000 bouts), restarting the server before each of 36 pages and timing the first request against the next three (`npm run bench -- --scale 20 --keep` makes the database; `npm run build` first). A first request always costs about 50-60 ms more than later ones (the page's code loading); this is about what costs more than that.
+
+| | before round 31 | after |
+|---|---|---|
+| pages whose first visit was 300 ms or more slower than usual | 14 of 36 | 0 of 36 |
+| slowest first visit | 948 ms (upset watch); trainers 810, all-time 808, track record 704, a fighter page 655 | 151 ms |
+| the 36 first-visit penalties added up | 9.0 s | 2.2 s |
+| server ready after start | 6.2 s | 9.1 s (3 s longer: the pages' aggregates are computed before it accepts requests) |
+| memory, 20x world | 1,625 MB idle, 1,750 MB after 14 pages | 1,655 MB idle, 1,700 MB after 14 pages |
+
+Two causes. The start-up warm-up only covered four aggregates, and what it did cover was never seen by the pages: Next builds the start-up hook and the pages as separate bundles, each with its own copy of `lib/memo.ts`, so the cache the warm-up filled was not the one the pages read (the world itself is shared through `globalThis`, its aggregates were not). The cache now lives on `globalThis`, and `WARM_STEPS` in `lib/warm.ts` lists everything the slow pages compute, with the arguments they use. If you add a page with an expensive whole-league aggregate, give it a line there.
+
+To see what a page computes on its first visit: run the server with `RINGSIDE_MEMO_LOG=1` and visit it; every aggregate that takes 5 ms or more is logged once as a JSON line (`"event":"memo"`, its own time and its total). A production server also logs one `"event":"world_built"` line each time it builds the world (how long, the cache key and the key it replaced), which is how to tell a rebuild at midnight from one caused by the data changing.
+
 ## Routine work inside the container
 
 The maintenance scripts ship in the image (`tsx` is installed):

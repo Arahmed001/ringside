@@ -31,7 +31,8 @@
     "accounts": "tsx scripts/accounts.ts",
     "backup": "tsx scripts/backup.ts",
     "loadtest": "tsx scripts/loadtest.ts",
-    "doctor": "tsx scripts/doctor.ts"
+    "doctor": "tsx scripts/doctor.ts",
+    "coldcheck": "tsx scripts/coldcheck.ts"
   },
   "dependencies": {
     "next": "^16.3.8",

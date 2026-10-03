@@ -1,6 +1,12 @@
 import type { World } from "./world";
 
-const cache = new WeakMap<World, Map<string, unknown>>();
+/**
+ * Kept on `globalThis`, not in a module variable: Next compiles the start-up hook (instrumentation.ts) and the pages as separate bundles, each with
+ * its own copy of this module, so a module-level cache made everything lib/warm.ts computed at start-up invisible to the pages (the world itself
+ * was shared through globalThis, its aggregates were not). Found in round 31 by logging what a first visitor's request computes.
+ */
+const g = globalThis as unknown as { __ringsideMemo?: WeakMap<World, Map<string, unknown>> };
+const cache = (g.__ringsideMemo ??= new WeakMap<World, Map<string, unknown>>());
 
 /**
  * Whole-league aggregates (analytics, judge and referee tables, trainer leaderboards) are pure functions of a World,
@@ -12,7 +18,27 @@ export function memo<T>(w: World, key: string, compute: () => T): T {
   let m = cache.get(w);
   if (!m) { m = new Map(); cache.set(w, m); }
   if (m.has(key)) return m.get(key) as T;
-  const v = compute();
+  const v = LOG ? timed(key, compute) : compute();
   m.set(key, v);
   return v;
+}
+
+/** The keys computed so far for a world: what a test (or a person with RINGSIDE_MEMO_LOG) can ask to see what has been paid for. */
+export const memoKeys = (w: World): string[] => [...(cache.get(w)?.keys() ?? [])];
+
+/**
+ * Tooling, off by default: with RINGSIDE_MEMO_LOG=1 every aggregate that takes 5 ms or more to compute is logged once, as a JSON line on stderr, with the
+ * time it took itself (`ms`, without the aggregates it needed) and in all (`totalMs`). Run a server with it and visit a page to see exactly what
+ * the first visitor to that page waits for, then give `lib/warm.ts` the ones that are too slow to leave to a visitor.
+ */
+const LOG = process.env.RINGSIDE_MEMO_LOG === "1";
+const children: number[] = [];
+function timed<T>(key: string, compute: () => T): T {
+  children.push(0);
+  const t0 = performance.now();
+  try { return compute(); } finally {
+    const total = performance.now() - t0, kids = children.pop() ?? 0;
+    if (children.length) children[children.length - 1] += total;
+    if (total - kids >= 5) console.error(JSON.stringify({ event: "memo", key, ms: Math.round(total - kids), totalMs: Math.round(total) }));
+  }
 }

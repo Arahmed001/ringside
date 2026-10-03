@@ -9,3 +9,18 @@ export function summarise(latencies: number[], seconds: number): Summary {
 /** Pages worth hitting: every kind of view, in both languages, with the cheap JSON endpoints the type-ahead uses. */
 export const LOAD_PATHS = ["/", "/rankings", "/boxers/ramil-abad", "/events", "/analytics", "/map", "/all-time/greatest", "/ar", "/boxers?page=2", "/compare?a=ramil-abad&b=tomas-villalba",
   "/matchmaking", "/trainers", "/upset-watch", "/fight-of-the-year", "/on-this-day", "/money", "/titles", "/people", "/api/search?q=ram", "/api/fighters?q=ram"];
+
+/**
+ * What the first visitor to a page pays beyond what everyone after them does: the first request's time, the median of the requests after it,
+ * and the difference. The first request after a restart includes work the server only does when someone asks (building a table, scoring a year);
+ * the later ones do not, so the difference is the cost of being first.
+ */
+export interface ColdCost { first: number; warm: number; extra: number }
+export function coldCost(first: number, after: number[]): ColdCost {
+  const s = [...after].sort((a, b) => a - b);
+  const warm = s.length ? (s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : first;
+  return { first, warm, extra: Math.max(0, first - warm) };
+}
+
+/** A first visitor who waits longer than this beyond the usual time has a reason to leave: the line the check flags. */
+export const SLOW_FIRST_VISIT_MS = 300;

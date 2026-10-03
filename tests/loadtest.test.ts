@@ -22,3 +22,15 @@ test("links do not prefetch unless a page asks for it", () => {
   assert.ok(!fs.existsSync(path.join(process.cwd(), "app")) || !fs.readdirSync(path.join(process.cwd(), "app"), { recursive: true }).some((f) => String(f).endsWith("loading.tsx")), "if a loading.tsx is ever added, prefetching has something to fetch: revisit the default");
   assert.ok(LOAD_PATHS.length > 10 && LOAD_PATHS.every((p) => p.startsWith("/")));
 });
+
+test("cold cost: the first request against the median of the rest, never negative", async () => {
+  const { coldCost, SLOW_FIRST_VISIT_MS } = await import("../lib/loadtest");
+  assert.deepEqual(coldCost(800, [20, 30, 10]), { first: 800, warm: 20, extra: 780 }, "median of three is the middle one, whatever the order");
+  assert.deepEqual(coldCost(800, [10, 40]), { first: 800, warm: 25, extra: 775 }, "median of two is their mean");
+  assert.deepEqual(coldCost(15, [20, 30, 10]), { first: 15, warm: 20, extra: 0 }, "a first request quicker than usual costs nothing extra, not a negative number");
+  assert.deepEqual(coldCost(50, []), { first: 50, warm: 50, extra: 0 }, "nothing to compare with");
+  assert.equal(coldCost(400, [5, 5, 5]).extra >= SLOW_FIRST_VISIT_MS, true);
+  assert.equal(coldCost(300, [5, 5, 5]).extra >= SLOW_FIRST_VISIT_MS, false, "295 ms extra is under the line");
+  const after = [30, 10, 20]; coldCost(1, after);
+  assert.deepEqual(after, [30, 10, 20], "the caller's array is left alone");
+});
