@@ -34,6 +34,10 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   if (star && woman) page(`/compare?a=${star.slug}&b=${boxers[1].slug}`, "matchup");
   page(`/boxers?q=${q("southpaw welterweights with 10+ KOs")}`, "plain-English search");
   page("/boxers?sex=female", "women's fighter list");
+  page("/boxers?page=2", "second page of the fighter list");
+  page("/boxers?page=9999", "page number beyond the end");
+  const yr = [...new Set(w.events.filter((e) => !e.upcoming && e.status !== "cancelled").map((e) => e.date.slice(0, 4)))].sort()[0];
+  if (yr) { page(`/events?year=${yr}`, "events of one year"); page(`/events?year=${yr}&page=2`, "second page of a year's events"); }
 
   const upcoming = w.bouts.filter((b) => b.upcoming && b.status !== "cancelled");
   const bouts: [string, ((b: (typeof w.bouts)[number]) => boolean)][] = [

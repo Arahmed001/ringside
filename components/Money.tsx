@@ -124,7 +124,7 @@ export async function CareerMoneyCard({ w, boxer }: { w: World; boxer: BoxerFull
               {y.offRing ? <span className="h-full bg-gold/35" style={{ width: `${(y.offRing / peak) * 100}%` }} /> : null}
             </span>
             <span className="w-14 text-end tabular">{usd(y.ring + (y.offRing ?? 0))}</span>
-            <span className={`w-2 text-xs ${y.basis === "disclosed" ? "text-win" : "text-muted"}`} aria-hidden>{y.basis === "disclosed" ? "●" : y.basis === "reported" ? "◐" : "○"}</span>
+            <span className={`w-3 shrink-0 text-center text-xs ${y.basis === "disclosed" ? "text-win" : "text-muted"}`} aria-hidden>{y.basis === "disclosed" ? "●" : y.basis === "reported" ? "◐" : "○"}</span>
           </li>
         ))}
       </ul>

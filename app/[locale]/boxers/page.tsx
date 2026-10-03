@@ -4,7 +4,8 @@ import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
 import { parseQuery, applyFilters, describeFilters } from "@/lib/ai";
 import { DIVISION_NAMES } from "@/lib/divisions";
-import { BoxerCard } from "@/components/ui";
+import { BoxerCard, Pager } from "@/components/ui";
+import { paginate } from "@/lib/paging";
 import { getT } from "@/lib/i18n/server";
 import { getNames } from "@/lib/i18n/names";
 import { metaFor } from "@/lib/seo-server";
@@ -12,10 +13,13 @@ import { metaFor } from "@/lib/seo-server";
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) =>
   metaFor(params, (p, t) => ({ path: "/boxers", title: t("Fighters"), description: t("Search every fighter in the Ringside database in plain language, or filter by division and sex: records, ratings, knockouts and fighting styles.") }));
 
-export default async function Boxers({ searchParams }: { searchParams: Promise<{ q?: string; wc?: string; sex?: string }> }) {
-  const { q = "", wc, sex } = await searchParams;
+/** Fighters per page: the full result set is always reachable, 48 at a time. */
+const PAGE = 48;
+
+export default async function Boxers({ searchParams }: { searchParams: Promise<{ q?: string; wc?: string; sex?: string; page?: string }> }) {
+  const { q = "", wc, sex, page: pageParam } = await searchParams;
   const t = await getT();
-  const qs = (extra: Record<string, string | undefined>) => { const p = new URLSearchParams(); const all = { q: q || undefined, wc, sex, ...extra }; for (const [k, v] of Object.entries(all)) if (v) p.set(k, v); const s = p.toString(); return `/boxers${s ? `?${s}` : ""}`; };
+  const qs = (extra: Record<string, string | undefined>) => { const p = new URLSearchParams(); const all = { q: q || undefined, wc, sex, page: undefined, ...extra }; for (const [k, v] of Object.entries(all)) if (v) p.set(k, v); const s = p.toString(); return `/boxers${s ? `?${s}` : ""}`; };
   const w = await getWorld();
   let results = w.boxers.filter((b) => b.bouts > 0);
   let chips: string[] = [];
@@ -30,7 +34,8 @@ export default async function Boxers({ searchParams }: { searchParams: Promise<{
   }
   if (wc) results = results.filter((b) => b.weightClass === wc);
   if (sex === "male" || sex === "female") results = results.filter((b) => b.sex === sex);
-  const shown = results.slice(0, 48);
+  const { page, pages, first } = paginate(results.length, pageParam, PAGE);
+  const shown = results.slice(first, first + PAGE);
 
   return (
     <div>
@@ -54,10 +59,11 @@ export default async function Boxers({ searchParams }: { searchParams: Promise<{
           <span className="chip">{source === "ai" ? "✦ Claude" : t("rule-based parser")}</span>
         </div>
       )}
-      <div className="mt-2 text-sm text-muted">{results.length > shown.length ? t("{count} · showing top {n}", { count: t.n(results.length, "{n} fighter", "{n} fighters"), n: shown.length }) : t.n(results.length, "{n} fighter", "{n} fighters")}</div>
+      <div className="mt-2 text-sm text-muted">{results.length > shown.length ? t("{count} · showing {from}–{to}", { count: t.n(results.length, "{n} fighter", "{n} fighters"), from: first + 1, to: first + shown.length }) : t.n(results.length, "{n} fighter", "{n} fighters")}</div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map((b) => <BoxerCard key={b.id} b={b} />)}
       </div>
+      <Pager page={page} pages={pages} href={(n) => qs({ page: String(n) })} />
       {!shown.length && <div className="card mt-6 p-8 text-center text-muted">{t("Nobody matches that. Loosen a filter or try a different phrasing.")}</div>}
     </div>
   );

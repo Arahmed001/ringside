@@ -95,3 +95,16 @@ export async function Delta({ d }: { d: number | null }) {
   if (d === 0) return <span className="text-muted">–</span>;
   return <span className={`tabular text-xs font-semibold ${d > 0 ? "text-win" : "text-red-ink"}`}>{d > 0 ? "▲" : "▼"}{Math.abs(d)}</span>;
 }
+
+/** Previous / next links for a paged list. `href(n)` builds the link to page n, so each page keeps the rest of its filters. */
+export async function Pager({ page, pages, href }: { page: number; pages: number; href: (n: number) => string }) {
+  const t = await getT();
+  if (pages <= 1) return null;
+  return (
+    <nav aria-label={t("Pages")} className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm">
+      {page > 1 ? <Link href={href(page - 1)} rel="prev" className="chip hover:text-ink"><span className="inline-block rtl:rotate-180">←</span> {t("Previous page")}</Link> : <span />}
+      <span className="text-muted tabular">{t("Page {page} of {pages}", { page, pages })}</span>
+      {page < pages ? <Link href={href(page + 1)} rel="next" className="chip hover:text-ink">{t("Next page")} <span className="inline-block rtl:rotate-180">→</span></Link> : <span />}
+    </nav>
+  );
+}
