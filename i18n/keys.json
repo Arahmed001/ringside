@@ -6912,6 +6912,12 @@
   ]
  },
  {
+  "key": "No fighters in the data are from {country}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "No fighters match those filters.",
   "files": [
    "lib/ask/tools.ts"

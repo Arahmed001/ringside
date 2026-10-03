@@ -58,6 +58,8 @@ const fighters: Tool = {
   ],
   run({ w, t, names }, args) {
     const countries = [...new Set(w.boxers.map((b) => b.country))];
+    // a country nobody in the data is from is an answer ("no one"), not a filter to drop: dropping it would list everyone and look like an answer
+    if (typeof args.country === "string" && args.country && !countries.includes(args.country)) return empty("fighters", args, t, t("No fighters in the data are from {country}.", { country: countryName(args.country, t.locale) }));
     const f: Filters = sanitizeFilters(args, countries);
     const all = applyFilters(w.boxers.filter((b) => b.bouts > 0), f, w, names);
     const top = all.slice(0, take(args));
