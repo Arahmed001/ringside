@@ -33,6 +33,8 @@ export interface Boxer {
   boxrecId: string | null;
   ibhofId: string | null; // International Boxing Hall of Fame path, e.g. "modern/leonardray"
   olympediaId: string | null;
+  /** The title of the fighter's English Wikipedia article (a link, never copied text), when Wikidata says there is one. */
+  wikipediaTitle: string | null;
   aliases: string[];
   debutDate: string | null;
   retiredDate: string | null;

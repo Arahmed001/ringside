@@ -76,6 +76,7 @@ A running app notices the change by itself: its next request rebuilds the in-mem
 
 ## 4. Check the result (once, by hand)
 
+- [ ] After the load, with the same `DATABASE_PATH` and `WIKIMEDIA_CONTACT` as the Wikidata staging: `npm run wikidata:import -- --extras-only` (once, if the staging was done before Arabic names were read), `npm run wikidata:import -- --enrich`, `npm run champions:import -- --link-only`, then `npm run media:resolve`. The enrichment line reports how many Arabic names, nicknames and article links it added.
 - [ ] Fighter, fight and event counts match what `--plan`/`--check` reported.
 - [ ] Ten fighters you know: record, age, reach, division and last fight are right. The fighter record counts from the fights loaded, so a fighter whose early career is missing from the feed has a short record; compare with the vendor's own career totals (`stats` on each fighter record, kept in the cache).
 - [ ] The rankings at the top of the heaviest and lightest divisions are people you would expect.

@@ -94,7 +94,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
     photoCredit: r.photo_credit ? (JSON.parse(r.photo_credit as string) as Boxer["photoCredit"]) : null,
     birthDate: (r.birth_date as string) ?? null, birthPlace: (r.birth_place as string) ?? null, residence: (r.residence as string) ?? null,
     wikidataId: (r.wikidata_id as string) ?? null, boxrecId: (r.boxrec_id as string) ?? null,
-    ibhofId: (r.ibhof_id as string) ?? null, olympediaId: (r.olympedia_id as string) ?? null,
+    ibhofId: (r.ibhof_id as string) ?? null, olympediaId: (r.olympedia_id as string) ?? null, wikipediaTitle: (r.wikipedia_title as string) ?? null,
     aliases: r.aliases ? (JSON.parse(r.aliases as string) as string[]) : [],
     debutDate: (r.debut_date as string) ?? null, retiredDate: (r.retired_date as string) ?? null,
   }));

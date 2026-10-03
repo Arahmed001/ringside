@@ -11574,6 +11574,12 @@
   ]
  },
  {
+  "key": "Wikipedia",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Win chance",
   "files": [
    "lib/ask/tools.ts"
