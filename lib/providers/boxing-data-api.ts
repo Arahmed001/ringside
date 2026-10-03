@@ -36,11 +36,11 @@ export interface ApiFight {
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
   | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter"
-  | "scheduleUnavailable" | "birthYearFromAge" | "birthYearUnknown" | "turnedProFromFirstFight" | "physicalsImputed" | "stanceDefaulted" | "locationUnparsed" | "divisionUnknown",
+  | "scheduleUnavailable" | "upcomingUnavailable" | "birthYearFromAge" | "birthYearUnknown" | "turnedProFromFirstFight" | "physicalsImputed" | "stanceDefaulted" | "locationUnparsed" | "divisionUnknown",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, scheduleUnavailable: 0,
+  ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearFromAge: 0, birthYearUnknown: 0, turnedProFromFirstFight: 0, physicalsImputed: 0, stanceDefaulted: 0, locationUnparsed: 0, divisionUnknown: 0,
 });
 
@@ -159,6 +159,7 @@ export function finishBoxers(rows: Loose[], bouts: ProviderBout[], eventDates: M
 }
 
 // ---- the client ----
+const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * 86400000).toISOString().slice(0, 10);
 export class BudgetError extends Error {}
 /** An HTTP failure from the API, with the status so the caller can tell "not on your plan" from "broken". The message carries the vendor's own explanation. */
 export class HttpError extends Error { constructor(message: string, readonly status: number) { super(message); } }
@@ -224,15 +225,22 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
         if (page >= total || !(r.data ?? []).length) break;
       }
     };
-    await collect("/v2/fights/", { date_from: o.since, date_sort: "DESC" }, limit);
+    // the API rejects date_from without date_to ("InvalidDateRange"), so a start date always comes with an end
+    await collect("/v2/fights/", { date_from: o.since, date_to: o.since ? todayIso() : undefined, date_sort: "DESC" }, limit);
     if (o.scheduleDays !== 0) {
       try { await collect("/v2/fights/schedule", { days: o.scheduleDays ?? 60, date_sort: "ASC" }, limit); }
       catch (e) {
         // some plans do not include the schedule endpoint: the coming fights are then asked for from the list endpoint, from today on
         if (!(e instanceof HttpError) || (e.status !== 403 && e.status !== 404)) throw e;
         notes.scheduleUnavailable++;
-        log(`schedule endpoint refused (${e.message}); asking the list endpoint for fights from today on`);
-        await collect("/v2/fights/", { date_from: todayIso(), date_sort: "ASC" }, limit);
+        log(`schedule endpoint refused (${e.message}); asking the list endpoint for the coming ${o.scheduleDays ?? 60} days`);
+        try { await collect("/v2/fights/", { date_from: todayIso(), date_to: addDays(todayIso(), o.scheduleDays ?? 60), date_sort: "ASC" }, limit); }
+        catch (e2) {
+          // a plan whose allowed date range stops at today cannot see coming fights at all: keep what history it gives, say so, and count it
+          if (!(e2 instanceof HttpError) || ![400, 403, 404].includes(e2.status)) throw e2;
+          notes.upcomingUnavailable++;
+          log(`no coming fights available on this plan (${e2.message}); loading history only`);
+        }
       }
     }
     log(`fights: ${bouts.length}, events: ${events.size}, fighters to fetch: ${ids.size}`);

@@ -156,7 +156,9 @@ const env = <T>(data: T, extra: object = {}) => ({ metadata: {}, pagination: { p
 const FIGHTERS: Record<string, B.ApiFighter> = { A1: fighter("A1", "Alpha One"), B1: fighter("B1", "Bravo One", { stance: "southpaw", age: 31 }), C1: fighter("C1", "Charlie One", { height_cm: null, reach_cm: null }) };
 const FIGHTS = [fight("1", "A1", "B1"), fight("2", "A1", "C1", { date: "2025-03-01T20:00:00Z", event: { id: "ev-2", title: "Spring Card", date: "2025-03-01T20:00:00Z", location: "London, United Kingdom", venue: "The O2" } })];
 const UPCOMING = fight("3", "B1", "C1", { status: "NOT_STARTED", date: "2026-11-14T20:00:00Z", results: { outcome: null, round: null }, event: { id: "ev-3", title: "Winter Night", date: "2026-11-14T20:00:00Z", location: "Manchester, United Kingdom", venue: "AO Arena" }, fighters: { fighter_1: side("B1", false), fighter_2: side("C1", false) } });
-const standard: Handler = (path) => {
+const standard: Handler = (path, q) => {
+  // the real API refuses a start date without an end date
+  if (q?.get("date_from") && !q.get("date_to")) return { status: 400, body: { code: "InvalidDateRange", message: "date_from must be earlier than or equal to date_to and in format YYYY-MM-DD" } };
   if (path === "/v2/fights/") return { body: env(FIGHTS) };
   if (path === "/v2/fights/schedule") return { body: env([UPCOMING, FIGHTS[1]]) }; // FIGHTS[1] is in both lists
   const m = path.match(/^\/v2\/fighters\/(.+)$/);
@@ -282,7 +284,7 @@ test("a refusal says why: the vendor's message is in the error (with the key scr
 test("a plan without the schedule endpoint still loads: the coming fights are asked for from the list, from today on, and it is counted", async () => {
   const asked: string[] = [];
   const { impl } = mockFetch((path, q) => {
-    asked.push(`${path}${q.get("date_from") ? `?from=${q.get("date_from")}&sort=${q.get("date_sort")}` : ""}`);
+    asked.push(`${path}${q.get("date_from") ? `?from=${q.get("date_from")}&to=${q.get("date_to")}&sort=${q.get("date_sort")}` : ""}`);
     if (path === "/v2/fights/schedule") return { status: 403, body: { message: "This endpoint is not included in your plan." } };
     if (path === "/v2/fights/" && q.get("date_from") === "2026-10-03") return { body: env([UPCOMING]) };
     return standard(path, q);
@@ -292,7 +294,7 @@ test("a plan without the schedule endpoint still loads: the coming fights are as
   const bouts = await p.fetchBouts();
   assert.ok(bouts.some((b) => b.externalId === "bda-b-3"), "the upcoming fight arrived by the fallback");
   assert.equal(p.notes().scheduleUnavailable, 1);
-  assert.deepEqual(asked.filter((a) => a !== "/v2/fights/" && !a.startsWith("/v2/fighters/")), ["/v2/fights/schedule", "/v2/fights/?from=2026-10-03&sort=ASC"]);
+  assert.deepEqual(asked.filter((a) => a !== "/v2/fights/" && !a.startsWith("/v2/fighters/")), ["/v2/fights/schedule", "/v2/fights/?from=2026-10-03&to=2026-12-02&sort=ASC"]);
   assert.ok(logs.some((l) => /schedule endpoint refused \(.*not included in your plan/.test(l)), "and the reason is shown");
   // a server error is NOT a missing plan: it must stay loud
   const broken = mockFetch((path, q) => (path === "/v2/fights/schedule" ? { status: 500, body: {} } : standard(path, q)));
@@ -314,4 +316,36 @@ test("raw responses can be kept for offline fixes: one file per request, nothing
   await B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: mockFetch(standard).impl }).fetchBouts();
   assert.deepEqual(fs.readdirSync(none), [], "off by default");
   fs.rmSync(dir, { recursive: true, force: true }); fs.rmSync(none, { recursive: true, force: true });
+});
+
+test("a start date always travels with an end date, as the API requires; the real refusals from the first free-tier run are handled", async () => {
+  const sent: string[] = [];
+  const { impl } = mockFetch((path, q) => { if (path === "/v2/fights/") sent.push(`${q.get("date_from")}..${q.get("date_to")}`); return standard(path, q); });
+  await B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0, since: "2025-01-01" }).fetchBouts();
+  assert.deepEqual(sent, ["2025-01-01..2026-10-03"], "since -> date_from, with date_to today");
+  sent.length = 0;
+  await B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0 }).fetchBouts();
+  assert.deepEqual(sent, ["null..null"], "no dates asked for when none are wanted");
+
+  // what the free plan actually answered: the schedule is outside the allowed range, and so is the future in the list
+  const free = mockFetch((path, q) => {
+    if (path === "/v2/fights/schedule" || (path === "/v2/fights/" && q.get("date_from"))) return { status: 403, body: { code: "DateOutOfRange", message: "Requested date is outside your subscription's allowed date range" } };
+    return standard(path, q);
+  });
+  const logs: string[] = [];
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: free.impl, log: (m) => logs.push(m) });
+  const bouts = await p.fetchBouts();
+  assert.ok(bouts.length >= 2, "the history it is allowed to see still loads");
+  assert.equal(p.notes().scheduleUnavailable, 1); assert.equal(p.notes().upcomingUnavailable, 1);
+  assert.ok(logs.some((l) => /no coming fights available on this plan \(.*allowed date range/.test(l)), "and the reason is shown");
+  // a broken server in the fallback is NOT "no coming fights on this plan": it stays loud
+  const broken = mockFetch((path, q) => {
+    if (path === "/v2/fights/schedule") return { status: 403, body: { message: "not on your plan" } };
+    if (path === "/v2/fights/" && q.get("date_from")) return { status: 500, body: {} };
+    return standard(path, q);
+  });
+  await assert.rejects(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: broken.impl }).fetchBouts(), /500 on \/v2\/fights\//);
+  // but a refusal of the HISTORY itself is not hidden: the sample would otherwise look fine and be empty
+  const noHistory = mockFetch(() => ({ status: 403, body: { code: "DateOutOfRange", message: "Requested date is outside your subscription's allowed date range" } }));
+  await assert.rejects(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: noHistory.impl, since: "1990-01-01" }).fetchBouts(), /allowed date range/);
 });

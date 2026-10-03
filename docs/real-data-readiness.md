@@ -30,6 +30,12 @@ Look at the printed list of approximations and the validator's findings, then op
 | `fighter_1` is the red corner | `mapFight` | The feed has no corner colours; the choice only affects which side is labelled red, and a 50% call counts as red |
 | `/v2/fights/` also returns future fights, or only `/schedule` does | `load()` | Handled either way (deduplicated by id), but check upcoming fights actually arrive |
 
+## What the first free-tier run showed (2026-10-03)
+
+- The key and the plain list call (`/v2/fights/`, no dates) work.
+- **The free plan has an allowed date range.** `/v2/fights/schedule` answered `403 DateOutOfRange`. So on the free plan the coming fights may not be visible at all; confirm on the pricing page which plan's range includes them.
+- **A start date needs an end date.** The API answers `400 InvalidDateRange` to `date_from` without `date_to`; the adapter now always sends both.
+
 ## What the feed does not say, and what the adapter does about it
 
 Every approximation is counted. In a healthy feed these counts are small; a big one means look before trusting.
@@ -43,6 +49,7 @@ Every approximation is counted. In a healthy feed these counts are small; a big 
 | `ptsAsUnanimousDecision` | `PTS` is "points", not a decision type | `UD`, which claims unanimity the feed did not | Acceptable for ratings, wrong on a bout page's wording; consider a neutral "decision" method |
 | `drawInferred` / `resultMissing` | No draw value | See the table above | Check the sample |
 | `scheduleUnavailable` | The `/v2/fights/schedule` endpoint was refused (403/404), as it can be on a plan that does not include it | The coming fights are asked for from the list endpoint instead (from today on, soonest first) | Check upcoming fights still arrive; the refusal's own message is shown in the log |
+| `upcomingUnavailable` | Both the schedule endpoint and a date-ranged list were refused (the first free-tier run answered `403 DateOutOfRange: Requested date is outside your subscription's allowed date range`) | History only; no coming fights | **Important for the live ledger, which needs coming fights to predict.** Find out which plan includes them before paying for backfill |
 | `liveTreatedAsUpcoming` | `LIVE` fights | Treated as not yet decided | Fine |
 | `fightsSkipped` | A fight with no date or fewer than two fighters | Skipped | Check the count |
 | `boutsDroppedUnknownFighter` | A fighter's record could not be fetched | The bouts involving them are dropped, not stored with a hole | Re-run; a persistent one is a data gap |
