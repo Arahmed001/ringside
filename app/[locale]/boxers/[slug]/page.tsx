@@ -4,6 +4,7 @@ import { abs } from "@/lib/seo";
 import { JsonLd } from "@/components/JsonLd";
 import { CareerMoneyCard } from "@/components/Money";
 import { TitlesCard, NextFightCard } from "@/components/TitlesCard";
+import { BoxerRecords } from "@/components/Awards";
 import { notFound } from "next/navigation";
 import { getWorld, recordStr } from "@/lib/world";
 import { rankOf } from "@/lib/rankings";
@@ -163,6 +164,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
               }</dd></div>
             )}
           </dl>
+          <BoxerRecords w={w} boxerId={b.id} />
           {honours.length > 0 && (
             <div className="mt-4 border-t border-line/60 pt-3">
               <div className="eyebrow mb-2">{t("Honours")}</div>

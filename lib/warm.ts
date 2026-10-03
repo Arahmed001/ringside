@@ -1,5 +1,6 @@
 import { nowMs } from "./clock";
 import { getWorld } from "./world";
+import { featuredYear, fightsOfYear } from "./fight-score";
 
 const DAY = 86_400_000;
 /** Milliseconds from `now` to just after the next UTC midnight (the app's day is the UTC date; see clock.ts). */
@@ -7,13 +8,16 @@ export const msUntilNextDay = (now: number, slackMs = 5_000): number => DAY - (n
 
 /**
  * Builds the in-memory world (and seeds an empty database) so the first visitor doesn't pay for it: about 0.1 s at the
- * demo size, 3.7 s at 160,000 bouts. Callers that arrive while it is building share the same build (lib/world.ts).
+ * demo size, 3.7 s at 160,000 bouts, plus the fight-of-the-year scores the home page shows. Callers that arrive while it is building share the same build (lib/world.ts).
  */
 export async function warmWorld(log: (m: string) => void = console.log): Promise<void> {
   const t0 = performance.now();
   try {
     const w = await getWorld();
     log(`[ringside] world ready in ${Math.round(performance.now() - t0)} ms: ${w.boxers.length} fighters, ${w.bouts.length} bouts`);
+    // the home page shows the fight of the year, which needs the punch totals and one year scored (about 0.5 s at 160,000 bouts)
+    const y = featuredYear(w);
+    if (y) fightsOfYear(w, y);
   } catch (e) {
     // never keep the server from starting: the first request will try again and show the real error
     log(`[ringside] warm-up failed (${e instanceof Error ? e.message : String(e)}); the first request will retry`);

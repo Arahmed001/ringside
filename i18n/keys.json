@@ -13,6 +13,12 @@
   ]
  },
  {
+  "key": "“All-time” means the fights in this data: {bouts} bouts from {from} to {to}. Earlier careers are not counted.",
+  "files": [
+   "app/[locale]/all-time/page.tsx"
+  ]
+ },
+ {
   "key": "“C” marks the top-rated fighter in the division, not an official sanctioning-body champion.",
   "files": [
    "app/[locale]/rankings/page.tsx"
@@ -40,6 +46,24 @@
   "key": "{a} {pa}, {b} {pb}",
   "files": [
    "components/ChartI18n.tsx"
+  ]
+ },
+ {
+  "key": "{a} and {b}",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
+  "key": "{a} and {b} drew · {division}",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "{a} beat {b} · {division}",
+  "files": [
+   "lib/fight-score.ts"
   ]
  },
  {
@@ -217,6 +241,12 @@
   ]
  },
  {
+  "key": "{kos} knockouts in {wins} wins",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "{label} · R{round}: {pct}% of finishes",
   "files": [
    "components/ChartI18n.tsx"
@@ -304,7 +334,8 @@
   "key": "{n} days",
   "plural": "{n} day",
   "files": [
-   "app/[locale]/titles/[slug]/page.tsx"
+   "app/[locale]/titles/[slug]/page.tsx",
+   "lib/records.ts"
   ]
  },
  {
@@ -314,7 +345,8 @@
    "app/[locale]/titles/[slug]/page.tsx",
    "app/[locale]/titles/page.tsx",
    "components/ReignTimeline.tsx",
-   "components/TitlesCard.tsx"
+   "components/TitlesCard.tsx",
+   "lib/records.ts"
   ]
  },
  {
@@ -383,7 +415,21 @@
   "key": "{n} fights",
   "plural": "{n} fight",
   "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "lib/records.ts"
+  ]
+ },
+ {
+  "key": "{n} fights of six rounds or more were scored.",
+  "files": [
+   "app/[locale]/fight-of-the-year/[year]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} knockdowns",
+  "plural": "{n} knockdown",
+  "files": [
+   "lib/fight-score.ts"
   ]
  },
  {
@@ -451,6 +497,13 @@
   ]
  },
  {
+  "key": "{n} points",
+  "plural": "{n} point",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "{n} pts",
   "files": [
    "components/MatchupLab.tsx"
@@ -460,6 +513,12 @@
   "key": "{n} pts for {name} vs default",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "{n} punches landed per round between them, busier than {pct}% of fights",
+  "files": [
+   "lib/fight-score.ts"
   ]
  },
  {
@@ -488,7 +547,8 @@
   "plural": "{n} reign",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx",
-   "app/[locale]/titles/page.tsx"
+   "app/[locale]/titles/page.tsx",
+   "lib/records.ts"
   ]
  },
  {
@@ -544,6 +604,13 @@
   "plural": "{n} warning",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} wins",
+  "plural": "{n} win",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -766,6 +833,18 @@
   ]
  },
  {
+  "key": "{name} won after being knocked down",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "{name} won with only a {pct}% chance beforehand",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
   "key": "{name}: {division} boxer from {country}. Record {record} with {kos} KOs and a {rating} Elo rating. Fight history, team, weigh-ins and scouting report.",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -853,6 +932,12 @@
   ]
  },
  {
+  "key": "{result}. Fight score {score} out of 100. The top ten fights of {year} and why each scored as it did.",
+  "files": [
+   "app/[locale]/fight-of-the-year/[year]/page.tsx"
+  ]
+ },
+ {
   "key": "{standfirst} The model favours {name} at {pct}%.",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
@@ -901,9 +986,21 @@
   ]
  },
  {
+  "key": "{y} years, {d} days",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "#{rank} {division}",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "#{rank} fight of {year}",
+  "files": [
+   "components/Awards.tsx"
   ]
  },
  {
@@ -1076,9 +1173,27 @@
   ]
  },
  {
+  "key": "A dash means that part could not be worked out for this fight (no statistics or scorecards); the others were scaled up to cover it.",
+  "files": [
+   "components/Awards.tsx"
+  ]
+ },
+ {
+  "key": "A decision as close as the cards allow (a split decision or a draw is the closest), or a stoppage late in the scheduled distance.",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
   "key": "a draw",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "A draw after {n} rounds, with nothing to choose between them",
+  "files": [
+   "lib/fight-score.ts"
   ]
  },
  {
@@ -1097,6 +1212,12 @@
   "key": "A factor needs |z| of about 2 or more to count as signal. Fitted on rating, reach, age, layoff, knockout rate, KO losses, experience, usual rehydration, fight-night weight edge, new-trainer flag and the trainer's prior win rate. In this demo league the weigh-in and trainer effects were planted but are small, so they are not detectable at this sample size. That is the honest answer, and real data will say what is really there.",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "A legacy score from six things: the highest rating reached, wins over highly rated opponents, years as champion, title defences, the longest winning run, and honours. The weights are a judgment; each part is shown out of 100 on every row. Fighters with ten or more bouts.",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -1130,15 +1251,39 @@
   ]
  },
  {
+  "key": "A split decision: the judges scored it {cards}",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "A title fight: {title}",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
   "key": "A title fight: a champion against a top-5 contender",
   "files": [
    "lib/matchmaking.ts"
   ]
  },
  {
+  "key": "A title on the line. A world title, and a vacant one, count for most.",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
   "key": "A unification: champions of different bodies in the same division",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "A vacant title was decided: {title}",
+  "files": [
+   "lib/fight-score.ts"
   ]
  },
  {
@@ -1169,6 +1314,12 @@
   "key": "Across every division",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "Action",
+  "files": [
+   "lib/fight-score.ts"
   ]
  },
  {
@@ -1263,7 +1414,8 @@
   "key": "All divisions",
   "files": [
    "app/[locale]/boxers/page.tsx",
-   "app/[locale]/page.tsx"
+   "app/[locale]/page.tsx",
+   "components/RecordsFilter.tsx"
   ]
  },
  {
@@ -1282,6 +1434,21 @@
   "key": "All fighters",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "All-time",
+  "files": [
+   "app/[locale]/layout.tsx"
+  ]
+ },
+ {
+  "key": "All-time lists",
+  "files": [
+   "app/[locale]/all-time/[list]/page.tsx",
+   "app/[locale]/all-time/page.tsx",
+   "app/[locale]/fight-of-the-year/page.tsx",
+   "lib/search.ts"
   ]
  },
  {
@@ -1334,6 +1501,12 @@
   "key": "Any two fighters, any era",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "Apply",
+  "files": [
+   "components/RecordsFilter.tsx"
   ]
  },
  {
@@ -1473,6 +1646,13 @@
   ]
  },
  {
+  "key": "Awards",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx",
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
   "key": "B",
   "files": [
    "app/[locale]/compare/page.tsx"
@@ -1591,7 +1771,8 @@
  {
   "key": "Biggest upsets",
   "files": [
-   "app/[locale]/analytics/page.tsx"
+   "app/[locale]/analytics/page.tsx",
+   "lib/records.ts"
   ]
  },
  {
@@ -1640,6 +1821,19 @@
   "key": "Both are top-10 in the division (#{a} and #{b})",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "Both fighters went down: {n} knockdowns in all",
+  "plural": "Both fighters went down: {n} knockdown in all",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "Both fighters' knockdowns added together.",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -1867,6 +2061,12 @@
   ]
  },
  {
+  "key": "Champions in the most divisions",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "champions on record",
   "files": [
    "app/[locale]/titles/page.tsx"
@@ -1888,6 +2088,12 @@
   "key": "Chin",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Classic",
+  "files": [
+   "lib/fight-score.ts"
   ]
  },
  {
@@ -1938,6 +2144,12 @@
   "key": "Combined record",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Comeback",
+  "files": [
+   "lib/fight-score.ts"
   ]
  },
  {
@@ -2180,6 +2392,12 @@
   ]
  },
  {
+  "key": "Days as champion of one belt in one reign. A reign that is still running counts up to today.",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "decided or drawn",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
@@ -2195,6 +2413,12 @@
   "key": "decisions only",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "defences",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -2225,6 +2449,12 @@
   "key": "Different sexes: boxing does not make this fight",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "Different weight divisions in which a fighter has been champion of a belt.",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -2263,6 +2493,7 @@
   "key": "Division",
   "files": [
    "app/[locale]/compare/page.tsx",
+   "components/RecordsFilter.tsx",
    "components/StyleMap.tsx"
   ]
  },
@@ -2452,6 +2683,12 @@
   ]
  },
  {
+  "key": "Evenly matched on the ratings ({a}% to {b}%), both highly rated",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
   "key": "Event not found",
   "files": [
    "app/[locale]/events/[id]/opengraph-image.tsx"
@@ -2494,6 +2731,12 @@
   "key": "Every division ranked by Elo-style rating. Active fighters with five or more bouts, a winning record and a fight in the last 24 months qualify. Arrows show movement over the last 90 days.",
   "files": [
    "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "Every fight of {n} rounds or more gets a score from 0 to 100 worked out from what is on record, and the highest score each year wins. There is no panel and no fan vote: the score is the whole argument, and every fight shows how it earned it.",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
   ]
  },
  {
@@ -2552,9 +2795,16 @@
   ]
  },
  {
+  "key": "Every year",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
   "key": "Everyone",
   "files": [
-   "app/[locale]/boxers/page.tsx"
+   "app/[locale]/boxers/page.tsx",
+   "components/RecordsFilter.tsx"
   ]
  },
  {
@@ -2595,6 +2845,12 @@
   ]
  },
  {
+  "key": "Fastest knockouts",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "Father Time",
   "files": [
    "components/MatchupLab.tsx"
@@ -2619,9 +2875,21 @@
   ]
  },
  {
+  "key": "Few fights score high: a typical fight scores about 25, a good one above 40, a great one above 55 and a classic above 70.",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
   "key": "Field coverage",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Fight",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
   ]
  },
  {
@@ -2675,6 +2943,36 @@
   ]
  },
  {
+  "key": "Fight of the year",
+  "files": [
+   "app/[locale]/all-time/page.tsx",
+   "app/[locale]/fight-of-the-year/[year]/page.tsx",
+   "app/[locale]/fight-of-the-year/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Fight of the year {year}",
+  "files": [
+   "app/[locale]/fight-of-the-year/[year]/page.tsx",
+   "app/[locale]/fight-of-the-year/page.tsx",
+   "app/[locale]/page.tsx",
+   "components/Awards.tsx"
+  ]
+ },
+ {
+  "key": "Fight of the year {year}: {a} vs {b}",
+  "files": [
+   "app/[locale]/fight-of-the-year/[year]/page.tsx"
+  ]
+ },
+ {
+  "key": "Fight of the year winners",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
   "key": "Fight predictor",
   "files": [
    "app/[locale]/compare/page.tsx"
@@ -2716,6 +3014,12 @@
    "app/[locale]/previews/[id]/page.tsx",
    "components/Matchmaking.tsx",
    "components/TitlesCard.tsx"
+  ]
+ },
+ {
+  "key": "Fight score out of 100: knockdowns, finish, action, matchup, upset, stakes and comebacks",
+  "files": [
+   "components/Awards.tsx"
   ]
  },
  {
@@ -2822,6 +3126,7 @@
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "lib/coverage.ts",
+   "lib/records.ts",
    "lib/search.ts"
   ]
  },
@@ -2862,9 +3167,21 @@
   ]
  },
  {
+  "key": "Fights",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "Fights to make right now",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "Filter the lists",
+  "files": [
+   "components/RecordsFilter.tsx"
   ]
  },
  {
@@ -2877,6 +3194,12 @@
   "key": "Find a fighter",
   "files": [
    "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "Finish",
+  "files": [
+   "lib/fight-score.ts"
   ]
  },
  {
@@ -2940,6 +3263,12 @@
   ]
  },
  {
+  "key": "From {bouts} bouts, {from} to {to}.",
+  "files": [
+   "app/[locale]/all-time/[list]/page.tsx"
+  ]
+ },
+ {
   "key": "From {first} to {last}, peak {peak}",
   "files": [
    "components/charts.tsx"
@@ -2967,6 +3296,7 @@
   "key": "Full bout details",
   "files": [
    "app/[locale]/events/[id]/page.tsx",
+   "components/Awards.tsx",
    "components/ui.tsx"
   ]
  },
@@ -3020,6 +3350,36 @@
   "key": "Gold bar = average probability the model gave; green tick = how often those fighters actually won.",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Good fight",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "Great fight",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "Greatest fights",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Greatest fights of all time",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
+  "key": "Greatest of all time",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -3161,6 +3521,18 @@
   ]
  },
  {
+  "key": "Highest knockout rate",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Highest peak rating",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "Highest purses",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -3176,6 +3548,12 @@
   "key": "holds {n} belts",
   "files": [
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "honours",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -3221,9 +3599,21 @@
   ]
  },
  {
+  "key": "How often either fighter went down. Both going down counts for more.",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
   "key": "How she wins",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "How the score works",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
   ]
  },
  {
@@ -3341,6 +3731,12 @@
   ]
  },
  {
+  "key": "Knockdowns",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
   "key": "Knockout",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -3381,6 +3777,12 @@
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "Knockouts and stoppages ended soonest after the opening bell.",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -3490,6 +3892,12 @@
   ]
  },
  {
+  "key": "Latest completed year",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
   "key": "Layoff",
   "files": [
    "lib/fit.ts"
@@ -3499,6 +3907,12 @@
   "key": "Leaderboards for trainers, managers, judges and referees: who trains, manages, scores and officiates, with dated team histories and results.",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Leading the year {year}",
+  "files": [
+   "app/[locale]/fight-of-the-year/[year]/page.tsx"
   ]
  },
  {
@@ -3670,9 +4084,21 @@
   ]
  },
  {
+  "key": "Longest title reigns",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "Longest win streaks",
   "files": [
    "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Longest winning run",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -3768,6 +4194,12 @@
   ]
  },
  {
+  "key": "Matchup",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
   "key": "Matchup lab",
   "files": [
    "app/[locale]/compare/page.tsx"
@@ -3790,10 +4222,12 @@
  {
   "key": "Men",
   "files": [
+   "app/[locale]/all-time/[list]/page.tsx",
    "app/[locale]/boxers/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "app/[locale]/rankings/page.tsx",
    "app/[locale]/titles/page.tsx",
+   "components/RecordsFilter.tsx",
    "lib/ai.ts"
   ]
  },
@@ -3883,6 +4317,12 @@
   ]
  },
  {
+  "key": "Money records",
+  "files": [
+   "app/[locale]/all-time/page.tsx"
+  ]
+ },
+ {
   "key": "Money rows with a source link",
   "files": [
    "lib/coverage.ts"
@@ -3907,6 +4347,12 @@
   ]
  },
  {
+  "key": "More lists",
+  "files": [
+   "app/[locale]/all-time/[list]/page.tsx"
+  ]
+ },
+ {
   "key": "More on this fight",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
@@ -3922,6 +4368,48 @@
   "key": "Most defences",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Most defences in a single reign",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Most knockdowns in a fight",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Most knockouts",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Most title defences",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Most title fight wins",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Most wins",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Most wins over top opposition",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -4092,6 +4580,12 @@
   ]
  },
  {
+  "key": "No single thing stood out; the score is a little of everything.",
+  "files": [
+   "components/Awards.tsx"
+  ]
+ },
+ {
   "key": "No team history on record yet.",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -4125,6 +4619,13 @@
   "key": "Nobody matches that. Loosen a filter or try a different phrasing.",
   "files": [
    "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "Nobody qualifies in this data.",
+  "files": [
+   "app/[locale]/all-time/[list]/page.tsx",
+   "app/[locale]/all-time/page.tsx"
   ]
  },
  {
@@ -4345,6 +4846,12 @@
   ]
  },
  {
+  "key": "Other years",
+  "files": [
+   "app/[locale]/fight-of-the-year/[year]/page.tsx"
+  ]
+ },
+ {
   "key": "otherwise a generated portrait",
   "files": [
    "lib/coverage.ts"
@@ -4396,6 +4903,12 @@
   "key": "Pay-per-view",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "peak",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -4735,6 +5248,12 @@
   ]
  },
  {
+  "key": "Punches landed per round by both fighters compared with every other fight that has statistics, and how evenly they traded.",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
   "key": "Punching power",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -4777,6 +5296,12 @@
   "key": "Rated {elo} Elo, currently #{rank} among all {division} fighters in the database.{streak}",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "rated {winner} beat {loser}",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -4922,7 +5447,14 @@
  {
   "key": "Records",
   "files": [
+   "app/[locale]/all-time/page.tsx",
    "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Records and awards",
+  "files": [
+   "components/Awards.tsx"
   ]
  },
  {
@@ -4960,6 +5492,12 @@
   ]
  },
  {
+  "key": "reigns",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "Reigns",
   "files": [
    "app/[locale]/titles/page.tsx"
@@ -4992,6 +5530,7 @@
  {
   "key": "Result",
   "files": [
+   "app/[locale]/fight-of-the-year/page.tsx",
    "app/[locale]/weights/page.tsx"
   ]
  },
@@ -5005,6 +5544,12 @@
   "key": "Results only: ignore everything else",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "retired",
+  "files": [
+   "components/RecordRows.tsx"
   ]
  },
  {
@@ -5039,6 +5584,12 @@
   ]
  },
  {
+  "key": "round {r}",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "Round {r}",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -5063,6 +5614,12 @@
   ]
  },
  {
+  "key": "Routine",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
   "key": "RTD",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -5072,6 +5629,18 @@
   "key": "rule-based parser",
   "files": [
    "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "run",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Runners-up",
+  "files": [
+   "app/[locale]/fight-of-the-year/[year]/page.tsx"
   ]
  },
  {
@@ -5121,6 +5690,12 @@
   "key": "scheduled",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Score",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
   ]
  },
  {
@@ -5218,6 +5793,12 @@
   "key": "Selected features",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Seven parts, each from 0 to 1, added up with these weights. A part that cannot be worked out for a fight (no scorecards, no punch statistics) is left out and the rest scaled up, so missing data never counts against a fight. The weights are our judgment of what makes a great fight; nothing was fitted to votes.",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
   ]
  },
  {
@@ -5348,9 +5929,21 @@
   ]
  },
  {
+  "key": "so far",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
   "key": "sold out · capacity {n}",
   "files": [
    "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Solid",
+  "files": [
+   "lib/fight-score.ts"
   ]
  },
  {
@@ -5420,6 +6013,12 @@
   ]
  },
  {
+  "key": "Stakes",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
   "key": "Stance",
   "files": [
    "app/[locale]/compare/page.tsx",
@@ -5461,6 +6060,12 @@
   "files": [
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Stopped in round {r} of {n}",
+  "files": [
+   "lib/fight-score.ts"
   ]
  },
  {
@@ -5527,6 +6132,12 @@
   "key": "subscription TV",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Successful defences added up over every reign.",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -5675,6 +6286,18 @@
   ]
  },
  {
+  "key": "The best fight of every year, picked by a published score: knockdowns, a close or late finish, action, evenly matched fighters, upsets, stakes and comebacks. See why each fight won.",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
+  "key": "The best rating anyone reached, after any fight. Ratings are Elo-style and unofficial.",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "The biggest factor is {factor}: {note}.",
   "files": [
    "lib/preview.ts"
@@ -5693,15 +6316,51 @@
   ]
  },
  {
+  "key": "The current year can still change until its last fight. The numbers of fights considered: {counts}.",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
   "key": "The fight calendar: upcoming cards with their main events and win probabilities, plus recent results and how each main event ended.",
   "files": [
    "app/[locale]/events/page.tsx"
   ]
  },
  {
+  "key": "The fighter the ratings did not favour won.",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
   "key": "The fights worth making right now, who any fighter should face next, and a dream-fight builder. Every pairing is scored on how close, relevant, entertaining, bookable, fresh and meaningful it would be.",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "The full top ten",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
+  "key": "The greatest fighters, longest title reigns, biggest upsets, fastest knockouts and best fights in the Ringside data, each with how it is worked out. Filter by division and sex.",
+  "files": [
+   "app/[locale]/all-time/page.tsx"
+  ]
+ },
+ {
+  "key": "The highest fight scores in the data: knockdowns, a close or late finish, plenty of action, evenly matched fighters, an upset, a title on the line, a comeback. The same score that picks each year's fight of the year.",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
+  "key": "The largest rating gaps overcome by the winner, using each fighter's rating going into the fight.",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -5714,6 +6373,12 @@
   "key": "The line of champions for one belt.",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "The longest chain of defences without losing the belt.",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -5766,6 +6431,12 @@
   ]
  },
  {
+  "key": "The most wins in a row at any point in a career. Draws and no-contests do not break a run; a loss does.",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "The numbers do not favour either side on this point.",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
@@ -5790,6 +6461,18 @@
   ]
  },
  {
+  "key": "The score, part by part",
+  "files": [
+   "components/Awards.tsx"
+  ]
+ },
+ {
+  "key": "The share of wins that ended early. Fighters with at least 15 wins.",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "The site's default predictions use the fitted rating scale (<b>{scale}</b> a plain Elo expectation); the fit found ratings are compressed relative to true skill gaps in this league.",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -5805,6 +6488,18 @@
   "key": "The vacant {belt} is on the line.",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "The winner was knocked down along the way.",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
+  "key": "The year so far: {n} fights of six rounds or more scored. This can still change.",
+  "files": [
+   "app/[locale]/fight-of-the-year/[year]/page.tsx"
   ]
  },
  {
@@ -5896,6 +6591,7 @@
  {
   "key": "Title lineages",
   "files": [
+   "app/[locale]/all-time/page.tsx",
    "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
    "app/[locale]/titles/[slug]/page.tsx",
@@ -5916,7 +6612,8 @@
   "files": [
    "app/[locale]/layout.tsx",
    "app/[locale]/people/page.tsx",
-   "components/TitlesCard.tsx"
+   "components/TitlesCard.tsx",
+   "lib/records.ts"
   ]
  },
  {
@@ -5963,6 +6660,18 @@
   ]
  },
  {
+  "key": "Top 25",
+  "files": [
+   "app/[locale]/all-time/page.tsx"
+  ]
+ },
+ {
+  "key": "Top 5 of each",
+  "files": [
+   "app/[locale]/all-time/page.tsx"
+  ]
+ },
+ {
   "key": "Top earners",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -5978,6 +6687,12 @@
   "key": "Top rated",
   "files": [
    "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "top wins",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -6055,6 +6770,12 @@
   ]
  },
  {
+  "key": "Two evenly matched fighters, both highly rated going in.",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
   "key": "Type",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -6127,6 +6848,12 @@
   ]
  },
  {
+  "key": "Upset",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
   "key": "Upset of the year",
   "files": [
    "app/[locale]/page.tsx"
@@ -6172,7 +6899,11 @@
   "key": "vs",
   "files": [
    "app/[locale]/compare/page.tsx",
-   "app/[locale]/people/page.tsx"
+   "app/[locale]/fight-of-the-year/page.tsx",
+   "app/[locale]/page.tsx",
+   "app/[locale]/people/page.tsx",
+   "components/Awards.tsx",
+   "components/RecordRows.tsx"
   ]
  },
  {
@@ -6185,6 +6916,7 @@
    "app/[locale]/page.tsx",
    "app/[locale]/previews/[id]/page.tsx",
    "app/[locale]/previews/page.tsx",
+   "components/Awards.tsx",
    "components/Matchmaking.tsx",
    "components/Poster.tsx"
   ]
@@ -6363,6 +7095,18 @@
   ]
  },
  {
+  "key": "Who",
+  "files": [
+   "components/RecordsFilter.tsx"
+  ]
+ },
+ {
+  "key": "Who has done the most, in every way that can be counted from the fights on record. Each list says how it is worked out, and the scored ones show their parts.",
+  "files": [
+   "app/[locale]/all-time/page.tsx"
+  ]
+ },
+ {
   "key": "Who holds every belt in every division, and the full line of champions behind it: reigns, title defences, who beat whom for the belt, and how long each champion lasted.",
   "files": [
    "app/[locale]/titles/page.tsx"
@@ -6403,6 +7147,18 @@
   "key": "Why it might never happen",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "Why it scored this way",
+  "files": [
+   "components/Awards.tsx"
+  ]
+ },
+ {
+  "key": "Why it won",
+  "files": [
+   "app/[locale]/page.tsx"
   ]
  },
  {
@@ -6460,6 +7216,12 @@
   ]
  },
  {
+  "key": "Winner",
+  "files": [
+   "components/Awards.tsx"
+  ]
+ },
+ {
   "key": "WINNER",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -6475,6 +7237,12 @@
   "key": "Winner of the most recent title fight",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Winners",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
   ]
  },
  {
@@ -6497,9 +7265,33 @@
   ]
  },
  {
+  "key": "Wins by knockout, technical knockout or corner retirement.",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
   "key": "wins by the champion",
   "files": [
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Wins in fights with a title on the line, defences and challenges alike.",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Wins on record, by any method.",
+  "files": [
+   "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Wins over opponents who were rated 1600 or higher going into the fight.",
+  "files": [
+   "lib/records.ts"
   ]
  },
  {
@@ -6518,10 +7310,12 @@
  {
   "key": "Women",
   "files": [
+   "app/[locale]/all-time/[list]/page.tsx",
    "app/[locale]/boxers/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "app/[locale]/rankings/page.tsx",
    "app/[locale]/titles/page.tsx",
+   "components/RecordsFilter.tsx",
    "lib/ai.ts"
   ]
  },
@@ -6562,6 +7356,12 @@
   ]
  },
  {
+  "key": "Won on the cards by {margin} points on average",
+  "files": [
+   "lib/fight-score.ts"
+  ]
+ },
+ {
   "key": "Won the belt",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
@@ -6571,6 +7371,12 @@
   "key": "Won the vacant belt",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Year",
+  "files": [
+   "app/[locale]/fight-of-the-year/page.tsx"
   ]
  },
  {

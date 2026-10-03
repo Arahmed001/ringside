@@ -5,6 +5,9 @@ import { currentYear, todayIso } from "./clock";
 import { countsInRecord, isStoppage } from "./methods";
 import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, Honour, Venue, EventFinancials, EventRow, Purse, Method, Official, Org, Person, Scorecard, Status, TeamStint, WeighIn } from "./types";
 
+/** Punches over a whole bout, one entry per fighter (in the order the rows were stored; match by `boxers`). */
+export interface PunchTotals { boxers: number[]; landed: number[]; thrown: number[]; /** rounds with their own rows; 0 when the feed only has a whole-fight total */ rounds: number }
+
 export interface World {
   today: string;
   boxers: BoxerFull[];
@@ -40,6 +43,8 @@ export interface World {
   earningsByBoxer: Map<number, Earning[]>;
   venueOf: (e: { venue: string; city: string }) => Venue | null; // only venues verified on Wikidata
   honoursByBoxer: Map<number, Honour[]>; // hall of fame first, then awards, then titles; each by year
+  /** Whole-bout punch totals, read from punch_stats the first time something asks (about 1 s at 160k bouts, so not part of the build). */
+  punchTotals: () => Map<number, PunchTotals>;
 }
 
 const g = globalThis as unknown as { __world?: World; __worldKey?: string };
@@ -240,6 +245,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
   });
 
   applyFittedWeights();
+  let punchTotals: Map<number, PunchTotals> | null = null;
   g.__worldKey = key;
   g.__world = {
     today, boxers, byId: new Map(boxers.map((b) => [b.id, b])), bySlug: new Map(boxers.map((b) => [b.slug, b])),
@@ -248,6 +254,21 @@ function buildWorld(db: DatabaseSync, key: string): World {
     orgs, orgsBySlug: new Map([...orgs.values()].map((o) => [o.slug, o])),
     stints, stintsByBoxer, stintsByPerson, stintsByOrg, weighInsByBout, weighInsByBoxer, officialsByBout, officialsByPerson, scorecardsByBout, cornersByBout,
     financialsByEvent, pursesByBout, pursesByBoxer, broadcastsByEvent, earningsByBoxer, honoursByBoxer, venueOf,
+    punchTotals: () => {
+      if (punchTotals) return punchTotals;
+      punchTotals = new Map();
+      // round 0 is the whole-fight total when a feed has one; otherwise the rounds are added up
+      const rows = db.prepare(`SELECT bout_id, boxer_id,
+          SUM(CASE WHEN round = 0 THEN landed END) AS l0, SUM(CASE WHEN round = 0 THEN thrown END) AS t0,
+          SUM(CASE WHEN round > 0 THEN landed END) AS lr, SUM(CASE WHEN round > 0 THEN thrown END) AS tr,
+          COUNT(CASE WHEN round > 0 THEN 1 END) AS r
+        FROM punch_stats GROUP BY bout_id, boxer_id`).all() as { bout_id: number; boxer_id: number; l0: number | null; t0: number | null; lr: number | null; tr: number | null; r: number }[];
+      for (const r of rows) {
+        const e = punchTotals.get(r.bout_id) ?? punchTotals.set(r.bout_id, { boxers: [], landed: [], thrown: [], rounds: 0 }).get(r.bout_id)!;
+        e.boxers.push(r.boxer_id); e.landed.push(r.l0 ?? r.lr ?? 0); e.thrown.push(r.t0 ?? r.tr ?? 0); e.rounds = Math.max(e.rounds, r.r);
+      }
+      return punchTotals;
+    },
   };
   return g.__world;
 }
