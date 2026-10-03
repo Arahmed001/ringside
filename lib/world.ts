@@ -4,7 +4,7 @@ import { applyFittedWeights } from "./model-fit";
 import { snapshotUpcomingSafe } from "./ledger";
 import { currentYear, todayIso } from "./clock";
 import { countsInRecord, isStoppage } from "./methods";
-import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, Honour, TitleReign, Venue, EventFinancials, EventRow, Purse, Method, Official, Org, Person, Scorecard, Status, TeamStint, WeighIn } from "./types";
+import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, Honour, TitleReign, Venue, EventFinancials, EventRow, Purse, Method, Official, Org, Person, Picture, Scorecard, Status, TeamStint, WeighIn } from "./types";
 
 /** Punches over a whole bout, one entry per fighter (in the order the rows were stored; match by `boxers`). */
 export interface PunchTotals { boxers: number[]; landed: number[]; thrown: number[]; /** rounds with their own rows; 0 when the feed only has a whole-fight total */ rounds: number }
@@ -43,6 +43,11 @@ export interface World {
   broadcastsByEvent: Map<number, Broadcast[]>;
   earningsByBoxer: Map<number, Earning[]>;
   venueOf: (e: { venue: string; city: string }) => Venue | null; // only venues verified on Wikidata
+  /** a sanctioning body's belt (by code: WBA, WBC, IBF, WBO) and an organisation's logo (by org id), where a free-licensed one was found */
+  beltPicture: (code: string) => Picture | null;
+  orgLogo: (orgId: number) => Picture | null;
+  /** every picture of those three kinds, for the list of outside hosts the privacy page declares */
+  pictureList: Picture[];
   reignsByBoxer: Map<number, TitleReign[]>; // linked reigns only, by start
   honoursByBoxer: Map<number, Honour[]>; // hall of fame first, then awards, then titles; each by year
   /** Whole-bout punch totals, read from punch_stats the first time something asks (about 1 s at 160k bouts, so not part of the build). */
@@ -206,9 +211,15 @@ function buildWorld(db: DatabaseSync, key: string): World {
   for (const r of db.prepare("SELECT * FROM title_reigns WHERE boxer_id IS NOT NULL ORDER BY start_date, org, division").all() as Record<string, unknown>[])
     push(reignsByBoxer, r.boxer_id as number, { boxerId: r.boxer_id as number, org: r.org as string, division: r.division as string, category: r.category as string, status: (r.status as string | null) ?? null, start: (r.start_date as string | null) ?? null, end: (r.end_date as string | null) ?? null, current: r.current === 1, defences: n0(r.defences), endNote: (r.end_note as string | null) ?? null, source: r.source as string });
 
+  // pictures of things that are not fighters: only the ones that passed the licence rules, with the credit each carries
+  const pictures = { org_logo: new Map<string, Picture>(), belt: new Map<string, Picture>(), venue: new Map<string, Picture>() };
+  for (const r of db.prepare("SELECT * FROM entity_media WHERE status = 'matched' AND thumb_url IS NOT NULL").all() as Record<string, unknown>[]) {
+    const bucket = pictures[r.kind as keyof typeof pictures];
+    if (bucket) bucket.set(r.ref as string, { url: r.thumb_url as string, credit: { text: r.credit as string, license: r.license as string, licenseUrl: (r.license_url as string) ?? null, pageUrl: r.page_url as string, source: "Wikimedia Commons" } });
+  }
   const venues = new Map<string, Venue>();
   for (const r of db.prepare("SELECT * FROM venues WHERE status = 'matched'").all() as Record<string, unknown>[])
-    venues.set(`${r.name}|${r.city}`, { name: r.name as string, city: r.city as string, wikidataId: r.wikidata_id as string, label: r.label as string, lat: n0(r.lat), lon: n0(r.lon), capacity: n0(r.capacity) });
+    venues.set(`${r.name}|${r.city}`, { name: r.name as string, city: r.city as string, wikidataId: r.wikidata_id as string, label: r.label as string, lat: n0(r.lat), lon: n0(r.lon), capacity: n0(r.capacity), picture: pictures.venue.get(`${r.name}|${r.city}`) ?? null });
   const venueOf = (e: { venue: string; city: string }) => venues.get(`${e.venue}|${e.city}`) ?? null;
 
   const boutsByEvent = new Map<number, BoutRow[]>();
@@ -269,6 +280,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
     orgs, orgsBySlug: new Map([...orgs.values()].map((o) => [o.slug, o])),
     stints, stintsByBoxer, stintsByPerson, stintsByOrg, weighInsByBout, weighInsByBoxer, officialsByBout, officialsByPerson, scorecardsByBout, cornersByBout,
     financialsByEvent, pursesByBout, pursesByBoxer, broadcastsByEvent, earningsByBoxer, honoursByBoxer, reignsByBoxer, venueOf,
+    beltPicture: (code) => pictures.belt.get(code.toUpperCase()) ?? null, orgLogo: (id) => pictures.org_logo.get(String(id)) ?? null, pictureList: [...pictures.org_logo.values(), ...pictures.belt.values(), ...pictures.venue.values()],
     punchTotals: () => {
       if (punchTotals) return punchTotals;
       punchTotals = new Map();

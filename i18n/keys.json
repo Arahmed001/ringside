@@ -1573,6 +1573,13 @@
   ]
  },
  {
+  "key": "A {body} championship belt",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx",
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "A {cm}cm reach-over-height advantage gives her a natural jab.",
   "files": [
    "lib/ai.ts"
@@ -2540,6 +2547,12 @@
   "key": "Belt passed on without the champion",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Belt photo of the four sanctioning bodies (free-licensed)",
+  "files": [
+   "lib/coverage.ts"
   ]
  },
  {
@@ -5594,6 +5607,12 @@
   ]
  },
  {
+  "key": "Image:",
+  "files": [
+   "components/CreditedPicture.tsx"
+  ]
+ },
+ {
   "key": "Impact on results",
   "files": [
    "components/TrainerImpactCard.tsx"
@@ -6193,6 +6212,12 @@
   "key": "log-loss · {acc} correct · Brier {brier}",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Logo of {name}",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
   ]
  },
  {
@@ -7318,6 +7343,12 @@
   ]
  },
  {
+  "key": "of the venues matched to Wikidata",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
   "key": "official",
   "files": [
    "app/[locale]/data/page.tsx",
@@ -7495,6 +7526,12 @@
   "key": "Or start from the calendar",
   "files": [
    "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Organisation logo (free-licensed)",
+  "files": [
+   "lib/coverage.ts"
   ]
  },
  {
@@ -7731,6 +7768,12 @@
   "key": "Photo (licensed or Wikimedia)",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Photo of {venue}",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
   ]
  },
  {
@@ -8040,6 +8083,12 @@
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx",
    "lib/search.ts"
+  ]
+ },
+ {
+  "key": "promotion logos are trademarks, mostly not free",
+  "files": [
+   "lib/coverage.ts"
   ]
  },
  {
@@ -11282,6 +11331,12 @@
   ]
  },
  {
+  "key": "Venue photo (free-licensed, Wikimedia Commons)",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
   "key": "Venue verified on Wikidata (capacity, coordinates)",
   "files": [
    "lib/coverage.ts"
@@ -11375,6 +11430,12 @@
   "key": "warning",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "WBA, WBC, IBF, WBO",
+  "files": [
+   "lib/coverage.ts"
   ]
  },
  {

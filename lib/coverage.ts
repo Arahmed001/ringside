@@ -56,6 +56,9 @@ function computeCoverage(db: DatabaseSync): Coverage {
     {
       title: msg("Bouts"),
       rows: [
+        { field: msg("Venue photo (free-licensed, Wikimedia Commons)"), have: n("SELECT COUNT(*) c FROM entity_media WHERE kind = 'venue' AND status = 'matched'"), of: n("SELECT COUNT(*) c FROM venues WHERE status = 'matched'"), note: msg("of the venues matched to Wikidata") },
+        { field: msg("Belt photo of the four sanctioning bodies (free-licensed)"), have: n("SELECT COUNT(*) c FROM entity_media WHERE kind = 'belt' AND status = 'matched'"), of: 4, note: msg("WBA, WBC, IBF, WBO") },
+        { field: msg("Organisation logo (free-licensed)"), have: n("SELECT COUNT(*) c FROM entity_media WHERE kind = 'org_logo' AND status = 'matched'"), of: n("SELECT COUNT(*) c FROM orgs WHERE kind IN ('promotion', 'sanctioning_body', 'broadcaster')"), note: msg("promotion logos are trademarks, mostly not free") },
         { field: msg("Venue verified on Wikidata (capacity, coordinates)"), have: n("SELECT COUNT(*) c FROM events e JOIN venues v ON v.name = e.venue AND v.city = e.city AND v.status = 'matched'"), of: n("SELECT COUNT(*) c FROM events"), note: msg("fight cards") },
         { field: msg("Weigh-in weights"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM weigh_ins WHERE official_lb IS NOT NULL"), of: done },
         { field: msg("Fight-night (pre-fight) weights"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM weigh_ins WHERE fight_night_lb IS NOT NULL"), of: done, note: msg("few commissions record these") },

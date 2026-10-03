@@ -21,6 +21,12 @@ CREATE TABLE IF NOT EXISTS boxer_media (
   boxer_id INTEGER PRIMARY KEY REFERENCES boxers(id), status TEXT, reason TEXT, wikidata_id TEXT, file_title TEXT,
   thumb_url TEXT, page_url TEXT, license TEXT, license_url TEXT, credit TEXT, checked_at TEXT
 );
+-- Pictures of things that are not fighters (an organisation's logo, a sanctioning body's belt, a venue), each with its licence and author. kind is
+-- 'org_logo' (ref: the org's id), 'belt' (ref: WBA, WBC, IBF, WBO) or 'venue' (ref: name|city). Only 'matched' rows are shown.
+CREATE TABLE IF NOT EXISTS entity_media (
+  kind TEXT NOT NULL, ref TEXT NOT NULL, status TEXT, reason TEXT, wikidata_id TEXT, file_title TEXT,
+  thumb_url TEXT, page_url TEXT, license TEXT, license_url TEXT, credit TEXT, checked_at TEXT, PRIMARY KEY (kind, ref)
+);
 CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY, external_id TEXT UNIQUE, name TEXT, date TEXT, venue TEXT, city TEXT, country TEXT, poster_url TEXT,
   promoter_org_id INTEGER, broadcaster TEXT, attendance INTEGER, status TEXT
@@ -130,7 +136,7 @@ ${REIGN_SCHEMA}
 const ADDED_COLUMNS: [string, string, string][] = [
   ["boxers", "birth_date", "TEXT"], ["boxers", "birth_place", "TEXT"], ["boxers", "residence", "TEXT"], ["boxers", "wikidata_id", "TEXT"],
   ["boxers", "boxrec_id", "TEXT"], ["boxers", "ibhof_id", "TEXT"], ["boxers", "olympedia_id", "TEXT"], ["boxers", "aliases", "TEXT"], ["boxers", "debut_date", "TEXT"], ["boxers", "retired_date", "TEXT"],
-  ["events", "promoter_org_id", "INTEGER"], ["events", "broadcaster", "TEXT"], ["events", "attendance", "INTEGER"],
+  ["orgs", "wikidata_id", "TEXT"], ["events", "promoter_org_id", "INTEGER"], ["events", "broadcaster", "TEXT"], ["events", "attendance", "INTEGER"],
   ["wikidata_boxers", "ibhof_id", "TEXT"], ["wikidata_boxers", "olympedia_id", "TEXT"], ["wikidata_boxers", "awards", "TEXT"], ["wikidata_boxers", "extras_at", "TEXT"], ["wikidata_boxers", "ar_label", "TEXT"], ["wikidata_boxers", "nickname", "TEXT"], ["wikidata_boxers", "enwiki", "TEXT"], ["wikidata_boxers", "labels_at", "TEXT"], ["boxers", "wikipedia_title", "TEXT"],
   ["bouts", "round_time", "TEXT"], ["bouts", "kd_red", "INTEGER"], ["bouts", "kd_blue", "INTEGER"], ["bouts", "odds_red", "REAL"],
   ["team_stints", "source_url", "TEXT"], ["team_stints", "note", "TEXT"],

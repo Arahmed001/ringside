@@ -34,13 +34,14 @@ export const AI_USES: { files: string[]; what: string }[] = [
   { files: ["lib/preview.ts"], what: msg("the facts about an upcoming fight, to write its preview") },
 ];
 
-/** The websites other than this one that a visitor's browser may be told to fetch pictures from: where fighter photos and event posters live in the data. */
+/** The websites other than this one that a visitor's browser may be told to fetch pictures from: where fighter photos, event posters and the pictures of logos, belts and venues live in the data. */
 export function pictureHosts(w: World): string[] {
   return memo(w, "pictureHosts", () => {
     const hosts = new Set<string>();
     const add = (u: string | null | undefined) => { if (u && /^https?:\/\//i.test(u)) { try { hosts.add(new URL(u).host); } catch { /* not a URL */ } } };
     for (const b of w.boxers) add(b.photoUrl);
     for (const e of w.events) add(e.posterUrl);
+    for (const p of w.pictureList) add(p.url);
     return [...hosts].sort();
   });
 }
