@@ -23,6 +23,9 @@ To regenerate the demo data, stop the server, delete `data/`, and start again.
 
 See `PLAN.md` §8 for what data exists, the data model, and what each script does.
 
+## Deploying
+A `Dockerfile` and `docs/deploy.md` cover running it as one container with a persistent volume, the health check at `/api/health`, settings, backups and updates.
+
 ## Languages
 English at `/`, Arabic at `/ar`. UI text is keyed by its English sentence (`i18n/ar.json`); proper names have their own table. `npm run i18n:check` lists missing entries; `npm run i18n:translate` fills them with Claude (`ANTHROPIC_API_KEY` in `.env.local`); `npm run i18n:names -- auto` does the same for names. See `docs/i18n.md`. Set `SITE_URL` for canonical URLs and sitemaps; the demo league is `noindex` until a real provider is configured.
 

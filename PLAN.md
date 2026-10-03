@@ -465,5 +465,19 @@ I cannot be the native speaker, so this builds what a real review needs and refu
 - **Names now have a durable home** (round 16): `i18n/names.ar.json` is committed and loaded into the database whenever it opens, a reviewed database name is never overwritten by an unreviewed file copy, the names commands and the review import save back to the file, and a test checks the file covers every name the demo league can show. A sheet is tied to a dictionary build, but imports go by key, so an older sheet still imports (changed strings are simply compared by hash later).
 - Tests: `tests/arabic-review.test.ts` (11): each check, status and staleness, import rules and idempotence, the sheet (offline, valid script, safe against markup in the data), the real dictionary, and the real CLI run on a copy (export, import, names, glossary, status); seven mutations broken on purpose, all caught.
 
-## 34. A committed home for the Arabic names (round 16, 2026-10-03)
+## 34. Deployment readiness (round 14, 2026-10-03)
+
+**What is here.** `Dockerfile` (two stages, production dependencies plus `tsx` for the maintenance scripts, runs as the unprivileged `node` user), `.dockerignore`, `GET /api/health` (200 once the database is open and the world is built, 503 with no detail otherwise), a CI job that builds the image, runs it on an empty volume and waits for the health check, and `docs/deploy.md` (persistence, settings, backups, updating).
+
+**Decisions.**
+- **One instance, one volume.** The database, the live ledger and the AI cost counters are all per process. Scaling out is a design change (shared store), not a setting; the doc says so.
+- **`next start`, not `output: "standalone"`.** The app reads fonts, the fitted model and the glossary by path at run time; standalone tracing would have to be taught each. The cost is image size (about 600 MB of `node_modules`).
+- **The fitted model lives in the volume.** `data/model-fit.json` is a symlink to `/data/model-fit.json`, so `npm run model:fit` inside the container survives a redeploy with no code change.
+- **Health reports counts only.** No paths, versions or error text; the reason goes to the server log.
+
+**Checked here:** the production build with a production-only install (`npm ci --omit=dev` plus `tsx`) starts, builds the world, answers `/api/health` and pages, and `model:fit` writes through the symlink into the volume. **Not checked here:** the image itself (no Docker daemon in this environment). The CI `docker` job is the first real build; read its result before trusting the Dockerfile. No hosting provider is chosen.
+
+**Tests:** `tests/health.test.ts` (2, mutation-checked: a leaked error message fails it).
+
+## 35. A committed home for the Arabic names (round 16, 2026-10-03)
 The 1,848 Arabic name spellings lived only in the local, gitignored database, so a fresh checkout had none and any reviewed name would be lost with the database. They are now in `i18n/names.ar.json` (one name per line, sorted, with source and reviewed flag), `lib/i18n/names-file.ts` loads the file into `name_translations` whenever the database opens (a name a person reviewed in the database is never overwritten by an unreviewed file copy), and `i18n:names` gained `save`, `load` and `check` (and saves after `import` and `auto`); the review import writes reviewed names back to the file. Tests (`tests/names-file.test.ts`, 6, mutation-checked): load rules, never-shrink save, deterministic sorted output, malformed entries ignored, the committed file (well formed, no review claimed, covers every name the demo can show, loaded on open), and the real commands on a copy. All names are still machine transliterations and none is reviewed.
