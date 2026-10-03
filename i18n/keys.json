@@ -688,6 +688,12 @@
   ]
  },
  {
+  "key": "+{n} more",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "± error",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -983,6 +989,12 @@
   "key": "Also worked in other corner roles (assistant, strength and conditioning) with {n} further fighters.",
   "files": [
    "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "amateur pedigree",
+  "files": [
+   "lib/coverage.ts"
   ]
  },
  {
@@ -2346,6 +2358,12 @@
   ]
  },
  {
+  "key": "From Wikidata (CC0).",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Full bout details",
   "files": [
    "app/[locale]/events/[id]/page.tsx",
@@ -2426,6 +2444,18 @@
    "app/[locale]/orgs/page.tsx",
    "lib/search.ts",
    "lib/seo-server.ts"
+  ]
+ },
+ {
+  "key": "Hall of Fame ID (Wikidata)",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Hall of Fame page",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -2522,6 +2552,18 @@
   "key": "Highest purses",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Honours",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Honours or awards on record",
+  "files": [
+   "lib/coverage.ts"
   ]
  },
  {
@@ -3463,6 +3505,18 @@
   "key": "Old school",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Olympedia",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Olympedia ID (Wikidata)",
+  "files": [
+   "lib/coverage.ts"
   ]
  },
  {
