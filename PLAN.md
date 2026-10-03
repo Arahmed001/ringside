@@ -125,7 +125,7 @@ wikidata_boxers  staging copy of the Wikidata import + match method
 Provider contract: `lib/providers/index.ts`. Re-ingest is idempotent: stints and weigh-ins are replaced per `source`, so enrichment rows from other sources (e.g. `wikidata`) survive. Slugs are unique against rows that already exist.
 
 ### 8.3 Pipelines
-- `npm run wikidata:import -- --limit 500` then `-- --enrich`: bulk biography import (batched SPARQL, one request per ~1.2s, needs `WIKIMEDIA_CONTACT`); enrichment links our fighters by BoxRec ID, otherwise by normalised name + birth year when exactly one candidate exists, and fills **only** blank fields so a licensed feed always wins.
+- `npm run wikidata:import -- --limit 500` then `-- --enrich`: bulk biography import (batched SPARQL, one request per ~1.2s, needs `WIKIMEDIA_CONTACT`; resumable, see the note below); enrichment links our fighters by BoxRec ID, otherwise by normalised name + birth year when exactly one candidate exists, and fills **only** blank fields so a licensed feed always wins.
 - The same import now also stages **International Boxing Hall of Fame IDs (P4474), Olympedia IDs (P8286) and awards (P166 with year)** in a second, separate query per batch (`--limit N` as before); `--enrich` copies the IDs onto linked fighters (blanks only) and rewrites each linked fighter's `honours` rows with `source = 'wikidata'` (rows from other sources are never touched).
 - `npm run media:resolve`: photos; fighters already linked to Wikidata skip the name search.
 - `npm run model:fit`: fits win-probability weights from the bouts in the database (§8.5).
@@ -278,7 +278,7 @@ First item of the survey's prioritised plan (`docs/data-sources-survey.md` §12)
 - **Data:** `honours (boxer_id, kind, label, year, source, source_ref)`, `boxers.ibhof_id`, `boxers.olympedia_id`, and three staging columns on `wikidata_boxers`. Re-running the import and `--enrich` is idempotent; an award removed upstream disappears; an ID already supplied by a feed is never overwritten.
 - **Pages:** the fighter profile gains an Honours block (gold chips for Hall of Fame and awards, titles in plain chips, first 8 then "+N more"; credit line "From Wikidata (CC0)") and Hall of Fame / Olympedia links in Identifiers. The Data page gains three coverage rows. Arabic strings added (machine-written like the rest; award names fall back to English until they are in `name_translations`).
 - **Checked live:** 40 real boxers imported through the real query service: 2 Hall of Fame IDs, 9 Olympedia IDs, 5 with awards (Golovkin: Hall of Fame 2026; Fury: Ring Fighter of the Year 2015). Pages checked in both languages against seeded rows. The demo league has no honours (its fighters are fictional), so the block only appears once real fighters are linked.
-- **Not done:** venues and dated events from Wikidata (the same survey item) are not imported; a full run over all ~19.6k boxers has not been done (about 330 batches, two requests each); BWAA award names have no Arabic form; the IBHOF link is plain `http://` because that is the formatter Wikidata publishes.
+- **Not done:** venues and dated events from Wikidata (the same survey item) are not imported; a full run over all ~19.6k boxers has not been done (about 165 batches, two requests each); BWAA award names have no Arabic form; the IBHOF link is plain `http://` because that is the formatter Wikidata publishes.
 
 ## 16. Page weight and cold start (round 8, 2026-10-03)
 
@@ -300,5 +300,15 @@ The survey (§12 item 1) listed "venues and dated events" as a Wikidata import. 
 - **Tests** (`tests/venues.test.ts`, mocked network shaped like the live responses): acceptance, district fallback and its basis, name normalisation and aliases, every refusal reason, the O2 alias trap, MSG-style ambiguity, median capacity and bad values, the worker's order and retry window, and that only matched venues reach the world. Breaking the city/country rule or the label tie-break each makes a test fail.
 - **Not done / limits:** a venue that was renamed or rebuilt is matched to whatever Wikidata calls it now, regardless of the card's date (the reason MSG is left ambiguous rather than guessed); the match is by name, so a real feed that spells a venue differently from Wikidata's label and aliases will miss; no venue pages or map yet.
 
-## 18. Accessibility and design pass (round 9, 2026-10-03)
+## 18. Resumable Wikidata import (round 9, 2026-10-03)
+
+A full import (all ~19.6k boxers) is about 165 batches of 120, two requests each, roughly 7 minutes of polite requests; the first version had no way to continue after an interruption, and a database staged before §15 had to refetch every biography just to get Hall of Fame IDs, Olympedia IDs and awards.
+
+- **Resumable:** each batch is committed on its own and boxers fetched in the last 30 days are skipped (`--max-age-days N` changes the window, `--force` refetches everyone), so a stopped run simply continues. The log says how many were skipped.
+- **`--extras-only`:** fetches only the extras for staged boxers that were never checked for them (no id listing, no biography query). A boxer with nothing to report is still recorded as checked (`wikidata_boxers.extras_at`), otherwise the backfill would ask about them forever. `--limit` applies here too; `--no-extras` is biographies only and never blanks or claims extras.
+- **Checked live** against the real service: 30 boxers staged; an immediate re-run skipped all 30 with one listing request; after blanking the extras to mimic an older database, `--extras-only` restored them (2 Hall of Fame IDs, 7 Olympedia IDs, 5 with awards) in one request without touching biographies.
+- **Tests** (`tests/wikidata-import.test.ts`, a fake Query Service): batching, extras recorded even when empty, skip and `--force`, continuing after an interruption, the age window, `--extras-only` (no listing, no biography query, biography rows untouched, a second run makes no requests), `--limit`, `--no-extras`. Removing the skip, or the "checked even when empty" rule, fails tests. `WIKIDATA_GAP_MS` (default 1200) lets tests run without waiting.
+- **Not done:** a full run has not been made (the database here is a throwaway container; run `npm run wikidata:import && npm run wikidata:import -- --enrich` on your machine with `WIKIMEDIA_CONTACT` set).
+
+## 19. Accessibility and design pass (round 9, 2026-10-03)
 axe-core over 46 pages (23 x en/ar) went from 9 rule failures to 0; reflow checked at 320 and 768 px; keyboard (skip link, focus ring, `aria-current`, palette trap and live count) checked in the browser; text-safe red and red-button tokens; charts carry their numbers; the style map has a list view; 10-11px text raised to 12px; `tests/a11y.test.ts` guards the rules that need no browser. **Not done:** no real screen reader, no light theme, weigh-in chart and posters lack data summaries. Details in `docs/accessibility.md`.
