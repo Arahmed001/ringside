@@ -61,6 +61,13 @@ export interface DemoOptions {
   scale?: number;
 }
 
+/**
+ * What the generator built in on purpose, for tests that check an analysis recovers it (it exists only for the demo league).
+ * Set by the most recent `demoProvider(...)` call: each trainer's hidden skill boost, in Elo-like points, by name.
+ */
+let truth: { trainerBoost: Map<string, number> } | null = null;
+export const demoTruth = () => truth;
+
 export function demoProvider(now = new Date(), opts: DemoOptions = {}): DataProvider {
   const scale = Math.max(1, Math.round(opts.scale ?? 1));
   const sqrtScale = Math.ceil(Math.sqrt(scale)); // officials and promotions grow more slowly than fighters
@@ -128,6 +135,7 @@ export function demoProvider(now = new Date(), opts: DemoOptions = {}): DataProv
     people.push({ externalId: t.ext, name: t.name, country });
   }
   const trainerBy = new Map(trainers.map((t) => [t.ext, t]));
+  truth = { trainerBoost: new Map(trainers.map((t) => [t.name, t.boost])) };
   const trainersByCountry = new Map<string, TrainerSim[]>();
   for (const t of trainers) (trainersByCountry.get(t.country) ?? trainersByCountry.set(t.country, []).get(t.country)!).push(t);
   const managers: { ext: string; name: string; country: string }[] = [];

@@ -12,7 +12,7 @@ The first request creates `data/ringside.db` and seeds it with the demo roster (
 To regenerate the demo data, stop the server, delete `data/`, and start again.
 
 ## Optional settings (copy `.env.example` to `.env.local`)
-- `ANTHROPIC_API_KEY`: Claude-written search parsing and scouting reports. Without it everything falls back to rules.
+- `ANTHROPIC_API_KEY`: Claude-written search parsing, scouting reports and fight previews. Without it everything falls back to rules. `AI_DAILY_BUDGET` (default 1,000 calls per day), `AI_CLIENT_LIMIT` and `AI_CLIENT_WINDOW_MS` cap what visitors can spend (PLAN.md §21).
 - `BOXING_PROVIDER=licensed` plus `BOXING_API_URL` / `BOXING_API_KEY`: use a real data feed (adapter still to be written, see `lib/providers/licensed.ts`).
 - `WIKIMEDIA_CONTACT` and `npm run media:resolve`: fetch freely licensed fighter photos from Wikimedia Commons (real fighters only).
 
@@ -25,6 +25,9 @@ See `PLAN.md` §8 for what data exists, the data model, and what each script doe
 
 ## Languages
 English at `/`, Arabic at `/ar`. UI text is keyed by its English sentence (`i18n/ar.json`); proper names have their own table. `npm run i18n:check` lists missing entries; `npm run i18n:translate` fills them with Claude (`ANTHROPIC_API_KEY` in `.env.local`); `npm run i18n:names -- auto` does the same for names. See `docs/i18n.md`. Set `SITE_URL` for canonical URLs and sitemaps; the demo league is `noindex` until a real provider is configured.
+
+## Upset watch and trainer impact
+`/upset-watch` ranks every upcoming fight by the underdog's chance, with reasons, how the same calls fared in the past, and which warning signs actually mattered (plus an Atom feed). `/trainers` estimates how much each head trainer changes their fighters' results, with honest error bars: most trainers cannot be told from average, and the page says so.
 
 ## Navigation
 A grouped left rail on desktop that collapses to icons (the choice is remembered), and a drawer on phones. Sections live in `lib/nav.ts`.
