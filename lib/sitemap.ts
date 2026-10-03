@@ -3,6 +3,9 @@ import { LOCALES, localePath } from "./i18n/config";
 import { slugifyDivision, DIVISIONS } from "./divisions";
 import { memo } from "./memo";
 import { belts } from "./lineage";
+import { LISTS } from "./records";
+import { fightYears } from "./fight-score";
+import { currentYear } from "./clock";
 import { abs } from "./seo";
 
 export interface SitemapPath { path: string; lastmod: string }
@@ -10,7 +13,7 @@ export interface SitemapPath { path: string; lastmod: string }
 /** URLs per sitemap file. Every path is listed once per language, so a file holds twice this many <url> entries (the limit is 50,000). */
 export const PATHS_PER_FILE = 10000;
 
-const STATIC = ["/", "/rankings", "/boxers", "/events", "/compare", "/people", "/orgs", "/weights", "/money", "/titles", "/matchmaking", "/previews", "/analytics", "/accountability", "/map", "/data"];
+const STATIC = ["/", "/rankings", "/boxers", "/events", "/compare", "/people", "/orgs", "/weights", "/money", "/titles", "/matchmaking", "/previews", "/all-time", "/fight-of-the-year", "/analytics", "/accountability", "/map", "/data"];
 
 /**
  * Every page worth indexing, locale-free, with when it last changed. Thin pages are left out on purpose: of the bouts, only
@@ -31,6 +34,8 @@ export const sitemapPaths = (w: World): SitemapPath[] => memo(w, "sitemapPaths",
     if (!e.upcoming || e.status === "cancelled") continue;
     for (const b of (w.boutsByEvent.get(e.id) ?? []).filter((x) => x.status !== "cancelled" && x.upcoming).slice(0, 2)) out.push({ path: `/previews/${b.id}`, lastmod: w.today });
   }
+  for (const l of LISTS) out.push({ path: `/all-time/${l.id}`, lastmod: w.today });
+  for (const y of fightYears(w)) out.push({ path: `/fight-of-the-year/${y}`, lastmod: y === currentYear() ? w.today : `${y}-12-31` });
   for (const p of w.people.values()) out.push({ path: `/people/${p.slug}`, lastmod: w.today });
   for (const o of w.orgs.values()) out.push({ path: `/orgs/${o.slug}`, lastmod: w.today });
   return out;

@@ -13,6 +13,7 @@ import { metaFor } from "@/lib/seo-server";
 import type { T } from "@/lib/i18n/t";
 import { METHOD_NAME, endsEarly } from "@/lib/methods";
 import { divisionLabel } from "@/lib/divisions";
+import { BoutScore } from "@/components/Awards";
 import type { PunchLine } from "@/lib/types";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; id: string }> }) => metaFor(params, async ({ id }, t) => {
@@ -81,6 +82,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
         <div className="flex flex-wrap items-center gap-2">
           <Link href={`/rankings/${b.weightClass.toLowerCase().replace(/\s+/g, "-")}${red.sex === "female" ? "?sex=female" : ""}`} className="chip">{divisionLabel(b.weightClass, red.sex, t)}</Link>
           <span className="chip">{t.n(b.rounds, "{n} round", "{n} rounds")}</span>
+          <BoutScore w={w} boutId={b.id} />
           {b.contractLb && <span className="chip !border-gold/40 !text-gold">{t("Catchweight {n} lb", { n: b.contractLb })}</span>}
           {b.title && <span className="chip !border-gold/50 !text-gold">{body ? <Link href={`/orgs/${body.slug}`}>{body.name.match(/\(([^)]+)\)/)?.[1] ?? body.name}</Link> : null} {b.titleVacant ? t("{title} (vacant)", { title: b.title }) : b.title}</span>}
           {ev.broadcaster && <span className="chip">{t.name(ev.broadcaster)}</span>}

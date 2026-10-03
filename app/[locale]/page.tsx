@@ -12,6 +12,8 @@ import { ProbBar } from "@/components/charts";
 import { PickEm } from "@/components/PickEm";
 import { WatchlistStrip } from "@/components/Watch";
 import { BoxerCard, SectionTitle } from "@/components/ui";
+import { ScoreBadge } from "@/components/Awards";
+import { featuredYear, fightsOfYear, resultLine } from "@/lib/fight-score";
 import { daysUntil, fmtDate, flag, methodLabel } from "@/lib/format";
 import { recordStr } from "@/lib/world";
 import { getT } from "@/lib/i18n/server";
@@ -43,6 +45,9 @@ export default async function Home() {
   const p4p = pound4pound(w, 8);
   const recent = eventViews(w, recentEvents(w, 5));
   const upset = biggestUpsets(w.bouts.length ? { ...w, bouts: w.bouts.filter((b) => b.date >= `${currentYear() - 1}-01-01`) } : w, 1)[0];
+
+  const fy = featuredYear(w);
+  const foty = fy ? { year: fy, top: fightsOfYear(w, fy)[0] } : null;
 
   const pickBouts = next.bouts.filter(isLive).slice().reverse().map((b) => {
     const r = w.byId.get(b.redId)!, u = w.byId.get(b.blueId)!;
@@ -165,6 +170,18 @@ export default async function Home() {
               <div className="mt-3 text-sm text-muted">{t.rich("Winner entered rated <b>{winner}</b> against <b>{loser}</b> — a {gap}-point underdog.", { winner: Math.round(upset.winnerRating), loser: Math.round(upset.loserRating), gap: Math.round(upset.gap), b: (c) => <b className="text-ink">{c}</b> })}</div>
             </div>
           ) : <div className="card p-5 text-sm text-muted">{t("No upsets recorded yet.")}</div>}
+          {foty && (
+            <div className="mt-6">
+              <SectionTitle eyebrow={t("Awards")} title={t("Fight of the year {year}", { year: foty.year })} href={`/fight-of-the-year/${foty.year}`} cta={t("Why it won")} />
+              <Link href={`/bouts/${foty.top.bout.id}`} className="card card-hover block p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 font-display text-2xl font-bold leading-tight">{t.name(foty.top.bout.redName)} <span className="text-muted">{t("vs")}</span> {t.name(foty.top.bout.blueName)}</div>
+                  <ScoreBadge score={foty.top.score} className="shrink-0" />
+                </div>
+                <div className="mt-2 text-sm text-muted">{resultLine(w, foty.top.bout, t)} · {methodLabel(foty.top.bout.method, foty.top.bout.endRound, t)}</div>
+              </Link>
+            </div>
+          )}
           <div className="mt-6"><SectionTitle title={t("Your watchlist")} /><WatchlistStrip /></div>
         </div>
       </section>

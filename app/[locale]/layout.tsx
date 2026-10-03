@@ -45,7 +45,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
   const t = tFor(locale);
   const ar = locale === "ar";
   const NAV = [
-    ["/rankings", t("Rankings")], ["/titles", t("Titles")], ["/boxers", t("Fighters")], ["/events", t("Events")], ["/compare", t("Matchups")], ["/people", t("Corners")],
+    ["/rankings", t("Rankings")], ["/titles", t("Titles")], ["/all-time", t("All-time")], ["/boxers", t("Fighters")], ["/events", t("Events")], ["/compare", t("Matchups")], ["/people", t("Corners")],
     ["/weights", t("Weigh-ins")], ["/money", t("Money")], ["/analytics", t("Analytics")], ["/map", t("Style Map")], ["/data", t("Data")],
   ] as const;
   const site = {
@@ -58,18 +58,18 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
         <I18nProvider locale={locale} dict={clientDict(locale)}>
           <a href="#main" className="skip-link">{t("Skip to content")}</a>
           <header className="sticky top-0 z-40 border-b border-line/70 bg-bg/75 backdrop-blur-xl">
-            <div className="mx-auto flex max-w-7xl items-center gap-4 px-5 py-3 xl:gap-6">
+            <div className="mx-auto flex max-w-7xl items-center gap-4 px-5 py-3 xl:gap-6 min-[1700px]:max-w-[1700px]">
               <Link href="/" className="flex items-center gap-2" dir="ltr">
                 <span className="grid h-8 w-8 place-items-center rounded-lg bg-red font-display text-lg font-extrabold">R</span>
                 <span className="font-display text-2xl font-extrabold uppercase tracking-wide">Ring<span className="text-red-ink">side</span></span>
               </Link>
               <nav className="hidden gap-1 xl:flex" aria-label={t("Main")}>
                 {NAV.map(([href, label]) => (
-                  <NavLink key={href} href={href} className="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm text-muted transition hover:bg-panel2 hover:text-ink">{label}</NavLink>
+                  <NavLink key={href} href={href} className="whitespace-nowrap rounded-lg px-2 py-1.5 text-sm text-muted transition hover:bg-panel2 hover:text-ink min-[1700px]:px-3">{label}</NavLink>
                 ))}
               </nav>
               <div className="ms-auto flex items-center gap-3">
-                <form action={localePath(locale, "/boxers")} className="hidden w-72 2xl:block" role="search">
+                <form action={localePath(locale, "/boxers")} className="hidden w-72 min-[1700px]:block" role="search">
                   <input name="q" aria-label={t("Search fighters")} placeholder={t("Ask anything… “southpaw welterweights with 10+ KOs”")} className="w-full rounded-xl border border-line bg-panel px-4 py-2 text-sm outline-none transition placeholder:text-muted focus:border-gold/60" />
                 </form>
                 <CommandPalette />
