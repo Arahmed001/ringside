@@ -58,6 +58,16 @@ Fetches everything into the cache and runs the validator over the whole feed, th
 
 It takes a while at full size (the plan told you how long; the command prints its progress and a time to go). **If it stops for any reason, run the same command again**: every answer that arrived is already in the cache, so the second run makes only the requests that never completed. A rate limit is waited out (Retry-After, else 1, 2, 4 ... seconds) up to four times per request before it gives up.
 
+### The plan's own rate limit (found on the first real `--check`)
+
+The first full `--check` stopped after 11 seconds: the gateway answered `429` with `{"message":"You have exceeded the rate limit per hour for your plan, MEGA, by the API provider"}`. The vendor's public page lists Mega as 500,000 requests a month with unlimited history and says nothing about an hourly limit, but the plan card on RapidAPI (the pricing tab) gives the full terms: **500,000 requests a month (hard limit), 500 requests per hour, and 10,240 MB of bandwidth a month, then $0.001 per MB**. The hourly figure is what stopped the run. At 500 an hour the 35,222 fighters take about three days, whatever the code does; the monthly figure is not the constraint (about 36,000 requests are needed), and the bandwidth very probably is not either (the run prints the megabytes it downloaded, to check).
+
+Two settings deal with it, and both are safe to combine:
+- `--per-hour N`: never more than N requests an hour, evenly spaced (3,600 / N seconds apart). Use a number a little under the plan's limit: **`--per-hour 450` on Mega** (or `BOXING_API_PER_HOUR=450` in the environment; the flag wins). `--plan --per-hour N` prints how long the fighter fetch will take at that pace (at 450 an hour, 35,222 fighters take about 78 hours; resumable, so it can run over several days).
+- `--patience-min M` (default 90): when the gateway refuses with a rate limit, wait 1, 2, 5, then 10 minutes at a time (or the `Retry-After` it gives) and try the same request again, for up to M minutes in all. Past that the run stops and says so; run the same command again later and it carries on from the cache.
+
+A refusal that says a **quota** is used up (monthly, daily) is never waited for: it ends the run at once with the vendor's words, because waiting an hour fixes nothing; check the plan and the key's app in the RapidAPI dashboard. And a 429 now ends the run instead of being counted as "fighter skipped" (a plan that refuses one fighter refuses the next).
+
 ## 3. Load: no flags
 
 ```bash
