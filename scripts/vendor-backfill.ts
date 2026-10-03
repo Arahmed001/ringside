@@ -1,7 +1,9 @@
 /**
  * The licensed feed's whole life: first load, then daily updates. Read docs/real-data-runbook.md before the first run.
  *
- *   npm run vendor:backfill -- --plan              fetch the fight list and say what the fighters will cost; writes nothing (needs only BOXING_API_KEY)
+ *   npm run vendor:backfill -- --plan              fetch the fight list and say what the fighters will cost; writes nothing (needs only BOXING_API_KEY).
+ *                                                  With --cache-dir it keeps the fight-list pages there (and says storing is provisional until confirmed), so the list is paid for once:
+ *                                                  the --check or load that follows reads it from the cache. Without --cache-dir, stopping a plan loses the pages read so far.
  *   npm run vendor:backfill -- --check             fetch (resumable), run the validator over everything, print the report; the database is not touched
  *   npm run vendor:backfill                        fetch (resumable), validate (strict), back up, load into the database, recompute ratings
  *   npm run vendor:backfill -- --update            the daily job: fights since the latest card in the database (less 14 days) and the coming weeks, with fresh fighter records
@@ -39,7 +41,8 @@ async function main() {
   const key = process.env.BOXING_API_KEY;
   if (!key) throw new Error("Set BOXING_API_KEY (your RapidAPI key for the Boxing Data API).");
   const plan = flag("plan"), check = flag("check"), update = flag("update");
-  if (!plan) storageStatus(); // before anything is created: if storing is switched off (=0) the refusal leaves no cache and no empty database behind
+  const planCaches = plan && arg("cache-dir") !== undefined; // a plan told where to cache keeps the list pages: the 400-odd list requests are an hour of the plan's allowance
+  if (!plan || planCaches) storageStatus(); // before anything is created: if storing is switched off (=0) the refusal leaves no cache and no empty database behind
   const gapMs = Number(arg("gap-ms") ?? 300);
   const perHourText = arg("per-hour") ?? process.env.BOXING_API_PER_HOUR; // the plan's own hourly limit: 500 on the Mega plan
   const perHour = perHourText ? Number(perHourText) : undefined;
@@ -50,9 +53,9 @@ async function main() {
   const completeOnly = flag("complete-only");
   if (update && (maxFighters !== undefined || completeOnly)) throw new Error("--fighters and --complete-only are for the first load, not for --update (an update fetches the fighters of the recent fights, all of them).");
   const base: BoxingDataApiOptions = {
-    key, baseUrl: process.env.BOXING_API_URL || undefined, purpose: plan ? "evaluation" : "ingest", // a plan reads the list in memory and keeps nothing
+    key, baseUrl: process.env.BOXING_API_URL || undefined, purpose: plan && !planCaches ? "evaluation" : "ingest", // a plan with no --cache-dir reads the list in memory and keeps nothing
     retries: Number(arg("retries") ?? 4), gapMs, perHour, maxFighters, patienceMs: Math.max(0, Number(arg("patience-min") ?? 90)) * 60_000, maxRequests: Number(arg("max-requests") ?? 100_000), log, since: arg("since"), offsetLimit: arg("offset-limit") ? Number(arg("offset-limit")) : undefined,
-    ...(plan ? {} : { cacheDir: path.resolve(arg("cache-dir") ?? path.join(process.cwd(), "data", "vendor-cache", "boxing-data-api")) }),
+    ...(plan && !planCaches ? {} : { cacheDir: path.resolve(arg("cache-dir") ?? path.join(process.cwd(), "data", "vendor-cache", "boxing-data-api")) }),
     // a daily update must see today's results (not yesterday's cached pages) and fresh career records for the fighters who just fought (a cached record predates the fight, and the audit would call it a contradiction)
     refresh: flag("refresh") || update,
   };
