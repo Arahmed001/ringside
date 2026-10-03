@@ -60,10 +60,16 @@ CREATE TABLE IF NOT EXISTS punch_stats (
 );
 CREATE TABLE IF NOT EXISTS wikidata_boxers (
   qid TEXT PRIMARY KEY, name TEXT, birth_date TEXT, birth_year INTEGER, birth_place TEXT, country TEXT, height_cm INTEGER, weight_kg REAL,
-  image_file TEXT, boxrec_id TEXT, residence TEXT, death_date TEXT, teachers TEXT, matched_boxer_id INTEGER, match_method TEXT, fetched_at TEXT
+  image_file TEXT, boxrec_id TEXT, residence TEXT, death_date TEXT, teachers TEXT, matched_boxer_id INTEGER, match_method TEXT, fetched_at TEXT,
+  ibhof_id TEXT, olympedia_id TEXT, awards TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_wd_boxrec ON wikidata_boxers(boxrec_id);
 CREATE INDEX IF NOT EXISTS idx_wd_year ON wikidata_boxers(birth_year);
+CREATE TABLE IF NOT EXISTS honours (
+  boxer_id INTEGER NOT NULL, kind TEXT NOT NULL, label TEXT NOT NULL, year INTEGER, source TEXT NOT NULL, source_ref TEXT,
+  PRIMARY KEY (boxer_id, kind, label, year, source)
+);
+CREATE INDEX IF NOT EXISTS idx_honours_boxer ON honours(boxer_id);
 CREATE TABLE IF NOT EXISTS event_financials (
   event_id INTEGER NOT NULL, gate_usd REAL, tickets_sold INTEGER, capacity INTEGER, site_fee_usd REAL, ppv_buys INTEGER, ppv_price_usd REAL,
   ppv_revenue_usd REAL, sponsorship_usd REAL, basis TEXT NOT NULL, source TEXT NOT NULL, source_url TEXT, retrieved_at TEXT, note TEXT,
@@ -109,8 +115,9 @@ CREATE INDEX IF NOT EXISTS idx_rh_boxer ON rating_history(boxer_id, date);
 /** Columns added after the first release; lets an older ringside.db keep working. */
 const ADDED_COLUMNS: [string, string, string][] = [
   ["boxers", "birth_date", "TEXT"], ["boxers", "birth_place", "TEXT"], ["boxers", "residence", "TEXT"], ["boxers", "wikidata_id", "TEXT"],
-  ["boxers", "boxrec_id", "TEXT"], ["boxers", "aliases", "TEXT"], ["boxers", "debut_date", "TEXT"], ["boxers", "retired_date", "TEXT"],
+  ["boxers", "boxrec_id", "TEXT"], ["boxers", "ibhof_id", "TEXT"], ["boxers", "olympedia_id", "TEXT"], ["boxers", "aliases", "TEXT"], ["boxers", "debut_date", "TEXT"], ["boxers", "retired_date", "TEXT"],
   ["events", "promoter_org_id", "INTEGER"], ["events", "broadcaster", "TEXT"], ["events", "attendance", "INTEGER"],
+  ["wikidata_boxers", "ibhof_id", "TEXT"], ["wikidata_boxers", "olympedia_id", "TEXT"], ["wikidata_boxers", "awards", "TEXT"],
   ["bouts", "round_time", "TEXT"], ["bouts", "kd_red", "INTEGER"], ["bouts", "kd_blue", "INTEGER"], ["bouts", "odds_red", "REAL"],
   ["bouts", "odds_blue", "REAL"], ["bouts", "contract_lb", "REAL"], ["bouts", "title_org_id", "INTEGER"], ["bouts", "title_vacant", "INTEGER"],
 ];

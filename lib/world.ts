@@ -3,7 +3,7 @@ import { getDb, dbVersion } from "./db";
 import { applyFittedWeights } from "./model-fit";
 import { currentYear, todayIso } from "./clock";
 import { countsInRecord, isStoppage } from "./methods";
-import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, EventFinancials, EventRow, Purse, Method, Official, Org, Person, Scorecard, Status, TeamStint, WeighIn } from "./types";
+import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, Honour, EventFinancials, EventRow, Purse, Method, Official, Org, Person, Scorecard, Status, TeamStint, WeighIn } from "./types";
 
 export interface World {
   today: string;
@@ -38,6 +38,7 @@ export interface World {
   pursesByBoxer: Map<number, Purse[]>;
   broadcastsByEvent: Map<number, Broadcast[]>;
   earningsByBoxer: Map<number, Earning[]>;
+  honoursByBoxer: Map<number, Honour[]>; // hall of fame first, then awards, then titles; each by year
 }
 
 const g = globalThis as unknown as { __world?: World; __worldKey?: string };
@@ -76,6 +77,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
     photoCredit: r.photo_credit ? (JSON.parse(r.photo_credit as string) as Boxer["photoCredit"]) : null,
     birthDate: (r.birth_date as string) ?? null, birthPlace: (r.birth_place as string) ?? null, residence: (r.residence as string) ?? null,
     wikidataId: (r.wikidata_id as string) ?? null, boxrecId: (r.boxrec_id as string) ?? null,
+    ibhofId: (r.ibhof_id as string) ?? null, olympediaId: (r.olympedia_id as string) ?? null,
     aliases: r.aliases ? (JSON.parse(r.aliases as string) as string[]) : [],
     debutDate: (r.debut_date as string) ?? null, retiredDate: (r.retired_date as string) ?? null,
   }));
@@ -177,6 +179,11 @@ function buildWorld(db: DatabaseSync, key: string): World {
   const earningsByBoxer = new Map<number, Earning[]>();
   for (const r of db.prepare("SELECT * FROM earnings ORDER BY year").all() as Record<string, unknown>[])
     push(earningsByBoxer, r.boxer_id as number, { boxerId: r.boxer_id as number, year: r.year as number, totalUsd: r.total_usd as number, ringUsd: n0(r.ring_usd), offRingUsd: n0(r.off_ring_usd), ...prov(r) });
+  const honoursByBoxer = new Map<number, Honour[]>();
+  const KIND_ORDER: Record<string, number> = { hall_of_fame: 0, award: 1, title: 2 };
+  for (const r of db.prepare("SELECT * FROM honours ORDER BY year, label").all() as Record<string, unknown>[])
+    push(honoursByBoxer, r.boxer_id as number, { boxerId: r.boxer_id as number, kind: r.kind as Honour["kind"], label: r.label as string, year: n0(r.year), source: r.source as string });
+  for (const list of honoursByBoxer.values()) list.sort((a, b) => (KIND_ORDER[a.kind] ?? 3) - (KIND_ORDER[b.kind] ?? 3) || (a.year ?? 9999) - (b.year ?? 9999));
 
   const boutsByEvent = new Map<number, BoutRow[]>();
   for (const b of bouts) push(boutsByEvent, b.eventId, b);
@@ -234,7 +241,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
     people, peopleBySlug: new Map([...people.values()].map((p) => [p.slug, p])), roles,
     orgs, orgsBySlug: new Map([...orgs.values()].map((o) => [o.slug, o])),
     stints, stintsByBoxer, stintsByPerson, stintsByOrg, weighInsByBout, weighInsByBoxer, officialsByBout, officialsByPerson, scorecardsByBout, cornersByBout,
-    financialsByEvent, pursesByBout, pursesByBoxer, broadcastsByEvent, earningsByBoxer,
+    financialsByEvent, pursesByBout, pursesByBoxer, broadcastsByEvent, earningsByBoxer, honoursByBoxer,
   };
   return g.__world;
 }

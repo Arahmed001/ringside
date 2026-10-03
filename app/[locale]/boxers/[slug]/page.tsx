@@ -82,6 +82,8 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
       }),
     }));
   const teamNow = (["head_trainer", "gym", "manager", "promoter"] as const).map((r) => ({ role: r, v: currentOf(team, r) })).filter((x) => x.v);
+  const honours = w.honoursByBoxer.get(b.id) ?? [];
+  const HONOURS_SHOWN = 8;
   const bioAge = b.birthDate ? Math.floor((Date.parse(w.today) - Date.parse(b.birthDate)) / (365.25 * 86400000)) : null;
   let nextBlock = null as React.ReactNode;
   if (upcoming) {
@@ -150,10 +152,29 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
             ] as [string, string | null][]).filter(([, v]) => v).map(([k, v]) => (
               <div key={k} className="flex justify-between gap-4"><dt className="text-muted">{k}</dt><dd className="text-end">{v}</dd></div>
             ))}
-            {(b.wikidataId || b.boxrecId) && (
-              <div className="flex justify-between gap-4 border-t border-line/60 pt-2.5 text-xs"><dt className="text-muted">{t("Identifiers")}</dt><dd className="text-end text-muted">{b.wikidataId && <a href={`https://www.wikidata.org/wiki/${b.wikidataId}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{t("Wikidata {id}", { id: b.wikidataId })}</a>}{b.wikidataId && b.boxrecId ? " · " : ""}{b.boxrecId && t("BoxRec ID {id}", { id: b.boxrecId })}</dd></div>
+            {(b.wikidataId || b.boxrecId || b.ibhofId || b.olympediaId) && (
+              <div className="flex justify-between gap-4 border-t border-line/60 pt-2.5 text-xs"><dt className="text-muted">{t("Identifiers")}</dt><dd className="text-end text-muted">{
+                [
+                  b.wikidataId && <a key="wd" href={`https://www.wikidata.org/wiki/${b.wikidataId}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{t("Wikidata {id}", { id: b.wikidataId })}</a>,
+                  b.ibhofId && <a key="hof" href={`http://www.ibhof.com/pages/about/inductees/${b.ibhofId}.html`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{t("Hall of Fame page")}</a>,
+                  b.olympediaId && <a key="oly" href={`https://www.olympedia.org/athletes/${b.olympediaId}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{t("Olympedia")}</a>,
+                  b.boxrecId && <span key="br">{t("BoxRec ID {id}", { id: b.boxrecId })}</span>,
+                ].filter(Boolean).flatMap((el, i) => (i ? [" · ", el] : [el]))
+              }</dd></div>
             )}
           </dl>
+          {honours.length > 0 && (
+            <div className="mt-4 border-t border-line/60 pt-3">
+              <div className="eyebrow mb-2">{t("Honours")}</div>
+              <ul className="flex flex-wrap gap-1.5">
+                {honours.slice(0, HONOURS_SHOWN).map((h) => (
+                  <li key={`${h.kind}|${h.label}|${h.year}`} className={`chip ${h.kind === "title" ? "" : "!border-gold/50 !text-gold"}`}>{t.name(h.label)}{h.year ? ` · ${h.year}` : ""}</li>
+                ))}
+                {honours.length > HONOURS_SHOWN && <li className="chip">{t("+{n} more", { n: honours.length - HONOURS_SHOWN })}</li>}
+              </ul>
+              <p className="mt-2 text-[11px] text-muted">{t("From Wikidata (CC0).")}</p>
+            </div>
+          )}
         </div>
         <div className="card p-5">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div className="eyebrow">{t("Corner & camp")}</div>{monthsWithTrainer !== null && <span className={`chip ${monthsWithTrainer < 6 ? "!border-red/40 !text-red" : ""}`}>{monthsWithTrainer < 6 ? t.n(Math.round(monthsWithTrainer), "New trainer · {n} month with current trainer", "New trainer · {n} months with current trainer") : t.n(Math.round(monthsWithTrainer), "{n} month with current trainer", "{n} months with current trainer")}</span>}</div>

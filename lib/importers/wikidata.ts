@@ -49,6 +49,53 @@ export function batchQuery(qids: string[]): string {
 }`;
 }
 
+/**
+ * Honours and cross-reference IDs live in a second query: awards are multi-valued, and joining them to the main query's
+ * other multi-valued fields (teachers) would multiply rows. IBHOF boxer ID is P4474 (value like "modern/leonardray");
+ * Olympedia people ID is P8286; awards are P166 with the year from the P585 qualifier.
+ */
+export interface WikidataAward { qid: string; label: string; year: number | null; kind: HonourKind }
+export type HonourKind = "hall_of_fame" | "title" | "award";
+export interface WikidataExtras { qid: string; ibhofId: string | null; olympediaId: string | null; awards: WikidataAward[] }
+
+export function extrasQuery(qids: string[]): string {
+  return `SELECT ?b ?hof ?oly ?award ?awardLabel ?awardYear WHERE {
+  VALUES ?b { ${qids.map((q) => `wd:${q}`).join(" ")} }
+  OPTIONAL { ?b wdt:P4474 ?hof }
+  OPTIONAL { ?b wdt:P8286 ?oly }
+  OPTIONAL { ?b p:P166 ?st . ?st ps:P166 ?award . OPTIONAL { ?st pq:P585 ?awardYear } }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+}`;
+}
+
+/** "WBC World Light Heavyweight Champion" is a title, not an honour in the Hall-of-Fame sense; keep both but tell them apart. */
+export function honourKind(label: string): HonourKind {
+  if (/hall of fame/i.test(label)) return "hall_of_fame";
+  if (/champion\b/i.test(label) || /\btitle\b/i.test(label)) return "title";
+  return "award";
+}
+
+export function parseExtras(bindings: Binding[]): Map<string, WikidataExtras> {
+  const out = new Map<string, WikidataExtras>();
+  for (const b of bindings) {
+    const qid = b.b?.value.split("/").pop();
+    if (!qid) continue;
+    const e = out.get(qid) ?? out.set(qid, { qid, ibhofId: null, olympediaId: null, awards: [] }).get(qid)!;
+    const hof = b.hof?.value, oly = b.oly?.value;
+    if (!e.ibhofId && hof && /^[\w-]+(\/[\w-]+)*$/.test(hof)) e.ibhofId = hof;
+    if (!e.olympediaId && oly && /^\d+$/.test(oly)) e.olympediaId = oly;
+    const aq = b.award?.value.split("/").pop(), al = label(b, "awardLabel");
+    if (aq && al) {
+      const y = b.awardYear?.value.match(/^(\d{4})-/);
+      const year = y ? Number(y[1]) : null;
+      // the same award can come back once per qualifier row; keep one per (award, year)
+      if (!e.awards.some((a) => a.qid === aq && a.year === year)) e.awards.push({ qid: aq, label: al, year, kind: honourKind(al) });
+    }
+  }
+  for (const e of out.values()) e.awards.sort((a, b) => (a.year ?? 9999) - (b.year ?? 9999) || a.label.localeCompare(b.label));
+  return out;
+}
+
 const isQid = (s: string) => /^Q\d+$/.test(s); // unresolved labels come back as the bare Q-id
 const label = (b: Binding, k: string) => { const v = b[k]?.value; return v && !isQid(v) ? v : null; };
 const median = (a: number[]) => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
@@ -128,21 +175,29 @@ export async function listBoxerIds(limit = Infinity, pageSize = 5000): Promise<s
 
 export interface ImportSummary { listed: number; stored: number; batches: number }
 
-export async function importWikidata(db: DatabaseSync, opts: { limit?: number; batch?: number; log?: (m: string) => void } = {}): Promise<ImportSummary> {
-  const { limit = Infinity, batch = 120, log = () => {} } = opts;
+export async function importWikidata(db: DatabaseSync, opts: { limit?: number; batch?: number; extras?: boolean; log?: (m: string) => void } = {}): Promise<ImportSummary> {
+  const { limit = Infinity, batch = 120, extras = true, log = () => {} } = opts;
   const ids = await listBoxerIds(limit);
   log(`listed ${ids.length} boxer ids`);
   const up = db.prepare(`INSERT INTO wikidata_boxers (qid, name, birth_date, birth_year, birth_place, country, height_cm, weight_kg, image_file, boxrec_id, residence, death_date, teachers, fetched_at)
     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(qid) DO UPDATE SET name=excluded.name, birth_date=excluded.birth_date, birth_year=excluded.birth_year, birth_place=excluded.birth_place,
     country=excluded.country, height_cm=excluded.height_cm, weight_kg=excluded.weight_kg, image_file=excluded.image_file, boxrec_id=excluded.boxrec_id, residence=excluded.residence,
     death_date=excluded.death_date, teachers=excluded.teachers, fetched_at=excluded.fetched_at`);
+  // a separate statement: the biography upsert above must not blank extras when --no-extras skips that query
+  const setExtras = db.prepare("UPDATE wikidata_boxers SET ibhof_id = ?, olympedia_id = ?, awards = ? WHERE qid = ?");
   let stored = 0, batches = 0;
   for (let i = 0; i < ids.length; i += batch) {
     const chunk = ids.slice(i, i + batch);
     const parsed = parseBindings(await sparql(batchQuery(chunk)));
+    const more = extras ? parseExtras(await sparql(extrasQuery(chunk))) : new Map<string, WikidataExtras>();
     const now = new Date().toISOString();
     db.exec("BEGIN");
-    for (const b of parsed.values()) { up.run(b.qid, b.name, b.birthDate, b.birthYear, b.birthPlace, b.country, b.heightCm, b.weightKg, b.imageFile, b.boxrecId, b.residence, b.deathDate, JSON.stringify(b.teachers), now); stored++; }
+    for (const b of parsed.values()) {
+      const x = more.get(b.qid);
+      up.run(b.qid, b.name, b.birthDate, b.birthYear, b.birthPlace, b.country, b.heightCm, b.weightKg, b.imageFile, b.boxrecId, b.residence, b.deathDate, JSON.stringify(b.teachers), now);
+      if (x) setExtras.run(x.ibhofId, x.olympediaId, JSON.stringify(x.awards), b.qid);
+      stored++;
+    }
     db.exec("COMMIT");
     batches++;
     log(`batch ${batches}: ${Math.min(i + batch, ids.length)}/${ids.length}`);
@@ -152,7 +207,7 @@ export async function importWikidata(db: DatabaseSync, opts: { limit?: number; b
 
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
 
-export interface EnrichSummary { linked: number; byBoxrecId: number; byNameYear: number; ambiguous: number; filled: { birthDate: number; birthPlace: number; residence: number; boxrecId: number } }
+export interface EnrichSummary { linked: number; byBoxrecId: number; byNameYear: number; ambiguous: number; filled: { birthDate: number; birthPlace: number; residence: number; boxrecId: number }; honours: { boxers: number; rows: number; hallOfFame: number; olympedia: number } }
 
 /**
  * Links our fighters to Wikidata entities and fills ONLY fields we don't already have (a licensed feed always wins).
@@ -171,7 +226,7 @@ export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
   const claimed = new Set<string>();
   const upd = db.prepare(`UPDATE boxers SET wikidata_id = ?, boxrec_id = COALESCE(boxrec_id, ?), birth_date = COALESCE(birth_date, ?), birth_place = COALESCE(birth_place, ?), residence = COALESCE(residence, ?) WHERE id = ?`);
   const mark = db.prepare("UPDATE wikidata_boxers SET matched_boxer_id = ?, match_method = ? WHERE qid = ?");
-  const s: EnrichSummary = { linked: 0, byBoxrecId: 0, byNameYear: 0, ambiguous: 0, filled: { birthDate: 0, birthPlace: 0, residence: 0, boxrecId: 0 } };
+  const s: EnrichSummary = { linked: 0, byBoxrecId: 0, byNameYear: 0, ambiguous: 0, filled: { birthDate: 0, birthPlace: 0, residence: 0, boxrecId: 0 }, honours: { boxers: 0, rows: 0, hallOfFame: 0, olympedia: 0 } };
   db.exec("BEGIN");
   for (const b of mine) {
     let hit: Record<string, unknown> | undefined, method = "";
@@ -194,5 +249,31 @@ export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
     if (!b.boxrec_id && hit.boxrec_id) s.filled.boxrecId++;
   }
   db.exec("COMMIT");
+  applyHonours(db, s);
   return s;
+}
+
+/**
+ * Copies Hall-of-Fame and Olympedia IDs and the award list from staged Wikidata rows onto every linked fighter, including
+ * ones linked on an earlier run. Wikidata is the only author of rows with source 'wikidata', so they are replaced wholesale
+ * each time (an award removed upstream disappears); honours from any other source are never touched. IDs fill blanks only.
+ */
+function applyHonours(db: DatabaseSync, s: EnrichSummary) {
+  const rows = db.prepare("SELECT qid, matched_boxer_id AS boxerId, ibhof_id, olympedia_id, awards FROM wikidata_boxers WHERE matched_boxer_id IS NOT NULL").all() as
+    { qid: string; boxerId: number; ibhof_id: string | null; olympedia_id: string | null; awards: string | null }[];
+  const ids = db.prepare("UPDATE boxers SET ibhof_id = COALESCE(ibhof_id, ?), olympedia_id = COALESCE(olympedia_id, ?) WHERE id = ?");
+  const clear = db.prepare("DELETE FROM honours WHERE boxer_id = ? AND source = 'wikidata'");
+  const add = db.prepare("INSERT OR IGNORE INTO honours (boxer_id, kind, label, year, source, source_ref) VALUES (?,?,?,?,'wikidata',?)");
+  db.exec("BEGIN");
+  for (const r of rows) {
+    ids.run(r.ibhof_id, r.olympedia_id, r.boxerId);
+    clear.run(r.boxerId);
+    let awards: WikidataAward[] = [];
+    try { awards = r.awards ? (JSON.parse(r.awards) as WikidataAward[]) : []; } catch { /* a corrupt staging cell yields no honours */ }
+    for (const a of awards) { add.run(r.boxerId, a.kind, a.label, a.year, a.qid); s.honours.rows++; }
+    if (awards.length) s.honours.boxers++;
+    if (r.ibhof_id) s.honours.hallOfFame++;
+    if (r.olympedia_id) s.honours.olympedia++;
+  }
+  db.exec("COMMIT");
 }

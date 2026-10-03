@@ -30,6 +30,8 @@ export interface Boxer {
   residence: string | null;
   wikidataId: string | null;
   boxrecId: string | null;
+  ibhofId: string | null; // International Boxing Hall of Fame path, e.g. "modern/leonardray"
+  olympediaId: string | null;
   aliases: string[];
   debutDate: string | null;
   retiredDate: string | null;
@@ -166,4 +168,5 @@ export interface Purse extends Provenance { boutId: number; boxerId: number; gua
 export interface Broadcast extends Provenance {
   eventId: number; broadcaster: string; platform: "ppv" | "streaming" | "subscription" | "free-tv"; region: string; viewersAvg: number | null; viewersPeak: number | null;
 }
+export interface Honour { boxerId: number; kind: "hall_of_fame" | "award" | "title"; label: string; year: number | null; source: string }
 export interface Earning extends Provenance { boxerId: number; year: number; totalUsd: number; ringUsd: number | null; offRingUsd: number | null }
