@@ -13,11 +13,11 @@ To regenerate the demo data, stop the server, delete `data/`, and start again.
 
 ## Optional settings (copy `.env.example` to `.env.local`)
 - `ANTHROPIC_API_KEY`: Claude-written search parsing, scouting reports and fight previews. Without it everything falls back to rules. `AI_DAILY_BUDGET` (default 1,000 calls per day), `AI_CLIENT_LIMIT` and `AI_CLIENT_WINDOW_MS` cap what visitors can spend (PLAN.md §21).
-- `BOXING_PROVIDER=licensed` plus `BOXING_API_URL` / `BOXING_API_KEY`: use a real data feed (adapter still to be written, see `lib/providers/licensed.ts`).
+- `BOXING_PROVIDER=licensed` plus `BOXING_API_KEY`: the Boxing Data API adapter (`lib/providers/boxing-data-api.ts`). It has not yet run against the real API and will not fill the database until `BOXING_API_STORAGE_CONFIRMED=1`; start with `npm run vendor:sample` and `docs/real-data-readiness.md`.
 - `WIKIMEDIA_CONTACT` and `npm run media:resolve`: fetch freely licensed fighter photos from Wikimedia Commons (real fighters only).
 
 ## Scripts
-`npm run dev` · `npm run build` · `npm start` · `npm run lint` · `npm test` · `npm run data:check` · `npm run bench -- --scale 5` · `npm run media:resolve` · `npm run smoke` · `npm run wikidata:import` · `npm run venues:resolve` · `npm run model:fit`
+`npm run dev` · `npm run build` · `npm start` · `npm run lint` · `npm test` · `npm run data:check` · `npm run bench -- --scale 5` · `npm run media:resolve` · `npm run smoke` · `npm run wikidata:import` · `npm run venues:resolve` · `npm run model:fit` · `npm run vendor:sample`
 
 `npm test` runs the suite (a couple of seconds). `npm run bench -- --scale 20 [--keep]` generates a league 20 times the demo size (about 19,000 fighters and 160,000 bouts), loads it into `data/bench-20.db` and times the data work behind every page; see PLAN.md §10. `npm run data:check -- --file sample.json` validates a vendor sample before you build an adapter for it. CI (`.github/workflows/ci.yml`) runs type check, lint, tests, the data check, a production build and the smoke check (`npm run smoke`, every kind of page in both languages on a real server).
 

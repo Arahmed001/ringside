@@ -98,17 +98,21 @@ test("source rules that keep the site translatable and right-to-left safe", () =
 });
 
 test("SEO: canonical and hreflang per page; the fictional demo is kept out of search", async () => {
-  const { pageMetadata, indexable, jsonLd, abs } = await import("../lib/seo");
+  const { pageMetadata, indexable, isDemoData, jsonLd, abs } = await import("../lib/seo");
   const saved = { p: process.env.BOXING_PROVIDER, i: process.env.INDEXABLE, s: process.env.SITE_URL };
   try {
     process.env.SITE_URL = "https://ringside.example";
     delete process.env.INDEXABLE; process.env.BOXING_PROVIDER = "demo";
     assert.equal(indexable(), false);
+    assert.equal(isDemoData(), true, "the footer, the Data page note and indexing all hang on this one answer");
+    delete process.env.BOXING_PROVIDER; assert.equal(isDemoData(), true, "no provider configured is the demo");
+    process.env.BOXING_PROVIDER = "demo";
     const demo = pageMetadata({ locale: "ar", path: "/boxers/x", title: "T", description: "D" });
     assert.deepEqual(demo.robots, { index: false, follow: false }, "demo pages are noindex");
 
     process.env.BOXING_PROVIDER = "licensed";
     assert.equal(indexable(), true);
+    assert.equal(isDemoData(), false, "a real provider ends the 'fictional data' claims");
     const live = pageMetadata({ locale: "ar", path: "/boxers/x", title: "T", description: "D" });
     assert.equal(live.alternates?.canonical, "https://ringside.example/ar/boxers/x");
     assert.deepEqual(live.alternates?.languages, { en: "https://ringside.example/boxers/x", ar: "https://ringside.example/ar/boxers/x", "x-default": "https://ringside.example/boxers/x" });

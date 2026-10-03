@@ -502,3 +502,23 @@ The first harvest ended with 18 conflicting claims (10 subjects). Looking at eac
 - **Old reports still work:** a `model-fit.json` from before this applies with the new terms at zero. `npm run model:fit` prints each input's z, whether it was kept, and the KO-rates-only comparison.
 - **Honest limits.** The demo league is synthetic: its generator may build these effects in, so the *sizes* above are not evidence about real boxing; the *procedure* (propose, test on later fights, keep only what earns its place) is what carries over. Mismatch and weight class are the obvious candidates; referee and judge tendencies, scheduled rounds against real round-by-round data and styles are still untried. The fit is not yet shown on the Track record page beyond "fitted to results".
 - **Tests:** `tests/finish-fit.test.ts` (12, mutation-checked: inverting the mismatch, keeping every input and a heavyweight counted as lighter each fail) and `tests/finish-division.test.ts` (2, a hand-made league where a fighter moves up: using the fighter's current class instead of the fight's fails).
+
+## 38. Real data, no spend: the adapter and the readiness list (round 16, 2026-10-03)
+
+**Why now.** The accountability work (§22-§26) grades a fictional league; the live ledger only starts its clock when real upcoming fights are loaded. Real data is the gating item, and most of the work can be done before paying anyone.
+
+**What was built.**
+- `lib/providers/boxing-data-api.ts`: an adapter for the Boxing Data API written against the vendor's *published* docs (fighters, fights, events, the `/fights/schedule` endpoint for upcoming fights), selected by `BOXING_PROVIDER=licensed`. `lib/providers/licensed.ts` now builds it from `BOXING_API_*` settings.
+- **Catches built in:** a request budget (default 90, under the free tier's 100 a month); a refusal to fill the database until `BOXING_API_STORAGE_CONFIRMED=1` (the vendor's storage terms are unconfirmed, §4); the key never appears in an error or a log; a failure is loud, not a half-loaded league; a fighter that cannot be fetched drops only its own bouts.
+- **Every approximation is counted** (`notes()`): the feed has no birth dates (only an age), no corner colours, no round times, a generic `PTS` result, no draw value, a free-text location, and null height or reach for some fighters. The mapping approximates the same way each time and reports how often.
+- `npm run vendor:sample -- --fights 10`: fetches a small sample (about 20 requests), writes a gitignored FeedData file and prints the approximations; `npm run data:check -- --file <sample>` validates it without touching the database.
+- `docs/real-data-readiness.md`: the first-run checklist (the assumptions the docs only imply), the table of approximations and what to do about each, the gaps in Ringside itself, and the decision gate before any money.
+
+**Found while doing it.**
+- **The footer said "fictional, simulated data" on every page, unconditionally.** It would have been false the day real data loaded. It and the Data page's demo note now hang on `isDemoData()` (`lib/seo.ts`). Verified by serving the demo league as a non-demo provider: 20 section pages carry no demo wording, are indexable and have a sitemap; demo mode is unchanged.
+- **Ringside cannot say "unknown".** Height, reach, birth year and turned-pro are required numbers, so the adapter fills missing ones (reach from height, then the division median, then 175 cm) and counts them. The honest fix is nullable columns and a dash in the UI; it reaches into many files and is the most important code change before real use.
+- Upcoming fights come from a separate endpoint; without it the ledger would have nothing to predict.
+
+**Honest limits.** The adapter has only ever talked to a mock built from the documented example shapes. Its assumptions (auth header names, array-shaped lists, `location` format, event times in UTC, how a draw looks, outcomes beyond the six documented) are listed in the readiness doc to check on the first free-tier run. Event dates come from a UTC instant, so an evening card in the Americas can land a day late, which matters because the ledger grades on the last snapshot strictly before the event date. Nothing was bought, sent or fetched from the vendor.
+
+**Tests:** `tests/boxing-data-api.test.ts` (17, mutation-checked: dropping the storage guard, an off-by-one budget, uncounted PTS, no draw inference, the key in an error message, and a wrong "active" window each fail one) and an `isDemoData` assertion in `tests/i18n.test.ts`.
