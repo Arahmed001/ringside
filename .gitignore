@@ -53,3 +53,4 @@ data/research/cache/
 
 # vendor samples fetched for evaluation (never commit licensed data)
 data/vendor-samples/
+data/vendor-cache/

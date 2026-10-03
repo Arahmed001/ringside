@@ -96,6 +96,10 @@ Every copy is opened and checked with `integrity_check` as it is written, and `v
 
 Build a new image and replace the container with the same volume. The schema migrates forward on start (`ADDED_COLUMNS` in `lib/db.ts`). Downgrading to an older image against a newer database is not supported.
 
+## Real data
+
+A licensed feed is loaded and kept current by `npm run vendor:backfill` (first load, then a daily `--update`), not by the app: an empty database with `BOXING_PROVIDER=licensed` makes the app refuse to start a paid fetch on a page view. In a container pass `--cache-dir /data/vendor-cache` so the cache lives on the volume. See `docs/real-data-runbook.md`.
+
 ## Not covered yet
 
 - **Scaling beyond one instance.** That needs the ledger, picks and cost-guard counters in a shared store, and is a design change rather than a setting.

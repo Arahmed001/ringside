@@ -7,7 +7,7 @@ Ringside runs on a fictional league. This is what stands between it and a real f
 - **Adapter:** `lib/providers/boxing-data-api.ts`, selected by `BOXING_PROVIDER=licensed`. Written against the vendor's published docs (`https://boxing-data.com/docs/endpoints/fighters`, `/fights`, `/events`), tested with a mocked feed built from the documented example shapes. **It has never talked to the real API.** The first free-tier run is the real test.
 - **Replay without spending:** `npm run vendor:sample -- --fights 10 --save-raw` keeps each raw response in `data/vendor-samples/raw/`; `npm run vendor:sample -- --from-raw data/vendor-samples/raw` re-runs the mapping over them with no requests and no key, so a mapping fix is tested on real responses for free.
 - **Evaluation without risk:** `npm run vendor:sample -- --fights 10` fetches the latest fights, the coming weeks' schedule and each fighter once, writes a gitignored sample file, and prints how much had to be approximated. `npm run data:check -- --file <sample>` then validates it without touching the database. 10 fights cost at most 1 (list) + 1 (schedule) + 2 per fight (each fighter once) requests, so about 20 of the free tier's 100 a month. The default cap is 60 requests; the run stops there.
-- **Safety catches built in:** a request budget (default 90, `BOXING_API_MAX_REQUESTS`); the database is **not** filled from this feed until `BOXING_API_STORAGE_CONFIRMED=1`, which you set only after the operator confirms in writing that stored data may be kept (`docs/boxing-data-api-enquiry.md`); the key is never put in an error message or a log line; a failure is loud rather than a half-loaded league.
+- **Safety catches built in:** a request budget (default 90, `BOXING_API_MAX_REQUESTS`); storing the vendor's data is **on by default, provisionally** (the owner's decision while the vendor's answer is pending): every run that stores says so until `BOXING_API_STORAGE_CONFIRMED=1` records the vendor's written agreement, and `=0` refuses to store; the key is never put in an error message or a log line; a failure is loud rather than a half-loaded league, and an API refusal says why: the vendor's own message is in the error (with the key scrubbed out).
 
 ## The first run (about 20 requests, free)
 
@@ -79,6 +79,14 @@ Not in the feed at all, so absent from the real-data version of the site: punch 
 6. **Wording (fixed while writing this).** The footer used to say "fictional, simulated data" on every page unconditionally, which would have been false the day real data loaded. It, the Data page's "Demo mode" note, the noindex rule, the sitemap and the structured data now all hang on one check (`isDemoData()` in `lib/seo.ts`, true unless `BOXING_PROVIDER` names a real provider). Checked by serving the demo league's feed as a non-demo provider: 20 section pages in real mode contain none of "fictional", "simulated", "demo build", "demo league" or "demo mode"; the footer points to the Data page for sources; the pages are indexable and the sitemap is served. Demo mode is unchanged.
 7. **Credits and terms.** The Data page lists sources; add the vendor with its licence terms and any attribution it requires, once the terms are known.
 
+## What can and cannot be checked
+
+The vendor's facts cannot be proven true from here. The feed's own career records can be compared with the fights loaded (`docs/real-data-runbook.md`, "What 'verified' means"), and a load is refused when they do not add up. On the free plan almost nothing adds up, which is the point: it shows a few weeks of fights, and a fighter with 20 fights would appear to have one.
+
+## When the plan is bought
+
+`docs/real-data-runbook.md` is the procedure: price it, fetch and inspect, load, check, then the daily update. Everything in it resumes after an interruption.
+
 ## Decision gate before any money
 
 1. Run the 20-request sample above and read the approximations.
@@ -86,4 +94,4 @@ Not in the feed at all, so absent from the real-data version of the site: punch 
 3. If yes: one month of the Mega tier for the backfill, then drop to a cheaper tier for daily updates, with `BOXING_API_STORAGE_CONFIRMED=1`.
 4. If no or silent: Sportbex quote, or a different adapter behind the same `DataProvider` contract (a one-file change).
 
-Until step 3, the database is never filled from the vendor, whatever the environment says.
+Until step 3, storing the vendor's data is provisional: it is on by default (the owner's decision), every run says so, and `BOXING_API_STORAGE_CONFIRMED=0` switches it off. If the vendor says no, delete the cache and the database (`docs/real-data-runbook.md`, "Undoing it").
