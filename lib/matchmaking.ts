@@ -186,7 +186,7 @@ export function dreamFight(w: World, a: BoxerFull, b: BoxerFull, t: T = tEn): Dr
   if (fa && fb && a.lastFight && b.lastFight && (a.lastFight < fb || b.lastFight < fa)) flags.push(t("Their careers did not overlap"));
   if (p.meetings.length) flags.push(t.n(p.meetings.length, "They have already fought {n} time", "They have already fought {n} times"));
   if (booked(w, a.id) || booked(w, b.id)) flags.push(t("At least one of them is already booked"));
-  if (Math.abs(a.reachCm - b.reachCm) >= 10) flags.push(t("A big reach gap: {a} cm against {b} cm", { a: a.reachCm, b: b.reachCm }));
+  if (a.reachCm !== null && b.reachCm !== null && Math.abs(a.reachCm - b.reachCm) >= 10) flags.push(t("A big reach gap: {a} cm against {b} cm", { a: a.reachCm, b: b.reachCm }));
   if (a.country === b.country) flags.push(t("An all-{country} fight", { country: countryName(a.country, t.locale) }));
 
   const opp = (x: BoxerFull) => new Map((w.boutsByBoxer.get(x.id) ?? []).filter((y) => !y.upcoming && y.method && y.method !== "NC").map((y) => [y.redId === x.id ? y.blueId : y.redId, y]));

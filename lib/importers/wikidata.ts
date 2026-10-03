@@ -245,7 +245,7 @@ export async function importWikidata(db: DatabaseSync, opts: ImportOptions = {})
 
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
 
-export interface EnrichSummary { linked: number; byBoxrecId: number; byNameYear: number; ambiguous: number; filled: { birthDate: number; birthPlace: number; residence: number; boxrecId: number }; honours: { boxers: number; rows: number; hallOfFame: number; olympedia: number } }
+export interface EnrichSummary { linked: number; byBoxrecId: number; byNameYear: number; ambiguous: number; filled: { birthYear: number; birthDate: number; birthPlace: number; residence: number; boxrecId: number }; honours: { boxers: number; rows: number; hallOfFame: number; olympedia: number } }
 
 /**
  * Links our fighters to Wikidata entities and fills ONLY fields we don't already have (a licensed feed always wins).
@@ -260,11 +260,11 @@ export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
     if (r.birth_year) { const k = `${norm(r.name as string)}|${r.birth_year}`; (byNameYear.get(k) ?? byNameYear.set(k, []).get(k)!).push(r); }
   }
   const mine = db.prepare("SELECT id, name, birth_year, boxrec_id, birth_date, birth_place, residence FROM boxers WHERE wikidata_id IS NULL").all() as
-    { id: number; name: string; birth_year: number; boxrec_id: string | null; birth_date: string | null; birth_place: string | null; residence: string | null }[];
+    { id: number; name: string; birth_year: number | null; boxrec_id: string | null; birth_date: string | null; birth_place: string | null; residence: string | null }[];
   const claimed = new Set<string>();
-  const upd = db.prepare(`UPDATE boxers SET wikidata_id = ?, boxrec_id = COALESCE(boxrec_id, ?), birth_date = COALESCE(birth_date, ?), birth_place = COALESCE(birth_place, ?), residence = COALESCE(residence, ?) WHERE id = ?`);
+  const upd = db.prepare(`UPDATE boxers SET wikidata_id = ?, boxrec_id = COALESCE(boxrec_id, ?), birth_year = COALESCE(birth_year, ?), birth_date = COALESCE(birth_date, ?), birth_place = COALESCE(birth_place, ?), residence = COALESCE(residence, ?) WHERE id = ?`);
   const mark = db.prepare("UPDATE wikidata_boxers SET matched_boxer_id = ?, match_method = ? WHERE qid = ?");
-  const s: EnrichSummary = { linked: 0, byBoxrecId: 0, byNameYear: 0, ambiguous: 0, filled: { birthDate: 0, birthPlace: 0, residence: 0, boxrecId: 0 }, honours: { boxers: 0, rows: 0, hallOfFame: 0, olympedia: 0 } };
+  const s: EnrichSummary = { linked: 0, byBoxrecId: 0, byNameYear: 0, ambiguous: 0, filled: { birthYear: 0, birthDate: 0, birthPlace: 0, residence: 0, boxrecId: 0 }, honours: { boxers: 0, rows: 0, hallOfFame: 0, olympedia: 0 } };
   db.exec("BEGIN");
   for (const b of mine) {
     let hit: Record<string, unknown> | undefined, method = "";
@@ -275,12 +275,13 @@ export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
     }
     if (!hit || claimed.has(hit.qid as string)) continue;
     claimed.add(hit.qid as string);
-    // If our feed has an exact birth date and Wikidata disagrees on the year, don't link: the match is wrong.
-    if (hit.birth_year && Math.abs((hit.birth_year as number) - b.birth_year) > 1) continue;
+    // If our feed has a birth year and Wikidata disagrees by more than one, don't link: the match is wrong. (A fighter whose birth year is unknown has nothing to disagree with.)
+    if (hit.birth_year && b.birth_year !== null && Math.abs((hit.birth_year as number) - b.birth_year) > 1) continue;
     const str = (v: unknown) => (typeof v === "string" ? v : null);
-    upd.run(hit.qid as string, b.boxrec_id ? null : str(hit.boxrec_id), str(hit.birth_date), str(hit.birth_place), str(hit.residence), b.id);
+    upd.run(hit.qid as string, b.boxrec_id ? null : str(hit.boxrec_id), typeof hit.birth_year === "number" ? hit.birth_year : null, str(hit.birth_date), str(hit.birth_place), str(hit.residence), b.id);
     mark.run(b.id, method, hit.qid as string);
     s.linked++; if (method === "boxrec_id") s.byBoxrecId++; else s.byNameYear++;
+    if (b.birth_year === null && typeof hit.birth_year === "number") s.filled.birthYear++; // an unknown birth year is filled from the match, never overwritten
     if (!b.birth_date && hit.birth_date) s.filled.birthDate++;
     if (!b.birth_place && hit.birth_place) s.filled.birthPlace++;
     if (!b.residence && hit.residence) s.filled.residence++;

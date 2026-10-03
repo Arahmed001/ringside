@@ -21,7 +21,7 @@ const levels = (fs: Finding[], id: string) => by(fs, id).map((x) => x.level);
 const run = (env: Record<string, string>, p: Probe = probe(), production = true) => diagnose(env, p, { cwd: "/srv/app", now: NOW, production, nodeVersion: "22.23.2" });
 
 test("a sound production setup has nothing to fail or warn about", () => {
-  const fs = run({ NODE_ENV: "production", SITE_URL: "https://ringside.example", BOXING_PROVIDER: "licensed", BOXING_API_KEY: "k".repeat(50), BOXING_API_STORAGE_CONFIRMED: "1", ANTHROPIC_API_KEY: "sk-ant-secret", RESEARCH_CONTACT: "https://github.com/x/y", DATABASE_PATH: "/data/ringside.db" });
+  const fs = run({ NODE_ENV: "production", SITE_URL: "https://ringside.example", SITE_CONTACT: "corrections@ringside.example", BOXING_PROVIDER: "licensed", BOXING_API_KEY: "k".repeat(50), BOXING_API_STORAGE_CONFIRMED: "1", ANTHROPIC_API_KEY: "sk-ant-secret", RESEARCH_CONTACT: "https://github.com/x/y", DATABASE_PATH: "/data/ringside.db" });
   assert.deepEqual(fs.filter((x) => x.level === "fail" || x.level === "warn"), []);
   assert.equal(worst(fs), "info"); // storage is confirmed, but the provider line is an info
 });
@@ -216,4 +216,22 @@ test("a licensed feed whose daily update has stopped is a warning, a fresh one i
   assert.match(stale(null)[0].message, /No load or update/);
   assert.deepEqual(stale("2020-01-01T00:00:00.000Z", { NODE_ENV: "production", BOXING_PROVIDER: "demo" }), [], "the demo league has no daily job, so no warning");
   assert.deepEqual(stale("2020-01-01T00:00:00.000Z", { NODE_ENV: "production" }), [], "nor does a default setup");
+});
+
+test("a licensed site with no contact warns that people who are not signed in have nowhere to report a mistake; a malformed one warns; a good one is silent; the demo does not care", () => {
+  const lic = { BOXING_PROVIDER: "licensed", BOXING_API_KEY: "k".repeat(50) };
+  assert.deepEqual(levels(envFindings(lic), "site-contact"), ["warn"], "licensed and unset");
+  assert.deepEqual(levels(envFindings({ ...lic, SITE_CONTACT: "corrections@ringside.example" }), "site-contact"), []);
+  assert.deepEqual(levels(envFindings({ ...lic, SITE_CONTACT: "https://ringside.example/contact" }), "site-contact"), []);
+  for (const bad of ["call me", "http://ringside.example/contact", "javascript:alert(1)", "a b@c.d"]) assert.deepEqual(levels(envFindings({ ...lic, SITE_CONTACT: bad }), "site-contact"), ["warn"], bad);
+  assert.deepEqual(levels(envFindings({}), "site-contact"), [], "the demo league needs no contact");
+  assert.deepEqual(levels(envFindings({ SITE_CONTACT: "nonsense" }), "site-contact"), ["warn"], "but a value that is set and wrong is reported anywhere");
+});
+
+test("a licensed site without the vendor's terms link says so (info); a link that is not https warns; a good one is silent; the demo does not care", () => {
+  const lic = { BOXING_PROVIDER: "licensed", BOXING_API_KEY: "k".repeat(50) };
+  assert.deepEqual(levels(envFindings(lic), "vendor-terms"), ["info"]);
+  assert.deepEqual(levels(envFindings({ ...lic, VENDOR_TERMS_URL: "http://boxing-data.com/terms" }), "vendor-terms"), ["warn"]);
+  assert.deepEqual(levels(envFindings({ ...lic, VENDOR_TERMS_URL: "https://boxing-data.com/terms" }), "vendor-terms"), []);
+  assert.deepEqual(levels(envFindings({}), "vendor-terms"), []);
 });

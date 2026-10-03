@@ -50,7 +50,7 @@ export function calls(w: World): Call[] {
       const pre = w.boutPre.get(b.id);
       if (b.winnerId && pre && sr.bouts >= 1 && sb.bouts >= 1) {
         const feat = (s: State, f: typeof red, rating: number): Features => ({
-          rating, reachCm: f.reachCm, age: Number(b.date.slice(0, 4)) - f.birthYear,
+          rating, reachCm: f.reachCm, age: f.birthYear === null ? null : Number(b.date.slice(0, 4)) - f.birthYear,
           monthsIdle: s.last ? Math.min(36, months(s.last, b.date)) : 12,
           koRate: s.wins ? s.kos / s.wins : 0, koLossRate: s.bouts ? s.koLosses / s.bouts : 0,
           weightLb: divisionInfo(b.weightClass)?.lb, // the division of this fight, not the fighter's current one

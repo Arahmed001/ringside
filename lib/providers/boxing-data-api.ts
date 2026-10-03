@@ -44,12 +44,12 @@ export interface ApiFight {
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
   | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter"
-  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "divisionFromFight" | "birthYearFromAge" | "birthYearUnknown" | "physicalsConverted" | "turnedProFromFirstFight" | "physicalsImputed" | "stanceDefaulted" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
+  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "divisionFromFight" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
   ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
-  birthYearFromAge: 0, birthYearUnknown: 0, physicalsConverted: 0, turnedProFromFirstFight: 0, physicalsImputed: 0, stanceDefaulted: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, windowTooBig: 0,
+  birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, windowTooBig: 0,
 });
 
 export const fighterId = (id: string) => `bda-f-${id}`;
@@ -124,7 +124,6 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
 
 const STANCES: Record<string, Stance> = { orthodox: "Orthodox", southpaw: "Southpaw", switch: "Switch", ambidextrous: "Switch" };
 
-/** A fighter -> a boxer. Height and reach come back null for some fighters; `null` here means "fill it in later" (see `imputePhysicals`). */
 /** Centimetres from whichever form the feed gave: cm, inches, a feet-and-inches string like 6'1", or the docs' combined text like `6' 9" / 206 cm`. */
 export function lengthCm(cm: number | null | undefined, inches: number | null | undefined, text: string | null | undefined, notes: Notes): number | null {
   if (typeof cm === "number" && cm > 0) return Math.round(cm);
@@ -139,55 +138,40 @@ export function lengthCm(cm: number | null | undefined, inches: number | null | 
   return null;
 }
 
-/** A fighter -> a boxer. Height and reach come back null for some fighters; `null` here means "fill it in later" (see `imputePhysicals`). */
-export function mapFighter(f: ApiFighter, notes: Notes): (Omit<ProviderBoxer, "heightCm" | "reachCm"> & { heightCm: number | null; reachCm: number | null }) | null {
+/**
+ * A fighter -> a boxer. A fact the feed does not give is null, never a guess: no birth year from an age (it can be a year out), no stance, height or reach
+ * filled in from a median, no debut year taken from the first fight we happen to hold. Each is counted in the notes, so the load says how much is unknown.
+ */
+export function mapFighter(f: ApiFighter, notes: Notes): ProviderBoxer | null {
   if (!f.id || !f.name) return null;
-  let birthYear = 0;
+  let birthYear: number | null = null;
   if (Number.isInteger(f.birth_year) && f.birth_year! >= 1900 && f.birth_year! <= currentYear() - 10) birthYear = f.birth_year!; // the feed's own birth year
-  else if (typeof f.age === "number" && f.age > 0) { birthYear = currentYear() - f.age; notes.birthYearFromAge++; } // only an age: can be a year out
   else notes.birthYearUnknown++;
-  const stance = STANCES[(f.stance ?? "").toLowerCase()];
-  if (!stance) notes.stanceDefaulted++;
+  const stance = STANCES[(f.stance ?? "").toLowerCase()] ?? null;
+  if (!stance) notes.stanceUnknown++;
   const debut = parseInt(String(f.debut ?? ""), 10);
+  const turnedPro = Number.isFinite(debut) && debut >= 1900 && debut <= currentYear() ? debut : null;
+  if (turnedPro === null) notes.debutUnknown++;
+  const heightCm = lengthCm(f.height_cm, f.height_in, f.height_ft ?? f.height, notes), reachCm = lengthCm(f.reach_cm, f.reach_in, f.reach, notes);
+  if (heightCm === null || reachCm === null) notes.physicalsUnknown++;
   const div = f.division?.name ?? "";
   return {
     externalId: fighterId(f.id), name: f.name, ...(f.nickname || f.alias ? { nickname: (f.nickname ?? f.alias)! } : {}),
-    country: f.nationality ?? "Unknown", birthYear, stance: stance ?? "Orthodox", sex: (f.gender ?? "").toLowerCase().startsWith("f") ? "female" : "male",
-    heightCm: lengthCm(f.height_cm, f.height_in, f.height_ft ?? f.height, notes), reachCm: lengthCm(f.reach_cm, f.reach_in, f.reach, notes),
-    weightClass: normalizeDivision(div) ?? (div || "Unknown"),
-    turnedPro: Number.isFinite(debut) ? debut : 0, active: false, // both settled in `finishBoxers`, which can see the fights
+    country: f.nationality ?? "Unknown", birthYear, stance, sex: (f.gender ?? "").toLowerCase().startsWith("f") ? "female" : "male",
+    heightCm, reachCm, weightClass: normalizeDivision(div) ?? (div || "Unknown"),
+    turnedPro, active: false, // settled in `finishBoxers`, which can see the fights
   };
 }
 
-type Loose = NonNullable<ReturnType<typeof mapFighter>>;
+type Loose = ProviderBoxer;
 
-/**
- * Fills the facts the feed leaves out so a boxer is never stored with a zero: missing reach from height (and the reverse),
- * then the median of the same division, then of everyone, then a neutral 175 cm. This is imputation, not data: each fill is
- * counted in `physicalsImputed`, and the model's reach term is small and capped, but a real deployment should make these
- * columns nullable instead (see docs/real-data-readiness.md).
- */
-export function imputePhysicals(rows: Loose[], notes: Notes): Loose[] {
-  const median = (xs: number[]) => { const s = [...xs].sort((p, q) => p - q); return s.length ? s[Math.floor(s.length / 2)] : null; };
-  const known = (k: "heightCm" | "reachCm", div?: string) => rows.filter((r) => r[k] && (!div || r.weightClass === div)).map((r) => r[k] as number);
-  return rows.map((r) => {
-    let { heightCm, reachCm } = r;
-    if (heightCm && reachCm) return r;
-    notes.physicalsImputed++;
-    heightCm = heightCm ?? reachCm ?? median(known("heightCm", r.weightClass)) ?? median(known("heightCm")) ?? 175;
-    reachCm = reachCm ?? heightCm;
-    return { ...r, heightCm, reachCm };
-  });
-}
-
-/** Settles `active` (fought in the last 30 months, or has a fight coming up) and a missing `turnedPro` (the first fight we saw), which need the fights. */
+/** Settles `active` (fought in the last 30 months, or has a fight coming up) and a missing division (taken from the fighter's latest fight), which need the fights. */
 export function finishBoxers(rows: Loose[], bouts: ProviderBout[], eventDates: Map<string, string>, notes: Notes): ProviderBoxer[] {
-  const first = new Map<string, string>(), last = new Map<string, string>(), lastClass = new Map<string, string>();
+  const last = new Map<string, string>(), lastClass = new Map<string, string>();
   for (const b of bouts) {
     const d = eventDates.get(b.eventExternalId);
     if (!d) continue;
     for (const id of [b.redExternalId, b.blueExternalId]) {
-      if (!first.has(id) || d < first.get(id)!) first.set(id, d);
       if (!last.has(id) || d > last.get(id)!) { last.set(id, d); if (normalizeDivision(b.weightClass)) lastClass.set(id, b.weightClass); }
     }
   }
@@ -198,11 +182,7 @@ export function finishBoxers(rows: Loose[], bouts: ProviderBout[], eventDates: M
     return { ...r, weightClass: lastClass.get(r.externalId)! };
   });
   const cutoff = new Date(nowMs() - 30 * 30.4 * 86400000).toISOString().slice(0, 10);
-  return imputePhysicals(rows, notes).map((r) => {
-    let turnedPro = r.turnedPro;
-    if (!turnedPro && first.has(r.externalId)) { turnedPro = Number(first.get(r.externalId)!.slice(0, 4)); notes.turnedProFromFirstFight++; }
-    return { ...r, heightCm: r.heightCm as number, reachCm: r.reachCm as number, turnedPro, active: (last.get(r.externalId) ?? "") >= cutoff };
-  });
+  return rows.map((r) => ({ ...r, active: (last.get(r.externalId) ?? "") >= cutoff }));
 }
 
 // ---- the client ----

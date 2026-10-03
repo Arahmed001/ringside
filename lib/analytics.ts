@@ -89,7 +89,7 @@ export const countryLeaders = (w: World) => memo(w, "countryLeaders", () => {
 export const stanceEdge = (w: World) => memo(w, "stanceEdge", () => {
   let sw = 0, swW = 0, or = 0, orW = 0;
   for (const b of w.boxers) {
-    if (b.stance === "Southpaw") { sw += b.bouts; swW += b.wins; } else { or += b.bouts; orW += b.wins; }
+    if (b.stance === "Southpaw") { sw += b.bouts; swW += b.wins; } else if (b.stance === "Orthodox") { or += b.bouts; orW += b.wins; } // a fighter whose stance is unknown is in neither group
   }
   return { southpaw: sw ? swW / sw : 0, orthodox: or ? orW / or : 0 };
 });
@@ -99,7 +99,7 @@ export const reachEdge = (w: World) => memo(w, "reachEdge", () => {
   for (const b of done(w)) {
     if (!b.winnerId) continue;
     const r = w.byId.get(b.redId)!, u = w.byId.get(b.blueId)!;
-    if (Math.abs(r.reachCm - u.reachCm) < 5) continue;
+    if (r.reachCm === null || u.reachCm === null || Math.abs(r.reachCm - u.reachCm) < 5) continue; // only fights where both reaches are known
     const longerId = r.reachCm > u.reachCm ? r.id : u.id;
     longer++; if (b.winnerId === longerId) longerWins++;
   }

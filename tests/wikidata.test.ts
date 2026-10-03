@@ -72,6 +72,20 @@ test("enrichment links by BoxRec ID or by unique name + birth year, and only fil
   assert.equal(got(mine[1].id).bp, "Elsewhere", "a blank field is filled");
 });
 
+test("a fighter whose birth year is unknown can still be linked by BoxRec ID, and the match fills it; one whose year is known is never overwritten", () => {
+  const rows = db.prepare("SELECT id, birth_year FROM boxers ORDER BY id LIMIT 3 OFFSET 20").all() as { id: number; birth_year: number }[];
+  db.exec(`UPDATE boxers SET boxrec_id = '881', birth_year = NULL, birth_date = NULL, wikidata_id = NULL WHERE id = ${rows[0].id}`);
+  db.exec(`UPDATE boxers SET boxrec_id = '882', wikidata_id = NULL WHERE id = ${rows[1].id}`);
+  const ins = db.prepare("INSERT INTO wikidata_boxers (qid, name, birth_date, birth_year, birth_place, country, boxrec_id, residence) VALUES (?,?,?,?,?,?,?,?)");
+  ins.run("QU1", "Anyone", "1983-06-06", 1983, "Somewhere", "X", "881", null);
+  ins.run("QU2", "Anyone Else", "1950-01-01", rows[1].birth_year, "Elsewhere", "X", "882", null);
+  const s = wd.enrichFromWikidata(db);
+  const got = (id: number) => db.prepare("SELECT wikidata_id q, birth_year y FROM boxers WHERE id = ?").get(id) as { q: string | null; y: number | null };
+  assert.deepEqual({ ...got(rows[0].id) }, { q: "QU1", y: 1983 }, "linked despite having no birth year to compare, and the year is filled from the match");
+  assert.ok(s.filled.birthYear >= 1);
+  assert.deepEqual({ ...got(rows[1].id) }, { q: "QU2", y: rows[1].birth_year }, "a known birth year is left as it was");
+});
+
 const ex = (b: string, extra: Record<string, { value: string }>) => ({ b: lit(`http://www.wikidata.org/entity/${b}`), ...extra });
 
 test("extras query asks for the Hall of Fame, Olympedia and award properties", () => {

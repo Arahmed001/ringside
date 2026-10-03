@@ -185,12 +185,6 @@
   ]
  },
  {
-  "key": "{country} · Age {age} · {stance} · Pro since {year}",
-  "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
-  ]
- },
- {
   "key": "{date} · {city}",
   "files": [
    "app/[locale]/page.tsx"
@@ -275,12 +269,6 @@
   "key": "{gate} gate · {ppv} PPV · {n} cards",
   "files": [
    "app/[locale]/money/page.tsx"
-  ]
- },
- {
-  "key": "{h} cm / {r} cm",
-  "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -393,6 +381,7 @@
  {
   "key": "{n} cm",
   "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/compare/page.tsx",
    "components/MatchupLab.tsx",
    "lib/correction-text.ts",
@@ -1044,6 +1033,12 @@
   ]
  },
  {
+  "key": "{name} is a {division} from {country}: {record}, rated {elo}{rank}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} is coming off a stoppage loss",
   "files": [
    "lib/upsets.ts"
@@ -1184,7 +1179,25 @@
   ]
  },
  {
+  "key": "{name}{nick} is a {age}-year-old {division} from {country}, {record} with {kos} knockouts ({pct}% of wins).",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "{name}{nick} is a {age}-year-old {stance} {division} from {country}, {record} with {kos} knockouts ({pct}% of wins).",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "{name}{nick} is a {division} from {country}, {record} with {kos} knockouts ({pct}% of wins).",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "{name}{nick} is a {stance} {division} from {country}, {record} with {kos} knockouts ({pct}% of wins).",
   "files": [
    "lib/ai.ts"
   ]
@@ -1973,6 +1986,12 @@
   "key": "Age (past 34)",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Age {age}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -3384,6 +3403,7 @@
  {
   "key": "Corrections",
   "files": [
+   "app/[locale]/data/page.tsx",
    "app/[locale]/report/page.tsx",
    "components/ReportQueue.tsx"
   ]
@@ -3440,6 +3460,12 @@
   "key": "Create an account",
   "files": [
    "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
+  "key": "Credit",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -3571,6 +3597,12 @@
   "key": "Data and models",
   "files": [
    "lib/nav.ts"
+  ]
+ },
+ {
+  "key": "Data supplier",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -4569,6 +4601,12 @@
   "key": "Fight-night weight edge",
   "files": [
    "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "Fight, fighter and event data: <a>{name}</a>.",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -5925,6 +5963,12 @@
   ]
  },
  {
+  "key": "Licence terms",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Licensed results feed",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -7025,6 +7069,12 @@
   ]
  },
  {
+  "key": "Not signed in? Write to",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Not used",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -7787,6 +7837,12 @@
   ]
  },
  {
+  "key": "Prefer not to sign in? Write to",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
   "key": "present",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
@@ -7842,6 +7898,12 @@
   "key": "Pro debut ≥ {year}",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Pro since {year}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -8482,6 +8544,12 @@
   ]
  },
  {
+  "key": "Ringside adds its own ratings, rankings and predictions on top of this data; those are Ringside’s, not the supplier’s.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Ringside demo build · All fighters, fights and events shown are <b>fictional, simulated data</b>. Ratings are Elo-style and unofficial.",
   "files": [
    "app/[locale]/layout.tsx"
@@ -9031,6 +9099,12 @@
   ]
  },
  {
+  "key": "Signed-in readers can <a>report a mistake</a> on any fighter or fight page. An editor reads the source before anything changes, and a fight’s result is corrected only from a page its commission or sanctioning body published.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Since",
   "files": [
    "lib/ask/tools.ts"
@@ -9218,6 +9292,12 @@
   "key": "Sponsorship",
   "files": [
    "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Spotted a mistake?",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -10853,6 +10933,12 @@
   "key": "Unknown device",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Unknown: not counted",
+  "files": [
+   "components/MatchupLab.tsx"
   ]
  },
  {

@@ -52,7 +52,7 @@ npm run vendor:backfill -- --check --cache-dir /data/vendor-cache
 
 Fetches everything into the cache and runs the validator over the whole feed, then stops: **the database is not touched**. Read two things:
 
-- `approximated or skipped`: how much of the league rests on an assumption (an unknown birth year, an imputed reach, a division taken from a fighter's last fight). A large count is a reason to look, not to proceed. The table in `docs/real-data-readiness.md` says what each means.
+- `approximated or skipped`: how much of the league has a fact unknown (a birth year, stance, height, reach or debut year: these stay unknown, they are never filled in) or rests on an assumption (a division taken from a fighter's last fight). A large count of unknowns is not a reason to stop: the pages show a dash and the model ignores what it does not know. A large count of assumptions is a reason to look. The table in `docs/real-data-readiness.md` says what each means.
 - `validator`: errors drop rows (the command will refuse to load while there are any); warnings are worth a look (a reach of 123 cm on a 177 cm fighter is the vendor's data, not ours).
 - `records`: how many fighters have loaded fights that add up exactly to the career record the vendor states for them. **This is the check to read.** See "What 'verified' means" below. `--check` exits 1 if a load would be refused.
 

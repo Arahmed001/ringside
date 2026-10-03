@@ -1,3 +1,4 @@
+import { orDash } from "../facts";
 import type { BoutRow, BoxerFull } from "../types";
 import { WEIGHT_CLASSES } from "../types";
 import { recordStr } from "../world";
@@ -113,11 +114,12 @@ const fighter: Tool = {
     const res = (x: BoutRow) => (x.winnerId === null ? t("D") : x.winnerId === b.id ? t("W") : t("L"));
     return {
       tool: "fighter", args,
-      summary: t("{name} is a {age}-year-old {division} from {country}: {record}, rated {elo}{rank}.", {
-        name: t.name(b.name), age: b.age, division: divisionLabel(b.weightClass, b.sex, t), country: countryName(b.country, t.locale), record: recordStr(b), elo: Math.round(b.rating),
-        rank: rank ? t(", number {n} in the division", { n: rank }) : "" }),
+      summary: (() => {
+        const v = { name: t.name(b.name), division: divisionLabel(b.weightClass, b.sex, t), country: countryName(b.country, t.locale), record: recordStr(b), elo: Math.round(b.rating), rank: rank ? t(", number {n} in the division", { n: rank }) : "" };
+        return b.age !== null ? t("{name} is a {age}-year-old {division} from {country}: {record}, rated {elo}{rank}.", { ...v, age: b.age }) : t("{name} is a {division} from {country}: {record}, rated {elo}{rank}.", v); // an unknown age is left out, not guessed
+      })(),
       lines: [
-        `${t.name(b.name)}: ${recordStr(b)}, ${b.kos} KOs, rating ${Math.round(b.rating)}, ${b.weightClass}, ${b.stance}, age ${b.age}, ${b.country}, style ${archetype(b)}${rank ? `, rank ${rank} in division` : ""}.`,
+        `${t.name(b.name)}: ${recordStr(b)}, ${b.kos} KOs, rating ${Math.round(b.rating)}, ${b.weightClass}, ${b.stance ?? "stance unknown"}, age ${b.age ?? "unknown"}, ${b.country}, style ${archetype(b)}${rank ? `, rank ${rank} in division` : ""}.`,
         `Streak: ${b.streak.type}${b.streak.count}. ${b.active ? "Active" : "Retired"}.`,
         held.length ? `Holds: ${held.map((h) => beltLabel(h.belt, t)).join("; ")}.` : "Holds no current belt.",
         trainer ? `Head trainer: ${t.name(trainer.name)}.` : "",
@@ -147,14 +149,14 @@ const headToHead: Tool = {
       summary: `${matchupBlurb(a, b, t)} ${met.length ? t("They have met {n} times: {a} {wa}, {b} {wb}.", { n: met.length, a: t.name(a.name), wa: winsA, b: t.name(b.name), wb: winsB }) : t("They have never met.")}`,
       lines: [
         `Model: ${t.name(a.name)} ${Math.round(p.pA * 100)}%, ${t.name(b.name)} ${Math.round(p.pB * 100)}%, draw ${Math.round(p.pDraw * 100)}%; stoppage chance ${Math.round(p.koProb * 100)}%.`,
-        `${t.name(a.name)}: ${recordStr(a)}, rating ${Math.round(a.rating)}, age ${a.age}, reach ${a.reachCm}cm, KO rate ${Math.round(a.koRate * 100)}%.`,
-        `${t.name(b.name)}: ${recordStr(b)}, rating ${Math.round(b.rating)}, age ${b.age}, reach ${b.reachCm}cm, KO rate ${Math.round(b.koRate * 100)}%.`,
+        `${t.name(a.name)}: ${recordStr(a)}, rating ${Math.round(a.rating)}, age ${a.age ?? "unknown"}, reach ${a.reachCm === null ? "unknown" : a.reachCm + "cm"}, KO rate ${Math.round(a.koRate * 100)}%.`,
+        `${t.name(b.name)}: ${recordStr(b)}, rating ${Math.round(b.rating)}, age ${b.age ?? "unknown"}, reach ${b.reachCm === null ? "unknown" : b.reachCm + "cm"}, KO rate ${Math.round(b.koRate * 100)}%.`,
         met.length ? `Previous meetings: ${met.length}; ${t.name(a.name)} won ${winsA}, ${t.name(b.name)} won ${winsB}.` : "They have not fought each other.",
       ],
       tables: [
         { id: "tape", title: t("Tale of the tape"), columns: ["", t.name(a.name), t.name(b.name)], rows: [
-          row(t("Record"), recordStr(a), recordStr(b)), row(t("Rating"), String(Math.round(a.rating)), String(Math.round(b.rating))), row(t("Age"), String(a.age), String(b.age)),
-          row(t("Reach"), `${a.reachCm}cm`, `${b.reachCm}cm`), row(t("KO rate"), `${Math.round(a.koRate * 100)}%`, `${Math.round(b.koRate * 100)}%`),
+          row(t("Record"), recordStr(a), recordStr(b)), row(t("Rating"), String(Math.round(a.rating)), String(Math.round(b.rating))), row(t("Age"), orDash(a.age, String), orDash(b.age, String)),
+          row(t("Reach"), orDash(a.reachCm, (n) => `${n}cm`), orDash(b.reachCm, (n) => `${n}cm`)), row(t("KO rate"), `${Math.round(a.koRate * 100)}%`, `${Math.round(b.koRate * 100)}%`),
           row(t("Win chance"), `${Math.round(p.pA * 100)}%`, `${Math.round(p.pB * 100)}%`)], note: undefined },
         ...(met.length ? [{ id: "meetings", title: t("Previous meetings"), columns: [t("Date"), t("Fight"), t("Result")], rows: met.slice(0, 5).map((x) => [fmtDate(x.date, { month: "short", year: "numeric" }, t.locale), boutCell(x, t), resultLine(w, x, t)]), note: undefined }] : []),
       ],

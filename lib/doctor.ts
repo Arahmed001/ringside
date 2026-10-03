@@ -9,6 +9,7 @@
  * Levels: `fail` = the app will not work as intended; `warn` = it works but probably not how you meant; `info` = a choice worth knowing
  * about; `ok` = checked and fine.
  */
+import { httpsUrl, siteContact } from "./site-info";
 import path from "node:path";
 import { assertPlausibleKey } from "./providers/boxing-data-api";
 import { STALE_DATA_DAYS } from "./freshness";
@@ -29,7 +30,7 @@ export const KNOWN_ENV = [
   "ANTHROPIC_API_KEY", "ANTHROPIC_MODEL", "ANTHROPIC_MODEL_TRANSLATE", "AI_DAILY_BUDGET", "AI_CLIENT_LIMIT", "AI_CLIENT_WINDOW_MS",
   "BOXING_PROVIDER", "BOXING_FILE", "BOXING_API_URL", "BOXING_API_KEY", "BOXING_API_MAX_REQUESTS", "BOXING_API_SINCE", "BOXING_API_STORAGE_CONFIRMED",
   "VENDOR_LAG_DAYS", "WIKIMEDIA_CONTACT", "WIKIMEDIA_GAP_MS", "WIKIDATA_GAP_MS", "MEDIA_RESOLVER", "MEDIA_RESOLVER_BATCH",
-  "RESEARCH_CONTACT", "RESEARCH_DELAY_MS", "RESEARCH_BLOCKLIST", "SITE_URL", "INDEXABLE", "DATABASE_PATH", "ACCOUNTS_DB_PATH",
+  "RESEARCH_CONTACT", "SITE_CONTACT", "VENDOR_TERMS_URL", "RESEARCH_DELAY_MS", "RESEARCH_BLOCKLIST", "SITE_URL", "INDEXABLE", "DATABASE_PATH", "ACCOUNTS_DB_PATH",
   "RINGSIDE_NOW",
 ] as const;
 /** Settings that exist for tests and tooling and are deliberately not in .env.example. */
@@ -102,6 +103,13 @@ export function envFindings(env: Env, nodeVersion = process.versions.node, produ
   if (env.MEDIA_RESOLVER === "wikimedia" && !contactOk(env.WIKIMEDIA_CONTACT)) out.push(f("fail", "wikimedia-contact", "MEDIA_RESOLVER=wikimedia but WIKIMEDIA_CONTACT is not an email or web address; Wikimedia asks bots to identify themselves and the resolver refuses to run without one.", "Set it to a web address (the repository URL is fine) or an email you are happy to publish."));
   if (!set(env, "RESEARCH_CONTACT")) out.push(f("info", "research-contact", "RESEARCH_CONTACT is not set: `npm run research` will not run, and reviewers' \"check the source\" on community edits answers \"unavailable\" (it goes in the fetcher's User-Agent)."));
   else if (!contactOk(env.RESEARCH_CONTACT)) out.push(f("warn", "research-contact", "RESEARCH_CONTACT is neither an email nor a web address, so the polite fetcher will refuse to start.", "Use an email or an https:// address."));
+  // what a public site owes its readers once it shows real data: somewhere to report a mistake, and the vendor's terms
+  if (!set(env, "SITE_CONTACT")) { if (p === "licensed") out.push(f("warn", "site-contact", "SITE_CONTACT is not set, so people who are not signed in have nowhere to report a mistake about a real person.", "Set it to a role address or an https:// page you are happy to publish (it is shown on the Data and Report pages).")); }
+  else if (!siteContact(env)) out.push(f("warn", "site-contact", "SITE_CONTACT is neither an email address nor an https:// address, so the site shows no contact.", "Use an address like corrections@example.com, or an https:// page."));
+  if (p === "licensed") {
+    if (!set(env, "VENDOR_TERMS_URL")) out.push(f("info", "vendor-terms", "VENDOR_TERMS_URL is not set: the Data page credits the vendor but links no licence terms. Set it once the vendor's terms (or its written agreement) are public."));
+    else if (!httpsUrl(env.VENDOR_TERMS_URL)) out.push(f("warn", "vendor-terms", "VENDOR_TERMS_URL is not an https:// address, so it is not shown.", "Use the https:// link to the vendor's terms."));
+  }
   if (set(env, "PORT") && !(Number.isInteger(Number(env.PORT)) && Number(env.PORT) > 0 && Number(env.PORT) < 65536)) out.push(f("fail", "port", "PORT is not a port number."));
 
   // A misspelt name is silently ignored: the one failure that looks exactly like "I set it and nothing happened".

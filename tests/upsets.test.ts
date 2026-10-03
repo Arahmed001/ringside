@@ -52,7 +52,7 @@ test("warning signs appear exactly when the favourite's history says they should
     const kinds = new Set(U.upsetWatch(w, tEn).find((y) => y.bout.id === x.bout.id)!.signals.map((s) => s.kind));
     // signals are capped at four, so only check the direction that cannot be caused by the cap
     if (kinds.has("layoff")) assert.ok(last && months(last.date, x.bout.date) >= 15, "layoff without a long gap");
-    if (kinds.has("age")) assert.ok(fav.age >= 36);
+    if (kinds.has("age")) assert.ok(fav.age! >= 36);
     if (kinds.has("ko-loss")) assert.ok(last && last.winnerId !== null && last.winnerId !== fav.id && ["KO", "TKO", "RTD"].includes(last.method!));
     if (kinds.has("lost-last")) assert.ok(last && last.winnerId !== null && last.winnerId !== fav.id && !["KO", "TKO", "RTD"].includes(last.method!));
     if (kinds.has("streak")) assert.ok(x.underdog.streak.type === "W" && x.underdog.streak.count >= 4);

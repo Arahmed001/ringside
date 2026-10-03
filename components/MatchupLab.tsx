@@ -48,8 +48,8 @@ export function MatchupLab({ a, b, defaults, modelNote, finish = null }: { a: Si
     <div className="space-y-3">
       <div className="font-display text-lg font-bold" style={{ color }}>{s.name} <span className="text-xs font-normal text-muted">{t("what-if")}</span></div>
       <Slider label={t("Rating")} value={f.rating} min={Math.round(orig.rating - 200)} max={Math.round(orig.rating + 200)} step={5} onChange={(v) => set({ ...f, rating: v })} display={t("{n} Elo", { n: Math.round(f.rating) })} color={color} />
-      <Slider label={t("Age")} value={f.age} min={18} max={46} step={1} onChange={(v) => set({ ...f, age: v })} display={String(f.age)} color={color} />
-      <Slider label={t("Reach")} value={f.reachCm} min={Math.round(orig.reachCm - 12)} max={Math.round(orig.reachCm + 12)} step={1} onChange={(v) => set({ ...f, reachCm: v })} display={t("{n} cm", { n: f.reachCm })} color={color} />
+      {f.age === null ? <Unknown label={t("Age")} note={t("Unknown: not counted")} /> : <Slider label={t("Age")} value={f.age} min={18} max={46} step={1} onChange={(v) => set({ ...f, age: v })} display={String(f.age)} color={color} />}
+      {f.reachCm === null || orig.reachCm === null ? <Unknown label={t("Reach")} note={t("Unknown: not counted")} /> : <Slider label={t("Reach")} value={f.reachCm} min={Math.round(orig.reachCm - 12)} max={Math.round(orig.reachCm + 12)} step={1} onChange={(v) => set({ ...f, reachCm: v })} display={t("{n} cm", { n: f.reachCm })} color={color} />}
       <Slider label={t("Months since last fight")} value={Math.round(f.monthsIdle)} min={0} max={48} step={1} onChange={(v) => set({ ...f, monthsIdle: v })} display={t("{n} mo", { n: Math.round(f.monthsIdle) })} color={color} />
     </div>
   );
@@ -110,4 +110,9 @@ export function MatchupLab({ a, b, defaults, modelNote, finish = null }: { a: Si
       </div>
     </section>
   );
+}
+
+/** A fact the data does not have: said so, and not a slider, because there is nothing to move. */
+function Unknown({ label, note }: { label: string; note: string }) {
+  return <div className="flex items-baseline justify-between text-sm"><span className="text-muted">{label}</span><span className="text-muted">{note}</span></div>;
 }
