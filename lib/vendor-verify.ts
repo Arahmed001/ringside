@@ -29,22 +29,31 @@ export interface Reconciliation {
   complete: number; partial: number; conflict: number;
   /** fighters in the data with no vendor record to check against (not counted in `share`) */
   noVendorRecord: number;
+  /**
+   * Daily update only (`reconcileDb` with `recent`): fighters whose loaded fights exceed the vendor's total, but only because of a fight in the last
+   * few days. The vendor's career totals trail its results (seen: a fight on the 27th, the record updated on the 29th, still without it), so this is
+   * "the total probably has not caught up", not a contradiction. Not counted as complete, and never counted as a conflict. Always 0 for a load.
+   */
+  lagging: number;
   /** complete / checked; 0 when nothing could be checked */
   share: number;
-  conflicts: Mismatch[]; partials: Mismatch[];
+  conflicts: Mismatch[]; partials: Mismatch[]; laggards: Mismatch[];
 }
 const fmt = (r: CareerRecord) => `${r.wins}-${r.losses}-${r.draws}`;
 
-function reconcile(fighters: { externalId: string; name: string }[], loaded: Map<string, CareerRecord>, vendor: Map<string, CareerRecord>): Reconciliation {
-  const out: Reconciliation = { checked: 0, complete: 0, partial: 0, conflict: 0, noVendorRecord: 0, share: 0, conflicts: [], partials: [] };
+function reconcile(fighters: { externalId: string; name: string }[], loaded: Map<string, CareerRecord>, vendor: Map<string, CareerRecord>, recent?: Map<string, CareerRecord>): Reconciliation {
+  const out: Reconciliation = { checked: 0, complete: 0, partial: 0, conflict: 0, noVendorRecord: 0, lagging: 0, share: 0, conflicts: [], partials: [], laggards: [] };
   for (const f of fighters) {
     const v = vendor.get(f.externalId);
     if (!v) { out.noVendorRecord++; continue; }
     const l = loaded.get(f.externalId) ?? { wins: 0, losses: 0, draws: 0 };
-    const status = classifyRecord(l, v);
+    let status: RecordStatus | "lagging" = classifyRecord(l, v);
+    // a conflict that disappears once the last few days' fights are set aside is explained by the vendor's total trailing them
+    const r = recent?.get(f.externalId);
+    if (status === "conflict" && r && classifyRecord({ wins: l.wins - r.wins, losses: l.losses - r.losses, draws: l.draws - r.draws }, v) !== "conflict") status = "lagging";
     out.checked++; out[status]++;
     const m = { externalId: f.externalId, name: f.name, loaded: fmt(l), vendor: fmt(v) };
-    if (status === "conflict") out.conflicts.push(m); else if (status === "partial") out.partials.push(m);
+    if (status === "conflict") out.conflicts.push(m); else if (status === "partial") out.partials.push(m); else if (status === "lagging") out.laggards.push(m);
   }
   out.share = out.checked ? out.complete / out.checked : 0;
   return out;
@@ -65,22 +74,29 @@ export function reconcileFeed(feed: FeedData, vendor: Map<string, CareerRecord>)
   return reconcile(feed.boxers, loaded, vendor);
 }
 
-/** The same check against what is in the database now (the daily update: the feed holds only the recent fights, the database holds the careers). Optionally only for some fighters. */
-export function reconcileDb(db: DatabaseSync, vendor: Map<string, CareerRecord>, only?: Iterable<string>): Reconciliation {
+/**
+ * The same check against what is in the database now (the daily update: the feed holds only the recent fights, the database holds the careers). Optionally only for some fighters.
+ * With `lag`, a conflict that only the fights of the last `days` days cause is reported as `lagging` instead (see `Reconciliation.lagging`). Without it the check is strict, as it is for a load.
+ */
+export function reconcileDb(db: DatabaseSync, vendor: Map<string, CareerRecord>, only?: Iterable<string>, lag?: { today: string; days: number }): Reconciliation {
   const boxers = db.prepare("SELECT id, external_id, name FROM boxers WHERE external_id IS NOT NULL").all() as { id: number; external_id: string; name: string }[];
   const wanted = only ? new Set(only) : null;
   const byId = new Map(boxers.map((b) => [b.id, b.external_id]));
   const loaded = new Map<string, CareerRecord>();
-  const rows = db.prepare("SELECT red_id, blue_id, winner_id, method, status FROM bouts").all() as { red_id: number; blue_id: number; winner_id: number | null; method: string | null; status: string | null }[];
+  const rows = db.prepare("SELECT b.red_id, b.blue_id, b.winner_id, b.method, b.status, e.date AS date FROM bouts b LEFT JOIN events e ON e.id = b.event_id").all() as { red_id: number; blue_id: number; winner_id: number | null; method: string | null; status: string | null; date: string | null }[];
+  const recent = lag ? new Map<string, CareerRecord>() : undefined;
+  const cutoff = lag ? new Date(Date.parse(`${lag.today}T00:00:00Z`) - lag.days * 86_400_000).toISOString().slice(0, 10) : "";
   for (const b of rows) {
     if (b.status === "cancelled") continue;
     const red = byId.get(b.red_id), blue = byId.get(b.blue_id);
+    const isRecent = !!recent && !!b.date && b.date >= cutoff;
+    const count = (id: string | undefined, k: keyof CareerRecord) => { if (!id) return; add(loaded, id, k); if (isRecent) add(recent!, id, k); };
     if (b.winner_id) {
-      const w = byId.get(b.winner_id), l = b.winner_id === b.red_id ? blue : red;
-      if (w) add(loaded, w, "wins"); if (l) add(loaded, l, "losses");
-    } else if (b.method === "DRAW") { if (red) add(loaded, red, "draws"); if (blue) add(loaded, blue, "draws"); }
+      const l = b.winner_id === b.red_id ? blue : red;
+      count(byId.get(b.winner_id), "wins"); count(l, "losses");
+    } else if (b.method === "DRAW") { count(red, "draws"); count(blue, "draws"); }
   }
-  return reconcile(boxers.filter((b) => !wanted || wanted.has(b.external_id)).map((b) => ({ externalId: b.external_id, name: b.name })), loaded, vendor);
+  return reconcile(boxers.filter((b) => !wanted || wanted.has(b.external_id)).map((b) => ({ externalId: b.external_id, name: b.name })), loaded, vendor, recent);
 }
 
 export interface GateOptions { minComplete: number; allowPartial: boolean; allowConflicts: boolean }
@@ -98,6 +114,7 @@ export function describeReconciliation(r: Reconciliation): string[] {
   const lines = [`records: ${r.complete} of ${r.checked} fighters (${pct(r.share)}) have loaded fights that add up exactly to the vendor's career record`];
   if (r.partial) lines.push(`  ${r.partial} partial: fights are missing, so the page would show a shorter record than the fighter has${r.partials.length ? ` (e.g. ${r.partials.slice(0, 3).map((m) => `${m.name} loaded ${m.loaded} vs vendor ${m.vendor}`).join("; ")})` : ""}`);
   if (r.conflict) lines.push(`  ${r.conflict} CONFLICT: more than the vendor's own career total, so the feed contradicts itself (e.g. ${r.conflicts.slice(0, 3).map((m) => `${m.name} loaded ${m.loaded} vs vendor ${m.vendor}`).join("; ")})`);
+  if (r.lagging) lines.push(`  ${r.lagging} career total(s) probably lagging: the loaded fights exceed the vendor's total only because of a fight in the last few days, and the vendor's totals trail its results (e.g. ${r.laggards.slice(0, 3).map((m) => `${m.name} loaded ${m.loaded} vs vendor ${m.vendor}`).join("; ")}). Not a contradiction yet: the next day's update will show whether the total caught up.`);
   if (r.noVendorRecord) lines.push(`  ${r.noVendorRecord} fighter(s) came with no career record, so nothing can be checked for them`);
   return lines;
 }
