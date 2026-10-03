@@ -9,7 +9,10 @@
  *   npm run research -- apply                   write money-feed.json into the database
  *   npm run research -- extract --url U --event "Name|2015-05-02|Fighter A;Fighter B" --want event_financials,purse   (the bot; needs ANTHROPIC_API_KEY)
  *   npm run research -- fetch URL               what the polite fetcher sees at a URL
- * Needs RESEARCH_CONTACT (an email or URL for the User-Agent) in .env.local to touch the network.
+ *   npm run research -- add-document FILE --issuer "California State Athletic Commission" --issuer-host dca.ca.gov --received 2026-10-10 --how "public-records response" [--official] [--transcription]
+ *                                               register a document you placed in data/research/manual/ (hash recorded); claims then say "document": "FILE" instead of a URL
+ *   npm run research -- documents               every registered document and whether it still matches its hash
+ * Needs RESEARCH_CONTACT (an email or URL for the User-Agent) in .env.local to touch the network (claims that name a document need no network).
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -21,9 +24,11 @@ import { extractFromPage } from "../lib/research/extract";
 import { ask, loadEnv } from "../lib/i18n/translate";
 import { ingestMoney } from "../lib/ingest-money";
 import { decisionProblems, staleDecisions, type Decision } from "../lib/research/decisions";
+import { loadManifest, readDocument, registerDocument } from "../lib/research/documents";
 import type { CheckedFact, FactKind, ResearchFact } from "../lib/research/types";
 
-const DIR = path.join(process.cwd(), "data", "research");
+const DIR = process.env.RESEARCH_DIR ?? path.join(process.cwd(), "data", "research"); // RESEARCH_DIR is for the tests
+const MANUAL = path.join(DIR, "manual");
 const INBOX = path.join(DIR, "inbox"), DECISIONS = path.join(DIR, "decisions.jsonl"), CHECKED = path.join(DIR, "checked.jsonl"), FEED = path.join(DIR, "money-feed.json");
 const readJsonl = <T,>(f: string): T[] => fs.readFileSync(f, "utf8").split("\n").filter((l) => l.trim()).map((l, i) => { try { return JSON.parse(l) as T; } catch { throw new Error(`${f}:${i + 1} is not valid JSON`); } });
 const decisions = (): Decision[] => (fs.existsSync(DECISIONS) ? readJsonl<Decision>(DECISIONS) : []);
@@ -34,7 +39,7 @@ function fetcher() {
   if (!process.env.RESEARCH_CONTACT) throw new Error("Set RESEARCH_CONTACT (an email address or website where site owners can reach you) in .env.local. It goes in the bot's User-Agent; use your own, never someone else's.");
   return new PoliteFetcher({ contact: process.env.RESEARCH_CONTACT, cacheDir: path.join(DIR, "cache"), delayMs: Number(process.env.RESEARCH_DELAY_MS ?? 3000), extraBlocked: (process.env.RESEARCH_BLOCKLIST ?? "").split(",").map((s) => s.trim()).filter(Boolean) });
 }
-const FLAGS_WITH_VALUE = new Set(["url", "event", "fighter", "year", "want"]);
+const FLAGS_WITH_VALUE = new Set(["url", "event", "fighter", "year", "want", "issuer", "issuer-host", "received", "how"]);
 const argv = process.argv.slice(2);
 const flags = new Map<string, string>();
 const positional: string[] = [];
@@ -49,7 +54,13 @@ async function main() {
   if (cmd === "lint") { // offline: only the shape of each claim, for researchers to self-check before handing in
     const files = rest.length ? rest : fs.readdirSync(INBOX).filter((f) => f.endsWith(".jsonl")).map((f) => path.join(INBOX, f));
     let bad = 0, n = 0;
-    for (const f of files) readJsonl<ResearchFact>(f).forEach((c, i) => { n++; const p = shapeProblems(c); if (p.length) { bad++; console.log(`${path.basename(f)}:${i + 1} ${p.join(" | ")}`); } });
+    const registered = new Set(loadManifest(MANUAL).map((e) => e.file));
+    for (const f of files) readJsonl<ResearchFact>(f).forEach((c, i) => {
+      n++;
+      const p = shapeProblems(c);
+      if (c.document !== undefined && !p.length && !registered.has(c.document)) p.push(`document ${c.document} is not registered (npm run research -- add-document)`);
+      if (p.length) { bad++; console.log(`${path.basename(f)}:${i + 1} ${p.join(" | ")}`); }
+    });
     const ds = decisions();
     ds.forEach((d, i) => { const p = decisionProblems(d); if (p.length) { bad++; console.log(`decisions.jsonl:${i + 1} ${p.join(" | ")}`); } });
     console.log(`${n} claims, ${ds.length} decisions, ${bad} malformed`);
@@ -58,11 +69,11 @@ async function main() {
   if (cmd === "check") {
     const files = rest.length ? rest : fs.readdirSync(INBOX).filter((f) => f.endsWith(".jsonl")).map((f) => path.join(INBOX, f));
     const facts = files.flatMap((f) => readJsonl<ResearchFact>(f));
-    const f = fetcher();
+    let f: PoliteFetcher | undefined; // only built when a claim needs the web: a run over documents alone needs no contact and no network
     const ds = decisions();
     const badDecision = ds.flatMap((d, i) => decisionProblems(d).map((p) => `decisions.jsonl:${i + 1} ${p}`));
     if (badDecision.length) throw new Error(`fix the decisions first:\n${badDecision.join("\n")}`);
-    const checked = await checkFacts(facts, { getPage: (u) => f.get(u), officialHosts: officialHosts(), decisions: ds });
+    const checked = await checkFacts(facts, { getPage: (u) => (f ??= fetcher()).get(u), getDocument: (name) => readDocument(MANUAL, name), officialHosts: officialHosts(), decisions: ds });
     for (const x of staleDecisions(ds, checked)) console.log(`STALE decision (${x.decision.why}, ${x.decision.date}): no claim ${x.missing.join(", ")}; the claim was edited or removed, so this decision applies to nothing`);
     fs.writeFileSync(CHECKED, checked.map((c) => JSON.stringify(c)).join("\n") + "\n");
     const r = report(checked);
@@ -92,7 +103,7 @@ async function main() {
       for (const [lab, items] of [...rows].sort()) {
         const live = items.filter((x) => x.st !== "excluded");
         const stat = live.some((x) => x.st === "conflict") ? "CONFLICT" : live.some((x) => x.st === "verified") ? "verified" : live.length ? "single source" : "excluded";
-        const one = (x: (typeof items)[number]) => `${fmt(lab, x.v)} (${x.f.host}${x.f.basis === "disclosed" ? ", official" : ""}${x.st === "excluded" ? `, excluded: ${x.f.decision?.why}` : ""})`;
+        const one = (x: (typeof items)[number]) => `${fmt(lab, x.v)} (${x.f.host}${x.f.doc ? `, document ${x.f.doc.file}` : ""}${x.f.basis === "disclosed" && (x.f.doc ? x.f.doc.official : true) ? ", official" : ""}${x.st === "excluded" ? `, excluded: ${x.f.decision?.why}` : ""})`;
         lines.push(`- **${lab}**: ${items.map(one).join("; ")}: ${stat}`);
       }
       lines.push("");
@@ -122,6 +133,18 @@ async function main() {
     const r = ingestMoney(db, rows, { label: "research" });
     console.log("written", r.written, "dropped", r.dropped, `${r.issues.length} issue(s)`);
     for (const i of r.issues.filter((x) => x.severity !== "info").slice(0, 15)) console.log(`  ${i.severity} ${i.code} ${i.ref}: ${i.message}`);
+  } else if (cmd === "add-document") {
+    const file = rest[0];
+    if (!file) throw new Error('usage: add-document FILE --issuer "Who issued it" --issuer-host dca.ca.gov --received yyyy-mm-dd --how "public-records response" [--official] [--transcription]   (FILE is already in data/research/manual/)');
+    fs.mkdirSync(MANUAL, { recursive: true });
+    const e = registerDocument(MANUAL, { file, issuer: arg("issuer") ?? "", issuerHost: arg("issuer-host") ?? "", receivedAt: arg("received") ?? "", how: arg("how") ?? "", official: flags.has("official"), form: flags.has("transcription") ? "transcription" : "original" });
+    console.log(`registered ${e.file}: sha256 ${e.sha256.slice(0, 16)}..., ${e.issuer} (${e.issuerHost}), received ${e.receivedAt}, ${e.official ? "an official record" : e.form === "transcription" ? "a transcription (never official)" : "not marked official"}${e.text ? `; text taken with ${e.text.via} into ${e.text.file}` : ""}`);
+    console.log("Commit data/research/manual/manifest.jsonl (the hash and who issued it). Keep the document itself where you keep records: it is not needed to read the manifest, only to check a claim.");
+  } else if (cmd === "documents") {
+    const all = loadManifest(MANUAL);
+    if (!all.length) console.log("no documents registered");
+    for (const e of all) { const r = readDocument(MANUAL, e.file); console.log(`${r.ok ? "ok     " : "PROBLEM"} ${e.file}  ${e.issuer} (${e.issuerHost}), received ${e.receivedAt}, ${e.official ? "official" : e.form}${r.ok ? "" : `: ${r.detail}`}`); }
+    process.exitCode = all.some((e) => !readDocument(MANUAL, e.file).ok) ? 1 : 0;
   } else if (cmd === "fetch") {
     const r = await fetcher().get(rest[0]);
     console.log(r.ok ? `${r.status}${r.fromCache ? " (cache)" : ""}, ${r.text.length} characters\n${r.text.slice(0, 1500)}` : `not fetched: ${r.reason}: ${r.detail}`);
@@ -135,6 +158,6 @@ async function main() {
     const { facts, dropped } = await extractFromPage({ ask, text: page.text, url, task: { event: ev ? { name, date, fighters: fighters.split(";") } : undefined, fighter, year: arg("year") ? Number(arg("year")) : undefined, want } });
     fs.appendFileSync(path.join(INBOX, "bot.jsonl"), facts.map((f) => JSON.stringify(f)).join("\n") + (facts.length ? "\n" : ""));
     console.log(`${facts.length} facts added to inbox/bot.jsonl; ${dropped} dropped because their quote is not on the page. Now run: npm run research -- check`);
-  } else { console.error("usage: check | report | promote | apply | extract | fetch (see the header of scripts/research.ts)"); process.exit(2); }
+  } else { console.error("usage: lint | check | report | promote | apply | extract | fetch | add-document | documents (see the header of scripts/research.ts)"); process.exit(2); }
 }
 main().catch((e) => { console.error(e.message ?? e); process.exit(1); });

@@ -42,6 +42,28 @@ When a claim should still not count, record it in `data/research/decisions.jsonl
 ```
 `why` is `outlier`, `floor`, `preliminary`, `derived`, `hearsay` or `different-list`. A decision can only **take a figure out of the comparison**, never put one in: what is left is judged as usual, so it still needs two independent sources to be verified, and an excluded claim is never published (status `excluded`, with the reason shown in `docs/research-results.md`). Claims are named by id, which hashes their values; if a claim is edited the decision no longer matches, `check` prints `STALE decision`, and a test fails until someone looks. A test also fails while any `conflict` is left open in `checked.jsonl`. `npm run research -- lint` checks the decisions file offline.
 
+## Evidence that is a file, not a page
+
+Some of the best sources are not on the web: a commission's purse report that arrives as a PDF after a public-records request, a response letter. The checker confirms a web claim by fetching the page again; a file has no page, so the proof is different, and stated plainly.
+
+1. **A person registers the document once.** Put the file in `data/research/manual/`, then:
+   ```bash
+   npm run research -- add-document csac-2026-08.pdf --issuer "California State Athletic Commission" --issuer-host dca.ca.gov --received 2026-10-10 --how "public-records response" --official
+   ```
+   This records the file's SHA-256, who issued it, when it came and how, in `data/research/manual/manifest.jsonl` (commit that file). A PDF's text is taken with `pdftotext` (`apt install poppler-utils` or `brew install poppler`) and kept beside it; the text's hash is recorded too. A scanned PDF has no text: type it into a `.txt`, register that with `--transcription`, and it is treated as your own words, never as an official record.
+2. **`--official` is a statement by a person** that the file is the issuer's own record. A claim cannot say it about its own evidence, and a transcription can never be official, even if the manifest is edited to say so.
+3. **A claim names the document instead of a URL:**
+   ```json
+   {"kind":"purse","event":{…},"fighter":"Boxer A","values":{"guaranteedUsd":500000},"basis":"disclosed","source":"California State Athletic Commission (public-records response)","document":"csac-2026-08.pdf","quote":"…word for word from the document…"}
+   ```
+   Give a `sourceUrl` or a `document`, never both.
+4. **`check` reads the document's text** and requires the quote in it word for word and every number in the quote, exactly as for a page. It needs no network and no `RESEARCH_CONTACT` when every claim is a document. If the file is not registered, is missing, or **has changed since it was registered**, the claim is `unconfirmed` with that reason: a document cannot be swapped quietly. `npm run research -- documents` lists each one and whether it still matches.
+5. **Status follows the same rules as pages.** An official document verifies a figure on its own, like a `.gov` page; an unofficial one needs a second independent source; a document and a page from the same issuer count as one source. When promoted, the money row's note names the document and the first 12 characters of its hash, and its basis is `disclosed` only if the document was registered as official (otherwise `reported`). No web address is invented for it.
+
+What this proves: the quote is in the document the owner registered, and the document has not changed since. What it does not: that the document is genuine. That rests on the person who received it from the issuer, which is why the flag is theirs to set.
+
+The documents themselves are gitignored (they are public records, but they are your files to keep): the manifest is committed, the PDFs are not. On a machine without them a claim is `unconfirmed` ("not in the documents folder"), not an error.
+
 ## What researchers may and may not do
 - Read pages one at a time, as a person would: no bulk crawling, no downloading whole sites, no scraping behind logins or paywalls, no CAPTCHA solving, no changing identity to get round a block. A 403, 429 or challenge page means that source is closed to us; note it and move on.
 - Respect `robots.txt` (the fetcher enforces it) and the site's terms. **Never BoxRec** (its terms forbid it; data is licensed to partners only). Do not circumvent the Nevada Athletic Commission site's blocking: its event PDFs have to be downloaded by hand by a person and dropped into `data/research/manual/` for transcription. See `docs/data-sources-survey.md` for what each source allows.

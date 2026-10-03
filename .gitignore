@@ -47,6 +47,8 @@ data/model-fit.json
 !.env.example
 data/bench-*.json
 data/research/cache/
+data/research/manual/*
+!data/research/manual/manifest.jsonl
 
 # generated Arabic review sheets and a reviewer's answers: send them, do not commit them
 /review/
