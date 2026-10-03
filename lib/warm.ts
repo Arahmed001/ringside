@@ -1,6 +1,8 @@
 import { nowMs } from "./clock";
 import { getWorld } from "./world";
 import { featuredYear, fightsOfYear } from "./fight-score";
+import { signalLift, upsetRecord } from "./upsets";
+import { trainerImpact } from "./trainer-impact";
 
 const DAY = 86_400_000;
 /** Milliseconds from `now` to just after the next UTC midnight (the app's day is the UTC date; see clock.ts). */
@@ -18,6 +20,8 @@ export async function warmWorld(log: (m: string) => void = console.log): Promise
     // the home page shows the fight of the year, which needs the punch totals and one year scored (about 0.5 s at 160,000 bouts)
     const y = featuredYear(w);
     if (y) fightsOfYear(w, y);
+    // the upset-watch track record and the trainer-impact fit are the two other first-visitor costs (about 0.9 s and 0.6 s at 160,000 bouts)
+    upsetRecord(w); signalLift(w); trainerImpact(w);
   } catch (e) {
     // never keep the server from starting: the first request will try again and show the real error
     log(`[ringside] warm-up failed (${e instanceof Error ? e.message : String(e)}); the first request will retry`);

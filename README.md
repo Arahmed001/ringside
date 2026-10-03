@@ -26,6 +26,9 @@ See `PLAN.md` §8 for what data exists, the data model, and what each script doe
 ## Languages
 English at `/`, Arabic at `/ar`. UI text is keyed by its English sentence (`i18n/ar.json`); proper names have their own table. `npm run i18n:check` lists missing entries; `npm run i18n:translate` fills them with Claude (`ANTHROPIC_API_KEY` in `.env.local`); `npm run i18n:names -- auto` does the same for names. See `docs/i18n.md`. Set `SITE_URL` for canonical URLs and sitemaps; the demo league is `noindex` until a real provider is configured.
 
+## Upset watch and trainer impact
+`/upset-watch` ranks every upcoming fight by the underdog's chance, with reasons, how the same calls fared in the past, and which warning signs actually mattered (plus an Atom feed). `/trainers` estimates how much each head trainer changes their fighters' results, with honest error bars: most trainers cannot be told from average, and the page says so.
+
 ## Navigation
 A grouped left rail on desktop that collapses to icons (the choice is remembered), and a drawer on phones. Sections live in `lib/nav.ts`.
 

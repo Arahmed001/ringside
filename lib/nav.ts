@@ -2,7 +2,7 @@ import { msg } from "./i18n/t";
 
 export type IconName =
   | "rankings" | "titles" | "all-time" | "fighters" | "events" | "previews" | "fight-of-the-year" | "matchups" | "matchmaking"
-  | "corners" | "orgs" | "weigh-ins" | "money" | "accountability" | "analytics" | "style-map" | "data";
+  | "upset-watch" | "trainers" | "corners" | "orgs" | "weigh-ins" | "money" | "accountability" | "analytics" | "style-map" | "data";
 
 export interface NavItem { href: string; label: string; icon: IconName }
 export interface NavGroup { id: string; title: string; items: NavItem[] }
@@ -21,9 +21,11 @@ export const NAV_GROUPS: NavGroup[] = [
     { href: "/fight-of-the-year", label: msg("Fight of the year"), icon: "fight-of-the-year" },
     { href: "/compare", label: msg("Matchups"), icon: "matchups" },
     { href: "/matchmaking", label: msg("Matchmaking"), icon: "matchmaking" },
+    { href: "/upset-watch", label: msg("Upset watch"), icon: "upset-watch" },
   ] },
   { id: "camps", title: msg("Camps and money"), items: [
     { href: "/people", label: msg("Corners"), icon: "corners" },
+    { href: "/trainers", label: msg("Trainer impact"), icon: "trainers" },
     { href: "/orgs", label: msg("Gyms, promotions & bodies"), icon: "orgs" },
     { href: "/weights", label: msg("Weigh-ins"), icon: "weigh-ins" },
     { href: "/money", label: msg("Money"), icon: "money" },

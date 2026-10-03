@@ -61,6 +61,12 @@
   ]
  },
  {
+  "key": "{a} beat {b}",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "{a} beat {b} · {division}",
   "files": [
    "lib/fight-score.ts"
@@ -70,6 +76,12 @@
   "key": "{a} fights {sa}, {b} fights {sb}: the angles will matter.",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{a} has been stopped in {pa}% of fights; {b} finishes {pb}% of wins",
+  "files": [
+   "lib/upsets.ts"
   ]
  },
  {
@@ -93,6 +105,12 @@
   "key": "{a} vs {b} months since last fight",
   "files": [
    "lib/predict.ts"
+  ]
+ },
+ {
+  "key": "{a}% to {b}%",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
   ]
  },
  {
@@ -129,6 +147,12 @@
   "key": "{city}, {country}",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{clear} clearly, {leaning} leaning",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -402,7 +426,8 @@
   "key": "{n} fighters",
   "plural": "{n} fighter",
   "files": [
-   "app/[locale]/boxers/page.tsx"
+   "app/[locale]/boxers/page.tsx",
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -424,6 +449,7 @@
   "files": [
    "app/[locale]/accountability/page.tsx",
    "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/trainers/page.tsx",
    "lib/records.ts"
   ]
  },
@@ -496,6 +522,12 @@
   "plural": "{n} month with current trainer",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} moves, Elo over six fights",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -582,6 +614,12 @@
   ]
  },
  {
+  "key": "{n} stretches, Elo over six fights",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "{n} tickets",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -658,6 +696,12 @@
   ]
  },
  {
+  "key": "{n}% or more",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "{n}% wins",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx",
@@ -692,6 +736,12 @@
   "key": "{name} ({kind}) on Ringside: {now} fighters now, {ever} ever, a {record} combined record and {titles} title wins.",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} ({record}) is the underdog: a {pct}% chance to win",
+  "files": [
+   "components/WatchCard.tsx"
   ]
  },
  {
@@ -731,6 +781,13 @@
   ]
  },
  {
+  "key": "{name} changed head trainer {n} months ago",
+  "plural": "{name} changed head trainer {n} month ago",
+  "files": [
+   "lib/upsets.ts"
+  ]
+ },
+ {
   "key": "{name} defends the {belt}: {n} defences so far in a reign that began {date}.",
   "plural": "{name} defends the {belt}: {n} defence so far in a reign that began {date}.",
   "files": [
@@ -753,6 +810,12 @@
   "key": "{name} has a {n} cm reach advantage.",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} has a {pct}% chance against {other}",
+  "files": [
+   "app/feeds/upset-watch.xml/route.ts"
   ]
  },
  {
@@ -780,10 +843,24 @@
   ]
  },
  {
+  "key": "{name} has missed weight {n} times",
+  "plural": "{name} has missed weight {n} time",
+  "files": [
+   "lib/upsets.ts"
+  ]
+ },
+ {
   "key": "{name} has missed weight {n} times before: watch the scale.",
   "plural": "{name} has missed weight {n} time before: watch the scale.",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} has not fought for {n} months",
+  "plural": "{name} has not fought for {n} month",
+  "files": [
+   "lib/upsets.ts"
   ]
  },
  {
@@ -799,9 +876,29 @@
   ]
  },
  {
+  "key": "{name} is {n} years old",
+  "plural": "{name} is {n} year old",
+  "files": [
+   "lib/upsets.ts"
+  ]
+ },
+ {
+  "key": "{name} is coming off a stoppage loss",
+  "files": [
+   "lib/upsets.ts"
+  ]
+ },
+ {
   "key": "{name} is on a {n}-fight win streak.",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} is on a {n}-fight winning run",
+  "plural": "{name} is on a {n}-fight winning run",
+  "files": [
+   "lib/upsets.ts"
   ]
  },
  {
@@ -814,6 +911,12 @@
   "key": "{name} is working with a new trainer ({n} months).",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} lost last time out",
+  "files": [
+   "lib/upsets.ts"
   ]
  },
  {
@@ -1037,6 +1140,12 @@
   ]
  },
  {
+  "key": "± {n} (one standard error)",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "± error",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -1211,6 +1320,12 @@
   ]
  },
  {
+  "key": "A different measure",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "a draw",
   "files": [
    "lib/preview.ts"
@@ -1250,6 +1365,12 @@
   "key": "a loss",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "A plain comparison. Rating change over the next six fights for fighters who changed head trainer, against the same measure for fighters who stayed put.",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -1307,6 +1428,12 @@
   ]
  },
  {
+  "key": "A trainer's effect is in Elo points against the average trainer (zero). A fighter with a +30 trainer is about 30 Elo points better than the same fighter would be with an average one: roughly 4 percentage points of win chance against an equal opponent.",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "A unification: champions of different bodies in the same division",
   "files": [
    "lib/matchmaking.ts"
@@ -1316,6 +1443,12 @@
   "key": "A vacant title was decided: {title}",
   "files": [
    "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "A verdict needs the gap to be about twice its margin of error. Signs listed on the fights above but not in this table (a new head trainer, missed weights, a weak chin against a puncher) cannot be rebuilt as of fight night, so they are shown as context, not as proven edges. Thresholds used: {layoff} months idle, age {age}, a run of {streak}.",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
   ]
  },
  {
@@ -1403,6 +1536,12 @@
   ]
  },
  {
+  "key": "Against an average head trainer, after allowing for each fighter's own ability. The 95% range runs from {lo} to {hi}. Based on {fights} fights of {n} fighters, {informative} of them from fighters who have also worked with someone else.",
+  "files": [
+   "components/TrainerImpactCard.tsx"
+  ]
+ },
+ {
   "key": "age",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -1455,6 +1594,12 @@
   ]
  },
  {
+  "key": "All corner people",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "All division rankings",
   "files": [
    "app/[locale]/page.tsx"
@@ -1484,6 +1629,12 @@
   "key": "All fighters",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "All upcoming fights",
+  "files": [
+   "app/[locale]/page.tsx"
   ]
  },
  {
@@ -1526,6 +1677,12 @@
   ]
  },
  {
+  "key": "An estimate, not a verdict: fighters do not change trainer at random, and most trainers cannot be told from average. See how it is worked out.",
+  "files": [
+   "components/TrainerImpactCard.tsx"
+  ]
+ },
+ {
   "key": "An outlet's or analyst's estimate, or worked out from other figures. Treat as approximate.",
   "files": [
    "components/Money.tsx"
@@ -1562,7 +1719,8 @@
  {
   "key": "As head trainer",
   "files": [
-   "app/[locale]/people/[slug]/page.tsx"
+   "app/[locale]/people/[slug]/page.tsx",
+   "components/TrainerImpactCard.tsx"
   ]
  },
  {
@@ -1581,6 +1739,12 @@
   "key": "As referee",
   "files": [
    "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "As underdogs (under 40% by their ratings) their fighters have won {wins} of {n} fights, where the ratings expected {expected}.",
+  "files": [
+   "components/TrainerImpactCard.tsx"
   ]
  },
  {
@@ -2048,6 +2212,12 @@
   ]
  },
  {
+  "key": "by the model, across live and longshot fights",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "By weight class",
   "files": [
    "app/[locale]/rankings/page.tsx"
@@ -2072,6 +2242,12 @@
   ]
  },
  {
+  "key": "Camps",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "Camps and money",
   "files": [
    "lib/nav.ts"
@@ -2089,6 +2265,12 @@
    "app/[locale]/events/[id]/page.tsx",
    "components/Poster.tsx",
    "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "Cannot tell from average",
+  "files": [
+   "lib/trainer-impact.ts"
   ]
  },
  {
@@ -2147,9 +2329,21 @@
   ]
  },
  {
+  "key": "Change",
+  "files": [
+   "components/TrainerImpactCard.tsx"
+  ]
+ },
+ {
   "key": "Change the fight",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Changed trainer",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -2183,6 +2377,18 @@
   ]
  },
  {
+  "key": "Clearly above average",
+  "files": [
+   "lib/trainer-impact.ts"
+  ]
+ },
+ {
+  "key": "Clearly below average",
+  "files": [
+   "lib/trainer-impact.ts"
+  ]
+ },
+ {
   "key": "Clients",
   "files": [
    "app/[locale]/people/[slug]/page.tsx"
@@ -2192,6 +2398,12 @@
   "key": "Clients now / ever",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Close agreement means the percentages can be taken at face value. Where underdogs win more often than the model says, its chances for them run a little low; where they win less often, a little high.",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
   ]
  },
  {
@@ -2526,6 +2738,12 @@
   ]
  },
  {
+  "key": "Difference",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "Different divisions — treat with caution",
   "files": [
    "app/[locale]/compare/page.tsx"
@@ -2614,9 +2832,27 @@
   ]
  },
  {
+  "key": "Do the warning signs matter?",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "Does being heavier on fight night help?",
   "files": [
    "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Does changing trainer matter?",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Does the head trainer change how a fighter performs? Fighters' ratings rising under a trainer proves little: young fighters rise whoever trains them. So each trainer's effect is estimated together with every fighter's own ability, using fighters who have worked with more than one trainer, and every estimate comes with its error bars.",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -2799,6 +3035,30 @@
   ]
  },
  {
+  "key": "Estimated effect {effect} Elo, 95% range {lo} to {hi}",
+  "files": [
+   "components/ImpactRange.tsx"
+  ]
+ },
+ {
+  "key": "Estimated effect, best first",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Estimated effect, lowest first",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "estimated shift {n} Elo",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "Evenly matched on the ratings ({a}% to {b}%), both highly rated",
   "files": [
    "lib/fight-score.ts"
@@ -2911,6 +3171,18 @@
   ]
  },
  {
+  "key": "Every upcoming fight ranked by how likely the underdog is to win, with the reasons, and how the same calls have fared in past fights.",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Every upcoming fight, ranked by the underdog's chance of winning from the same model as the predictor, with the reasons an upset could happen. Below, how the same calls have fared in past fights, including which warning signs turned out to matter.",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "Every year",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
@@ -2954,6 +3226,12 @@
   ]
  },
  {
+  "key": "Expected",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "Experience",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
@@ -2982,6 +3260,30 @@
   "key": "Father Time",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Favourite aged 36 or older",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Favourite lost last time",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Favourite lost last time by stoppage",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Favourite off for 15 months or more",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
   ]
  },
  {
@@ -3119,6 +3421,7 @@
   "files": [
    "app/[locale]/events/page.tsx",
    "app/[locale]/previews/page.tsx",
+   "app/[locale]/upset-watch/page.tsx",
    "lib/nav.ts",
    "lib/search.ts"
   ]
@@ -3177,7 +3480,8 @@
    "app/[locale]/rankings/[division]/page.tsx",
    "app/[locale]/weights/page.tsx",
    "components/StyleMap.tsx",
-   "components/TenureTable.tsx"
+   "components/TenureTable.tsx",
+   "components/TrainerImpactCard.tsx"
   ]
  },
  {
@@ -3261,6 +3565,12 @@
   ]
  },
  {
+  "key": "Fighters do not change trainer at random: they often move after a bad run. And each fighter's ability is treated as fixed through a career. Both can bias the estimates, and the penalty that pulls estimates toward zero (a typical trainer within about {n} Elo) is a judgment.",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "Fighters like her",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -3291,6 +3601,48 @@
   ]
  },
  {
+  "key": "Fighters who changed head trainer moved {d} Elo points {dir} than those who did not over the next six fights: a real gap, small next to a typical fight swing of 15 to 25 points, and it does not show the new trainer caused it.",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Fighters who joined",
+  "files": [
+   "components/TrainerImpactCard.tsx"
+  ]
+ },
+ {
+  "key": "Fighters who joined, and their rating over the next fights",
+  "files": [
+   "components/TrainerImpactCard.tsx"
+  ]
+ },
+ {
+  "key": "Fighters who left",
+  "files": [
+   "components/TrainerImpactCard.tsx"
+  ]
+ },
+ {
+  "key": "Fighters who left, and their rating over the next fights",
+  "files": [
+   "components/TrainerImpactCard.tsx"
+  ]
+ },
+ {
+  "key": "Fighters who switched",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Fighters with a new head trainer",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "Fighters, events, bouts, results, belts; sometimes weights, scorecards, referees",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -3300,8 +3652,15 @@
   "key": "Fights",
   "files": [
    "app/[locale]/accountability/page.tsx",
+   "app/[locale]/upset-watch/page.tsx",
    "lib/nav.ts",
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Fights modelled",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -3314,6 +3673,19 @@
   "key": "Fights to make right now",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "Fights to watch",
+  "files": [
+   "app/[locale]/page.tsx",
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Fights where the fighter was the underdog going in (under 40% by their ratings): wins against the wins the ratings expected. At these sample sizes a few lucky nights explain most of the gaps; read it as a list to watch, not a verdict.",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -3383,6 +3755,24 @@
   ]
  },
  {
+  "key": "Follow in a feed reader",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "For every past fight the model scored, using only what was known beforehand: how often the underdog won, against how often the model said they would. The recent column is the last quarter of fights, the stretch the model was not tuned on.",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "For someone who left, a fall in rating afterwards counts in the trainer's favour.",
+  "files": [
+   "components/TrainerImpactCard.tsx"
+  ]
+ },
+ {
   "key": "Form",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
@@ -3398,6 +3788,12 @@
   "key": "Freely licensed fighter photos with author and licence",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "From",
+  "files": [
+   "components/TrainerImpactCard.tsx"
   ]
  },
  {
@@ -3452,6 +3848,18 @@
    "app/[locale]/page.tsx",
    "app/[locale]/previews/[id]/page.tsx",
    "components/Matchmaking.tsx"
+  ]
+ },
+ {
+  "key": "further down",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "further up",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -3550,6 +3958,12 @@
   ]
  },
  {
+  "key": "had two or more head trainers",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "Hall of Fame ID (Wikidata)",
   "files": [
    "lib/coverage.ts"
@@ -3559,6 +3973,12 @@
   "key": "Hall of Fame page",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Happened",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
   ]
  },
  {
@@ -3614,6 +4034,18 @@
   "key": "Head trainer",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Head trainers",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Head trainers whose fighters beat the odds as underdogs",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -3744,6 +4176,12 @@
   ]
  },
  {
+  "key": "How much head trainers change their fighters' results, estimated with a model that separates a trainer's effect from their fighters' own ability, with honest error bars, plus what happens when fighters change trainer.",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "How often each judge sides with the majority",
   "files": [
    "app/[locale]/people/page.tsx"
@@ -3774,6 +4212,12 @@
   ]
  },
  {
+  "key": "How the same calls fared",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "How the score works",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
@@ -3795,6 +4239,12 @@
   "key": "Identifiers",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Impact on results",
+  "files": [
+   "components/TrainerImpactCard.tsx"
   ]
  },
  {
@@ -4043,6 +4493,12 @@
   ]
  },
  {
+  "key": "Last 12 months",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "Last champion on record (the belt looks dormant)",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
@@ -4076,6 +4532,12 @@
   "key": "Last fought",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "Last nine months",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -4136,6 +4598,18 @@
   "key": "Lean",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Leaning above average",
+  "files": [
+   "lib/trainer-impact.ts"
+  ]
+ },
+ {
+  "key": "Leaning below average",
+  "files": [
+   "lib/trainer-impact.ts"
   ]
  },
  {
@@ -4241,6 +4715,18 @@
   ]
  },
  {
+  "key": "Live underdog",
+  "files": [
+   "lib/upsets.ts"
+  ]
+ },
+ {
+  "key": "Live underdogs",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "Lives in",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -4304,6 +4790,18 @@
   "key": "Longest winning run",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Longshot",
+  "files": [
+   "lib/upsets.ts"
+  ]
+ },
+ {
+  "key": "Longshots",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
   ]
  },
  {
@@ -4513,6 +5011,12 @@
   "key": "Model estimates; the split between stoppage and points follows each fighter’s finishing record.",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Model said",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
   ]
  },
  {
@@ -4737,6 +5241,12 @@
   ]
  },
  {
+  "key": "No clear effect",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "No contest",
   "files": [
    "lib/format.ts",
@@ -4834,6 +5344,12 @@
   ]
  },
  {
+  "key": "No upcoming fights to watch right now.",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "No upsets recorded yet.",
   "files": [
    "app/[locale]/page.tsx"
@@ -4874,6 +5390,13 @@
   "key": "none",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "none on record",
+  "files": [
+   "app/[locale]/trainers/page.tsx",
+   "components/TrainerImpactCard.tsx"
   ]
  },
  {
@@ -4934,6 +5457,12 @@
   "key": "Not yet",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Nothing beyond the ratings: the model sees no extra reason for an upset.",
+  "files": [
+   "components/WatchCard.tsx"
   ]
  },
  {
@@ -5051,6 +5580,12 @@
   ]
  },
  {
+  "key": "Only fighters who changed trainer tell a trainer's effect apart from their fighters' ability. A trainer whose fighters never left is pulled toward zero, however good the results.",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "Open in the dream-fight builder",
   "files": [
    "components/Matchmaking.tsx"
@@ -5091,6 +5626,12 @@
   "key": "otherwise a generated portrait",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Over",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -5577,6 +6118,7 @@
    "app/[locale]/compare/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "components/MatchupLab.tsx",
+   "components/TrainerImpactCard.tsx",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -5645,7 +6187,8 @@
    "app/[locale]/bouts/[id]/page.tsx",
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/page.tsx",
-   "app/[locale]/previews/page.tsx"
+   "app/[locale]/previews/page.tsx",
+   "components/WatchCard.tsx"
   ]
  },
  {
@@ -5676,6 +6219,18 @@
   "key": "Recent title fights",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Recent: happened",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Recent: said",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
   ]
  },
  {
@@ -6146,6 +6701,12 @@
   ]
  },
  {
+  "key": "Sign",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "Signed now",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
@@ -6295,6 +6856,12 @@
   "key": "Status",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Stayed",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -6564,6 +7131,12 @@
   ]
  },
  {
+  "key": "The biggest shocks",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "The case for {name}",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
@@ -6579,6 +7152,18 @@
   "key": "The current year can still change until its last fight. The numbers of fights considered: {counts}.",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
+  "key": "The difference ({d} Elo points) is within its margin of error: there is no clear sign that changing trainer moves results either way.",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "The dot is the estimate and the line its 95% range; the centre mark is the average trainer. A line that crosses the centre cannot be told from average.",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -6654,6 +7239,12 @@
   ]
  },
  {
+  "key": "The model does not use these signs, so they are tested: in past fights where the favourite had the sign (or, for the last one, the underdog had the run), did the underdog win more often than the model said?",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "The model expected {p} of fights to end inside the distance; {o} did.",
   "files": [
    "app/[locale]/accountability/page.tsx"
@@ -6679,9 +7270,21 @@
   ]
  },
  {
+  "key": "the model gave the winner {pct}%",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "The model gives a {pct}% chance that this ends before the final bell.",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "The model has no real favourite here: the “underdog” is the slightly less likely fighter, and a win for either would not be a surprise.",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
   ]
  },
  {
@@ -6745,6 +7348,12 @@
   ]
  },
  {
+  "key": "The ranges are wide. Only {clear} of {n} trainers are clearly above or below average, and {leaning} more lean one way. For everyone else the honest answer is that the data cannot tell them from average.",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "The rating weight is fitted on {n} past bouts (held-out log-loss {fit} vs {base} for plain Elo). Other weights are hand-set; see Data & model for how each compares.",
   "files": [
    "app/[locale]/compare/page.tsx"
@@ -6766,6 +7375,12 @@
   "key": "The share of wins that ended early. Fighters with at least 15 wins.",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "The shift is the new trainer's estimated effect minus the old one's, shown only when both have enough evidence. It is about as uncertain as the two estimates behind it. {n} moves are on record in all.",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -6932,6 +7547,12 @@
   ]
  },
  {
+  "key": "To",
+  "files": [
+   "components/TrainerImpactCard.tsx"
+  ]
+ },
+ {
   "key": "to {name}",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
@@ -6953,6 +7574,24 @@
   "key": "to open",
   "files": [
    "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "Too close to call",
+  "files": [
+   "lib/upsets.ts"
+  ]
+ },
+ {
+  "key": "Too few fights",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Too few of {name}'s fighters have worked with anyone else to tell the trainer's effect apart from the fighters' own ability: {n} fights qualify, {min} are needed. The estimate is held at about zero.",
+  "files": [
+   "components/TrainerImpactCard.tsx"
   ]
  },
  {
@@ -7032,6 +7671,8 @@
   "files": [
    "app/[locale]/accountability/page.tsx",
    "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/upset-watch/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -7046,6 +7687,7 @@
   "files": [
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
+   "app/[locale]/trainers/page.tsx",
    "lib/search.ts"
   ]
  },
@@ -7053,6 +7695,21 @@
   "key": "Trainer history (2+ trainers on record)",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Trainer impact",
+  "files": [
+   "app/[locale]/trainers/page.tsx",
+   "components/TrainerImpactCard.tsx",
+   "lib/nav.ts",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Trainer impact: what the data can say",
+  "files": [
+   "app/[locale]/people/page.tsx"
   ]
  },
  {
@@ -7071,6 +7728,12 @@
   "key": "Trainers",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Trainers the data can separate",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -7128,6 +7791,12 @@
   ]
  },
  {
+  "key": "under {n}%",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "Under-confident: it picks the winner more often than its percentages claim, so they sit too close to 50%.",
   "files": [
    "app/[locale]/accountability/page.tsx"
@@ -7137,6 +7806,48 @@
   "key": "Undercard",
   "files": [
    "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Underdog fights",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Underdog on a winning run of 4 or more",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Underdog was",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Underdog win rate against the model, by tier",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Underdog win rate when a warning sign was present",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Underdogs do better",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Underdogs do worse",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
   ]
  },
  {
@@ -7164,6 +7875,18 @@
   ]
  },
  {
+  "key": "Upcoming fights",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Upcoming fights where the underdog has a real chance",
+  "files": [
+   "app/feeds/upset-watch.xml/route.ts"
+  ]
+ },
+ {
   "key": "Updated after every fight",
   "files": [
    "app/[locale]/rankings/page.tsx"
@@ -7179,6 +7902,24 @@
   "key": "Upset of the year",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Upset watch",
+  "files": [
+   "app/[locale]/page.tsx",
+   "app/[locale]/previews/page.tsx",
+   "app/[locale]/trainers/page.tsx",
+   "app/[locale]/upset-watch/page.tsx",
+   "app/feeds/upset-watch.xml/route.ts",
+   "lib/nav.ts",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Upsets to expect",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
   ]
  },
  {
@@ -7206,6 +7947,12 @@
   ]
  },
  {
+  "key": "Verdict",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
   "key": "View all",
   "files": [
    "components/ui.tsx"
@@ -7225,7 +7972,8 @@
    "app/[locale]/page.tsx",
    "app/[locale]/people/page.tsx",
    "components/Awards.tsx",
-   "components/RecordRows.tsx"
+   "components/RecordRows.tsx",
+   "components/WatchCard.tsx"
   ]
  },
  {
@@ -7369,6 +8117,12 @@
   ]
  },
  {
+  "key": "What the data can and cannot say",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "What the data says each factor is worth ({n} fights, {from} to {to})",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -7447,6 +8201,18 @@
   ]
  },
  {
+  "key": "Who adds the most",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Who gets underdogs over the line",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "Who has done the most, in every way that can be counted from the fights on record. Each list says how it is worked out, and the scored ones show their parts.",
   "files": [
    "app/[locale]/all-time/page.tsx"
@@ -7456,6 +8222,12 @@
   "key": "Who holds every belt in every division, and the full line of champions behind it: reigns, title defences, who beat whom for the belt, and how long each champion lasted.",
   "files": [
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Who may be holding fighters back",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {
@@ -7605,6 +8377,12 @@
   ]
  },
  {
+  "key": "Wins",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "WINS",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -7638,6 +8416,24 @@
   "key": "Wins over opponents who were rated 1600 or higher going into the fight.",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "with a known head trainer",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "with an opponent confirmed",
+  "files": [
+   "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "with at least one fight",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
   ]
  },
  {

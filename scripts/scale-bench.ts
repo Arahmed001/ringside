@@ -111,6 +111,13 @@ async function main() {
   await time("all-time/[list]: top 50 of the legacy score, filtered", () => rc.recordList(w3, "greatest", { sex: "female", division: "Welterweight" }, 50));
   await time("bout page: fight score and rank", () => fs2.fightRank(w3, someBout.id));
   await time("fighter profile: records and awards", () => rc.recordsOf(w3, mid.id, 10));
+  const up = await import("../lib/upsets"), ti = await import("../lib/trainer-impact"), { tEn } = await import("../lib/i18n/t");
+  invalidateWorld(); const w4 = await getWorld();
+  await time("upset watch: every upcoming fight with reasons", () => up.upsetWatch(w4, tEn), (r) => `${r.length} fights`);
+  await time("upset watch: track record and warning-sign tests (cold)", () => { up.upsetRecord(w4); up.signalLift(w4); up.recentShocks(w4); });
+  await time("trainer impact: joint fit of fighters and trainers (cold)", () => ti.trainerImpact(w4), (r) => `${r.fights.toLocaleString()} fights, ${r.all.length} trainers`);
+  await time("trainer impact: moves, switch study, underdog table", () => { ti.moves(w4); ti.switchStudy(w4); ti.underdogLifters(w4); });
+  await time("trainer page: impact card for one trainer", () => { const p = ti.trainerImpact(w4).ranked[0]; ti.movesOf(w4, p.person.id); ti.underdogRecordOf(w4, p.person.id); });
   await time("data page: coverage queries", () => coverage());
   await time("model fit: features + regression", () => runFit(w2), (r) => `${r.rows.train + r.rows.test} bouts`);
 
