@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { PEOPLE_PAGE, filterByName, pageRows, ranked } from "../lib/people-list";
+import { ORGS_PAGE, PEOPLE_PAGE, filterByName, pageRows, ranked } from "../lib/people-list";
 
 /** The corners and officials leaderboards: a name filter that keeps each person's place in the ranking, forgives a slip, and pages. */
 const NAMES = ["Marcus Quintero", "Tomás Villalba", "Rakan Al-Qahtani", "José Mora", "Marcos Quintero", "Zhang Wei", "Ñandú Pérez"];
@@ -62,4 +62,17 @@ test("a long list is paged, 50 at a time, each person keeping the place in the w
   assert.ok(only.shown.every((r) => r.row.name.toLowerCase().includes("person a")));
   assert.ok(only.shown.some((r) => r.rank > 26), "ranks are the whole list's, not renumbered");
   assert.equal(pageRows([], nameOf, { names: {} }).pages, 1, "an empty list is one empty page");
+});
+
+test("a list can ask for its own page size: the organisations index pages 36 cards at a time", () => {
+  const gyms = Array.from({ length: 64 }, (_, i) => ({ name: `Gym ${i + 1}` }));
+  assert.equal(ORGS_PAGE, 36);
+  const one = pageRows(gyms, nameOf, { names: {}, size: ORGS_PAGE });
+  assert.equal(one.pages, 2);
+  assert.equal(one.shown.length, 36);
+  const two = pageRows(gyms, nameOf, { names: {}, page: "2", size: ORGS_PAGE });
+  assert.deepEqual([two.shown.length, two.shown[0].rank, two.shown[27].rank], [28, 37, 64], "the last gym is reachable");
+  assert.equal(pageRows(gyms, nameOf, { names: {} }).pages, 2, "and the default is still 50");
+  const found = pageRows(gyms, nameOf, { names: {}, q: "gym 6", size: ORGS_PAGE });
+  assert.deepEqual(found.shown.map((r) => r.rank), [6, 16, 26, 36, 46, 56, 60, 61, 62, 63, 64], "a filter pages the filtered list (the word 6 is in every number that has a 6), with the whole list's ranks");
 });

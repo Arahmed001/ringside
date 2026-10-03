@@ -42,7 +42,7 @@ test("warming computes the keys the slow pages asked for when measured at 160,00
     ...fightYears(w).map((y) => `fightsOfYear:${y}`), "bestFightsEver:25:", "belts", "careers",
     ...LISTS.map((l) => `record:${l.id}:::5`), ...LISTS.filter((l) => l.subject !== "bout").map((l) => `record:${l.id}:::10`),
     "accountability.record", "accountability.calls", "upsetRecord", "signalLift", "trainerImpact", "trainerMoves", "switchStudy", "underdogLifters", "recentTrainerChanges:9",
-    "orgsIndex:36", "trainerLeaderboard:4",
+    "orgsRanking", "trainerLeaderboard:4",
     "overview", "byWeightClass", "methodSplit", "boutsPerYear", "finishHeat", "biggestUpsets:6:", "biggestUpsets:200:", `biggestUpsets:1:${currentYear() - 1}-01-01`, "countryLeaders", "stanceEdge", "reachEdge", "longestStreaks:6", "finishRoundHistogram",
     "moneyCoverage", "revenueByYear", "topGates:8", "topPpv:8", "topPurses:10", "topEarners:10:all", "broadcasterTable",
     "divisionWeights", "fightNightEdge", "missedWeights:12", "onThisDay:index",

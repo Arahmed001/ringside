@@ -623,7 +623,7 @@
  {
   "key": "{n} of {total} shown",
   "files": [
-   "app/[locale]/people/page.tsx"
+   "components/ListFinder.tsx"
   ]
  },
  {
@@ -2895,19 +2895,7 @@
   ]
  },
  {
-  "key": "By current fighters · top {top} of {total}",
-  "files": [
-   "app/[locale]/orgs/page.tsx"
-  ]
- },
- {
   "key": "By events promoted",
-  "files": [
-   "app/[locale]/orgs/page.tsx"
-  ]
- },
- {
-  "key": "By events promoted · top {top} of {total}",
   "files": [
    "app/[locale]/orgs/page.tsx"
   ]
@@ -3188,7 +3176,7 @@
  {
   "key": "Clear",
   "files": [
-   "app/[locale]/people/page.tsx"
+   "components/ListFinder.tsx"
   ]
  },
  {
@@ -4961,13 +4949,19 @@
  {
   "key": "Find",
   "files": [
-   "app/[locale]/people/page.tsx"
+   "components/ListFinder.tsx"
   ]
  },
  {
   "key": "Find a fighter",
   "files": [
    "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "Find a gym by name",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
   ]
  },
  {
@@ -4980,6 +4974,12 @@
   "key": "Find a manager by name",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Find a promotion by name",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
   ]
  },
  {
@@ -7041,13 +7041,13 @@
  {
   "key": "No name is spelt exactly “{q}”. These are the closest names.",
   "files": [
-   "app/[locale]/people/page.tsx"
+   "components/ListFinder.tsx"
   ]
  },
  {
   "key": "No one in this list has that name.",
   "files": [
-   "app/[locale]/people/page.tsx"
+   "components/ListFinder.tsx"
   ]
  },
  {

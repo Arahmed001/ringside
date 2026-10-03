@@ -6,7 +6,7 @@ import { moves, switchStudy, trainerImpact, underdogLifters } from "./trainer-im
 import * as A from "./analytics";
 import * as M from "./money";
 import { LISTS, recordList } from "./records";
-import { orgsIndex, recentTrainerChanges, trainerLeaderboard } from "./team";
+import { orgsRanking, recentTrainerChanges, trainerLeaderboard } from "./team";
 import { record as trackRecord } from "./accountability";
 import { divisionWeights, fightNightEdge, missedWeights } from "./weights";
 import { belts } from "./lineage";
@@ -30,7 +30,7 @@ export const WARM_STEPS: [string, (w: World) => unknown][] = [
   ["upset watch record", (w) => { upsetRecord(w); signalLift(w); }],
   ["track record", (w) => trackRecord(w)],
   ["trainer impact", (w) => { trainerImpact(w); moves(w); switchStudy(w); underdogLifters(w); recentTrainerChanges(w, 9); }],
-  ["organisations and corners", (w) => { orgsIndex(w); trainerLeaderboard(w); }],
+  ["organisations and corners", (w) => { orgsRanking(w); trainerLeaderboard(w); }],
   ["analytics", (w) => { A.overview(w); A.byWeightClass(w); A.methodSplit(w); A.boutsPerYear(w); A.finishHeat(w); A.biggestUpsets(w, 6); A.biggestUpsets(w, 200); A.countryLeaders(w); A.stanceEdge(w); A.reachEdge(w); A.longestStreaks(w, 6); A.finishRoundHistogram(w); A.biggestUpsets(w, 1, `${currentYear() - 1}-01-01`); }],
   ["money", (w) => {
     M.moneyCoverage(w); const years = M.revenueByYear(w); M.topGates(w, 8); M.topPpv(w, 8); M.topPurses(w, 10); M.topEarners(w, 10); M.broadcasterTable(w);

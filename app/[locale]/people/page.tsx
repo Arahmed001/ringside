@@ -5,6 +5,7 @@ import { personStable, trainerLeaderboard } from "@/lib/team";
 import { judgeStats, refereeStats, scoringDisputes } from "@/lib/officials";
 import { Pager, SectionTitle } from "@/components/ui";
 import { pageRows } from "@/lib/people-list";
+import { ListFinder } from "@/components/ListFinder";
 import { getNames } from "@/lib/i18n/names";
 import { flag } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
@@ -44,32 +45,16 @@ export default async function People({ searchParams }: { searchParams: Promise<{
 type W = Awaited<ReturnType<typeof getWorld>>;
 type List = { q: string; page?: string; names: Awaited<ReturnType<typeof getNames>>; tab: string; sort: string };
 
+const th = "py-2 text-start text-xs font-normal uppercase tracking-widest text-muted";
+/** What else the address of a leaderboard carries besides the page and the name: the tab and, for trainers, a sort other than the default. */
+const hiddenOf = (list: List): Record<string, string> => ({ role: list.tab, ...(list.tab === "trainer" && list.sort !== "elo" ? { sort: list.sort } : {}) });
+
 /** One leaderboard, filtered and cut to a page, with the address of any page of it (it keeps the tab, the sort and the name typed). */
 function pageOf<T>(rows: T[], nameOf: (r: T) => string, list: List) {
   const found = pageRows(rows, nameOf, list);
   const href = (n: number) => `/people?${new URLSearchParams({ role: list.tab, ...(list.tab === "trainer" && list.sort !== "elo" ? { sort: list.sort } : {}), ...(list.q ? { q: list.q } : {}), ...(n > 1 ? { page: String(n) } : {}) })}`;
   return { ...found, href };
 }
-
-/** The name filter above a leaderboard, and what it found. It keeps the tab and sort in its own address. */
-async function Finder({ list, label, total, of, close }: { list: List; label: string; total: number; of: number; close: boolean }) {
-  const t = await getT();
-  return (
-    <div className="mb-3">
-      <form role="search" aria-label={label} className="flex max-w-xl gap-2">
-        <input type="hidden" name="role" value={list.tab} />
-        {list.tab === "trainer" && list.sort !== "elo" && <input type="hidden" name="sort" value={list.sort} />}
-        <input name="q" defaultValue={list.q} aria-label={label} placeholder={label} className="min-w-0 flex-1 rounded-xl border border-line bg-panel px-4 py-2.5 text-sm outline-none focus:border-gold/60" />
-        <button className="rounded-xl border border-line bg-panel px-4 text-sm font-semibold hover:text-gold">{t("Find")}</button>
-        {list.q && <Link href={`/people?role=${list.tab}`} className="chip self-center">{t("Clear")}</Link>}
-      </form>
-      {list.q && close && <p className="mt-2 text-sm text-muted">{t("No name is spelt exactly “{q}”. These are the closest names.", { q: list.q })}</p>}
-      {list.q && !total && <p className="mt-2 text-sm text-muted">{t("No one in this list has that name.")}</p>}
-      {list.q && total > 0 && <p className="mt-2 text-xs text-muted">{t("{n} of {total} shown", { n: total, total: of })}</p>}
-    </div>
-  );
-}
-const th = "py-2 text-start text-xs font-normal uppercase tracking-widest text-muted";
 
 async function Trainers({ sort, w, list }: { sort: string; w: W; list: List }) {
   const t = await getT();
@@ -81,7 +66,7 @@ async function Trainers({ sort, w, list }: { sort: string; w: W; list: List }) {
     <section>
       <SectionTitle eyebrow={t("Head trainers with 4+ fights on record")} title={t("Trainer leaderboard")} href="/trainers" cta={t("Trainer impact: what the data can say")} />
       <div className="mb-3 flex flex-wrap gap-2 text-xs"><span className="text-muted">{t("Sort by")}</span>{[["elo", msg("Elo change")], ["win", msg("Win rate")], ["fighters", msg("Fighters")], ["titles", msg("Title wins")]].map(([k, l]) => <Link key={k} href={`/people?role=trainer&sort=${k}`} className={`chip ${sort === k ? "!border-gold/50 !text-gold" : ""}`}>{t(l)}</Link>)}</div>
-      <Finder list={list} label={t("Find a trainer by name")} total={pg.total} of={pg.of} close={pg.close} />
+      <ListFinder path="/people" hidden={hiddenOf(list)} q={list.q} label={t("Find a trainer by name")} total={pg.total} of={pg.of} close={pg.close} />
       <ScrollRegion className="card p-4" label={t("Trainer leaderboard")}>
         <table className="w-full text-sm" aria-label={t("Trainer leaderboard")}>
           <thead><tr><th className={th}>#</th><th className={th}>{t("Trainer")}</th><th className={th}>{t("Fighters now / ever")}</th><th className={th}>{t("Record together")}</th><th className={th}>{t("Win%")}</th><th className={th}>{t("Titles")}</th><th className={`${th} text-end`}>{t("Avg Elo change")}</th></tr></thead>
@@ -113,7 +98,7 @@ async function Managers({ w, list }: { w: W; list: List }) {
   return (
     <section>
       <SectionTitle eyebrow={t("By number of fighters managed")} title={t("Managers")} />
-      <Finder list={list} label={t("Find a manager by name")} total={pg.total} of={pg.of} close={pg.close} />
+      <ListFinder path="/people" hidden={hiddenOf(list)} q={list.q} label={t("Find a manager by name")} total={pg.total} of={pg.of} close={pg.close} />
       <ScrollRegion className="card p-4" label={t("Managers")}>
         <table className="w-full text-sm" aria-label={t("Managers")}>
           <thead><tr><th className={th}>{t("Manager")}</th><th className={th}>{t("Clients now / ever")}</th><th className={th}>{t("Record")}</th><th className={th}>{t("Win%")}</th><th className={`${th} text-end`}>{t("Title wins")}</th></tr></thead>
@@ -136,7 +121,7 @@ async function Judges({ w, list }: { w: W; list: List }) {
     <div className="space-y-10">
       <section>
         <SectionTitle eyebrow={t("How often each judge sides with the majority")} title={t("Judges")} />
-        <Finder list={list} label={t("Find a judge by name")} total={pg.total} of={pg.of} close={pg.close} />
+        <ListFinder path="/people" hidden={hiddenOf(list)} q={list.q} label={t("Find a judge by name")} total={pg.total} of={pg.of} close={pg.close} />
         <ScrollRegion className="card p-4" label={t("Judges")}>
           <table className="w-full text-sm" aria-label={t("Judges")}>
             <thead><tr><th className={th}>{t("Judge")}</th><th className={th}>{t("Cards")}</th><th className={th}>{t("With majority")}</th><th className={th}>{t("Dissents")}</th><th className={th}>{t("Avg margin")}</th><th className={`${th} text-end`}>{t("Picks the home fighter")}</th></tr></thead>
@@ -178,7 +163,7 @@ async function Referees({ w, list }: { w: W; list: List }) {
   return (
     <section>
       <SectionTitle eyebrow={t("League average stoppage: round {n}", { n: leagueAvgStopRound.toFixed(1) })} title={t("Referees")} />
-      <Finder list={list} label={t("Find a referee by name")} total={pg.total} of={pg.of} close={pg.close} />
+      <ListFinder path="/people" hidden={hiddenOf(list)} q={list.q} label={t("Find a referee by name")} total={pg.total} of={pg.of} close={pg.close} />
       <ScrollRegion className="card p-4" label={t("Referees")}>
         <table className="w-full text-sm" aria-label={t("Referees")}>
           <thead><tr><th className={th}>{t("Referee")}</th><th className={th}>{t("Bouts")}</th><th className={th}>{t("Stoppages")}</th><th className={th}>{t("Stoppage rate")}</th><th className={th}>{t("Early (R1–3)")}</th><th className={`${th} text-end`}>{t("Avg stoppage round")}</th></tr></thead>

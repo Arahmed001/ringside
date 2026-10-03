@@ -131,22 +131,19 @@ test("division weigh-in stats from one pass equal the per-division filters they 
   assert.deepEqual(divisionWeights(w), expected);
 });
 
-test("the organisations index picks the same cards as computing stats for every organisation first", async () => {
+test("the organisations ranking puts every gym and promotion in the same order as computing stats for every organisation first", async () => {
   const tm = await import("../lib/team");
   const ofKind = (k: string) => [...w.orgs.values()].filter((o) => o.kind === k);
   const gymsNaive = ofKind("gym").map((o) => ({ o, s: tm.orgStable(w, o.id, ["gym"]) })).sort((a, b) => b.s.currentFighters - a.s.currentFighters);
   const promosNaive = ofKind("promotion")
     .map((o) => ({ o, s: tm.orgStable(w, o.id, ["promoter"]), events: w.events.filter((e) => e.promoterOrgId === o.id && !e.upcoming).length }))
     .sort((a, b) => b.events - a.events);
-  for (const top of [5, 36]) {
-    const idx = tm.orgsIndex(w, top);
-    assert.deepEqual(idx.gyms.map((g) => g.o.id), gymsNaive.slice(0, top).map((g) => g.o.id), `top ${top} gyms`);
-    assert.deepEqual(idx.promos.map((p) => p.o.id), promosNaive.slice(0, top).map((p) => p.o.id), `top ${top} promotions`);
-    assert.deepEqual(idx.gyms.map((g) => g.s.currentFighters), gymsNaive.slice(0, top).map((g) => g.s.currentFighters));
-    assert.deepEqual(idx.promos.map((p) => p.events), promosNaive.slice(0, top).map((p) => p.events));
-    assert.equal(idx.gymTotal, gymsNaive.length); assert.equal(idx.promoTotal, promosNaive.length);
-  }
-  assert.equal(tm.orgsIndex(w, 36), tm.orgsIndex(w, 36), "cached per world");
+  const r = tm.orgsRanking(w);
+  assert.deepEqual(r.gyms.map((g) => g.o.id), gymsNaive.map((g) => g.o.id), "every gym, in order");
+  assert.deepEqual(r.promos.map((p) => p.o.id), promosNaive.map((p) => p.o.id), "every promotion, in order");
+  assert.deepEqual(r.gyms.map((g) => g.n), gymsNaive.map((g) => g.s.currentFighters));
+  assert.deepEqual(r.promos.map((p) => p.events), promosNaive.map((p) => p.events));
+  assert.equal(tm.orgsRanking(w), tm.orgsRanking(w), "cached per world");
 });
 
 test("fighter type-ahead: prefix first, accents ignored, minimum bouts respected, limit applied", async () => {

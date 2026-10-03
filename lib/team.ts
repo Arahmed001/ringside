@@ -106,30 +106,27 @@ function buildStable(w: World, stints: TeamStint[], roleFilter?: TeamRole[]): St
 export const personStable = (w: World, personId: number, roles?: TeamRole[]) => buildStable(w, w.stintsByPerson.get(personId) ?? [], roles);
 export const orgStable = (w: World, orgId: number, roles?: TeamRole[]) => buildStable(w, w.stintsByOrg.get(orgId) ?? [], roles);
 
-/** The gyms and promotions the organisations index shows. */
-export interface OrgsIndex {
-  gyms: { o: Org; s: Stable }[];
-  promos: { o: Org; s: Stable; events: number }[];
-  gymTotal: number;
-  promoTotal: number;
+/** Every gym and promotion in ranking order, on a cheap count (the stats come later, for the cards on one page). */
+export interface OrgsRanking {
+  /** by fighters training there now */
+  gyms: { o: Org; n: number }[];
+  /** by events promoted */
+  promos: { o: Org; events: number }[];
 }
 
 /**
- * Ranks every gym (by fighters training there now) and promotion (by events promoted) on a cheap count, then computes
- * the expensive stable stats (records, tenures, rating changes) for the `top` cards only. Doing the stats for every
- * organisation first, as the page used to, cost 400 ms at 1,300 organisations. Shared result: read-only.
+ * Ranks every gym (by fighters training there now) and promotion (by events promoted) on a cheap count. The expensive stable stats (records, tenures,
+ * rating changes) are for the page's cards only, through `orgStable`: doing them for every organisation first, as the page once did, cost 400 ms at
+ * 1,300 organisations. Shared result: read-only.
  */
-export const orgsIndex = (w: World, top = 36) => memo(w, `orgsIndex:${top}`, (): OrgsIndex => {
+export const orgsRanking = (w: World) => memo(w, "orgsRanking", (): OrgsRanking => {
   const ofKind = (kind: Org["kind"]) => [...w.orgs.values()].filter((o) => o.kind === kind);
   const trainingNow = (id: number) => (w.stintsByOrg.get(id) ?? []).filter((s) => s.role === "gym" && s.end === null && w.byId.has(s.boxerId)).length;
-  const gymsRanked = ofKind("gym").map((o) => ({ o, n: trainingNow(o.id) })).sort((a, b) => b.n - a.n);
   const eventsBy = new Map<number, number>();
   for (const e of w.events) if (e.promoterOrgId && !e.upcoming) eventsBy.set(e.promoterOrgId, (eventsBy.get(e.promoterOrgId) ?? 0) + 1);
-  const promosRanked = ofKind("promotion").map((o) => ({ o, events: eventsBy.get(o.id) ?? 0 })).sort((a, b) => b.events - a.events);
   return {
-    gyms: gymsRanked.slice(0, top).map(({ o }) => ({ o, s: orgStable(w, o.id, ["gym"]) })),
-    promos: promosRanked.slice(0, top).map(({ o, events }) => ({ o, events, s: orgStable(w, o.id, ["promoter"]) })),
-    gymTotal: gymsRanked.length, promoTotal: promosRanked.length,
+    gyms: ofKind("gym").map((o) => ({ o, n: trainingNow(o.id) })).sort((a, b) => b.n - a.n),
+    promos: ofKind("promotion").map((o) => ({ o, events: eventsBy.get(o.id) ?? 0 })).sort((a, b) => b.events - a.events),
   };
 });
 

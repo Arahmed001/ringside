@@ -11,9 +11,9 @@ import { slugifyDivision } from "./divisions";
 import { LISTS } from "./records";
 import { belts } from "./lineage";
 import { fightYears } from "./fight-score";
-import { trainerLeaderboard } from "./team";
+import { orgsRanking, trainerLeaderboard } from "./team";
 import { judgeStats } from "./officials";
-import { PEOPLE_PAGE } from "./people-list";
+import { ORGS_PAGE, PEOPLE_PAGE } from "./people-list";
 
 export type Locale = "en" | "ar";
 export interface SmokeRoute { path: string; kind: "page" | "api" | "svg" | "missing"; label: string; /** text the page must show (a search that has to find someone) */ mustShow?: string; /** not requested on the Arabic site: the path carries English the person typed, which the page rightly echoes */ englishOnly?: boolean }
@@ -76,6 +76,15 @@ export function smokeRoutes(w: World): SmokeRoute[] {
     out.push({ path: `/people?role=judge&q=${q(`${p.slice(0, -1).join(" ")} ${last.slice(0, 2)}${last.slice(3)}`)}`, kind: "page", label: "judge search with a letter missing", mustShow: judge.person.name, englishOnly: true });
   }
   page("/people?role=trainer&page=9999", "trainer leaderboard page beyond the end");
+  // gyms and promotions are paged and filterable too: a gym below the first page must be on the second, and a promotion spelt with a letter missing must be found
+  const { gyms: rankedGyms, promos: rankedPromos } = orgsRanking(w);
+  if (rankedGyms.length > ORGS_PAGE) out.push({ path: "/orgs?kind=gym&page=2", kind: "page", label: "second page of the gyms", mustShow: rankedGyms[ORGS_PAGE].o.name });
+  const promo = rankedPromos.find((x) => x.o.name.split(" ").slice(-1)[0].length >= 6);
+  if (promo) {
+    const p = promo.o.name.split(" "), last = p[p.length - 1];
+    out.push({ path: `/orgs?kind=promotion&q=${q(`${p.slice(0, -1).join(" ")} ${last.slice(0, 2)}${last.slice(3)}`.trim())}`, kind: "page", label: "promotion search with a letter missing", mustShow: promo.o.name, englishOnly: true });
+  }
+  page("/orgs?kind=gym&page=9999", "gym list page beyond the end");
   const org = (kind: string) => [...w.orgs.values()].find((o) => o.kind === kind);
   for (const k of ["gym", "promotion", "sanctioning_body"]) { const o = org(k); if (o) page(`/orgs/${o.slug}`, `org: ${k}`); }
   for (const b of belts(w).slice(0, 2)) page(`/titles/${b.slug}`, `belt: ${b.title}`);

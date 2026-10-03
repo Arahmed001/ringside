@@ -3,7 +3,10 @@ import { buildWordIndex, nearTexts, wordsOf } from "./fuzzy";
 import { paginate } from "./paging";
 import type { Names } from "./i18n/t";
 
-/** Rows per page on the corners and officials leaderboards: all of a list is reachable, 50 at a time. */
+/** Cards per page on the organisations index. */
+export const ORGS_PAGE = 36;
+
+/** Rows per page on the corners and officials leaderboards (and the default for any ranked list): all of a list is reachable, 50 at a time. */
 export const PEOPLE_PAGE = 50;
 
 /** A row with its place in the full, unfiltered ranking, so a filtered or paged list still says where each person stands. */
@@ -26,8 +29,9 @@ export function filterByName<T>(rows: Ranked<T>[], nameOf: (row: T) => string, q
 }
 
 /** One leaderboard as the page shows it: filtered by the name typed, then cut to the page asked for (a bad page number lands on a real one). */
-export function pageRows<T>(rows: T[], nameOf: (row: T) => string, opts: { q?: string; page?: string; names: Names }) {
+export function pageRows<T>(rows: T[], nameOf: (row: T) => string, opts: { q?: string; page?: string; names: Names; /** rows per page (default 50) */ size?: number }) {
+  const size = opts.size ?? PEOPLE_PAGE;
   const found = filterByName(ranked(rows), nameOf, opts.q, opts.names);
-  const { page, pages, first } = paginate(found.rows.length, opts.page, PEOPLE_PAGE);
-  return { shown: found.rows.slice(first, first + PEOPLE_PAGE), total: found.rows.length, of: rows.length, close: found.close, page, pages };
+  const { page, pages, first } = paginate(found.rows.length, opts.page, size);
+  return { shown: found.rows.slice(first, first + size), total: found.rows.length, of: rows.length, close: found.close, page, pages };
 }
