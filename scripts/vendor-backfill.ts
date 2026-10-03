@@ -8,6 +8,8 @@
  *
  * Options: --since YYYY-MM-DD  --refresh (fetch everything again)  --gap-ms 300  --retries 4  --max-requests 100000
  *          --per-hour N (never more than N requests an hour, evenly spaced: for a plan with its own hourly limit; or set BOXING_API_PER_HOUR)  --patience-min 90 (how long to wait out a rate-limit refusal before giving up; 0 = don't wait)  --cache-dir <dir>  --offset-limit 10000 (documents a page number can reach; a longer list is read in date windows)
+ *          --fighters N (take only the N most recently active fighters, coming fights counting: the fights between two of them are loaded; run again with a bigger N, or none, for the rest: what is fetched is cached)
+ *          --complete-only (load only the fighters whose records add up exactly to the vendor's career totals, and whose opponents' do: a smaller league in which no record is short)
  *          --allow-incomplete (load even though some fighters could not be fetched)  --allow-errors (load even though the validator found errors)
  *          --min-complete 0.9 (the share of fighters whose loaded fights must add up to the vendor's career record)  --allow-partial  --allow-conflicts
  *          --into-existing (the database already holds other fighters: load alongside them)  --no-backup
@@ -19,10 +21,11 @@ process.env.RINGSIDE_NO_SEED = "1"; // an empty database is what we are here to 
 import path from "node:path";
 import { boxingDataApiProvider, storageStatus, type BoxingDataApiOptions } from "../lib/providers/boxing-data-api";
 import { loadFeed } from "../lib/feed";
+import type { DataProvider } from "../lib/providers";
 import { countBySeverity, groupIssues, sanitizeFeed } from "../lib/validate";
 import { todayIso } from "../lib/clock";
 import { describePlan, foreignFighters, updateSince } from "../lib/vendor-backfill";
-import { describeReconciliation, reconcileDb, reconcileFeed, recordGate } from "../lib/vendor-verify";
+import { coherentCore, describeReconciliation, reconcileDb, reconcileFeed, recordGate, restrictFeed } from "../lib/vendor-verify";
 
 /** how many days the vendor's career totals may trail a result before a surplus counts as a contradiction (daily update audit only; a load is strict) */
 const LAG_DAYS = Number(process.env.VENDOR_LAG_DAYS ?? 7);
@@ -41,9 +44,14 @@ async function main() {
   const perHourText = arg("per-hour") ?? process.env.BOXING_API_PER_HOUR; // the plan's own hourly limit: 500 on the Mega plan
   const perHour = perHourText ? Number(perHourText) : undefined;
   if (perHour !== undefined && !(perHour > 0)) throw new Error(`--per-hour (or BOXING_API_PER_HOUR) must be a number above 0, not "${perHourText}".`);
+  const fightersText = arg("fighters");
+  const maxFighters = fightersText === undefined ? undefined : Number(fightersText);
+  if (maxFighters !== undefined && !(Number.isInteger(maxFighters) && maxFighters > 0)) throw new Error(`--fighters must be a whole number above 0, not "${fightersText}".`);
+  const completeOnly = flag("complete-only");
+  if (update && (maxFighters !== undefined || completeOnly)) throw new Error("--fighters and --complete-only are for the first load, not for --update (an update fetches the fighters of the recent fights, all of them).");
   const base: BoxingDataApiOptions = {
     key, baseUrl: process.env.BOXING_API_URL || undefined, purpose: plan ? "evaluation" : "ingest", // a plan reads the list in memory and keeps nothing
-    retries: Number(arg("retries") ?? 4), gapMs, perHour, patienceMs: Math.max(0, Number(arg("patience-min") ?? 90)) * 60_000, maxRequests: Number(arg("max-requests") ?? 100_000), log, since: arg("since"), offsetLimit: arg("offset-limit") ? Number(arg("offset-limit")) : undefined,
+    retries: Number(arg("retries") ?? 4), gapMs, perHour, maxFighters, patienceMs: Math.max(0, Number(arg("patience-min") ?? 90)) * 60_000, maxRequests: Number(arg("max-requests") ?? 100_000), log, since: arg("since"), offsetLimit: arg("offset-limit") ? Number(arg("offset-limit")) : undefined,
     ...(plan ? {} : { cacheDir: path.resolve(arg("cache-dir") ?? path.join(process.cwd(), "data", "vendor-cache", "boxing-data-api")) }),
     // a daily update must see today's results (not yesterday's cached pages) and fresh career records for the fighters who just fought (a cached record predates the fight, and the audit would call it a contradiction)
     refresh: flag("refresh") || update,
@@ -71,13 +79,23 @@ async function main() {
     return;
   }
 
-  const raw = await loadFeed(provider);
+  let raw = await loadFeed(provider);
   const notes = Object.entries(provider.notes()).filter(([, v]) => v > 0);
   log(`fetched: ${raw.boxers.length} fighters, ${raw.events.length} events, ${raw.bouts.length} bouts; ${provider.requests()} request(s) made, ${provider.cacheHits()} answered from the cache, ${(provider.bytes() / 1_048_576).toFixed(1)} MB downloaded, ${Math.round((Date.now() - started) / 1000)} s`);
   if (notes.length) console.log(`approximated or skipped:\n${notes.map(([k, v]) => `  ${k.padEnd(28)} ${v}`).join("\n")}`);
   if (provider.notes().boutsDroppedUnknownFighter > 0 && !flag("allow-incomplete")) {
     throw new Error(`${provider.notes().boutsDroppedUnknownFighter} fight(s) were left out because a fighter could not be fetched (see the "skipped" lines above). Run the same command again: what already succeeded is cached, so it only retries the rest. --allow-incomplete loads without them.`);
   }
+
+  let source: DataProvider = provider;
+  if (completeOnly) {
+    const core = coherentCore(raw, provider.vendorRecords());
+    if (core.fighters.size === 0) throw new Error("--complete-only: not one fighter's loaded fights add up to the vendor's career record (with their opponents', either), so there is nothing to load. Fetch more fighters (a bigger --fighters, or none) and try again.");
+    const cut = restrictFeed(raw, core.fighters);
+    console.log(`core (--complete-only): ${cut.boxers.length} of ${raw.boxers.length} fighters, ${cut.bouts.length} of ${raw.bouts.length} fights, ${cut.events.length} events. ${core.completeAlone} fighters add up to the vendor's record on their own; ${core.completeAlone - cut.boxers.length} of them are left out because an opponent in a fight that counts does not, and would show a short record. Every record in the core equals the vendor's career total.`);
+    raw = cut;
+    source = { ...provider, name: provider.name, fetchBoxers: async () => cut.boxers, fetchEvents: async () => cut.events, fetchBouts: async () => cut.bouts };
+  } else if (maxFighters !== undefined) console.log(`selection: the ${maxFighters} most recently active fighters (and the fights between them). Their records come out short wherever an opponent was not taken; the records line below says how many (--complete-only keeps only the ones that are right).`);
 
   const { issues } = sanitizeFeed(raw, { today: todayIso() });
   const sev = countBySeverity(issues);
@@ -116,7 +134,7 @@ async function main() {
     }
     log(`backed up the database first: ${r.dir}`);
   }
-  const report = await ingest(db!, provider, { strict: !flag("allow-errors") });
+  const report = await ingest(db!, source, { strict: !flag("allow-errors") });
   log(`loaded: ${Object.entries(report.counts).filter(([, v]) => v > 0).map(([k, v]) => `${k} ${v}`).join(", ")}; ${report.errors} error(s), ${report.warnings} warning(s) (run ${report.runId})`);
   if (update) { // the feed held only recent fights, so judge the careers as the database now has them
     const rec = reconcileDb(db!, provider.vendorRecords(), raw.boxers.map((b) => b.externalId), { today: todayIso(), days: LAG_DAYS });
