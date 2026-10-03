@@ -2,6 +2,7 @@ import type { World } from "../world";
 import type { BoxerFull } from "../types";
 import { heuristicParse } from "../ai";
 import { normalize } from "../fighter-search";
+import { allowedSlips, editDistance, wordsOf } from "../fuzzy";
 import type { Names } from "../i18n/t";
 import type { Call } from "./types";
 
@@ -21,8 +22,143 @@ function index(w: World, names: Names): Entry[] {
   return idx;
 }
 
-/** Fighters named in a question, in the order they appear: whole names only (a surname alone is ambiguous), longest first so "Maximilian Hartmann" is not read as "Lukas Hartmann". */
-export function namesIn(w: World, names: Names, question: string): BoxerFull[] {
+/** The words of a name, for the near-spelling match: a full name has at least two, and the words of one person are all there is to go on. */
+interface Near<T> { owner: T; words: string[] }
+interface NearIndex<T> { all: Near<T>[]; /** each distinct word with the names that have it and where in the name */ vocab: Map<string, [number, number][]>; byLength: Map<number, string[]>; /** words of questions already looked up: the same few come in every question */ closeTo: Map<string, string[]> }
+
+/** The words of a name or question for the near match: split at punctuation and hyphens, or, run together, with the hyphens taken out of a word ("Al-Otaibi" is "al-otaibi" in one word) as people often type them. */
+const HYPHEN = /-/;
+const nearWords = (s: string, joined: boolean) => (joined ? s.split(/[\s.,;:!?؟،()"“”'’]+/).filter(Boolean).map((x) => x.replace(/-/g, "")) : wordsOf(s));
+
+function buildNear<T>(people: { owner: T; names: string[] }[], joined = false): NearIndex<T> {
+  const all: Near<T>[] = [], vocab = new Map<string, [number, number][]>(), byLength = new Map<number, string[]>();
+  for (const p of people) for (const n of p.names) {
+    if (joined && !HYPHEN.test(n)) continue; // the same words as the other index
+    const words = nearWords(n, joined);
+    if (words.length < 2) continue;
+    const at = all.push({ owner: p.owner, words }) - 1;
+    words.forEach((word, j) => {
+      let l = vocab.get(word);
+      if (!l) { vocab.set(word, (l = [])); const b = byLength.get(word.length); if (b) b.push(word); else byLength.set(word.length, [word]); }
+      l.push([at, j]);
+    });
+  }
+  return { all, vocab, byLength, closeTo: new Map() };
+}
+
+/**
+ * Slips between a word typed and a word of a name: none if equal, otherwise as many letters wrong, missing, added or swapped as the longer word allows
+ * (lib/fuzzy.ts: none up to three letters, so initials and short words are exact; one up to six; two beyond), or Infinity.
+ */
+function slipsBetween(typed: string, word: string): number {
+  if (typed === word) return 0;
+  if (typed.length <= 3 || word.length <= 3) return Infinity;
+  const max = allowedSlips(Math.max(typed.length, word.length));
+  const d = editDistance(typed, word, max);
+  return d <= max ? d : Infinity;
+}
+
+/** Most slips forgiven in a whole name: one letter in each of two words, or two in one. Beyond that two different people are too easily taken for each other. */
+const MAX_NAME_SLIPS = 2;
+
+interface NearHit<T> { owner: T; first: number; count: number; slips: number }
+
+/**
+ * The people named in `q` (already folded and with the exactly-matched names blotted out) with a slip or two in the spelling. A name is found when each of
+ * its words (at least two) is a word of the question or within the slips allowed, in order, side by side. Of the readings of one stretch of the question
+ * the fewest slips wins; when two different people tie there is no way to know which was meant, so neither is returned.
+ */
+function nearNamed<T>(idxs: { split: NearIndex<T>; joined: NearIndex<T> }, q: string): { owner: T; at: number }[] {
+  const found = nearNamedIn(idxs.split, q, false);
+  for (const h of nearNamedIn(idxs.joined, q, true)) if (!found.some((f) => f.owner === h.owner)) found.push(h);
+  return found;
+}
+
+interface Tok { t: string; at: number }
+
+/** A name with a space typed inside a word ("Ell ery"): two neighbouring words of the question, run together, read as one, when the result is long enough to be a name's word. */
+const MIN_MERGED = 5;
+
+function nearNamedIn<T>(idx: NearIndex<T>, q: string, joined: boolean): { owner: T; at: number }[] {
+  if (!idx.all.length) return [];
+  const toks: Tok[] = [...q.matchAll(joined ? /[^\s.,;:!?؟،()"“”'’]+/g : /[^\s\-.,;:!?؟،()"“”'’]+/g)].map((m) => ({ t: joined ? m[0].replace(/-/g, "") : m[0], at: m.index ?? 0 })).filter((x) => x.t);
+  const found = align(idx, toks);
+  for (let i = 0; i + 1 < toks.length; i++) {
+    if (toks[i].t.length + toks[i + 1].t.length < MIN_MERGED) continue;
+    const merged = [...toks.slice(0, i), { t: toks[i].t + toks[i + 1].t, at: toks[i].at }, ...toks.slice(i + 2)];
+    for (const h of align(idx, merged, [i])) if (!found.some((f) => f.owner === h.owner)) found.push(h);
+  }
+  return found;
+}
+
+/** The words of the names that `typed` is, or is a slip or two from (see slipsBetween). */
+const REMEMBERED = 4000;
+function wordsCloseTo<T>(idx: NearIndex<T>, typed: string): string[] {
+  let close = idx.closeTo.get(typed);
+  if (close) return close;
+  close = [];
+  if (idx.vocab.has(typed)) close.push(typed);
+  if (typed.length > 3) { const reach = allowedSlips(typed.length + 2); for (let len = typed.length - reach; len <= typed.length + reach; len++) for (const v of idx.byLength.get(len) ?? []) if (v !== typed && slipsBetween(typed, v) !== Infinity) close.push(v); }
+  if (idx.closeTo.size >= REMEMBERED) idx.closeTo.clear();
+  idx.closeTo.set(typed, close);
+  return close;
+}
+
+/** The names found in a list of tokens, anchored on every token or only on the `anchors`. */
+function align<T>(idx: NearIndex<T>, toks: Tok[], anchors?: number[]): { owner: T; at: number }[] {
+  const seen = new Set<number>(), hits: NearHit<T>[] = [];
+  for (const i of anchors ?? toks.keys()) {
+    const t = toks[i].t, close = wordsCloseTo(idx, t);
+    for (const v of close) for (const [at, j] of idx.vocab.get(v)!) {
+      const first = i - j, words = idx.all[at].words;
+      if (first < 0 || first + words.length > toks.length) continue;
+      const key = at * 1e5 + first;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      let slips = 0;
+      for (let m = 0; m < words.length && slips <= MAX_NAME_SLIPS; m++) slips += slipsBetween(toks[first + m].t, words[m]);
+      if (slips <= MAX_NAME_SLIPS) hits.push({ owner: idx.all[at].owner, first, count: words.length, slips });
+    }
+  }
+  hits.sort((a, c) => a.slips - c.slips || c.count - a.count || a.first - c.first);
+  const taken: boolean[] = [], out: { owner: T; at: number }[] = [];
+  for (const h of hits) {
+    const span = Array.from({ length: h.count }, (_, k) => h.first + k);
+    if (span.some((k) => taken[k])) continue;
+    const rivals = hits.filter((x) => x.owner !== h.owner && x.slips === h.slips && x.count === h.count && x.first < h.first + h.count && h.first < x.first + x.count);
+    span.forEach((k) => { taken[k] = true; });
+    if (!rivals.length) out.push({ owner: h.owner, at: toks[h.first].at });
+  }
+  return out;
+}
+
+const both = <T>(people: { owner: T; names: string[] }[]) => ({ split: buildNear(people), joined: buildNear(people, true) });
+type NearBoth<T> = ReturnType<typeof both<T>>;
+const nearIndexes = new WeakMap<World, WeakMap<Names, NearBoth<BoxerFull>>>();
+function nearFighters(w: World, names: Names): NearBoth<BoxerFull> {
+  let per = nearIndexes.get(w);
+  if (!per) { per = new WeakMap(); nearIndexes.set(w, per); }
+  let idx = per.get(names);
+  if (!idx) { idx = both(w.boxers.map((b) => ({ owner: b, names: [plain(b.name), ...(names[b.name] ? [plain(names[b.name])] : [])] }))); per.set(names, idx); }
+  return idx;
+}
+
+/** Head trainers by name, for the exact match: a name written in full is a trainer's even where a fighter's name is a slip away from it. */
+const trainerIndex = new WeakMap<World, { name: string; n: string }[]>();
+const trainersOf = (w: World) => {
+  let idx = trainerIndex.get(w);
+  if (!idx) { idx = [...w.people.values()].filter((p) => w.roles.get(p.id)?.has("trainer")).map((p) => ({ name: p.name, n: plain(p.name) })).filter((x) => x.n.length >= 5); trainerIndex.set(w, idx); }
+  return idx;
+};
+
+interface Claimed { fighters: BoxerFull[]; /** the question with the fighters named exactly blotted out: what a trainer's name can still be found in */ rest: string }
+
+/**
+ * Fighters named in a question, in the order they appear. Names written in full claim their words first (a surname alone is ambiguous; longest first so
+ * "Maximilian Hartmann" is not read as "Lukas Hartmann"; a trainer's full name is not taken for a fighter a slip away from it); then, in the words left, names with
+ * a slip or two ("Lukas Hartmnan").
+ */
+function claim(w: World, names: Names, question: string): Claimed {
   let q = ` ${plain(question)} `;
   const hits: { b: BoxerFull; at: number }[] = [];
   // a name stands alone, or in Arabic carries the attached word for "and" (و): "قارن بين راميل أباد وتوماس فيلالبا"
@@ -34,16 +170,24 @@ export function namesIn(w: World, names: Names, question: string): BoxerFull[] {
     hits.push({ b: c.b, at: q.indexOf(f) });
     q = q.replace(f, ` ${"·".repeat(c.n.length)} `);
   }
-  return hits.sort((a, c) => a.at - c.at).map((h) => h.b);
+  const rest = q;
+  for (const t of trainersOf(w)) if (q.includes(` ${t.n} `)) q = q.replace(` ${t.n} `, ` ${"·".repeat(t.n.length)} `);
+  for (const n of nearNamed(nearFighters(w, names), q)) if (!hits.some((h) => h.b.id === n.owner.id)) hits.push({ b: n.owner, at: n.at });
+  return { fighters: hits.sort((a, c) => a.at - c.at).map((h) => h.b), rest };
 }
 
-/** A trainer named in full in the question, if any (the trainers tool takes a name). */
-const trainerIndex = new WeakMap<World, { name: string; n: string }[]>();
-function trainerNamed(w: World, question: string): string | undefined {
-  let idx = trainerIndex.get(w);
-  if (!idx) { idx = [...w.people.values()].filter((p) => w.roles.get(p.id)?.has("trainer")).map((p) => ({ name: p.name, n: plain(p.name) })).filter((x) => x.n.length >= 5); trainerIndex.set(w, idx); }
+export const namesIn = (w: World, names: Names, question: string): BoxerFull[] => claim(w, names, question).fighters;
+
+/** A trainer named in the question, if any (the trainers tool takes a name): in full, or with a slip or two in the spelling, in the words no fighter's full name has claimed. */
+const trainerNear = new WeakMap<World, NearBoth<string>>();
+function trainerNamed(w: World, question: string, rest: string): string | undefined {
+  const idx = trainersOf(w);
   const q = ` ${plain(question)} `;
-  return idx.filter((x) => q.includes(` ${x.n} `)).sort((a, b) => b.n.length - a.n.length)[0]?.name;
+  const exact = idx.filter((x) => q.includes(` ${x.n} `)).sort((a, b) => b.n.length - a.n.length)[0]?.name;
+  if (exact) return exact;
+  let near = trainerNear.get(w);
+  if (!near) { near = both(idx.map((x) => ({ owner: x.name, names: [x.n] }))); trainerNear.set(w, near); }
+  return nearNamed(near, rest)[0]?.owner;
 }
 
 const has = (q: string, re: RegExp) => re.test(q);
@@ -81,7 +225,9 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const limit = limitMatch ? Math.min(25, WORD_NUMBERS[limitMatch[1]] ?? +limitMatch[1]) : undefined;
   const scope = { ...(f.sex ? { sex: f.sex } : {}), ...(f.weightClass ? { division: f.weightClass } : {}) };
   const withLimit = (a: Record<string, unknown>) => (limit ? { ...a, limit } : a);
-  const fighters = namesIn(w, names, question);
+  const { fighters, rest } = claim(w, names, question);
+  let trainerFound: { name: string | undefined } | undefined;
+  const trainer = () => (trainerFound ??= { name: trainerNamed(w, question, rest) }).name;
 
   if (fighters.length >= 2 && !has(q, /\bmost\b|\bhighest\b/)) return [{ tool: "head_to_head", args: { a: fighters[0].name, b: fighters[1].name } }];
 
@@ -125,12 +271,12 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   if (has(q, /(highest|top|biggest) earners?|who earns the most|earns? the most|how much (do|does|did) (boxers?|fighters?) (make|earn)|اعلي.*دخل|(رواتب|اجور|مكافات|دخل).*(اعلي|الاعلي|اكبر)/)) return [{ tool: "money", args: withLimit({ kind: "earners" }) }];
 
   if (has(q, /champs?\b|champions?\b|title.?holders?|who holds|holds the|belt.?holders?|بطل|ابطال|حامل/) && !fighters.length) return [{ tool: "champions", args: scope }];
-  if (has(q, /trainer|coach|مدرب/) && (!fighters.length || trainerNamed(w, question))) {
+  if (has(q, /trainer|coach|مدرب/) && (!fighters.length || trainer())) {
     const typed = question.match(/(?:trainer|coach|مدرب)\s+([\p{L}.'\- ]{4,40})/iu)?.[1]?.trim();
-    const name = trainerNamed(w, question) ?? (typed && !has(normalize(typed), /^(impact|effect|the|best)/) ? typed : undefined);
+    const name = trainer() ?? (typed && !has(normalize(typed), /^(impact|effect|the|best)/) ? typed : undefined);
     return [{ tool: "trainers", args: withLimit(name ? { name } : {}) }];
   }
-  if (!fighters.length && trainerNamed(w, question)) return [{ tool: "trainers", args: withLimit({ name: trainerNamed(w, question) }) }];
+  if (!fighters.length && trainer()) return [{ tool: "trainers", args: withLimit({ name: trainer() }) }];
   // one fighter named: what is asked about him is on his page, whatever else the sentence mentions ("what was X's last fight")
   if (fighters.length === 1) return [{ tool: "fighter", args: { name: fighters[0].name } }];
 
