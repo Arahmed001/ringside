@@ -45,3 +45,13 @@ Happy to jump on a short call if that's easier. Thank you for building this.
 
 [YOUR NAME]
 [COMPANY / PROJECT] · [WEBSITE OR REPO] · [EMAIL] · [PHONE]
+
+
+---
+## Follow-up: the hourly limit (draft, not sent; 2026-10-03)
+
+The first full run stopped on `429 You have exceeded the rate limit per hour for your plan, MEGA, by the API provider`. The public pricing page gives no hourly figure; the RapidAPI plan card says 500 requests per hour (500,000 a month, hard limit; 10,240 MB of bandwidth a month, then $0.001 per MB). So the question is no longer what the limit is but whether it can be lifted:
+
+> Hello, thank you for confirming that the data may be stored. On the Mega plan my first full run was refused with "You have exceeded the rate limit per hour for your plan, MEGA, by the API provider". I see the plan card gives 500 requests an hour. I need about 36,000 requests (one per fighter) for a one-off historical backfill, which is about three days at that rate. Could the hourly limit be raised for a day or two for this one pass? If not, I will pace the run under it over several days; no reply is needed in that case.
+>
+> Two more things I would like in writing: that the backfilled data may be kept if I later move to a cheaper plan, and how far back the history on Mega goes.

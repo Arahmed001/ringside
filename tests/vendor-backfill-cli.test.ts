@@ -33,7 +33,7 @@ const fight = (id: string, a: string, b: string, date: string, over: Record<stri
 });
 const pending = (id: string, a: string, b: string, date: string) => fight(id, a, b, date, { status: "NOT_STARTED", results: null, fighters: { fighter_1: { fighter_id: a, name: a, full_name: a, winner: false }, fighter_2: { fighter_id: b, name: b, full_name: b, winner: false } } });
 
-const state = { g3Finished: false, failing: new Set<string>(), requests: [] as string[], skew: {} as Record<string, { wins?: number; losses?: number; draws?: number }> };
+const state = { limited: null as string | null, g3Finished: false, failing: new Set<string>(), requests: [] as string[], skew: {} as Record<string, { wins?: number; losses?: number; draws?: number }> };
 const fights = () => [
   fight("g1", "f1", "f2", "2026-08-15"),
   fight("g2", "f3", "f4", "2026-09-05", { results: { outcome: "KO", round: "3" }, division: { name: "Lightweight" } }),
@@ -63,6 +63,7 @@ before(async () => {
     const send = (status: number, body: unknown) => { res.writeHead(status, { "content-type": "application/json" }); res.end(JSON.stringify(body)); };
     const env = (data: unknown) => ({ metadata: {}, pagination: { page: 1, total_pages: 1, next_page: null }, error: {}, data });
     if (req.headers["x-rapidapi-key"] !== KEY) return send(403, { message: "Invalid API key." });
+    if (state.limited && p.startsWith("/v2/")) return send(429, { message: state.limited }); // the gateway refusing, as the real one did: a JSON message and no Retry-After
     const from = u.searchParams.get("date_from"), to = u.searchParams.get("date_to");
     if (p === "/v2/fights/") {
       if (from && !to) return send(400, { code: "InvalidDateRange", message: "date_from must be earlier than or equal to date_to and in format YYYY-MM-DD" });
@@ -130,7 +131,7 @@ test("--check fetches into the cache and reports the validator, and never opens 
   const m = mark();
   const r = await run(["--check", "--cache-dir", cache], live);
   assert.equal(r.code, 0, r.out);
-  assert.match(r.out, /fetched: 6 fighters, 4 events, 4 bouts; 8 request\(s\) made, 0 answered from the cache/); // the list, the schedule (the list had no coming fight) and six fighters
+  assert.match(r.out, /fetched: 6 fighters, 4 events, 4 bouts; 8 request\(s\) made, 0 answered from the cache, \d+\.\d MB downloaded/); // the list, the schedule (the list had no coming fight) and six fighters
   assert.match(r.out, /validator: 0 error\(s\)/); assert.match(r.out, /--check: the database was not touched/);
   assert.match(r.out, /records: 6 of 6 fighters \(100\.0%\) have loaded fights that add up exactly to the vendor's career record/);
   assert.doesNotMatch(r.out, /a load would be refused/);
@@ -324,4 +325,31 @@ test("a career LOWER than the loaded fights is a contradiction in the feed itsel
     const ok = await run(["--cache-dir", cache5, "--allow-conflicts", "--min-complete", "0.5"], env);
     assert.equal(ok.code, 0, ok.out);
   } finally { state.skew = {}; }
+});
+
+test("a plan's own hourly limit: --plan prices a paced run in the plan's terms; a refusal ends the run with the vendor's words; a used-up quota ends it at once", async () => {
+  const paced = await run(["--plan", "--per-hour", "7200"], { DATABASE_PATH: dbFile }); // two list pages half a second apart: the flag paces the plan's own requests too
+  assert.equal(paced.code, 0, paced.out);
+  assert.match(paced.out, /fighters still to fetch: 6 request\(s\), about \d+ minute\(s\) at 7200 requests an hour/);
+  const viaEnv = await run(["--plan"], { DATABASE_PATH: dbFile, BOXING_API_PER_HOUR: "7200" });
+  assert.equal(viaEnv.code, 0, viaEnv.out);
+  assert.match(viaEnv.out, /at 7200 requests an hour/, "BOXING_API_PER_HOUR does what --per-hour does");
+  const flagWins = await run(["--plan", "--per-hour", "3600"], { DATABASE_PATH: dbFile, BOXING_API_PER_HOUR: "7200" });
+  assert.match(flagWins.out, /at 3600 requests an hour/, "the flag wins over the environment");
+  const bad = await run(["--plan", "--per-hour", "fast"], { DATABASE_PATH: dbFile });
+  assert.equal(bad.code, 1); assert.match(bad.out, /--per-hour .* must be a number above 0, not "fast"/);
+  const dir = path.join(root, "cache-limited");
+  try {
+    state.limited = "You have exceeded the rate limit per hour for your plan, MEGA, by the API provider";
+    const hourly = await run(["--check", "--retries", "0", "--patience-min", "0", "--cache-dir", dir], { DATABASE_PATH: dbFile, BOXING_API_STORAGE_CONFIRMED: "1" });
+    assert.equal(hourly.code, 1, hourly.out);
+    assert.match(hourly.out, /rate limit per hour for your plan, MEGA, by the API provider/); assert.match(hourly.out, /--patience-min/); assert.doesNotMatch(hourly.out, /retry after unknown s\)\.$/m);
+    state.limited = "You have exceeded the MONTHLY quota for Requests on your current plan, MEGA.";
+    const started = Date.now();
+    const quota = await run(["--check", "--patience-min", "90", "--cache-dir", dir], { DATABASE_PATH: dbFile, BOXING_API_STORAGE_CONFIRMED: "1" });
+    assert.equal(quota.code, 1, quota.out);
+    assert.match(quota.out, /quota used up/); assert.match(quota.out, /RapidAPI dashboard/);
+    assert.doesNotMatch(quota.out, /waiting \d/);
+    assert.ok(Date.now() - started < 60_000, "it did not wait");
+  } finally { state.limited = null; }
 });
