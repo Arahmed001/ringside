@@ -1,3 +1,4 @@
+import { syncNamesFromFile } from "./i18n/names-file";
 import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
@@ -162,6 +163,7 @@ export async function getDb(): Promise<DatabaseSync> {
     const cols = (db.prepare("PRAGMA table_info(boxers)").all() as { name: string }[]).map((c) => c.name);
     if (!cols.includes("photo_credit")) db.exec("ALTER TABLE boxers ADD COLUMN photo_credit TEXT");
     addMissingColumns(db);
+    syncNamesFromFile(db); // the committed Arabic names (i18n/names.ar.json) into this database
     g.__ringsideDb = db;
   }
   const db = g.__ringsideDb;

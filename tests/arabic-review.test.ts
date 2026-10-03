@@ -146,6 +146,7 @@ test("the real commands: export a sheet, import a reviewer's file, and the statu
   try {
     fs.cpSync(path.join(root, "i18n"), path.join(tmp, "i18n"), { recursive: true });
     fs.rmSync(path.join(tmp, "i18n", "ar.review.json"), { force: true });
+    fs.rmSync(path.join(tmp, "i18n", "names.ar.json"), { force: true }); // start with no names file: the sheet then falls back to the database's names
     const dbFile = path.join(tmp, "t.db");
     const db = new DatabaseSync(dbFile);
     db.exec("CREATE TABLE name_translations (en TEXT NOT NULL, locale TEXT NOT NULL, text TEXT NOT NULL, source TEXT NOT NULL DEFAULT 'claude', reviewed INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (en, locale))");
@@ -180,6 +181,10 @@ test("the real commands: export a sheet, import a reviewer's file, and the statu
     assert.deepEqual(d2.prepare("SELECT en, text, source, reviewed FROM name_translations ORDER BY en").all().map((r) => ({ ...r })), [
       { en: "Ana Cruz", text: "آنا كروث", source: "editor", reviewed: 1 }, { en: "Bo Lee", text: "بو لي", source: "claude-session", reviewed: 1 }]);
     d2.close();
+    // the reviewed names were written back to the committed file, with the edit and the review flag
+    const names = JSON.parse(fs.readFileSync(path.join(tmp, "i18n", "names.ar.json"), "utf8"));
+    assert.deepEqual(names["Ana Cruz"], { ar: "آنا كروث", source: "editor", reviewed: true });
+    assert.deepEqual(names["Bo Lee"], { ar: "بو لي", source: "claude-session", reviewed: true });
     const st = run("status");
     assert.match(st.stdout, /reviewed by a person 2, changed since review 0/); assert.match(st.stdout, /Names: 2, reviewed by a person 2/);
     assert.ok(fs.readdirSync(path.join(tmp, "out")).some((x) => x.startsWith("answers-")), "the answers were saved");

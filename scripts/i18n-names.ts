@@ -4,38 +4,21 @@
  *   npm run i18n:names -- import file [source] [--reviewed]   store { "English": "Arabic" } (source defaults to "claude-session")
  *   npm run i18n:names -- auto                transliterate every missing name with Claude (needs ANTHROPIC_API_KEY)
  *   npm run i18n:names -- review              list machine-written names a person has not reviewed yet
+ *   npm run i18n:names -- save                write the database's names to i18n/names.ar.json (the committed copy; import and auto do this themselves)
+ *   npm run i18n:names -- load                load i18n/names.ar.json into the database (the app does this whenever the database opens)
+ *   npm run i18n:names -- check               exit 1 if a name the site can show is missing from i18n/names.ar.json
  */
 import fs from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import path from "node:path";
 import { ask, parseJson } from "../lib/i18n/translate";
+import { collectNames, namesFilePath, readNamesFile, saveNamesToFile, syncNamesFromFile } from "../lib/i18n/names-file";
 
 const DB = process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db");
 const db = new DatabaseSync(DB);
 db.exec("CREATE TABLE IF NOT EXISTS name_translations (en TEXT NOT NULL, locale TEXT NOT NULL, text TEXT NOT NULL, source TEXT NOT NULL DEFAULT 'claude', reviewed INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (en, locale))");
 
-/** Every distinct proper name the site can show, with what kind of thing it is (the kind steers the translation). */
-function collect(): Map<string, string> {
-  const out = new Map<string, string>();
-  const add = (s: unknown, kind: string) => { if (typeof s === "string" && s.trim() && !out.has(s)) out.set(s, kind); };
-  const col = (sql: string, kind: string) => { for (const r of db.prepare(sql).all() as Record<string, unknown>[]) add(Object.values(r)[0], kind); };
-  col("SELECT name FROM boxers", "person name");
-  col("SELECT name FROM people", "person name");
-  col("SELECT nickname FROM boxers WHERE nickname IS NOT NULL", "boxer nickname (translate the meaning)");
-  for (const r of db.prepare("SELECT aliases FROM boxers WHERE aliases IS NOT NULL").all() as { aliases: string }[]) for (const a of JSON.parse(r.aliases) as string[]) add(a, "person name");
-  col("SELECT name FROM orgs", "boxing organisation, gym or promotion name");
-  col("SELECT city FROM orgs WHERE city IS NOT NULL", "city");
-  col("SELECT name FROM events", "boxing event name");
-  col("SELECT venue FROM events", "venue or arena name");
-  col("SELECT city FROM events", "city");
-  col("SELECT birth_place FROM boxers WHERE birth_place IS NOT NULL", "place of birth, 'city, country'");
-  col("SELECT residence FROM boxers WHERE residence IS NOT NULL", "place of residence, 'city, country'");
-  col("SELECT DISTINCT title FROM bouts WHERE title IS NOT NULL", "championship title name");
-  col("SELECT DISTINCT broadcaster FROM events WHERE broadcaster IS NOT NULL", "TV broadcaster or streaming service");
-  col("SELECT DISTINCT broadcaster FROM event_broadcasts", "TV broadcaster or streaming service");
-  col("SELECT DISTINCT region FROM event_broadcasts WHERE region != '' AND region NOT IN (SELECT country FROM events)", "broadcast region or territory");
-  return out;
-}
+const collect = () => collectNames(db);
 const have = () => new Set((db.prepare("SELECT en FROM name_translations WHERE locale = 'ar'").all() as { en: string }[]).map((r) => r.en));
 const missing = () => { const h = have(); return [...collect()].filter(([en]) => !h.has(en)); };
 
@@ -69,6 +52,7 @@ async function main() {
     }
     db.exec("COMMIT");
     console.log(`stored ${n} Arabic names (${reviewed ? "reviewed" : "unreviewed"}), skipped ${skipped} without Arabic letters`);
+    console.log(`i18n/names.ar.json now holds ${saveNamesToFile(db)} names`);
   } else if (cmd === "auto") {
     const m = missing();
     console.log(`${m.length} names to write`);
@@ -83,10 +67,21 @@ async function main() {
         console.log(`${Math.min(i + 60, m.length)}/${m.length}: ${n} stored`);
       } catch (e) { console.error(`chunk at ${i}: ${(e as Error).message}`); }
     }
+    console.log(`i18n/names.ar.json now holds ${saveNamesToFile(db)} names`);
   } else if (cmd === "review") {
     const rows = db.prepare("SELECT en, text, source FROM name_translations WHERE locale = 'ar' AND reviewed = 0 ORDER BY en").all() as { en: string; text: string; source: string }[];
     console.log(`${rows.length} unreviewed`);
     for (const r of rows.slice(0, 40)) console.log(`  ${r.en}  ->  ${r.text}  (${r.source})`);
-  } else { console.error("usage: export [file] | import file [source] [--reviewed] | auto | review"); process.exit(2); }
+  } else if (cmd === "save") {
+    console.log(`wrote ${namesFilePath()}: ${saveNamesToFile(db)} names`);
+  } else if (cmd === "load") {
+    const r = syncNamesFromFile(db);
+    console.log(`from ${namesFilePath()}: ${r.inserted} added, ${r.updated} updated, ${r.kept} kept because the database copy was reviewed and the file's was not`);
+  } else if (cmd === "check") {
+    const file = readNamesFile(), lost = [...collect()].filter(([en]) => !file[en]);
+    console.log(`${Object.keys(file).length} names in the file; ${lost.length} names the site can show are missing from it`);
+    for (const [en, kind] of lost.slice(0, 15)) console.log(`  ${en}  (${kind})`);
+    if (lost.length) { console.log("run: npm run i18n:names -- auto   (or import a file), which also saves the file"); process.exit(1); }
+  } else { console.error("usage: export [file] | import file [source] [--reviewed] | auto | review | save | load | check"); process.exit(2); }
 }
 main().catch((e) => { console.error(e); process.exit(1); });

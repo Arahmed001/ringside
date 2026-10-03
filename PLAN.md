@@ -462,7 +462,7 @@ I cannot be the native speaker, so this builds what a real review needs and refu
 - **The sheet** is one offline HTML file: strings ordered most-seen first, filters, in-place editing with live placeholder checks, plural forms with example numbers, flag-with-note, a terminology tab, a names tab, seven questions for decisions only a native speaker can make (Latin abbreviations, register, gender, number and plural forms, boxing terms, name conventions, statistics wording), and progress saved in the browser. The reviewer returns one JSON file.
 - **Import validates** (unknown keys, changed placeholders or tags, missing plural forms, empty text are rejected one string at a time; wrong format or no reviewer name refuses the whole file) and is idempotent. A test caught a real bug here: a file that edited and then approved the same string recorded the hash of the old text.
 - **Mechanical checks** found one hard issue and 78 notes across all strings; my own skim of the 25 gendered pairs and 40 random strings found the Arabic grammatical and idiomatic, with one real defect (a dropped "after 2015", fixed). That is spot-checking by a non-native reader, not a review, and the docs say so.
-- **Risks left:** the Arabic names live only in the local, uncommitted database (1,848 machine transliterations of mostly fictional names); reviewed names need a durable home before real data arrives. A sheet is tied to a dictionary build, but imports go by key, so an older sheet still imports (changed strings are simply compared by hash later).
+- **Names now have a durable home** (round 16): `i18n/names.ar.json` is committed and loaded into the database whenever it opens, a reviewed database name is never overwritten by an unreviewed file copy, the names commands and the review import save back to the file, and a test checks the file covers every name the demo league can show. A sheet is tied to a dictionary build, but imports go by key, so an older sheet still imports (changed strings are simply compared by hash later).
 - Tests: `tests/arabic-review.test.ts` (11): each check, status and staleness, import rules and idempotence, the sheet (offline, valid script, safe against markup in the data), the real dictionary, and the real CLI run on a copy (export, import, names, glossary, status); seven mutations broken on purpose, all caught.
 
 ## 34. Deployment readiness (round 14, 2026-10-03)
@@ -479,7 +479,10 @@ I cannot be the native speaker, so this builds what a real review needs and refu
 
 **Tests:** `tests/health.test.ts` (2, mutation-checked: a leaked error message fails it).
 
-## 35. The finish estimate learns from the matchup (round 15, 2026-10-03)
+## 35. A committed home for the Arabic names (round 16, 2026-10-03)
+The 1,848 Arabic name spellings lived only in the local, gitignored database, so a fresh checkout had none and any reviewed name would be lost with the database. They are now in `i18n/names.ar.json` (one name per line, sorted, with source and reviewed flag), `lib/i18n/names-file.ts` loads the file into `name_translations` whenever the database opens (a name a person reviewed in the database is never overwritten by an unreviewed file copy), and `i18n:names` gained `save`, `load` and `check` (and saves after `import` and `auto`); the review import writes reviewed names back to the file. Tests (`tests/names-file.test.ts`, 6, mutation-checked): load rules, never-shrink save, deterministic sorted output, malformed entries ignored, the committed file (well formed, no review claimed, covers every name the demo can show, loaded on open), and the real commands on a copy. All names are still machine transliterations and none is reviewed.
+
+## 36. The finish estimate learns from the matchup (round 15, 2026-10-03)
 
 §29 fitted the early-finish estimate on two inputs (both fighters' KO rates and KO-loss rates). §29 left open whether anything else earns a place. This round tried each candidate on the same held-out fights and kept what clears the same bar as everywhere else (`|z| >= 2` on the training fights, then the fit must beat the hand-set rule by `MIN_GAIN`).
 
