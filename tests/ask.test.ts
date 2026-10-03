@@ -95,7 +95,7 @@ test("fighter names are found whole, longest first, in either language, and a su
 });
 
 test("when one fighter's name contains another's, the longer name wins and is not also read as the shorter", () => {
-  const fake = { boxers: [{ id: 1, name: "Ana Cruz" }, { id: 2, name: "Ana Cruz Silva" }, { id: 3, name: "Pedro Lima" }] } as unknown as World;
+  const fake = { boxers: [{ id: 1, name: "Ana Cruz" }, { id: 2, name: "Ana Cruz Silva" }, { id: 3, name: "Pedro Lima" }], people: new Map(), roles: new Map() } as unknown as World; // a league with no trainers
   assert.deepEqual(RULES.namesIn(fake, {}, "how did Ana Cruz Silva do?").map((x) => x.id), [2]);
   assert.deepEqual(RULES.namesIn(fake, {}, "Ana Cruz against Pedro Lima").map((x) => x.id), [1, 3]);
   assert.deepEqual(RULES.namesIn(fake, {}, "Ana Cruz Silva against Ana Cruz").map((x) => x.id).sort(), [1, 2]);
