@@ -408,3 +408,18 @@ Both: Arabic (128 strings, machine-translated; number-agreement strings use plur
 - Tests (`tests/ask.test.ts`, 17, mutation-checked): plan cleaning, every pattern and example in both languages, each tool against a raw count of the data, grounding, the AI path with a fake model, limits, caching, injection, API.
 
 **Scale (160,000 bouts):** the data work for a question is 7 to 200 ms (the cold all-time list is the slowest); a model call, when there is one, is far longer.
+
+## 29. Deployment readiness (round 14, 2026-10-03)
+
+**What is here.** `Dockerfile` (two stages, production dependencies plus `tsx` for the maintenance scripts, runs as the unprivileged `node` user), `.dockerignore`, `GET /api/health` (200 once the database is open and the world is built, 503 with no detail otherwise), a CI job that builds the image, runs it on an empty volume and waits for the health check, and `docs/deploy.md` (persistence, settings, backups, updating).
+
+**Decisions.**
+- **One instance, one volume.** The database, the live ledger and the AI cost counters are all per process. Scaling out is a design change (shared store), not a setting; the doc says so.
+- **`next start`, not `output: "standalone"`.** The app reads fonts, the fitted model and the glossary by path at run time; standalone tracing would have to be taught each. The cost is image size (about 600 MB of `node_modules`).
+- **The fitted model lives in the volume.** `data/model-fit.json` is a symlink to `/data/model-fit.json`, so `npm run model:fit` inside the container survives a redeploy with no code change.
+- **Health reports counts only.** No paths, versions or error text; the reason goes to the server log.
+
+**Checked here:** the production build with a production-only install (`npm ci --omit=dev` plus `tsx`) starts, builds the world, answers `/api/health` and pages, and `model:fit` writes through the symlink into the volume. **Not checked here:** the image itself (no Docker daemon in this environment). The CI `docker` job is the first real build; read its result before trusting the Dockerfile. No hosting provider is chosen.
+
+**Tests:** `tests/health.test.ts` (2, mutation-checked: a leaked error message fails it).
+

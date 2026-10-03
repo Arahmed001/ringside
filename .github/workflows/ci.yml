@@ -33,6 +33,33 @@ jobs:
       - name: Production build
         run: npm run build
 
+  docker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build the image
+        run: docker build -t ringside .
+      - name: Run it against an empty volume and wait for the health check
+        run: |
+          docker volume create ringside-data
+          docker run -d --name ringside -p 3000:3000 -v ringside-data:/data ringside
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /tmp/health.json -w '%{http_code}' http://127.0.0.1:3000/api/health || true)
+            [ "$code" = 200 ] && break
+            sleep 2
+          done
+          cat /tmp/health.json; echo
+          [ "$code" = 200 ] || { docker logs ringside; exit 1; }
+          curl -fsS http://127.0.0.1:3000/ -o /dev/null
+          docker exec ringside npm run model:fit > /dev/null
+          docker exec ringside test -s /data/model-fit.json  # the fit lands in the volume, not the image layer
+          docker exec ringside test -s /data/ringside.db
+          [ "$(docker exec ringside id -u)" != 0 ] || { echo "container runs as root"; exit 1; }
+      - name: Server log
+        if: always()
+        run: docker logs ringside || true
+
   audit:
     runs-on: ubuntu-24.04 # pinned: ubuntu-latest moves to 26.04 on 2026-10-19
     timeout-minutes: 5

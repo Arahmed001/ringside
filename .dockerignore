@@ -1,0 +1,15 @@
+.git
+.github
+.next
+node_modules
+coverage
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/model-fit.json
+data/research/cache
+tsconfig.tsbuildinfo
+*.log
+.env*
+Dockerfile
+.dockerignore
