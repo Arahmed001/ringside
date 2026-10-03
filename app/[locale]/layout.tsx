@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Barlow_Condensed, Instrument_Serif, IBM_Plex_Sans_Arabic, Tajawal, Amiri } from "next/font/google";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { I18nProvider } from "@/components/i18n";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
@@ -46,6 +47,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const t = tFor(locale);
+  const nonce = (await headers()).get("x-nonce") ?? undefined; // set per request by proxy.ts: the content security policy only lets scripts with it run
   const ar = locale === "ar";
   const site = {
     "@type": "WebSite", name: "Ringside", url: abs(localePath(locale, "/")), inLanguage: locale,
@@ -54,7 +56,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
   return (
     <html lang={locale} dir={dirOf(locale)} suppressHydrationWarning className={ar ? `${bodyAr.variable} ${displayAr.variable} ${serifAr.variable}` : `${body.variable} ${display.variable} ${serif.variable}`}>
       <body className="min-h-screen">
-        <InlineScript html={`try{var n=localStorage.getItem("${NAV_KEY}");if(n==="expanded"||n==="collapsed")document.documentElement.dataset.nav=n}catch(e){}`} />
+        <InlineScript nonce={nonce} html={`try{var n=localStorage.getItem("${NAV_KEY}");if(n==="expanded"||n==="collapsed")document.documentElement.dataset.nav=n}catch(e){}`} />
         <I18nProvider locale={locale} dict={clientDict(locale)}>
           <a href="#main" className="skip-link">{t("Skip to content")}</a>
           <div className="lg:flex">

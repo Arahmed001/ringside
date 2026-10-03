@@ -44,7 +44,7 @@ test("a collapsed rail hides labels visually, never with display:none, so links 
 test("the saved choice is read before paint and written by the toggle under the same key and values", () => {
   const layout = read("app/[locale]/layout.tsx"), controls = read("components/RailControls.tsx");
   assert.match(layout, /suppressHydrationWarning/);
-  assert.match(layout, /<InlineScript html=\{`try\{var n=localStorage\.getItem\("\$\{NAV_KEY\}"\)/);
+  assert.match(layout, /<InlineScript nonce=\{nonce\} html=\{`try\{var n=localStorage\.getItem\("\$\{NAV_KEY\}"\)/);
   assert.equal(NAV_KEY, "ringside-nav");
   assert.match(controls, /localStorage\.setItem\(NAV_KEY, next \? "expanded" : "collapsed"\)/);
   assert.match(layout, /<NavGroups id="side-nav" \/>/);

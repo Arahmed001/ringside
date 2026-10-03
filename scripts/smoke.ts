@@ -31,6 +31,7 @@ async function main() {
   // seed and read the league in this process, then let the server open the same file
   const { getWorld } = await import("../lib/world");
   const { smokeRoutes, problemsIn } = await import("../lib/smoke");
+  const { securityProblems, STATIC_HEADERS } = await import("../lib/security");
   const world = await getWorld();
   const routes = smokeRoutes(world);
 
@@ -58,6 +59,9 @@ async function main() {
       const res = await fetch(base + url, { redirect: "manual", signal: AbortSignal.timeout(60000) });
       const body = await res.text();
       const bad = problemsIn(route, locale, res.status, res.headers.get("content-type") ?? "", body);
+      // the browser-side contract: the policy and nonce on every page, the standing headers on everything (see lib/security.ts)
+      if (/text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...securityProblems(res.headers, body));
+      else for (const h of STATIC_HEADERS) if (res.headers.get(h.key) !== h.value) bad.push(`header ${h.key} is ${res.headers.get(h.key) ?? "missing"}`);
       checked++;
       const ms = Math.round(performance.now() - t0);
       if (bad.length) { failures++; console.log(`✗ ${locale} ${url}  (${label}, ${ms} ms)`); for (const b of bad) console.log(`    - ${b}`); } else console.log(`✓ ${locale} ${url}  (${label}, ${ms} ms)`);
