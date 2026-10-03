@@ -1,5 +1,8 @@
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
+import { getDb } from "@/lib/db";
+import { liveRecord } from "@/lib/ledger";
+import { LiveLedger } from "@/components/LiveLedger";
 import { calibrationVerdict, finishVerdict, record, weightsInUse } from "@/lib/accountability";
 import { CalibrationChart } from "@/components/CalibrationChart";
 import { BarList } from "@/components/charts";
@@ -18,6 +21,7 @@ export default async function Accountability() {
   const t = await getT();
   const w = await getWorld();
   const r = record(w);
+  const live = liveRecord(await getDb(), w);
   const rc = r.recent;
   const cal = calibrationVerdict(rc.calibration);
   const fin = finishVerdict(rc.finish);
@@ -39,10 +43,12 @@ export default async function Accountability() {
         <p className="mt-2 max-w-2xl text-muted">{t("Before every fight the model gives each fighter a win probability. This page checks those numbers against what actually happened, using only what was known before each opening bell.")}</p>
       </div>
 
+      {live.locked > 0 && <LiveLedger w={w} rec={live} />}
+
       <section className="card p-5">
         <div className="eyebrow mb-2">{t("A backtest, not a live record")}</div>
         <p className="max-w-3xl text-sm text-ink/90">{t("These are the calls the model would have made before each of the {n} completed fights in the database, rebuilt from what was known at the time: ratings, records and layoffs up to each fighter's previous bout. Its settings were chosen with these results in view, so the headline figures use the most recent quarter of fights ({from} to {to}), the period it was not fitted on.", { n: r.all.n.toLocaleString("en-US"), from: d(r.splitDate), to: d(rc.to) })}</p>
-        <p className="mt-2 max-w-3xl text-xs text-muted">{wt.fitted ? t("Weights in use: the Elo scale is fitted to results (×{k} the plain Elo expectation); the other terms are hand-set.", { k: wt.eloScale.toFixed(1) }) : t("Weights in use: hand-set defaults, not yet fitted to results.")}</p>
+        <p className="mt-2 max-w-3xl text-xs text-muted">{wt.finishFitted ? t("The early-finish estimate is fitted to results.") : t("The early-finish estimate is the hand-set rule, not yet fitted to results.")} {wt.fitted ? t("Weights in use: the Elo scale is fitted to results (×{k} the plain Elo expectation); the other terms are hand-set.", { k: wt.eloScale.toFixed(1) }) : t("Weights in use: hand-set defaults, not yet fitted to results.")}</p>
       </section>
 
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">

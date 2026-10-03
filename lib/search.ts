@@ -19,6 +19,7 @@ export const PAGES: { href: string; label: string; words: string }[] = [
   { href: "/fight-of-the-year", label: msg("Fight of the year"), words: "fight of the year foty best fight award greatest fights" },
   { href: "/upset-watch", label: msg("Upset watch"), words: "upset watch underdog danger longshot alerts feed surprises" },
   { href: "/trainers", label: msg("Trainer impact"), words: "trainer impact effect camp coach head trainer switch changing trainer underdog" },
+  { href: "/ask", label: msg("Ask the data"), words: "ask question answer ai chat natural language query data who has the most" },
   { href: "/matchmaking", label: msg("Matchmaking"), words: "matchmaking fights to make next opponent dream fight builder" },
   { href: "/boxers", label: msg("Fighters"), words: "fighters boxers search" },
   { href: "/events", label: msg("Events"), words: "events cards calendar schedule results" },

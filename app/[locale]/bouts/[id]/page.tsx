@@ -8,6 +8,7 @@ import { PunchStats } from "@/components/PunchStats";
 import { SectionTitle } from "@/components/ui";
 import { flag, fmtDate, methodLabel, pct } from "@/lib/format";
 import { callOf } from "@/lib/accountability";
+import { lockedFor } from "@/lib/ledger";
 import { buildRecap, recapLines } from "@/lib/recap";
 import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
@@ -69,6 +70,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
   const recap = buildRecap(w, b.id);
   const recapText = recap ? recapLines(recap, w, t) : [];
   const db = await getDb();
+  const locked = b.upcoming && b.status !== "cancelled" ? lockedFor(db, b.id) : null;
   const punches = (db.prepare("SELECT bout_id AS boutId, boxer_id AS boxerId, round, thrown, landed, power_thrown AS powerThrown, power_landed AS powerLanded, jab_thrown AS jabThrown, jab_landed AS jabLanded FROM punch_stats WHERE bout_id = ? ORDER BY round").all(b.id)) as unknown as PunchLine[];
   const winner = b.winnerId ? (b.winnerId === red.id ? red : blue) : null;
   const surname = (n: string) => t.name(n).split(" ").slice(-1)[0];
@@ -92,7 +94,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
           {ev.attendance && <span className="chip">{t("{n} attended", { n: ev.attendance.toLocaleString("en-US") })}</span>}
         </div>
 
-        {b.upcoming && b.status !== "cancelled" && <p className="mt-4 text-sm"><Link href={`/previews/${b.id}`} className="chip !border-gold/40 hover:!text-gold">{t("Read the preview")}</Link></p>}
+        {b.upcoming && b.status !== "cancelled" && <p className="mt-4 flex flex-wrap items-center gap-2 text-sm"><Link href={`/previews/${b.id}`} className="chip !border-gold/40 hover:!text-gold">{t("Read the preview")}</Link>{locked && <Link href="/accountability" className="chip hover:!text-gold">{t("Prediction on file since {date}: {a} / {b}", { date: fmtDate(locked.lockedOn, undefined, t.locale), a: pct(locked.pRed), b: pct(1 - locked.pRed) })}</Link>}</p>}
         <div className="card mt-5 p-6">
           <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4">
             <Side f={red} color="#e5322d" win={winner?.id === red.id} />

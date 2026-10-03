@@ -74,6 +74,11 @@ CREATE TABLE IF NOT EXISTS venues (
   name TEXT NOT NULL, city TEXT NOT NULL, country TEXT, status TEXT NOT NULL, reason TEXT, wikidata_id TEXT, label TEXT,
   lat REAL, lon REAL, capacity INTEGER, basis TEXT, checked_at TEXT, PRIMARY KEY (name, city)
 );
+CREATE TABLE IF NOT EXISTS prediction_snapshots (
+  bout_id INTEGER NOT NULL, locked_on TEXT NOT NULL, locked_at TEXT NOT NULL, model TEXT NOT NULL,
+  p_red REAL NOT NULL, p_draw REAL NOT NULL, ko_prob REAL NOT NULL, elo_p_red REAL NOT NULL, inputs TEXT NOT NULL,
+  PRIMARY KEY (bout_id, locked_on)
+);
 CREATE TABLE IF NOT EXISTS event_financials (
   event_id INTEGER NOT NULL, gate_usd REAL, tickets_sold INTEGER, capacity INTEGER, site_fee_usd REAL, ppv_buys INTEGER, ppv_price_usd REAL,
   ppv_revenue_usd REAL, sponsorship_usd REAL, basis TEXT NOT NULL, source TEXT NOT NULL, source_url TEXT, retrieved_at TEXT, note TEXT,

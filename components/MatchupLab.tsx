@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { presetsFor, TERMS, TERM_KEYS, type Features, type TermKey, type Weights } from "@/lib/model";
+import { presetsFor, TERMS, TERM_KEYS, type Features, type FinishModel, type TermKey, type Weights } from "@/lib/model";
 import { predictFeatures } from "@/lib/predict";
 import { ProbBar } from "./charts";
 import { useT } from "./i18n";
@@ -29,7 +29,7 @@ function Slider({ label, value, min, max, step, onChange, display, color }: { la
 }
 
 /** Interactive tale of the tape: re-weight the model and tweak each fighter's inputs; the odds update live. */
-export function MatchupLab({ a, b, defaults, modelNote }: { a: Side; b: Side; defaults: Weights; modelNote?: string }) {
+export function MatchupLab({ a, b, defaults, modelNote, finish = null }: { a: Side; b: Side; defaults: Weights; modelNote?: string; finish?: FinishModel | null }) {
   const t = useT();
   const presets = presetsFor(defaults);
   const [mult, setMult] = useState<Mult>(toMult(defaults, defaults));
@@ -37,8 +37,8 @@ export function MatchupLab({ a, b, defaults, modelNote }: { a: Side; b: Side; de
   const [fb, setFb] = useState<Features>(b.features);
   const [preset, setPreset] = useState("Balanced");
 
-  const p = predictFeatures(fa, fb, toWeights(mult, defaults), t);
-  const base = predictFeatures(a.features, b.features, defaults, t);
+  const p = predictFeatures(fa, fb, toWeights(mult, defaults), t, finish);
+  const base = predictFeatures(a.features, b.features, defaults, t, finish);
   const moved = (p.pA - base.pA) * 100;
   const maxShift = Math.max(0.05, ...p.factors.map((f) => Math.abs(f.shift)));
   const dirty = TERM_KEYS.some((k) => Math.abs(mult[k] - 1) > 1e-6) || JSON.stringify(fa) !== JSON.stringify(a.features) || JSON.stringify(fb) !== JSON.stringify(b.features);

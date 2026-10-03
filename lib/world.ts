@@ -1,6 +1,7 @@
 import type { DatabaseSync } from "node:sqlite";
 import { getDb, dbVersion } from "./db";
 import { applyFittedWeights } from "./model-fit";
+import { snapshotUpcomingSafe } from "./ledger";
 import { currentYear, todayIso } from "./clock";
 import { countsInRecord, isStoppage } from "./methods";
 import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, Honour, Venue, EventFinancials, EventRow, Purse, Method, Official, Org, Person, Scorecard, Status, TeamStint, WeighIn } from "./types";
@@ -67,7 +68,9 @@ export async function getWorld(): Promise<World> {
   if (g.__world && g.__worldKey === key) return g.__world;
   // The build below is synchronous, so a request that was already waiting on getDb() when another one built the
   // world sees the fresh cache here instead of building a second copy (4 simultaneous callers used to build 4).
-  return buildWorld(db, key);
+  const built = buildWorld(db, key);
+  snapshotUpcomingSafe(db, built); // write today's pre-fight predictions down (lib/ledger.ts); never fails a page
+  return built;
 }
 
 function buildWorld(db: DatabaseSync, key: string): World {
