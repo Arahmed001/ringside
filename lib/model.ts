@@ -16,6 +16,8 @@ export interface Features {
   monthsIdle: number; // months since last fight
   koRate: number; // KOs / wins
   koLossRate: number; // KO losses / bouts
+  /** Upper weight limit of the division they fight at, in pounds; null for no limit (heavyweight). Absent when unknown. Used only by the finish estimate. */
+  weightLb?: number | null;
 }
 
 export type Weights = Record<keyof typeof TERMS, number>;
@@ -90,7 +92,27 @@ export function winProbability(a: Features, b: Features, w: Weights = DEFAULT_WE
  * The default is the hand-set rule below; `npm run model:fit` can replace it with a logistic fit on results (a FinishModel),
  * which is applied only when it beats the hand-set rule on held-out fights (lib/fit.ts).
  */
-export interface FinishModel { intercept: number; koRate: number; koLoss: number }
+export interface FinishModel { intercept: number; koRate: number; koLoss: number; /** absent in reports fitted before these existed: no effect */ mismatch?: number; weight?: number }
+
+/**
+ * What the finish estimate reads, in the order lib/fit.ts fits them:
+ *   both fighters' KO rates summed; both fighters' KO-loss rates summed;
+ *   mismatch, 0 (even on rating) to 1 (a certainty on rating): mismatches end early more often;
+ *   weight, 0 at 150 lb, 1 at 220 lb and over (and for no limit), below zero for the lighter divisions: heavier divisions end early more often.
+ * Unknown weight counts as mid-range, so it neither helps nor hurts a hand-made profile.
+ */
+export const FINISH_INPUTS = ["koRate", "koLoss", "mismatch", "weight"] as const;
+export type FinishInput = (typeof FINISH_INPUTS)[number];
+export const weightScale = (lb: number | null | undefined): number => (lb === undefined ? 0.5 : (Math.min(lb ?? 220, 220) - 150) / 70);
+export function finishInputs(a: Features, b: Features): number[] {
+  const known = [a.weightLb, b.weightLb].filter((x): x is number | null => x !== undefined);
+  const lb = known.length ? (known.includes(null) ? null : Math.max(...(known as number[]))) : undefined; // the heavier of the two; no limit is the heaviest
+  return [
+    a.koRate + b.koRate, a.koLossRate + b.koLossRate,
+    Math.abs(1 / (1 + Math.pow(10, (b.rating - a.rating) / 400)) - 0.5) * 2,
+    weightScale(lb),
+  ];
+}
 /** The hand-set rule, a linear probability on the two fighters' summed KO rates and KO-loss rates. */
 export const stoppageHeuristic = (koSum: number, koLossSum: number) => clamp(0.22 + koSum * 0.35 + koLossSum * 0.2, 0.1, 0.85);
 const finishSlot = globalThis as unknown as { __ringsideFinish?: FinishModel };
@@ -98,6 +120,8 @@ export const activeFinish = (): FinishModel | null => finishSlot.__ringsideFinis
 export const setActiveFinish = (f: FinishModel | undefined) => { finishSlot.__ringsideFinish = f; };
 
 export function stoppageProbability(a: Features, b: Features, finish: FinishModel | null = activeFinish()) {
-  const koSum = a.koRate + b.koRate, lossSum = a.koLossRate + b.koLossRate;
-  return finish ? clamp(sigmoid(finish.intercept + finish.koRate * koSum + finish.koLoss * lossSum), 0.03, 0.95) : stoppageHeuristic(koSum, lossSum);
+  const [koSum, lossSum, mismatch, weight] = finishInputs(a, b);
+  return finish
+    ? clamp(sigmoid(finish.intercept + finish.koRate * koSum + finish.koLoss * lossSum + (finish.mismatch ?? 0) * mismatch + (finish.weight ?? 0) * weight), 0.03, 0.95)
+    : stoppageHeuristic(koSum, lossSum);
 }
