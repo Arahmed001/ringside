@@ -12,3 +12,6 @@ export const gap = (a: number | null, b: number | null): number | null => (a ===
 
 /** Whether a number is a usable, known fact. */
 export const isKnown = (v: number | null | undefined): v is number => typeof v === "number" && Number.isFinite(v);
+
+/** The link to an English Wikipedia article by its title (the page only links; no text is copied). */
+export const wikipediaUrl = (title: string): string => `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replace(/ /g, "_")).replace(/%2F/gi, "/")}`;

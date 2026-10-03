@@ -28,7 +28,7 @@ globalThis.fetch = (async (url: string | URL, init?: RequestInit) => {
   const ids = [...q.matchAll(/wd:(Q\d+)/g)].map((m) => m[1]);
   if (/wdt:P4474/.test(q)) {
     calls.extras++; calls.extraIds.push(...ids);
-    return json(ids.flatMap((id): Record<string, { value: string }>[] => id === "Q3" ? [{ b: ent(id), hof: v("modern/q3") }] : id === "Q5" ? [{ b: ent(id), oly: v("55") }] : []));
+    return json(ids.flatMap((id): Record<string, { value: string }>[] => id === "Q3" ? [{ b: ent(id), hof: v("modern/q3") }] : id === "Q5" ? [{ b: ent(id), oly: v("55") }] : id === "Q4" ? [{ b: ent(id), ar: v("اسم عربي"), nick: v("Four"), enwiki: v("Boxer Q4") }] : []));
   }
   if (/\?bLabel/.test(q)) {
     calls.bio++; calls.bioIds.push(...ids);
@@ -102,4 +102,17 @@ test("--limit applies to --extras-only too, and --no-extras leaves extras alone"
   const q1 = staged().find((r) => r.qid === "Q1")!;
   assert.equal(q1.h, "keep/me", "a biography-only refresh must not blank the extras");
   assert.equal(q1.e, null, "and must not claim they were checked");
+});
+
+test("boxers staged before their Arabic names, nicknames and article titles were read are picked up by --extras-only and filled, and a second run asks for nothing", async () => {
+  db.exec("UPDATE wikidata_boxers SET labels_at = NULL, ar_label = NULL, nickname = NULL, enwiki = NULL"); // staged by an older version: extras were read, labels were not
+  const s = await wd.importWikidata(db, { batch: 4, extrasOnly: true });
+  assert.equal(s.stored, 7, "every boxer without labels_at is asked for again");
+  assert.deepEqual(calls.extraIds, ALL); assert.equal(calls.list, 0); assert.equal(calls.bio, 0);
+  const q4 = db.prepare("SELECT ar_label a, nickname n, enwiki w, labels_at l FROM wikidata_boxers WHERE qid = 'Q4'").get() as { a: string | null; n: string | null; w: string | null; l: string | null };
+  assert.deepEqual({ a: q4.a, n: q4.n, w: q4.w }, { a: "اسم عربي", n: "Four", w: "Boxer Q4" });
+  assert.ok(q4.l, "marked as read, even for the boxers that have none (or they would be asked for again forever)");
+  assert.equal((db.prepare("SELECT COUNT(*) c FROM wikidata_boxers WHERE labels_at IS NULL").get() as { c: number }).c, 0);
+  fresh();
+  assert.equal((await wd.importWikidata(db, { extrasOnly: true })).stored, 0); assert.equal(calls.extras, 0);
 });

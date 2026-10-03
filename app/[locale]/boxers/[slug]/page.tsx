@@ -9,7 +9,7 @@ import { BoxerRecords } from "@/components/Awards";
 import { notFound } from "next/navigation";
 import { getWorld, recordStr } from "@/lib/world";
 import { getDb } from "@/lib/db";
-import { isKnown, orDash } from "@/lib/facts";
+import { isKnown, orDash, wikipediaUrl } from "@/lib/facts";
 import { boxerPageNotes } from "@/lib/accounts/corrections";
 import { CorrectionNotes, type NoteRow } from "@/components/CorrectionNotes";
 import { rankOf } from "@/lib/rankings";
@@ -171,10 +171,11 @@ const HONOURS_SHOWN = 8;
             ] as [string, string | null][]).filter(([, v]) => v).map(([k, v]) => (
               <div key={k} className="flex justify-between gap-4"><dt className="text-muted">{k}</dt><dd className="text-end">{v}</dd></div>
             ))}
-            {(b.wikidataId || b.boxrecId || b.ibhofId || b.olympediaId) && (
+            {(b.wikidataId || b.boxrecId || b.ibhofId || b.olympediaId || b.wikipediaTitle) && (
               <div className="flex justify-between gap-4 border-t border-line/60 pt-2.5 text-xs"><dt className="text-muted">{t("Identifiers")}</dt><dd className="text-end text-muted">{
                 [
                   b.wikidataId && <a key="wd" href={`https://www.wikidata.org/wiki/${b.wikidataId}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{t("Wikidata {id}", { id: b.wikidataId })}</a>,
+                  b.wikipediaTitle && <a key="wp" href={wikipediaUrl(b.wikipediaTitle)} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{t("Wikipedia")}</a>,
                   b.ibhofId && <a key="hof" href={`http://www.ibhof.com/pages/about/inductees/${b.ibhofId}.html`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{t("Hall of Fame page")}</a>,
                   b.olympediaId && <a key="oly" href={`https://www.olympedia.org/athletes/${b.olympediaId}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{t("Olympedia")}</a>,
                   b.boxrecId && <span key="br">{t("BoxRec ID {id}", { id: b.boxrecId })}</span>,
