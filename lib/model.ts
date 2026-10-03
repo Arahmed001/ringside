@@ -85,7 +85,19 @@ export function winProbability(a: Features, b: Features, w: Weights = DEFAULT_WE
   return { pA, pB, pDraw: DRAW_PROB, z, shifts };
 }
 
-/** Rough chance the fight ends inside the distance, from both fighters' finishing and fragility. */
-export function stoppageProbability(a: Features, b: Features) {
-  return clamp(0.22 + (a.koRate + b.koRate) * 0.35 + (a.koLossRate + b.koLossRate) * 0.2, 0.1, 0.85);
+/**
+ * The finish estimate: how likely a fight is to end inside the distance, from both fighters' finishing and fragility.
+ * The default is the hand-set rule below; `npm run model:fit` can replace it with a logistic fit on results (a FinishModel),
+ * which is applied only when it beats the hand-set rule on held-out fights (lib/fit.ts).
+ */
+export interface FinishModel { intercept: number; koRate: number; koLoss: number }
+/** The hand-set rule, a linear probability on the two fighters' summed KO rates and KO-loss rates. */
+export const stoppageHeuristic = (koSum: number, koLossSum: number) => clamp(0.22 + koSum * 0.35 + koLossSum * 0.2, 0.1, 0.85);
+const finishSlot = globalThis as unknown as { __ringsideFinish?: FinishModel };
+export const activeFinish = (): FinishModel | null => finishSlot.__ringsideFinish ?? null;
+export const setActiveFinish = (f: FinishModel | undefined) => { finishSlot.__ringsideFinish = f; };
+
+export function stoppageProbability(a: Features, b: Features, finish: FinishModel | null = activeFinish()) {
+  const koSum = a.koRate + b.koRate, lossSum = a.koLossRate + b.koLossRate;
+  return finish ? clamp(sigmoid(finish.intercept + finish.koRate * koSum + finish.koLoss * lossSum), 0.03, 0.95) : stoppageHeuristic(koSum, lossSum);
 }

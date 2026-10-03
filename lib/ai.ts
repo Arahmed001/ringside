@@ -185,7 +185,7 @@ export async function parseQuery(q: string, w: World, client?: string): Promise<
 Allowed keys: weightClass (one of ${WEIGHT_CLASSES.join(", ")}), stance (Orthodox|Southpaw|Switch), sex (male|female), country (one of ${countries.join(", ")}), active (bool), undefeated (bool), minWins, minKOs (ints), minKoRate, maxKoRate (0-1), minLosses, debutAfter, debutBefore (years), minReach (cm), minAge, maxAge, archetype (Knockout Artist|Volume Boxer|Technician|Iron-Chin Brawler|Counter-Puncher|Journeyman|Prospect), text (name fragment), trainer, manager, gym, promoter, bornIn (name fragments), trainerCurrent, missedWeight, newTrainer (bools), sort (rating|wins|kos|koRate|age|reach). Omit keys that do not apply.`;
       const reply = await claude(sys, q, 300, client);
       const json = JSON.parse(reply.slice(reply.indexOf("{"), reply.lastIndexOf("}") + 1));
-      out = { filters: sanitize(json, countries), source: "ai" };
+      out = { filters: sanitizeFilters(json, countries), source: "ai" };
     } catch (e) {
       if (e instanceof AiLimited) cacheable = false; // this visitor is over a limit; the next one may not be
       out = { filters: heuristicParse(q, countries), source: "rules" };
@@ -197,7 +197,7 @@ Allowed keys: weightClass (one of ${WEIGHT_CLASSES.join(", ")}), stance (Orthodo
   return job;
 }
 
-function sanitize(j: Record<string, unknown>, countries: string[]): Filters {
+export function sanitizeFilters(j: Record<string, unknown>, countries: string[]): Filters {
   const f: Filters = {};
   const num = (v: unknown) => (typeof v === "number" && isFinite(v) ? v : undefined);
   if (typeof j.weightClass === "string" && (WEIGHT_CLASSES as readonly string[]).includes(j.weightClass)) f.weightClass = j.weightClass;

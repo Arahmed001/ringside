@@ -6,6 +6,12 @@
   ]
  },
  {
+  "key": ", number {n} in the division",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "…",
   "files": [
    "components/ChartI18n.tsx",
@@ -92,6 +98,7 @@
    "app/[locale]/events/[id]/opengraph-image.tsx",
    "app/[locale]/money/page.tsx",
    "app/[locale]/previews/[id]/opengraph-image.tsx",
+   "components/LiveLedger.tsx",
    "lib/predict.ts"
   ]
  },
@@ -141,6 +148,12 @@
   "key": "{belt}: {division} champions",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{belt}: {name}.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -225,7 +238,8 @@
  {
   "key": "{division} rankings",
   "files": [
-   "app/[locale]/rankings/[division]/page.tsx"
+   "app/[locale]/rankings/[division]/page.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -296,6 +310,12 @@
   ]
  },
  {
+  "key": "{list}: {name} leads with {value}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{lo}–{hi}% confidence: right {o}% of {n} fights",
   "files": [
    "app/[locale]/accountability/page.tsx"
@@ -324,6 +344,13 @@
   "key": "{n} avg viewers",
   "files": [
    "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "{n} belts have live champions. {first}",
+  "plural": "{n} belt has a live champion. {first}",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -444,6 +471,13 @@
   ]
  },
  {
+  "key": "{n} fighters match. The first, by {sort}, is {name} ({record}).",
+  "plural": "{n} fighter matches. The first, by {sort}, is {name} ({record}).",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{n} fights",
   "plural": "{n} fight",
   "files": [
@@ -451,6 +485,20 @@
    "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/trainers/page.tsx",
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "{n} fights decided, {s} ended inside the distance.",
+  "plural": "{n} fight decided, {s} ended inside the distance.",
+  "files": [
+   "lib/night.ts"
+  ]
+ },
+ {
+  "key": "{n} fights match. The first is {fight}, {result}.",
+  "plural": "{n} fight matches. The first is {fight}, {result}.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -925,6 +973,12 @@
   ]
  },
  {
+  "key": "{name} is a {age}-year-old {division} from {country}: {record}, rated {elo}{rank}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} is coming off a stoppage loss",
   "files": [
    "lib/upsets.ts"
@@ -1035,6 +1089,18 @@
   ]
  },
  {
+  "key": "{name}: estimated effect {effect} Elo against an average trainer ({verdict}); {fighters} fighters, {record} together.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name}'s unbeaten run of {n} fights ended.",
+  "files": [
+   "lib/night.ts"
+  ]
+ },
+ {
   "key": "{name}'s unbeaten run of {n} fights is over.",
   "files": [
    "lib/recap.ts"
@@ -1056,6 +1122,12 @@
   "key": "{p} of wins",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{p} picked the winner · higher rating won {e}",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -1161,6 +1233,18 @@
   "key": "{title} (vacant) · {division}",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{title}: {name} is number one ({record}, rated {elo}).",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{title}: {who} leads with {value} ({basis}).",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -1342,6 +1426,12 @@
   "key": "90d",
   "files": [
    "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "95% range",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -1645,6 +1735,12 @@
   ]
  },
  {
+  "key": "Against",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Against an average head trainer, after allowing for each fighter's own ability. The 95% range runs from {lo} to {hi}. Based on {fights} fights of {n} fighters, {informative} of them from fighters who have also worked with someone else.",
   "files": [
    "components/TrainerImpactCard.tsx"
@@ -1653,6 +1749,7 @@
  {
   "key": "age",
   "files": [
+   "lib/ask/tools.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -1661,6 +1758,7 @@
   "files": [
    "app/[locale]/compare/page.tsx",
    "components/MatchupLab.tsx",
+   "lib/ask/tools.ts",
    "lib/fit.ts",
    "lib/preview.ts"
   ]
@@ -1780,6 +1878,18 @@
   ]
  },
  {
+  "key": "Amount",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "An AI model chose which of our fixed, read-only queries to run. It cannot run anything else, and every number comes from the queries below, not from the model.",
+  "files": [
+   "components/AskResults.tsx"
+  ]
+ },
+ {
   "key": "An all-{country} fight",
   "files": [
    "lib/matchmaking.ts"
@@ -1817,6 +1927,12 @@
    "app/[locale]/page.tsx",
    "lib/nav.ts",
    "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Answer",
+  "files": [
+   "components/AskResults.tsx"
   ]
  },
  {
@@ -1871,7 +1987,20 @@
  {
   "key": "Ask",
   "files": [
+   "app/[locale]/ask/page.tsx",
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Ask a question about fighters, fights, titles, records, upcoming cards or fight money in plain English or Arabic, and get an answer worked out from the database, with the tables it came from.",
+  "files": [
+   "app/[locale]/ask/page.tsx"
+  ]
+ },
+ {
+  "key": "Ask about fighters, fights, titles, all-time records, upcoming cards, upsets, trainers or fight money. Answers are worked out from the database and shown with the tables they came from, never from memory.",
+  "files": [
+   "app/[locale]/ask/page.tsx"
   ]
  },
  {
@@ -1884,6 +2013,15 @@
   "key": "Ask in plain English — “southpaw welterweights with 10+ KOs after 2015”",
   "files": [
    "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "Ask the data",
+  "files": [
+   "app/[locale]/ask/page.tsx",
+   "app/[locale]/page.tsx",
+   "lib/nav.ts",
+   "lib/search.ts"
   ]
  },
  {
@@ -1981,6 +2119,12 @@
   ]
  },
  {
+  "key": "Awaiting the fight",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "Awards",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx",
@@ -2030,6 +2174,12 @@
   ]
  },
  {
+  "key": "Basis",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "beat {name}",
   "files": [
    "app/[locale]/page.tsx",
@@ -2052,6 +2202,12 @@
   "key": "belt",
   "files": [
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Belt",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -2086,6 +2242,18 @@
   ]
  },
  {
+  "key": "Best fight of {year}",
+  "files": [
+   "lib/ask/examples.ts"
+  ]
+ },
+ {
+  "key": "Biggest climb: {name}, from #{a} to #{b} at {division}.",
+  "files": [
+   "lib/night.ts"
+  ]
+ },
+ {
   "key": "Biggest gates, pay-per-view sales, fighter purses and career earnings, and which broadcasters show the fights. Every figure says how it is known and where it came from.",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -2095,6 +2263,12 @@
   "key": "Biggest live gates",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Biggest mover: {name} entered the {division} top 15 at #{n}.",
+  "files": [
+   "lib/night.ts"
   ]
  },
  {
@@ -2110,6 +2284,12 @@
   ]
  },
  {
+  "key": "Biggest purses",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Biggest surprises, by the model's own numbers",
   "files": [
    "app/[locale]/accountability/page.tsx"
@@ -2120,6 +2300,12 @@
   "files": [
    "app/[locale]/analytics/page.tsx",
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Biggest upsets of all time",
+  "files": [
+   "lib/ask/examples.ts"
   ]
  },
  {
@@ -2363,6 +2549,12 @@
   ]
  },
  {
+  "key": "Called {name} at {p}",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "Camps",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -2432,6 +2624,12 @@
   ]
  },
  {
+  "key": "Champion",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Champions",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
@@ -2447,6 +2645,12 @@
   "key": "champions on record",
   "files": [
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Chance",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -2477,6 +2681,12 @@
   "key": "Chin",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "City",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -2587,6 +2797,12 @@
   "key": "Common opponents and more",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Compare {a} and {b}",
+  "files": [
+   "lib/ask/examples.ts"
   ]
  },
  {
@@ -2744,6 +2960,12 @@
   ]
  },
  {
+  "key": "Current champions",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Current head trainer",
   "files": [
    "lib/coverage.ts"
@@ -2788,7 +3010,8 @@
  {
   "key": "D",
   "files": [
-   "components/ui.tsx"
+   "components/ui.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -2813,7 +3036,8 @@
  {
   "key": "Date",
   "files": [
-   "app/[locale]/weights/page.tsx"
+   "app/[locale]/weights/page.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -2847,9 +3071,21 @@
   ]
  },
  {
+  "key": "Defences",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Demo league",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Detail",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -2931,7 +3167,8 @@
   "files": [
    "app/[locale]/compare/page.tsx",
    "components/RecordsFilter.tsx",
-   "components/StyleMap.tsx"
+   "components/StyleMap.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -3081,6 +3318,12 @@
   ]
  },
  {
+  "key": "Effect (Elo)",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Effect on log-odds of winning",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -3180,9 +3423,21 @@
   ]
  },
  {
+  "key": "Estimates with wide error bars; most trainers cannot be told from average.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Evenly matched on the ratings ({a}% to {b}%), both highly rated",
   "files": [
    "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "Event",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -3222,6 +3477,12 @@
   "key": "Every belt, every champion",
   "files": [
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Every day the server runs, Ringside records its win probability for each upcoming fight and never edits it. A fight is graded on the last prediction made before the event, and only fights with a prediction on file count: a fight that first appeared after it was over is never claimed.",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -3265,6 +3526,12 @@
   "key": "Every fighter. Every number.",
   "files": [
    "app/[locale]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "Every figure shows how it is known; estimated figures are approximate.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -3335,6 +3602,12 @@
   ]
  },
  {
+  "key": "Examples",
+  "files": [
+   "app/[locale]/ask/page.tsx"
+  ]
+ },
+ {
   "key": "Expand menu",
   "files": [
    "components/RailControls.tsx"
@@ -3369,6 +3642,18 @@
   "key": "Factor",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Fastest finish: {winner} stopped {loser} in round {r}, at {time}.",
+  "files": [
+   "lib/night.ts"
+  ]
+ },
+ {
+  "key": "Fastest finish: {winner} stopped {loser} in round {r}.",
+  "files": [
+   "lib/night.ts"
   ]
  },
  {
@@ -3440,7 +3725,8 @@
  {
   "key": "Fight",
   "files": [
-   "app/[locale]/fight-of-the-year/page.tsx"
+   "app/[locale]/fight-of-the-year/page.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -3509,7 +3795,8 @@
    "app/[locale]/fight-of-the-year/[year]/page.tsx",
    "app/[locale]/fight-of-the-year/page.tsx",
    "app/[locale]/page.tsx",
-   "components/Awards.tsx"
+   "components/Awards.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -3521,7 +3808,14 @@
  {
   "key": "Fight of the year winners",
   "files": [
-   "app/[locale]/fight-of-the-year/page.tsx"
+   "app/[locale]/fight-of-the-year/page.tsx",
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Fight of the year, {year}: {fight}.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -3602,7 +3896,8 @@
    "app/[locale]/weights/page.tsx",
    "components/StyleMap.tsx",
    "components/TenureTable.tsx",
-   "components/TrainerImpactCard.tsx"
+   "components/TrainerImpactCard.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -3679,6 +3974,7 @@
    "app/[locale]/boxers/page.tsx",
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
+   "lib/ask/tools.ts",
    "lib/coverage.ts",
    "lib/nav.ts",
    "lib/records.ts",
@@ -3774,6 +4070,7 @@
   "files": [
    "app/[locale]/accountability/page.tsx",
    "app/[locale]/upset-watch/page.tsx",
+   "lib/ask/tools.ts",
    "lib/nav.ts",
    "lib/records.ts"
   ]
@@ -3807,6 +4104,12 @@
   "key": "Fights where the fighter was the underdog going in (under 40% by their ratings): wins against the wins the ratings expected. At these sample sizes a few lucky nights explain most of the gaps; read it as a list to watch, not a verdict.",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Fights with a prediction on file",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -4026,6 +4329,12 @@
   ]
  },
  {
+  "key": "Graded",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "Great fight",
   "files": [
    "lib/fight-score.ts"
@@ -4219,6 +4528,19 @@
   ]
  },
  {
+  "key": "Highest earners",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Highest gates",
+  "files": [
+   "lib/ask/examples.ts",
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Highest knockout rate",
   "files": [
    "lib/records.ts"
@@ -4351,9 +4673,27 @@
   ]
  },
  {
+  "key": "How this was answered",
+  "files": [
+   "components/AskResults.tsx"
+  ]
+ },
+ {
   "key": "HVY",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "I could not find two different fighters by those names.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "I could not match that question to anything in the data. Try one of the examples, or ask about fighters, fights, titles, records, upcoming cards or fight money.",
+  "files": [
+   "components/AskResults.tsx"
   ]
  },
  {
@@ -4533,6 +4873,7 @@
  {
   "key": "knockouts",
   "files": [
+   "lib/ask/tools.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -4561,6 +4902,7 @@
   "files": [
    "app/[locale]/boxers/[slug]/opengraph-image.tsx",
    "app/[locale]/compare/page.tsx",
+   "lib/ask/tools.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -4607,10 +4949,17 @@
   ]
  },
  {
+  "key": "KOs",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "L",
   "files": [
    "app/[locale]/matchmaking/page.tsx",
-   "components/ui.tsx"
+   "components/ui.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -4778,6 +5127,7 @@
  {
   "key": "Lightweight",
   "files": [
+   "lib/ask/examples.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -4833,6 +5183,12 @@
   "key": "Live gates",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Live ledger",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -4896,9 +5252,21 @@
   ]
  },
  {
+  "key": "Longest streak run up: {name}, {n} wins in a row.",
+  "files": [
+   "lib/night.ts"
+  ]
+ },
+ {
   "key": "Longest title reigns",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Longest title reigns at {division}",
+  "files": [
+   "lib/ask/examples.ts"
   ]
  },
  {
@@ -4954,7 +5322,8 @@
   "files": [
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/previews/page.tsx",
-   "components/Poster.tsx"
+   "components/Poster.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -5015,6 +5384,18 @@
   ]
  },
  {
+  "key": "Matching fighters",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Matching fights",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Matchmaking",
   "files": [
    "app/[locale]/compare/page.tsx",
@@ -5066,6 +5447,12 @@
   "key": "Menu",
   "files": [
    "components/RailControls.tsx"
+  ]
+ },
+ {
+  "key": "Method",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -5250,6 +5637,12 @@
   ]
  },
  {
+  "key": "Most pay-per-view buys",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Most title defences",
   "files": [
    "lib/records.ts"
@@ -5259,6 +5652,12 @@
   "key": "Most title fight wins",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Most trainers cannot be told from average; see how this is worked out.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -5319,6 +5718,12 @@
   ]
  },
  {
+  "key": "New champion: {name}, {belt}.",
+  "files": [
+   "lib/night.ts"
+  ]
+ },
+ {
   "key": "New trainer · {n} months with current trainer",
   "plural": "New trainer · {n} month with current trainer",
   "files": [
@@ -5344,9 +5749,21 @@
   ]
  },
  {
+  "key": "Next event {date}",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "Next fight",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Next fights on file",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -5356,15 +5773,39 @@
   ]
  },
  {
+  "key": "Night in review",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "no",
   "files": [
    "app/[locale]/data/page.tsx"
   ]
  },
  {
+  "key": "No AI key is set on this site, so answers are put together by rules rather than written by a model. They still come entirely from the data.",
+  "files": [
+   "app/[locale]/ask/page.tsx"
+  ]
+ },
+ {
+  "key": "No cards found.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "No clear effect",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "No completed fights match that.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -5378,6 +5819,12 @@
   "key": "No fight booked",
   "files": [
    "components/Watch.tsx"
+  ]
+ },
+ {
+  "key": "No fighter found by that name.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -5405,9 +5852,27 @@
   ]
  },
  {
+  "key": "No fighters match those filters.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "No fighters on record.",
   "files": [
    "components/TenureTable.tsx"
+  ]
+ },
+ {
+  "key": "No fights were scored for that year.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "No fights were scored.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -5423,9 +5888,21 @@
   ]
  },
  {
+  "key": "No head trainer found by that name.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "No issues found. Rows that fail a check are dropped and listed here; suspicious ones are kept and flagged. Run <c>{cmd}</c> to test a vendor sample first.",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "No live champions found there.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -5465,9 +5942,16 @@
   ]
  },
  {
+  "key": "No upcoming fights on file",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "No upcoming fights to watch right now.",
   "files": [
-   "app/[locale]/upset-watch/page.tsx"
+   "app/[locale]/upset-watch/page.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -5489,9 +5973,21 @@
   ]
  },
  {
+  "key": "Nobody is ranked there.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Nobody matches that. Loosen a filter or try a different phrasing.",
   "files": [
    "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "Nobody qualifies for “{list}” in this data.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -5599,6 +6095,12 @@
   ]
  },
  {
+  "key": "Nothing to grade yet",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "of {n} seats",
   "files": [
    "components/Money.tsx"
@@ -5613,7 +6115,8 @@
  {
   "key": "official",
   "files": [
-   "components/WeightChart.tsx"
+   "components/WeightChart.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -5716,7 +6219,8 @@
   "key": "Opponent",
   "files": [
    "app/[locale]/matchmaking/page.tsx",
-   "app/[locale]/weights/page.tsx"
+   "app/[locale]/weights/page.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -5795,6 +6299,12 @@
   "key": "Partly built",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Patterns in the question chose which of our fixed, read-only queries to run. Every number comes from the queries below.",
+  "files": [
+   "components/AskResults.tsx"
   ]
  },
  {
@@ -6006,7 +6516,8 @@
   "key": "Pound for pound",
   "files": [
    "app/[locale]/page.tsx",
-   "app/[locale]/rankings/page.tsx"
+   "app/[locale]/rankings/page.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -6068,6 +6579,18 @@
   ]
  },
  {
+  "key": "Prediction on file since {date}: {a} / {b}",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Predictions written down before the fight",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "present",
   "files": [
    "components/ReignTimeline.tsx",
@@ -6080,6 +6603,12 @@
   "key": "Previews for every main event and co-main on the upcoming calendar: what is at stake, the tale of the tape, form, the model's pick and how it expects each fight to end.",
   "files": [
    "app/[locale]/previews/page.tsx"
+  ]
+ },
+ {
+  "key": "Previous meetings",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -6200,6 +6729,18 @@
   ]
  },
  {
+  "key": "Put together by rules from the results below",
+  "files": [
+   "components/AskResults.tsx"
+  ]
+ },
+ {
+  "key": "Questions and answers",
+  "files": [
+   "app/[locale]/ask/page.tsx"
+  ]
+ },
+ {
   "key": "Quick links",
   "files": [
    "components/CommandPalette.tsx"
@@ -6229,6 +6770,7 @@
  {
   "key": "rating",
   "files": [
+   "lib/ask/tools.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -6240,6 +6782,7 @@
    "app/[locale]/rankings/[division]/page.tsx",
    "components/MatchupLab.tsx",
    "components/TrainerImpactCard.tsx",
+   "lib/ask/tools.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -6270,6 +6813,7 @@
  {
   "key": "reach",
   "files": [
+   "lib/ask/tools.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -6279,6 +6823,7 @@
    "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/compare/page.tsx",
    "components/MatchupLab.tsx",
+   "lib/ask/tools.ts",
    "lib/fit.ts",
    "lib/preview.ts",
    "lib/i18n/dynamic-keys.ts"
@@ -6319,9 +6864,21 @@
   ]
  },
  {
+  "key": "Recent cards",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Recent events",
   "files": [
    "app/[locale]/events/page.tsx"
+  ]
+ },
+ {
+  "key": "Recent fights of {name}",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -6369,6 +6926,7 @@
    "app/[locale]/people/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "components/StyleMap.tsx",
+   "lib/ask/tools.ts",
    "lib/preview.ts"
   ]
  },
@@ -6473,7 +7031,8 @@
   "key": "Result",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx",
-   "app/[locale]/weights/page.tsx"
+   "app/[locale]/weights/page.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -6505,6 +7064,12 @@
   "key": "Retired after round {r}",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Right",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -6637,7 +7202,8 @@
  {
   "key": "Score",
   "files": [
-   "app/[locale]/fight-of-the-year/page.tsx"
+   "app/[locale]/fight-of-the-year/page.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -6816,6 +7382,18 @@
   ]
  },
  {
+  "key": "Showing {n} of {total}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Showing 25 of {total}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Showing the {limit} most recent of {total}.",
   "files": [
    "components/TenureTable.tsx"
@@ -6840,10 +7418,22 @@
   ]
  },
  {
+  "key": "Since",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "since {date}",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx",
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Since {date}",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -7157,7 +7747,8 @@
  {
   "key": "Tale of the tape",
   "files": [
-   "app/[locale]/previews/[id]/page.tsx"
+   "app/[locale]/previews/[id]/page.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -7234,9 +7825,27 @@
   ]
  },
  {
+  "key": "That record list does not exist.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "The {belt} is on the line.",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "The AI budget for today is used up, so this answer comes from rules instead.",
+  "files": [
+   "components/AskResults.tsx"
+  ]
+ },
+ {
+  "key": "The best fight of {year} is {fight} (fight score {score}).",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -7282,6 +7891,12 @@
   ]
  },
  {
+  "key": "The data cannot separate any trainer from average.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "The difference ({d} Elo points) is within its margin of error: there is no clear sign that changing trainer moves results either way.",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -7291,6 +7906,18 @@
   "key": "The dot is the estimate and the line its 95% range; the centre mark is the average trainer. A line that crosses the centre cannot be told from average.",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "The early-finish estimate is fitted to results.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "The early-finish estimate is the hand-set rule, not yet fitted to results.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
   ]
  },
  {
@@ -7315,6 +7942,12 @@
   "key": "The fights worth making right now, who any fighter should face next, and a dream-fight builder. Every pairing is scored on how close, relevant, entertaining, bookable, fresh and meaningful it would be.",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "The first results are graded after {date}",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -7345,6 +7978,18 @@
   "key": "The largest rating gaps overcome by the winner, using each fighter's rating going into the fight.",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "The latest card was {event} on {date}, headlined by {fight}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "The likeliest upset: {name} has a {pct}% chance against {other}.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -7421,6 +8066,12 @@
   ]
  },
  {
+  "key": "The model picked {r} of {n} winners ({p}).",
+  "files": [
+   "lib/night.ts"
+  ]
+ },
+ {
   "key": "The model picked the loser",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -7466,6 +8117,18 @@
   "key": "The most wins in a row at any point in a career. Draws and no-contests do not break a run; a loss does.",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "The next card is {event} on {date}, headlined by {fight}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "The night's biggest surprise: {winner} beat {loser}, a {p} chance in the model's eyes.",
+  "files": [
+   "lib/night.ts"
   ]
  },
  {
@@ -7529,6 +8192,12 @@
   ]
  },
  {
+  "key": "The trainer with the largest estimated effect is {name} ({effect} Elo, {verdict}); the ranges are wide, so treat this as a lean, not a ranking.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "The vacant {belt} is on the line.",
   "files": [
    "lib/preview.ts"
@@ -7559,6 +8228,12 @@
   ]
  },
  {
+  "key": "There is no money data of that kind.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "These are the calls the model would have made before each of the {n} completed fights in the database, rebuilt from what was known at the time: ratings, records and layoffs up to each fighter's previous bout. Its settings were chosen with these results in view, so the headline figures use the most recent quarter of fights ({from} to {to}), the period it was not fitted on.",
   "files": [
    "app/[locale]/accountability/page.tsx"
@@ -7569,6 +8244,12 @@
   "plural": "They have already fought {n} time",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "They have met {n} times: {a} {wa}, {b} {wb}.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -7609,6 +8290,12 @@
   ]
  },
  {
+  "key": "They have never met.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Through time",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
@@ -7630,6 +8317,12 @@
   "key": "Title defences",
   "files": [
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Title defended: {name}, {belt}.",
+  "files": [
+   "lib/night.ts"
   ]
  },
  {
@@ -7719,6 +8412,12 @@
   "key": "Too few fights",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Too few graded fights to judge the model yet (under {n}).",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -7821,6 +8520,7 @@
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "app/[locale]/trainers/page.tsx",
+   "lib/ask/tools.ts",
    "lib/search.ts"
   ]
  },
@@ -7835,6 +8535,7 @@
   "files": [
    "app/[locale]/trainers/page.tsx",
    "components/TrainerImpactCard.tsx",
+   "lib/ask/tools.ts",
    "lib/nav.ts",
    "lib/search.ts"
   ]
@@ -7878,6 +8579,7 @@
  {
   "key": "Try: {example}",
   "files": [
+   "app/[locale]/ask/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -7939,6 +8641,12 @@
   "key": "Undercard",
   "files": [
    "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Underdog",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -8008,9 +8716,21 @@
   ]
  },
  {
+  "key": "Upcoming cards",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Upcoming fights",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Upcoming fights where the underdog could win",
+  "files": [
+   "lib/ask/examples.ts"
   ]
  },
  {
@@ -8045,6 +8765,7 @@
    "app/[locale]/trainers/page.tsx",
    "app/[locale]/upset-watch/page.tsx",
    "app/feeds/upset-watch.xml/route.ts",
+   "lib/ask/tools.ts",
    "lib/nav.ts",
    "lib/search.ts"
   ]
@@ -8068,6 +8789,12 @@
   ]
  },
  {
+  "key": "Value",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Venue data: Wikidata",
   "files": [
    "app/[locale]/events/[id]/page.tsx"
@@ -8082,7 +8809,8 @@
  {
   "key": "Verdict",
   "files": [
-   "app/[locale]/upset-watch/page.tsx"
+   "app/[locale]/upset-watch/page.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -8106,7 +8834,8 @@
    "app/[locale]/people/page.tsx",
    "components/Awards.tsx",
    "components/RecordRows.tsx",
-   "components/WatchCard.tsx"
+   "components/WatchCard.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -8141,7 +8870,14 @@
   "key": "W",
   "files": [
    "app/[locale]/matchmaking/page.tsx",
-   "components/ui.tsx"
+   "components/ui.tsx",
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Want an answer rather than a list?",
+  "files": [
+   "app/[locale]/page.tsx"
   ]
  },
  {
@@ -8216,6 +8952,7 @@
  {
   "key": "Welterweight",
   "files": [
+   "lib/ask/examples.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -8336,13 +9073,26 @@
  {
   "key": "Who",
   "files": [
-   "components/RecordsFilter.tsx"
+   "components/RecordsFilter.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
   "key": "Who adds the most",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Who are the best trainers?",
+  "files": [
+   "lib/ask/examples.ts"
+  ]
+ },
+ {
+  "key": "Who are the current champions at {division}?",
+  "files": [
+   "lib/ask/examples.ts"
   ]
  },
  {
@@ -8355,6 +9105,12 @@
   "key": "Who has done the most, in every way that can be counted from the fights on record. Each list says how it is worked out, and the scored ones show their parts.",
   "files": [
    "app/[locale]/all-time/page.tsx"
+  ]
+ },
+ {
+  "key": "Who has the most knockouts among women?",
+  "files": [
+   "lib/ask/examples.ts"
   ]
  },
  {
@@ -8398,6 +9154,12 @@
   "key": "Who trains, manages, scores and referees. Every fighter's team history is tracked with dates, so you can see how fighters did before, during and after a trainer.",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Why",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -8446,6 +9208,12 @@
   "key": "Wikimedia Commons",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Win chance",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -8512,6 +9280,7 @@
  {
   "key": "wins",
   "files": [
+   "lib/ask/tools.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -8655,9 +9424,22 @@
   ]
  },
  {
+  "key": "Written by AI from the results below",
+  "files": [
+   "components/AskResults.tsx"
+  ]
+ },
+ {
+  "key": "Wrong",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "Year",
   "files": [
-   "app/[locale]/fight-of-the-year/page.tsx"
+   "app/[locale]/fight-of-the-year/page.tsx",
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -8679,6 +9461,12 @@
   ]
  },
  {
+  "key": "You have asked a lot in a short time, so this answer comes from rules instead of AI.",
+  "files": [
+   "components/AskResults.tsx"
+  ]
+ },
+ {
   "key": "you side with the model on <b>{n}</b>",
   "files": [
    "components/PickEm.tsx"
@@ -8688,6 +9476,12 @@
   "key": "young heavyweights with reach over 190",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Your question",
+  "files": [
+   "app/[locale]/ask/page.tsx"
   ]
  },
  {
