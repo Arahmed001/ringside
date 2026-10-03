@@ -1,6 +1,8 @@
 import type { World } from "./world";
 import type { BoutRow, BoxerFull, Org, Person, TeamRole, TeamStint } from "./types";
 import { ratingAt } from "./rankings";
+import { countsInRecord, isStoppage } from "./methods";
+import { nowMs } from "./clock";
 
 export const ROLE_LABEL: Record<TeamRole, string> = {
   head_trainer: "Head trainer", assistant_trainer: "Assistant trainer", strength_coach: "Strength & conditioning",
@@ -10,11 +12,11 @@ export const ROLE_LABEL: Record<TeamRole, string> = {
 export interface Record3 { wins: number; losses: number; draws: number; kos: number; bouts: number; winRate: number; koRate: number }
 
 const emptyRecord = (): Record3 => ({ wins: 0, losses: 0, draws: 0, kos: 0, bouts: 0, winRate: 0, koRate: 0 });
-const isKO = (m: string | null) => m === "KO" || m === "TKO";
+const isKO = isStoppage;
 
 /** A fighter's completed bouts that fall inside [start, end). Null bounds are open. */
 export function boutsInWindow(w: World, boxerId: number, start: string | null, end: string | null): BoutRow[] {
-  return (w.boutsByBoxer.get(boxerId) ?? []).filter((b) => !b.upcoming && b.method && b.method !== "NC" && (!start || b.date >= start) && (!end || b.date < end));
+  return (w.boutsByBoxer.get(boxerId) ?? []).filter((b) => !b.upcoming && countsInRecord(b.method) && (!start || b.date >= start) && (!end || b.date < end));
 }
 
 export function recordOf(boxerId: number, bouts: BoutRow[]): Record3 {
@@ -118,7 +120,7 @@ export function trainerLeaderboard(w: World, minTenureFights = 4): TrainerRow[] 
 
 /** Fighters whose head trainer changed in the last `months`, a cue worth watching before a fight. */
 export function recentTrainerChanges(w: World, months = 9): { boxer: BoxerFull; from: Person | null; to: Person | null; date: string }[] {
-  const cutoff = new Date(Date.now() - months * 30.4 * 86400000).toISOString().slice(0, 10);
+  const cutoff = new Date(nowMs() - months * 30.4 * 86400000).toISOString().slice(0, 10);
   const out: { boxer: BoxerFull; from: Person | null; to: Person | null; date: string }[] = [];
   for (const [boxerId, list] of w.stintsByBoxer) {
     const heads = list.filter((s) => s.role === "head_trainer").sort((a, b) => (a.start ?? "").localeCompare(b.start ?? ""));

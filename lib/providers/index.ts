@@ -1,4 +1,4 @@
-import type { Method, Stance } from "../types";
+import type { Method, Sex, Stance, Status } from "../types";
 
 /**
  * The ingestion contract. Any licensed boxing-data API, CSV dump or importer gets an adapter that
@@ -17,6 +17,7 @@ export interface ProviderBoxer {
   country: string;
   birthYear: number;
   stance: Stance;
+  sex?: Sex; // defaults to male when a feed does not say
   heightCm: number;
   reachCm: number;
   weightClass: string;
@@ -44,6 +45,7 @@ export interface ProviderEvent {
   promoterExternalId?: string;
   broadcaster?: string;
   attendance?: number;
+  status?: Status; // defaults to scheduled/completed from the date; use cancelled/postponed to say otherwise
 }
 
 export interface ProviderBout {
@@ -66,6 +68,7 @@ export interface ProviderBout {
   contractLb?: number; // contracted weight if it differs from the division limit
   titleOrgExternalId?: string; // sanctioning body of the belt on the line
   titleVacant?: boolean;
+  status?: Status; // 'cancelled' for bouts that fell off the card
 }
 
 export type PersonKindHint = "trainer" | "manager" | "judge" | "referee" | "other";

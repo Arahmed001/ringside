@@ -17,6 +17,8 @@ To regenerate the demo data, stop the server, delete `data/`, and start again.
 - `WIKIMEDIA_CONTACT` and `npm run media:resolve`: fetch freely licensed fighter photos from Wikimedia Commons (real fighters only).
 
 ## Scripts
-`npm run dev` · `npm run build` · `npm start` · `npm run lint` · `npm run media:resolve` · `npm run wikidata:import` · `npm run model:fit`
+`npm run dev` · `npm run build` · `npm start` · `npm run lint` · `npm test` · `npm run data:check` · `npm run media:resolve` · `npm run wikidata:import` · `npm run model:fit`
+
+`npm test` runs the suite (about a second). `npm run data:check -- --file sample.json` validates a vendor sample before you build an adapter for it. CI (`.github/workflows/ci.yml`) runs type check, lint, tests, the data check and a production build.
 
 See `PLAN.md` §8 for what data exists, the data model, and what each script does.

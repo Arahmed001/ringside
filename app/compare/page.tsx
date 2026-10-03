@@ -10,7 +10,8 @@ import { ProbBar, Radar } from "@/components/charts";
 import { archetype } from "@/lib/style";
 import { SectionTitle } from "@/components/ui";
 import { flag, pct } from "@/lib/format";
-import { upcomingEvents, eventBouts } from "@/lib/events";
+import { divisionLabel } from "@/lib/divisions";
+import { upcomingEvents, liveBouts } from "@/lib/events";
 import type { BoxerFull } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Matchups" };
@@ -21,7 +22,7 @@ export default async function Compare({ searchParams }: { searchParams: Promise<
   const A = sa ? w.bySlug.get(sa) : undefined, B = sb ? w.bySlug.get(sb) : undefined;
   const options = [...w.boxers].filter((b) => b.bouts >= 5).sort((x, y) => x.name.localeCompare(y.name));
 
-  const featured = upcomingEvents(w).slice(0, 3).flatMap((e) => eventBouts(w, e.id).slice(0, 2));
+  const featured = upcomingEvents(w).slice(0, 3).flatMap((e) => liveBouts(w, e.id).slice(0, 2));
 
   return (
     <div className="space-y-10">
@@ -35,7 +36,7 @@ export default async function Compare({ searchParams }: { searchParams: Promise<
           <div key={k} className={i === 1 ? "sm:col-start-3" : ""}>
             <select name={k} defaultValue={(k === "a" ? sa : sb) ?? ""} className="w-full rounded-xl border border-line bg-panel2 px-3 py-2.5 text-sm outline-none focus:border-gold/60">
               <option value="">Select fighter {k.toUpperCase()}…</option>
-              {options.map((o) => <option key={o.id} value={o.slug}>{o.name} — {o.weightClass}</option>)}
+              {options.map((o) => <option key={o.id} value={o.slug}>{o.name} — {divisionLabel(o.weightClass, o.sex)}</option>)}
             </select>
           </div>
         ))}
@@ -49,7 +50,7 @@ export default async function Compare({ searchParams }: { searchParams: Promise<
           <div className="grid gap-3 sm:grid-cols-2">
             {featured.map((b) => (
               <Link key={b.id} href={`/compare?a=${b.redSlug}&b=${b.blueSlug}`} className="card card-hover flex items-center justify-between p-4">
-                <span><b>{b.redName}</b> <span className="text-muted">vs</span> <b>{b.blueName}</b></span><span className="chip">{b.weightClass}</span>
+                <span><b>{b.redName}</b> <span className="text-muted">vs</span> <b>{b.blueName}</b></span><span className="chip">{divisionLabel(b.weightClass, w.byId.get(b.redId)!.sex)}</span>
               </Link>
             ))}
           </div>
@@ -65,7 +66,7 @@ function Result({ A, B, w }: { A: BoxerFull; B: BoxerFull; w: Awaited<ReturnType
   const rows: [string, string, string][] = [
     ["Record", recordStr(A), recordStr(B)], ["KO rate", pct(A.koRate), pct(B.koRate)], ["Rating", String(Math.round(A.rating)), String(Math.round(B.rating))],
     ["Age", String(A.age), String(B.age)], ["Height", `${A.heightCm}cm`, `${B.heightCm}cm`], ["Reach", `${A.reachCm}cm`, `${B.reachCm}cm`],
-    ["Stance", A.stance, B.stance], ["Style", archetype(A), archetype(B)], ["Division", A.weightClass, B.weightClass],
+    ["Stance", A.stance, B.stance], ["Style", archetype(A), archetype(B)], ["Division", divisionLabel(A.weightClass, A.sex), divisionLabel(B.weightClass, B.sex)],
   ];
   const ax = (b: BoxerFull) => [
     { label: "Power", v: b.koRate }, { label: "Winning", v: b.winRate }, { label: "Durability", v: 1 - Math.min(1, (b.koLosses / Math.max(1, b.bouts)) * 4) },

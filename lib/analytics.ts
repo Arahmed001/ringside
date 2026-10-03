@@ -1,8 +1,9 @@
 import type { World } from "./world";
 import { WEIGHT_CLASSES } from "./types";
+import { METHODS, countsInRecord, isStoppage } from "./methods";
 
-const done = (w: World) => w.bouts.filter((b) => !b.upcoming && b.method && b.method !== "NC");
-const isKO = (m: string | null) => m === "KO" || m === "TKO";
+const done = (w: World) => w.bouts.filter((b) => !b.upcoming && countsInRecord(b.method));
+const isKO = isStoppage; // corner retirements count as knockouts, as in fighters' records
 
 export function overview(w: World) {
   const d = done(w);
@@ -26,7 +27,7 @@ export function byWeightClass(w: World) {
 
 export function methodSplit(w: World) {
   const d = done(w);
-  const c = { KO: 0, TKO: 0, UD: 0, SD: 0, MD: 0, DRAW: 0 } as Record<string, number>;
+  const c = Object.fromEntries(METHODS.map((m) => [m, 0])) as Record<string, number>;
   for (const b of d) if (b.method) c[b.method] = (c[b.method] ?? 0) + 1;
   return c;
 }

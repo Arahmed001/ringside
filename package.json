@@ -9,7 +9,9 @@
     "lint": "eslint",
     "media:resolve": "tsx scripts/resolve-media.ts",
     "wikidata:import": "tsx scripts/import-wikidata.ts",
-    "model:fit": "tsx scripts/fit-model.ts"
+    "model:fit": "tsx scripts/fit-model.ts",
+    "data:check": "tsx scripts/check-feed.ts",
+    "test": "node --import tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "next": "^16.3.8",
@@ -26,5 +28,8 @@
     "tailwindcss": "^4",
     "tsx": "^4",
     "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=22.5"
   }
 }

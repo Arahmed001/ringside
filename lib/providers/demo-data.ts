@@ -101,3 +101,19 @@ export const VENUE_CAP: Record<string, number> = {
   "Arena CDMX": 22300, "Arena Borregos": 6500, "American Airlines Center": 19200, "Uber Arena": 17000, "Mall of Asia Arena": 15000,
   "Palace of Sports": 10000, "Luna Park": 8500, "Teslim Balogun Stadium": 24000,
 };
+
+/** First names for the women's roster (surnames are shared with the men's pools). */
+export const FIRST_F: Record<string, string[]> = {
+  "United States": ["Alicia", "Tamara", "Jada", "Keira", "Monique", "Brianna", "Sloane", "Imani"],
+  Mexico: ["Valeria", "Camila", "Ximena", "Daniela", "Renata", "Paola", "Marisol", "Itzel"],
+  "United Kingdom": ["Poppy", "Imogen", "Megan", "Freya", "Ellie", "Niamh", "Bethan", "Orla"],
+  Japan: ["Haruka", "Mio", "Sakura", "Aoi", "Yui", "Noa", "Rin", "Akari"],
+  Ukraine: ["Oksana", "Daryna", "Iryna", "Kateryna", "Yulia", "Solomiya", "Anastasiia", "Mariia"],
+  Philippines: ["Lourdes", "Maricel", "Joanna", "Rhea", "Ligaya", "Carmina", "Analyn", "Gemma"],
+  Nigeria: ["Adaeze", "Folake", "Ngozi", "Temitope", "Chioma", "Yetunde", "Amaka", "Bisi"],
+  Argentina: ["Sofía", "Luciana", "Agustina", "Julieta", "Camila", "Florencia", "Milagros", "Rocío"],
+  "Saudi Arabia": ["Noura", "Reem", "Lamar", "Haya", "Dana", "Jawaher", "Sarah", "Maha"],
+  Germany: ["Lena", "Hannah", "Greta", "Marlene", "Svenja", "Katharina", "Jana", "Nele"],
+};
+/** Indices into the 17 divisions where the demo has a women's roster (flyweight through super middleweight). */
+export const WOMEN_CLASSES = new Set([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);

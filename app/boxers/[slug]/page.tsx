@@ -6,13 +6,14 @@ import { rankOf } from "@/lib/rankings";
 import { similarTo, archetype, ARCH_COLOR } from "@/lib/style";
 import { rulesReport } from "@/lib/ai";
 import { predict } from "@/lib/predict";
-import { divisionInfo, limitLabel, slugifyDivision } from "@/lib/divisions";
+import { divisionInfo, divisionLabel, limitLabel, slugifyDivision } from "@/lib/divisions";
 import { Headshot } from "@/components/Portrait";
 import { Sparkline, Radar, Donut } from "@/components/charts";
 import { ScoutingReport } from "@/components/ScoutingReport";
 import { WatchButton } from "@/components/Watch";
 import { BoutLine, BoxerCard, SectionTitle, Stat } from "@/components/ui";
 import { flag, fmtDate, pct } from "@/lib/format";
+import { countsInRecord, isDecision, isStoppage } from "@/lib/methods";
 import { boxerTeam, currentOf, monthsWithCurrentTrainer, ROLE_LABEL } from "@/lib/team";
 import { avgRehydration, missCount, weightHistory } from "@/lib/weights";
 import { TeamTimeline, type TimelineRow } from "@/components/TeamTimeline";
@@ -30,14 +31,15 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const b = w.bySlug.get(slug);
   if (!b) notFound();
   const bouts = w.boutsByBoxer.get(b.id) ?? [];
-  const done = bouts.filter((x) => !x.upcoming).slice().reverse();
+  const done = bouts.filter((x) => !x.upcoming).slice().reverse(); // includes cancelled bouts, shown with a chip
+  const completed = done.filter((x) => countsInRecord(x.method));
   const upcoming = bouts.find((x) => x.upcoming);
   const history = w.history.get(b.id) ?? [];
   const rank = rankOf(w, b);
   const div = divisionInfo(b.weightClass)!;
   const a = archetype(b);
   const similar = similarTo(b, w, 4);
-  const divBoxers = w.boxers.filter((x) => x.weightClass === b.weightClass && x.bouts >= 5);
+  const divBoxers = w.boxers.filter((x) => x.sex === b.sex && x.weightClass === b.weightClass && x.bouts >= 5);
   const norm = (v: number, arr: number[]) => { const mn = Math.min(...arr), mx = Math.max(...arr); return mx === mn ? 0.5 : (v - mn) / (mx - mn); };
   const radar = [
     { label: "Power", v: norm(b.koRate, divBoxers.map((x) => x.koRate)) },
@@ -47,8 +49,8 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
     { label: "Experience", v: norm(b.bouts, divBoxers.map((x) => x.bouts)) },
     { label: "Rating", v: norm(b.rating, divBoxers.map((x) => x.rating)) },
   ];
-  const methods = { KO: 0, Decision: 0 };
-  for (const x of done) if (x.winnerId === b.id) { if (x.method === "KO" || x.method === "TKO") methods.KO++; else methods.Decision++; }
+  const methods = { KO: 0, Decision: 0, Other: 0 };
+  for (const x of completed) if (x.winnerId === b.id) { if (isStoppage(x.method)) methods.KO++; else if (isDecision(x.method)) methods.Decision++; else methods.Other++; }
   // team history, weigh-ins
   const team = boxerTeam(w, b.id);
   const wHist = weightHistory(w, b.id);
@@ -96,8 +98,8 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
         </div>
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <Link href={`/rankings/${slugifyDivision(b.weightClass)}`} className="chip transition hover:text-ink">{b.weightClass}</Link>
-            {rank && <Link href={`/rankings/${slugifyDivision(b.weightClass)}`} className="chip !border-gold/50 !text-gold">#{rank} {b.weightClass}</Link>}
+            <Link href={`/rankings/${slugifyDivision(b.weightClass)}${b.sex === "female" ? "?sex=female" : ""}`} className="chip transition hover:text-ink">{divisionLabel(b.weightClass, b.sex)}</Link>
+            {rank && <Link href={`/rankings/${slugifyDivision(b.weightClass)}${b.sex === "female" ? "?sex=female" : ""}`} className="chip !border-gold/50 !text-gold">#{rank} {divisionLabel(b.weightClass, b.sex)}</Link>}
             <span className="chip" style={{ borderColor: ARCH_COLOR[a] + "55", color: ARCH_COLOR[a] }}>{a}</span>
             {!b.active && <span className="chip">Retired</span>}
             <span className="ml-auto"><WatchButton slug={b.slug} /></span>
@@ -178,7 +180,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
         </div>
         <div className="card p-5">
           <div className="eyebrow mb-3">How he wins</div>
-          {b.wins ? <Donut parts={[{ label: "Knockouts", value: methods.KO, color: "#e5322d" }, { label: "Decisions", value: methods.Decision, color: "#d9b25f" }]} center={{ big: String(b.wins), small: "WINS" }} /> : <p className="text-sm text-muted">No wins yet.</p>}
+          {b.wins ? <Donut parts={[{ label: "Knockouts", value: methods.KO, color: "#e5322d" }, { label: "Decisions", value: methods.Decision, color: "#d9b25f" }, ...(methods.Other ? [{ label: "Disqualification", value: methods.Other, color: "#8d8d99" }] : [])]} center={{ big: String(b.wins), small: "WINS" }} /> : <p className="text-sm text-muted">No wins yet.</p>}
         </div>
       </section>
 
@@ -192,7 +194,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
       </section>
 
       <section>
-        <SectionTitle eyebrow="Fight record" title={`${done.length} bouts`} />
+        <SectionTitle eyebrow="Fight record" title={`${completed.length} bouts`} />
         <div className="card overflow-x-auto p-4">
           <table className="w-full"><tbody>{(upcoming ? [upcoming, ...done] : done).map((x) => <BoutLine key={x.id} bout={x} focusId={b.id} />)}</tbody></table>
         </div>

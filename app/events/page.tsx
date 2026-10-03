@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getWorld } from "@/lib/world";
-import { eventWithMain, upcomingEvents, recentEvents } from "@/lib/events";
+import { eventViews, upcomingEvents, recentEvents } from "@/lib/events";
 import { Poster } from "@/components/Poster";
 import { SectionTitle } from "@/components/ui";
 import { fmtDate, methodLabel } from "@/lib/format";
@@ -10,8 +10,8 @@ export const metadata: Metadata = { title: "Events" };
 
 export default async function Events() {
   const w = await getWorld();
-  const ups = upcomingEvents(w).map((e) => eventWithMain(w, e));
-  const recent = recentEvents(w, 24).map((e) => eventWithMain(w, e));
+  const ups = eventViews(w, upcomingEvents(w));
+  const recent = eventViews(w, recentEvents(w, 24));
   return (
     <div className="space-y-12">
       <section>

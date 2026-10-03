@@ -1,5 +1,6 @@
 import type { World } from "./world";
-import type { BoxerFull } from "./types";
+import type { BoxerFull, Sex } from "./types";
+import { nowMs } from "./clock";
 
 export interface RankRow {
   rank: number;
@@ -8,7 +9,7 @@ export interface RankRow {
   ratingChange: number; // Elo change over 90 days
 }
 
-const monthsAgo = (m: number) => new Date(Date.now() - m * 30.4 * 86400000).toISOString().slice(0, 10);
+const monthsAgo = (m: number) => new Date(nowMs() - m * 30.4 * 86400000).toISOString().slice(0, 10);
 
 export function ratingAt(w: World, id: number, date: string): number | null {
   const h = w.history.get(id);
@@ -24,9 +25,9 @@ function eligible(b: BoxerFull, minBouts: number, asOf: string): boolean {
 }
 
 /** Current ranking for a division: active, 5+ bouts, winning record, fought within 24 months, ordered by Elo. */
-export function rankDivision(w: World, division: string, limit = 15): RankRow[] {
+export function rankDivision(w: World, division: string, limit = 15, sex: Sex = "male"): RankRow[] {
   const cutoff = monthsAgo(24);
-  const pool = w.boxers.filter((b) => b.weightClass === division && eligible(b, 5, cutoff));
+  const pool = w.boxers.filter((b) => b.sex === sex && b.weightClass === division && eligible(b, 5, cutoff));
   const now = [...pool].sort((a, b) => b.rating - a.rating);
   const past = monthsAgo(3);
   const before = pool
@@ -41,12 +42,12 @@ export function rankDivision(w: World, division: string, limit = 15): RankRow[] 
   });
 }
 
-export function pound4pound(w: World, limit = 10): BoxerFull[] {
+export function pound4pound(w: World, limit = 10, sex: Sex = "male"): BoxerFull[] {
   const cutoff = monthsAgo(24);
-  return w.boxers.filter((b) => eligible(b, 8, cutoff)).sort((a, b) => b.rating - a.rating).slice(0, limit);
+  return w.boxers.filter((b) => b.sex === sex && eligible(b, 8, cutoff)).sort((a, b) => b.rating - a.rating).slice(0, limit);
 }
 
 export function rankOf(w: World, b: BoxerFull): number | null {
-  const r = rankDivision(w, b.weightClass, 200).find((x) => x.boxer.id === b.id);
+  const r = rankDivision(w, b.weightClass, 200, b.sex).find((x) => x.boxer.id === b.id);
   return r ? r.rank : null;
 }

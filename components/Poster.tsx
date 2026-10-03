@@ -1,6 +1,7 @@
 import type { BoutRow, BoxerFull, EventRow } from "@/lib/types";
 import { Portrait } from "./Portrait";
 import { hash, pickBy } from "@/lib/hash";
+import { divisionLabel } from "@/lib/divisions";
 
 const HUES: [string, string, string][] = [
   ["#7a1118", "#1a0507", "#ff5a4d"], ["#10306b", "#050a1a", "#5aa0ff"], ["#6b4a10", "#150f04", "#ffd36a"],
@@ -47,10 +48,10 @@ export function Poster({ event, main, red, blue, className = "" }: { event: Even
       <rect width="400" height="560" fill={`url(#${u}-fade)`} />
       {/* header */}
       <text x="200" y="38" textAnchor="middle" fill={accent} fontSize="13" letterSpacing="6" fontWeight="700" style={{ fontFamily: "var(--font-display)" }}>
-        {main.title ? main.title.toUpperCase() : `${main.weightClass.toUpperCase()} · ${main.rounds} ROUNDS`}
+        {main.title ? main.title.toUpperCase() : `${divisionLabel(main.weightClass, red.sex).toUpperCase()} · ${main.rounds} ROUNDS`}
       </text>
       <text x="200" y="58" textAnchor="middle" fill="#fff" fillOpacity=".55" fontSize="10" letterSpacing="4" style={{ fontFamily: "var(--font-display)" }}>
-        {main.title ? `${main.weightClass.toUpperCase()} · ${main.rounds} ROUNDS` : "MAIN EVENT"}
+        {main.title ? `${divisionLabel(main.weightClass, red.sex).toUpperCase()} · ${main.rounds} ROUNDS` : "MAIN EVENT"}
       </text>
       {/* names */}
       <text x="22" y="456" fill="#fff" fontSize={fs(rs)} fontWeight="800" style={{ fontFamily: "var(--font-display)" }}>{rs}</text>
@@ -59,6 +60,16 @@ export function Poster({ event, main, red, blue, className = "" }: { event: Even
       <text x="200" y="455" textAnchor="middle" fill="#0a0a0c" fontSize="20" fontWeight="900" style={{ fontFamily: "var(--font-display)" }}>VS</text>
       <text x="22" y="474" fill={accent} fontSize="12" letterSpacing="2" style={{ fontFamily: "var(--font-display)" }}>{red.wins}-{red.losses}-{red.draws} · {red.country.toUpperCase()}</text>
       <text x="378" y="518" textAnchor="end" fill={accent} fontSize="12" letterSpacing="2" style={{ fontFamily: "var(--font-display)" }}>{blue.wins}-{blue.losses}-{blue.draws} · {blue.country.toUpperCase()}</text>
+      {event.status === "cancelled" && (
+        <g transform="rotate(-18 200 280)">
+          <rect x="-40" y="248" width="480" height="64" fill="#0a0a0c" fillOpacity=".78" />
+          <rect x="-40" y="248" width="480" height="64" fill="none" stroke="#e5322d" strokeWidth="3" />
+          <text x="200" y="293" textAnchor="middle" fill="#e5322d" fontSize="44" fontWeight="800" letterSpacing="8" style={{ fontFamily: "var(--font-display)" }}>CANCELLED</text>
+        </g>
+      )}
+      {event.status === "postponed" && (
+        <text x="200" y="78" textAnchor="middle" fill="#ffd36a" fontSize="12" letterSpacing="5" fontWeight="700" style={{ fontFamily: "var(--font-display)" }}>POSTPONED · NEW DATE</text>
+      )}
       {/* footer */}
       <rect y="528" width="400" height="32" fill="#000" fillOpacity=".55" />
       <text x="22" y="548" fill="#fff" fontSize="12" letterSpacing="2" fontWeight="700" style={{ fontFamily: "var(--font-display)" }}>{fmtDate(event.date)}</text>

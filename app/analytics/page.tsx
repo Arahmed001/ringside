@@ -43,8 +43,9 @@ export default async function Analytics() {
           <BarList rows={wc.map((r) => ({ label: r.weightClass, value: r.koRate, sub: `${r.bouts} bouts` }))} fmt={(v) => pct(v)} /></div>
         <div className="card p-5"><div className="eyebrow mb-3">How fights end</div>
           <Donut center={{ big: pct(o.finishRate), small: "FINISHED" }} parts={[
-            { label: "KO", value: ms.KO, color: "#e5322d" }, { label: "TKO", value: ms.TKO, color: "#ff8a3d" }, { label: "Unanimous", value: ms.UD, color: "#d9b25f" },
-            { label: "Split", value: ms.SD, color: "#4a8cff" }, { label: "Majority", value: ms.MD, color: "#7ee0b4" }, { label: "Draw", value: ms.DRAW, color: "#8d8d99" },
+            { label: "KO", value: ms.KO, color: "#e5322d" }, { label: "TKO", value: ms.TKO, color: "#ff8a3d" }, { label: "Corner retirement", value: ms.RTD, color: "#c2410c" },
+            { label: "Unanimous", value: ms.UD, color: "#d9b25f" }, { label: "Split", value: ms.SD, color: "#4a8cff" }, { label: "Majority", value: ms.MD, color: "#7ee0b4" },
+            { label: "Technical decision", value: ms.TD, color: "#a78bfa" }, { label: "Disqualification", value: ms.DQ, color: "#f472b6" }, { label: "Draw", value: ms.DRAW + ms.TDRAW, color: "#8d8d99" },
           ]} />
           <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-xl bg-panel2 p-3"><div className="text-xs text-muted">Southpaw win rate</div><div className="font-display text-2xl font-bold">{pct(stance.southpaw, 1)}</div></div>

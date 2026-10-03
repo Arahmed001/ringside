@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22 # node:sqlite needs 22.5+
+          cache: npm
+      - run: npm ci
+      - name: Type check
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npm run lint
+      - name: Tests
+        run: npm test
+      - name: Demo feed passes data validation
+        run: npm run data:check
+        env:
+          RINGSIDE_NOW: "2026-10-03"
+      - name: Production build
+        run: npm run build
+
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true # new advisories shouldn't block unrelated changes; check the result when it turns red
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high

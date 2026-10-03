@@ -7,8 +7,9 @@ import { BoxerCard } from "@/components/ui";
 
 export const metadata: Metadata = { title: "Fighters" };
 
-export default async function Boxers({ searchParams }: { searchParams: Promise<{ q?: string; wc?: string }> }) {
-  const { q = "", wc } = await searchParams;
+export default async function Boxers({ searchParams }: { searchParams: Promise<{ q?: string; wc?: string; sex?: string }> }) {
+  const { q = "", wc, sex } = await searchParams;
+  const qs = (extra: Record<string, string | undefined>) => { const p = new URLSearchParams(); const all = { q: q || undefined, wc, sex, ...extra }; for (const [k, v] of Object.entries(all)) if (v) p.set(k, v); const t = p.toString(); return `/boxers${t ? `?${t}` : ""}`; };
   const w = await getWorld();
   let results = w.boxers.filter((b) => b.bouts > 0);
   let chips: string[] = [];
@@ -22,6 +23,7 @@ export default async function Boxers({ searchParams }: { searchParams: Promise<{
     results = results.sort((a, b) => b.rating - a.rating);
   }
   if (wc) results = results.filter((b) => b.weightClass === wc);
+  if (sex === "male" || sex === "female") results = results.filter((b) => b.sex === sex);
   const shown = results.slice(0, 48);
 
   return (
@@ -32,9 +34,12 @@ export default async function Boxers({ searchParams }: { searchParams: Promise<{
         <input name="q" defaultValue={q} placeholder="Ask in plain English — “southpaw welterweights with 10+ KOs after 2015”" className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-5 py-3.5 outline-none transition placeholder:text-muted/70 focus:border-gold/60" />
         <button className="rounded-2xl bg-red px-6 font-display text-lg font-bold uppercase transition hover:brightness-110">Search</button>
       </form>
-      <div className="mt-4 flex flex-wrap gap-1.5">
-        <Link href={q ? `/boxers?q=${encodeURIComponent(q)}` : "/boxers"} className={`chip ${!wc ? "!border-gold/50 !text-gold" : ""}`}>All divisions</Link>
-        {DIVISION_NAMES.map((d) => <Link key={d} href={`/boxers?${q ? `q=${encodeURIComponent(q)}&` : ""}wc=${encodeURIComponent(d)}`} className={`chip ${wc === d ? "!border-gold/50 !text-gold" : ""}`}>{d}</Link>)}
+      <div className="mt-4 flex gap-1.5">
+        {([[undefined, "Everyone"], ["male", "Men"], ["female", "Women"]] as const).map(([v, label]) => <Link key={label} href={qs({ sex: v })} className={`chip ${(sex ?? undefined) === v ? "!border-gold/50 !text-gold" : ""}`}>{label}</Link>)}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        <Link href={qs({ wc: undefined })} className={`chip ${!wc ? "!border-gold/50 !text-gold" : ""}`}>All divisions</Link>
+        {DIVISION_NAMES.map((d) => <Link key={d} href={qs({ wc: d })} className={`chip ${wc === d ? "!border-gold/50 !text-gold" : ""}`}>{d}</Link>)}
       </div>
       {q.trim() && (
         <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">

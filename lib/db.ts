@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS boxers (
   id INTEGER PRIMARY KEY, external_id TEXT UNIQUE, slug TEXT UNIQUE, name TEXT, nickname TEXT,
   country TEXT, birth_year INTEGER, stance TEXT, height_cm INTEGER, reach_cm INTEGER,
   weight_class TEXT, turned_pro INTEGER, active INTEGER, rating REAL DEFAULT 1500, photo_url TEXT, photo_credit TEXT,
-  birth_date TEXT, birth_place TEXT, residence TEXT, wikidata_id TEXT, boxrec_id TEXT, aliases TEXT, debut_date TEXT, retired_date TEXT
+  birth_date TEXT, birth_place TEXT, residence TEXT, wikidata_id TEXT, boxrec_id TEXT, aliases TEXT, debut_date TEXT, retired_date TEXT,
+  sex TEXT DEFAULT 'male'
 );
 CREATE TABLE IF NOT EXISTS boxer_media (
   boxer_id INTEGER PRIMARY KEY REFERENCES boxers(id), status TEXT, reason TEXT, wikidata_id TEXT, file_title TEXT,
@@ -18,14 +19,14 @@ CREATE TABLE IF NOT EXISTS boxer_media (
 );
 CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY, external_id TEXT UNIQUE, name TEXT, date TEXT, venue TEXT, city TEXT, country TEXT, poster_url TEXT,
-  promoter_org_id INTEGER, broadcaster TEXT, attendance INTEGER
+  promoter_org_id INTEGER, broadcaster TEXT, attendance INTEGER, status TEXT
 );
 CREATE TABLE IF NOT EXISTS bouts (
   id INTEGER PRIMARY KEY, external_id TEXT UNIQUE, event_id INTEGER REFERENCES events(id),
   red_id INTEGER REFERENCES boxers(id), blue_id INTEGER REFERENCES boxers(id),
   weight_class TEXT, rounds INTEGER, winner_id INTEGER, method TEXT, end_round INTEGER,
   title TEXT, position INTEGER,
-  round_time TEXT, kd_red INTEGER, kd_blue INTEGER, odds_red REAL, odds_blue REAL, contract_lb REAL, title_org_id INTEGER, title_vacant INTEGER
+  round_time TEXT, kd_red INTEGER, kd_blue INTEGER, odds_red REAL, odds_blue REAL, contract_lb REAL, title_org_id INTEGER, title_vacant INTEGER, status TEXT
 );
 CREATE TABLE IF NOT EXISTS rating_history (
   boxer_id INTEGER, bout_id INTEGER, date TEXT, rating REAL, opp_rating REAL
@@ -63,6 +64,13 @@ CREATE TABLE IF NOT EXISTS wikidata_boxers (
 );
 CREATE INDEX IF NOT EXISTS idx_wd_boxrec ON wikidata_boxers(boxrec_id);
 CREATE INDEX IF NOT EXISTS idx_wd_year ON wikidata_boxers(birth_year);
+CREATE TABLE IF NOT EXISTS ingest_runs (
+  id INTEGER PRIMARY KEY, at TEXT, provider TEXT, errors INTEGER, warnings INTEGER, infos INTEGER, counts TEXT, dropped TEXT
+);
+CREATE TABLE IF NOT EXISTS ingest_issues (
+  run_id INTEGER, severity TEXT, code TEXT, entity TEXT, ref TEXT, message TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_issues_run ON ingest_issues(run_id);
 CREATE INDEX IF NOT EXISTS idx_stints_boxer ON team_stints(boxer_id);
 CREATE INDEX IF NOT EXISTS idx_stints_person ON team_stints(person_id);
 CREATE INDEX IF NOT EXISTS idx_stints_org ON team_stints(org_id);
@@ -110,7 +118,7 @@ export async function getDb(): Promise<DatabaseSync> {
   const db = g.__ringsideDb;
   if (!g.__ringsideReady) {
     const count = (db.prepare("SELECT COUNT(*) c FROM boxers").get() as { c: number }).c;
-    g.__ringsideReady = count === 0 ? ingest(db) : Promise.resolve();
+    g.__ringsideReady = count === 0 ? ingest(db).then(() => undefined) : Promise.resolve();
   }
   try {
     await g.__ringsideReady;

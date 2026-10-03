@@ -1,8 +1,12 @@
 import type { TeamRole, OrgKind } from "./providers";
 export type { TeamRole, OrgKind };
 
-export type Stance = "Orthodox" | "Southpaw";
-export type Method = "KO" | "TKO" | "UD" | "MD" | "SD" | "DRAW" | "NC";
+export type { Method } from "./methods";
+import type { Method } from "./methods";
+
+export type Stance = "Orthodox" | "Southpaw" | "Switch";
+export type Sex = "male" | "female";
+export type Status = "scheduled" | "completed" | "cancelled" | "postponed";
 
 export interface Boxer {
   id: number;
@@ -12,6 +16,7 @@ export interface Boxer {
   country: string;
   birthYear: number;
   stance: Stance;
+  sex: Sex;
   heightCm: number;
   reachCm: number;
   weightClass: string;
@@ -83,6 +88,7 @@ export interface BoutRow {
   contractLb: number | null;
   titleOrgId: number | null;
   titleVacant: boolean;
+  status: Status;
 }
 
 export interface EventRow {
@@ -97,6 +103,7 @@ export interface EventRow {
   promoterOrgId: number | null;
   broadcaster: string | null;
   attendance: number | null;
+  status: Status;
 }
 
 export { DIVISION_NAMES as WEIGHT_CLASSES } from "./divisions";

@@ -63,6 +63,32 @@ export default async function DataPage() {
         <p className="mt-3 text-xs text-muted">Team history rows by source: {cov.stintSources.map((s) => `${s.source} (${s.n.toLocaleString()})`).join(", ") || "none"}. Weigh-ins by source: {cov.weighInSources.map((s) => `${s.source} (${s.n.toLocaleString()})`).join(", ") || "none"}. Wikidata staged: {cov.wikidataStaged.toLocaleString()} boxers, {cov.wikidataLinked.toLocaleString()} linked to our fighters.</p>
       </section>
 
+      {cov.lastRun && (
+        <section>
+          <SectionTitle eyebrow="Checked before anything is written" title="Last data load" />
+          <div className="card p-5">
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="chip">{cov.lastRun.provider}</span>
+              <span className="text-muted">{new Date(cov.lastRun.at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}</span>
+              <span className={`chip ${cov.lastRun.errors ? "!border-red/40 !text-red" : "!border-win/40 !text-win"}`}>{cov.lastRun.errors} error{cov.lastRun.errors === 1 ? "" : "s"}</span>
+              <span className={`chip ${cov.lastRun.warnings ? "!border-gold/40 !text-gold" : ""}`}>{cov.lastRun.warnings} warning{cov.lastRun.warnings === 1 ? "" : "s"}</span>
+              {Object.entries(cov.lastRun.dropped).map(([k, n]) => <span key={k} className="chip !border-red/40 !text-red">{n} {k.replace("_", " ")} row{n === 1 ? "" : "s"} dropped</span>)}
+            </div>
+            <p className="mt-3 text-xs text-muted">Loaded: {Object.entries(cov.lastRun.counts).map(([k, n]) => `${n.toLocaleString()} ${k}`).join(" · ")}.</p>
+            {cov.lastRun.issues.length ? (
+              <ul className="mt-4 space-y-2 text-sm">
+                {cov.lastRun.issues.map((i) => (
+                  <li key={`${i.severity}-${i.code}`} className="flex flex-wrap items-baseline gap-x-3 border-t border-line/60 pt-2">
+                    <span className={`chip ${i.severity === "error" ? "!border-red/40 !text-red" : i.severity === "warning" ? "!border-gold/40 !text-gold" : ""}`}>{i.severity}</span>
+                    <b>{i.code}</b><span className="tabular text-muted">×{i.n}</span><span className="text-xs text-muted">e.g. {i.example}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="mt-4 text-sm text-muted">No issues found. Rows that fail a check are dropped and listed here; suspicious ones are kept and flagged. Run <code className="rounded bg-panel2 px-1.5 py-0.5 text-ink">npm run data:check -- --file sample.json</code> to test a vendor sample first.</p>}
+          </div>
+        </section>
+      )}
+
       <section>
         <SectionTitle eyebrow="Where facts come from" title="Source registry" />
         <div className="card overflow-x-auto p-2">

@@ -13,7 +13,7 @@
 const WIKIDATA = "https://www.wikidata.org/w/api.php";
 const COMMONS = "https://commons.wikimedia.org/w/api.php";
 const Q_BOXER = "Q11338576";
-const GAP_MS = 250;
+const GAP_MS = Number(process.env.WIKIMEDIA_GAP_MS ?? 250); // tests set this to 0
 
 let lastCall = 0;
 
@@ -73,6 +73,9 @@ const birthYears = (e: Entity) =>
 const NON_FREE = /\b(nc|nd)\b|non-?commercial|no[- ]derivs?|no derivatives|fair use/i;
 const FREE_LICENCE = /^(cc0(?:[- ]1\.0)?|cc[- ]by(?:[- ]sa)?(?:[- ]\d(?:\.\d)?)?(?:[- ][a-z]{2,3})?|public domain|pd[- ][\w-]+|no restrictions)$/i;
 
+/** True only for licences we can display commercially with attribution. Exported so the rule can be tested directly. */
+export const licenceAccepted = (license: string): boolean => !NON_FREE.test(license) && FREE_LICENCE.test(license);
+
 const stripHtml = (s: string) => s.replace(/<[^>]*>/g, " ").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#0?39;/g, "'").replace(/\s+/g, " ").trim();
 
 async function imageFor(fileName: string): Promise<Omit<MediaMatch, "wikidataId" | "confidence"> | { reject: string }> {
@@ -86,7 +89,7 @@ async function imageFor(fileName: string): Promise<Omit<MediaMatch, "wikidataId"
   const m = info.extmetadata ?? {};
   if (m.NonFree?.value === "true") return { reject: "non-free image" };
   const license = stripHtml(m.LicenseShortName?.value ?? "");
-  if (NON_FREE.test(license) || !FREE_LICENCE.test(license)) return { reject: `licence not accepted: ${license || "unknown"}` };
+  if (!licenceAccepted(license)) return { reject: `licence not accepted: ${license || "unknown"}` };
   const artist = stripHtml(m.Artist?.value ?? "") || stripHtml(m.Credit?.value ?? "") || "Unknown author";
   return {
     fileTitle: fileName, thumbUrl: info.thumburl ?? info.url, pageUrl: info.descriptionurl,

@@ -8,6 +8,8 @@ import { ScoreCards } from "@/components/ScoreCards";
 import { PunchStats } from "@/components/PunchStats";
 import { SectionTitle } from "@/components/ui";
 import { flag, fmtDate, methodLabel } from "@/lib/format";
+import { METHOD_NAME, endsEarly } from "@/lib/methods";
+import { divisionLabel } from "@/lib/divisions";
 import type { PunchLine } from "@/lib/types";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -61,7 +63,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
           <Link href={`/events/${ev.id}`} className="hover:text-ink">{ev.name}</Link> · {fmtDate(ev.date)} · {ev.venue}, {ev.city}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Link href={`/rankings/${b.weightClass.toLowerCase().replace(/\s+/g, "-")}`} className="chip">{b.weightClass}</Link>
+          <Link href={`/rankings/${b.weightClass.toLowerCase().replace(/\s+/g, "-")}${red.sex === "female" ? "?sex=female" : ""}`} className="chip">{divisionLabel(b.weightClass, red.sex)}</Link>
           <span className="chip">{b.rounds} rounds</span>
           {b.contractLb && <span className="chip !border-gold/40 !text-gold">Catchweight {b.contractLb} lb</span>}
           {b.title && <span className="chip !border-gold/50 !text-gold">{body ? <Link href={`/orgs/${body.slug}`}>{body.name.match(/\(([^)]+)\)/)?.[1] ?? body.name}</Link> : null} {b.title}{b.titleVacant ? " (vacant)" : ""}</span>}
@@ -76,8 +78,9 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
               <div className="font-display text-3xl font-extrabold text-gold">VS</div>
               {b.method && (
                 <div className="mt-3">
-                  <div className="font-display text-2xl font-bold">{b.method === "DRAW" ? "Draw" : methodLabel(b.method, b.endRound)}</div>
-                  {b.roundTime && b.endRound && <div className="text-xs text-muted">{b.method === "KO" || b.method === "TKO" ? `Round ${b.endRound}, ${b.roundTime}` : `${b.rounds} rounds`}</div>}
+                  <div className="font-display text-2xl font-bold">{methodLabel(b.method, b.endRound)}</div>
+                  {METHOD_NAME[b.method] !== methodLabel(b.method, b.endRound) && <div className="text-xs text-muted">{METHOD_NAME[b.method]}</div>}
+                  {b.endRound && <div className="text-xs text-muted">{b.method === "RTD" ? `Retired after round ${b.endRound}` : endsEarly(b.method) ? `Round ${b.endRound}${b.roundTime ? `, ${b.roundTime}` : ""}` : `${b.rounds} rounds`}</div>}
                 </div>
               )}
             </div>

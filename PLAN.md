@@ -75,7 +75,7 @@ Public pages don't answer the questions that matter most: **historical depth, im
 
 ## 7. Status and known issues (2026-10-03)
 
-**Verified:** type check and lint clean; production build passes; all 12 routes return 200 (404 for unknown fighter/division); no horizontal overflow at 390px on 10 pages; Next upgraded 16.2.6 to 16.3.8 (`npm audit`: 0 vulnerabilities, it was 1 critical and 2 high); interactive predictor checked in the browser (age slider, presets and reset move the odds correctly; "Pure Elo" equals the Elo expectation); Wikimedia resolver checked against mocked Wikidata/Commons responses (14 decision cases + 17 licence strings) and its SQLite path (upsert, retry window, re-ingest keeps photos).
+**Verified (round 1):** type check and lint clean; production build passes; all 12 routes return 200 (404 for unknown fighter/division); no horizontal overflow at 390px on 10 pages; Next upgraded 16.2.6 to 16.3.8 (`npm audit`: 0 vulnerabilities, it was 1 critical and 2 high); interactive predictor checked in the browser (age slider, presets and reset move the odds correctly; "Pure Elo" equals the Elo expectation); Wikimedia resolver checked against mocked Wikidata/Commons responses (14 decision cases + 17 licence strings) and its SQLite path (upsert, retry window, re-ingest keeps photos).
 
 **Not verified:** the Wikimedia resolver against the real Wikimedia APIs (needs a `WIKIMEDIA_CONTACT`); text contrast on generated posters; behaviour in Safari or Firefox; any real vendor data.
 
@@ -134,7 +134,7 @@ Provider contract: `lib/providers/index.ts`. Re-ingest is idempotent: stints and
 
 ### 8.5 Model fitting: what we learned
 Features known before the fight (Elo gap, reach, age, layoff, KO rate, KO losses, experience, usual rehydration, fight-night weight edge, new-trainer flag, trainer's prior win rate), L2 logistic regression, time-ordered split (train on the first 75% of bouts, test on the last 25%).
-On the demo league: refitting only the Elo scale cuts held-out log-loss from 0.6175 to 0.5862; adding all other features makes it slightly *worse* (0.5900), because most are noise; the planted weigh-in and trainer effects are too small to detect at ~4k bouts (z of about -0.4 and -0.7 against a 2.0 threshold). The app therefore applies only the fitted Elo scale (about 2.6× the plain expectation: ratings are compressed relative to true skill gaps) and leaves other terms hand-set. **Re-run this on real data**: it will say what is really predictive.
+On the demo league (4,760 training + 1,587 held-out bouts): refitting only the Elo scale cuts held-out log-loss from 0.6165 to 0.5813; adding every other feature reaches 0.5796, a gain of 0.0017 that is within noise, so the **parsimony rule** (a more complex model must beat a simpler one by at least 0.002) keeps "Elo refit". The planted weigh-in and trainer effects are too small to detect at this size (z of about 0.0 and 0.2). The app therefore applies only the fitted Elo scale (about 2.7× the plain expectation: ratings are compressed relative to true skill gaps) and leaves other terms hand-set. **Re-run `npm run model:fit` on real data**: it will say what is really predictive. (An earlier, smaller demo league recommended Elo refit for a different reason: extra features were slightly *worse* there. The recommendation can change as data grows; that is the point of re-running it.)
 
 ### 8.6 What the demo league plants (so analytics have something to find)
 Trainer skill boosts (sd 45 Elo) · a fight-night weight edge (2.2 Elo per lb) · judges with home-fighter bias · referees with early-stoppage tendencies. These are simulator properties, not claims about boxing.
@@ -144,3 +144,32 @@ Trainer skill boosts (sd 45 Elo) · a fight-night weight edge (2.2 Elo per lb) �
 2. Ask BoxRec about data licensing (the one source that has trainers and weigh-ins at scale).
 3. Download a few Nevada/California result PDFs and build a parser for official and pre-fight weights.
 4. Add an editor workflow for trainer/manager history, each row carrying a source.
+
+
+## 9. Real-data readiness and quality gates (round 3, 2026-10-03)
+
+### 9.1 Real-world cases the model now handles
+Found by reviewing the code against what real feeds contain; each would otherwise have failed an import or corrupted records.
+- **Result methods:** KO, TKO, RTD (corner retirement), DQ, UD/MD/SD, TD (technical decision), DRAW, TDRAW (technical draw), NC. `lib/methods.ts` defines what each means for records: a corner retirement counts as a knockout (as on BoxRec), a DQ is a win but not a knockout, a no-contest is excluded from both records, technical results are scored over the rounds fought. `normalizeMethod` maps vendor spellings ("Decision - Split", "Technical Knockout", "N/C").
+- **Women's boxing:** `sex` on every fighter; rankings, pound-for-pound, search and labels are separate ("Women's Welterweight"). Women never fight men in the demo.
+- **Stance:** Orthodox, Southpaw, Switch.
+- **Cancelled and postponed:** events and bouts carry a status. A cancelled bout on a live card is shown but never upcoming and never headlines; a postponed card stays on the calendar; cancelled cards never appear as results or calendar entries.
+- **Pinned clock:** everything date-dependent goes through `lib/clock.ts`, so `RINGSIDE_NOW=2026-10-03` makes runs reproducible.
+
+### 9.2 Data-quality gate
+`sanitizeFeed` (lib/validate.ts) checks a feed **before** anything is written:
+- **Errors drop the row** (and anything that depends on it): duplicate or missing IDs, unknown division or method, bad dates, a winner who was not in the bout, a result with no winner (or a draw with one), end round past the scheduled distance, references to fighters/events/bouts/people that do not exist, team stints with no person/organisation or with end before start.
+- **Warnings keep the row and flag it:** scorecards that contradict the recorded result, incomplete or out-of-range scorecards (technical decisions are range-checked over the rounds fought), a made-weight flag that contradicts the scale, rehydration or weights that are implausible, a limit that doesn't fit the division, a fighter on two cards the same night, overlapping head trainers, implausible height/reach/debut age, punch stats that don't add up.
+- **Info:** people or organisations linked to nothing.
+
+Every ingest records its run and issues (`ingest_runs`, `ingest_issues`), shown on the Data page. Strict mode (abort before touching the database if any row has an error) is `ingest(db, provider, { strict: true })`.
+
+**Evaluating a vendor sample:** convert it to the `FeedData` JSON shape (`lib/feed.ts`; any missing array is treated as empty), then `npm run data:check -- --file sample.json`. It prints rows in/kept, issues grouped by code with examples, and exits 1 if any row would be dropped. `BOXING_PROVIDER=file` with `BOXING_FILE=sample.json` loads such a file into the app.
+
+### 9.3 Tests and CI
+- `npm test` (Node's built-in runner, 84 tests, about a second): divisions, methods, model, validator rules, ingest (quarantine, strict mode, idempotency, slugs), world invariants (every record equals the results that count; league wins equal losses; rankings are sex-separate, active, winning-record), a hand-built calendar with every status combination, search parsing, the Wikimedia and Wikidata importers (mocked network, fixtures from real responses), the resolver's database path, the model fitter (recovers known coefficients), the parsimony rule, and the `data:check` CLI including its exit codes.
+- `.github/workflows/ci.yml` runs on every push and PR: `npm ci`, type check, lint, tests, `data:check` on the demo feed, production build; plus a non-blocking `npm audit`. The exact steps were replayed in a clean copy with a fresh `npm ci` and all passed. It has not yet run on GitHub itself.
+- Test hygiene: a deliberate-breakage check confirmed the suite fails when a corner retirement stops counting as a knockout, when the validator keeps unknown divisions, when the age penalty has the wrong sign, when women fight men, and when cancelled bouts count as upcoming (that last one initially slipped through, which is why `tests/calendar.test.ts` exists).
+
+### 9.4 Still open
+Everything in §8.7, plus: the CI workflow's first real run on GitHub; a UI for the quality report beyond the Data page; amateur and multi-day (tournament) results; per-round scorecards; weigh-in video/photo evidence (not planned).

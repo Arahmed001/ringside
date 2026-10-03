@@ -4,7 +4,13 @@ export interface CoverageRow { field: string; have: number; of: number; note?: s
 export interface CoverageGroup { title: string; rows: CoverageRow[] }
 
 /** Live field-by-field completeness, straight from the database. */
-export async function coverage(): Promise<{ groups: CoverageGroup[]; stintSources: { source: string; n: number }[]; weighInSources: { source: string; n: number }[]; wikidataStaged: number; wikidataLinked: number }> {
+export interface LastRun {
+  at: string; provider: string; errors: number; warnings: number; infos: number;
+  counts: Record<string, number>; dropped: Record<string, number>;
+  issues: { severity: string; code: string; n: number; example: string }[];
+}
+
+export async function coverage(): Promise<{ lastRun: LastRun | null; groups: CoverageGroup[]; stintSources: { source: string; n: number }[]; weighInSources: { source: string; n: number }[]; wikidataStaged: number; wikidataLinked: number }> {
   const db = await getDb();
   const n = (sql: string) => (db.prepare(sql).get() as { c: number }).c;
   const boxers = n("SELECT COUNT(*) c FROM boxers");
@@ -42,5 +48,12 @@ export async function coverage(): Promise<{ groups: CoverageGroup[]; stintSource
     },
   ];
   const grp = (table: "team_stints" | "weigh_ins") => db.prepare(`SELECT source, COUNT(*) n FROM ${table} GROUP BY source ORDER BY n DESC`).all() as { source: string; n: number }[];
-  return { groups, stintSources: grp("team_stints"), weighInSources: grp("weigh_ins"), wikidataStaged: n("SELECT COUNT(*) c FROM wikidata_boxers"), wikidataLinked: n("SELECT COUNT(*) c FROM wikidata_boxers WHERE matched_boxer_id IS NOT NULL") };
+  const run = db.prepare("SELECT * FROM ingest_runs ORDER BY id DESC LIMIT 1").get() as { id: number; at: string; provider: string; errors: number; warnings: number; infos: number; counts: string; dropped: string } | undefined;
+  const lastRun: LastRun | null = run ? {
+    at: run.at, provider: run.provider, errors: run.errors, warnings: run.warnings, infos: run.infos,
+    counts: JSON.parse(run.counts), dropped: JSON.parse(run.dropped),
+    issues: (db.prepare(`SELECT severity, code, COUNT(*) n, MIN(message) example FROM ingest_issues WHERE run_id = ? GROUP BY severity, code
+      ORDER BY CASE severity WHEN 'error' THEN 0 WHEN 'warning' THEN 1 ELSE 2 END, n DESC`).all(run.id) as { severity: string; code: string; n: number; example: string }[]).map((r) => ({ ...r })),
+  } : null;
+  return { lastRun, groups, stintSources: grp("team_stints"), weighInSources: grp("weigh_ins"), wikidataStaged: n("SELECT COUNT(*) c FROM wikidata_boxers"), wikidataLinked: n("SELECT COUNT(*) c FROM wikidata_boxers WHERE matched_boxer_id IS NOT NULL") };
 }

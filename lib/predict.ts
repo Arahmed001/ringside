@@ -1,5 +1,6 @@
 import type { BoxerFull } from "./types";
 import { activeWeights, TERMS, TERM_KEYS, stoppageProbability, winProbability, type Features, type Weights } from "./model";
+import { nowMs } from "./clock";
 
 export interface Factor { label: string; shift: number; note: string }
 export interface Prediction {
@@ -9,7 +10,7 @@ export interface Prediction {
   confidence: "Toss-up" | "Lean" | "Clear favourite" | "Heavy favourite";
 }
 
-export function featuresOf(b: BoxerFull, now = Date.now()): Features {
+export function featuresOf(b: BoxerFull, now = nowMs()): Features {
   const idle = b.lastFight ? Math.max(0, (now - Date.parse(b.lastFight)) / (30.4 * 86400000)) : 24;
   return {
     rating: b.rating, reachCm: b.reachCm, age: b.age, monthsIdle: idle,

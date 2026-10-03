@@ -1,6 +1,8 @@
 import { getDb } from "./db";
 import { applyFittedWeights } from "./model-fit";
-import type { Boxer, BoxerFull, BoutRow, Corner, EventRow, Method, Official, Org, Person, Scorecard, TeamStint, WeighIn } from "./types";
+import { currentYear, todayIso } from "./clock";
+import { countsInRecord, isStoppage } from "./methods";
+import type { Boxer, BoxerFull, BoutRow, Corner, EventRow, Method, Official, Org, Person, Scorecard, Status, TeamStint, WeighIn } from "./types";
 
 export interface World {
   today: string;
@@ -10,6 +12,7 @@ export interface World {
   bouts: BoutRow[]; // chronological
   events: EventRow[];
   boutsByBoxer: Map<number, BoutRow[]>; // chronological
+  boutsByEvent: Map<number, BoutRow[]>; // main event first
   history: Map<number, { date: string; rating: number; boutId: number; opp: number }[]>;
   boutPre: Map<number, { red: number; blue: number }>; // pre-fight ratings
   people: Map<number, Person>;
@@ -41,12 +44,12 @@ export function invalidateWorld() {
 export async function getWorld(): Promise<World> {
   if (g.__world && Date.now() - (g.__worldAt ?? 0) < WORLD_TTL_MS) return g.__world;
   const db = await getDb();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
 
   const rawBoxers = db.prepare("SELECT * FROM boxers").all() as Record<string, unknown>[];
   const boxersBase: Boxer[] = rawBoxers.map((r) => ({
     id: r.id as number, slug: r.slug as string, name: r.name as string, nickname: (r.nickname as string) ?? null,
-    country: r.country as string, birthYear: r.birth_year as number, stance: r.stance as Boxer["stance"],
+    country: r.country as string, birthYear: r.birth_year as number, stance: r.stance as Boxer["stance"], sex: ((r.sex as string) === "female" ? "female" : "male"),
     heightCm: r.height_cm as number, reachCm: r.reach_cm as number, weightClass: r.weight_class as string,
     turnedPro: r.turned_pro as number, active: !!r.active, rating: r.rating as number,
     photoUrl: (r.photo_url as string) ?? null,
@@ -59,7 +62,10 @@ export async function getWorld(): Promise<World> {
 
   const events = (db.prepare("SELECT * FROM events ORDER BY date").all() as Record<string, unknown>[]).map((e): EventRow => ({
     id: e.id as number, name: e.name as string, date: e.date as string, venue: e.venue as string,
-    city: e.city as string, country: e.country as string, upcoming: (e.date as string) > today,
+    city: e.city as string, country: e.country as string,
+    // a cancelled event never counts as upcoming; a postponed one does, under its new date
+    status: ((e.status as Status | null) ?? ((e.date as string) > today ? "scheduled" : "completed")),
+    upcoming: (e.date as string) > today && (e.status as string | null) !== "cancelled",
     posterUrl: (e.poster_url as string) ?? null,
     promoterOrgId: (e.promoter_org_id as number) ?? null, broadcaster: (e.broadcaster as string) ?? null, attendance: (e.attendance as number) ?? null,
   }));
@@ -71,7 +77,9 @@ export async function getWorld(): Promise<World> {
       const ev = evOf.get(b.event_id as number)!;
       const red = nameOf.get(b.red_id as number)!, blue = nameOf.get(b.blue_id as number)!;
       return {
-        id: b.id as number, eventId: ev.id, eventName: ev.name, date: ev.date, upcoming: ev.upcoming,
+        id: b.id as number, eventId: ev.id, eventName: ev.name, date: ev.date,
+        status: ((b.status as Status | null) ?? (b.method ? "completed" : ev.date > today ? "scheduled" : "completed")),
+        upcoming: ev.upcoming && (b.status as string | null) !== "cancelled" && !b.method,
         redId: red.id, blueId: blue.id, redName: red.name, blueName: blue.name, redSlug: red.slug, blueSlug: blue.slug,
         weightClass: b.weight_class as string, rounds: b.rounds as number, winnerId: (b.winner_id as number) ?? null,
         method: (b.method as Method) ?? null, endRound: (b.end_round as number) ?? null,
@@ -132,6 +140,10 @@ export async function getWorld(): Promise<World> {
   for (const r of db.prepare("SELECT * FROM corners").all() as Record<string, unknown>[])
     push(cornersByBout, r.bout_id as number, { boutId: r.bout_id as number, boxerId: r.boxer_id as number, role: r.role as Corner["role"], personId: r.person_id as number });
 
+  const boutsByEvent = new Map<number, BoutRow[]>();
+  for (const b of bouts) push(boutsByEvent, b.eventId, b);
+  for (const list of boutsByEvent.values()) list.sort((a, b) => b.position - a.position);
+
   const history = new Map<number, World["history"] extends Map<number, infer V> ? V : never>();
   const boutPre = new Map<number, { red: number; blue: number }>();
   const hrows = db.prepare("SELECT boxer_id, bout_id, date, rating, opp_rating FROM rating_history ORDER BY date, bout_id").all() as
@@ -151,15 +163,15 @@ export async function getWorld(): Promise<World> {
     }
   }
 
-  const year = new Date().getUTCFullYear();
+  const year = currentYear();
   const boxers = boxersBase.map((b): BoxerFull => {
-    const list = (boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming && x.method && x.method !== "NC");
+    const list = (boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming && countsInRecord(x.method));
     let wins = 0, losses = 0, draws = 0, kos = 0, koLosses = 0, rounds = 0;
     for (const x of list) {
       rounds += x.endRound ?? x.rounds;
       if (x.winnerId === null) draws++;
-      else if (x.winnerId === b.id) { wins++; if (x.method === "KO" || x.method === "TKO") kos++; }
-      else { losses++; if (x.method === "KO" || x.method === "TKO") koLosses++; }
+      else if (x.winnerId === b.id) { wins++; if (isStoppage(x.method)) kos++; }
+      else { losses++; if (isStoppage(x.method)) koLosses++; }
     }
     let streak: BoxerFull["streak"] = { type: "-", count: 0 };
     for (let i = list.length - 1; i >= 0; i--) {
@@ -180,7 +192,7 @@ export async function getWorld(): Promise<World> {
   g.__worldAt = Date.now();
   g.__world = {
     today, boxers, byId: new Map(boxers.map((b) => [b.id, b])), bySlug: new Map(boxers.map((b) => [b.slug, b])),
-    bouts, events, boutsByBoxer, history, boutPre,
+    bouts, events, boutsByBoxer, boutsByEvent, history, boutPre,
     people, peopleBySlug: new Map([...people.values()].map((p) => [p.slug, p])), roles,
     orgs, orgsBySlug: new Map([...orgs.values()].map((o) => [o.slug, o])),
     stints, stintsByBoxer, stintsByPerson, stintsByOrg, weighInsByBout, weighInsByBoxer, officialsByBout, scorecardsByBout, cornersByBout,

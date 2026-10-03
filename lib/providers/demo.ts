@@ -2,12 +2,13 @@ import { mulberry32 } from "../prng";
 import { WEIGHT_CLASSES } from "../types";
 import type { Method } from "../types";
 import { DIVISIONS } from "../divisions";
+import { isRefereeStoppage } from "../methods";
 import type {
   DataProvider, ProviderBout, ProviderBoxer, ProviderCorner, ProviderEvent, ProviderOfficial, ProviderOrg, ProviderPerson,
   ProviderPunchLine, ProviderScorecard, ProviderStint, ProviderWeighIn, TeamRole,
 } from "./index";
 import {
-  BODIES, BROADCASTERS, CITIES, CITY_OF, COUNTRIES, GYM_A, GYM_B, HEIGHT_BASE, NICKS, POOLS, PROMOTIONS, VENUE_CAP, gauss, iso, pick,
+  BODIES, BROADCASTERS, CITIES, CITY_OF, COUNTRIES, FIRST_F, GYM_A, GYM_B, HEIGHT_BASE, NICKS, POOLS, PROMOTIONS, VENUE_CAP, WOMEN_CLASSES, gauss, iso, pick,
 } from "./demo-data";
 
 /**
@@ -29,6 +30,7 @@ interface Sim {
   ext: string;
   name: string;
   country: string;
+  sex: "male" | "female";
   skill: number;
   power: number;
   chin: number;
@@ -72,11 +74,12 @@ export function demoProvider(now = new Date()): DataProvider {
 
   const usedFighter = new Set<string>();
   const usedPeople = new Set<string>();
-  const uniqueName = (country: string, used: Set<string>) => {
+  const uniqueName = (country: string, used: Set<string>, sex: "male" | "female" = "male") => {
     const pool = POOLS[country];
+    const firsts = sex === "female" ? FIRST_F[country] : pool.first;
     for (let attempt = 0; ; attempt++) {
       const mid = attempt < 25 ? "" : ` ${String.fromCharCode(65 + Math.floor(rnd() * 26))}.`;
-      const name = `${pick(rnd, pool.first)}${mid} ${pick(rnd, pool.last)}`;
+      const name = `${pick(rnd, firsts)}${mid} ${pick(rnd, pool.last)}`;
       if (!used.has(name)) { used.add(name); return name; }
     }
   };
@@ -99,7 +102,6 @@ export function demoProvider(now = new Date()): DataProvider {
     return `promo-${i}`;
   });
   for (const b of BODIES) orgs.push({ externalId: b.ext, name: `${b.name} (${b.short})`, kind: "sanctioning_body" });
-  for (const [i, b] of BROADCASTERS.entries()) orgs.push({ externalId: `bc-${i}`, name: b, kind: "broadcaster" });
 
   // ---------- people ----------
   const trainers: TrainerSim[] = [];
@@ -153,20 +155,20 @@ export function demoProvider(now = new Date()): DataProvider {
   const tenureAt = (list: Tenure[], t: number) => list.find((x) => x.from <= t && t < x.to) ?? null;
   const toIso = (ms: number) => (ms === Infinity ? null : iso(new Date(ms)));
 
-  const makeFighter = (ci: number, i: number, jm: boolean) => {
+  const makeFighter = (ci: number, i: number, jm: boolean, sex: "male" | "female" = "male") => {
     const country = pick(rnd, COUNTRIES);
-    const name = uniqueName(country, usedFighter);
+    const name = uniqueName(country, usedFighter, sex);
     const debutYear = jm ? 2010 + Math.floor(rnd() * 15) : 2008 + Math.floor(rnd() * 17);
     const age = 19 + Math.floor(rnd() * (jm ? 6 : 3));
     const birthYear = debutYear - age;
-    const height = Math.round(HEIGHT_BASE[ci] + gauss(rnd) * 4);
-    const reach = Math.round(height + 2 + gauss(rnd) * 5);
+    const height = Math.round(HEIGHT_BASE[ci] - (sex === "female" ? 9 : 0) + gauss(rnd) * 4);
+    const reach = Math.round(height + clamp(2 + gauss(rnd) * 5, -8, 14));
     const skill = jm ? -330 + gauss(rnd) * 70 : gauss(rnd) * 190;
     const careerLen = (jm ? 3 + rnd() * 6 : 6 + rnd() * 11) * 365 * DAY;
     const start = Math.max(startMs - 3 * 365 * DAY, Date.UTC(debutYear, Math.floor(rnd() * 12), 1 + Math.floor(rnd() * 27)));
     const end = start + careerLen;
     const active = end > nowMs;
-    const ext = `demo-${ci}-${jm ? "j" : ""}${i}`;
+    const ext = `demo-${ci}-${sex === "female" ? "w" : ""}${jm ? "j" : ""}${i}`;
     const limit = DIVISIONS[ci].lb;
 
     const kT = jm ? 1 + (rnd() < 0.3 ? 1 : 0) : 1 + (rnd() < 0.5 ? 1 : 0) + (rnd() < 0.22 ? 1 : 0) + (rnd() < 0.08 ? 1 : 0);
@@ -179,7 +181,7 @@ export function demoProvider(now = new Date()): DataProvider {
       return pick(rnd, trainers).ext;
     };
     const sim: Sim = {
-      ext, name, country, skill, jm,
+      ext, name, country, skill, jm, sex,
       power: jm ? 0.1 + rnd() * 0.25 : clamp(0.3 + ci * 0.022 + gauss(rnd) * 0.18, 0.05, 0.9),
       chin: jm ? 0.2 + rnd() * 0.25 : clamp(0.5 + gauss(rnd) * 0.18, 0.1, 0.9),
       vol: 38 + rnd() * 40,
@@ -202,7 +204,7 @@ export function demoProvider(now = new Date()): DataProvider {
       birthPlace: `${pick(rnd, CITY_OF[country])}, ${country}`,
       residence: rnd() < 0.7 ? `${pick(rnd, CITY_OF[country])}, ${country}` : `${pick(rnd, CITY_OF["United States"])}, United States`,
       aliases: rnd() < 0.12 ? [`${name.split(" ")[0][0]}. ${name.split(" ").slice(-1)[0]}`] : undefined,
-      stance: rnd() < 0.2 ? "Southpaw" : "Orthodox", heightCm: height, reachCm: reach, weightClass: WEIGHT_CLASSES[ci],
+      sex, stance: ((st) => (st < 0.18 ? "Southpaw" : st < 0.22 ? "Switch" : "Orthodox") as "Southpaw" | "Switch" | "Orthodox")(rnd()), heightCm: height, reachCm: reach, weightClass: WEIGHT_CLASSES[ci],
       turnedPro: new Date(start).getUTCFullYear(), debutDate: iso(new Date(start)),
       retiredDate: active ? undefined : iso(new Date(end)), active,
     });
@@ -232,6 +234,8 @@ export function demoProvider(now = new Date()): DataProvider {
 
   const STARS = 22;
   WEIGHT_CLASSES.forEach((_, ci) => { for (let i = 0; i < STARS + 22; i++) makeFighter(ci, i, i >= STARS); });
+  // women's roster: a smaller pool in flyweight through super middleweight
+  WEIGHT_CLASSES.forEach((_, ci) => { if (WOMEN_CLASSES.has(ci)) for (let i = 0; i < 10 + 10; i++) makeFighter(ci, i, i >= 10, "female"); });
   const simBy = new Map(sims.map((s) => [s.ext, s]));
 
   // ---------- bout simulation ----------
@@ -306,34 +310,48 @@ export function demoProvider(now = new Date()): DataProvider {
     let kdRed = 0, kdBlue = 0;
     const cardRows: ProviderScorecard[] = [];
 
+    const stopTime = () => `${Math.floor(rnd() * 3)}:${String(5 + Math.floor(rnd() * 54)).padStart(2, "0")}`;
     if (results) {
-      if (rnd() < 0.035) { method = "DRAW"; }
+      // unusual endings first: no contest, technical draw, technical decision (a cut stops it and the cards decide)
+      const u0 = rnd();
+      if (u0 < 0.004) { method = "NC"; endRound = 1 + Math.floor(rnd() * Math.min(4, rounds - 1)); roundTime = stopTime(); }
+      else if (u0 < 0.007) { method = "TDRAW"; endRound = 4 + Math.floor(rnd() * Math.min(4, rounds - 4)); roundTime = stopTime(); }
+      else if (u0 < 0.018) { winner = rnd() < pRed ? red : blue; method = "TD"; endRound = 4 + Math.floor(rnd() * Math.min(5, rounds - 4)); roundTime = stopTime(); }
+      else if (u0 < 0.053) { method = "DRAW"; }
       else {
         const redWins = rnd() < pRed;
         winner = redWins ? red : blue;
         const loser = redWins ? blue : red;
         const finishP = Math.min(0.88, 0.15 + winner.power * 0.7 * (1.15 - loser.chin * 0.7));
-        if (rnd() < finishP) {
-          method = rnd() < 0.55 ? "KO" : "TKO";
+        if (rnd() < 0.006) { method = "DQ"; endRound = 1 + Math.floor(rnd() * (rounds - 1)); roundTime = stopTime(); }
+        else if (rnd() < finishP) {
+          const m = rnd();
+          method = m < 0.5 ? "KO" : m < 0.92 ? "TKO" : "RTD";
           endRound = 1 + Math.min(rounds - 1, Math.floor(-Math.log(1 - rnd()) * 3.2));
-          if (ref.quick > 0.8 && endRound > 1) endRound -= 1;
-          const kd = method === "KO" ? 1 + (rnd() < 0.35 ? 1 : 0) : rnd() < 0.5 ? 0 : 1 + (rnd() < 0.25 ? 1 : 0);
+          if (method !== "RTD" && ref.quick > 0.8 && endRound > 1) endRound -= 1;
+          const kd = method === "KO" ? 1 + (rnd() < 0.35 ? 1 : 0) : method === "RTD" ? (rnd() < 0.3 ? 1 : 0) : rnd() < 0.5 ? 0 : 1 + (rnd() < 0.25 ? 1 : 0);
           if (redWins) kdBlue = kd; else kdRed = kd;
-          roundTime = `${Math.floor(rnd() * 3)}:${String(5 + Math.floor(rnd() * 54)).padStart(2, "0")}`;
+          roundTime = method === "RTD" ? "3:00" : stopTime(); // a corner retires between rounds
         }
       }
-      if (!method || method === "DRAW") {
-        endRound = rounds; roundTime = "3:00";
-        if (rnd() < 0.14) { if (rnd() < 0.8 && winner) { if (winner === red) kdBlue = 1; else kdRed = 1; } else if (rnd() < 0.5) kdRed = 1; else kdBlue = 1; }
-        const kdR = kdSet(kdRed, rounds), kdB = kdSet(kdBlue, rounds);
-        const sides = (target: ("red" | "blue" | "even")[], closeIdx: number) => target.map((tg, i) => judgeCard(rounds, tg, closeIdx === -1 && method === "DRAW" ? true : i === closeIdx || tg === "even", kdR, kdB));
+      if (!method || method === "DRAW" || method === "TD" || method === "TDRAW") {
+        const technical = method === "TD" || method === "TDRAW";
+        const cardRounds = technical ? endRound! : rounds;
+        if (!technical) { endRound = rounds; roundTime = "3:00"; }
+        if (!technical && rnd() < 0.14) { if (rnd() < 0.8 && winner) { if (winner === red) kdBlue = 1; else kdRed = 1; } else if (rnd() < 0.5) kdRed = 1; else kdBlue = 1; }
+        const kdR = kdSet(kdRed, cardRounds), kdB = kdSet(kdBlue, cardRounds);
+        const drawLike = method === "DRAW" || method === "TDRAW";
+        const sides = (target: ("red" | "blue" | "even")[], closeIdx: number) => target.map((tg, i) => judgeCard(cardRounds, tg, drawLike && closeIdx === -1 ? true : i === closeIdx || tg === "even", kdR, kdB));
         let cards: { red: number; blue: number }[];
-        if (method === "DRAW") {
+        if (drawLike) {
           const pattern = rnd();
           // a draw is a close fight: every card is close
           if (pattern < 0.4) cards = sides(["even", "even", "even"], -1);
           else if (pattern < 0.75) cards = sides(shuffle(["even", "even", rnd() < 0.5 ? "red" : "blue"] as const), -1);
           else cards = sides(shuffle(["red", "blue", "even"] as const), -1);
+        } else if (method === "TD") {
+          const W: "red" | "blue" = winner === red ? "red" : "blue";
+          cards = sides([W, W, W], -1);
         } else {
           const W: "red" | "blue" = winner === red ? "red" : "blue", L: "red" | "blue" = W === "red" ? "blue" : "red";
           const loserHome = winner === red ? homeB : homeR, winnerHome = winner === red ? homeR : homeB;
@@ -355,7 +373,7 @@ export function demoProvider(now = new Date()): DataProvider {
     }
 
     // elo bookkeeping for matchmaking
-    if (results) {
+    if (results && method !== "NC") {
       const sA = winner === red ? 1 : winner === blue ? 0 : 0.5;
       const eA = 1 / (1 + Math.pow(10, (blue.r - red.r) / 400));
       red.r += 24 * (sA - eA); blue.r += 24 * (1 - sA - (1 - eA));
@@ -373,7 +391,7 @@ export function demoProvider(now = new Date()): DataProvider {
       const tot = { thrown: 0, landed: 0, pt: 0, pl: 0, jt: 0, jl: 0 };
       const edge = ((s.skill + trainerBoost(s, t)) - (opp.skill + trainerBoost(opp, t))) / 1700;
       for (let r = 1; r <= end; r++) {
-        const frac = r === end && o.method !== "UD" && o.method !== "SD" && o.method !== "MD" && o.method !== "DRAW" ? 0.6 : 1;
+        const frac = r === end && (isRefereeStoppage(o.method) || o.method === "DQ" || o.method === "NC") ? 0.6 : 1;
         const thrown = Math.max(6, Math.round(s.vol * (0.8 + rnd() * 0.4) * frac));
         // real pro accuracy sits around 20-45%; a big skill gap moves it by a few points, not tens
         const landed = Math.min(thrown, Math.max(1, Math.round(thrown * clamp(0.28 + edge * 0.3 + gauss(rnd) * 0.04, 0.12, 0.5))));
@@ -420,11 +438,12 @@ export function demoProvider(now = new Date()): DataProvider {
 
   const buildCards = (classes: number[], t: number, taken: Set<string>): Card[] => {
     const cards: Card[] = [];
-    for (const cls of classes) {
-      const pool = eligible(cls, t, 40 * DAY).filter((s) => !taken.has(s.ext));
+    for (const cls of classes) for (const sex of ["male", "female"] as const) {
+      if (sex === "female" && !(WOMEN_CLASSES.has(cls) && rnd() < 0.55)) continue;
+      const pool = eligible(cls, t, 40 * DAY).filter((s) => s.sex === sex && !taken.has(s.ext));
       const stars = pool.filter((s) => !s.jm);
       const jms = pool.filter((s) => s.jm);
-      const pairsHere = stars.length >= 4 && rnd() < 0.5 ? 2 : 1;
+      const pairsHere = sex === "male" && stars.length >= 4 && rnd() < 0.5 ? 2 : 1;
       for (let p = 0; p < pairsHere; p++) {
         let a: Sim | undefined, b: Sim | undefined;
         if (jms.length >= 2 && rnd() < 0.15) {
@@ -456,10 +475,17 @@ export function demoProvider(now = new Date()): DataProvider {
       if (d.getTime() > nowMs - 3 * DAY) continue;
       const t = d.getTime();
       const { ext: evExt, country } = makeEvent(d);
+      const evCancelled = rnd() < 0.008; // a card that never happened
+      if (evCancelled) events[events.length - 1].status = "cancelled";
       const classes = shuffle([...Array(WEIGHT_CLASSES.length).keys()]).slice(0, 6 + Math.floor(rnd() * 3));
       const cards = buildCards(classes, t, new Set<string>());
       cards.forEach((c, idx) => {
         const main = idx === cards.length - 1;
+        if (evCancelled || (!main && rnd() < 0.025)) { // fell off the card: no result, no weigh-in, no effect on either fighter
+          bouts.push({ externalId: `${evExt}-b${idx}`, eventExternalId: evExt, redExternalId: c.red.ext, blueExternalId: c.blue.ext, weightClass: WEIGHT_CLASSES[c.wc],
+            rounds: main ? 12 : 10, winnerExternalId: null, method: null, endRound: null, title: null, position: idx, status: "cancelled" });
+          return;
+        }
         const o = simulateBout(c, evExt, idx, t, main, country, true);
         c.red.last = t; c.blue.last = t;
         const ti = titleFor(main);
@@ -491,22 +517,29 @@ export function demoProvider(now = new Date()): DataProvider {
     const d = new Date(nowMs + (6 + e * 11 + Math.floor(rnd() * 4)) * DAY);
     const t = d.getTime();
     const { ext: evExt, country } = makeEvent(d);
+    const evStatus = e === 4 ? "postponed" : e === 5 ? "cancelled" : undefined; // exercise the calendar states
+    if (evStatus) events[events.length - 1].status = evStatus;
     const taken = new Set<string>();
     const cards: Card[] = [];
-    for (const cls of shuffle([...Array(WEIGHT_CLASSES.length).keys()]).slice(0, 7)) {
-      const pool = sims.filter((s) => s.cls === cls && !s.jm && s.end > t && s.start < nowMs - 400 * DAY && !taken.has(s.ext) && !booked.has(s.ext))
+    for (const cls of shuffle([...Array(WEIGHT_CLASSES.length).keys()]).slice(0, 7)) for (const sex of ["male", "female"] as const) {
+      if (sex === "female" && !(WOMEN_CLASSES.has(cls) && rnd() < 0.4)) continue;
+      const pool = sims.filter((s) => s.cls === cls && s.sex === sex && !s.jm && s.end > t && s.start < nowMs - 400 * DAY && !taken.has(s.ext) && !booked.has(s.ext))
         .sort((x, y) => y.r - x.r).slice(0, 8);
       if (pool.length < 2) continue;
       const a = pool.splice(Math.floor(rnd() * Math.min(3, pool.length)), 1)[0];
       const b = pool.splice(Math.floor(rnd() * Math.min(3, pool.length)), 1)[0];
       if (!a || !b) continue;
-      taken.add(a.ext); taken.add(b.ext); booked.add(a.ext); booked.add(b.ext);
+      taken.add(a.ext); taken.add(b.ext); if (evStatus !== "cancelled") { booked.add(a.ext); booked.add(b.ext); }
       const redFirst = rnd() < 0.5;
       cards.push({ red: redFirst ? a : b, blue: redFirst ? b : a, wc: cls });
     }
     cards.sort((x, y) => x.red.r + x.blue.r - (y.red.r + y.blue.r));
     cards.forEach((c, idx) => {
       const main = idx === cards.length - 1;
+      if (evStatus === "cancelled") {
+        bouts.push({ externalId: `${evExt}-b${idx}`, eventExternalId: evExt, redExternalId: c.red.ext, blueExternalId: c.blue.ext, weightClass: WEIGHT_CLASSES[c.wc], rounds: main ? 12 : 10, winnerExternalId: null, method: null, endRound: null, title: null, position: idx, status: "cancelled" });
+        return;
+      }
       const o = simulateBout(c, evExt, idx, t, main, country, false);
       const ti = main ? { title: pick(rnd, BELT), org: pick(rnd, ["body-gbc", "body-ira", "body-wpa"]), vacant: false } : null;
       bouts.push({

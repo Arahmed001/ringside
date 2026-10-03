@@ -1,5 +1,6 @@
 import type { World } from "./world";
 import type { BoutRow, Person } from "./types";
+import { isRefereeStoppage } from "./methods";
 
 export interface JudgeStats {
   person: Person;
@@ -61,7 +62,7 @@ export function refereeStats(w: World): { referees: RefereeStats[]; leagueAvgSto
     if (!ref) continue;
     const a = acc.get(ref.personId) ?? { bouts: 0, stops: 0, roundSum: 0, early: 0 };
     a.bouts++;
-    if ((b.method === "KO" || b.method === "TKO") && b.endRound) { a.stops++; a.roundSum += b.endRound; if (b.endRound <= 3) a.early++; rs += b.endRound; rn++; }
+    if (isRefereeStoppage(b.method) && b.endRound) { a.stops++; a.roundSum += b.endRound; if (b.endRound <= 3) a.early++; rs += b.endRound; rn++; }
     acc.set(ref.personId, a);
   }
   const referees: RefereeStats[] = [];

@@ -10,6 +10,7 @@
  * (a fight-night weight edge, trainers, a home-judge bias); on real data it finds whatever is actually there.
  */
 import type { World } from "./world";
+import { countsInRecord, isStoppage } from "./methods";
 
 export const FEATURES = [
   { key: "elo", label: "Elo rating gap", unit: "per 100 pts", scale: 1 },
@@ -44,7 +45,7 @@ export function buildDataset(w: World): Row[] {
 
   const rows: Row[] = [];
   for (const b of w.bouts) {
-    if (b.upcoming || !b.method || b.method === "NC") continue;
+    if (b.upcoming || !countsInRecord(b.method)) continue;
     const red = w.byId.get(b.redId)!, blue = w.byId.get(b.blueId)!;
     const sr = get(b.redId), sb = get(b.blueId);
     const pre = w.boutPre.get(b.id);
@@ -69,8 +70,8 @@ export function buildDataset(w: World): Row[] {
     // update running state AFTER the bout is used
     for (const [id, s, f, fw] of [[b.redId, sr, red, wr], [b.blueId, sb, blue, wb]] as const) {
       s.bouts++; s.last = b.date;
-      if (b.winnerId === id) { s.wins++; if (b.method === "KO" || b.method === "TKO") s.kos++; }
-      else if (b.winnerId && (b.method === "KO" || b.method === "TKO")) s.koLosses++;
+      if (b.winnerId === id) { s.wins++; if (isStoppage(b.method)) s.kos++; }
+      else if (b.winnerId && isStoppage(b.method)) s.koLosses++;
       if (fw?.fightNightLb && fw.officialLb) { s.rehydSum += fw.fightNightLb - fw.officialLb; s.rehydN++; }
       void f;
     }
@@ -165,6 +166,17 @@ export interface FitReport {
   calibration: { bucket: string; n: number; predicted: number; actual: number }[]; // for the recommended model
 }
 
+/** A candidate only displaces a simpler one if it improves held-out log-loss by at least this much; smaller gaps are noise. */
+export const MIN_GAIN = 0.002;
+
+/** Picks the simplest model that is not clearly beaten (order of complexity: plain Elo, Elo refit, selected features, all features). */
+export function chooseModel(m: FitReport["test"]): FitReport["recommended"] {
+  const byComplexity: [FitReport["recommended"], Metrics][] = [["plain Elo", m.baseline], ["Elo refit", m.eloOnly], ["selected features", m.selected], ["all features", m.full]];
+  let [pick, best] = byComplexity[0];
+  for (const [name, x] of byComplexity.slice(1)) if (x.logLoss < best.logLoss - MIN_GAIN) { pick = name; best = x; }
+  return pick;
+}
+
 export function runFit(w: World): FitReport {
   const rows = buildDataset(w).sort((a, b) => a.date.localeCompare(b.date) || a.boutId - b.boutId);
   if (rows.length < 400) throw new Error(`Only ${rows.length} usable bouts; need at least 400 to fit ${FEATURES.length} features sensibly.`);
@@ -184,8 +196,7 @@ export function runFit(w: World): FitReport {
   const pElo = (x: number[]) => sigmoid(eloOnly.intercept + x[0] * eloOnly.weights[0]);
   const pBase = (x: number[]) => sigmoid(x[0] * (Math.LN10 / 4)); // x[0] is in units of 100 Elo points; plain Elo expectation, nothing fitted
   const metrics = { baseline: evaluate(test, pBase), eloOnly: evaluate(test, pElo), full: evaluate(test, pFull), selected: evaluate(test, pSel) };
-  const ranked = (Object.entries({ "plain Elo": metrics.baseline, "Elo refit": metrics.eloOnly, "all features": metrics.full, "selected features": metrics.selected }) as [FitReport["recommended"], Metrics][]).sort((a, b) => a[1].logLoss - b[1].logLoss);
-  const recommended = ranked[0][0];
+  const recommended = chooseModel(metrics);
   const pBest = recommended === "plain Elo" ? pBase : recommended === "Elo refit" ? pElo : recommended === "all features" ? pFull : pSel;
 
   const buckets = [0, 0.2, 0.35, 0.5, 0.65, 0.8, 1.0001];

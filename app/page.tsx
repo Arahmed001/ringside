@@ -2,7 +2,8 @@ import Link from "next/link";
 import { getWorld } from "@/lib/world";
 import { overview, biggestUpsets } from "@/lib/analytics";
 import { pound4pound } from "@/lib/rankings";
-import { eventWithMain, upcomingEvents, recentEvents } from "@/lib/events";
+import { eventViews, isLive, upcomingEvents, recentEvents } from "@/lib/events";
+import { currentYear } from "@/lib/clock";
 import { predict } from "@/lib/predict";
 import { DIVISIONS, slugifyDivision } from "@/lib/divisions";
 import { Poster } from "@/components/Poster";
@@ -25,18 +26,18 @@ const EXAMPLES = [
 export default async function Home() {
   const w = await getWorld();
   const o = overview(w);
-  const ups = upcomingEvents(w).map((e) => eventWithMain(w, e));
+  const ups = eventViews(w, upcomingEvents(w));
   const next = ups[0];
   const p = predict(next.red, next.blue);
   const p4p = pound4pound(w, 8);
-  const recent = recentEvents(w, 5).map((e) => eventWithMain(w, e));
-  const upset = biggestUpsets(w.bouts.length ? { ...w, bouts: w.bouts.filter((b) => b.date >= `${new Date().getUTCFullYear() - 1}-01-01`) } : w, 1)[0];
+  const recent = eventViews(w, recentEvents(w, 5));
+  const upset = biggestUpsets(w.bouts.length ? { ...w, bouts: w.bouts.filter((b) => b.date >= `${currentYear() - 1}-01-01`) } : w, 1)[0];
 
-  const pickBouts = next.bouts.slice().reverse().map((b) => {
+  const pickBouts = next.bouts.filter(isLive).slice().reverse().map((b) => {
     const r = w.byId.get(b.redId)!, u = w.byId.get(b.blueId)!;
     const pr = predict(r, u);
     const redFav = pr.pA >= pr.pB;
-    return { id: b.id, red: r.name, blue: u.name, redId: r.id, blueId: u.id, modelPickId: redFav ? r.id : u.id, modelPct: Math.round(Math.max(pr.pA, pr.pB) * 100), label: b.weightClass.replace("weight", "") };
+    return { id: b.id, red: r.name, blue: u.name, redId: r.id, blueId: u.id, modelPickId: redFav ? r.id : u.id, modelPct: Math.round(Math.max(pr.pA, pr.pB) * 100), label: `${r.sex === "female" ? "W " : ""}${b.weightClass.replace("weight", "")}` };
   });
 
   const watchData = w.boxers.filter((b) => b.active).map((b) => {
@@ -111,6 +112,7 @@ export default async function Home() {
         <div>
           <SectionTitle eyebrow="All divisions" title="Pound for pound" href="/rankings" cta="All division rankings" />
           <div className="grid gap-3 sm:grid-cols-2">{p4p.map((b, i) => <BoxerCard key={b.id} b={b} rank={i + 1} />)}</div>
+          <Link href="/rankings?sex=female" className="mt-3 inline-block text-sm text-muted transition hover:text-ink">Women’s pound for pound →</Link>
         </div>
         <div>
           <SectionTitle eyebrow="Official names & limits" title="Divisions" />

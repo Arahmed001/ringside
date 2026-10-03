@@ -26,7 +26,8 @@ async function claude(system: string, user: string, maxTokens = 600): Promise<st
 
 export interface Filters {
   weightClass?: string;
-  stance?: "Orthodox" | "Southpaw";
+  stance?: "Orthodox" | "Southpaw" | "Switch";
+  sex?: "male" | "female";
   country?: string;
   active?: boolean;
   undefeated?: boolean;
@@ -89,6 +90,9 @@ export function heuristicParse(q: string, countries: string[]): Filters {
   }
   if (/southpaw|lefty|left-hand/.test(s)) f.stance = "Southpaw";
   if (/orthodox|right-hand/.test(s)) f.stance = "Orthodox";
+  if (/\bswitch\b|ambidextrous|switch-hitter/.test(s)) f.stance = "Switch";
+  if (/\bwom[ae]n['’]?s?\b|\bfemale\b|\bladies\b/.test(s)) f.sex = "female";
+  else if (/\bmen['’]?s?\b|\bmale\b|\bguys\b/.test(s)) f.sex = "male";
   for (const c of countries) if (s.includes(c.toLowerCase())) f.country = c;
   for (const [k, v] of Object.entries(COUNTRY_ALIASES)) if (new RegExp(`\\b${k}\\b`).test(s)) f.country = v;
   if (/undefeated|unbeaten|perfect record|0 losses/.test(s)) f.undefeated = true;
@@ -122,7 +126,7 @@ export async function parseQuery(q: string, w: World): Promise<{ filters: Filter
   if (hasKey()) {
     try {
       const sys = `You turn boxing database search requests into JSON filters. Respond with ONLY a JSON object, no prose.
-Allowed keys: weightClass (one of ${WEIGHT_CLASSES.join(", ")}), stance (Orthodox|Southpaw), country (one of ${countries.join(", ")}), active (bool), undefeated (bool), minWins, minKOs (ints), minKoRate, maxKoRate (0-1), minLosses, debutAfter, debutBefore (years), minReach (cm), minAge, maxAge, archetype (Knockout Artist|Volume Boxer|Technician|Iron-Chin Brawler|Counter-Puncher|Journeyman|Prospect), text (name fragment), trainer, manager, gym, promoter, bornIn (name fragments), trainerCurrent, missedWeight, newTrainer (bools), sort (rating|wins|kos|koRate|age|reach). Omit keys that do not apply.`;
+Allowed keys: weightClass (one of ${WEIGHT_CLASSES.join(", ")}), stance (Orthodox|Southpaw|Switch), sex (male|female), country (one of ${countries.join(", ")}), active (bool), undefeated (bool), minWins, minKOs (ints), minKoRate, maxKoRate (0-1), minLosses, debutAfter, debutBefore (years), minReach (cm), minAge, maxAge, archetype (Knockout Artist|Volume Boxer|Technician|Iron-Chin Brawler|Counter-Puncher|Journeyman|Prospect), text (name fragment), trainer, manager, gym, promoter, bornIn (name fragments), trainerCurrent, missedWeight, newTrainer (bools), sort (rating|wins|kos|koRate|age|reach). Omit keys that do not apply.`;
       const out = await claude(sys, q, 300);
       const json = JSON.parse(out.slice(out.indexOf("{"), out.lastIndexOf("}") + 1));
       return { filters: sanitize(json, countries), source: "ai" };
@@ -137,7 +141,8 @@ function sanitize(j: Record<string, unknown>, countries: string[]): Filters {
   const f: Filters = {};
   const num = (v: unknown) => (typeof v === "number" && isFinite(v) ? v : undefined);
   if (typeof j.weightClass === "string" && (WEIGHT_CLASSES as readonly string[]).includes(j.weightClass)) f.weightClass = j.weightClass;
-  if (j.stance === "Orthodox" || j.stance === "Southpaw") f.stance = j.stance;
+  if (j.stance === "Orthodox" || j.stance === "Southpaw" || j.stance === "Switch") f.stance = j.stance;
+  if (j.sex === "male" || j.sex === "female") f.sex = j.sex;
   if (typeof j.country === "string" && countries.includes(j.country)) f.country = j.country;
   if (typeof j.active === "boolean") f.active = j.active;
   if (typeof j.undefeated === "boolean") f.undefeated = j.undefeated;
@@ -181,6 +186,7 @@ export function applyFilters(boxers: BoxerFull[], f: Filters, w?: World): BoxerF
     (!f.bornIn || (b.birthPlace ?? "").toLowerCase().includes(f.bornIn.toLowerCase())) &&
     (!f.weightClass || b.weightClass === f.weightClass) &&
     (!f.stance || b.stance === f.stance) &&
+    (!f.sex || b.sex === f.sex) &&
     (!f.country || b.country === f.country) &&
     (f.active === undefined || b.active === f.active) &&
     (!f.undefeated || (b.losses === 0 && b.bouts > 0)) &&
@@ -206,6 +212,7 @@ export function describeFilters(f: Filters): string[] {
   const c: string[] = [];
   if (f.weightClass) c.push(f.weightClass);
   if (f.stance) c.push(f.stance);
+  if (f.sex) c.push(f.sex === "female" ? "Women" : "Men");
   if (f.country) c.push(f.country);
   if (f.active !== undefined) c.push(f.active ? "Active" : "Retired");
   if (f.undefeated) c.push("Undefeated");
@@ -263,7 +270,7 @@ export async function scoutingReport(b: BoxerFull, w: World) {
   let result = { text: rulesReport(b, w), source: "rules" as "ai" | "rules" };
   if (hasKey()) {
     try {
-      const recent = (w.boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming).slice(-6).map((x) => {
+      const recent = (w.boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming && x.method).slice(-6).map((x) => {
         const opp = x.redId === b.id ? x.blueName : x.redName;
         const r = x.winnerId === null ? "D" : x.winnerId === b.id ? "W" : "L";
         return `${r} ${x.method}${x.endRound ? " R" + x.endRound : ""} vs ${opp}`;

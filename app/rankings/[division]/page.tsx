@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getWorld, recordStr } from "@/lib/world";
-import { DIVISIONS, divisionFromSlug, limitLabel, slugifyDivision } from "@/lib/divisions";
+import { DIVISIONS, divisionFromSlug, divisionLabel, limitLabel, slugifyDivision } from "@/lib/divisions";
 import { rankDivision } from "@/lib/rankings";
 import { archetype } from "@/lib/style";
 import { Headshot } from "@/components/Portrait";
@@ -14,22 +14,25 @@ export async function generateMetadata({ params }: { params: Promise<{ division:
   return { title: d ? `${d.name} rankings` : "Rankings" };
 }
 
-export default async function DivisionRankings({ params }: { params: Promise<{ division: string }> }) {
+export default async function DivisionRankings({ params, searchParams }: { params: Promise<{ division: string }>; searchParams: Promise<{ sex?: string }> }) {
   const { division } = await params;
+  const sex = (await searchParams).sex === "female" ? "female" : "male";
+  const q = sex === "female" ? "?sex=female" : "";
   const d = divisionFromSlug(division);
   if (!d) notFound();
   const w = await getWorld();
-  const rows = rankDivision(w, d.name, 15);
+  const rows = rankDivision(w, d.name, 15, sex);
   const champ = rows[0];
   void archetype;
 
   return (
     <div>
       <div className="flex flex-wrap gap-1.5">
-        {DIVISIONS.map((x) => <Link key={x.name} href={`/rankings/${slugifyDivision(x.name)}`} className={`chip transition hover:text-ink ${x.name === d.name ? "!border-gold/50 !text-gold" : ""}`}>{x.short}</Link>)}
+        {DIVISIONS.map((x) => <Link key={x.name} href={`/rankings/${slugifyDivision(x.name)}${q}`} className={`chip transition hover:text-ink ${x.name === d.name ? "!border-gold/50 !text-gold" : ""}`}>{x.short}</Link>)}
       </div>
       <div className="eyebrow mb-2 mt-8">{limitLabel(d)}</div>
-      <h1 className="font-display text-6xl font-extrabold uppercase leading-none">{d.name}</h1>
+      <h1 className="font-display text-6xl font-extrabold uppercase leading-none">{divisionLabel(d.name, sex)}</h1>
+      <div className="mt-4 flex gap-2"><Link href={`/rankings/${slugifyDivision(d.name)}`} className={`chip ${sex === "male" ? "!border-gold/50 !text-gold" : ""}`}>Men</Link><Link href={`/rankings/${slugifyDivision(d.name)}?sex=female`} className={`chip ${sex === "female" ? "!border-gold/50 !text-gold" : ""}`}>Women</Link></div>
 
       {champ && (
         <Link href={`/boxers/${champ.boxer.slug}`} className="card card-hover mt-6 flex flex-wrap items-center gap-6 p-5">
