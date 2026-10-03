@@ -61,10 +61,10 @@ The same pipeline works for any fact with a source and a quote; the schema would
 | Dataset | Why fans care | Where from | Access |
 |---|---|---|---|
 | Fight-night odds and line movement | betting context, upset history | licensed odds feeds | paid API; most odds sites forbid scraping |
-| Commission medical suspensions, licences, withdrawals | health and availability | commission databases | public records, often PDF, by hand |
+| Commission medical suspensions, licences, withdrawals | health and availability | commission databases | public records, often PDF, by hand. **UK notices are not scraped: `docs/uk-sources.md`** |
 | Judges' and referees' round-by-round cards | controversy analysis | commissions, broadcasters | partial; some paid |
 | Punch statistics | styles, accuracy | CompuBox | paid licence |
-| Belt lineage and vacancies | who was champion when | sanctioning-body sites, Wikipedia lists | public pages, check each body's terms |
+| Belt lineage and vacancies | who was champion when | sanctioning-body sites, Wikipedia lists | public pages, check each body's terms. **Done for the four bodies' Wikipedia lists: `docs/title-reigns.md`** |
 | Amateur pedigree: Olympics, national titles | prospects and context | Olympedia, Wikipedia, federations | open or CC |
 | Training camps, gyms, trainer histories | the team data nobody has | interviews, press, editors | editor workflow with a source per row |
 | Ring-walk music, venue details, event posters | colour and archive | licensed or editorial | rights vary |

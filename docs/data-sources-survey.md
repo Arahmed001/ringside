@@ -165,6 +165,19 @@ Rule of thumb confirmed: every large boxing dataset I could trace goes back to B
 | 7 | Betting odds history (The Odds API, from May 2023) | Paid API, after written confirmation on storing and showing closing lines | Medium | Medium (terms silent on storage; no data resale) | Upsets and line moves; thin boxing market |
 | 8 | Historic gates and results from Chronicling America (pre-1930) | LoC API and OCR, then claim pipeline | Large | Low (public domain) but high accuracy risk | Unique archive value; slow, so last |
 
+**Status of the eight, 2026-10-03.**
+
+| # | Dataset | Where it stands |
+|---|---|---|
+| 1 | Wikidata extras | Done earlier (`docs/` and PLAN §15): Hall of Fame and Olympedia IDs, awards, venues |
+| 2 | Title reigns and lineage | The four bodies' lists from Wikipedia are imported (`docs/title-reigns.md`, `npm run champions:import`, PLAN §52). TBRB lineage: enquiry drafted (`docs/tbrb-enquiry.md`), not sent; nothing used before a written yes. Women's lists and the Ring lineage not done |
+| 3 | Commission purses and gates | California's sheets are **not online**; the route is a public-records request (`docs/csac-purses.md`). The checker can now verify a quote in a registered document (`docs/research.md`, PLAN §54), so a reply can reach "verified" |
+| 4 | FightFax and UK notices | FightFax enquiry drafted (`docs/fightfax-enquiry.md`), not sent. BBBofC notices read and **not built**: free-text minutes naming people, a data-protection decision first (`docs/uk-sources.md`; enquiry drafted, `docs/bbbofc-enquiry.md`) |
+| 5 | Audiences (Barb and releases) | Barb says its website data is free to publish with credit, but its table is built by the browser, so the checker cannot read it; manual claims for the few boxing entries (`docs/uk-sources.md`) |
+| 6 | Punch statistics licence | Not started (needs a quote) |
+| 7 | Betting odds history | Not started (needs written confirmation on storage) |
+| 8 | Historic gates (Chronicling America) | Not started |
+
 Parallel emails worth sending now: TBRB, Box-Rank, Olympedia (ask to use results) and the sanctioning bodies about rankings history; each is a short ask with a clear question and none blocks the code.
 
 ## 13. Corrections to existing docs
