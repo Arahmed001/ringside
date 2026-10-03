@@ -7249,6 +7249,12 @@
   ]
  },
  {
+  "key": "Ringside · Ratings are Elo-style and unofficial. Data sources and their licences are listed on the Data page.",
+  "files": [
+   "app/[locale]/layout.tsx"
+  ]
+ },
+ {
   "key": "Ringside demo build · All fighters, fights and events shown are <b>fictional, simulated data</b>. Ratings are Elo-style and unofficial.",
   "files": [
    "app/[locale]/layout.tsx"
