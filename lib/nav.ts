@@ -1,7 +1,7 @@
 import { msg } from "./i18n/t";
 
 export type IconName =
-  | "ask" | "rankings" | "titles" | "all-time" | "fighters" | "events" | "previews" | "fight-of-the-year" | "matchups" | "matchmaking"
+  | "ask" | "rankings" | "titles" | "all-time" | "fighters" | "events" | "previews" | "fight-of-the-year" | "matchups" | "matchmaking" | "picks"
   | "upset-watch" | "trainers" | "corners" | "orgs" | "weigh-ins" | "money" | "accountability" | "analytics" | "style-map" | "data";
 
 export interface NavItem { href: string; label: string; icon: IconName }
@@ -23,6 +23,7 @@ export const NAV_GROUPS: NavGroup[] = [
     { href: "/compare", label: msg("Matchups"), icon: "matchups" },
     { href: "/matchmaking", label: msg("Matchmaking"), icon: "matchmaking" },
     { href: "/upset-watch", label: msg("Upset watch"), icon: "upset-watch" },
+    { href: "/picks", label: msg("My picks"), icon: "picks" },
   ] },
   { id: "camps", title: msg("Camps and money"), items: [
     { href: "/people", label: msg("Corners"), icon: "corners" },

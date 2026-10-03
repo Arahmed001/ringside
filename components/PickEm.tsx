@@ -1,6 +1,7 @@
 "use client";
 import { useLocal } from "@/lib/useLocal";
 import { useT } from "@/components/i18n";
+import Link from "@/components/L";
 
 export interface PickBout { id: number; red: string; blue: string; redId: number; blueId: number; modelPickId: number; modelPct: number; label: string }
 const KEY = "ringside:picks";
@@ -38,7 +39,7 @@ export function PickEm({ bouts }: { bouts: PickBout[] }) {
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-xs text-muted">{t("✦ marks the model’s pick. Picks are saved in this browser.")}</p>
+      <p className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted"><span>{t("✦ marks the model’s pick. Picks are saved in this browser.")}</span><Link href="/picks" className="text-ink underline decoration-dotted hover:text-gold">{t("See how your picks did")}</Link></p>
     </div>
   );
 }
