@@ -1688,6 +1688,12 @@
   ]
  },
  {
+  "key": "a fighter an administrator linked to your account as yours, after checking out of band",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
   "key": "A fighter’s details are the fighter’s to state. Give the fighter’s own official page. Other sources are kept as a note, but cannot change what the site shows. If you are this fighter, choose “This is about me”.",
   "files": [
    "components/ReportForm.tsx"
@@ -1700,6 +1706,12 @@
   ]
  },
  {
+  "key": "a log of account and review actions (sign-ups, password changes, decisions on proposals and reports), naming the people involved",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
   "key": "a loss",
   "files": [
    "lib/preview.ts"
@@ -1709,6 +1721,12 @@
   "key": "A major upset: the model gave {name} only {p}.",
   "files": [
    "lib/recap.ts"
+  ]
+ },
+ {
+  "key": "a one-time sign-in code the operator issued you, as a hash, if you asked for one",
+  "files": [
+   "lib/privacy.ts"
   ]
  },
  {
@@ -2061,6 +2079,12 @@
   "key": "All fighters",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "All pictures on this site come from this site itself.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -2437,6 +2461,12 @@
   "files": [
    "app/[locale]/not-found.tsx",
    "components/ErrorView.tsx"
+  ]
+ },
+ {
+  "key": "Backups: the operator keeps copies of the databases (by default the last {n} daily ones). A copy made before you deleted your account still holds your data until it is rotated out.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -3974,6 +4004,12 @@
   ]
  },
  {
+  "key": "Editors and administrators: proposals and reports you send, with your name and any contact you gave, so they can follow them up.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
   "key": "Editors check reports of wrong facts against sources published by their owners.",
   "files": [
    "app/[locale]/review/reports/page.tsx"
@@ -4286,6 +4322,18 @@
   "files": [
    "app/[locale]/boxers/page.tsx",
    "components/RecordsFilter.tsx"
+  ]
+ },
+ {
+  "key": "Everyone, without your name: an edit that was approved is published on the fighter’s page with its source.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "Everyone: your name and your pick’em score, on the leaderboard, if you chose to be on it (you can leave it at any time). Never your individual picks.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -5498,6 +5546,12 @@
   ]
  },
  {
+  "key": "How your data is handled",
+  "files": [
+   "components/AccountPanel.tsx"
+  ]
+ },
+ {
   "key": "HVY",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -5525,6 +5579,18 @@
   "key": "If you are this fighter, or act for them, tell us. This goes to an administrator only. Nothing is changed by it: an administrator checks who you are first, and can then link your account to the profile.",
   "files": [
    "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "If you create an account",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "If you only read",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -5594,6 +5660,12 @@
   "key": "Is it calibrated? ({model}, held-out fights)",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "It is sent without your name, address or account, and the service’s own terms apply to it. Without the AI service every feature still works with built-in rules.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -6771,12 +6843,24 @@
   ]
  },
  {
+  "key": "No contact address has been set for this site. Ask whoever runs it.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
   "key": "No contest",
   "files": [
    "components/ReportForm.tsx",
    "lib/correction-text.ts",
    "lib/format.ts",
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "No cookie is set unless you sign in.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -7325,6 +7409,18 @@
    "app/[locale]/on-this-day/page.tsx",
    "lib/nav.ts",
    "lib/search.ts"
+  ]
+ },
+ {
+  "key": "On your account page you can download everything held about you as a file, see where you are signed in and end any of those sessions, leave the leaderboard, change your password, and delete the account.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "One cookie, “<c>{name}</c>”, keeps you signed in for {days} days. It cannot be read by scripts on the page, is not sent along with requests from other websites, and is marked secure when the site is served over https. It is used for nothing else.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -7885,7 +7981,10 @@
  {
   "key": "Privacy",
   "files": [
-   "components/AccountPanel.tsx"
+   "app/[locale]/layout.tsx",
+   "app/[locale]/privacy/page.tsx",
+   "components/AccountPanel.tsx",
+   "lib/search.ts"
   ]
  },
  {
@@ -8069,6 +8168,12 @@
   "key": "Questions and answers",
   "files": [
    "app/[locale]/ask/page.tsx"
+  ]
+ },
+ {
+  "key": "Questions, and who is responsible",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -8381,6 +8486,12 @@
   ]
  },
  {
+  "key": "Removed at once: your name, password hash, picks, sign-ins, one-time codes and any fighter linked to you. The contact you gave on a report is erased, and in the activity log your name is replaced by “deleted account”.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
   "key": "Report a mistake",
   "files": [
    "app/[locale]/report/page.tsx",
@@ -8422,6 +8533,12 @@
   "key": "Reports",
   "files": [
    "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "reports of a wrong fact you sent, including the contact you chose to give with them",
+  "files": [
+   "lib/privacy.ts"
   ]
  },
  {
@@ -9184,6 +9301,12 @@
   ]
  },
  {
+  "key": "Some fighter photos and event posters are loaded from other websites:",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
   "key": "Someone has already decided this.",
   "files": [
    "lib/account-text.ts"
@@ -9360,6 +9483,12 @@
   "key": "Stayed",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Stays, without you: proposals and reports you sent (they are an editorial record about fighters, not about you), and edits that were already published. Do not put personal details in their notes.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -9905,6 +10034,12 @@
   ]
  },
  {
+  "key": "the facts about an upcoming fight, to write its preview",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
   "key": "The feed gave",
   "files": [
    "components/ReportQueue.tsx"
@@ -9926,6 +10061,12 @@
   "key": "The fighter the ratings did not favour won.",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
+  "key": "the fighters on your watchlist",
+  "files": [
+   "lib/privacy.ts"
   ]
  },
  {
@@ -10194,6 +10335,12 @@
   ]
  },
  {
+  "key": "the question you type into Ask the data, and the figures the database returned for it",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
   "key": "The quote does not contain the person’s name.",
   "files": [
    "components/ReviewQueue.tsx"
@@ -10251,6 +10398,18 @@
   "key": "The shift is the new trainer's estimated effect minus the old one's, shown only when both have enough evidence. It is about as uncertain as the two estimates behind it. {n} moves are on record in all.",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "The short version: you can read everything here without an account and without being tracked. If you make an account, this page lists exactly what is kept, who can see it, and how to take it with you or delete it.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "The site sees your network address when you make a request. It is used in memory to limit how fast one visitor can ask for things (and how often the AI features are used) and is not written down by this software. Whoever hosts the site may keep ordinary access logs of their own.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -10334,6 +10493,12 @@
   ]
  },
  {
+  "key": "the words you type into the fighter search, so they can be turned into filters; and a scouting report, built from a fighter’s record",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
   "key": "The year so far: {n} fights of six rounds or more scored. This can still change.",
   "files": [
    "app/[locale]/fight-of-the-year/[year]/page.tsx"
@@ -10343,6 +10508,12 @@
   "key": "Their careers did not overlap",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "There are no analytics, advertising or tracking scripts, and no script, style, font or frame is loaded from any other website.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -10444,6 +10615,12 @@
   ]
  },
  {
+  "key": "This is a demonstration with fictional fighters, but accounts made here are real accounts on this server and are treated exactly as described below.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
   "key": "This is about me",
   "files": [
    "components/ReportForm.tsx"
@@ -10456,6 +10633,12 @@
   ]
  },
  {
+  "key": "This page describes what the software does. The person who runs the site decides how long backups and access logs are kept and is responsible for following the laws that apply to them.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
   "key": "This person is not in the data yet (a new page will be created).",
   "files": [
    "components/ReviewQueue.tsx"
@@ -10465,6 +10648,18 @@
   "key": "This removes your name, your picks and your sign-ins for good. Edits you proposed stay in the record without your name. Enter your password to confirm.",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "This site is not set up to use an AI service: nothing you type is sent to any other company. Search and questions are answered by built-in rules.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "This site is set up to use an AI service (Anthropic’s API) for some features. What is sent to it, and only this, is:",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -10572,6 +10767,12 @@
   "key": "to {name}",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "To ask about your data, write to",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -10736,6 +10937,12 @@
    "app/[locale]/trainers/page.tsx",
    "lib/ask/tools.ts",
    "lib/search.ts"
+  ]
+ },
+ {
+  "key": "trainer and manager changes you proposed, with the link and the words you quoted",
+  "files": [
+   "lib/privacy.ts"
   ]
  },
  {
@@ -11271,6 +11478,12 @@
   ]
  },
  {
+  "key": "What deleting removes, and what stays",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
   "key": "What is at stake",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
@@ -11286,6 +11499,18 @@
   "key": "What is in the database, where each kind of fact comes from, how complete it is, and how well the prediction model does on fights it has never seen.",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "What is kept about you:",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "What is sent to other services",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -11337,6 +11562,12 @@
   ]
  },
  {
+  "key": "What this site keeps about you, who can see it, what it sends elsewhere, and how to get your data or delete it.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
   "key": "What to watch for",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
@@ -11358,6 +11589,18 @@
   "key": "What’s driving the number",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "When a page fails, one line is logged with the page’s address (without anything after the “?”), what went wrong and a reference number. It has no cookie, header, address or account in it.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "When an editor checks a link that someone proposed as a source, the server (not your browser) fetches that page.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -11409,6 +11652,18 @@
   ]
  },
  {
+  "key": "where you are signed in: a hash of the sign-in token, the dates, and a coarse device label such as “<c>Chrome on macOS</c>” (nothing else the browser sends)",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
+  "key": "whether the side menu is open or collapsed",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
   "key": "Who",
   "files": [
    "components/RecordsFilter.tsx",
@@ -11437,6 +11692,12 @@
   "key": "Who calls fights best: scored on graded picks, with the Ringside model on the same fights as the bar to beat.",
   "files": [
    "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
+  "key": "Who can see it",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -11517,6 +11778,12 @@
   "key": "Who won?",
   "files": [
    "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "Whoever runs the server can read the database itself, including the activity log.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -11936,6 +12203,12 @@
   ]
  },
  {
+  "key": "You need only a name and a password: no email address, so there is nothing to verify and no way to recover a forgotten password except by asking the operator for a one-time code, which works for {n} minutes.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
   "key": "You or someone else has already proposed this.",
   "files": [
    "lib/account-text.ts"
@@ -11957,7 +12230,8 @@
  {
   "key": "Your account",
   "files": [
-   "app/[locale]/account/page.tsx"
+   "app/[locale]/account/page.tsx",
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -11967,15 +12241,51 @@
   ]
  },
  {
+  "key": "Your browser contacts them directly, so they can see your network address and that you opened a page here (the site asks your browser to tell them only the site’s address, not which page).",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "Your browser keeps a few things for you, on your device only (the site’s server never receives them). Clear this site’s data in your browser to remove them:",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "Your controls",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "Your data",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
   "key": "Your fight-night picks, graded against the results and against the Ringside model's call before the bell.",
   "files": [
    "app/[locale]/picks/page.tsx"
   ]
  },
  {
+  "key": "your name, a salted hash of your password (never the password), when you joined and last signed in, whether you are on the leaderboard, and the date up to which you have seen your graded picks",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
   "key": "Your pick’em picks follow you across devices and count on the leaderboard.",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "your pick’em picks, until you sign in (then they move to your account)",
+  "files": [
+   "lib/privacy.ts"
   ]
  },
  {
@@ -12006,6 +12316,12 @@
   "key": "Your picks count on the leaderboard.",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "your picks: which fighter you chose in which fight, and when",
+  "files": [
+   "lib/privacy.ts"
   ]
  },
  {

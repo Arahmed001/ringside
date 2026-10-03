@@ -179,7 +179,7 @@ function Settings({ me }: { me: Me }) {
         <input type="checkbox" className="mt-1 h-4 w-4" checked={me.picksPublic} onChange={(e) => void toggle(e.target.checked)} />
         <span>{t("Show me on the leaderboard")}<span className="block text-xs text-muted">{t("Only your name and your pick’em score are shown, never your individual picks.")}</span></span>
       </label>
-      <p>{/* an API download, not a page: it has no /ar version */}<a download href="/api/account/export" className="text-sm underline decoration-dotted hover:text-gold">{t("Download everything we hold about me")}</a></p>
+      <p>{/* an API download, not a page: it has no /ar version */}<a download href="/api/account/export" className="text-sm underline decoration-dotted hover:text-gold">{t("Download everything we hold about me")}</a> · <Link href="/privacy" className="text-sm underline decoration-dotted hover:text-gold">{t("How your data is handled")}</Link></p>
       <p role="status" aria-live="polite" className="text-xs text-muted">{msg}</p>
     </section>
   );

@@ -92,3 +92,17 @@ export const nowIso = () => new Date().toISOString();
 export function audit(db: DatabaseSync, actor: string | null, action: string, target?: string, detail?: string) {
   db.prepare("INSERT INTO audit (at, actor, action, target, detail) VALUES (?,?,?,?,?)").run(nowIso(), actor, action, target ?? null, detail ?? null);
 }
+
+/** A username as a whole word, whatever its case: usernames are letters, digits and underscores, so those are what count as part of a word ("ned" is not in "planned"). */
+export const nameWord = (name: string) => new RegExp(`(?<![A-Za-z0-9_])${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![A-Za-z0-9_])`, "gi");
+
+/**
+ * The activity-log rows that mention a username. The LIKE only finds candidates (usernames are letters, digits and underscores, and an underscore in LIKE
+ * matches any letter: a few extra candidates, never a missed one); the whole-word test decides.
+ */
+export function auditMentioning(db: DatabaseSync, name: string): { id: number; at: string; actor: string | null; action: string; target: string | null; detail: string | null }[] {
+  const like = `%${name}%`;
+  const word = nameWord(name);
+  const rows = db.prepare("SELECT id, at, actor, action, target, detail FROM audit WHERE actor LIKE ? OR target LIKE ? OR detail LIKE ? ORDER BY id").all(like, like, like) as { id: number; at: string; actor: string | null; action: string; target: string | null; detail: string | null }[];
+  return rows.filter((r) => [r.actor, r.target, r.detail].some((x) => x !== null && (word.lastIndex = 0, word.test(x))));
+}

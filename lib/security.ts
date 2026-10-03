@@ -62,6 +62,10 @@ export function securityProblems(headers: { get(name: string): string | null }, 
   const p: string[] = [];
   for (const h of STATIC_HEADERS) if (headers.get(h.key) !== h.value) p.push(`header ${h.key} is ${headers.get(h.key) ?? "missing"}`);
   if (headers.get("x-powered-by")) p.push("X-Powered-By announces the framework");
+  // the privacy page promises these two: no cookie for someone who has not signed in, and nothing from another website that runs or styles the page
+  if (headers.get("set-cookie")) p.push("the page sets a cookie for an anonymous visitor");
+  if (/<script\b[^>]*\ssrc=["'](?:https?:)?\/\//i.test(html)) p.push("a script from another website");
+  if (/<link\b[^>]*rel=["']stylesheet["'][^>]*href=["'](?:https?:)?\/\//i.test(html) || /<link\b[^>]*href=["'](?:https?:)?\/\/[^"']*["'][^>]*rel=["']stylesheet["']/i.test(html)) p.push("a stylesheet from another website");
   const csp = headers.get("content-security-policy");
   const nonce = csp?.match(/'nonce-([^']+)'/)?.[1];
   if (!csp) p.push("no Content-Security-Policy");

@@ -1,11 +1,13 @@
 import crypto from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
-import { accountsDb, audit, nowIso } from "./store";
+import { accountsDb, audit, auditMentioning, nameWord, nowIso } from "./store";
 import { dummyHash, hashPassword, needsRehash, passwordProblems, verifyPassword } from "./password";
 
 export type Role = "user" | "editor" | "admin";
 export interface User { id: number; username: string; role: Role; createdAt: string; picksPublic: boolean }
 export const SESSION_DAYS = 30;
+/** How long a one-time sign-in code (issued by the operator) works. */
+export const RESET_MINUTES = 60;
 export const SESSION_COOKIE = "rs_session";
 
 /** Names are 3 to 24 letters, digits and underscores (no spaces, no look-alike tricks), unique ignoring case. */
@@ -103,10 +105,24 @@ export async function changePassword(userId: number, current: string, next: stri
 }
 
 /** Deleting an account removes the person, their picks and their sessions. Their contributions stay (the data they added was published under a source), with no name on them. */
+/** The text that stands in for a deleted person in the activity log. */
+export const DELETED_NAME = "deleted account";
+
+/** Replaces a username wherever the activity log mentions it, as a whole word and whatever its case. */
+function scrubName(db: DatabaseSync, name: string) {
+  const fix = (x: string | null) => (x === null ? null : x.replace(nameWord(name), DELETED_NAME));
+  const update = db.prepare("UPDATE audit SET actor = ?, target = ?, detail = ? WHERE id = ?");
+  for (const r of auditMentioning(db, name)) update.run(fix(r.actor), fix(r.target), fix(r.detail), r.id);
+}
+
 export async function deleteUser(userId: number, password: string, db: DatabaseSync = accountsDb()): Promise<boolean> {
   const row = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as Record<string, unknown> | undefined;
   if (!row || !(await verifyPassword(typeof password === "string" ? password.slice(0, 400) : "", row.pw_hash as string))) return false;
-  db.prepare("DELETE FROM users WHERE id = ?").run(userId); // cascades to sessions, resets, picks; contributions keep their rows with user_id NULL
+  // What outlives the account's own rows must not name the person: the contact left on a report, and the activity log, where the name is in
+  // `actor` (they did something), `target` ("alice -> boxer", an operator acted on them) or `detail` (a decision about something of theirs).
+  db.prepare("UPDATE reports SET contact = NULL WHERE user_id = ?").run(userId);
+  scrubName(db, row.username as string);
+  db.prepare("DELETE FROM users WHERE id = ?").run(userId); // cascades to sessions, resets, picks; contributions and reports keep their rows with user_id NULL
   audit(db, null, "account_deleted", `user#${userId}`);
   return true;
 }
@@ -134,7 +150,7 @@ export function issueResetCode(username: string, db: DatabaseSync = accountsDb()
   if (!u) return null;
   const code = crypto.randomBytes(12).toString("base64url");
   db.prepare("DELETE FROM resets WHERE user_id = ?").run(u.id);
-  db.prepare("INSERT INTO resets (token_hash, user_id, expires_at) VALUES (?,?,?)").run(sha(code), u.id, new Date(now + 3600_000).toISOString());
+  db.prepare("INSERT INTO resets (token_hash, user_id, expires_at) VALUES (?,?,?)").run(sha(code), u.id, new Date(now + RESET_MINUTES * 60_000).toISOString());
   audit(db, "operator", "reset_issued", username);
   return code;
 }

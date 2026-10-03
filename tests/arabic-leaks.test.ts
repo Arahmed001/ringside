@@ -25,6 +25,8 @@ test("what is allowed: the brand, units and abbreviations, other organisations' 
   assert.deepEqual(arabicLeaks(page("<p>log-loss · 68.0% صحيح · Brier 0.213</p>")), [], "the two statistics terms the Data page keeps in Latin");
   assert.equal(arabicLeaks(page("<p>log-loss · 68.0% صحيح · Brier score is poor</p>")).length, 1, "only the terms are allowed, not the English around them");
   assert.deepEqual(arabicLeaks(page("<p>معرّف BoxRec وكذلك Wikidata و CompuBox</p>")), []);
+  assert.deepEqual(arabicLeaks(page("<p>ويُعلَّم بأنه آمن حين يُقدَّم الموقع عبر https أو http</p>")), [], "a protocol name is written as it is in Arabic prose");
+  assert.equal(arabicLeaks(page("<p>عبر https secure connection</p>")).length, 1, "but not the English around it");
   assert.deepEqual(arabicLeaks(page("<script>window.x = 'This is a long English sentence';</script><style>.a{content:'Some English words'}</style><p>نص</p>")), []);
   assert.deepEqual(arabicLeaks(page('<p>مثال: <span lang="en" dir="ltr">earning rows have no source URL</span></p>')), [], "text marked as English on purpose is not a leak");
   assert.deepEqual(arabicLeaks(page('<a href="/" aria-label="Ringside"><span lang="en">Ring<span>side</span></span></a>')), [], "a marked island with a nested element of the same name");

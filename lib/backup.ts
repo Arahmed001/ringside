@@ -8,6 +8,9 @@ import path from "node:path";
  * file. Each run writes one folder named for the time (`2026-10-03T12-00-00Z`), checks every copy with `PRAGMA integrity_check`, and removes
  * the oldest folders beyond `keep`. Only folders with that name pattern are ever removed.
  */
+/** How many dated backup folders are kept (the oldest are removed) when nothing else is asked for. */
+export const DEFAULT_BACKUPS_KEPT = 14;
+
 export interface BackupFile { name: string; path: string; private?: boolean }
 export interface BackupResult { dir: string; files: { name: string; bytes: number; integrity: string }[]; skipped: string[]; pruned: string[] }
 
@@ -31,7 +34,7 @@ export function backupDatabases(opts: { root: string; files: BackupFile[]; keep?
     result.files.push({ name: f.name, bytes: fs.statSync(out).size, integrity });
   }
   for (const f of opts.extra ?? []) if (fs.existsSync(f.path)) fs.copyFileSync(f.path, path.join(dir, path.basename(f.path)));
-  const keep = Math.max(1, opts.keep ?? 14);
+  const keep = Math.max(1, opts.keep ?? DEFAULT_BACKUPS_KEPT);
   const old = fs.readdirSync(opts.root).filter((n) => STAMP.test(n) && fs.statSync(path.join(opts.root, n)).isDirectory()).sort();
   for (const n of old.slice(0, Math.max(0, old.length - keep))) { fs.rmSync(path.join(opts.root, n), { recursive: true, force: true }); result.pruned.push(n); }
   return result;

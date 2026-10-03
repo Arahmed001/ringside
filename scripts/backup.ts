@@ -6,7 +6,7 @@
  */
 import path from "node:path";
 import { accountsPath } from "../lib/accounts/store";
-import { backupDatabases, verifyBackup } from "../lib/backup";
+import { backupDatabases, DEFAULT_BACKUPS_KEPT, verifyBackup } from "../lib/backup";
 
 const argv = process.argv.slice(2);
 const flag = (k: string) => { const i = argv.indexOf(`--${k}`); return i > -1 ? argv[i + 1] : undefined; };
@@ -18,7 +18,7 @@ if (argv[0] === "verify") {
   process.exit(problems.length ? 1 : 0);
 }
 const r = backupDatabases({
-  root: path.resolve(flag("dir") ?? path.join(path.dirname(dbPath), "backups")), keep: flag("keep") ? Number(flag("keep")) : 14,
+  root: path.resolve(flag("dir") ?? path.join(path.dirname(dbPath), "backups")), keep: flag("keep") ? Number(flag("keep")) : DEFAULT_BACKUPS_KEPT,
   files: [{ name: "ringside", path: dbPath }, { name: "accounts", path: accountsPath(), private: true }],
   extra: [{ name: "model-fit", path: path.join(path.dirname(dbPath), "model-fit.json") }],
 });

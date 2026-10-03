@@ -13,6 +13,7 @@ import { NavGroups, Logo } from "@/components/SideNav";
 import { MobileMenu, RailToggle } from "@/components/RailControls";
 import { InlineScript } from "@/components/InlineScript";
 import { NAV_KEY } from "@/lib/nav";
+import Link from "@/components/L";
 import "../globals.css";
 
 const body = Geist({ variable: "--font-body", subsets: ["latin"] });
@@ -85,6 +86,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
                 {isDemoData()
                   ? t.rich("Ringside demo build · All fighters, fights and events shown are <b>fictional, simulated data</b>. Ratings are Elo-style and unofficial.", { b: (c) => <b className="text-ink/80">{c}</b> })
                   : t("Ringside · Ratings are Elo-style and unofficial. Data sources and their licences are listed on the Data page.")}
+                {" "}<Link href="/privacy" className="inline-block py-1 underline decoration-dotted hover:text-ink">{t("Privacy")}</Link>
               </footer>
             </div>
           </div>
