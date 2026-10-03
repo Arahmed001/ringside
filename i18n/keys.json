@@ -1,5 +1,11 @@
 [
  {
+  "key": ", current champion {name}",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "…",
   "files": [
    "components/ChartI18n.tsx",
@@ -73,6 +79,12 @@
   "key": "{amount} revenue",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "{belt}: {division} champions",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
  {
@@ -167,6 +179,12 @@
   ]
  },
  {
+  "key": "{from} to {to}",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{gate} gate · {ppv} PPV · {n} cards",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -200,6 +218,12 @@
   "key": "{lb} lb · {kg} kg",
   "files": [
    "lib/divisions.ts"
+  ]
+ },
+ {
+  "key": "{lb} lb catchweight",
+  "files": [
+   "lib/matchmaking.ts"
   ]
  },
  {
@@ -262,6 +286,23 @@
   ]
  },
  {
+  "key": "{n} days",
+  "plural": "{n} day",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} defences",
+  "plural": "{n} defence",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx",
+   "app/[locale]/titles/page.tsx",
+   "components/ReignTimeline.tsx",
+   "components/TitlesCard.tsx"
+  ]
+ },
+ {
   "key": "{n} dissents",
   "plural": "{n} dissent",
   "files": [
@@ -273,6 +314,13 @@
   "plural": "{n} division",
   "files": [
    "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} draws",
+  "plural": "{n} draw",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
  {
@@ -363,6 +411,12 @@
   ]
  },
  {
+  "key": "{n} months",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{n} months with current trainer",
   "plural": "{n} month with current trainer",
   "files": [
@@ -409,6 +463,21 @@
   ]
  },
  {
+  "key": "{n} reigns",
+  "plural": "{n} reign",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx",
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} reigns on record",
+  "plural": "{n} reign on record",
+  "files": [
+   "components/TitlesCard.tsx"
+  ]
+ },
+ {
   "key": "{n} results",
   "plural": "{n} result",
   "files": [
@@ -436,6 +505,13 @@
   ]
  },
  {
+  "key": "{n} title fights",
+  "plural": "{n} title fight",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
   "key": "{n} upcoming",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
@@ -446,6 +522,12 @@
   "plural": "{n} warning",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} years",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
  {
@@ -543,6 +625,24 @@
   "key": "{name} down {n}×",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} fought {n} weeks ago, a quick turnaround",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "{name} has been out for {n} months",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "{name} is retired or inactive",
+  "files": [
+   "lib/matchmaking.ts"
   ]
  },
  {
@@ -820,9 +920,21 @@
   ]
  },
  {
+  "key": "A big reach gap: {a} cm against {b} cm",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
   "key": "A clean, economical boxer who wins on timing and distance rather than raw power.",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "A competitive fight on paper: {name} {pct}%",
+  "files": [
+   "lib/matchmaking.ts"
   ]
  },
  {
@@ -856,6 +968,30 @@
   ]
  },
  {
+  "key": "A rematch of a draw",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "A rematch: {name} won their last fight",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "A title fight: a champion against a top-5 contender",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "A unification: champions of different bodies in the same division",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
   "key": "Accuracy",
   "files": [
    "components/PunchStats.tsx"
@@ -871,6 +1007,12 @@
   "key": "Across all weights",
   "files": [
    "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "Across every division",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
   ]
  },
  {
@@ -998,6 +1140,12 @@
   ]
  },
  {
+  "key": "An all-{country} fight",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
   "key": "An outlet's or analyst's estimate, or worked out from other figures. Treat as approximate.",
   "files": [
    "components/Money.tsx"
@@ -1016,6 +1164,12 @@
    "app/[locale]/layout.tsx",
    "app/[locale]/page.tsx",
    "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Any two fighters, any era",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
   ]
  },
  {
@@ -1076,6 +1230,18 @@
   "key": "at least one fighter's purse",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "At least one of them is already booked",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "At the heavier division’s limit",
+  "files": [
+   "lib/matchmaking.ts"
   ]
  },
  {
@@ -1186,13 +1352,39 @@
  {
   "key": "beat {name}",
   "files": [
-   "app/[locale]/page.tsx"
+   "app/[locale]/page.tsx",
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "belt",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Belt passed on without the champion",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Belt vacated",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "belts",
+  "files": [
+   "app/[locale]/titles/page.tsx"
   ]
  },
  {
   "key": "Belts",
   "files": [
-   "app/[locale]/orgs/page.tsx"
+   "app/[locale]/orgs/page.tsx",
+   "app/[locale]/titles/page.tsx"
   ]
  },
  {
@@ -1244,6 +1436,12 @@
   ]
  },
  {
+  "key": "bodies × titles × divisions",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
   "key": "Booked fights",
   "files": [
    "app/[locale]/compare/page.tsx"
@@ -1259,6 +1457,18 @@
   "key": "Born in {place}",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Both are rested and active: last fought {a} and {b} months ago",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "Both are top-10 in the division (#{a} and #{b})",
+  "files": [
+   "lib/matchmaking.ts"
   ]
  },
  {
@@ -1354,6 +1564,12 @@
   "key": "Broadcasters",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Build it",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
   ]
  },
  {
@@ -1468,6 +1684,18 @@
   ]
  },
  {
+  "key": "Champions",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "champions on record",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
   "key": "Change the fight",
   "files": [
    "components/MatchupLab.tsx"
@@ -1538,6 +1766,12 @@
   "key": "Coming up",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Common opponents",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
   ]
  },
  {
@@ -1676,6 +1910,25 @@
   ]
  },
  {
+  "key": "current champion",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Current champion",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Current champion: {n} belts",
+  "plural": "Current champion: {n} belt",
+  "files": [
+   "components/TitlesCard.tsx"
+  ]
+ },
+ {
   "key": "Current head trainer",
   "files": [
    "lib/coverage.ts"
@@ -1743,6 +1996,12 @@
   ]
  },
  {
+  "key": "decided or drawn",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Decisions",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -1770,6 +2029,18 @@
   "key": "Different divisions — treat with caution",
   "files": [
    "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Different divisions: {a} and {b}",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "Different sexes: boxing does not make this fight",
+  "files": [
+   "lib/matchmaking.ts"
   ]
  },
  {
@@ -1811,6 +2082,12 @@
   ]
  },
  {
+  "key": "Division rankings",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Divisions",
   "files": [
    "app/[locale]/page.tsx"
@@ -1823,6 +2100,12 @@
   ]
  },
  {
+  "key": "dormant",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
   "key": "DQ",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -1832,6 +2115,7 @@
   "key": "Draw",
   "files": [
    "app/[locale]/analytics/page.tsx",
+   "app/[locale]/matchmaking/page.tsx",
    "app/[locale]/orgs/[slug]/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/weights/page.tsx",
@@ -1852,6 +2136,12 @@
   ]
  },
  {
+  "key": "Dream-fight builder",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
   "key": "Durability",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
@@ -1862,6 +2152,12 @@
   "key": "e.g. {example}",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Each bar is one reign; gaps are periods when the belt was vacant. Hover for dates and defences.",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
  {
@@ -1990,6 +2286,18 @@
   ]
  },
  {
+  "key": "Every {division} champion of the {belt}: {n} reigns by {champions} fighters, {defences} title defences{current}.",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Every belt, every champion",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
   "key": "Every division ranked by Elo-style rating. Active fighters with five or more bouts, a winning record and a fight in the last 24 months qualify. Arrows show movement over the last 90 days.",
   "files": [
    "app/[locale]/rankings/page.tsx"
@@ -2036,6 +2344,12 @@
   "key": "Every number.",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Every reign",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
  {
@@ -2174,6 +2488,20 @@
   ]
  },
  {
+  "key": "fight score",
+  "files": [
+   "components/Matchmaking.tsx",
+   "components/TitlesCard.tsx"
+  ]
+ },
+ {
+  "key": "Fight score out of 100: how close, relevant, entertaining, bookable, fresh and meaningful the fight is",
+  "files": [
+   "components/Matchmaking.tsx",
+   "components/TitlesCard.tsx"
+  ]
+ },
+ {
   "key": "Fight stats",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -2216,6 +2544,18 @@
   "key": "Fighter database",
   "files": [
    "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "Fighter in the blue corner…",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "Fighter in the red corner…",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
   ]
  },
  {
@@ -2298,6 +2638,12 @@
   ]
  },
  {
+  "key": "Fights to make right now",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
   "key": "Final results",
   "files": [
    "app/[locale]/events/[id]/page.tsx"
@@ -2319,6 +2665,12 @@
   "key": "FINISHED",
   "files": [
    "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "First champion on record",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
  {
@@ -2358,6 +2710,12 @@
   ]
  },
  {
+  "key": "From the top eight available fighters in each division (active, not already booked, not training partners). One best fight per division; the strongest eight overall are shown. It is a model's view, not a promoter's.",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
   "key": "From Wikidata (CC0).",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -2379,7 +2737,8 @@
  {
   "key": "Full matchup breakdown",
   "files": [
-   "app/[locale]/page.tsx"
+   "app/[locale]/page.tsx",
+   "components/Matchmaking.tsx"
   ]
  },
  {
@@ -2462,6 +2821,12 @@
   "key": "Has missed weight",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Have they met?",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
   ]
  },
  {
@@ -2552,6 +2917,18 @@
   "key": "Highest purses",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "hold two or more live belts",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "holds {n} belts",
+  "files": [
+   "app/[locale]/titles/page.tsx"
   ]
  },
  {
@@ -2805,7 +3182,14 @@
  {
   "key": "L",
   "files": [
+   "app/[locale]/matchmaking/page.tsx",
    "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "Last champion on record (the belt looks dormant)",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
  {
@@ -2923,6 +3307,12 @@
   ]
  },
  {
+  "key": "Likely to end early: {pct}% chance of a stoppage",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
   "key": "limit",
   "files": [
    "components/WeightChart.tsx"
@@ -2995,6 +3385,12 @@
   ]
  },
  {
+  "key": "Longest reign",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Longest win streaks",
   "files": [
    "app/[locale]/analytics/page.tsx"
@@ -3004,6 +3400,12 @@
   "key": "Lost",
   "files": [
    "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Lost it in the ring",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
  {
@@ -3029,6 +3431,12 @@
   "key": "Majority decision",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Make the fight",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
   ]
  },
  {
@@ -3065,6 +3473,15 @@
   ]
  },
  {
+  "key": "Matchmaking",
+  "files": [
+   "app/[locale]/compare/page.tsx",
+   "app/[locale]/matchmaking/page.tsx",
+   "components/TitlesCard.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
   "key": "Matchup lab",
   "files": [
    "app/[locale]/compare/page.tsx"
@@ -3090,6 +3507,7 @@
    "app/[locale]/boxers/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "app/[locale]/rankings/page.tsx",
+   "app/[locale]/titles/page.tsx",
    "lib/ai.ts"
   ]
  },
@@ -3191,6 +3609,24 @@
   ]
  },
  {
+  "key": "More opponents",
+  "files": [
+   "components/TitlesCard.tsx"
+  ]
+ },
+ {
+  "key": "Most defences",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Multi-belt champions",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
   "key": "n={n}",
   "files": [
    "app/[locale]/data/page.tsx",
@@ -3249,6 +3685,12 @@
   ]
  },
  {
+  "key": "Newest first",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Next fight",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -3298,6 +3740,12 @@
   ]
  },
  {
+  "key": "No fighter with 4+ bouts matches that.",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
   "key": "No fighters on record.",
   "files": [
    "components/TenureTable.tsx"
@@ -3319,6 +3767,12 @@
   "key": "No issues found. Rows that fail a check are dropped and listed here; suspicious ones are kept and flagged. Run <c>{cmd}</c> to test a vendor sample first.",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "No opponent in common.",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
   ]
  },
  {
@@ -3364,6 +3818,12 @@
   ]
  },
  {
+  "key": "Nobody suitable is available: everyone nearby is booked, retired, a training partner or too far away in rating.",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
   "key": "none",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -3373,6 +3833,12 @@
   "key": "not disclosed",
   "files": [
    "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Not enough available top fighters to suggest a fight.",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
   ]
  },
  {
@@ -3427,6 +3893,12 @@
   "key": "Nothing matches that.",
   "files": [
    "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "Nothing stands in the way: same division, both active, free to be booked.",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
   ]
  },
  {
@@ -3532,8 +4004,15 @@
   ]
  },
  {
+  "key": "Open in the dream-fight builder",
+  "files": [
+   "components/Matchmaking.tsx"
+  ]
+ },
+ {
   "key": "Opponent",
   "files": [
+   "app/[locale]/matchmaking/page.tsx",
    "app/[locale]/weights/page.tsx"
   ]
  },
@@ -3694,6 +4173,12 @@
   ]
  },
  {
+  "key": "Pick a fighter",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
   "key": "Pick any two fighters — even from different eras or weights — and see win probability, how the fight likely ends, and what drives the number.",
   "files": [
    "app/[locale]/compare/page.tsx"
@@ -3703,6 +4188,12 @@
   "key": "Pick any two fighters and see win probability, how the fight likely ends and what drives the number, with an interactive model you can re-weight.",
   "files": [
    "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Pick two different fighters to build the fight.",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
   ]
  },
  {
@@ -3819,6 +4310,13 @@
   ]
  },
  {
+  "key": "Predict any fight",
+  "files": [
+   "app/[locale]/compare/page.tsx",
+   "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
   "key": "Prediction model",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -3827,8 +4325,10 @@
  {
   "key": "present",
   "files": [
+   "components/ReignTimeline.tsx",
    "components/TeamTimeline.tsx",
-   "components/TenureTable.tsx"
+   "components/TenureTable.tsx",
+   "components/TitlesCard.tsx"
   ]
  },
  {
@@ -3953,6 +4453,7 @@
   "files": [
    "app/[locale]/layout.tsx",
    "app/[locale]/rankings/page.tsx",
+   "app/[locale]/titles/page.tsx",
    "lib/search.ts"
   ]
  },
@@ -4037,6 +4538,12 @@
   ]
  },
  {
+  "key": "Rebuilt from the title fights in the data: a champion who wins a title fight is a defence, one who loses hands the belt on, and a vacant-title fight crowns a new one. What the results cannot show (a champion stripped, or a belt vacated by retirement) is not guessed; a dormant belt is marked as such.",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
   "key": "Recent events",
   "files": [
    "app/[locale]/events/page.tsx"
@@ -4116,6 +4623,18 @@
   "key": "Rehydration",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "reign still on the books",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Reigns",
+  "files": [
+   "app/[locale]/titles/page.tsx"
   ]
  },
  {
@@ -4234,6 +4753,12 @@
   ]
  },
  {
+  "key": "Same promoter: {name}",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
   "key": "Sanctioning bodies",
   "files": [
    "app/[locale]/orgs/page.tsx"
@@ -4338,6 +4863,12 @@
   ]
  },
  {
+  "key": "Search for a fighter…",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
   "key": "Searching…",
   "files": [
    "components/CommandPalette.tsx"
@@ -4431,6 +4962,13 @@
   "key": "Signed now",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "since {date}",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx",
+   "app/[locale]/titles/page.tsx"
   ]
  },
  {
@@ -4592,6 +5130,12 @@
   ]
  },
  {
+  "key": "Style clash: {a} against {b}",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
   "key": "Style map",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
@@ -4622,6 +5166,12 @@
   "key": "subscription TV",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Suggest opponents",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
   ]
  },
  {
@@ -4758,6 +5308,30 @@
   ]
  },
  {
+  "key": "The fights worth making right now, who any fighter should face next, and a dream-fight builder. Every pairing is scored on how close, relevant, entertaining, bookable, fresh and meaningful it would be.",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "The line of champions",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "The line of champions for one belt.",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "The model sees a near coin-flip: {name} {pct}%",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
   "key": "The money",
   "files": [
    "components/Money.tsx"
@@ -4800,6 +5374,37 @@
   ]
  },
  {
+  "key": "Their careers did not overlap",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "They have already fought {n} times",
+  "plural": "They have already fought {n} time",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "They have never fought each other.",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "They have never met",
+  "files": [
+   "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "Through time",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Ticket revenue",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -4809,6 +5414,34 @@
   "key": "Tickets sold",
   "files": [
    "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Title defences",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Title fights",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Title lineage",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Title lineages",
+  "files": [
+   "app/[locale]/compare/page.tsx",
+   "app/[locale]/matchmaking/page.tsx",
+   "app/[locale]/titles/[slug]/page.tsx",
+   "app/[locale]/titles/page.tsx",
+   "lib/search.ts"
   ]
  },
  {
@@ -4822,7 +5455,9 @@
  {
   "key": "Titles",
   "files": [
-   "app/[locale]/people/page.tsx"
+   "app/[locale]/layout.tsx",
+   "app/[locale]/people/page.tsx",
+   "components/TitlesCard.tsx"
   ]
  },
  {
@@ -4830,6 +5465,12 @@
   "files": [
    "app/[locale]/analytics/page.tsx",
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "to {name}",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
  {
@@ -4857,6 +5498,12 @@
   ]
  },
  {
+  "key": "Took the belt when the holder was not in the fight",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Top earners",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -4878,6 +5525,12 @@
   "key": "Toss-up",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Total defences",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
  {
@@ -5027,6 +5680,12 @@
   ]
  },
  {
+  "key": "Vacant",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
   "key": "View all",
   "files": [
    "components/ui.tsx"
@@ -5051,7 +5710,9 @@
    "app/[locale]/bouts/[id]/page.tsx",
    "app/[locale]/compare/page.tsx",
    "app/[locale]/events/[id]/page.tsx",
+   "app/[locale]/matchmaking/page.tsx",
    "app/[locale]/page.tsx",
+   "components/Matchmaking.tsx",
    "components/Poster.tsx"
   ]
  },
@@ -5071,6 +5732,7 @@
  {
   "key": "W",
   "files": [
+   "app/[locale]/matchmaking/page.tsx",
    "components/ui.tsx"
   ]
  },
@@ -5204,6 +5866,31 @@
   ]
  },
  {
+  "key": "Who holds every belt in every division, and the full line of champions behind it: reigns, title defences, who beat whom for the belt, and how long each champion lasted.",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Who should fight whom. Each pairing gets a fight score from six things: how close the model thinks it is, how relevant the two are to each other, whether their styles make a show, whether both can be booked now, whether they have met, and what is at stake (a unification or a title fight).",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "Who should he fight next?",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx",
+   "components/TitlesCard.tsx"
+  ]
+ },
+ {
+  "key": "Who should she fight next?",
+  "files": [
+   "components/TitlesCard.tsx"
+  ]
+ },
+ {
   "key": "Who shows the fights",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -5213,6 +5900,12 @@
   "key": "Who trains, manages, scores and referees. Every fighter's team history is tracked with dates, so you can see how fighters did before, during and after a trainer.",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Why it might never happen",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
   ]
  },
  {
@@ -5307,6 +6000,12 @@
   ]
  },
  {
+  "key": "wins by the champion",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
   "key": "With majority",
   "files": [
    "app/[locale]/people/[slug]/page.tsx",
@@ -5325,6 +6024,7 @@
    "app/[locale]/boxers/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "app/[locale]/rankings/page.tsx",
+   "app/[locale]/titles/page.tsx",
    "lib/ai.ts"
   ]
  },
@@ -5356,6 +6056,24 @@
   "key": "won {date}",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "won by {method}",
+  "files": [
+   "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "Won the belt",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Won the vacant belt",
+  "files": [
+   "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
  {

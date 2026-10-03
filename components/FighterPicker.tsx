@@ -8,7 +8,7 @@ import { useLocale, useT } from "@/components/i18n";
  * A fighter type-ahead for the matchup lab. It submits the chosen fighter's slug as `name`; if the visitor typed a
  * name without picking (or JavaScript is off) the text goes up as `${name}q` and the server resolves it.
  */
-export function FighterPicker({ name, label, initial, minBouts = 0 }: { name: string; label: string; initial?: { slug: string; name: string }; minBouts?: number }) {
+export function FighterPicker({ name, label, initial, minBouts = 0, placeholder }: { name: string; label: string; initial?: { slug: string; name: string }; minBouts?: number; placeholder?: string }) {
   const t = useT();
   const locale = useLocale();
   const [text, setText] = useState(initial?.name ?? "");
@@ -43,7 +43,7 @@ export function FighterPicker({ name, label, initial, minBouts = 0 }: { name: st
       {slug && <input type="hidden" name={name} value={slug} />}
       <input
         type="text" name={slug ? undefined : `${name}q`} value={text} autoComplete="off" spellCheck={false}
-        placeholder={t("Fighter {label}…", { label })} aria-label={t("Fighter {label}", { label })}
+        placeholder={placeholder ?? t("Fighter {label}…", { label })} aria-label={placeholder ?? t("Fighter {label}", { label })}
         role="combobox" aria-expanded={showing} aria-controls={listId} aria-autocomplete="list" aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
         onChange={(e) => { setText(e.target.value); setSlug(""); setOpen(true); }}
         onFocus={() => setOpen(true)}

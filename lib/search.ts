@@ -13,6 +13,8 @@ export interface SearchHit { kind: HitKind; title: string; subtitle?: string; hr
 /** The pages ⌘K can jump to (locale-free paths; keywords help "weigh" find Weigh-ins). */
 export const PAGES: { href: string; label: string; words: string }[] = [
   { href: "/rankings", label: msg("Rankings"), words: "rankings pound for pound p4p divisions" },
+  { href: "/titles", label: msg("Title lineages"), words: "titles belts champions lineage reigns world continental" },
+  { href: "/matchmaking", label: msg("Matchmaking"), words: "matchmaking fights to make next opponent dream fight builder" },
   { href: "/boxers", label: msg("Fighters"), words: "fighters boxers search" },
   { href: "/events", label: msg("Events"), words: "events cards calendar schedule results" },
   { href: "/compare", label: msg("Matchups"), words: "matchups compare predictor predictions" },

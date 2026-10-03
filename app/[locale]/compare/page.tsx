@@ -42,6 +42,11 @@ export default async function Compare({ searchParams }: { searchParams: Promise<
         <div className="eyebrow mb-2">{t("Fight predictor")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase">{t("Matchup lab")}</h1>
         <p className="mt-2 max-w-2xl text-muted">{t("Pick any two fighters — even from different eras or weights — and see win probability, how the fight likely ends, and what drives the number.")}</p>
+        <div className="mt-4 flex flex-wrap gap-2 text-sm">
+          <span className="chip !border-gold/50 !text-gold">{t("Predict any fight")}</span>
+          <Link href="/matchmaking" className="chip hover:text-ink">{t("Matchmaking")}</Link>
+          <Link href="/titles" className="chip hover:text-ink">{t("Title lineages")}</Link>
+        </div>
       </div>
       <form className="card grid gap-3 p-4 sm:grid-cols-[1fr_auto_1fr_auto] sm:items-center">
         {(["a", "b"] as const).map((k, i) => {

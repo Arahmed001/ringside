@@ -2,6 +2,7 @@ import type { World } from "./world";
 import { LOCALES, localePath } from "./i18n/config";
 import { slugifyDivision, DIVISIONS } from "./divisions";
 import { memo } from "./memo";
+import { belts } from "./lineage";
 import { abs } from "./seo";
 
 export interface SitemapPath { path: string; lastmod: string }
@@ -9,7 +10,7 @@ export interface SitemapPath { path: string; lastmod: string }
 /** URLs per sitemap file. Every path is listed once per language, so a file holds twice this many <url> entries (the limit is 50,000). */
 export const PATHS_PER_FILE = 10000;
 
-const STATIC = ["/", "/rankings", "/boxers", "/events", "/compare", "/people", "/orgs", "/weights", "/money", "/analytics", "/map", "/data"];
+const STATIC = ["/", "/rankings", "/boxers", "/events", "/compare", "/people", "/orgs", "/weights", "/money", "/titles", "/matchmaking", "/analytics", "/map", "/data"];
 
 /**
  * Every page worth indexing, locale-free, with when it last changed. Thin pages are left out on purpose: of the bouts, only
@@ -18,6 +19,7 @@ const STATIC = ["/", "/rankings", "/boxers", "/events", "/compare", "/people", "
 export const sitemapPaths = (w: World): SitemapPath[] => memo(w, "sitemapPaths", () => {
   const out: SitemapPath[] = [];
   for (const p of STATIC) out.push({ path: p, lastmod: w.today });
+  for (const b of belts(w)) out.push({ path: `/titles/${b.slug}`, lastmod: b.lastDate });
   for (const d of DIVISIONS) out.push({ path: `/rankings/${slugifyDivision(d.name)}`, lastmod: w.today });
   for (const b of w.boxers) if (b.bouts > 0) out.push({ path: `/boxers/${b.slug}`, lastmod: b.lastFight ?? w.today });
   for (const e of w.events) if (e.status !== "cancelled") out.push({ path: `/events/${e.id}`, lastmod: e.date });

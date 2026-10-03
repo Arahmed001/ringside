@@ -9,6 +9,7 @@ import { nowMs, todayIso } from "./clock";
 import { loadFeed } from "./feed";
 import { countBySeverity, sanitizeFeed, type Issue } from "./validate";
 import { writeMoney } from "./ingest-money";
+import { slugify } from "./slug";
 
 const K = 24;
 
@@ -21,8 +22,7 @@ export function getProvider(): DataProvider {
   return demoProvider(new Date(nowMs()));
 }
 
-export const slugify = (s: string) =>
-  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+export { slugify };
 
 /** The validator has already rejected unknown divisions, so this never returns null for rows that reach the database. */
 const division = (raw: string): string => normalizeDivision(raw) as string;
@@ -114,7 +114,7 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
     const insBo = db.prepare(`INSERT INTO bouts (external_id, event_id, red_id, blue_id, weight_class, rounds, winner_id, method, end_round, title, position,
         round_time, kd_red, kd_blue, odds_red, odds_blue, contract_lb, title_org_id, title_vacant, status)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-      ON CONFLICT(external_id) DO UPDATE SET winner_id=excluded.winner_id, method=excluded.method, end_round=excluded.end_round,
+      ON CONFLICT(external_id) DO UPDATE SET title=excluded.title, winner_id=excluded.winner_id, method=excluded.method, end_round=excluded.end_round,
         round_time=excluded.round_time, kd_red=excluded.kd_red, kd_blue=excluded.kd_blue, odds_red=excluded.odds_red, odds_blue=excluded.odds_blue,
         contract_lb=excluded.contract_lb, title_org_id=excluded.title_org_id, title_vacant=excluded.title_vacant, status=excluded.status RETURNING id`);
     for (const b of bouts) {
