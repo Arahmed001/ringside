@@ -12,14 +12,17 @@
 import type { DatabaseSync } from "node:sqlite";
 import type { World } from "./world";
 import { featuresOf, predictFeatures } from "./predict";
-import { activeWeights } from "./model";
+import { activeFinish, activeWeights } from "./model";
 import { hash } from "./hash";
 import { countsInRecord, isStoppage } from "./methods";
 import { summarize, type Call, type Summary } from "./accountability";
 import { todayIso } from "./clock";
 
 /** A short fingerprint of the weights in force, so a row says which model made it. */
-export const modelVersion = (): string => `w${hash(JSON.stringify(activeWeights())).toString(36)}`;
+export const modelVersion = (): string => {
+  const f = activeFinish();
+  return `w${hash(JSON.stringify(activeWeights()) + (f ? JSON.stringify(f) : "")).toString(36)}`; // unchanged while no finish model is fitted
+};
 
 export interface SnapshotReport { inserted: number; upcoming: number }
 
@@ -44,7 +47,7 @@ export function snapshotUpcoming(db: DatabaseSync, w: World): SnapshotReport {
       const fa = featuresOf(red), fb = featuresOf(blue);
       const p = predictFeatures(fa, fb);
       const eloP = 1 / (1 + Math.pow(10, (blue.rating - red.rating) / 400));
-      ins.run(b.id, today, now, version, p.pA / (p.pA + p.pB), p.pDraw, p.koProb, eloP, JSON.stringify({ red: fa, blue: fb, weights: activeWeights() }));
+      ins.run(b.id, today, now, version, p.pA / (p.pA + p.pB), p.pDraw, p.koProb, eloP, JSON.stringify({ red: fa, blue: fb, weights: activeWeights(), ...(activeFinish() ? { finish: activeFinish() } : {}) }));
       inserted++;
     }
     db.exec("COMMIT");

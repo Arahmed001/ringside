@@ -14,7 +14,7 @@
 import type { World } from "./world";
 import { memo } from "./memo";
 import { countsInRecord, isStoppage } from "./methods";
-import { activeWeights, DEFAULT_WEIGHTS, stoppageProbability, winProbability, type Features } from "./model";
+import { activeFinish, activeWeights, DEFAULT_WEIGHTS, stoppageProbability, winProbability, type Features } from "./model";
 
 export interface Call {
   boutId: number; date: string; division: string; sex: "male" | "female";
@@ -24,6 +24,8 @@ export interface Call {
   koProb: number; // model's chance the fight ends inside the distance
   redWon: boolean;
   finished: boolean; // ended by KO/TKO/RTD/DQ-stoppage
+  koSum?: number; // (backtest only) both fighters' KO rates before the fight, summed (a feature of the finish estimate)
+  koLossSum?: number; // (backtest only) both fighters' KO-loss rates, summed
   pickedRed: boolean;
   correct: boolean;
   pWinner: number; // the probability the model gave to whoever actually won
@@ -59,7 +61,7 @@ export function calls(w: World): Call[] {
         const pWinner = redWon ? pRed : 1 - pRed;
         out.push({
           boutId: b.id, date: b.date, division: b.weightClass, sex: red.sex, redId: b.redId, blueId: b.blueId,
-          pRed, eloPRed: 1 / (1 + Math.pow(10, (pre.blue - pre.red) / 400)), koProb: stoppageProbability(a, u),
+          pRed, eloPRed: 1 / (1 + Math.pow(10, (pre.blue - pre.red) / 400)), koProb: stoppageProbability(a, u), koSum: a.koRate + u.koRate, koLossSum: a.koLossRate + u.koLossRate,
           redWon, finished: isStoppage(b.method), pickedRed: pRed >= 0.5, correct: (pRed >= 0.5) === redWon,
           pWinner, surprise: -Math.log2(Math.max(pWinner, 1e-6)), eloPick: (pre.red >= pre.blue) === redWon,
         });
@@ -155,7 +157,7 @@ export function finishVerdict(f: Summary["finish"], tolerance = 0.03): { verdict
 }
 
 /** How the model's win weights were set: the hand-set defaults, or with the Elo scale fitted to results (`npm run model:fit`). */
-export function weightsInUse(): { fitted: boolean; eloScale: number } {
+export function weightsInUse(): { fitted: boolean; eloScale: number; finishFitted: boolean } {
   const r = activeWeights().rating / DEFAULT_WEIGHTS.rating;
-  return { fitted: Math.abs(r - 1) > 0.01, eloScale: r };
+  return { fitted: Math.abs(r - 1) > 0.01, eloScale: r, finishFitted: activeFinish() !== null };
 }

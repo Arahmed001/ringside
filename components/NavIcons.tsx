@@ -2,6 +2,7 @@ import type { IconName } from "@/lib/nav";
 
 /** Plain 24-px stroke icons, drawn for this site, decorative (the text label names the link). */
 const PATHS: Record<IconName | "menu" | "close" | "chevron", React.ReactNode> = {
+  ask: <path d="M4 5h16v11H9l-5 4V5zM8 9h8M8 12h5" />,
   rankings: <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" />,
   titles: <path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z" />,
   "all-time": <path d="M6 3h12M6 21h12M7 3v4l5 5-5 5v4M17 3v4l-5 5 5 5v4" />,

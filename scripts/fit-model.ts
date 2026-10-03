@@ -16,6 +16,13 @@ async function main() {
   for (const [k, v] of [["plain Elo (nothing fitted)", m.baseline], ["Elo refit", m.eloOnly], ["all features", m.full], ["selected features", m.selected]] as const) console.log(`  ${k.padEnd(28)} ${v.logLoss.toFixed(4)}   accuracy ${pct(v.accuracy)}   brier ${v.brier.toFixed(4)}`);
   console.log(`\nrecommended: ${r.recommended}`);
   console.log("calibration of the recommended model (held-out):"); for (const c of r.calibration) console.log(`  predicted ${c.bucket.padEnd(9)} n=${String(c.n).padStart(4)}  said ${pct(c.predicted)}  happened ${pct(c.actual)}`);
+  const f = r.finish;
+  if (f) {
+    console.log(`\nearly-finish estimate (${f.rows.train} train + ${f.rows.test} held-out; ${pct(f.observed.test)} of held-out fights ended by stoppage):`);
+    console.log(`  fitted: logit = ${f.coef.intercept.toFixed(3)} ${f.coef.koRate >= 0 ? "+" : "-"} ${Math.abs(f.coef.koRate).toFixed(3)}·(both KO rates) ${f.coef.koLoss >= 0 ? "+" : "-"} ${Math.abs(f.coef.koLoss).toFixed(3)}·(both KO-loss rates)`);
+    for (const [k, v] of [["base rate only", f.test.constant], ["hand-set rule", f.test.heuristic], ["fitted", f.test.fitted]] as const) console.log(`  ${k.padEnd(16)} log-loss ${v.logLoss.toFixed(4)}   brier ${v.brier.toFixed(4)}   said ${pct(v.predicted)} on average, happened ${pct(v.observed)}`);
+    console.log(`  recommended: ${f.recommended === "fitted" ? "fitted (applied to every finish estimate)" : "hand-set rule (the fit does not beat it by enough)"}`);
+  } else console.log("\nearly-finish estimate: too few bouts to fit");
   fs.mkdirSync(path.join(process.cwd(), "data"), { recursive: true });
   fs.writeFileSync(path.join(process.cwd(), "data", "model-fit.json"), JSON.stringify(r, null, 2));
   console.log("\nwrote data/model-fit.json");

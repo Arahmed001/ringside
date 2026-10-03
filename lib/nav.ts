@@ -1,7 +1,7 @@
 import { msg } from "./i18n/t";
 
 export type IconName =
-  | "rankings" | "titles" | "all-time" | "fighters" | "events" | "previews" | "fight-of-the-year" | "matchups" | "matchmaking" | "picks"
+  | "ask" | "rankings" | "titles" | "all-time" | "fighters" | "events" | "previews" | "fight-of-the-year" | "matchups" | "matchmaking" | "picks"
   | "upset-watch" | "trainers" | "corners" | "orgs" | "weigh-ins" | "money" | "accountability" | "analytics" | "style-map" | "data";
 
 export interface NavItem { href: string; label: string; icon: IconName }
@@ -10,6 +10,7 @@ export interface NavGroup { id: string; title: string; items: NavItem[] }
 /** The site's sections, grouped. Labels and titles go through t(); the `msg` marks are what the translation scanner sees. */
 export const NAV_GROUPS: NavGroup[] = [
   { id: "discover", title: msg("Discover"), items: [
+    { href: "/ask", label: msg("Ask the data"), icon: "ask" },
     { href: "/rankings", label: msg("Rankings"), icon: "rankings" },
     { href: "/titles", label: msg("Titles"), icon: "titles" },
     { href: "/all-time", label: msg("All-time"), icon: "all-time" },
