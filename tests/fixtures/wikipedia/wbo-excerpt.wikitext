@@ -1,0 +1,506 @@
+{{Short description|None}}
+{{Use dmy dates|date=December 2019}}
+This is a '''list of WBO world champions''', showing every world champion certified by the [[World Boxing Organization]] (WBO). The WBO is one of the four major governing bodies in [[professional boxing]], and has awarded world championships in 17 different [[weight class (boxing)|weight classes]] since 1989.
+
+Boxers who won the title but were stripped due to the title bout being overturned to a [[no contest (combat sports)|no contest]] are not listed.
+
+{|class="wikitable"
+|-
+|style="background:#7CB9E8;" width=5px| ||Current champion
+|-
+|style="background:#ffffbf;" width=5px| ||Most consecutive title defenses
+|-
+|}
+
+==Heavyweight==
+{| class="wikitable sortable" style="width:80%;"
+!No.
+!Name
+!Reign
+!Defenses
+|-align=center
+!1
+|align=left | [[Francesco Damiani]]<br/>({{small|def. [[Johnny du Plooy]]}})
+|6 May 1989 – 11 Jan 1991
+|1
+|-align=center
+!2
+|align=left | [[Ray Mercer]]
+|11 Jan – 28 Dec 1991
+|1
+|-align=center
+! colspan="4" |{{small|Mercer was stripped of the title in December 1991 for signing for a bout against [[Larry Holmes]] instead of [[mandatory challenger]] Michael Moorer.<ref>{{cite news |last=<!--Staff writer(s); no by-line.--> |date=28 December 1991 |title=Mercer stripped of title |url=https://www.newspapers.com/image/424066725/ |work=The Gazette |location=Montréal, Québec, Canada |access-date=5 July 2019 |via=Newspapers.com |url-access=subscription }}</ref>}}
+|-align=center
+!3
+|align=left | [[Michael Moorer]]<br/>({{small|def. [[Bert Cooper]]}})
+|15 May 1992 – 8 Feb 1993
+|0
+|-align=center
+! colspan="4" |{{small|Moorer vacated the title so that he could be ranked by other sanctioning bodies.<ref>{{cite news|date=9 February 1993|work=The News Journal|title=Bowe must face legitimate challengers now
+|url=https://www.newspapers.com/newspage/158667993/|location=Wilmington, Delaware|access-date=9 November 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-align=center
+!4
+|align=left | [[Tommy Morrison]]<br/>({{small|def. [[George Foreman]]}})
+|7 Jun – 29 Oct 1993
+|1
+|-align=center
+!5
+|align=left | [[Michael Bentt]]
+|29 Oct 1993 – 19 Mar 1994
+|0
+|-align=center
+!6
+|align=left | [[Herbie Hide]]
+|19 Mar 1994 – 11 Mar 1995
+|0
+|-align=center
+!7
+|align=left | [[Riddick Bowe]]
+|11 Mar 1995 – 5 May 1996
+|1
+|-align=center
+! colspan="4" |{{small|Bowe was stripped of the title when he rejected Don King's purse offer.<ref>{{cite news|date=5 May 1996|work=The Boston Globe|title=Incentive may solve bulk of the problem
+|url=https://www.newspapers.com/newspage/441075818/ |location=Boston, Massachusetts|access-date=9 November 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-align=center
+!8
+|align=left | [[Henry Akinwande]]<br/>({{small|def. [[Jeremy Williams (boxer)|Jeremy Williams]]}})
+|29 Jun 1996 – 29 Jan 1997
+|2
+|-align=center
+! colspan="4" |{{small|Akinwande vacated the title at the request of the [[World Boxing Council|WBC]] to become the mandatory challenger of the upcoming fight between [[Lennox Lewis]] and [[Oliver McCall]] for the vacant belt.<ref>{{cite news |last=Murraine |first=St. Clair |date=30 January 1997 |title=Akinwande tosses belt to pursue bigger title |url=https://www.newspapers.com/image/247319561/ |work=Tallahassee Democrat |location=Tallahassee, Florida |access-date=9 July 2019 |via=Newspapers.com |url-access=subscription }}</ref>}}
+|-align=center
+!9
+|align=left |  Herbie Hide (2)<br/>({{small|def. Tony Tucker}})
+|28 Jun 1997 – 26 Jun 1999
+|2
+|-align=center
+!10
+|align=left | [[Vitali Klitschko]]
+|26 Jun 1999 – 1 Apr 2000
+|2
+|-align=center
+!11
+|align=left | [[Chris Byrd]]
+|1 Apr – 14 Oct 2000
+|0
+|-align=center
+!12
+|align=left | [[Wladimir Klitschko]]
+|14 Oct 2000 – 8 Mar 2003
+|5
+|-align=center
+!13
+|align=left | [[Corrie Sanders]]
+|8 Mar – 7 Oct 2003
+|0
+|-align=center
+! colspan="4" |{{small|Sanders vacated the title to sign with Don King.<ref>{{cite news |author=|date=7 October 2003 |title=Sanders relinquishes WBO title!|url=http://www.eastsideboxing.com/boxing-news/sanders0710.php|url-status=dead |work=Eastside Boxing |archive-url=https://web.archive.org/web/20031009021730/http://www.eastsideboxing.com/boxing-news/sanders0710.php|access-date=3 September 2022|archive-date=9 October 2003}}</ref>}}
+|-align=center
+!14
+|align=left | [[Lamon Brewster]]<br/>({{small|def. [[Wladimir Klitschko]]}})
+|10 Apr 2004 – 1 Apr 2006
+|3
+|-align=center
+!15
+|align=left | [[Siarhei Liakhovich]]
+|1 Apr – 4 Nov 2006
+|0
+|-align=center
+!16
+|align=left | [[Shannon Briggs]]
+|4 Nov 2006 – 2 Jun 2007
+|0
+|-align=center
+!17
+|align=left | [[Sultan Ibragimov]]
+|2 Jun 2007 – 23 Feb 2008 
+|1
+|-align=center
+!18
+|align=left |  Wladimir Klitschko (2)
+|23 Feb 2008 – 28 Nov 2015
+|style="background:#ffffbf;"|14
+|-align=center
+!19
+|align=left | [[Tyson Fury]]
+|28 Nov 2015 – 12 Oct 2016
+|0
+|-align=center
+! colspan="4" |{{small|Fury, who had previously withdrawn from a rematch against Wladimir Klitschko before testing positive in a Voluntary Anti-Doping Association (VADA) test for cocaine on 29 September, vacated the title on 12 October 2016 after testing positive a second time, citing his need to focus on treatment for depression.<ref>{{cite news |last=Rafael |first=Dan |date=13 October 2016 |title=Tyson Fury vacates heavyweight belts amid treatment for depression |url=https://www.espn.com/boxing/story/_/id/17781768/tyson-fury-vacates-heavyweight-belts-amid-treatment-depression |url-status=live |work=ESPN |archive-url=https://web.archive.org/web/20190216161323/https://www.espn.com/boxing/story/_/id/17781768/tyson-fury-vacates-heavyweight-belts-amid-treatment-depression |archive-date=16 February 2019 |access-date=5 July 2019}}</ref>}}
+|-align=center
+!20
+|align=left | [[Joseph Parker]]<br/>({{small|def. [[Andy Ruiz Jr.]]}})
+|10 Dec 2016 – 31 Mar 2018
+|2
+|-align=center
+!21
+|align=left | [[Anthony Joshua]]
+|31 Mar 2018 – 1 Jun 2019
+|1
+|-align=center
+!22
+|align=left | [[Andy Ruiz Jr.]]
+|1 Jun – 7 Dec 2019
+|0
+|-align=center
+!23
+|align=left |  Anthony Joshua (2)
+|7 Dec 2019 – 25 Sep 2021
+|1
+|- align=center
+!24
+|align=left | [[Oleksandr Usyk]]
+|25 Sep 2021 – 17 Nov 2025
+|5
+|-align=center
+! colspan="4" |{{small|Usyk vacated the title.<ref>{{cite news |author=|date=17 November 2025 |title=Oleksandr Usyk relinquishes WBO heavyweight title after being told to defend against Fabio Wardley|url=https://www.skysports.com/boxing/news/12183/13471799/oleksandr-usyk-relinquishes-wbo-heavyweight-title-after-being-told-to-defend-against-fabio-wardley|url-status=live |work=Sky Sports |archive-url= https://web.archive.org/web/20251117195251/https://www.skysports.com/boxing/news/12183/13471799/oleksandr-usyk-relinquishes-wbo-heavyweight-title-after-being-told-to-defend-against-fabio-wardley |archive-date=17 November 2025 |access-date=17 November 2025}}</ref>}}
+|- align=center
+!25
+|align=left | [[Fabio Wardley]]<br/>({{small|interim champion promoted}})
+|17 Nov 2025 – 9 May 2026
+|0
+|- align=center
+!26
+|align=left | [[Daniel Dubois]]
+|style="background:#7CB9E8;"|9 May 2026 – present
+|0
+|}
+
+==Middleweight==
+{| class="wikitable sortable" style="width:80%;"
+!No.
+!Name
+!Reign
+!Defenses
+|-align=center
+!1
+|align=left | [[Doug DeWitt]]<br/>({{small|def. [[Robbie Sims]]}})
+|18 Apr 1989 – 29 Apr 1990
+|1
+|-align=center
+!2
+|align=left | [[Nigel Benn]]
+|29 Apr – 18 Nov 1990
+|1
+|-align=center
+!3
+|align=left | [[Chris Eubank]]
+|18 Nov 1990 – 17 Jul 1991
+|3
+|-align=center
+! colspan="4" |{{small|Eubank was expected to move up to super middleweight,<ref>{{cite news|date=16 July 1991|work=Evening Standard|title=Eubank fight put back
+|url=https://www.newspapers.com/newspage/724659554/ |location=London, Greater London|access-date=9 November 2021| via=Newspapers.com |url-access=subscription }}</ref> the title was then reportedly vacated 1 day after.<ref>{{cite news|date=17 July 1991|work=Evening Standard|title=Hearn is making plans for Nigel
+|url=https://www.newspapers.com/newspage/724660397/ |location=London, Greater London|access-date=9 November 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-align=center
+!4
+|align=left | [[Gerald McClellan]]<br/>({{small|def. [[John Mugabi]]}})
+|20 Nov 1991 – 2 Apr 1993
+|0
+|-align=center
+! colspan="4" |{{small|McClellan vacated the title to move up to super middleweight.<ref>{{cite news|date=2 April 1993|work=The Philadelphia Inquirer|title=Kalambay to fight Pyatt for the vacant WBO title 
+|url=https://www.newspapers.com/newspage/177758302/ |location=Philadelphia, Pennsylvania|access-date=9 November 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-align=center
+!5
+|align=left | [[Chris Pyatt]]<br/>({{small|def. [[Sumbu Kalambay]]}})
+|19 May 1993 – 11 May 1994
+|2
+|-align=center
+!6
+|align=left | [[Steve Collins]]
+|11 May 1994 – 22 Apr 1995
+|0
+|-align=center
+! colspan="4" |{{small|Collins vacated the title to stay super middleweight.<ref>{{cite news|date=22 April 1995|work=Daily News|title=George eyes next cupcake
+|url=https://www.newspapers.com/newspage/476039900/ |location=New York, New York|access-date=9 November 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-align=center
+!7
+|align=left | [[Lonnie Bradley]]<br/>({{small|def. David Mendez}})
+|19 May 1995 – 7 Nov 1997
+|style="background:#ffffbf;"|6
+|-align=center
+! colspan="4" |{{small|Rhodes and Grant was supposedly going to fight for the interim title because of Bradley's injury,<ref>{{cite news|date=30 October 1997|work=The Gazette|title=Boxer Grant gets shot at world title
+|url=https://www.newspapers.com/newspage/424803443/ |location=Montreal, Quebec|access-date=11 November 2021| via=Newspapers.com |url-access=subscription }}</ref> but was later changed to the vacant title.<ref>{{cite news|date=7 November 1997|work=The Guardian|title=Ryan Rhodes will meet Canada's Otis Grant for the vacant WBO middleweight title at the Ponds Forge Leisure Centre in Rhodes's home town of Sheffield on December 1
+|url=https://www.newspapers.com/newspage/260887827/ |location=London, Greater London|access-date=11 November 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-align=center
+!8
+|align=left | [[Otis Grant]]<br/>({{small|def. [[Ryan Rhodes]]}})
+|13 Dec 1997 – 14 Nov 1998
+|1
+|-align=center
+! colspan="4" |{{small|Grant vacated the title to move up to light heavyweight and challenge [[Roy Jones Jr.]]<ref>{{cite news |last=Katz |first=Michael |date=16 November 1998 |title=As Jones fizzles, Mosley sizzles |url=https://www.newspapers.com/image/478621424/ |work=Daily News |location=New York, New York |access-date=6 July 2019 |via=Newspapers.com |url-access=subscription }}</ref>}}
+|-align=center
+!9
+|align=left | [[Bert Schenk]]<br/>({{small|def. [[Freeman Barr]]}})
+|30 Jan – 14 Jul 1999
+|1
+|-align=center
+! colspan="4" |{{small|Schenk vacated the title due to acute [[lumbago]].<ref>{{cite news|date=14 July 1999|work=El Nuevo Herald|title=Schenk deja vacante el titulo mediano OMB |language=Spanish
+|url=https://www.newspapers.com/newspage/617534899/ |location=Miami, Florida|access-date=11 November 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|-align=center
+!10
+|align=left | [[Jason Matthews (boxer)|Jason Matthews]]<br/>({{small|def. Ryan Rhodes}})
+|17 Jul – 27 Nov 1999
+|0
+|-align=center
+!11
+|align=left | [[Armand Krajnc]]
+|27 Nov 1999 – 6 Apr 2002
+|3
+|-align=center
+! colspan="4" |{{small|Krajnc vacated the title on 4 June 2001, while in a dispute with Universum Box-Promotion. However the WBO unanimously voted on 17 September 2001 that Krajnc had remained WBO champion throughout the dispute.}}
+|-align=center
+!12
+|align=left | [[Harry Simon (boxer)|Harry Simon]]
+|6 Apr 2002 – 8 Jul 2003
+|0
+|-align=center
+! colspan="4" |{{small|Simon was involved in a car accident<ref>{{cite news|date=26 December 2002|work=Tallahassee Democrat|title=Boxing champ Harry Simon charged with culpable homicide after car accident
+|url=https://www.newspapers.com/newspage/249971700/ |location=Tallahassee, Florida|access-date=11 November 2021| via=Newspapers.com |url-access=subscription }}</ref> and was sidelined for 8 months resulting in being stripped of the title.<ref>{{cite news |last=Ihuhua |first=Corry |date=8 July 2003 |title= Velasco takes Harry's title|url=https://www.namibian.com.na/archive19982004/2003/June/sport/03E060CB52.html  |url-status=live |work=The Namibian |archive-url=https://web.archive.org/web/20211111091346/https://www.namibian.com.na/archive19982004/2003/June/sport/03E060CB52.html |archive-date=11 November 2021 |access-date=11 November 2021}}</ref>}}
+|- align="center"
+!13
+| align="left" | [[Héctor Javier Velazco|Héctor Velazco]]<br />({{small|interim champion promoted}})
+|8 Jul – 13 Sep 2003
+|0
+|- align="center"
+!14
+| align="left" | [[Felix Sturm]]
+|13 Sep 2003 – 5 Jun 2004
+|1
+|- align="center"
+!15
+| align="left" | [[Oscar De La Hoya]]
+|5 Jun – 18 Sep 2004
+|0
+|- align="center"
+!16
+| align="left" | [[Bernard Hopkins]]
+|18 Sep 2004 – 16 Jul 2005
+|1
+|- align="center"
+!17
+| align="left" | [[Jermain Taylor]]
+|16 Jul 2005 – 29 Sep 2007
+|3
+|- align="center"
+!18
+| align="left" | [[Kelly Pavlik]]
+|29 Sep 2007 – 17 Apr 2010
+|3
+|- align="center"
+!19
+| align="left" | [[Sergio Martínez (boxer)|Sergio Martínez]]
+|17 Apr – 29 May 2010
+|0
+|- align="center"
+! colspan="4" |{{small|Martínez, who held the WBC junior middleweight title at that time, was stripped of the WBO middleweight title because he missed the WBO's deadline to decide on which weight class he would continue to fight in.<ref>{{cite news |last=Rafael |first=Dan |date=1 June 2010 |title=WBO strips Martinez of title
+|url=https://www.espn.com/sports/boxing/news/story?id=5238745 |url-status=live |work=ESPN |archive-url=https://web.archive.org/web/20180929000656/https://www.espn.com/sports/boxing/news/story?id=5238745 |archive-date=29 September 2018 |access-date=4 July 2019}}</ref>}}
+|- align="center"
+!20
+| align="left" | [[Dmitry Pirog]]<br />({{small|def. [[Daniel Jacobs (boxer)|Daniel Jacobs]]}})
+|31 Jul 2010 – 25 Aug 2012
+|3
+|- align="center"
+! colspan="4" |{{small|Pirog is stripped of title for choosing to fight [[Gennady Golovkin]] instead of mandatory challenger [[Hassan N'Dam N'Jikam]].<ref>{{cite news|last=Stangrit |first=Gregory|date=3 September 2012|title= Dmitry Pirog Not Surprised WBO Took Away His Title|url= https://www.boxingscene.com/dmitry-pirog-not-surprised-wbo-took-away-his-title--56666|work=Boxingscene|url-status=live|archive-url= https://archive.today/20210807093535/https://www.boxingscene.com/dmitry-pirog-not-surprised-wbo-took-away-his-title--56666|archive-date=7 August 2021|access-date=7 August 2021}}</ref>}}
+|- align="center"
+!21
+| align="left" | [[Hassan N'Dam N'Jikam]]<br />({{small|interim champion promoted}})
+|25 Aug – 20 Oct 2012
+|0
+|- align="center"
+!22
+| align="left" | [[Peter Quillin]]
+|20 Oct 2012 – 4 Sep 2014
+|3
+|- align="center"
+! colspan="4" |{{small|Quillin vacated the title after pulling out of his scheduled bout against mandatory challenger [[Matt Korobov]].<ref>{{cite news |last=Fischer |first=Doug |date=4 September 2014 |title=Peter Quillin vacates WBO title, pulls out of Matt Korobov fight |url=https://www.ringtv.com/354741-peter-quillin-vacates-wbo-title-pulls-out-of-matt-korobov-fight/ |url-status=live |work=The Ring |archive-url=https://web.archive.org/web/20190704170831/https://www.ringtv.com/354741-peter-quillin-vacates-wbo-title-pulls-out-of-matt-korobov-fight/ |archive-date=4 July 2019 |access-date=4 July 2019}}</ref>}}
+|- align="center"
+!23
+| align="left" | [[Andy Lee (boxer)|Andy Lee]]<br />({{small|def. [[Matt Korobov]]}})
+|13 Dec 2014 – 19 Dec 2015
+|0
+|- align="center"
+!24
+| align="left" | [[Billy Joe Saunders]]
+|19 Dec 2015 – 11 Oct 2018
+|3
+|- align="center"
+! colspan="4" |{{small|Saunders tested positive for the banned stimulant oxilofrine before his bout against mandatory challenger Demetrius Andrade and vacated the title citing his lack of time to appeal.<ref>{{cite news |last=Rafael |first=Dan |date=11 October 2018 |title=Billy Joe Saunders vacates 160-pound title after positive doping test |url=https://www.espn.com/boxing/story/_/id/24959331/billy-joe-saunders-vacates-160-pound-title-positive-doping-test |url-status=live |work=ESPN |archive-url=https://web.archive.org/web/20190409184957/https://www.espn.com/boxing/story/_/id/24959331/billy-joe-saunders-vacates-160-pound-title-positive-doping-test |archive-date=9 April 2019 |access-date=4 July 2019}}</ref>}}
+|- align="center"
+!25
+| align="left" | [[Demetrius Andrade]]<br />({{small|def. Walter Kautondokwa}})
+|20 Oct 2018 – 26 Aug 2022
+|5
+|-align=center
+!colspan="4" |{{small|Andrade vacated the title to move up to super middleweight.<ref>{{cite news |author=WBO |date=26 August 2022 |title=WBO CHAMPIONSHIP COMMITTEE RESOLUTION: In the Matter of the WBO Middleweight Division |url=https://docs.google.com/viewerng/viewer?url=https://wboboxing.com/wp-content/uploads/2022/08/220826-CC-Resolution-Middleweight-Division.pdf|url-status=live |work=WBO |archive-url=https://archive.today/20220904032041/https://docs.google.com/viewerng/viewer?url=https://wboboxing.com/wp-content/uploads/2022/08/220826-CC-Resolution-Middleweight-Division.pdf|archive-date=4 September 2022 |access-date=29 August 2022}}</ref>}}
+|- align="center"
+!26
+| align="left" | [[Janibek Alimkhanuly]]<br />({{small|interim champion promoted}})
+|26 Aug 2022 – 20 Jul 2026
+|4
+|-align=center
+!colspan="4" |{{small|Alimkhanuly vacated the title to move up to super middleweight.<ref>{{cite news |last=Themistode|first=Hans|date=20 July 2026 |title=Janibek Alimkhanuly is joining the super middleweight picture|work=The Ring|archive-url=https://web.archive.org/web/20260721031956/https://www.ringmagazine.com/news/janibek-heads-to-168-bentley-elevated-to-full-wbo-160-pound-champion-6hgw2GRJUBT39SiNmQUVH2|url=https://www.ringmagazine.com/news/janibek-heads-to-168-bentley-elevated-to-full-wbo-160-pound-champion-6hgw2GRJUBT39SiNmQUVH2|archive-date=21 July 2026|access-date=21 July 2026}}</ref>}}
+|- align="center"
+!27
+| align="left" |[[Denzel Bentley]]<br />({{small|interim champion promoted}})
+|style="background:#7CB9E8;"|20 Jul 2026 – Present
+|0
+|}
+
+==Mini flyweight==
+{| class="wikitable sortable" style="width:80%;"
+!No.
+!Name
+!Reign
+!Defenses
+|-align=center
+!1
+|align=left | [[Rafael Torres (boxer)|Rafael Torres]]<br/>({{small|def. Yamil Caraballo}})
+|30 Aug 1989 – 1993
+|1
+|-align=center
+! colspan="4" |{{small|Torres vacates the title.}}
+|-align=center 
+!2
+|align=left | [[Paul Weir]]<br/>({{small|def. Fernando Martínez}})
+|15 May – 16 Dec 1993
+|1
+|-align=center
+! colspan="4" |{{small|Weir vacates the title to move up in weight and challenge [[Josué Camacho]] for a junior flyweight world title.<ref>{{cite news |last=<!--Staff writer(s); no by-line.--> |date=16 December 1993 |title=Weir gives up WBO title |url=https://www.newspapers.com/image/97620264/ |work=Detroit Free Press |location=Detroit, Michigan |access-date=13 July 2019 |via=Newspapers.com |url-access=subscription }}</ref>}}
+|-align=center
+!4
+|align=left | [[Alex Sánchez (boxer)|Alex Sánchez]]<br/>({{small|def. [[Orlando Malone]]}})
+|22 Dec 1993 – 23 Aug 1997
+|6
+|-align=center
+!4
+|align=left | [[Ricardo López (boxer)|Ricardo López]]
+|23 Aug – Aug 1997
+|0
+|-align=center
+! colspan="4" |{{small|After winning the title, López was stripped of the title after he stated that he would give the championship belt to his father. The WBO president at that time deemed it as a "public resignation".<ref>{{cite news |title=Accomplished boxer gives WBO belt to dad, loses title
+|url=https://www.newspapers.com/newspage/340752483/ |work=The Dispatch|location=Moline, Illinois  |date=20 December 1997 |access-date=18 November 2021 |via=Newspapers.com |url-access=subscription}}</ref>}}
+|-align=center
+!5
+|align=left | [[Eric Jamili]]<br/>({{small|def. [[Mickey Cantwell]]}})
+|19 Dec 1997 – 30 May 1998
+|0
+|-align=center
+!6
+|align=left | [[Kermin Guardia]]
+|30 May 1998 – 2001
+|3
+|-align=center
+! colspan="4" |{{small|Guardia vacates the title to move up to junior flyweight.}}
+|-align=center
+!7
+|align=left | [[Jorge Mata]]<br/>({{small|def. Reynaldo Frutos}})
+|29 Jun 2002 – 28 Mar 2003
+|1
+|-align=center
+!8
+|align=left | [[Eduardo Ray Márquez]]
+|28 Mar – 3 May 2003
+|0
+|-align=center
+!9
+|align=left | [[Iván Calderón (boxer)|Iván Calderón]]
+|3 May 2003 – 25 Aug 2007
+|style="background:#ffffbf;"|11
+|-align=center
+! colspan="4" |{{small|Calderón's title is vacated when he won the WBO junior flyweight title.}}
+|-align=center
+!10
+|align=left | [[Donnie Nietes]]<br/>({{small|def. [[Pornsawan Porpramook]]}})
+|30 Sep 2007 – 28 Feb 2011
+|4
+|-align=center
+! colspan="4" |{{small|Nietes vacates the title to move up in weight and challenge Ramón García Hirales for the WBO junior flyweight title.<ref>{{cite news |last=Aznar |first=Edri |date=28 February 2011 |title=Nietes chases another dream|url= http://www.sunstar.com.ph/cebu/sports/2011/02/28/nietes-chases-another-dream-142327|url-status=dead |work=Sunstar|archive-url= https://web.archive.org/web/20110302233340/http://www.sunstar.com.ph/cebu/sports/2011/02/28/nietes-chases-another-dream-142327 |archive-date=2 March 2011 |access-date=21 August 2021}}</ref>}}
+|-align=center
+!11
+|align=left | [[Raúl García (boxer)|Raúl García]]<br/>({{small|interim champion promoted}})
+|28 Feb – 27 Aug 2011
+|1
+|-align=center
+!12
+|align=left | [[Moisés Fuentes]]
+|27 Aug 2011 – 19 Apr 2013
+|2
+|-align=center
+! colspan="4" |{{small|Fuentes vacates the title to move up to junior flyweight.<ref>{{cite news |last=Secuya |first=Dong |date=19 April 2013 |title=WBO declares Merlito Sabillo as the new mini-flyweight champion|url= http://philboxing.com/news/story-82512.html|url-status=live |work=Philboxing|archive-url= https://web.archive.org/web/20130527074216/http://philboxing.com/news/story-82512.html |archive-date=27 May 2013 |access-date=21 August 2021}}</ref>}}
+|-align=center
+!13
+|align=left | [[Merlito Sabillo]]<br/>({{small|interim champion promoted}})
+|19 Apr 2013 – 22 Mar 2014
+|2
+|-align=center
+!14
+|align=left | [[Francisco Rodríguez Jr.]]
+|22 Mar – 15 Dec 2014
+|1
+|-align=center
+! colspan="4" |{{small|Rodríguez intends to move in weight class. The title is vacated on WBO's December 2014 rankings.<ref>{{cite web
+|url=http://www.wboboxing.com/wp-content/uploads/2014/12/WBO-Ranking-as-of-Dec-Sheet11.pdf
+|title=Rankings as of Dec. 15, 2014
+|publisher=WBO
+|access-date=28 September 2021}}</ref>}}
+|-align=center
+!15
+|align=left | [[Katsunari Takayama]]<br/>({{small|def. Go Odaira}})
+|31 Dec 2014 – 3 Mar 2015
+|0
+|-align=center
+! colspan="4" |{{small|Takayama vacates his WBO title to skip his mandatory challenger in favor of a fight with former champion Fahlan Sakkreerin.<ref>{{cite news |last=Secuya |first=Dong |date=3 March 2015 |title=Katsunari Takayama vacates WBO title, will defend IBF belt on April 22nd as part of Ioka card!|url= https://www.asianboxing.info/asian-news/katsunari-takayama-vacates-wbo-title-will-defend-ibf-belt-on-april-22nd-as-part-of-ioka-card|url-status=live |work=Asianboxing|archive-url= https://web.archive.org/web/20201108115137/https://www.asianboxing.info/asian-news/katsunari-takayama-vacates-wbo-title-will-defend-ibf-belt-on-april-22nd-as-part-of-ioka-card|archive-date=8 November 2020 |access-date=21 August 2021}}</ref>}}
+|-align=center
+!16
+|align=left | [[Kosei Tanaka]]<br/>({{small|def. Julián Yedras}})
+|30 May 2015 – 7 Apr 2016
+|1
+|-align=center
+! colspan="4" |{{small|Tanaka vacates the title to move up to junior flyweight.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=7 April 2016 |title=田中恒成がミニマム級王座返上、年内2階級制覇へ
+|url=http://boxingnews.jp/news/36244/|url-status=live |language=Japanese|work=Boxingnews|archive-url= https://web.archive.org/web/20201022061405/http://boxingnews.jp/news/36244/|archive-date=22 October 2020 |access-date=3 August 2021}}</ref>}}
+|-align=center
+!17
+|align=left |  Katsunari Takayama (2)<br/>({{small|def. [[Riku Kano]]}})
+|20 Aug 2016 – 3 Apr 2017
+|0
+|-align=center
+! colspan="4" |{{small|Takayama retired from professional boxing in order to concentrate on training for the [[2020 Summer Olympics]].<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=3 April 2017 |title=高山、引退で五輪挑戦へ ＷＢＯミニマム級王者
+|url= https://www.sankei.com/smp/photo/daily/news/170403/dly1704030015-s.html|url-status=live |language=Japanese|work=[[Sankei Shimbun]]|archive-url= https://web.archive.org/web/20210821015226/https://www.sankei.com/smp/photo/daily/news/170403/dly1704030015-s.html|archive-date=21 August 2021|access-date=21 August 2021}}</ref> Interim champion Fukura is later promoted to full champion.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=14 April 2017 |title=福原辰弥がWBO正規王者に昇格へ、高山勝成の引退で
+|url= http://boxingnews.jp/news/46599/ |url-status=live |language=Japanese|work=Boxingnews|archive-url= https://web.archive.org/web/20180703052125/http://boxingnews.jp/news/46599/|archive-date=3 July 2018|access-date=21 August 2021}}</ref>}}
+|-align=center
+!18
+|align=left | [[Tatsuya Fukuhara]]<br/>({{small|interim champion promoted}})
+|14 Apr – 27 Aug 2017
+|0
+|-align=center
+!19
+|align=left | [[Ryuya Yamanaka]]
+|27 Aug 2017 – 13 Jul 2018
+|1
+|-align=center
+!20
+|align=left | [[Vic Saludar]]
+|13 Jul 2018 – 24 Aug 2019
+|1
+|-align=center
+!21
+|align=left | [[Wilfredo Méndez]]
+|24 Aug 2019 – 14 Dec 2021
+|2
+|-align=center
+!22
+|align=left | [[Masataka Taniguchi]]
+|14 Dec 2021 – 6 Jan 2023
+|1
+|-align=center
+!23
+|align=left | [[Melvin Jerusalem]]
+|6 Jan – 27 May 2023
+|0
+|- align=center
+!24
+|align=left | [[Oscar Collazo (boxer)|Oscar Collazo]]
+|style="background:#7CB9E8;"|27 May 2023 – present
+|7
+|}
+

@@ -4,7 +4,7 @@ import { applyFittedWeights } from "./model-fit";
 import { snapshotUpcomingSafe } from "./ledger";
 import { currentYear, todayIso } from "./clock";
 import { countsInRecord, isStoppage } from "./methods";
-import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, Honour, Venue, EventFinancials, EventRow, Purse, Method, Official, Org, Person, Scorecard, Status, TeamStint, WeighIn } from "./types";
+import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, Honour, TitleReign, Venue, EventFinancials, EventRow, Purse, Method, Official, Org, Person, Scorecard, Status, TeamStint, WeighIn } from "./types";
 
 /** Punches over a whole bout, one entry per fighter (in the order the rows were stored; match by `boxers`). */
 export interface PunchTotals { boxers: number[]; landed: number[]; thrown: number[]; /** rounds with their own rows; 0 when the feed only has a whole-fight total */ rounds: number }
@@ -43,6 +43,7 @@ export interface World {
   broadcastsByEvent: Map<number, Broadcast[]>;
   earningsByBoxer: Map<number, Earning[]>;
   venueOf: (e: { venue: string; city: string }) => Venue | null; // only venues verified on Wikidata
+  reignsByBoxer: Map<number, TitleReign[]>; // linked reigns only, by start
   honoursByBoxer: Map<number, Honour[]>; // hall of fame first, then awards, then titles; each by year
   /** Whole-bout punch totals, read from punch_stats the first time something asks (about 1 s at 160k bouts, so not part of the build). */
   punchTotals: () => Map<number, PunchTotals>;
@@ -194,6 +195,10 @@ function buildWorld(db: DatabaseSync, key: string): World {
     push(honoursByBoxer, r.boxer_id as number, { boxerId: r.boxer_id as number, kind: r.kind as Honour["kind"], label: r.label as string, year: n0(r.year), source: r.source as string });
   for (const list of honoursByBoxer.values()) list.sort((a, b) => (KIND_ORDER[a.kind] ?? 3) - (KIND_ORDER[b.kind] ?? 3) || (a.year ?? 9999) - (b.year ?? 9999));
 
+  const reignsByBoxer = new Map<number, TitleReign[]>();
+  for (const r of db.prepare("SELECT * FROM title_reigns WHERE boxer_id IS NOT NULL ORDER BY start_date, org, division").all() as Record<string, unknown>[])
+    push(reignsByBoxer, r.boxer_id as number, { boxerId: r.boxer_id as number, org: r.org as string, division: r.division as string, category: r.category as string, status: (r.status as string | null) ?? null, start: (r.start_date as string | null) ?? null, end: (r.end_date as string | null) ?? null, current: r.current === 1, defences: n0(r.defences), endNote: (r.end_note as string | null) ?? null, source: r.source as string });
+
   const venues = new Map<string, Venue>();
   for (const r of db.prepare("SELECT * FROM venues WHERE status = 'matched'").all() as Record<string, unknown>[])
     venues.set(`${r.name}|${r.city}`, { name: r.name as string, city: r.city as string, wikidataId: r.wikidata_id as string, label: r.label as string, lat: n0(r.lat), lon: n0(r.lon), capacity: n0(r.capacity) });
@@ -256,7 +261,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
     people, peopleBySlug: new Map([...people.values()].map((p) => [p.slug, p])), roles,
     orgs, orgsBySlug: new Map([...orgs.values()].map((o) => [o.slug, o])),
     stints, stintsByBoxer, stintsByPerson, stintsByOrg, weighInsByBout, weighInsByBoxer, officialsByBout, officialsByPerson, scorecardsByBout, cornersByBout,
-    financialsByEvent, pursesByBout, pursesByBoxer, broadcastsByEvent, earningsByBoxer, honoursByBoxer, venueOf,
+    financialsByEvent, pursesByBout, pursesByBoxer, broadcastsByEvent, earningsByBoxer, honoursByBoxer, reignsByBoxer, venueOf,
     punchTotals: () => {
       if (punchTotals) return punchTotals;
       punchTotals = new Map();

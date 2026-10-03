@@ -1,0 +1,1228 @@
+{{Short description|None}}
+{{Use mdy dates|date=April 2017}}
+This is a '''list of WBA world champions''', showing every world champion certified by the [[World Boxing Association]] (WBA). The list also includes champions certified by the National Boxing Association (NBA), the predecessor to the WBA.
+
+Boxers who won the title but were stripped due to the title bout being overturned to a [[no contest (combat sports)|no contest]] are not listed i.e. [[Evgeny Tishchenko]] won the inaugural [[bridgerweight]] title but was subsequently stripped after testing positive for banned substance.<ref>{{cite web |last=Shoffer|first=Scott |date=26 May 2024 |title=WBA issues confounding bridgerweight ruling
+|url=http://boxingtalk.com/WBA-issues-confounding-bridgerweight-ruling|url-status=dead |work=BoxingTalk|archive-url= https://web.archive.org/web/20240526132404/http://boxingtalk.com/WBA-issues-confounding-bridgerweight-ruling|archive-date=26 May 2024 |access-date=27 May 2024}}</ref>
+
+In December 2000, the WBA created an unprecedented situation of having a split championship in the same weight class by introducing a new title called ''Super world'', commonly referred to simply as ''Super''. The ''Super'' champion is the WBA's primary champion, while the ''World'' champion – commonly known as the ''Regular'' champion by boxing publications – is only considered the primary champion by the other three major sanctioning bodies ([[World Boxing Council|WBC]], [[International Boxing Federation|IBF]], and [[World Boxing Organization|WBO]]) if the ''Super'' title is vacant.
+
+A ''Unified'' champion is a boxer that holds the primary WBA title and one or two from another major sanctioning body (WBC, IBF, WBO) simultaneously. An ''Undisputed'' champion as defined by the WBA, only needs to hold three of the four major titles but in some cases they may change a ''Super'' champion into an ''Undisputed'' champion after a failed title defense (e.g. [[#Bantamweight|Anselmo Moreno losing to Juan Payano]] and [[#Featherweight|Chris John losing to Simpiwe Vetyeka]]). This is not to be confused by professional boxing's own definition of an [[undisputed championship (boxing)|undisputed champion]], in which a boxer must hold all four major titles.
+
+There are two tables per section. The primary champion lineage prioritizes the ''Super'' champions. If the ''Super'' title is vacant, then the ''Undisputed'' / ''Unified'' title is listed. If both are vacant, then the ''Regular'' title becomes the primary champion. The secondary champion lineage lists the ''Regular'' or ''Unified'' champions while the primary champion is occupied.
+
+*Every ''Super'' champion is the primary champion.
+*A ''Regular'' champion is a primary champion only if ''Super'', ''Undisputed'' and ''Unified'' is vacant.
+*A ''Unified'' champion is a primary champion only if ''Super'' is vacant.
+*Not every ''Regular'' or ''Unified'' champion gets promoted to ''Super'' if it is vacant. 
+*Not every ''Regular'' champion gets to fight for the vacant ''Super'' title.
+*A ''Regular'' or ''Unified'' champion that is considered the primary champion is relegated to secondary champion if ''Super'' gets occupied.
+
+Starting from August 2021, any new champions in the primary champion lineage will not be marked as ''Regular'', ''Unified'', ''Undisputed'' or ''Super'' because of the WBA's [[World Boxing Association#Title reduction plan|title reduction plan]].
+
+{|class="wikitable"
+|-
+|style="background:#7CB9E8;" width=5px| ||Current champion
+|-
+|style="background:#ffffbf;" width=5px| ||Most consecutive title defenses
+|}
+
+==Bridgerweight==
+{| class="wikitable sortable" style="width:80%"
+|-
+!No.
+!Name
+!Reign
+!Defenses
+|- align=center
+!1
+|align=left |[[Muslim Gadzhimagomedov]]<br>({{small|def. Zhaoxin Zhang}})
+|12 Jul 2024 – 30 Jun 2026
+|style="background:#ffffbf;"|1
+|- align=center
+! colspan="4" |{{small|WBA announced it would be discontinuing the division.<ref>{{cite news |last=Jay|first=Phil |date=20 June 2026 |title=WBA Champion Loses Title as Entire Weight Class Is Scrapped|url= https://www.worldboxingnews.com/wba-scraps-bridgerweight-world-title-loses/|url-status=live |work=World Boxing News |archive-url= https://web.archive.org/web/20260624141430/https://www.worldboxingnews.com/wba-scraps-bridgerweight-world-title-loses/|archive-date=24 June 2026|access-date=24 June 2026}}</ref> It was formally discontinued on 30 June.<ref>{{cite news |last=Milano|first=Jesus |date=30 June 2026 |title=WBA eliminates bridgerweight division effective immediately|url= https://www.wbaboxing.com/boxing-news/wba-eliminates-bridgerweight-division-effective-immediately|url-status=live |work=WBA|archive-url= https://web.archive.org/web/20260703021122/https://www.wbaboxing.com/boxing-news/wba-eliminates-bridgerweight-division-effective-immediately|archive-date=3 July 2026|access-date=3 July 2026}}</ref>}} 
+|}
+
+==Cruiserweight==
+=== Primary champion lineage ===
+{| class="wikitable sortable" style="width:80%"
+|-
+!No.
+!Name
+!Reign
+!Defenses
+|- align=center
+!1
+|align=left | [[Ossie Ocasio]]<br>({{small|def. Robbie Williams}})
+|13 Feb 1982 – 1 Dec 1984
+|3
+|- align=center
+!2
+|align=left | [[Piet Crous]]
+|1 Dec 1984 – 27 Jul 1985
+|1
+|- align=center
+!3
+|align=left | [[Dwight Muhammad Qawi]]
+|27 Jul 1985 – 12 Jul 1986
+|1
+|- align=center
+!4
+|align=left | [[Evander Holyfield]]
+|12 Jul 1986 – Dec 1988
+|style="background:#ffffbf;"|5
+|- align=center
+! colspan="4" |{{small|Holyfield vacated the title to move up to heavyweight full time.}}
+|- align=center
+!5
+|align=left | [[Taoufik Belbouli]]<br>({{small|def. Michael Greer}})
+|25 Mar – 11 Aug 1989
+|0
+|- align=center
+! colspan="4" |{{small|Belbouli was injured and was expected to be stripped on 11 August.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=28 July 1989|location=Macon, Missouri|title=Title Stripped
+|url=https://www.newspapers.com/newspage/96626412/ |work=Macon Chronicle-Herald |access-date=21 October 2021| via=Newspapers.com |url-access=subscription}}</ref>}}
+|- align=center
+!6
+|align=left | [[Robert Daniels (boxer)|Robert Daniels]]<br>({{small|def. [[Dwight Muhammad Qawi]]}})
+|27 Nov 1989 – 8 Mar 1991
+|2
+|- align=center
+!7
+|align=left | [[Bobby Czyz]]
+|8 Mar 1991 – Oct 1993
+|2
+|- align=center
+! colspan="4" |{{small|Czyz was involved in a car accident and he had to vacate the title for his inability to defend it.}}
+|- align=center
+!8
+|align=left | [[Orlin Norris]]<br>({{small|def. Marcelo Figueroa}})
+|6 Nov 1993 – 22 Jul 1995
+|4
+|- align=center
+!9
+|align=left | [[Nate Miller (boxer)|Nate Miller]]
+|22 Jul 1995 – 8 Nov 1997
+|4
+|- align=center
+!10
+|align=left | [[Fabrice Tiozzo]]
+|8 Nov 1997 – 9 Dec 2000
+|4
+|- align=center
+!11
+|align=left | [[Virgil Hill]]
+|9 Dec 2000 – 23 Feb 2002
+|0
+|- align=center
+!rowspan=3|12
+|align=left | [[Jean-Marc Mormeck]]
+|23 Feb 2002 – 2 Apr 2005
+|3
+|- align=center
+! colspan=3|{{small|Mormeck fought for the Unified title against WBC champion Wayne Braithwaite.}}
+|- align=center
+|align=left | Jean-Marc Mormeck &ndash; {{small|Unified champion}}<br>({{small|def. [[Wayne Braithwaite]]}})
+|2 Apr 2005 – 7 Jan 2006
+|0<br>(3)
+|- align=center
+!13
+|align=left | [[O'Neil Bell]]
+|7 Jan 2006 – 17 Mar 2007
+|0
+|- align=center
+!14
+|align=left | Jean-Marc Mormeck (2)
+|17 Mar – 10 Nov 2007
+|0
+|- align=center
+!rowspan=5|15
+|align=left | [[David Haye]]
+|10 Nov 2007 – 12 May 2008
+|1
+|- align=center
+! colspan=3|{{small|Status changes to Undisputed champion after winning against WBO champion Enzo Maccarinelli.}}
+|- align=center
+|align=left | David Haye &ndash; {{small|Undisputed champion}}<br>({{small|def. [[Enzo Maccarinelli]]}})
+|8 Mar – 14 May 2008 
+|0<br>(1)
+|- align=center
+! colspan=3|{{small|Status changes to Unified champion on WBA's April 2008 ratings posted on 14 May,<ref>{{cite web
+|url= https://www.wbaboxing.com/wp-content/uploads/rankings/2008-april.pdf
+|title=Official ratings as of April 2008
+|publisher=WBA
+|access-date=5 August 2021}}</ref> just days after vacating his WBC title.}}
+|- align=center
+|align=left | David Haye &ndash; {{small|Unified champion}}
+|14 May – 19 Jun 2008
+|0<br>(1)
+|- align=center
+! colspan="4" |{{small|Haye intends to move up to heavyweight. The title is vacated on WBA's May 2008 official ratings posted on 19 June.<ref>{{cite web
+|url=https://www.wbaboxing.com/wp-content/uploads/rankings/2008-may.pdf
+|title=Official ratings as of May 2008
+|publisher=WBA
+|access-date=27 August 2021}}</ref>}}
+|- align=center
+!16
+|align=left | [[Firat Arslan]] &ndash; {{small|Regular champion}}<br>({{small|Primary champion vacant}})
+|19 Jun – 27 Sep 2008
+|0<br />
+|- align=center
+!17
+|align=left | [[Guillermo Jones]]
+|27 Sep 2008 – 30 Oct 2012
+|2
+|- align=center
+! colspan="4" |{{small|Jones was declared champion in recess.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=30 October 2012 |title=Guillermo Jones stripped of WBA title, Levedev new champion |url=https://www.eurosport.com/boxing/guillermo-jones-stripped-of-wba-title-lebedev-new-champion_sto3475524/story.shtml |url-status=dead |work=Eurosport |archive-url=https://web.archive.org/web/20210703154031/https://www.eurosport.com/boxing/guillermo-jones-stripped-of-wba-title-lebedev-new-champion_sto3475524/story.shtml |archive-date=July 3, 2021 |access-date=3 July 2021 }}</ref>}}
+|- align=center
+!rowspan=3|18
+|align=left | [[Denis Lebedev]]<br>({{small|interim champion promoted}});<br>({{small|Primary champion vacant}})
+|30 Oct 2012 – 21 May 2016
+|4
+|- align=center
+! colspan=3|{{small|Lebedev fought for Super title against IBF champion [[Victor Emilio Ramírez|Víctor Ramírez]].}}
+|- align=center
+|align=left | Denis Lebedev &ndash;  {{small|Super champion}}<br />({{small|def. [[Victor Emilio Ramírez|Víctor Ramírez]]}})
+|21 May 2016 – 1 Feb 2018
+|style="background:#ffffbf;"|1<br>(5)
+|- align=center
+! colspan=4|{{small|WBA changed Lebedev's status to champion in recess in order to allow Yuniel Dorticos to unify his title with IBF champion [[Murat Gassiev]]. Lebedev had lost a bout against Gassiev where only the IBF title was on the line.<ref>{{cite news |last=Arias |first=Juan Francisco |date=1 February 2018 |title=The Cruiserweights Situation|url= https://www.wbaboxing.com/boxing-news/the-cruiserweights-situation#.YOCHv-TXeEc|url-status=live |work=WBA |archive-url= https://web.archive.org/web/20210613172113/https://www.wbaboxing.com/boxing-news/the-cruiserweights-situation#.YOCHv-TXeEc|archive-date=13 June 2021 |access-date=3 July 2021}}</ref>}}
+|- align=center
+!19
+|align=left | [[Yuniel Dorticos]] &ndash; {{small|Regular champion}}<br />({{small|Primary champion vacant}})
+|1 Feb – 3 Feb 2018 
+|0
+|- align=center
+! colspan="4" |{{small|Dorticos fought for Unified title against IBF champion Murat Gassiev.}}
+|- align=center
+!20
+|align=left | [[Murat Gassiev]] &ndash;  {{small|Unified champion}}<br>({{small|def. [[Yuniel Dorticos]]}})
+|3 Feb – 21 Jul 2018  
+|0
+|- align=center
+!colspan=4|{{small|Gassiev fought WBC and WBO champion Oleksandr Usyk for the Super title.}}
+|- align=center
+!21
+|align=left | [[Oleksandr Usyk]] &ndash;  {{small|Super champion}}<br>({{small|def. [[Murat Gassiev]]}})
+|21 Jul 2018 – 27 Mar 2019
+|1
+|- align=center
+! colspan="4" |{{small|Usyk vacated the title and moved up to heavyweight.<ref>{{Cite news|last=Stumberg|first=Patrick|date=27 March 2019|url= https://www.badlefthook.com/2019/3/27/18284974/usyk-officially-vacates-wba-cruiserweight-belt  |title=Usyk officially vacates WBA cruiserweight belt |work=Badlefthook|url-status=live|archive-url= https://web.archive.org/web/20210518232148/https://www.badlefthook.com/2019/3/27/18284974/usyk-officially-vacates-wba-cruiserweight-belt |archive-date=18 May 2021|access-date=24 September 2021}}</ref>}}
+|- align=center
+!22
+|align=left | [[Beibut Shumenov]] &ndash; {{small|Regular champion}}<br>({{small|Primary champion vacant}})
+|27 Mar – 31 May 2019
+|0
+|- align=center
+!colspan=4|{{small|Shumenov stripped of title after failing to meet the terms of the purse bid between him and [[Arsen Goulamirian]].<ref>{{Cite news|last=Donovan|first=Jake|date=31 May 2019|url= https://www.boxingscene.com/shumenov-stripped-title-goulamiriam-now-regular-champ--139572|title= Shumenov Stripped Of Title, Goulamiriam Now "Regular" Champ |work=Boxingscene|url-status=live|archive-url=https://archive.today/20210805101750/https://www.boxingscene.com/shumenov-stripped-title-goulamiriam-now-regular-champ--139572 |archive-date=5 August 2021|access-date=3 July 2021}}</ref>}}
+|- align=center
+!rowspan=3|23
+|align=left | [[Arsen Goulamirian]]<br>({{small|interim champion promoted}});<br>({{small|Primary champion vacant}})
+|31 May – 1 Sep 2019 
+|0
+|- align=center
+! colspan=3 |{{small|Goulamirian promoted to Super champion on WBA's August 2019 official ratings posted on 1 September.<ref>{{cite web
+|url=https://www.wbaboxing.com/wp-content/uploads/rankings/2019-august.pdf
+|title=Official ratings as of August 2019
+|publisher=WBA
+|access-date=5 August 2021}}</ref>}}
+|- align=center
+|align=left | Arsen Goulamirian &ndash; {{small|Super champion}}<br>({{small|Regular champion promoted}})
+|1 Sep 2019 – 30 Mar 2024
+|3
+|- align=center
+!rowspan=5|24
+|align=left |[[Gilberto Ramírez]]
+|30 Mar – 6 Apr 2024 
+|0
+|- align=center
+! colspan=3 |{{small|Ramirez becomes World champion in WBA's March 2024 official ratings posted on 6 April.<ref>{{cite web
+|url=https://www.wbaboxing.com/wba-ranking-pdf/2024/3
+|title=Official ratings as of March 2024
+|publisher=WBA
+|access-date=6 April 2024}}</ref>}}
+|- align=center
+|align=left | Gilberto Ramírez
+|6 Apr – 31 Oct 2024
+|0
+|- align=center
+! colspan=3 |{{small|Ramirez listed as Super champion in WBA's October 2024 official ratings posted on November 4.<ref>{{cite web
+|url=https://www.wbaboxing.com/wba-ranking-pdf/2024/10
+|title=Official ratings as of October 2024
+|publisher=WBA
+|access-date=18 November 2024}}</ref>}}
+|- align=center
+|align=left | Gilberto Ramírez &ndash; {{small|Super champion}}
+|4 Nov 2024 – 2 May 2026
+|2
+|- align=center
+!25
+|align=left | [[David Benavidez]]
+|style="background:#7CB9E8;"|2 May 2026 – present
+|0
+|}
+
+=== Secondary champion lineage ===
+{| class="wikitable sortable" style="width:80%"
+|-
+!No.
+!Name
+!Reign
+!Defenses
+|- align=center
+!1
+|align=left | [[Virgil Hill]]<br>({{small|def. [[Valery Brudov]]}})
+|27 Jan 2006 – 24 Nov 2007
+|0
+|- align=center
+!2
+|align=left | [[Firat Arslan]]
+|24 Nov 2007 – 12 May 2008
+|2
+|- align=center
+!colspan=4|{{small|Moved to primary champion due to its vacancy.}}
+|- align=center
+!3
+|align=left | [[Beibut Shumenov]]<br>({{small|def. Junior Anthony Wright}})
+|21 May 2016 – 20 Jun 2017
+|0
+|- align=center
+! colspan="4" |{{small|Shumenov vacated the title after cancelling a defense fight multiple times against [[Yuniel Dorticos]], due to an eye injury.<ref>{{cite news|last=Rafael|first=Dan|date=20 June 2017|title= Beibut Shumenov vacates secondary cruiserweight title because of eye injury|url= https://espn.com/boxing/story/_/id/19687531/beibut-shumenov-vacates-secondary-cruiserweight-title-eye-injury|url-status=live|archive-date=27 August 2021|archive-url= https://archive.today/20210827032916/https://www.espn.com/boxing/story/_/id/19687531/beibut-shumenov-vacates-secondary-cruiserweight-title-eye-injury|work=ESPN|access-date=27 August 2021}}</ref>}}
+|- align=center
+!4
+|align=left | [[Yuniel Dorticos]]<br>({{small|interim champion promoted}})
+|20 Jun 2017 – 1 Feb 2018
+|1
+|- align=center 
+! colspan="4" |{{small| Moved to primary champion due to its vacancy.}}
+|- align=center
+!5
+|align=left | Beibut Shumenov (2)<br />({{small|def. Hizni Altunkaya}})
+|7 Jul 2018 – 27 Mar 2019
+|0
+|- align=center
+! colspan="4" |{{small|Moved to primary champion due to its vacancy.}}
+|- align=center
+!6
+|align=left | Beibut Shumenov (3)<br>({{small|reinstated}})
+|1 Sep 2019 – 29 Jan 2021
+|0
+|- align=center 
+! colspan="4" |{{small|Shumenov stripped of title due to inactivity.<ref>{{cite news |last=Milano |first=Jesús |date=29 January 2021 |title=Shumenov stripped of his WBA cruiserweight title |url=https://www.wbaboxing.com/boxing-news/shumenov-stripped-of-his-wba-cruiserweight-title#.YCoyu-SQGEc |url-status=dead |work=WBA |archive-url=https://web.archive.org/web/20210709183500/https://www.wbaboxing.com/boxing-news/shumenov-stripped-of-his-wba-cruiserweight-title#.YCoyu-SQGEc |archive-date=July 9, 2021 |access-date=3 July 2021 }}</ref>}}
+|- align=center
+!7
+|align=left | [[Ryad Merhy]]<br>({{small|interim champion promoted}})
+|29 Jan 2021 – 12 Aug 2022
+|1
+|- align=center 
+!colspan=4|{{small|Merhy vacated the title.<ref>{{Cite tweet |author=WBA |author-link=World Boxing Association|user=WBABoxing |number=1558190129910521856 |date=12 August 2022 |title=Belgian Ryad Merhy formally resigned his world champion position and will not face the bout against Arsen Goulamirian ordered by the WBA championships committee|url-status=live|archive-url= https://web.archive.org/web/20220813044049/https://twitter.com/WBABoxing/status/1558190129910521856|archive-date=13 August 2022|access-date= 13 August 2022|link=no}}</ref>}}
+|- align=center
+!8
+|align=left |[[Jai Opetaia]]<br>({{small|def. [[Noel Mikaelian]]}})
+|style="background:#7CB9E8;"|12 Sep 2026 – present
+|0
+|}
+
+==Super lightweight==
+=== Primary champion lineage ===
+{| class="wikitable sortable" style="width:80%"
+|-
+!No.
+!Name
+!Reign
+!Defenses
+|- align=center
+!1
+|align=left | [[Pinky Mitchell]]<br>({{small|awarded inaugural title}})
+|22 Nov 1922 – 21 Sep 1926
+|0
+|- align=center
+!2
+|align=left | [[Mushy Callahan]]
+|21 Sep 1926 – 18 Feb 1930
+|3
+|- align=center
+!3
+|align=left | [[Jack Kid Berg]]
+|18 Feb 1930 – 24 Apr 1931
+|6
+|- align=center
+!4
+|align=left | [[Tony Canzoneri]]
+|24 Apr 1931 – 18 Jan 1932
+|3
+|- align=center
+!5
+|align=left | [[Johnny Jadick]]
+|18 Jan – 20 Sep 1932
+|1
+|- align=center
+! colspan="4" |{{small|On 20 September 1932, the NBA decided not to recognize the division.<ref name=nbajr>{{cite news|date=21 September 1932|work=The Pasedena Post|title=Two Ring Classes Dropped After N. B. A. Convention
+|url=https://www.newspapers.com/newspage/622318390/ |location=Pasedena, California|access-date=25 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!6
+|align=left | [[Tippy Larkin]]<br>({{small|def. [[Willie Joyce]]}})
+|29 Apr – 5 Nov 1946
+|1
+|- align=center
+! colspan="4" |{{small|Larkin vacates title to move up to welterweight.}}
+|- align=center
+!7
+|align=left | [[Carlos Ortiz (boxer)|Carlos Ortiz]]<br>({{small|def. [[Kenny Lane]]}})
+|12 Jun 1959 – 1 Sep 1960
+|2
+|- align=center
+!8
+|align=left | [[Duilio Loi]]
+|1 Sep 1960 – 14 Sep 1962
+|2
+|- align=center
+!9
+|align=left | [[Eddie Perkins]]
+|14 Sep – 15 Dec 1962
+|0
+|- align=center
+!10
+|align=left | Duilio Loi (2)
+|15 Dec 1962 – 24 Jan 1963
+|0
+|- align=center
+! colspan="4" |{{small|Loi vacated the title and retired from boxing.<ref>{{cite news|date=26 January 1963|work=The Age|title= Duilio Loi has retired
+|url=https://www.newspapers.com/newspage/122129612/ |location=Melbourne, Victoria|access-date=25 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!11
+|align=left | [[Roberto Cruz (boxer)|Roberto Cruz]]<br>({{small|def. [[Battling Torres]]}})
+|21 Mar – 15 Jun 1963
+|0
+|- align=center
+!12
+|align=left | Eddie Perkins (2)
+|15 Jun 1963 – 18 Jan 1965
+|2
+|- align=center
+!13
+|align=left | [[Carlos Hernández (Venezuelan boxer)|Carlos Hernández]]
+|18 Jan 1965 – 29 Apr 1966
+|2
+|- align=center
+!14
+|align=left | [[Sandro Lopopolo]]
+|29 Apr 1966 – 30 Apr 1967
+|1
+|- align=center
+!15
+|align=left | [[Takeshi Fuji]]
+|30 Apr 1967 – 12 Dec 1968
+|1
+|- align=center
+!16
+|align=left | [[Nicolino Locche]]
+|12 Dec 1968 – 10 Mar 1972
+|5
+|- align=center
+!17
+|align=left | [[Alfonso Frazer]]
+|10 Mar – 28 Oct 1972
+|0
+|- align=center
+!18
+|align=left | [[Antonio Cervantes]]
+|28 Oct 1972 – 6 Mar 1976
+|style="background:#ffffbf;"|10
+|- align=center
+!19
+|align=left | [[Wilfred Benítez]]
+|6 Mar – 28 Nov 1976
+|2
+|- align=center
+! colspan="4" |{{small|Benítez was stripped of the title for cancelling many scheduled title defenses following an automobile accident.<ref>{{cite news|date=29 November 1976|work=Tampa Bay Times|title= Benitez forfeits title
+|url=https://www.newspapers.com/newspage/332193385/ |location=Saint Petersburg, Florida|access-date=25 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!20
+|align=left | Antonio Cervantes (2)<br>({{small|def. Carlos María Giménez}})
+|25 Jun 1977 – 2 Aug 1980
+|6
+|- align=center
+!21
+|align=left | [[Aaron Pryor]]
+|2 Aug 1980 – 26 Oct 1983
+|8
+|- align=center
+! colspan="4" |{{small|Pryor vacated the title after retiring.<ref>{{cite news|date=27 October 1983|work=The Journal Herald|title=Pryor retires
+|url=https://www.newspapers.com/newspage/396137391/ |location=Dayton, Ohio|access-date=25 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!22
+|align=left | [[Johnny Bumphus]]<br>({{small|def. Lorenzo Luis García}})
+|22 Jan – 1 Jun 1984
+|0
+|- align=center
+!23
+|align=left | [[Gene Hatcher]]
+|1 Jun 1984 – 21 Jul 1985
+|1
+|- align=center
+!24
+|align=left | [[Ubaldo Néstor Sacco]]
+|21 Jul 1985 – 15 Mar 1986
+|0
+|- align=center
+!25
+|align=left | [[Patrizio Oliva]]
+|15 Mar 1986 – 4 Jul 1987
+|2
+|- align=center
+!26
+|align=left | [[Juan Martin Coggi]]
+|4 Jul 1987 – 17 Aug 1990
+|4
+|- align=center
+!27
+|align=left | [[Loreto Garza]]
+|17 Aug 1990 – 14 Jun 1991
+|1
+|- align=center
+!28
+|align=left | [[Edwin Rosario]]
+|14 Jun 1991 – 10 Apr 1992
+|0
+|- align=center
+!29
+|align=left | [[Akinobu Hiranaka]]
+|10 Apr – 9 Sep 1992
+|0
+|- align=center
+!30
+|align=left | [[Morris East]]
+|9 Sep 1992 – 12 Jan 1993
+|0
+|- align=center
+!31
+|align=left | Juan Martin Coggi (2)
+|12 Jan 1993 – 17 Sep 1994
+|6
+|- align=center
+!32
+|align=left | [[Frankie Randall]]
+|17 Sep 1994 – 13 Jan 1996
+|2
+|- align=center
+!33
+|align=left | Juan Martin Coggi (3)
+|13 Jan – 16 Aug 1996
+|0
+|- align=center
+!34
+|align=left | Frankie Randall (2)
+|16 Aug 1996 – 11 Jan 1997
+|0
+|- align=center
+!35
+|align=left | [[Khalid Rahilou]]
+|11 Jan 1997 – 10 Oct 1998
+|2
+|- align=center
+!36
+|align=left | [[Sharmba Mitchell]]
+|10 Oct 1998 – 3 Feb 2001
+|4
+|- align=center
+! colspan="4" |{{small|Mitchell fought for inaugural Super title against [[Kostya Tszyu]].}}
+|- align=center
+!rowspan=5|37
+|align=left | [[Kostya Tszyu]] &ndash; {{small|Super champion}}<br>({{small|def. [[Sharmba Mitchell]]}})
+|3 Feb 2001 – 5 Aug 2002
+|3
+|- align=center
+! colspan="3" |{{small|Status changes to Unified champion on WBA's July 2002 ratings posted on 5 August.<ref name="aug2002" />}}
+|- align=center
+|align=left | Kostya Tszyu &ndash; {{small|Unified champion}}
+|5 Aug 2002
+|1<br>(4)
+|- align=center
+! colspan="3" |{{small|Status changed to Undisputed champion on WBA's May–June 2003 ranking.<ref>{{cite web
+|url=https://www.wbaboxing.com/wp-content/uploads/rankings/2003-may.pdf
+|title=Official ratings as of May-June 2003
+|publisher=WBA
+|access-date=29 September 2021}}</ref> }}
+|- align=center
+|align=left | Kostya Tszyu &ndash; {{small|Undisputed champion}}
+|Jul 2003 – 16 Jun 2004
+|0<br>(4)
+|- align=center
+! colspan="4" |{{small|Tszyu was stripped of title due to inactivity.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=16 June 2004 |title=Tszyu stripped of WBA title
+|url= https://www.smh.com.au/sport/tszyu-stripped-of-wba-title-20040616-gdj4vo.html |url-status=live |work=Sydney Morning Herald|archive-url= https://web.archive.org/web/20210719143308/https://www.smh.com.au/sport/tszyu-stripped-of-wba-title-20040616-gdj4vo.html |archive-date=19 July 2021 |access-date=19 July 2021}}</ref>}}
+|- align=center
+!38
+|align=left | [[Vivian Harris]] &ndash; {{small|Regular champion}}<br>({{small|Primary champion vacant}})
+|16 Jun 2004 – 25 Jun 2005
+|1<br />
+|- align=center
+!39
+|align=left | [[Carlos Maussa]]
+|25 Jun – 26 Nov 2005
+|0
+|- align=center
+! colspan="4" |{{small|Fought for Unified title against IBF and ''The Ring'' champion Ricky Hatton.}}
+|- align=center
+!40
+|align=left | [[Ricky Hatton]] &ndash; {{small|Unified champion}}<br>({{small|def. [[Carlos Maussa]]}})
+|26 Nov 2005 – 4 May 2006
+|0
+|- align=center
+! colspan="4" |{{small|Hatton vacated the title to move up to welterweight.<ref>{{Cite news|author=Seconds Out|date=5 May 2006|url= https://www.eurosport.com/boxing/british-news/2005/hatton-gives-up-wba-ti._sto879371/story.shtml |title=Hatton gives up WBA Title |work=Eurosport|url-status=live|archive-url= https://archive.today/20210805101311/https://www.eurosport.com/boxing/british-news/2005/hatton-gives-up-wba-ti._sto879371/story.shtml|archive-date=5 August 2021|access-date=19 July 2021}}</ref>}}
+|- align=center
+!41
+|align=left | [[Souleymane M'baye]]<br>({{small|def. Raúl Horacio Balbi}});<br>({{small|Primary champion vacant}})
+|2 Sep 2006 – 21 Jul 2007
+|1
+|- align=center
+!42
+|align=left | [[Gavin Rees]]
+|21 Jul 2007 – 22 Mar 2008
+|0
+|- align=center
+!43
+|align=left | [[Andreas Kotelnik]]
+|22 Mar 2008 – 18 Jul 2009
+|2
+|- align=center
+!rowspan=3|44
+|align=left | [[Amir Khan (boxer)|Amir Khan]]
+|18 Jul 2009 – 23 Jul 2011
+|4
+|- align=center
+! colspan=3 |{{small|[[Amir Khan vs. Zab Judah|Khan fought for Super title against Zab Judah]].}}
+|- align=center
+|align=left | Amir Khan &ndash; {{small|Super champion}}<br>({{small|def. [[Zab Judah]]}})
+|23 Jul – 10 Dec 2011
+|1<br />(5)
+|- align=center
+!45
+|align=left | [[Lamont Peterson]] 
+|10 Dec 2011 – 11 Jul 2012
+|0
+|- align=center
+! colspan="4" |{{small|WBA and IBF champion Peterson tested positive for synthetic testosterone on a random test in May 2012. He was only stripped of his WBA title.<ref>{{cite news | last=Rafael|first=Dan|date=11 July 2012 |title=Amir Khan reinstated as WBA champ |url= https://espn.com/boxing/story/_/id/8158391/amir-khan-reinstated-wba-junior-welterweight-champion|url-status=live |work=ESPN|archive-url= https://web.archive.org/web/20210610032321/https://espn.com/boxing/story/_/id/8158391/amir-khan-reinstated-wba-junior-welterweight-champion|archive-date=10 June 2021|access-date=5 July 2021}}</ref>}}
+|- align=center
+!46
+|align=left | Amir Khan (2) &ndash; {{small|Super champion}}<br>({{small|reinstated}})
+|11 Jul – 14 Jul 2012
+|0
+|- align=center
+!47
+|align=left | [[Danny Garcia (boxer)|Danny Garcia]] 
+|14 Jul 2012 – 11 Sep 2015
+|4
+|- align=center
+! colspan="4" |{{small|Garcia moves up to welterweight and the title is vacated on WBA's August 2015 official ratings posted on 11 September.<ref>{{cite web
+|url=https://www.wbaboxing.com/wp-content/uploads/rankings/2015-august.pdf
+|title=Official ratings as of August 2015
+|publisher=WBA
+|access-date=27 August 2021}}</ref>}}
+|- align=center
+!rowspan=3|48
+|align=left | [[Adrien Broner]]<br>({{small|def. [[Khabib Allakhverdiev]]}});<br>({{small|Primary champion vacant}})
+|3 Oct – 6 Nov 2015
+|0
+|- align=center
+! colspan=3 |{{small|Broner is promoted to Super champion.<ref>{{cite news |last=Ecksel |first=Robert |date=5 November 2015 |title= Adrien Broner Declared WBA Super Champion
+|url= https://www.wbaboxing.com/boxing-news/adrien-broner-declared-wba-super-champion#.X_7jR6TXeEc |url-status=live |work=WBA |archive-url= https://web.archive.org/web/20190912233303/http://www.wbaboxing.com/boxing-news/adrien-broner-declared-wba-super-champion |archive-date=12 September 2019 |access-date=21 July 2021}}</ref>}}
+|- align=center
+|align=left |Adrien Broner &ndash; {{small|Super champion}}<br>({{small|Regular champion promoted}})
+|6 Nov 2015 – 1 Apr 2016
+|0
+|- align=center
+! colspan="4" |{{small|Broner stripped of title before his defense against [[Ashley Theophane]] for being overweight.<ref>{{cite news | author=<!--Staff writer(s); no by-line.--> |date=1 April 2016 |title= Adrien Broner: American stripped of WBA title after failing to make weight|url= https://www.bbc.co.uk/sport/boxing/35940831|url-status=live |work=BBC|archive-url= https://web.archive.org/web/20160406110633/https://www.bbc.co.uk/sport/boxing/35940831|archive-date=6 April 2016|access-date=5 July 2021}}</ref>}}
+|- align=center
+!49
+|align=left | [[Ricky Burns]]<br>({{small|def. [[Michele Di Rocco]]}});<br>({{small|Primary champion vacant}}) 
+|28 May 2016 – 15 Apr 2017
+|1
+|- align=center
+! colspan="4" |{{small|Burns fought for Unified title against IBF champion Julius Indongo.}}
+|- align=center
+!50
+|align=left | [[Julius Indongo]] &ndash; {{small|Unified champion}}<br>({{small|def. [[Ricky Burns]]}})
+|15 Apr – 19 Aug 2017
+|0
+|- align=center
+! colspan="4" |{{small|Indongo fought for Super title against WBC, WBO, and ''The Ring'' champion Terence Crawford.}}
+|- align=center
+!51
+|align=left | [[Terence Crawford]] &ndash; {{small|Super champion}}<br>({{small|def. [[Julius Indongo]]}})
+|19 Aug – 28 Oct 2017
+|0
+|- align=center
+! colspan="4" |{{small|The title is vacated on WBA's October rankings after Crawford expressed his intentions of moving up to welterweight.<ref>{{cite news | author=Random Hits|date=28 October 2017 |title= WBA Makes Numerous Changes in New Rankings |url= https://www.boxingscene.com/wba-makes-numerous-changes-new-rankings--121912|work=Boxingscene|archive-url= https://archive.today/20211002130309/https://www.boxingscene.com/wba-makes-numerous-changes-new-rankings--121912 |archive-date=2 October 2021|access-date=2 October 2021}}</ref><ref>{{cite web
+|url=https://www.wbaboxing.com/wp-content/uploads/rankings/2017-october.pdf
+|title=Official ratings as of October
+|publisher=WBA
+|access-date=2 October 2021}}</ref>}}
+|- align=center
+!52
+|align=left | [[Kiryl Relikh]]<br>({{small|def. [[Rances Barthelemy]]}});<br>({{small|Primary champion vacant}})
+|10 Mar 2018 – 27 Apr 2019
+|1
+|- align=center
+!53
+|align=left | [[Regis Prograis]] 
+|27 Apr – 26 Oct 2019
+|0
+|- align=center
+! colspan="4" |{{small|Prograis fought for Super title against IBF champion Josh Taylor.}}
+|- align=center
+!54
+|Align=left | [[Josh Taylor (boxer)|Josh Taylor]] &ndash; {{small|Super champion}}<br>({{small|def. [[Regis Prograis]]}})
+|26 Oct 2019 – 14 May 2022
+|3
+|- align=center
+! colspan="4" |{{small|Taylor was stripped of the title after he failed to sign the contract in an ordered bout against his mandatory challenger, [[Alberto Puello]].<ref>{{cite news | last=Milano|first=Jesús |date=14 May 2022 |title= WBA Super Lightweight title is now vacant|url= https://www.wbaboxing.com/boxing-news/wba-super-lightweight-title-is-now-vacant|url-status=live |work=WBA|archive-url= https://web.archive.org/web/20220514233141/https://www.wbaboxing.com/boxing-news/wba-super-lightweight-title-is-now-vacant|archive-date=14 May 2022|access-date=15 May 2022}}</ref> Succeeding champions will not be marked as ''Regular'', ''Unified'', ''Undisputed'', or ''Super'' because of the [[World Boxing Association#Title reduction plan|title reduction plan]].}}
+|- align=center
+!55
+|align=left |[[Alberto Puello]]<br>({{small|def. [[Batyr Akhmedov]]}});<br>({{small|Primary champion vacant}})
+|20 Aug 2022 – 10 May 2023
+|0
+|-align=center
+! colspan="4" |{{small|Puello was made champion in recess after testing positive for banned substance before his defense against [[Rolando Romero]].<ref>{{cite news | last=Arias|first=Juan Francisco |date=10 May 2023 |title=Romero-Barroso fight for WBA Super Lightweight Title|url= https://www.wbaboxing.com/boxing-news/romero-barroso-fight-for-wba-super-lightweight-title|url-status=live|work=WBA|archive-url= https://web.archive.org/web/20230511013707/https://www.wbaboxing.com/boxing-news/romero-barroso-fight-for-wba-super-lightweight-title#.ZFxGx6TP2Ec|archive-date=11 May 2023|access-date=11 May 2023}}</ref>}}
+|- align=center
+!56
+|align=left |[[Rolando Romero]]<br>({{small|def. [[Ismael Barroso]]}});<br>({{small|Primary champion vacant}})
+|13 May 2023 – 30 Mar 2024
+|0
+|- align=center
+!57
+|align=left |[[Isaac Cruz]]
+|30 Mar – 3 Aug 2024
+|0
+|- align=center
+!58
+|align=left |[[José Valenzuela]]
+|3 Aug 2024 – 1 Mar 2025
+|0
+|- align=center
+!59
+|align=left |[[Gary Antuanne Russell]]
+|style="background:#7CB9E8;"|1 Mar 2025 – present
+|1
+|}
+
+=== Secondary champion lineage ===
+{| class="wikitable sortable" style="width:80%"
+|-
+!No.
+!Name
+!Reign
+!Defenses
+|- align=center
+!1
+|align=left | [[Diosbelys Hurtado]]<br>({{small|def. [[Randall Bailey]]}})
+|11 May – 19 Oct 2002
+|0
+|- align=center
+!2
+|align=left | [[Vivian Harris]]
+|19 Oct 2002 – 16 Jun 2004
+|2
+|- align=center
+!colspan=4|{{small|Moved to primary champion due to its vacancy.}}
+|- align=center
+!3
+|align=left | [[Marcos Maidana]]<br>({{small|interim champion promoted}})
+|23 Jul 2011 – 16 Jul 2012
+|1
+|- align=center
+! colspan="4" |{{small|Maidana vacated the title to move up to welterweight and fight [[Devon Alexander]].<ref>{{cite news |last=Rafael |first=Dan |date=16 July 2012 |title=Marcos Maidana will relinquish title
+|url= https://espn.com/boxing/story/_/id/8171905/marcos-maidana-relinquish-junior-welterweight-title-fight-jesus-soto-karass|url-status=live |work=ESPN |archive-url= https://archive.today/20210827030019/https://www.espn.com/boxing/story/_/id/8171905/marcos-maidana-relinquish-junior-welterweight-title-fight-jesus-soto-karass|archive-date=27 August 2021 |access-date=27 August 2021}}</ref>}}
+|- align=center
+!4
+|align=left | [[Khabib Allakhverdiev]]<br>({{small|def. [[Joan Guzmán]]}})
+|30 Nov 2012 – 12 Apr 2014
+|1
+|- align=center
+!5
+|align=left | [[Jessie Vargas]]  
+|12 Apr 2014 – 27 Jun 2015
+|2
+|- align=center
+! colspan="4" |{{small|Vargas vacated the title before challenging WBO welterweight champion [[Timothy Bradley]] to avoid paying WBA's sanctioning fees.<ref>{{cite news |last=Rafael |first=Dan |date=8 July 2015 |title=Vargas saved $40K by vacating title before Bradley fight
+|url= https://www.espn.com/blog/dan-rafael/post/_/id/13390/vargas-saved-40k-by-vacating-title-before-bradley-fight|url-status=live |work=ESPN |archive-url= https://archive.today/20210827030658/https://www.espn.com/blog/dan-rafael/post/_/id/13390/vargas-saved-40k-by-vacating-title-before-bradley-fight|archive-date=27 August 2021 |access-date=27 August 2021}}</ref>}}
+|- align=center
+!6
+|align=left | [[Mario Barrios]]<br>({{small|def. [[Batyr Akhmedov]]}})
+|28 Sep 2019 – 26 Jun 2021
+|1
+|- align=center
+!7
+|align=left | [[Gervonta Davis]]
+|26 Jun – 7 Dec 2021
+|0
+|- align=center
+!colspan=4|{{small|Davis vacated the title to stay at lightweight.<ref>{{Cite tweet |author=WBA |author-link=World Boxing Association|user=WBABoxing |number=1468395115588763648 |date=7 December 2021 |title=Gervonta Davis (@Gervontaa) informed the WBA that he will only keep his Lightweight belt. Gervonta had five days after his fight last Sunday to choose a division and he decided to stay at 135 pounds.|url-status=live|archive-url= https://web.archive.org/web/20211208035209/https://twitter.com/WBABoxing/status/1468395115588763648 |archive-date=8 December 2021|access-date= 7 December 2021|link=no}}</ref>}}
+|}
+
+==Light heavyweight==
+=== Primary champion lineage ===
+{| class="wikitable sortable" style="width:80%"
+|-
+!No.
+!Name
+!Reign
+!Defenses
+|- align=center
+!1
+|align=left | [[Georges Carpentier]]<br>({{small|awarded inaugural title}})
+|Jan 1921 – 24 Sep 1922
+|1
+|- align=center
+!2
+|align=left | [[Battling Siki]]
+|24 Sep 1922 – 17 Mar 1923
+|0
+|- align=center
+!3
+|align=left | [[Mike McTigue]]
+|17 Mar 1923 – 30 May 1925
+|1
+|- align=center
+!4
+|align=left | [[Paul Berlenbach]]
+|30 May 1925 – 16 Jul 1926
+|3
+|- align=center
+!5
+|align=left | [[Jack Delaney]]
+|16 July 1926 – 26 July 1927
+|1
+|- align=center
+! colspan="4" |{{small|Delaney vacated the title to move up to the heavyweight division.<ref>{{cite news |date=26 July 1927 |work=Daily News |title=Delaney to Commish to M'tigue
+|url=https://www.newspapers.com/newspage/411826656/ |location=New York, New York |access-date=22 October 2021 |via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!6
+|align=left | [[Jimmy Slattery]]<br>({{small|def. [[Maxie Rosenbloom]]}})
+|30 Aug – 12 Dec 1927
+|0
+|- align=center
+!7
+|align=left | [[Tommy Loughran]]
+|12 Dec 1927 – 3 Sep 1929
+|5
+|- align=center
+! colspan="4" |{{small|Loughran vacated the title to move up to the heavyweight division.<ref>{{cite news|date=3 September 1929|work=Chattanooga Daily Times|title= Loughran Surrenders Boxing Crown Today |url=https://www.newspapers.com/newspage/604178000/ |location=Chattanooga, Tennessee |access-date=22 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!8
+|align=left | [[Maxie Rosenbloom]]<br>({{small|awarded title}})
+|Sep 1930 – 6 Jun 1931
+|1
+|- align=center
+! colspan="4" |{{small|Rosenbloom is stripped of the title for failing to defend the title in a timely manner.<ref>{{cite news |date=7 June 1931 |work=Chicago Tribune|title= N. B. A. Vacates Rosenbloom's Boxing Title |url=https://www.newspapers.com/newspage/355010562/ |location=Chicago, Illinois |access-date=22 October 2021 |via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!9
+|align=left | [[George Nichols (boxer)|George Nichols]]<br>({{small|def. Dave Maier}})
+|18 Mar – 17 Dec 1932
+|0
+|- align=center
+! colspan="4" |{{small|Nichols stripped for failing to defend the title within the eight month time limit.<ref>{{cite news |date=18 December 1932 |work=Chicago Tribune |title=George Nichols Loses Titles by N.B.A Action |url=https://www.newspapers.com/newspage/355010528/ |location=Chicago, Illinois |access-date=22 October 2021 |via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!10
+|align=left | [[Joe Knight (boxer)|Joe Knight]]<br>({{small|awarded title}})
+|Feb 26 – 1 Mar 1933
+|0
+|- align=center
+!11
+|align=left | [[Bob Godwin]]
+|1 Mar – 24 Mar 1933
+|0
+|- align=center
+!12
+|align=left | Maxie Rosenbloom (2)
+|24 Mar 1933 – 17 Sep 1934
+|2
+|- align=center
+! colspan="4" |{{small|Rosenbloom is stripped of the title because the NBA disliked his "clowning tactics and criticizing opponents in the ring".<ref name=RoseWol>{{cite news|date=18 September 1934|work=Chicago Tribune|title=Rosenbloom and Wolgast Titles Vacated by N.B.A.
+|url=https://www.newspapers.com/newspage/355130745/ |location=Chicago, Illinois|access-date=22 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!13
+|align=left | [[Bob Olin]]<br>({{small|def. [[Maxie Rosenbloom]]}})
+|16 Nov 1934 – 31 Oct 1935
+|0
+|- align=center
+!14
+|align=left | [[John Henry Lewis]]
+|31 Oct 1935 – 19 Jun 1939
+|5
+|- align=center
+! colspan="4" |{{small|Lewis is stripped of the title for failing to defend it within the required six month limit and was virtually blind in his left eye.<ref>{{cite news|date=20 June 1939|work=Chicago Tribune|title=N.B.A. Relieves Lewis of Title on Two Counts 
+|url=https://www.newspapers.com/newspage/372692400/ |location=Chicago, Illinois|access-date=22 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!15
+|align=left | [[Billy Conn]]<br>({{small|def. [[Melio Bettina]]}})
+|13 Jul 1939 – 20 Dec 1940
+|3
+|- align=center
+! colspan="4" |{{small|Conn vacated the title to move up to the heavyweight division.<ref>{{cite news|date=20 December 1940|work=The St. Louis Star and Times|title=Billy Conn Gives up His Title Today |url=https://www.newspapers.com/newspage/204813412/ |location=St. Louis, Missouri|access-date=22 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!16
+|align=left | [[Anton Christoforidis]]<br>({{small|def. [[Melio Bettina]]}})
+|13 Jan – 24 May 1941 
+|0
+|- align=center
+!17
+|align=left | [[Gus Lesnevich]]
+|24 May 1941 – 26 Jul 1948
+|5
+|- align=center
+!18
+|align=left | [[Freddie Mills]]
+|26 Jul 1948 – 24 Jan 1950
+|0
+|- align=center
+!19
+|align=left | [[Joey Maxim]]
+|24 Jan 1950 – 17 Dec 1952
+|2
+|- align=center
+!20
+|align=left | [[Archie Moore]]
+|17 Dec 1952 – 25 Oct 1960
+|8
+|- align=center
+! colspan="4" |{{small|Moore was stripped of the title for failing to fight Eric Schoeppner.<ref>{{cite news|date=26 October 1960|work=Daily News|title=NBA lifts Moore's Light-heavy title
+|url=https://www.newspapers.com/newspage/393052779/ |location=New York, New York|access-date=22 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!21
+|align=left | [[Harold Johnson (boxer)|Harold Johnson]]<br>({{small|def. Jesse Bowdry}})
+|7 Feb 1961 – 1 Jun 1963
+|4
+|- align=center
+!22
+|align=left | [[Willie Pastrano]]
+|1 Jun 1963 – 30 Mar 1965
+|2
+|- align=center
+!23
+|align=left | [[José Torres (boxer)|José Torres]]
+|30 Mar 1965 – 16 Dec 1966
+|3
+|- align=center
+!24
+|align=left | [[Dick Tiger]]
+|16 Dec 1966 – 24 May 1968
+|2
+|- align=center
+!25
+|align=left | [[Bob Foster (boxer)|Bob Foster]]
+|24 May 1968 – 9 Dec 1970
+|4
+|- align=center
+! colspan="4" |{{small|Foster was stripped of the title for failing to post a $5,000 forfeit bond for the fight with Jimmy Dupree within 10 days after losing to Joe Frazier.<ref>{{cite news|date=11 December 1970|work=The Troy Record|title=Bob Foster Bugged By WBA 'Cats' 
+|url=https://www.newspapers.com/newspage/58882912/ |location=Troy, New York|access-date=22 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!26
+|align=left | [[Vicente Rondón]]<br>({{small|def. Jimmy Dupree}})
+|27 Feb 1971 – 7 Apr 1972
+|4
+|- align=center
+!27
+|align=left | Bob Foster (2)
+|7 Apr 1972 – 16 Sep 1974
+|5
+|- align=center
+! colspan="4" |{{small|Foster retires.<ref>{{cite news|date=17 September 1974|work=Daily News|title=Bob Foster quits ring
+|url=https://www.newspapers.com/newspage/491912551/ |location=New York, New York|access-date=22 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!28
+|align=left | [[Víctor Galíndez]]<br>({{small|def. Len Hutchins}})
+|7 Dec 1974 – 15 Sep 1978
+|10
+|- align=center
+!29
+|align=left | [[Mike Rossman]]
+|15 Sep 1978 – 14 Apr 1979
+|1
+|- align=center
+!30
+|align=left | Víctor Galíndez (2)
+|14 April – 30 Nov 1979
+|0
+|- align=center
+!31
+|align=left | [[Marvin Johnson (boxer)|Marvin Johnson]]
+|30 Nov 1979 – 31 Mar 1980
+|0
+|- align=center
+!32
+|align=left | [[Eddie Mustafa Muhammad]]
+|31 Mar 1980 – 18 Jul 1981
+|2
+|- align=center
+!33
+|align=left | [[Michael Spinks]]
+|18 Jul 1981 – 5 Nov 1985
+|10
+|- align=center
+! colspan="4" |{{small|Spinks vacated the title to stay at heavyweight.<ref>{{cite news|date=6 November 1985|work=Daily News|title=Spinks aims to wheel, deal
+|url=https://www.newspapers.com/newspage/490034071/ |location=New York, New York|access-date=22 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!34
+|align=left | Marvin Johnson (2)<br>({{small|def. [[Leslie Stewart]]}})
+|9 Feb 1986 – 23 May 1987
+|1
+|- align=center
+!35
+|align=left | [[Leslie Stewart]]
+|23 May – 5 Sep 1987
+|0
+|- align=center
+!36
+|align=left | [[Virgil Hill]]
+|5 Sep 1987 – 3 Jun 1991
+|10
+|- align=center
+!37
+|align=left | [[Thomas Hearns]]
+|3 Jun 1991 – 20 Mar 1992 
+|0
+|- align=center
+!38
+|align=left | [[Iran Barkley]]
+|20 Mar – 27 May 1992
+|0
+|- align=center
+! colspan="4" |{{small|Barkley vacated the title to stay at super middleweight.<ref>{{cite news|last=Seltzer|first=Robert|date=27 May 1985|work= Muncie Evening Press|title=Heavyweigh picture starting to get focus
+|url=https://www.newspapers.com/newspage/251245622/ |location= Muncie, Indiana |access-date=22 October 2021| via=Newspapers.com |url-access=subscription }}</ref>}}
+|- align=center
+!39
+|align=left | Virgil Hill (2)<br>({{small|def. [[Frank Tate (boxer)|Frank Tate]]}})
+|29 Sep 1992 – 13 Jun 1997
+|10
+|- align=center
+!40
+|align=left | [[Dariusz Michalczewski]]
+|13 Jun – 1 Jul 1997
+|0
+|- align=center
+! colspan="4" |{{small|The WBA stripped Michalczewski of the title 18 days later for displaying its belt along with that of the WBO and subsequently refusing to give up his WBO title.}}
+|- align=center
+!41
+|align=left | [[Lou Del Valle]]<br>({{small|def. Eddy Smulders}})
+|20 Sep 1997 – 18 Jul 1998
+|0
+|- align=center
+!rowspan=5|42
+|align=left | [[Roy Jones Jr.]]
+|18 Jul 1998 – Dec 2000
+|5
+|- align=center
+! colspan=3|{{small|Jones Jr. promoted to inaugural Super champion on WBA's December 2000 official ratings.<ref>{{cite web
+|url=https://www.wbaboxing.com/wp-content/uploads/rankings/2000-december.pdf
+|title=Official ratings as of December 2000
+|publisher=WBA
+|access-date=5 August 2021}}</ref>}}
+|- align=center
+|align=left | Roy Jones Jr. &ndash; {{small|Super champion}}<br>({{small|Regular champion promoted}})
+|Dec 2000 – 5 Aug 2002
+|3<br />(8)
+|- align=center 
+!colspan=3|{{small|Status changes to Unified champion on WBA's July 2002 official ratings posted on 5 August.<ref name="aug2002">{{cite web
+|url=https://www.wbaboxing.com/wp-content/uploads/rankings/2002-july.pdf
+|title=Official ratings as of July 2002
+|publisher=WBA
+|access-date=5 August 2021}}</ref>}}
+|- align=center
+|align=left | Roy Jones Jr. &ndash; {{small|Unified champion}}
+|5 Aug 2002 – 15 Apr 2003
+|1<br />(9)
+|- align=center 
+!colspan=4|{{small|Jones Jr. vacates the title to stay at heavyweight.<ref>{{cite news |last=Borges|first=Ron |date=20 April 2003 |title= Jones holds all cards in contest with WBA
+|url= http://www.boston.com/dailyglobe2/110/sports/Jones_holds_all_cards_in_contest_with_WBA+.shtml |url-status=dead |work=The Boston Globe |archive-url= https://web.archive.org/web/20030420231933/http://www.boston.com/dailyglobe2/110/sports/Jones_holds_all_cards_in_contest_with_WBA+.shtml|archive-date=20 April 2003 |access-date=9 October 2021}}</ref>}}
+|- align=center
+!43
+|align=left | [[Mehdi Sahnoune]] &ndash; {{small|Regular champion}}<br>({{small|Primary champion vacant}})
+|15 Apr – 10 Oct 2003
+|0
+|- align=center
+!44
+|align=left | [[Silvio Branco]]
+|10 Oct – 8 Nov 2003
+|0
+|- align=center
+!colspan=4|{{small|Branco is relegated since Roy Jones Jr. won the vacant Unified title.}}
+|- align=center
+!45
+|align=left | Roy Jones Jr. (2) &ndash; {{small|Unified champion}}<br>({{small|def. [[Antonio Tarver]]}})
+|8 Nov 2003 – 15 May 2004
+|0
+|- align=center
+!46
+|align=left | [[Antonio Tarver]] 
+|15 May – 3 Jul 2004
+|0
+|- align=center
+! colspan="4" |{{small|Tarver was stripped of the title and removed from WBA's June 2004 official ratings posted on 3 July 2004.<ref>{{cite web
+|url=https://www.wbaboxing.com/wp-content/uploads/rankings/2004-june.pdf
+|title=Official ratings as of June 2004
+|publisher=WBA
+|access-date=5 August 2021}}</ref>}}
+|- align=center
+!47
+|align=left | [[Fabrice Tiozzo]] &ndash; {{small|Regular champion}}<br>({{small|Primary champion vacant}})
+|3 Jul 2004 – 19 Oct 2006
+|1
+|- align=center
+! colspan="4" |{{small|Tiozzo vacated the title and retired after defeating [[Dariusz Michalczewski]].<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=20 October 2006 |title= Boxing champion retires
+|url= https://www.dawn.com/news/215639/boxing-champion-retires|url-status=live |work=Dawn |archive-url= https://web.archive.org/web/20211008235955/https://www.dawn.com/news/215639/boxing-champion-retires|archive-date=8 October 2021|access-date=22 September 2026}}</ref>}}
+|- align=center
+!48
+|align=left | Silvio Branco (2)<br>({{small|interim champion promoted}});<br>({{small|Primary champion vacant}})
+|19 Oct 2006 – 28 Apr 2007
+|0
+|- align=center
+!49
+|align=left | [[Stipe Drews|Stipe Drviš]]
+|28 Apr – 16 Dec 2007
+|0
+|- align=center
+!50
+|align=left | [[Danny Green (boxer)|Danny Green]]
+|16 Dec 2007 – 25 Mar 2008
+|0
+|- align=center
+! colspan="4" |{{small|Green vacated the title and retired.<ref>{{cite news |last1=Pandaram |first1=Jamie|last2=Walter|first2=Brad|date=26 March 2008 |title=Green says there'll be no resurrection after his epiphany|url= https://www.smh.com.au/sport/green-says-therell-be-no-resurrection-after-his-epiphany-20080326-gds6t1.html|url-status=live |work=Sydney Morning Herald|archive-url= https://web.archive.org/web/20210705110917/https://www.smh.com.au/sport/green-says-therell-be-no-resurrection-after-his-epiphany-20080326-gds6t1.html|archive-date=5 July 2021|access-date=5 July 2021}}</ref>}}
+|- align=center
+!51
+|align=left |[[Hugo Garay]]<br>({{small|def. [[Yuriy Barashian]]}});<br>({{small|Primary champion vacant}})
+|3 Jul 2008 – 20 Jun 2009
+|1
+|- align=center
+!52
+|align=left | [[Gabriel Campillo]]
+|20 Jun 2009 – 29 Jan 2010
+|1
+|- align=center
+!rowspan=3|53
+|align=left | [[Beibut Shumenov]]
+|29 Jan 2010 – 8 Oct 2013
+|5
+|- align=center
+! colspan=3|{{small|Shumenov promoted to Super champion.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=8 October 2013 |title= Shumenov promoted to super champion
+|url= http://www.secondsout.com/news/main-news/shumenov-promoted-to-super-champion|url-status=dead |work=Secondsout |archive-url= https://web.archive.org/web/20160304192134/http://www.secondsout.com/news/main-news/shumenov-promoted-to-super-champion|archive-date=4 March 2016|access-date=5 July 2021}}</ref>}}
+|- align=center
+|align=left |Beibut Shumenov &ndash; {{small|Super champion}}<br>({{small|Regular champion promoted}})
+|8 Oct 2013 – 19 Apr 2014
+|1<br />(6)
+|- align=center
+!54
+|align=left | [[Bernard Hopkins]]
+|19 Apr – 8 Nov 2014
+|0
+|- align=center
+!colspan=4|{{small|Hopkins fought WBO champion Sergey Kovalev for the Undisputed title.}}
+|- align=center
+!55
+|align=left | [[Sergey Kovalev]] &ndash; {{small|Undisputed champion}}<br>({{small|def. [[Bernard Hopkins]]}})
+|8 Nov 2014 – 19 Nov 2016
+|4
+|- align=center
+!56
+|align=left | [[Andre Ward]]  
+|19 Nov 2016 – 21 Sep 2017
+|1
+|- align=center
+! colspan="4" |{{small|Ward retires from boxing.<ref>{{cite news |author=<!--Staff writer(s); no by-line.--> |date=21 September 2017 |title= With desire to fight gone, Andre Ward retires from boxing
+|url= https://www.espn.com/boxing/story/_/id/20775014/pound-pound-king-world-titleholder-andre-ward-says-leaving-boxing/ |url-status=live |work=ESPN |archive-url= https://web.archive.org/web/20201112030448/https://www.espn.com/boxing/story/_/id/20775014/pound-pound-king-world-titleholder-andre-ward-says-leaving-boxing|archive-date=12 November 2020 |access-date=5 July 2021}}</ref>}}
+|- align=center
+!57
+|align=left | [[Badou Jack]] &ndash; {{small|Regular champion}}<br>({{small|Primary champion vacant}})
+|21 Sep – 23 Sep 2017
+|0
+|- align=center
+! colspan="4" |{{small|Jack vacated the title to avoid a purse bid with interim champion [[Dmitry Bivol]] and opted to seek opportunities with bigger names.<ref>{{cite news |first=Juan Francisco|last=Arias|date=23 September 2017 |title=WBA Light Heavyweight Champion Title was vacated|url= https://www.wbaboxing.com/boxing-news/wba-light-heavyweight-champion-title-was-vacated|url-status=live |work=WBA|archive-url= https://web.archive.org/web/20231202125752/https://www.wbaboxing.com/boxing-news/wba-light-heavyweight-champion-title-was-vacated|archive-date=2 December 2023|access-date=25 July 2024}}</ref> On 14 Oct 2017, Bivol was promoted to world champion.<ref>{{cite news |last=Milano|first=Jesús|date=14 October 2017|title=Bivol elevated to WBA Light Heavyweight Champion|url=http://www.wbaboxing.com/boxing-news/bivol-elevated-to-wba-light-heavyweight-champion|url-status=live |work=WBA|archive-url= https://web.archive.org/web/20171015095149/http://www.wbaboxing.com/boxing-news/bivol-elevated-to-wba-light-heavyweight-champion#.WeMvuhbP1S8|archive-date=15 October 2017|access-date=24 July 2025}}</ref>}}
+|- align=center
+!rowspan=3|58
+|align=left |[[Dmitry Bivol]]<br>({{small|interim champion promoted}});<br>({{small|Primary champion vacant}})
+|14 Oct 2017 – 10 Oct 2019
+|5
+|- align=center
+! colspan=3 |{{small|Bivol promoted to Super champion before fighting Lenin Castillo.<ref>{{cite news |last=Bland |first=Garrison |date=10 October 2019 |title=Bivol Finally Elevated to Super Champion|url= https://3kingsboxing.com/bivol-finally-elevated-wba-super-champion/|url-status=live |work=The Buzz|archive-url= https://web.archive.org/web/20210502070013/https://3kingsboxing.com/bivol-finally-elevated-wba-super-champion/|archive-date=2 May 2021 |access-date=5 July 2021}}</ref>}}
+|- align=center
+|align=left | Dmitry Bivol &ndash; {{small|Super champion}}<br>({{small|Regular champion promoted}})
+|10 Oct 2019 – 12 Oct 2024
+|style="background:#ffffbf;"|7<br />(12)
+|- align=center
+!59
+|align=left | [[Artur Beterbiev]] 
+|12 Oct 2024 – 22 Feb 2025
+|0
+|- align=center
+!60
+|align=left | Dmitry Bivol (2)
+|style="background:#7CB9E8;"|22 Feb 2025 – present
+|1
+|}
+
+=== Secondary champion lineage ===
+{| class="wikitable sortable" style="width:80%"
+|-
+!No.
+!Name
+!Reign
+!Defenses
+|- align=center
+!1
+|align=left | [[Bruno Girard]]<br>({{small|def. Robert Koon}})
+|22 Dec 2001 – 8 Mar 2003
+|2
+|- align=center
+!2
+|align=left | [[Mehdi Sahnoune]]
+|8 Mar – 15 Apr 2003
+|0
+|- align=center
+!colspan=4|{{small|Moved to primary champion due to its vacancy.}}
+|- align=center
+!3
+|align=left | [[Silvio Branco]]<br>({{small|relegated from primary champion}})
+|8 Nov 2003 – 20 Feb 2004
+|0
+|- align=center
+!4
+|align=left | [[Fabrice Tiozzo]]
+|20 Feb – 3 Jul 2004
+|0
+|- align=center
+! colspan="4" |{{small|Moved to primary champion due to its vacancy.}}
+|- align=center
+!5
+|align=left | [[Jürgen Brähmer]]<br>({{small|def. [[Marcus Oliveira]]}})
+|14 Dec 2013 – 1 Oct 2016
+|6
+|- align=center
+!6
+|align=left | [[Nathan Cleverly]]
+|1 Oct 2016 – 26 Aug 2017
+|0
+|- align=center
+!7
+|align=left | [[Badou Jack]]
+|26 Aug – 21 Sep 2017
+|0
+|- align=center
+! colspan="4" |{{small|Moved to primary champion due to its vacancy.}}
+|- align=center
+!8
+|align=left | [[Jean Pascal]]<br>({{small|interim champion promoted}})
+|10 Oct 2019 – 9 Jul 2021
+|1
+|-
+!colspan=4|{{small|Pascal is stripped of his title for testing positive for banned substances and is also suspended for six months.<ref>{{cite news|author= <!--Staff writer(s); no by-line.-->|title=WBA strips and suspends Pascal|date=9 July 2021|url-status=live|work=Fightnews|url=https://fightnews.com/wba-strips-and-suspends-pascal/116609|archive-date=18 August 2021|archive-url= https://archive.today/20210818002708/https://fightnews.com/wba-strips-and-suspends-pascal/116609|access-date=18 August 2021}}</ref>}} 
+|- align=center
+!9
+|align=left | [[David Morrell (boxer)|David Morrell]]<br>({{small|def. [[Radivoje Kalajdzic]]}})
+|3 Aug 2024 – 1 Feb 2025
+|0
+|- align=center
+!10
+|align=left | [[David Benavidez]]
+|style="background:#7CB9E8;"|1 Feb 2025 – present
+|1
+|}
+

@@ -15,10 +15,10 @@ To regenerate the demo data, stop the server, delete `data/`, and start again.
 ## Optional settings (copy `.env.example` to `.env.local`; `npm run doctor` checks them)
 - `ANTHROPIC_API_KEY`: Claude-written search parsing, scouting reports and fight previews. Without it everything falls back to rules. `AI_DAILY_BUDGET` (default 1,000 calls per day), `AI_CLIENT_LIMIT` and `AI_CLIENT_WINDOW_MS` cap what visitors can spend (PLAN.md §21).
 - `BOXING_PROVIDER=licensed` plus `BOXING_API_KEY`: the Boxing Data API adapter (`lib/providers/boxing-data-api.ts`). It has run against the free plan's real data (a window of a few weeks, so career records do not add up and a load is refused); the full history needs a paid plan. Storing its data is on by default, provisionally, while the vendor's answer on storage is pending (every run says so; `BOXING_API_STORAGE_CONFIRMED=1` once it agrees in writing, `=0` to refuse); start with `npm run vendor:sample` and `docs/real-data-readiness.md`; the first load and the daily update are `docs/real-data-runbook.md` (`npm run vendor:backfill`).
-- `WIKIMEDIA_CONTACT` and `npm run media:resolve`: fetch freely licensed fighter photos from Wikimedia Commons (real fighters only).
+- `WIKIMEDIA_CONTACT` and `npm run media:resolve`: fetch freely licensed fighter photos from Wikimedia Commons (real fighters only). `npm run champions:import` reads Wikipedia's lists of WBA, WBC, IBF and WBO champions into a fighter's title history (`docs/title-reigns.md`).
 
 ## Scripts
-`npm run dev` · `npm run build` · `npm start` · `npm run lint` · `npm test` · `npm run data:check` · `npm run bench -- --scale 5` · `npm run media:resolve` · `npm run smoke` · `npm run wikidata:import` · `npm run venues:resolve` · `npm run model:fit` · `npm run vendor:sample` · `npm run vendor:backfill`
+`npm run dev` · `npm run build` · `npm start` · `npm run lint` · `npm test` · `npm run data:check` · `npm run bench -- --scale 5` · `npm run media:resolve` · `npm run smoke` · `npm run wikidata:import` · `npm run champions:import` · `npm run venues:resolve` · `npm run model:fit` · `npm run vendor:sample` · `npm run vendor:backfill`
 
 `npm test` runs the suite (a couple of seconds). `npm run bench -- --scale 20 [--keep]` generates a league 20 times the demo size (about 19,000 fighters and 160,000 bouts), loads it into `data/bench-20.db` and times the data work behind every page; see PLAN.md §10. `npm run data:check -- --file sample.json` validates a vendor sample before you build an adapter for it. CI (`.github/workflows/ci.yml`) runs type check, lint, tests, the data check, a production build and the smoke check (`npm run smoke`, every kind of page in both languages on a real server).
 
@@ -48,7 +48,7 @@ A grouped left rail on desktop that collapses to icons (the choice is remembered
 `/fight-of-the-year` picks the best fight of each year by a published 0-100 score (knockdowns, finish, action, matchup, upset, stakes, comeback) and shows why. `/all-time` has sixteen record lists (greatest of all time, longest reigns, biggest upsets, fastest knockouts ...) with sex and division filters. Both only cover the fights in the data, and say so.
 
 ## On this day
-`/on-this-day` lists the fights decided and the fighters born on a calendar date (today by default; `?d=MM-DD` for another, with previous / next links and a pointer to the nearest day that has anything), across every year in the database. A crowded day shows title fights and the highest fight scores first, at most three from any one year. Only results on record and exact birth dates are used. `lib/on-this-day.ts`, PLAN.md section 52.
+`/on-this-day` lists the fights decided and the fighters born on a calendar date (today by default; `?d=MM-DD` for another, with previous / next links and a pointer to the nearest day that has anything), across every year in the database. A crowded day shows title fights and the highest fight scores first, at most three from any one year. Only results on record and exact birth dates are used. `lib/on-this-day.ts`, PLAN.md section 53.
 
 ## Accessibility
 WCAG 2.2 AA is the target in both languages: skip link, visible focus, text colours measured at 4.5:1 or better, no text under 12px, charts that state their numbers, and a list view of the style map. See `docs/accessibility.md` for what was tested and what was not.
