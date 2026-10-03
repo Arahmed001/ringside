@@ -349,3 +349,52 @@ test("a start date always travels with an end date, as the API requires; the rea
   const noHistory = mockFetch(() => ({ status: 403, body: { code: "DateOutOfRange", message: "Requested date is outside your subscription's allowed date range" } }));
   await assert.rejects(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: noHistory.impl, since: "1990-01-01" }).fetchBouts(), /allowed date range/);
 });
+
+// a record as the real API sent it (first free-tier run, 2026-10-03): note the location has a region and no country
+const REAL_UPCOMING: B.ApiFight & Record<string, unknown> = {
+  id: "real-1", title: "Mathieu vs. Shishkin", slug: null, date: "2026-10-09T02:00:00", venue: "Capitole de Quebec", location: "Quebec City, Quebec",
+  results: null, scheduled_rounds: 10, scores: null, card_billing: "Main Card", status: "NOT_STARTED", statistics: null,
+  fighters: { fighter_1: { fighter_id: "68288a82162efadfc8bc4577", name: "Mathieu", full_name: "Wilkens Mathieu", winner: false }, fighter_2: { fighter_id: "6715fc1faf69bb50508b7c2a", name: "Shishkin", full_name: "Vladimir Shishkin", winner: false } },
+  event: { id: "6a7deb3ff8d3c8223feb8382", title: "Iglesias vs. Zaren", slug: null, date: "2026-10-09T00:00:00", location: "Quebec City, Quebec" } as B.ApiEvent,
+  division: { name: "Super Middleweight" },
+};
+
+test("the real record: an upcoming fight with null results maps with the event's plain date and a country worked out from the region", () => {
+  const n = notes();
+  const m = B.mapFight(REAL_UPCOMING, n)!;
+  assert.equal(m.event.date, "2026-10-09", "the event's own date (midnight, so a plain date), not the fight's UTC time");
+  assert.deepEqual([m.event.city, m.event.country], ["Quebec City", "Canada"]);
+  assert.equal(m.event.venue, "Capitole de Quebec"); assert.equal(m.event.name, "Iglesias vs. Zaren");
+  assert.equal(m.bout.method, null); assert.equal(m.bout.winnerExternalId, null); assert.equal(m.bout.rounds, 10); assert.equal(m.bout.weightClass, "Super Middleweight");
+  assert.equal(n.locationCountryInferred, 1);
+});
+
+test("regions become countries: US states, Canadian provinces, UK nations, Australian and Mexican states; a country name is left alone; Georgia is ambiguous and says so", () => {
+  const n = notes();
+  const country = (loc: string) => B.parseLocation(loc, n).country;
+  assert.equal(country("Las Vegas, Nevada"), "United States"); assert.equal(country("New York, New York"), "United States");
+  assert.equal(country("Quebec City, Quebec"), "Canada"); assert.equal(country("Montréal, Québec"), "Canada");
+  assert.equal(country("Cardiff, Wales"), "United Kingdom"); assert.equal(country("Belfast, Northern Ireland"), "United Kingdom");
+  assert.equal(country("Sydney, New South Wales"), "Australia"); assert.equal(country("Guadalajara, Jalisco"), "Mexico");
+  assert.equal(n.locationCountryInferred, 8);
+  assert.equal(country("Riyadh, Saudi Arabia"), "Saudi Arabia"); assert.equal(country("London, United Kingdom"), "United Kingdom");
+  assert.equal(country("Las Vegas, Nevada, United States"), "United States", "a country as the last part wins");
+  assert.equal(n.locationCountryInferred, 8, "none of those needed inferring");
+  assert.equal(country("Atlanta, Georgia"), "Georgia"); assert.equal(n.locationRegionAmbiguous, 1, "the same text means Atlanta and Tbilisi: not guessed");
+});
+
+test("when the list already shows coming fights, the schedule endpoint is not asked for at all", async () => {
+  const asked: string[] = [];
+  const { impl } = mockFetch((path, q) => {
+    asked.push(path);
+    if (path === "/v2/fights/") return { body: env([REAL_UPCOMING, FIGHTS[0]]) };
+    if (path === "/v2/fighters/68288a82162efadfc8bc4577") return { body: env(fighter("68288a82162efadfc8bc4577", "Wilkens Mathieu")) };
+    if (path === "/v2/fighters/6715fc1faf69bb50508b7c2a") return { body: env(fighter("6715fc1faf69bb50508b7c2a", "Vladimir Shishkin")) };
+    return standard(path, q);
+  });
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl });
+  const bouts = await p.fetchBouts();
+  assert.ok(bouts.some((b) => b.externalId === "bda-b-real-1"), "the coming fight came from the list");
+  assert.ok(!asked.includes("/v2/fights/schedule"), "no redundant (and, on the free plan, refused) schedule request");
+  assert.equal(p.notes().scheduleUnavailable, 0);
+});

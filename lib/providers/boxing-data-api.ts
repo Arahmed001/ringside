@@ -36,11 +36,11 @@ export interface ApiFight {
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
   | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter"
-  | "scheduleUnavailable" | "upcomingUnavailable" | "birthYearFromAge" | "birthYearUnknown" | "turnedProFromFirstFight" | "physicalsImputed" | "stanceDefaulted" | "locationUnparsed" | "divisionUnknown",
+  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "birthYearFromAge" | "birthYearUnknown" | "turnedProFromFirstFight" | "physicalsImputed" | "stanceDefaulted" | "locationUnparsed" | "divisionUnknown",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
+  ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearFromAge: 0, birthYearUnknown: 0, turnedProFromFirstFight: 0, physicalsImputed: 0, stanceDefaulted: 0, locationUnparsed: 0, divisionUnknown: 0,
 });
 
@@ -48,12 +48,27 @@ export const fighterId = (id: string) => `bda-f-${id}`;
 export const eventId = (id: string) => `bda-e-${id}`;
 export const boutId = (id: string) => `bda-b-${id}`;
 
-/** "Las Vegas, Nevada, United States" -> city "Las Vegas", country "United States". The docs only say `location` is a string, so this is tolerant and counts what it cannot split. */
+/**
+ * Regions the feed puts where a country would go ("Quebec City, Quebec" has no country at all), and the country they belong to.
+ * A region that is also a country's name ("Georgia") is left alone and counted: the same text means Atlanta and Tbilisi.
+ */
+const REGIONS: Record<string, string> = {};
+const region = (country: string, names: string) => names.split(",").forEach((n) => { REGIONS[n.trim().toLowerCase()] = country; });
+region("United States", "Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut, Delaware, Florida, Hawaii, Idaho, Illinois, Indiana, Iowa, Kansas, Kentucky, Louisiana, Maine, Maryland, Massachusetts, Michigan, Minnesota, Mississippi, Missouri, Montana, Nebraska, Nevada, New Hampshire, New Jersey, New Mexico, New York, North Carolina, North Dakota, Ohio, Oklahoma, Oregon, Pennsylvania, Rhode Island, South Carolina, South Dakota, Tennessee, Texas, Utah, Vermont, Virginia, Washington, West Virginia, Wisconsin, Wyoming, District of Columbia");
+region("Canada", "Alberta, British Columbia, Manitoba, New Brunswick, Newfoundland and Labrador, Nova Scotia, Ontario, Prince Edward Island, Quebec, Québec, Saskatchewan, Yukon, Northwest Territories, Nunavut");
+region("United Kingdom", "England, Scotland, Wales, Northern Ireland");
+region("Australia", "New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, Northern Territory, Australian Capital Territory");
+region("Mexico", "Aguascalientes, Baja California, Baja California Sur, Campeche, Chiapas, Chihuahua, Coahuila, Colima, Durango, Guanajuato, Guerrero, Hidalgo, Jalisco, Michoacán, Morelos, Nayarit, Nuevo León, Oaxaca, Puebla, Querétaro, Quintana Roo, San Luis Potosí, Sinaloa, Sonora, Tabasco, Tamaulipas, Tlaxcala, Veracruz, Yucatán, Zacatecas, Ciudad de México, Estado de México");
+const AMBIGUOUS_REGIONS = new Set(["georgia"]);
+
+/** "Quebec City, Quebec" -> city "Quebec City", country Canada; "Las Vegas, Nevada, United States" -> "Las Vegas", "United States". The feed's text is "City, Region" or "City, Country", so the last part is looked up as a region first; anything else is taken as the country, and what cannot be split is counted. */
 export function parseLocation(raw: string | null | undefined, notes: Notes): { city: string; country: string } {
   const parts = (raw ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  if (parts.length >= 2) return { city: parts[0], country: parts[parts.length - 1] };
-  notes.locationUnparsed++;
-  return { city: parts[0] ?? "Unknown", country: "Unknown" };
+  if (parts.length < 2) { notes.locationUnparsed++; return { city: parts[0] ?? "Unknown", country: "Unknown" }; }
+  const last = parts[parts.length - 1], key = last.toLowerCase();
+  if (AMBIGUOUS_REGIONS.has(key)) notes.locationRegionAmbiguous++;
+  else if (REGIONS[key]) { notes.locationCountryInferred++; return { city: parts[0], country: REGIONS[key] }; }
+  return { city: parts[0], country: last };
 }
 
 const DECISIONS = new Set(["UD", "MD", "SD", "PTS"]);
@@ -227,7 +242,9 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     };
     // the API rejects date_from without date_to ("InvalidDateRange"), so a start date always comes with an end
     await collect("/v2/fights/", { date_from: o.since, date_to: o.since ? todayIso() : undefined, date_sort: "DESC" }, limit);
-    if (o.scheduleDays !== 0) {
+    // the list endpoint already includes coming (NOT_STARTED) fights on the free plan, which makes the schedule endpoint redundant there; ask for it only when the list showed none
+    const comingInList = bouts.some((b) => (events.get(b.eventExternalId)?.date ?? "") >= todayIso());
+    if (o.scheduleDays !== 0 && !comingInList) {
       try { await collect("/v2/fights/schedule", { days: o.scheduleDays ?? 60, date_sort: "ASC" }, limit); }
       catch (e) {
         // some plans do not include the schedule endpoint: the coming fights are then asked for from the list endpoint, from today on
