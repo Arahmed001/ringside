@@ -379,3 +379,21 @@ After every card the question is what it did to the picture, not just who won. T
 - **Limits:** a fighter's ability is treated as fixed through a career; the standard error ignores how fighter and trainer effects overlap; the penalty is a judgment (a typical trainer within about 60 Elo); the effect is of the head trainer only.
 
 Both: Arabic (128 strings, machine-translated; number-agreement strings use plural forms), sitemap, ⌘K, nav (Upset watch under Fights, Trainer impact under Camps and money), tests (`tests/upsets.test.ts`, `tests/trainer-impact.test.ts`, `tests/trainer-moves.test.ts`; mutation-checked), axe clean and no overflow at six widths on every new or changed page.
+
+## 28. Ask the data (round 13, 2026-10-03)
+
+**What it is** (`lib/ask/`, `/ask`, `/api/ask`, a link from the home page, ⌘K, nav). A question in plain English or Arabic, answered from the database and never from a model's memory. Three steps:
+1. **Plan.** The question becomes up to three calls to a fixed set of read-only tools: `fighters` (filters and sort), `record_list` (the 16 all-time lists), `fighter`, `head_to_head`, `rankings`, `champions`, `bouts` (search completed fights), `events`, `fight_of_the_year`, `upset_watch`, `trainers`, `money`. With an API key Claude picks the tools and arguments; without one, or when it fails or is rate-limited, patterns do (`rules.ts`, English and Arabic). Every call is checked against the tool's declared arguments, so anything a model makes up (an extra argument, an unknown tool, a number out of range) is dropped: it can run these queries and nothing else.
+2. **Run.** The tools run over the in-memory world. Their tables are always shown beside the answer, with links, so any answer can be checked.
+3. **Answer.** With a key Claude writes two to four sentences from the tool results only; **any figure in its answer that is not in the results throws the answer away** for the rule-based one. Without a key a sentence per tool is used. The page says which wrote it ("Written by AI" or "Put together by rules"), and that no key is set when that is so.
+
+**Cost and abuse.** At most two model calls per question, each counted by `lib/ai-guard.ts` (per-client and daily limits, so a refused call falls back to rules and says so, and is not cached); answers are cached per language and day; two parallel identical questions share one run. The question is capped at 300 characters and the prompts tell the model the question and results are data, not instructions (a test sends an injection and checks that nothing but the tools can be reached). Pages with a question are `noindex`.
+
+**Honest limits.**
+- **The AI path has not run against the real API** (no key here): it is tested against a mocked model (prompts, plan validation, grounding, fallbacks, limits, caching), not against Claude's actual behaviour. Expect to tune the prompts on first real use.
+- The rule planner covers the question shapes above; anything else gets "I could not match that" rather than a guess. It is the floor, not the product.
+- A model can still choose a poor tool for a question; the tables make that visible, and the grounding check stops invented numbers but not a misread question.
+- Machine-translated Arabic (91 strings + plural forms) and Arabic patterns are limited to the example shapes and a handful of phrasings.
+- Tests (`tests/ask.test.ts`, 17, mutation-checked): plan cleaning, every pattern and example in both languages, each tool against a raw count of the data, grounding, the AI path with a fake model, limits, caching, injection, API.
+
+**Scale (160,000 bouts):** the data work for a question is 7 to 200 ms (the cold all-time list is the slowest); a model call, when there is one, is far longer.

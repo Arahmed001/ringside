@@ -118,6 +118,14 @@ async function main() {
   await time("trainer impact: joint fit of fighters and trainers (cold)", () => ti.trainerImpact(w4), (r) => `${r.fights.toLocaleString()} fights, ${r.all.length} trainers`);
   await time("trainer impact: moves, switch study, underdog table", () => { ti.moves(w4); ti.switchStudy(w4); ti.underdogLifters(w4); });
   await time("trainer page: impact card for one trainer", () => { const p = ti.trainerImpact(w4).ranked[0]; ti.movesOf(w4, p.person.id); ti.underdogRecordOf(w4, p.person.id); });
+  const askm = await import("../lib/ask");
+  invalidateWorld(); const w5 = await getWorld();
+  const askCtx = { w: w5, t: tEn, names: {} };
+  const [fa, fb] = w5.boxers.filter((b) => b.bouts > 10).sort((x, y) => y.rating - x.rating).slice(0, 2);
+  await time("ask: fighter filter question (southpaw welterweights 10+ KOs)", () => askm.askData("southpaw welterweights with 10+ KOs", askCtx), (a) => `${a.results[0]?.tables[0]?.rows.length ?? 0} rows`);
+  await time("ask: all-time list question (cold)", () => askm.askData("who has the most knockouts among women", askCtx));
+  await time("ask: head to head by name (name scan over every fighter)", () => askm.askData(`compare ${fa.name} and ${fb.name}`, askCtx));
+  await time("ask: a question nothing matches", () => askm.askData("write me a poem about boxing", askCtx));
   await time("data page: coverage queries", () => coverage());
   await time("model fit: features + regression", () => runFit(w2), (r) => `${r.rows.train + r.rows.test} bouts`);
 

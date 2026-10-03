@@ -74,6 +74,7 @@ export default async function Home() {
           <div className="mt-3 flex flex-wrap gap-2">
             {EXAMPLES.map((q) => <Link key={q} href={`/boxers?q=${encodeURIComponent(q)}`} className="chip transition hover:text-ink">{t(q)}</Link>)}
           </div>
+          <p className="mt-3 text-sm text-muted">{t("Want an answer rather than a list?")} <Link href="/ask" className="text-ink underline decoration-dotted hover:text-gold">{t("Ask the data")}</Link></p>
         </div>
         <div className="relative mx-auto w-full max-w-sm">
           <div className="absolute -inset-6 -z-10 rounded-[2rem] bg-red/20 blur-3xl live" />
