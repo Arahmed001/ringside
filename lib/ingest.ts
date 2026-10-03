@@ -1,3 +1,4 @@
+import { applyCorrections } from "./accounts/corrections";
 import type { DatabaseSync } from "node:sqlite";
 import { demoProvider } from "./providers/demo";
 import { licensedProvider } from "./providers/licensed";
@@ -166,6 +167,9 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
     db.exec("ROLLBACK");
     throw e;
   }
+  // sourced corrections that editors accepted are put back over what the vendor just wrote (they would otherwise be undone by every daily update);
+  // ratings are recomputed straight after, so a corrected result is in them
+  try { applyCorrections(db); } catch (e) { console.error("corrections not applied:", (e as Error).message); }
   recomputeRatings(db);
 
   // ----- record the run: what came in, what was dropped, and the issues found -----

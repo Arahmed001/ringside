@@ -43,10 +43,10 @@ export class RateLimiter {
 export { clientId };
 
 /** Limits, shared by the routes. Failed logins are counted per address and per name, so one attacker cannot lock out everyone and one name cannot be ground down from many addresses. */
-const g = globalThis as unknown as { __accountLimits?: { loginIp: RateLimiter; loginName: RateLimiter; signup: RateLimiter; hashing: RateLimiter; write: RateLimiter; contribute: RateLimiter; check: RateLimiter } };
+const g = globalThis as unknown as { __accountLimits?: { loginIp: RateLimiter; loginName: RateLimiter; signup: RateLimiter; hashing: RateLimiter; write: RateLimiter; contribute: RateLimiter; report: RateLimiter; check: RateLimiter } };
 export const limits = () => (g.__accountLimits ??= {
   loginIp: new RateLimiter(20, 15 * 60_000), loginName: new RateLimiter(6, 15 * 60_000), signup: new RateLimiter(5, 60 * 60_000), hashing: new RateLimiter(240, 60_000),
-  write: new RateLimiter(120, 60_000), contribute: new RateLimiter(10, 24 * 60 * 60_000), check: new RateLimiter(30, 60 * 60_000),
+  write: new RateLimiter(120, 60_000), contribute: new RateLimiter(10, 24 * 60 * 60_000), report: new RateLimiter(10, 24 * 60 * 60_000), check: new RateLimiter(30, 60 * 60_000),
 });
 
 /**
