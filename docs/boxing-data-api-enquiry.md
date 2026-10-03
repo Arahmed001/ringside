@@ -1,4 +1,4 @@
-# Boxing Data API enquiry (draft, not sent)
+# Boxing Data API enquiry (answered: the vendor confirmed storage to the owner, 2026-10-03; kept for reference)
 
 **To:** hello@boxing-data.com (shown on https://boxing-data.com/contact, which also has a contact form)
 
