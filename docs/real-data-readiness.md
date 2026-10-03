@@ -79,6 +79,10 @@ Not in the feed at all, so absent from the real-data version of the site: punch 
 6. **Wording (fixed while writing this).** The footer used to say "fictional, simulated data" on every page unconditionally, which would have been false the day real data loaded. It, the Data page's "Demo mode" note, the noindex rule, the sitemap and the structured data now all hang on one check (`isDemoData()` in `lib/seo.ts`, true unless `BOXING_PROVIDER` names a real provider). Checked by serving the demo league's feed as a non-demo provider: 20 section pages in real mode contain none of "fictional", "simulated", "demo build", "demo league" or "demo mode"; the footer points to the Data page for sources; the pages are indexable and the sitemap is served. Demo mode is unchanged.
 7. **Credits and terms.** The Data page lists sources; add the vendor with its licence terms and any attribution it requires, once the terms are known.
 
+## What can and cannot be checked
+
+The vendor's facts cannot be proven true from here. The feed's own career records can be compared with the fights loaded (`docs/real-data-runbook.md`, "What 'verified' means"), and a load is refused when they do not add up. On the free plan almost nothing adds up, which is the point: it shows a few weeks of fights, and a fighter with 20 fights would appear to have one.
+
 ## When the plan is bought
 
 `docs/real-data-runbook.md` is the procedure: price it, fetch and inspect, load, check, then the daily update. Everything in it resumes after an interruption.

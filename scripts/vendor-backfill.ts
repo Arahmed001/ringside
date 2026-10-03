@@ -4,10 +4,11 @@
  *   npm run vendor:backfill -- --plan              fetch the fight list and say what the fighters will cost; writes nothing (needs only BOXING_API_KEY)
  *   npm run vendor:backfill -- --check             fetch (resumable), run the validator over everything, print the report; the database is not touched
  *   npm run vendor:backfill                        fetch (resumable), validate (strict), back up, load into the database, recompute ratings
- *   npm run vendor:backfill -- --update            the daily job: fights since the latest card in the database (less 14 days) and the coming weeks
+ *   npm run vendor:backfill -- --update            the daily job: fights since the latest card in the database (less 14 days) and the coming weeks, with fresh fighter records
  *
  * Options: --since YYYY-MM-DD  --refresh (fetch everything again)  --gap-ms 300  --retries 4  --max-requests 100000  --cache-dir <dir>
  *          --allow-incomplete (load even though some fighters could not be fetched)  --allow-errors (load even though the validator found errors)
+ *          --min-complete 0.9 (the share of fighters whose loaded fights must add up to the vendor's career record)  --allow-partial  --allow-conflicts
  *          --into-existing (the database already holds other fighters: load alongside them)  --no-backup
  * Everything except --plan fills the cache and the database. Storing is ON by default while the vendor's answer on storage is pending (every run
  * says so); BOXING_API_STORAGE_CONFIRMED=1 records that the vendor agreed in writing and silences the warning, =0 refuses to store.
@@ -20,6 +21,7 @@ import { loadFeed } from "../lib/feed";
 import { countBySeverity, groupIssues, sanitizeFeed } from "../lib/validate";
 import { todayIso } from "../lib/clock";
 import { describePlan, foreignFighters, updateSince } from "../lib/vendor-backfill";
+import { describeReconciliation, reconcileDb, reconcileFeed, recordGate } from "../lib/vendor-verify";
 
 const argv = process.argv.slice(2);
 const arg = (k: string) => { const i = argv.indexOf(`--${k}`); return i > -1 ? argv[i + 1] : undefined; };
@@ -37,7 +39,8 @@ async function main() {
     key, baseUrl: process.env.BOXING_API_URL || undefined, purpose: plan ? "evaluation" : "ingest", // a plan reads the list in memory and keeps nothing
     retries: Number(arg("retries") ?? 4), gapMs, maxRequests: Number(arg("max-requests") ?? 100_000), log, since: arg("since"),
     ...(plan ? {} : { cacheDir: path.resolve(arg("cache-dir") ?? path.join(process.cwd(), "data", "vendor-cache", "boxing-data-api")) }),
-    refresh: flag("refresh"), refreshLists: update, // a daily update must see today's results, not yesterday's cached pages
+    // a daily update must see today's results (not yesterday's cached pages) and fresh career records for the fighters who just fought (a cached record predates the fight, and the audit would call it a contradiction)
+    refresh: flag("refresh") || update,
   };
 
   let db: Awaited<ReturnType<typeof import("../lib/db").getDb>> | undefined;
@@ -77,7 +80,21 @@ async function main() {
     console.log(`  ${g.severity.toUpperCase().padEnd(7)} ${g.code}  x${g.count}`);
     for (const e of g.examples) console.log(`          ${e.entity} ${e.ref}: ${e.message}`);
   }
-  if (check) { process.exitCode = sev.errors ? 1 : 0; console.log("\n--check: the database was not touched."); return; }
+  // The one independent figure in the feed: each fighter's career record. A record the loaded fights do not add up to would be published wrongly.
+  const gateOpts = { minComplete: Number(arg("min-complete") ?? 0.9), allowPartial: flag("allow-partial"), allowConflicts: flag("allow-conflicts") };
+  let gate = { ok: true, reasons: [] as string[] };
+  if (!update) {
+    const rec = reconcileFeed(raw, provider.vendorRecords());
+    for (const line of describeReconciliation(rec)) console.log(line);
+    gate = recordGate(rec, gateOpts);
+  }
+  if (check) {
+    process.exitCode = sev.errors || !gate.ok ? 1 : 0;
+    if (!gate.ok) console.log(`\na load would be refused:\n  - ${gate.reasons.join("\n  - ")}`);
+    console.log("\n--check: the database was not touched.");
+    return;
+  }
+  if (!gate.ok) throw new Error(`Nothing was loaded, because ${gate.reasons.join(" Also, ")}`);
   if (sev.errors > 0 && !flag("allow-errors")) throw new Error(`The validator found ${sev.errors} error(s); nothing was loaded. Fix the cause (or pass --allow-errors to drop those rows and load the rest).`);
 
   const { ingest } = await import("../lib/ingest");
@@ -95,6 +112,11 @@ async function main() {
   }
   const report = await ingest(db!, provider, { strict: !flag("allow-errors") });
   log(`loaded: ${Object.entries(report.counts).filter(([, v]) => v > 0).map(([k, v]) => `${k} ${v}`).join(", ")}; ${report.errors} error(s), ${report.warnings} warning(s) (run ${report.runId})`);
+  if (update) { // the feed held only recent fights, so judge the careers as the database now has them
+    const rec = reconcileDb(db!, provider.vendorRecords(), raw.boxers.map((b) => b.externalId));
+    console.log("after the update:");
+    for (const line of describeReconciliation(rec)) console.log(line);
+  }
   console.log("\nRatings were recomputed. A running app notices the change by itself: its next request rebuilds the world (no restart).");
 }
 main().catch((e) => { console.error(`\n${e instanceof Error ? e.message : e}`); process.exit(1); });

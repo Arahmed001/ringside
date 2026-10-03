@@ -20,7 +20,7 @@ after(() => fs.rmSync(root, { recursive: true, force: true }));
 
 const fighter = (id: string, name: string, division: string) => ({
   id, name, gender: "m", birth_year: 1995, nationality: "Denmark", stance: "orthodox", debut: "2015", height_cm: 180, reach_cm: null, reach_in: 71,
-  division: { id: "d", name: division, weight_lb: 147 }, stats: { wins: 10, losses: 1, draws: 0, total_bouts: 11 },
+  division: { id: "d", name: division, weight_lb: 147 },
 });
 const FIGHTERS: Record<string, ReturnType<typeof fighter>> = Object.fromEntries([
   ["f1", "Ace One", "Welterweight"], ["f2", "Bo Two", "Welterweight"], ["f3", "Cy Three", "Lightweight"], ["f4", "Di Four", "Lightweight"], ["f5", "Ed Five", "Welterweight"], ["f6", "Fy Six", "Welterweight"],
@@ -33,13 +33,27 @@ const fight = (id: string, a: string, b: string, date: string, over: Record<stri
 });
 const pending = (id: string, a: string, b: string, date: string) => fight(id, a, b, date, { status: "NOT_STARTED", results: null, fighters: { fighter_1: { fighter_id: a, name: a, full_name: a, winner: false }, fighter_2: { fighter_id: b, name: b, full_name: b, winner: false } } });
 
-const state = { g3Finished: false, failing: new Set<string>(), requests: [] as string[] };
+const state = { g3Finished: false, failing: new Set<string>(), requests: [] as string[], skew: {} as Record<string, { wins?: number; losses?: number; draws?: number }> };
 const fights = () => [
   fight("g1", "f1", "f2", "2026-08-15"),
   fight("g2", "f3", "f4", "2026-09-05", { results: { outcome: "KO", round: "3" }, division: { name: "Lightweight" } }),
   state.g3Finished ? fight("g3", "f3", "f1", "2026-10-02", { division: { name: "Lightweight" } }) : pending("g3", "f3", "f1", "2026-10-02"), // past, no result in yet
 ];
 const upcoming = () => [pending("g4", "f5", "f6", "2026-10-20")];
+
+/** The career record the vendor would state: what the finished fights it serves give, plus any injected skew (a missing fight, a wrong total). */
+const careerOf = (id: string) => {
+  const s = { wins: 0, losses: 0, draws: 0 };
+  for (const f of fights()) {
+    if (f.status !== "FINISHED") continue;
+    const a = f.fighters.fighter_1, b = f.fighters.fighter_2;
+    if (a.fighter_id !== id && b.fighter_id !== id) continue;
+    if ((a.fighter_id === id && a.winner) || (b.fighter_id === id && b.winner)) s.wins++; else s.losses++;
+  }
+  const k = state.skew[id] ?? {};
+  const out = { wins: s.wins + (k.wins ?? 0), losses: s.losses + (k.losses ?? 0), draws: s.draws + (k.draws ?? 0) };
+  return { ...out, total_bouts: out.wins + out.losses + out.draws };
+};
 
 let server: http.Server, url = "";
 before(async () => {
@@ -57,7 +71,7 @@ before(async () => {
     if (p === "/v2/fights/schedule") return send(200, env(upcoming()));
     const m = p.match(/^\/v2\/fighters\/(.+)$/);
     if (m && state.failing.has(m[1])) return send(500, { message: "upstream hiccup" });
-    if (m && FIGHTERS[m[1]]) return send(200, env(FIGHTERS[m[1]]));
+    if (m && FIGHTERS[m[1]]) return send(200, env({ ...FIGHTERS[m[1]], stats: careerOf(m[1]) }));
     send(404, { message: "not found" });
   });
   await new Promise<void>((r) => server.listen(0, "127.0.0.1", () => r()));
@@ -119,6 +133,8 @@ test("--check fetches into the cache and reports the validator, and never opens 
   assert.equal(r.code, 0, r.out);
   assert.match(r.out, /fetched: 6 fighters, 4 events, 4 bouts; 8 request\(s\) made, 0 answered from the cache/); // the list, the schedule (the list had no coming fight) and six fighters
   assert.match(r.out, /validator: 0 error\(s\)/); assert.match(r.out, /--check: the database was not touched/);
+  assert.match(r.out, /records: 6 of 6 fighters \(100\.0%\) have loaded fights that add up exactly to the vendor's career record/);
+  assert.doesNotMatch(r.out, /a load would be refused/);
   assert.ok(!fs.existsSync(dbFile), "no database file");
   assert.equal(fs.readdirSync(cache).length, 8, "every answer is kept");
   assert.equal(since(m).length, 8);
@@ -207,13 +223,14 @@ test("a fighter that cannot be fetched stops the load with the cure; the next ru
   db.close();
 });
 
-test("--update is the daily job: it sees today's result (list pages are never reused), reuses cached fighters, and a late result replaces 'no result yet'", async () => {
+test("--update is the daily job: it sees today's result and fresh career records (nothing is reused from the cache), and a late result replaces 'no result yet'", async () => {
   state.g3Finished = true;
   const m = mark();
   const r = await run(["--update", "--cache-dir", cache], live);
   assert.equal(r.code, 0, r.out);
   assert.match(r.out, /updating from 2026-09-18/, "the latest card in the database (2026-10-02) less 14 days");
-  assert.deepEqual(since(m), ["/v2/fights/", "/v2/fights/schedule"], "the list and the coming weeks; every fighter came from the cache");
+  assert.deepEqual(since(m), ["/v2/fights/", "/v2/fights/schedule", "/v2/fighters/f3", "/v2/fighters/f1", "/v2/fighters/f5", "/v2/fighters/f6"], "the list, the coming weeks, and every fighter in the window fetched fresh: a cached record predates the result");
+  assert.match(r.out, /after the update:\nrecords: 4 of 4 fighters \(100\.0%\)/, `the careers as the database now has them, checked against the vendor's totals: ${r.out.slice(r.out.indexOf("after the update"))}`);
   const db = new DatabaseSync(dbFile, { readOnly: true });
   assert.equal(count(db, "SELECT COUNT(*) c FROM bouts WHERE external_id = 'bda-b-g3' AND method = 'UD' AND winner_id = (SELECT id FROM boxers WHERE external_id = 'bda-f-f3')"), 1, "the late result is in");
   assert.equal(count(db, "SELECT COUNT(*) c FROM bouts"), 4, "and nothing was duplicated");
@@ -221,7 +238,7 @@ test("--update is the daily job: it sees today's result (list pages are never re
   const m2 = mark();
   const again = await run(["--update", "--cache-dir", cache], live);
   assert.equal(again.code, 0, again.out);
-  assert.deepEqual(since(m2), ["/v2/fights/", "/v2/fights/schedule"], "a second update asks again: yesterday's cached list would hide today's results");
+  assert.equal(since(m2).length, 6, "a second update asks again for everything in the window: yesterday's cached answers would hide today's results");
 });
 
 test("--update on an empty database says to backfill first, and loads nothing", async () => {
@@ -235,4 +252,50 @@ test("a wrong key stops the run with the vendor's own message, and never prints 
   const r = await run(["--plan"], { BOXING_API_KEY: "wrong-key-value-xyz" });
   assert.equal(r.code, 1);
   assert.match(r.out, /403 on \/v2\/fights\/: Invalid API key\./); assert.ok(!r.out.includes("wrong-key-value-xyz"));
+});
+
+test("a career the loaded fights do not add up to is refused: a short record is a false statement, so it needs a deliberate override or a lower bar", async () => {
+  state.g3Finished = false;
+  state.skew = { f1: { wins: 5 } }; // the vendor says Ace One has five more wins than the fights we can see
+  const cache4 = path.join(root, "cache4"), db4 = path.join(root, "fourth.db");
+  const env = { DATABASE_PATH: db4, BOXING_API_STORAGE_CONFIRMED: "1" };
+  try {
+    const check = await run(["--check", "--cache-dir", cache4], env);
+    assert.equal(check.code, 1, "--check reports it as a failure too");
+    assert.match(check.out, /records: 5 of 6 fighters \(83\.3%\)/); assert.match(check.out, /1 partial: fights are missing, so the page would show a shorter record than the fighter has \(e\.g\. Ace One loaded 1-0-0 vs vendor 6-0-0\)/);
+    assert.match(check.out, /a load would be refused/);
+
+    const refused = await run(["--cache-dir", cache4], env);
+    assert.equal(refused.code, 1);
+    assert.match(refused.out, /Nothing was loaded, because only 83\.3% of fighters \(5 of 6\) have loaded fights that add up to the vendor's career record; 90% is required/);
+    assert.match(refused.out, /SHORTER record than they have/); assert.match(refused.out, /--allow-partial loads anyway; --min-complete changes the bar/);
+    const empty = new DatabaseSync(db4, { readOnly: true });
+    assert.equal(count(empty, "SELECT COUNT(*) c FROM boxers"), 0, "nothing was written");
+    empty.close();
+
+    const m = mark();
+    const lower = await run(["--cache-dir", cache4, "--min-complete", "0.8"], env);
+    assert.equal(lower.code, 0, lower.out);
+    assert.equal(since(m).length, 0, "the fetch was cached: deciding differently costs nothing");
+    const db = new DatabaseSync(db4, { readOnly: true });
+    assert.equal(count(db, "SELECT COUNT(*) c FROM boxers"), 6);
+    db.close();
+    const partial = await run(["--cache-dir", cache4, "--allow-partial"], env);
+    assert.equal(partial.code, 0, partial.out);
+  } finally { state.skew = {}; }
+});
+
+test("a career LOWER than the loaded fights is a contradiction in the feed itself: refused, and a lower bar does not excuse it", async () => {
+  state.g3Finished = false;
+  state.skew = { f1: { wins: -1 } }; // the vendor says Ace One has no wins, though a fight we hold says he won
+  const cache5 = path.join(root, "cache5"), db5 = path.join(root, "fifth.db");
+  const env = { DATABASE_PATH: db5, BOXING_API_STORAGE_CONFIRMED: "1" };
+  try {
+    const r = await run(["--cache-dir", cache5, "--min-complete", "0.5", "--allow-partial"], env);
+    assert.equal(r.code, 1, "allowing partial records does not allow conflicts");
+    assert.match(r.out, /1 CONFLICT: more than the vendor's own career total, so the feed contradicts itself \(e\.g\. Ace One loaded 1-0-0 vs vendor 0-0-0\)/);
+    assert.match(r.out, /Nothing was loaded, because 1 fighter\(s\) have MORE wins, losses or draws in the loaded fights than the vendor's own career total/);
+    const ok = await run(["--cache-dir", cache5, "--allow-conflicts", "--min-complete", "0.5"], env);
+    assert.equal(ok.code, 0, ok.out);
+  } finally { state.skew = {}; }
 });

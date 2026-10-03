@@ -259,8 +259,12 @@ export interface BackfillPlan {
   /** requests made so far (list pages) */
   requestsMade: number;
 }
+/** A fighter's career record as the vendor states it (wins, losses, draws): the only independent figure in the feed to check the loaded fights against. */
+export interface CareerRecord { wins: number; losses: number; draws: number }
 export interface BoxingDataApiProvider extends DataProvider {
   notes(): Notes; requests(): number; cacheHits(): number;
+  /** Career records the vendor gave, by our fighter id (`bda-f-...`), for fighters that came with all three numbers. */
+  vendorRecords(): Map<string, CareerRecord>;
   /** Fetches the fight list pages only and says what the fighters will cost, without fetching them: "what will this backfill cost" before it is spent. */
   plan(): Promise<BackfillPlan>;
 }
@@ -289,6 +293,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
   const sleep = o.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   let used = 0, hits = 0, notes = emptyNotes(), cache: Promise<{ boxers: ProviderBoxer[]; events: ProviderEvent[]; bouts: ProviderBout[] }> | null = null;
   let listed: Promise<{ events: Map<string, ProviderEvent>; bouts: ProviderBout[]; ids: Set<string> }> | null = null;
+  const careers = new Map<string, CareerRecord>();
 
   /** The vendor's own reason for a refusal ("not subscribed", "invalid key", "endpoint not on your plan"), with the key scrubbed out. */
   async function explain(res: Response): Promise<string> {
@@ -399,8 +404,13 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     for (const id of ids) {
       const before = hits;
       try {
-        const m = mapFighter((await get<ApiFighter>(`/v2/fighters/${id}`)).data, notes);
-        if (m) rows.push(m);
+        const raw = (await get<ApiFighter>(`/v2/fighters/${id}`)).data;
+        const m = mapFighter(raw, notes);
+        if (m) {
+          rows.push(m);
+          const s = raw.stats;
+          if (s && [s.wins, s.losses, s.draws].every((x) => typeof x === "number" && x >= 0)) careers.set(m.externalId, { wins: s.wins!, losses: s.losses!, draws: s.draws! });
+        }
       } catch (e) { if (e instanceof BudgetError) throw e; log(`fighter ${id} skipped: ${e instanceof Error ? e.message : e}`); }
       if (hits > before) cachedFighters++;
       if (++n % 100 === 0) {
@@ -417,7 +427,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
   return {
     name: "boxing-data-api",
     fetchBoxers: async () => (await once()).boxers, fetchEvents: async () => (await once()).events, fetchBouts: async () => (await once()).bouts,
-    notes: () => ({ ...notes }), requests: () => used, cacheHits: () => hits,
+    notes: () => ({ ...notes }), requests: () => used, cacheHits: () => hits, vendorRecords: () => new Map(careers),
     async plan() {
       const { events, bouts, ids } = await fightsOnce();
       const cached = o.cacheDir && !o.refresh ? [...ids].filter((id) => fromCache(cacheFile(`/v2/fighters/${id}`, {}))).length : 0;

@@ -37,6 +37,7 @@ Fetches everything into the cache and runs the validator over the whole feed, th
 
 - `approximated or skipped`: how much of the league rests on an assumption (an unknown birth year, an imputed reach, a division taken from a fighter's last fight). A large count is a reason to look, not to proceed. The table in `docs/real-data-readiness.md` says what each means.
 - `validator`: errors drop rows (the command will refuse to load while there are any); warnings are worth a look (a reach of 123 cm on a 177 cm fighter is the vendor's data, not ours).
+- `records`: how many fighters have loaded fights that add up exactly to the career record the vendor states for them. **This is the check to read.** See "What 'verified' means" below. `--check` exits 1 if a load would be refused.
 
 It takes a while at full size (the plan told you how long; the command prints its progress and a time to go). **If it stops for any reason, run the same command again**: every answer that arrived is already in the cache, so the second run makes only the requests that never completed. A rate limit is waited out (Retry-After, else 1, 2, 4 ... seconds) up to four times per request before it gives up.
 
@@ -50,6 +51,7 @@ Uses the cache (so it makes no new requests if `--check` finished), then in orde
 1. refuses if the database holds fighters that did not come from this feed (`--into-existing` overrides, if you really mean it);
 2. refuses if any fighter could not be fetched (it names the cure; `--allow-incomplete` loads without those fights);
 3. refuses while the validator has errors (`--allow-errors` drops those rows and loads the rest);
+   3b. **refuses unless the records add up**: at least 90% of fighters must have loaded fights that equal the vendor's career record (`--min-complete 0.8` lowers the bar, `--allow-partial` waives it), and no fighter may have *more* wins, losses or draws in the loaded fights than the vendor's own career total (`--allow-conflicts`);
 4. **backs the database up** if it has data (`backups/` beside the database, the last 14 kept; copy them off the volume, a backup on the disk that dies is not one; `--no-backup` skips it);
 5. loads everything in one transaction and recomputes every rating.
 
@@ -64,13 +66,29 @@ A running app notices the change by itself: its next request rebuilds the in-mem
 - [ ] The site is indexable and says nothing about "fictional" (`isDemoData()` is false once `BOXING_PROVIDER` is not `demo`): set `SITE_URL`, then decide deliberately that it is ready for search engines and the public.
 - [ ] **The live ledger** now has real coming fights to predict. It starts its clock the first time the running app builds the world; keep the app running.
 
+## What "verified" means here, and what it does not
+
+**Nothing in this tool can prove the vendor's facts are true.** That needs a primary source (a commission record, the fight itself), and no code can supply one. What it can prove is whether the feed agrees with itself, and the one figure in the feed that can contradict the fights we hold is each fighter's **career record**. The vendor says "19-0-1"; the fights we loaded either add up to that or they do not.
+
+| Result | What it means | What the site would show | What the command does |
+|---|---|---|---|
+| **complete** | The loaded fights give exactly the vendor's wins, losses and draws | The right record | Loads |
+| **partial** | Fewer of at least one, more of none: fights are missing (the plan's window is shorter than the career, or a fighter could not be fetched) | A **shorter record than the fighter has** (a 19-0-1 fighter shown as 1-0) | Refuses unless 90% are complete (or `--allow-partial`) |
+| **conflict** | More of something than the vendor's own career total: a duplicated fight, a wrong winner, a stale career record | A record the vendor itself contradicts | Refuses unless `--allow-conflicts` |
+
+So a load that passes means: every field was copied faithfully (tested against real records), the validator found no errors, and for at least 90% of fighters the fights add up to the vendor's own totals with none contradicting them. It does **not** mean the vendor's fights, winners or dates are right: two systems agreeing with each other is evidence, not proof. Anyone who needs more (a commission record for a title fight) has to check that by hand.
+
+This is also why the free plan is the wrong thing to load as a league: a window of a few weeks leaves almost every fighter partial, so the gate refuses it, correctly. Your sample shows the case: one fighter's record says 20 fights (19-0-1) and the window held one of them.
+
+The check is the vendor's `stats`, which the adapter keeps (`provider.vendorRecords()`). A fighter whose record the vendor did not give is set aside, not counted as complete.
+
 ## 5. Every day: `--update`
 
 ```bash
 npm run vendor:backfill -- --update --cache-dir /data/vendor-cache
 ```
 
-Fetches the fights since the latest card in the database (less 14 days, so a late result is caught) plus the coming weeks. It never reuses a cached fight list (yesterday's list would hide today's results) but does reuse cached fighters, so a day costs a handful of requests: the list, the schedule, and any fighter not seen before. Results that arrive later replace "no result yet"; nothing is duplicated. It backs up first, like a load.
+Fetches the fights since the latest card in the database (less 14 days, so a late result is caught) plus the coming weeks. It never reuses anything from the cache: yesterday's list would hide today's results, and a fighter's cached career record predates the fight he has just had, so the check below would call it a contradiction. A day therefore costs the list, the schedule and one request per fighter in the window (tens to a couple of hundred), and the cache is refreshed as it goes. Results that arrive later replace "no result yet"; nothing is duplicated. It backs up first, like a load. **Afterwards it audits the careers as the database now holds them** against the fresh vendor records, for the fighters in its window, and prints the same `records:` lines: a fighter who no longer adds up (a result the vendor reversed, a fight it removed) shows as a conflict or partial. The update itself is not refused (a window of recent fights cannot add up to careers on its own); the audit is what to read in the log.
 
 Schedule it once a day (the vendor's data for a card is usually settled by the next morning):
 
@@ -91,6 +109,8 @@ In a container, run it with the container's own environment: `docker exec ringsi
 | `left out because a fighter could not be fetched` | Some fighter requests failed even after retries | Run the same command again |
 | `already holds N fighter(s) that did not come from this feed` | You pointed at the demo or another league | Use a new `DATABASE_PATH` |
 | `The validator found N error(s)` | Rows the checks reject | Read the list; fix the cause; or `--allow-errors` |
+| `Nothing was loaded, because only N% of fighters ...` | Too few fighters' loaded fights add up to the vendor's career records (fights missing) | The plan's history is shorter than the careers, or fighters failed to fetch. Get a plan with the full history, or re-run; `--min-complete` / `--allow-partial` only if you accept shorter records on the site |
+| `... have MORE wins, losses or draws ... than the vendor's own career total` | The feed contradicts itself | Read the names listed; usually a stale cached record (`--refresh`) or a duplicated fight at the vendor |
 | `nothing to update yet` | `--update` on a database with no completed card | Run the backfill first |
 | The app says the database is empty and names `vendor:backfill` | It was started before the first load | Run the backfill; the app deliberately never fetches a licensed history on a page view |
 | Data looks stale after a mapping fix | The cache holds the old answers | Nothing to refetch: re-run the load (it re-maps from the cache for free). `--refresh` refetches everything |
