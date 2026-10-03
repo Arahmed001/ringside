@@ -98,6 +98,7 @@
    "app/[locale]/events/[id]/opengraph-image.tsx",
    "app/[locale]/money/page.tsx",
    "app/[locale]/previews/[id]/opengraph-image.tsx",
+   "components/LiveLedger.tsx",
    "lib/predict.ts"
   ]
  },
@@ -1111,6 +1112,12 @@
   ]
  },
  {
+  "key": "{p} picked the winner · higher rating won {e}",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "{p} vs {o}",
   "files": [
    "app/[locale]/accountability/page.tsx"
@@ -2099,6 +2106,12 @@
   ]
  },
  {
+  "key": "Awaiting the fight",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "Awards",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx",
@@ -2508,6 +2521,12 @@
   "key": "Call the card",
   "files": [
    "components/PickEm.tsx"
+  ]
+ },
+ {
+  "key": "Called {name} at {p}",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -3436,6 +3455,12 @@
   ]
  },
  {
+  "key": "Every day the server runs, Ringside records its win probability for each upcoming fight and never edits it. A fight is graded on the last prediction made before the event, and only fights with a prediction on file count: a fight that first appeared after it was over is never claimed.",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "Every division ranked by Elo-style rating. Active fighters with five or more bouts, a winning record and a fight in the last 24 months qualify. Arrows show movement over the last 90 days.",
   "files": [
    "app/[locale]/rankings/page.tsx"
@@ -4045,6 +4070,12 @@
   ]
  },
  {
+  "key": "Fights with a prediction on file",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "Filter the lists",
   "files": [
    "components/RecordsFilter.tsx"
@@ -4258,6 +4289,12 @@
   "key": "Good fight",
   "files": [
    "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "Graded",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -5112,6 +5149,12 @@
   ]
  },
  {
+  "key": "Live ledger",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "Live underdog",
   "files": [
    "lib/upsets.ts"
@@ -5657,9 +5700,21 @@
   ]
  },
  {
+  "key": "Next event {date}",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "Next fight",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Next fights on file",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -5832,6 +5887,12 @@
   ]
  },
  {
+  "key": "No upcoming fights on file",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "No upcoming fights to watch right now.",
   "files": [
    "app/[locale]/upset-watch/page.tsx",
@@ -5976,6 +6037,12 @@
   "key": "Nothing stands in the way: same division, both active, free to be booked.",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "Nothing to grade yet",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -6457,6 +6524,18 @@
   ]
  },
  {
+  "key": "Prediction on file since {date}: {a} / {b}",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Predictions written down before the fight",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "present",
   "files": [
    "components/ReignTimeline.tsx",
@@ -6933,6 +7012,12 @@
   ]
  },
  {
+  "key": "Right",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "Ring rust (past 12 mo)",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -7288,6 +7373,12 @@
   "files": [
    "app/[locale]/titles/[slug]/page.tsx",
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Since {date}",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -7787,6 +7878,12 @@
   ]
  },
  {
+  "key": "The first results are graded after {date}",
+  "files": [
+   "components/LiveLedger.tsx"
+  ]
+ },
+ {
   "key": "The first time {name} has been stopped in {n} fights.",
   "files": [
    "lib/recap.ts"
@@ -8230,6 +8327,12 @@
   "key": "Too few fights",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Too few graded fights to judge the model yet (under {n}).",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
@@ -9239,6 +9342,12 @@
   "key": "Written by AI from the results below",
   "files": [
    "components/AskResults.tsx"
+  ]
+ },
+ {
+  "key": "Wrong",
+  "files": [
+   "components/LiveLedger.tsx"
   ]
  },
  {
