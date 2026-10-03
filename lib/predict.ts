@@ -1,5 +1,5 @@
 import type { BoxerFull } from "./types";
-import { activeWeights, TERMS, TERM_KEYS, stoppageProbability, winProbability, type Features, type Weights } from "./model";
+import { activeFinish, activeWeights, TERMS, TERM_KEYS, stoppageProbability, winProbability, type Features, type FinishModel, type Weights } from "./model";
 import { nowMs } from "./clock";
 import { tEn, type T } from "./i18n/t";
 
@@ -29,14 +29,14 @@ const NOTES: Record<keyof typeof TERMS, (a: Features, b: Features, t: T) => stri
 };
 
 /** `t` localises the factor notes; `label` and `confidence` stay English keys for the caller to translate with t(). */
-export function predictFeatures(a: Features, b: Features, weights: Weights = activeWeights(), t: T = tEn): Prediction {
+export function predictFeatures(a: Features, b: Features, weights: Weights = activeWeights(), t: T = tEn, finish: FinishModel | null = activeFinish()): Prediction {
   const r = winProbability(a, b, weights);
   const factors: Factor[] = TERM_KEYS
     .map((k) => ({ label: TERMS[k].label, shift: r.shifts[k], note: NOTES[k](a, b, t) }))
     .filter((f, i) => i === 0 || Math.abs(f.shift) > 0.004);
   const gap = Math.abs(r.pA - r.pB);
   return {
-    pA: r.pA, pB: r.pB, pDraw: r.pDraw, factors, koProb: stoppageProbability(a, b),
+    pA: r.pA, pB: r.pB, pDraw: r.pDraw, factors, koProb: stoppageProbability(a, b, finish),
     confidence: gap < 0.12 ? "Toss-up" : gap < 0.3 ? "Lean" : gap < 0.55 ? "Clear favourite" : "Heavy favourite",
   };
 }
