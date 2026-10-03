@@ -1,3 +1,4 @@
+import { previewSelection, rankByRecency, selectionSizes, type SelectionPreview } from "../vendor-selection";
 import type { DataProvider, ProviderBoxer, ProviderBout, ProviderEvent } from "./index";
 import fs from "node:fs";
 import path from "node:path";
@@ -43,12 +44,12 @@ export interface ApiFight {
 
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
-  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter"
+  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection"
   | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "divisionFromFight" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
+  ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, windowTooBig: 0,
 });
 
@@ -225,6 +226,23 @@ export interface BoxingDataApiOptions {
   refreshLists?: boolean;
   /** extra attempts after a 429, a 500/502/503/504 or a network failure, waiting out Retry-After or backing off 1, 2, 4 ... seconds (max 30). Default 0. */
   retries?: number;
+  /**
+   * Never send more than this many requests an hour: they are spaced evenly (3,600,000 / perHour ms apart, or `gapMs` if that is longer). The first real
+   * run showed the plan has its own limit per hour, set by the API provider, well below what the default spacing would send.
+   */
+  perHour?: number;
+  /**
+   * Fetch only this many fighters: the ones with the most recent (or coming) fight first. The fights between two of them are loaded and no others, so a
+   * first load of a few thousand fighters is a league that holds together, in hours instead of days; a later run with a larger number (or none) only
+   * fetches the rest, the first ones being in the cache. Unset: every fighter in the list.
+   */
+  maxFighters?: number;
+  /**
+   * When the gateway refuses with a rate limit (a 429 that is not a used-up quota), wait and try the same request again, for up to this many ms in all for
+   * that request: 1, 2, 5, then 10 minutes at a time (or the Retry-After it gives). A refusal that says the quota is used up is never waited for: it ends
+   * the run at once with the vendor's own words. Default 0 (give up after `retries`). Everything fetched so far is in the cache either way.
+   */
+  patienceMs?: number;
   /** replaces the real wait, for tests */
   sleep?: (ms: number) => Promise<void>;
   /** "evaluation" fetches a sample for `npm run data:check`; "ingest" fills the database (refused only when BOXING_API_STORAGE_CONFIRMED=0). */
@@ -239,11 +257,17 @@ export interface BackfillPlan {
   fighterRequests: number;
   /** requests made so far (list pages) */
   requestsMade: number;
+  /** what taking only the most recently active fighters would give, for a few sizes (from the fight list alone; nothing is fetched to know it) */
+  selection?: SelectionPreview[];
+  /** set when `maxFighters` is in force: fighters, fighterRequests and fightersCached then count only the chosen ones, and this is how many the list holds */
+  allFighters?: number;
 }
 /** A fighter's career record as the vendor states it (wins, losses, draws): the only independent figure in the feed to check the loaded fights against. */
 export interface CareerRecord { wins: number; losses: number; draws: number }
 export interface BoxingDataApiProvider extends DataProvider {
   notes(): Notes; requests(): number; cacheHits(): number;
+  /** Bytes downloaded from the vendor so far (answers served from the cache are not counted): the plan's bandwidth is metered. */
+  bytes(): number;
   /** Career records the vendor gave, by our fighter id (`bda-f-...`), for fighters that came with all three numbers. */
   vendorRecords(): Map<string, CareerRecord>;
   /** Fetches the fight list pages only and says what the fighters will cost, without fetching them: "what will this backfill cost" before it is spent. */
@@ -251,6 +275,10 @@ export interface BoxingDataApiProvider extends DataProvider {
 }
 
 const backoff = (attempt: number) => Math.min(30_000, 1000 * 2 ** attempt);
+/** how long to wait after the 1st, 2nd, 3rd ... rate-limit refusal of one request when the gateway names no time (the last step repeats) */
+const RATE_STEPS_MS = [60_000, 120_000, 300_000, 600_000];
+/** a refusal that says an allowance is used up (monthly, daily): waiting an hour will not help */
+const QUOTA_USED = /\b(monthly|daily|weekly)\b|quota/i;
 const slug = (x: string) => x.replace(/[^a-z0-9._-]+/gi, "-").replace(/^-+|-+$/g, "");
 
 /** Said on every run that stores data while the vendor has not yet confirmed that it may be kept. */
@@ -285,7 +313,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
   const doFetch = o.fetchImpl ?? fetch;
   const max = o.maxRequests ?? 90, log = o.log ?? (() => {});
   const sleep = o.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
-  let used = 0, hits = 0, notes = emptyNotes(), cache: Promise<{ boxers: ProviderBoxer[]; events: ProviderEvent[]; bouts: ProviderBout[] }> | null = null;
+  let used = 0, hits = 0, downloaded = 0, notes = emptyNotes(), cache: Promise<{ boxers: ProviderBoxer[]; events: ProviderEvent[]; bouts: ProviderBout[] }> | null = null;
   let listed: Promise<{ events: Map<string, ProviderEvent>; bouts: ProviderBout[]; ids: Set<string> }> | null = null;
   const careers = new Map<string, CareerRecord>();
 
@@ -316,25 +344,49 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     if (file && !o.refresh && !(o.refreshLists && p.startsWith("/v2/fights"))) { const hit = fromCache<T>(file); if (hit) { hits++; return hit; } }
     const qs = Object.entries(params).filter(([, v]) => v !== undefined).map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
     const attempts = 1 + (o.retries ?? 0);
+    const spacing = Math.max(o.gapMs ?? 0, o.perHour && o.perHour > 0 ? Math.ceil(3_600_000 / o.perHour) : 0);
+    let rateWaits = 0, waited = 0;
     for (let attempt = 0; ; attempt++) {
       if (used >= max) throw new BudgetError(`Stopped after ${used} requests (limit ${max}; raise BOXING_API_MAX_REQUESTS only if your plan allows it).`);
       used++;
-      if (used > 1 && o.gapMs) await sleep(o.gapMs);
+      if (used > 1 && spacing) await sleep(spacing);
       let res: Response;
       try { res = await doFetch(`${base}${p}${qs ? `?${qs}` : ""}`, { headers: { "x-rapidapi-key": o.key, "x-rapidapi-host": host, accept: "application/json" } }); }
       catch (e) {
         if (attempt + 1 < attempts) { log(`network error on ${p} (${e instanceof Error ? e.message : e}); retrying`); await sleep(backoff(attempt)); continue; }
         throw new Error(`Boxing Data API unreachable on ${p}: ${e instanceof Error ? e.message : e}`);
       }
-      if ((res.status === 429 || [500, 502, 503, 504].includes(res.status)) && attempt + 1 < attempts) {
+      if (res.status === 429) {
+        const said = await explain(res);
+        const after = Number(res.headers.get("retry-after"));
+        // an allowance that is used up (monthly, daily): no wait helps, so say so now, in the vendor's words
+        if (QUOTA_USED.test(said)) throw new HttpError(`Boxing Data API quota used up on ${p}: ${said}. Waiting will not help: check the plan and the key's app in the RapidAPI dashboard.`, 429);
+        if ((o.patienceMs ?? 0) > 0) {
+          const wait = Number.isFinite(after) && after > 0 ? Math.min(after, 3600) * 1000 : RATE_STEPS_MS[Math.min(rateWaits, RATE_STEPS_MS.length - 1)];
+          if (waited + wait > o.patienceMs!) throw new HttpError(`Boxing Data API rate limit on ${p} still in force after waiting ${Math.round(waited / 60000)} minute(s): ${said}. Run the same command again later: everything fetched so far is cached. (--per-hour spaces the requests under the limit instead.)`, 429);
+          rateWaits++; waited += wait; attempt--; // this refusal does not use up the ordinary retries
+          log(`rate limit on ${p} ("${said}"); waiting ${Math.round(wait / 60000 * 10) / 10} minute(s), then carrying on. What is fetched is cached, so Ctrl-C is safe`);
+          await sleep(wait);
+          continue;
+        }
+        if (attempt + 1 < attempts) {
+          log(`429 on ${p}; retrying (attempt ${attempt + 2} of ${attempts})`);
+          await sleep(Number.isFinite(after) && after > 0 ? Math.min(after, 120) * 1000 : backoff(attempt));
+          continue;
+        }
+        throw new HttpError(`Boxing Data API rate limit hit on ${p}: ${said} (retry after ${res.headers.get("retry-after") ?? "unknown"} s). --patience-min makes a run wait such a limit out; --per-hour N keeps under it.`, 429);
+      }
+      if ([500, 502, 503, 504].includes(res.status) && attempt + 1 < attempts) {
         const wait = Number(res.headers.get("retry-after"));
         log(`${res.status} on ${p}; retrying (attempt ${attempt + 2} of ${attempts})`);
         await sleep(Number.isFinite(wait) && wait > 0 ? Math.min(wait, 120) * 1000 : backoff(attempt));
         continue;
       }
-      if (res.status === 429) throw new Error(`Boxing Data API rate limit hit on ${p} (retry after ${res.headers.get("retry-after") ?? "unknown"} s).`);
       if (!res.ok) throw new HttpError(`Boxing Data API ${res.status} on ${p}: ${await explain(res)}`, res.status);
-      const body = (await res.json()) as Envelope<T>;
+      const raw = await res.text();
+      downloaded += Buffer.byteLength(raw);
+      let body: Envelope<T>;
+      try { body = JSON.parse(raw) as Envelope<T>; } catch { throw new Error(`Boxing Data API sent something that is not JSON on ${p}: ${raw.slice(0, 120)}`); }
       if (o.rawDir) { fs.mkdirSync(o.rawDir, { recursive: true }); fs.writeFileSync(path.join(o.rawDir, `${String(used).padStart(3, "0")}-${p.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "")}.json`), JSON.stringify(body, null, 2)); }
       if (body.error && Object.keys(body.error).length) throw new Error(`Boxing Data API error on ${p}: ${JSON.stringify(body.error).slice(0, 200)}`);
       if (file) toCache(file, body); // only a good answer is kept: an error body is never a checkpoint
@@ -424,12 +476,24 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
   }
   const fightsOnce = () => (listed ??= listFights());
 
-  async function load() {
+  /** the fighters this run fetches (raw ids, most recently active first), and the ones it leaves for a later run */
+  async function chooseFighters() {
     const { events, bouts, ids } = await fightsOnce();
+    const dateOf = new Map([...events.values()].map((e) => [e.externalId, e.date]));
+    const ranked = rankByRecency(bouts, dateOf); // external ids
+    const n = o.maxFighters && o.maxFighters > 0 ? Math.min(o.maxFighters, ranked.length) : ranked.length;
+    const cut = fighterId("").length;
+    return { ranked, chosen: ranked.slice(0, n).map((x) => x.slice(cut)), left: new Set(ranked.slice(n)), total: ids.size };
+  }
+
+  async function load() {
+    const { events, bouts } = await fightsOnce();
+    const { chosen, left, total } = await chooseFighters();
+    if (left.size) log(`taking the ${chosen.length} most recently active of ${total} fighters; the other ${left.size} are left for a later run (their fights are not loaded)`);
     const rows: Loose[] = [];
     let n = 0, cachedFighters = 0;
     const started = Date.now();
-    for (const id of ids) {
+    for (const id of chosen) {
       const before = hits;
       try {
         const raw = (await get<ApiFighter>(`/v2/fighters/${id}`)).data;
@@ -439,15 +503,19 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
           const s = raw.stats;
           if (s && [s.wins, s.losses, s.draws].every((x) => typeof x === "number" && x >= 0)) careers.set(m.externalId, { wins: s.wins!, losses: s.losses!, draws: s.draws! });
         }
-      } catch (e) { if (e instanceof BudgetError) throw e; log(`fighter ${id} skipped: ${e instanceof Error ? e.message : e}`); }
+      } catch (e) { if (e instanceof BudgetError || (e instanceof HttpError && e.status === 429)) throw e; /* a plan that refuses (a limit, a quota) refuses the next fighter too: stop, do not skip a thousand */ log(`fighter ${id} skipped: ${e instanceof Error ? e.message : e}`); }
       if (hits > before) cachedFighters++;
       if (++n % 100 === 0) {
         const perRequest = (Date.now() - started) / Math.max(1, n - cachedFighters); // cached fighters cost nothing, so time per fighter actually fetched
-        log(`fighters: ${n} of ${ids.size}${cachedFighters ? ` (${cachedFighters} from the cache)` : ""}, at most ${Math.ceil(((ids.size - n) * perRequest) / 60000)} min to go`);
+        log(`fighters: ${n} of ${chosen.length}${cachedFighters ? ` (${cachedFighters} from the cache)` : ""}, at most ${Math.ceil(((chosen.length - n) * perRequest) / 60000)} min to go`);
       }
     }
     const have = new Set(rows.map((r) => r.externalId));
-    const keep = bouts.filter((b) => { const ok = have.has(b.redExternalId) && have.has(b.blueExternalId); if (!ok) notes.boutsDroppedUnknownFighter++; return ok; });
+    const keep = bouts.filter((b) => {
+      const ok = have.has(b.redExternalId) && have.has(b.blueExternalId);
+      if (!ok) { if (left.has(b.redExternalId) || left.has(b.blueExternalId)) notes.boutsOutsideSelection++; else notes.boutsDroppedUnknownFighter++; }
+      return ok;
+    });
     const eventDates = new Map([...events.values()].map((e) => [e.externalId, e.date]));
     return { boxers: finishBoxers(rows, keep, eventDates, notes), events: [...events.values()], bouts: keep };
   }
@@ -455,11 +523,16 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
   return {
     name: "boxing-data-api",
     fetchBoxers: async () => (await once()).boxers, fetchEvents: async () => (await once()).events, fetchBouts: async () => (await once()).bouts,
-    notes: () => ({ ...notes }), requests: () => used, cacheHits: () => hits, vendorRecords: () => new Map(careers),
+    notes: () => ({ ...notes }), requests: () => used, cacheHits: () => hits, bytes: () => downloaded, vendorRecords: () => new Map(careers),
     async plan() {
       const { events, bouts, ids } = await fightsOnce();
-      const cached = o.cacheDir && !o.refresh ? [...ids].filter((id) => fromCache(cacheFile(`/v2/fighters/${id}`, {}))).length : 0;
-      return { fights: bouts.length, events: events.size, fighters: ids.size, fightersCached: cached, fighterRequests: ids.size - cached, requestsMade: used };
+      const { ranked, chosen } = await chooseFighters();
+      const cached = o.cacheDir && !o.refresh ? chosen.filter((id) => fromCache(cacheFile(`/v2/fighters/${id}`, {}))).length : 0;
+      const limited = chosen.length < ids.size;
+      return {
+        fights: bouts.length, events: events.size, fighters: chosen.length, fightersCached: cached, fighterRequests: chosen.length - cached, requestsMade: used,
+        selection: selectionSizes(ranked.length).map((n) => previewSelection(bouts, ranked, n)), ...(limited ? { allFighters: ids.size } : {}),
+      };
     },
   };
 }
