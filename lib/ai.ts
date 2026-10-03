@@ -62,7 +62,7 @@ export interface Filters {
   missedWeight?: boolean; // has missed weight at least once
   newTrainer?: boolean; // changed head trainer in the last 9 months
   bornIn?: string; // birthplace fragment
-  sort?: "rating" | "wins" | "kos" | "koRate" | "age" | "reach";
+  sort?: "rating" | "wins" | "kos" | "koRate" | "age" | "reach" | "bouts";
 }
 
 const COUNTRY_ALIASES: Record<string, string> = {
@@ -137,7 +137,7 @@ export function heuristicParse(q: string, countries: string[]): Filters {
   else if (/\bactive\b|currently/.test(s)) f.active = true;
   const wins = s.match(/(\d+)\+?\s*wins/); if (wins) f.minWins = +wins[1];
   const kos = s.match(/(\d+)\+?\s*(?:kos?|knockouts?)/); if (kos) f.minKOs = +kos[1];
-  const kor = s.match(/(\d+)\s*%\s*(?:ko|knockout)/); if (kor) f.minKoRate = +kor[1] / 100;
+  const kor = s.match(/(\d+)\s*%\s*(?:ko|knockout)/) ?? s.match(/(?:ko|knockout) (?:rate|percentage|ratio)\s*(?:of|over|above|at least|>)?\s*(\d+)\s*%/); if (kor) f.minKoRate = +kor[1] / 100;
   if (/big puncher|heavy hand|power puncher|knockout artist|devastating/.test(s)) f.archetype = "Knockout Artist";
   if (/technician|technical|skilled boxer/.test(s)) f.archetype = "Technician";
   if (/counter/.test(s)) f.archetype = "Counter-Puncher";
@@ -154,6 +154,8 @@ export function heuristicParse(q: string, countries: string[]): Filters {
   if (/best|top|highest rated|greatest/.test(s)) f.sort = "rating";
   if (/most (?:ko|knockout)/.test(s)) f.sort = "kos";
   if (/most wins/.test(s)) f.sort = "wins";
+  if (/most (?:fights|bouts)|most experienced|most active/.test(s)) f.sort = "bouts";
+  if (/longest reach|biggest reach|longest arms|reach advantage/.test(s)) f.sort = "reach";
   arabicHints(original, f, countries);
   if (!Object.keys(f).length && q.trim()) f.text = q.trim();
   return f;
@@ -213,7 +215,7 @@ export function sanitizeFilters(j: Record<string, unknown>, countries: string[])
   if (typeof j.text === "string") f.text = j.text.slice(0, 60);
   for (const k of ["trainer", "manager", "gym", "promoter", "bornIn"] as const) if (typeof j[k] === "string" && j[k]) f[k] = (j[k] as string).slice(0, 60);
   for (const k of ["trainerCurrent", "missedWeight", "newTrainer"] as const) if (typeof j[k] === "boolean") f[k] = j[k] as boolean;
-  if (typeof j.sort === "string" && ["rating", "wins", "kos", "koRate", "age", "reach"].includes(j.sort)) f.sort = j.sort as Filters["sort"];
+  if (typeof j.sort === "string" && ["rating", "wins", "kos", "koRate", "age", "reach", "bouts"].includes(j.sort)) f.sort = j.sort as Filters["sort"];
   return f;
 }
 
@@ -264,11 +266,11 @@ export function applyFilters(boxers: BoxerFull[], f: Filters, w?: World, names: 
     (!f.text || normalize(`${b.name} ${names[b.name] ?? ""} ${b.nickname ?? ""} ${b.nickname ? names[b.nickname] ?? "" : ""}`).includes(normalize(f.text))),
   );
   const key = f.sort ?? "rating";
-  const val = (b: BoxerFull) => ({ rating: b.rating, wins: b.wins, kos: b.kos, koRate: b.koRate, age: -b.age, reach: b.reachCm })[key];
+  const val = (b: BoxerFull) => ({ rating: b.rating, wins: b.wins, kos: b.kos, koRate: b.koRate, age: -b.age, reach: b.reachCm, bouts: b.bouts })[key];
   return out.sort((a, b) => val(b) - val(a));
 }
 
-const SORT_LABEL: Record<string, string> = { rating: "rating", wins: "wins", kos: "knockouts", koRate: "KO rate", age: "age", reach: "reach" };
+const SORT_LABEL: Record<string, string> = { rating: "rating", wins: "wins", kos: "knockouts", koRate: "KO rate", age: "age", reach: "reach", bouts: "fights" };
 
 /** The chips under a search box: what the parser understood. `t` localises the wording; names and numbers pass through. */
 export function describeFilters(f: Filters, t: T = tEn): string[] {

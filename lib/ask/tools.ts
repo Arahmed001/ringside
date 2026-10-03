@@ -9,6 +9,7 @@ import { belts, beltLabel, reignsOf } from "../lineage";
 import { eventViews, recentEvents, upcomingEvents } from "../events";
 import { fightsOfYear, fightOfTheYear, resultLine, fightReasons } from "../fight-score";
 import { secondsIn } from "../records";
+import { isDecision, isStoppage } from "../methods";
 import { upsetWatch, TIER_LABEL } from "../upsets";
 import { trainerImpact, VERDICT_LABEL, underdogRecordOf } from "../trainer-impact";
 import { personStable } from "../team";
@@ -52,7 +53,7 @@ const fighters: Tool = {
     { name: "minKoRate", kind: "number", about: "knockouts as a share of wins, 0 to 1", min: 0, max: 1 }, { name: "minAge", kind: "number", about: "at least this age", min: 16, max: 60 }, { name: "maxAge", kind: "number", about: "at most this age", min: 16, max: 60 },
     { name: "archetype", kind: "string", about: "style: Knockout Artist, Volume Boxer, Technician, Iron-Chin Brawler, Counter-Puncher, Journeyman" },
     { name: "trainer", kind: "string", about: "head trainer name" }, { name: "gym", kind: "string", about: "gym name" },
-    { name: "sort", kind: "enum", about: "sort order (default rating)", values: ["rating", "wins", "kos", "koRate", "age", "reach"] }, LIMIT,
+    { name: "sort", kind: "enum", about: "sort order (default rating)", values: ["rating", "wins", "kos", "koRate", "age", "reach", "bouts"] }, LIMIT,
   ],
   run({ w, t, names }, args) {
     const countries = [...new Set(w.boxers.map((b) => b.country))];
@@ -72,7 +73,7 @@ const fighters: Tool = {
     };
   },
 };
-const SORT_NAME: Record<string, string> = { rating: msg("rating"), wins: msg("wins"), kos: msg("knockouts"), koRate: msg("KO rate"), age: msg("age"), reach: msg("reach") };
+const SORT_NAME: Record<string, string> = { rating: msg("rating"), wins: msg("wins"), kos: msg("knockouts"), koRate: msg("KO rate"), age: msg("age"), reach: msg("reach"), bouts: msg("fights") };
 
 const recordListTool: Tool = {
   name: "record_list",
@@ -206,7 +207,7 @@ const bouts: Tool = {
   name: "bouts",
   about: "Search completed fights: by year, division, how it ended, title fights only, one fighter, minimum scheduled rounds; sorted by recency, fight score, fastest finish or knockdowns.",
   args: [
-    { name: "year", kind: "number", about: "calendar year", min: 2000, max: 2100 }, DIVISION, { name: "method", kind: "enum", about: "how it ended", values: METHODS },
+    { name: "year", kind: "number", about: "calendar year", min: 2000, max: 2100 }, DIVISION, { name: "method", kind: "enum", about: "how it ended; \"stoppage\" is KO, TKO or retirement and \"decision\" any decision", values: [...METHODS, "stoppage", "decision"] },
     { name: "title", kind: "boolean", about: "title fights only" }, { name: "fighter", kind: "string", about: "a fighter's name" }, { name: "minRounds", kind: "number", about: "scheduled for at least this many rounds", min: 1, max: 12 },
     { name: "sort", kind: "enum", about: "order (default recent)", values: ["recent", "fight score", "fastest", "knockdowns"] }, LIMIT,
   ],
@@ -216,9 +217,10 @@ const bouts: Tool = {
     const fighterName = str(args, "fighter");
     const who = fighterName ? findFighter(ctx, fighterName) : undefined;
     if (fighterName && !who) return empty("bouts", args, t, t("No fighter found by that name."));
-    const method = (METHODS as readonly string[]).includes(String(args.method)) ? String(args.method) : null;
+    const method = ([...METHODS, "stoppage", "decision"] as readonly string[]).includes(String(args.method)) ? String(args.method) : null;
+    const howItEnded = (m: string | null) => (!method ? true : method === "stoppage" ? isStoppage(m) : method === "decision" ? isDecision(m) : m === method);
     const division = (WEIGHT_CLASSES as readonly string[]).includes(String(args.division)) ? String(args.division) : null;
-    let list = done(w).filter((b) => (!year || b.date.startsWith(year)) && (!division || b.weightClass === division) && (!method || b.method === method) && (!args.title || !!b.title)
+    let list = done(w).filter((b) => (!year || b.date.startsWith(year)) && (!division || b.weightClass === division) && howItEnded(b.method) && (!args.title || !!b.title)
       && (!who || b.redId === who.id || b.blueId === who.id) && (typeof args.minRounds !== "number" || b.rounds >= args.minRounds));
     const sort = str(args, "sort") ?? "recent";
     const total = list.length;
