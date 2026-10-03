@@ -156,7 +156,9 @@ const env = <T>(data: T, extra: object = {}) => ({ metadata: {}, pagination: { p
 const FIGHTERS: Record<string, B.ApiFighter> = { A1: fighter("A1", "Alpha One"), B1: fighter("B1", "Bravo One", { stance: "southpaw", age: 31 }), C1: fighter("C1", "Charlie One", { height_cm: null, reach_cm: null }) };
 const FIGHTS = [fight("1", "A1", "B1"), fight("2", "A1", "C1", { date: "2025-03-01T20:00:00Z", event: { id: "ev-2", title: "Spring Card", date: "2025-03-01T20:00:00Z", location: "London, United Kingdom", venue: "The O2" } })];
 const UPCOMING = fight("3", "B1", "C1", { status: "NOT_STARTED", date: "2026-11-14T20:00:00Z", results: { outcome: null, round: null }, event: { id: "ev-3", title: "Winter Night", date: "2026-11-14T20:00:00Z", location: "Manchester, United Kingdom", venue: "AO Arena" }, fighters: { fighter_1: side("B1", false), fighter_2: side("C1", false) } });
-const standard: Handler = (path) => {
+const standard: Handler = (path, q) => {
+  // the real API refuses a start date without an end date
+  if (q?.get("date_from") && !q.get("date_to")) return { status: 400, body: { code: "InvalidDateRange", message: "date_from must be earlier than or equal to date_to and in format YYYY-MM-DD" } };
   if (path === "/v2/fights/") return { body: env(FIGHTS) };
   if (path === "/v2/fights/schedule") return { body: env([UPCOMING, FIGHTS[1]]) }; // FIGHTS[1] is in both lists
   const m = path.match(/^\/v2\/fighters\/(.+)$/);
@@ -268,4 +270,131 @@ test("upcoming fights come from the schedule endpoint: asked for the coming days
   assert.equal(up.method, null); assert.equal(up.winnerExternalId, null);
   const none = mockFetch((path, q) => { assert.notEqual(path, "/v2/fights/schedule"); return standard(path, q); });
   assert.equal((await B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: none.impl, scheduleDays: 0 }).fetchBouts()).length, 2, "0 days: no schedule request at all");
+});
+
+test("a refusal says why: the vendor's message is in the error (with the key scrubbed), and its status is kept", async () => {
+  const refuse = (status: number, body: unknown) => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", scheduleDays: 0, fetchImpl: mockFetch(() => ({ status, body })).impl });
+  await assert.rejects(() => refuse(403, { message: "You are not subscribed to this API." }).fetchBouts(),
+    (e: Error) => e instanceof B.HttpError && e.status === 403 && /403 on \/v2\/fights\/: You are not subscribed to this API\./.test(e.message));
+  await assert.rejects(() => refuse(403, { message: `Invalid API key ${KEY} for this host` }).fetchBouts(), (e: Error) => /Invalid API key \*\*\* for this host/.test(e.message) && !e.message.includes(KEY), "a key echoed back by the server is scrubbed");
+  await assert.rejects(() => refuse(500, "<html>upstream down</html>").fetchBouts(), (e: Error) => /500 on \/v2\/fights\/: .*upstream down/.test(e.message), "a non-JSON body is shown as text");
+  await assert.rejects(() => refuse(403, {}).fetchBouts(), (e: Error) => /403 on \/v2\/fights\//.test(e.message), "and an empty one still names the endpoint");
+});
+
+test("a plan without the schedule endpoint still loads: the coming fights are asked for from the list, from today on, and it is counted", async () => {
+  const asked: string[] = [];
+  const { impl } = mockFetch((path, q) => {
+    asked.push(`${path}${q.get("date_from") ? `?from=${q.get("date_from")}&to=${q.get("date_to")}&sort=${q.get("date_sort")}` : ""}`);
+    if (path === "/v2/fights/schedule") return { status: 403, body: { message: "This endpoint is not included in your plan." } };
+    if (path === "/v2/fights/" && q.get("date_from") === "2026-10-03") return { body: env([UPCOMING]) };
+    return standard(path, q);
+  });
+  const logs: string[] = [];
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, log: (m) => logs.push(m) });
+  const bouts = await p.fetchBouts();
+  assert.ok(bouts.some((b) => b.externalId === "bda-b-3"), "the upcoming fight arrived by the fallback");
+  assert.equal(p.notes().scheduleUnavailable, 1);
+  assert.deepEqual(asked.filter((a) => a !== "/v2/fights/" && !a.startsWith("/v2/fighters/")), ["/v2/fights/schedule", "/v2/fights/?from=2026-10-03&to=2026-12-02&sort=ASC"]);
+  assert.ok(logs.some((l) => /schedule endpoint refused \(.*not included in your plan/.test(l)), "and the reason is shown");
+  // a server error is NOT a missing plan: it must stay loud
+  const broken = mockFetch((path, q) => (path === "/v2/fights/schedule" ? { status: 500, body: {} } : standard(path, q)));
+  await assert.rejects(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: broken.impl }).fetchBouts(), /500 on \/v2\/fights\/schedule/);
+});
+
+test("raw responses can be kept for offline fixes: one file per request, nothing secret in them, and off unless asked", async () => {
+  const fs = await import("node:fs"), os = await import("node:os"), path = await import("node:path");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "bda-raw-"));
+  const { impl } = mockFetch(standard);
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, rawDir: dir });
+  await p.fetchBouts();
+  const files = fs.readdirSync(dir).sort();
+  assert.equal(files.length, p.requests(), "one file per request");
+  assert.match(files[0], /^001-v2_fights\.json$/); assert.match(files[1], /^002-v2_fights_schedule\.json$/); assert.match(files[2], /^003-v2_fighters_/);
+  for (const f of files) assert.ok(!fs.readFileSync(path.join(dir, f), "utf8").includes(KEY), "responses never contain the key");
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, files[0]), "utf8")).data.length, 2, "the body as the API sent it");
+  const none = fs.mkdtempSync(path.join(os.tmpdir(), "bda-raw-off-"));
+  await B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: mockFetch(standard).impl }).fetchBouts();
+  assert.deepEqual(fs.readdirSync(none), [], "off by default");
+  fs.rmSync(dir, { recursive: true, force: true }); fs.rmSync(none, { recursive: true, force: true });
+});
+
+test("a start date always travels with an end date, as the API requires; the real refusals from the first free-tier run are handled", async () => {
+  const sent: string[] = [];
+  const { impl } = mockFetch((path, q) => { if (path === "/v2/fights/") sent.push(`${q.get("date_from")}..${q.get("date_to")}`); return standard(path, q); });
+  await B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0, since: "2025-01-01" }).fetchBouts();
+  assert.deepEqual(sent, ["2025-01-01..2026-10-03"], "since -> date_from, with date_to today");
+  sent.length = 0;
+  await B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0 }).fetchBouts();
+  assert.deepEqual(sent, ["null..null"], "no dates asked for when none are wanted");
+
+  // what the free plan actually answered: the schedule is outside the allowed range, and so is the future in the list
+  const free = mockFetch((path, q) => {
+    if (path === "/v2/fights/schedule" || (path === "/v2/fights/" && q.get("date_from"))) return { status: 403, body: { code: "DateOutOfRange", message: "Requested date is outside your subscription's allowed date range" } };
+    return standard(path, q);
+  });
+  const logs: string[] = [];
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: free.impl, log: (m) => logs.push(m) });
+  const bouts = await p.fetchBouts();
+  assert.ok(bouts.length >= 2, "the history it is allowed to see still loads");
+  assert.equal(p.notes().scheduleUnavailable, 1); assert.equal(p.notes().upcomingUnavailable, 1);
+  assert.ok(logs.some((l) => /no coming fights available on this plan \(.*allowed date range/.test(l)), "and the reason is shown");
+  // a broken server in the fallback is NOT "no coming fights on this plan": it stays loud
+  const broken = mockFetch((path, q) => {
+    if (path === "/v2/fights/schedule") return { status: 403, body: { message: "not on your plan" } };
+    if (path === "/v2/fights/" && q.get("date_from")) return { status: 500, body: {} };
+    return standard(path, q);
+  });
+  await assert.rejects(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: broken.impl }).fetchBouts(), /500 on \/v2\/fights\//);
+  // but a refusal of the HISTORY itself is not hidden: the sample would otherwise look fine and be empty
+  const noHistory = mockFetch(() => ({ status: 403, body: { code: "DateOutOfRange", message: "Requested date is outside your subscription's allowed date range" } }));
+  await assert.rejects(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: noHistory.impl, since: "1990-01-01" }).fetchBouts(), /allowed date range/);
+});
+
+// a record as the real API sent it (first free-tier run, 2026-10-03): note the location has a region and no country
+const REAL_UPCOMING: B.ApiFight & Record<string, unknown> = {
+  id: "real-1", title: "Mathieu vs. Shishkin", slug: null, date: "2026-10-09T02:00:00", venue: "Capitole de Quebec", location: "Quebec City, Quebec",
+  results: null, scheduled_rounds: 10, scores: null, card_billing: "Main Card", status: "NOT_STARTED", statistics: null,
+  fighters: { fighter_1: { fighter_id: "68288a82162efadfc8bc4577", name: "Mathieu", full_name: "Wilkens Mathieu", winner: false }, fighter_2: { fighter_id: "6715fc1faf69bb50508b7c2a", name: "Shishkin", full_name: "Vladimir Shishkin", winner: false } },
+  event: { id: "6a7deb3ff8d3c8223feb8382", title: "Iglesias vs. Zaren", slug: null, date: "2026-10-09T00:00:00", location: "Quebec City, Quebec" } as B.ApiEvent,
+  division: { name: "Super Middleweight" },
+};
+
+test("the real record: an upcoming fight with null results maps with the event's plain date and a country worked out from the region", () => {
+  const n = notes();
+  const m = B.mapFight(REAL_UPCOMING, n)!;
+  assert.equal(m.event.date, "2026-10-09", "the event's own date (midnight, so a plain date), not the fight's UTC time");
+  assert.deepEqual([m.event.city, m.event.country], ["Quebec City", "Canada"]);
+  assert.equal(m.event.venue, "Capitole de Quebec"); assert.equal(m.event.name, "Iglesias vs. Zaren");
+  assert.equal(m.bout.method, null); assert.equal(m.bout.winnerExternalId, null); assert.equal(m.bout.rounds, 10); assert.equal(m.bout.weightClass, "Super Middleweight");
+  assert.equal(n.locationCountryInferred, 1);
+});
+
+test("regions become countries: US states, Canadian provinces, UK nations, Australian and Mexican states; a country name is left alone; Georgia is ambiguous and says so", () => {
+  const n = notes();
+  const country = (loc: string) => B.parseLocation(loc, n).country;
+  assert.equal(country("Las Vegas, Nevada"), "United States"); assert.equal(country("New York, New York"), "United States");
+  assert.equal(country("Quebec City, Quebec"), "Canada"); assert.equal(country("Montréal, Québec"), "Canada");
+  assert.equal(country("Cardiff, Wales"), "United Kingdom"); assert.equal(country("Belfast, Northern Ireland"), "United Kingdom");
+  assert.equal(country("Sydney, New South Wales"), "Australia"); assert.equal(country("Guadalajara, Jalisco"), "Mexico");
+  assert.equal(n.locationCountryInferred, 8);
+  assert.equal(country("Riyadh, Saudi Arabia"), "Saudi Arabia"); assert.equal(country("London, United Kingdom"), "United Kingdom");
+  assert.equal(country("Las Vegas, Nevada, United States"), "United States", "a country as the last part wins");
+  assert.equal(n.locationCountryInferred, 8, "none of those needed inferring");
+  assert.equal(country("Atlanta, Georgia"), "Georgia"); assert.equal(n.locationRegionAmbiguous, 1, "the same text means Atlanta and Tbilisi: not guessed");
+});
+
+test("when the list already shows coming fights, the schedule endpoint is not asked for at all", async () => {
+  const asked: string[] = [];
+  const { impl } = mockFetch((path, q) => {
+    asked.push(path);
+    if (path === "/v2/fights/") return { body: env([REAL_UPCOMING, FIGHTS[0]]) };
+    if (path === "/v2/fighters/68288a82162efadfc8bc4577") return { body: env(fighter("68288a82162efadfc8bc4577", "Wilkens Mathieu")) };
+    if (path === "/v2/fighters/6715fc1faf69bb50508b7c2a") return { body: env(fighter("6715fc1faf69bb50508b7c2a", "Vladimir Shishkin")) };
+    return standard(path, q);
+  });
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl });
+  const bouts = await p.fetchBouts();
+  assert.ok(bouts.some((b) => b.externalId === "bda-b-real-1"), "the coming fight came from the list");
+  assert.ok(!asked.includes("/v2/fights/schedule"), "no redundant (and, on the free plan, refused) schedule request");
+  assert.equal(p.notes().scheduleUnavailable, 0);
 });
