@@ -11,6 +11,7 @@
  */
 import path from "node:path";
 import { assertPlausibleKey } from "./providers/boxing-data-api";
+import { STALE_DATA_DAYS } from "./freshness";
 
 export type Level = "fail" | "warn" | "info" | "ok";
 export interface Finding { level: Level; id: string; message: string; fix?: string }
@@ -21,6 +22,7 @@ export const MIN_NODE = [22, 5] as const;
 export const LOW_DISK = 500 * 1024 * 1024, CRITICAL_DISK = 100 * 1024 * 1024;
 /** A backup older than this (in days) is "not running" as far as a daily schedule is concerned. */
 export const STALE_BACKUP_DAYS = 2;
+export { STALE_DATA_DAYS };
 
 /** Every setting the app, its scripts and its docs know about. The drift test (tests/config-docs.test.ts) keeps this, the code and .env.example in step. */
 export const KNOWN_ENV = [
@@ -113,7 +115,7 @@ export function envFindings(env: Env, nodeVersion = process.versions.node, produ
   return out;
 }
 
-export interface DbFacts { exists: boolean; bytes?: number; mode?: number; quickCheck?: string; tables?: string[]; rows?: Record<string, number>; error?: string }
+export interface DbFacts { exists: boolean; bytes?: number; mode?: number; quickCheck?: string; tables?: string[]; rows?: Record<string, number>; error?: string; /** the newest load or update of the sports data (lib/freshness.ts) */ lastUpdate?: { at: string; provider: string } | null }
 export interface Probe {
   dir(p: string): { exists: boolean; writable: boolean };
   db(p: string, tables: string[]): DbFacts;
@@ -153,6 +155,16 @@ export function fileFindings(env: Env, probe: Probe, o: { cwd?: string; now?: Da
     if (missing.length) out.push(f("fail", "sports-db", `${p.db} is missing the table(s) ${missing.join(", ")}: it is not a Ringside database.`, "Check DATABASE_PATH points at the right file."));
     else if (!(sports.rows?.bouts ?? 0)) out.push(f(prov === "licensed" ? "fail" : "warn", "sports-db", `${p.db} has no fights in it.`, prov === "licensed" ? "Run npm run vendor:backfill." : undefined));
     else out.push(f("ok", "sports-db", `${p.db}: ${sports.rows?.boxers ?? 0} boxers, ${sports.rows?.bouts} fights, integrity ok.`));
+    // a licensed feed is kept current by a daily job; when it stops, the site goes on answering with old results and nothing fails
+    if (prov === "licensed" && (sports.rows?.bouts ?? 0) > 0) {
+      const at = sports.lastUpdate?.at ? Date.parse(sports.lastUpdate.at) : NaN;
+      if (!Number.isFinite(at)) out.push(f("warn", "stale-data", "No load or update of the fights is recorded in this database.", "Run npm run vendor:backfill, then schedule `npm run vendor:backfill -- --update` daily."));
+      else {
+        const days = (now.getTime() - at) / 86_400_000;
+        if (days > STALE_DATA_DAYS) out.push(f("warn", "stale-data", `The fights were last updated ${Math.floor(days)} days ago (${sports.lastUpdate!.at.slice(0, 10)}): the daily update is probably not running, and the site is showing old results.`, "Check the scheduled `npm run vendor:backfill -- --update` and its log (docs/real-data-runbook.md)."));
+        else out.push(f("ok", "stale-data", `The fights were last updated ${sports.lastUpdate!.at.slice(0, 10)}.`));
+      }
+    }
   }
 
   const acc = probe.db(p.accounts, ACCOUNT_TABLES);

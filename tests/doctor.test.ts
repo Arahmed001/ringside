@@ -8,7 +8,7 @@ import { DatabaseSync } from "node:sqlite";
 import { configLine, diagnose, distance, envFindings, fileFindings, problemLines, worst, type DbFacts, type Finding, type Probe } from "../lib/doctor";
 
 const NOW = new Date("2026-10-03T12:00:00Z");
-const goodDb = (rows: Record<string, number> = { boxers: 968, events: 100, bouts: 7755 }): DbFacts => ({ exists: true, quickCheck: "ok", tables: ["boxers", "events", "bouts", "users", "sessions", "picks"], rows: { users: 31, ...rows }, mode: 0o600 });
+const goodDb = (rows: Record<string, number> = { boxers: 968, events: 100, bouts: 7755 }): DbFacts => ({ exists: true, quickCheck: "ok", lastUpdate: { at: "2026-10-03T06:17:00.000Z", provider: "boxing-data-api" }, tables: ["boxers", "events", "bouts", "users", "sessions", "picks"], rows: { users: 31, ...rows }, mode: 0o600 });
 const probe = (o: Partial<{ dirOk: boolean; dirExists: boolean; sports: DbFacts; accounts: DbFacts; backup: Date | null; free: number | null; file: boolean }> = {}): Probe => ({
   dir: () => ({ exists: o.dirExists ?? true, writable: o.dirOk ?? true }),
   db: (p) => (p.endsWith("accounts.db") ? o.accounts ?? goodDb() : o.sports ?? goodDb()),
@@ -199,4 +199,21 @@ test("npm run doctor on real files: a good setup passes; a loose accounts file, 
 
   const json = JSON.parse(go({}, ["--json"]).stdout) as Finding[];
   assert.ok(json.every((x) => ["fail", "warn", "info", "ok"].includes(x.level)));
+});
+
+
+test("a licensed feed whose daily update has stopped is a warning, a fresh one is fine, and the demo league is never nagged", () => {
+  const licensed = { NODE_ENV: "production", BOXING_PROVIDER: "licensed", BOXING_API_KEY: "k".repeat(50), BOXING_API_STORAGE_CONFIRMED: "1" };
+  const at = (iso: string | null) => probe({ sports: { ...goodDb(), lastUpdate: iso ? { at: iso, provider: "boxing-data-api" } : null } });
+  const stale = (iso: string | null, env: Record<string, string> = licensed) => by(run(env, at(iso)), "stale-data");
+  assert.deepEqual(stale("2026-10-03T06:17:00.000Z").map((x) => x.level), ["ok"], "this morning");
+  assert.deepEqual(stale("2026-10-01T13:00:00.000Z").map((x) => x.level), ["ok"], "47 hours: inside the two days a daily job may be late");
+  const old = stale("2026-09-28T06:17:00.000Z");
+  assert.deepEqual(old.map((x) => x.level), ["warn"]);
+  assert.match(old[0].message, /last updated 5 days ago \(2026-09-28\).*daily update is probably not running.*old results/);
+  assert.match(old[0].fix ?? "", /vendor:backfill -- --update/);
+  assert.deepEqual(stale(null).map((x) => x.level), ["warn"], "no run on record at all");
+  assert.match(stale(null)[0].message, /No load or update/);
+  assert.deepEqual(stale("2020-01-01T00:00:00.000Z", { NODE_ENV: "production", BOXING_PROVIDER: "demo" }), [], "the demo league has no daily job, so no warning");
+  assert.deepEqual(stale("2020-01-01T00:00:00.000Z", { NODE_ENV: "production" }), [], "nor does a default setup");
 });
