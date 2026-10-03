@@ -1,6 +1,7 @@
 import type { BoxerFull } from "./types";
 import { activeFinish, activeWeights, TERMS, TERM_KEYS, stoppageProbability, winProbability, type Features, type FinishModel, type Weights } from "./model";
 import { nowMs } from "./clock";
+import { divisionInfo } from "./divisions";
 import { tEn, type T } from "./i18n/t";
 
 export interface Factor { label: string; shift: number; note: string }
@@ -16,6 +17,7 @@ export function featuresOf(b: BoxerFull, now = nowMs()): Features {
   return {
     rating: b.rating, reachCm: b.reachCm, age: b.age, monthsIdle: idle,
     koRate: b.koRate, koLossRate: b.bouts ? b.koLosses / b.bouts : 0,
+    weightLb: divisionInfo(b.weightClass)?.lb,
   };
 }
 

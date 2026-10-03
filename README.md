@@ -19,7 +19,7 @@ To regenerate the demo data, stop the server, delete `data/`, and start again.
 ## Scripts
 `npm run dev` · `npm run build` · `npm start` · `npm run lint` · `npm test` · `npm run data:check` · `npm run bench -- --scale 5` · `npm run media:resolve` · `npm run smoke` · `npm run wikidata:import` · `npm run venues:resolve` · `npm run model:fit` · `npm run vendor:sample`
 
-`npm test` runs the suite (a couple of seconds). `npm run bench -- --scale 20 [--keep]` generates a league 20 times the demo size (about 19,000 fighters and 160,000 bouts), loads it into `data/bench-20.db` and times the data work behind every page; see PLAN.md §10. `npm run data:check -- --file sample.json` validates a vendor sample before you build an adapter for it. CI (`.github/workflows/ci.yml`) runs type check, lint, tests, the data check and a production build.
+`npm test` runs the suite (a couple of seconds). `npm run bench -- --scale 20 [--keep]` generates a league 20 times the demo size (about 19,000 fighters and 160,000 bouts), loads it into `data/bench-20.db` and times the data work behind every page; see PLAN.md §10. `npm run data:check -- --file sample.json` validates a vendor sample before you build an adapter for it. CI (`.github/workflows/ci.yml`) runs type check, lint, tests, the data check, a production build and the smoke check (`npm run smoke`, every kind of page in both languages on a real server).
 
 See `PLAN.md` §8 for what data exists, the data model, and what each script does.
 

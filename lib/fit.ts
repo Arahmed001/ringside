@@ -13,7 +13,7 @@ import type { World } from "./world";
 import { msg } from "./i18n/t";
 import { countsInRecord, isStoppage } from "./methods";
 import { calls } from "./accountability";
-import { stoppageHeuristic } from "./model";
+import { FINISH_INPUTS, stoppageHeuristic, type FinishInput } from "./model";
 
 export const FEATURES = [
   { key: "elo", label: msg("Elo rating gap"), unit: msg("per 100 pts"), scale: 1 },
@@ -175,8 +175,10 @@ export interface FinishMetrics { logLoss: number; brier: number; predicted: numb
 export interface FinishFit {
   rows: { train: number; test: number; splitDate: string };
   observed: { train: number; test: number }; // share of fights that ended by stoppage
-  coef: { intercept: number; koRate: number; koLoss: number; se: { koRate: number; koLoss: number } };
-  test: { constant: FinishMetrics; heuristic: FinishMetrics; fitted: FinishMetrics };
+  /** Coefficients per FINISH_INPUTS; an input that did not clear |z| >= 2 on the training fights is dropped (0) and the rest refitted. `se` and `z` come from the fit with all four. */
+  coef: { intercept: number; koRate: number; koLoss: number; mismatch: number; weight: number; se: Record<FinishInput, number>; z: Record<FinishInput, number>; kept: FinishInput[] };
+  /** `koOnly` is the earlier two-input fit (KO rates alone), so the gain from the other inputs is visible. */
+  test: { constant: FinishMetrics; heuristic: FinishMetrics; koOnly: FinishMetrics; fitted: FinishMetrics };
   recommended: "heuristic" | "fitted";
 }
 
@@ -198,27 +200,36 @@ export function chooseModel(m: FitReport["test"]): FitReport["recommended"] {
  * rule as the win model. The first 75% / last 25% split is the same as the win model's, so the two reports are comparable.
  */
 /** The fitted finish estimate replaces the hand-set rule only if it beats it on held-out fights by MIN_GAIN; smaller gaps are noise. */
-export const chooseFinish = (t: FinishFit["test"]): FinishFit["recommended"] => (t.fitted.logLoss < t.heuristic.logLoss - MIN_GAIN ? "fitted" : "heuristic");
+export const chooseFinish = (t: Pick<FinishFit["test"], "heuristic" | "fitted">): FinishFit["recommended"] => (t.fitted.logLoss < t.heuristic.logLoss - MIN_GAIN ? "fitted" : "heuristic");
 
 export function runFinishFit(w: World): FinishFit | null {
-  const cs = calls(w).filter((c) => c.koSum !== undefined && c.koLossSum !== undefined);
+  const cs = calls(w).filter((c) => c.finishX !== undefined);
   if (cs.length < 400) return null;
-  const rows: Row[] = cs.map((c) => ({ date: c.date, boutId: c.boutId, x: [c.koSum!, c.koLossSum!], y: c.finished ? 1 : 0 }));
+  const rows: Row[] = cs.map((c) => ({ date: c.date, boutId: c.boutId, x: c.finishX!, y: c.finished ? 1 : 0 }));
   const cut = Math.floor(rows.length * 0.75);
   const train = rows.slice(0, cut), test = rows.slice(cut);
-  const fit = fitLogistic(train);
+  const pick = (rs: Row[], idx: number[]) => rs.map((r) => ({ ...r, x: idx.map((j) => r.x[j]) }));
+  const full = fitLogistic(train);
+  // the same parsimony rule as the win model: keep an input only if it is clearly non-zero on the training fights, then refit
+  const idx = FINISH_INPUTS.flatMap((_, j) => (Math.abs(full.z[j]) >= 2 ? [j] : []));
+  const sel = idx.length ? fitLogistic(pick(train, idx)) : { intercept: Math.log(train.reduce((s, r) => s + r.y, 0) / train.length / (1 - train.reduce((s, r) => s + r.y, 0) / train.length)), weights: [] as number[], se: [] as number[], z: [] as number[] };
+  const coefs = FINISH_INPUTS.map((_, j) => { const i = idx.indexOf(j); return i >= 0 ? sel.weights[i] : 0; });
+  const koOnly = fitLogistic(pick(train, [0, 1]));
   const base = train.reduce((s, r) => s + r.y, 0) / train.length;
   const metrics = (p: (x: number[]) => number): FinishMetrics => {
     let ll = 0, br = 0, pred = 0, obs = 0;
     for (const r of test) { const q = Math.min(1 - 1e-6, Math.max(1e-6, p(r.x))); ll += -(r.y * Math.log(q) + (1 - r.y) * Math.log(1 - q)); br += (q - r.y) ** 2; pred += q; obs += r.y; }
     return { logLoss: ll / test.length, brier: br / test.length, predicted: pred / test.length, observed: obs / test.length };
   };
-  const fitted = (x: number[]) => Math.min(0.95, Math.max(0.03, sigmoid(fit.intercept + fit.weights[0] * x[0] + fit.weights[1] * x[1])));
-  const t = { constant: metrics(() => base), heuristic: metrics((x) => stoppageHeuristic(x[0], x[1])), fitted: metrics(fitted) };
+  const clampP = (z: number) => Math.min(0.95, Math.max(0.03, sigmoid(z)));
+  const fitted = (x: number[]) => clampP(sel.intercept + x.reduce((s, v, j) => s + v * coefs[j], 0));
+  const ko = (x: number[]) => clampP(koOnly.intercept + koOnly.weights[0] * x[0] + koOnly.weights[1] * x[1]);
+  const t = { constant: metrics(() => base), heuristic: metrics((x) => stoppageHeuristic(x[0], x[1])), koOnly: metrics(ko), fitted: metrics(fitted) };
+  const byKey = <T,>(f: (j: number) => T) => Object.fromEntries(FINISH_INPUTS.map((k, j) => [k, f(j)])) as Record<FinishInput, T>;
   return {
     rows: { train: train.length, test: test.length, splitDate: test[0].date },
     observed: { train: base, test: t.fitted.observed },
-    coef: { intercept: fit.intercept, koRate: fit.weights[0], koLoss: fit.weights[1], se: { koRate: fit.se[0], koLoss: fit.se[1] } },
+    coef: { intercept: sel.intercept, koRate: coefs[0], koLoss: coefs[1], mismatch: coefs[2], weight: coefs[3], se: byKey((j) => full.se[j]), z: byKey((j) => full.z[j]), kept: idx.map((j) => FINISH_INPUTS[j]) },
     test: t, recommended: chooseFinish(t),
   };
 }

@@ -14,7 +14,8 @@
 import type { World } from "./world";
 import { memo } from "./memo";
 import { countsInRecord, isStoppage } from "./methods";
-import { activeFinish, activeWeights, DEFAULT_WEIGHTS, stoppageProbability, winProbability, type Features } from "./model";
+import { activeFinish, activeWeights, DEFAULT_WEIGHTS, finishInputs, stoppageProbability, winProbability, type Features } from "./model";
+import { divisionInfo } from "./divisions";
 
 export interface Call {
   boutId: number; date: string; division: string; sex: "male" | "female";
@@ -24,8 +25,7 @@ export interface Call {
   koProb: number; // model's chance the fight ends inside the distance
   redWon: boolean;
   finished: boolean; // ended by KO/TKO/RTD/DQ-stoppage
-  koSum?: number; // (backtest only) both fighters' KO rates before the fight, summed (a feature of the finish estimate)
-  koLossSum?: number; // (backtest only) both fighters' KO-loss rates, summed
+  finishX?: number[]; // (backtest only) the finish estimate's inputs before the fight, in the order of FINISH_INPUTS
   pickedRed: boolean;
   correct: boolean;
   pWinner: number; // the probability the model gave to whoever actually won
@@ -53,6 +53,7 @@ export function calls(w: World): Call[] {
           rating, reachCm: f.reachCm, age: Number(b.date.slice(0, 4)) - f.birthYear,
           monthsIdle: s.last ? Math.min(36, months(s.last, b.date)) : 12,
           koRate: s.wins ? s.kos / s.wins : 0, koLossRate: s.bouts ? s.koLosses / s.bouts : 0,
+          weightLb: divisionInfo(b.weightClass)?.lb, // the division of this fight, not the fighter's current one
         });
         const a = feat(sr, red, pre.red), u = feat(sb, blue, pre.blue);
         const r = winProbability(a, u, weights);
@@ -61,7 +62,7 @@ export function calls(w: World): Call[] {
         const pWinner = redWon ? pRed : 1 - pRed;
         out.push({
           boutId: b.id, date: b.date, division: b.weightClass, sex: red.sex, redId: b.redId, blueId: b.blueId,
-          pRed, eloPRed: 1 / (1 + Math.pow(10, (pre.blue - pre.red) / 400)), koProb: stoppageProbability(a, u), koSum: a.koRate + u.koRate, koLossSum: a.koLossRate + u.koLossRate,
+          pRed, eloPRed: 1 / (1 + Math.pow(10, (pre.blue - pre.red) / 400)), koProb: stoppageProbability(a, u), finishX: finishInputs(a, u),
           redWon, finished: isStoppage(b.method), pickedRed: pRed >= 0.5, correct: (pRed >= 0.5) === redWon,
           pWinner, surprise: -Math.log2(Math.max(pWinner, 1e-6)), eloPick: (pre.red >= pre.blue) === redWon,
         });
