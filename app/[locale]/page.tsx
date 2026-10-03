@@ -94,6 +94,7 @@ export default async function Home() {
             <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-muted">
               <span className="chip !border-gold/40 !text-gold">✦ {t(p.confidence)}</span>
               <span className="chip">{p.koProb > 0.5 ? t("Stoppage likely · {pct}% KO/TKO", { pct: Math.round(p.koProb * 100) }) : t("Distance likely · {pct}% KO/TKO", { pct: Math.round(p.koProb * 100) })}</span>
+              <Link href={`/previews/${next.main.id}`} className="chip !border-gold/40 hover:!text-gold">{t("Read the preview")}</Link>
               <Link href={`/compare?a=${next.red.slug}&b=${next.blue.slug}`} className="ms-auto text-ink hover:text-gold">{t("Full matchup breakdown")} <span className="inline-block rtl:rotate-180">→</span></Link>
             </div>
           </div>

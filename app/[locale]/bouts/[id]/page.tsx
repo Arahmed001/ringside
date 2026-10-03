@@ -84,6 +84,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
           {ev.attendance && <span className="chip">{t("{n} attended", { n: ev.attendance.toLocaleString("en-US") })}</span>}
         </div>
 
+        {b.upcoming && b.status !== "cancelled" && <p className="mt-4 text-sm"><Link href={`/previews/${b.id}`} className="chip !border-gold/40 hover:!text-gold">{t("Read the preview")}</Link></p>}
         <div className="card mt-5 p-6">
           <div className="ltr-fixed grid grid-cols-[1fr_auto_1fr] items-center gap-4">
             <Side f={red} color="#e5322d" win={winner?.id === red.id} />

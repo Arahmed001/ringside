@@ -31,9 +31,21 @@
   ]
  },
  {
+  "key": "{a} ({sa}) meets {b} ({sb}).",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
   "key": "{a} {pa}, {b} {pb}",
   "files": [
    "components/ChartI18n.tsx"
+  ]
+ },
+ {
+  "key": "{a} fights {sa}, {b} fights {sb}: the angles will matter.",
+  "files": [
+   "lib/preview.ts"
   ]
  },
  {
@@ -42,6 +54,7 @@
    "app/[locale]/bouts/[id]/opengraph-image.tsx",
    "app/[locale]/events/[id]/opengraph-image.tsx",
    "app/[locale]/money/page.tsx",
+   "app/[locale]/previews/[id]/opengraph-image.tsx",
    "lib/predict.ts"
   ]
  },
@@ -269,7 +282,8 @@
   "key": "{n} cm",
   "files": [
    "app/[locale]/compare/page.tsx",
-   "components/MatchupLab.tsx"
+   "components/MatchupLab.tsx",
+   "lib/preview.ts"
   ]
  },
  {
@@ -417,6 +431,12 @@
   ]
  },
  {
+  "key": "{n} months ago",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
   "key": "{n} months with current trainer",
   "plural": "{n} month with current trainer",
   "files": [
@@ -488,7 +508,8 @@
   "key": "{n} rounds",
   "plural": "{n} round",
   "files": [
-   "app/[locale]/bouts/[id]/page.tsx"
+   "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/previews/[id]/page.tsx"
   ]
  },
  {
@@ -522,6 +543,12 @@
   "plural": "{n} warning",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} wins in a row",
+  "files": [
+   "lib/preview.ts"
   ]
  },
  {
@@ -622,6 +649,19 @@
   ]
  },
  {
+  "key": "{name} by stoppage",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} defends the {belt}: {n} defences so far in a reign that began {date}.",
+  "plural": "{name} defends the {belt}: {n} defence so far in a reign that began {date}.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
   "key": "{name} down {n}×",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -634,15 +674,76 @@
   ]
  },
  {
+  "key": "{name} has a {n} cm reach advantage.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
   "key": "{name} has been out for {n} months",
   "files": [
    "lib/matchmaking.ts"
   ]
  },
  {
+  "key": "{name} has been out for {n} months: ring rust is the question.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} has been stopped in {n} fights: the chin will be tested.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} has lost the last {n} fights.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} has missed weight {n} times before: watch the scale.",
+  "plural": "{name} has missed weight {n} time before: watch the scale.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} has won {w} of the last {n} fights.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} is {age}: how much is left?",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} is on a {n}-fight win streak.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
   "key": "{name} is retired or inactive",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "{name} is working with a new trainer ({n} months).",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} on points",
+  "files": [
+   "lib/preview.ts"
   ]
  },
  {
@@ -712,6 +813,18 @@
   ]
  },
  {
+  "key": "{red} ({rr}) faces {blue} ({br}) in a {rounds}-round {division} fight at {venue}, {city}, on {date}.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{red} ({rr}) faces {blue} ({br}) in a {rounds}-round {division} fight for the {belt} at {venue}, {city}, on {date}.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
   "key": "{red} vs {blue}",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
@@ -730,6 +843,18 @@
   "key": "{red} vs {blue}, a {rounds}-round {division} bout at {event} in {city} on {date}. Win probability, weigh-ins and head-to-head on Ringside.",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "{red} vs {blue}: preview, prediction and what to watch",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{standfirst} The model favours {name} at {pct}%.",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
   ]
  },
  {
@@ -848,6 +973,12 @@
   ]
  },
  {
+  "key": "✦ Written by Claude from the facts on this page",
+  "files": [
+   "components/PreviewArticle.tsx"
+  ]
+ },
+ {
   "key": "1.5–4 lb heavier",
   "files": [
    "lib/weights.ts"
@@ -914,6 +1045,12 @@
   ]
  },
  {
+  "key": "A {n}-round fight, but neither usually goes past round {r}: can they last?",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
   "key": "A big reach gap: {a} cm against {b} cm",
   "files": [
    "lib/matchmaking.ts"
@@ -932,6 +1069,12 @@
   ]
  },
  {
+  "key": "a draw",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
   "key": "A durable professional who takes tough fights on short notice; he tests rising contenders more often than he beats them.",
   "files": [
    "lib/ai.ts"
@@ -947,6 +1090,12 @@
   "key": "A factor needs |z| of about 2 or more to count as signal. Fitted on rating, reach, age, layoff, knockout rate, KO losses, experience, usual rehydration, fight-night weight edge, new-trainer flag and the trainer's prior win rate. In this demo league the weigh-in and trainer effects were planted but are small, so they are not detectable at this sample size. That is the honest answer, and real data will say what is really there.",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "a loss",
+  "files": [
+   "lib/preview.ts"
   ]
  },
  {
@@ -983,6 +1132,12 @@
   "key": "A unification: champions of different bodies in the same division",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "a win",
+  "files": [
+   "lib/preview.ts"
   ]
  },
  {
@@ -1028,6 +1183,12 @@
   ]
  },
  {
+  "key": "Add an ANTHROPIC_API_KEY to enable richer AI previews.",
+  "files": [
+   "components/PreviewArticle.tsx"
+  ]
+ },
+ {
   "key": "Add an ANTHROPIC_API_KEY to enable richer AI reports.",
   "files": [
    "components/ScoutingReport.tsx"
@@ -1044,7 +1205,8 @@
   "files": [
    "app/[locale]/compare/page.tsx",
    "components/MatchupLab.tsx",
-   "lib/fit.ts"
+   "lib/fit.ts",
+   "lib/preview.ts"
   ]
  },
  {
@@ -1142,6 +1304,7 @@
  {
   "key": "Analysing…",
   "files": [
+   "components/PreviewArticle.tsx",
    "components/ScoutingReport.tsx"
   ]
  },
@@ -1247,6 +1410,7 @@
  {
   "key": "Auto-generated from stats",
   "files": [
+   "components/PreviewArticle.tsx",
    "components/ScoutingReport.tsx"
   ]
  },
@@ -1342,6 +1506,12 @@
   "files": [
    "app/[locale]/page.tsx",
    "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Before the bell",
+  "files": [
+   "app/[locale]/previews/page.tsx"
   ]
  },
  {
@@ -1463,6 +1633,12 @@
   "key": "Bout not found",
   "files": [
    "app/[locale]/bouts/[id]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "Bout page",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
   ]
  },
  {
@@ -1735,7 +1911,8 @@
  {
   "key": "Co-main",
   "files": [
-   "app/[locale]/events/[id]/page.tsx"
+   "app/[locale]/events/[id]/page.tsx",
+   "app/[locale]/previews/page.tsx"
   ]
  },
  {
@@ -1760,6 +1937,12 @@
   "key": "Common opponents",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "Common opponents and more",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
   ]
  },
  {
@@ -2070,6 +2253,12 @@
   ]
  },
  {
+  "key": "Division rank",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
   "key": "Division rankings",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
@@ -2108,6 +2297,7 @@
    "app/[locale]/page.tsx",
    "app/[locale]/weights/page.tsx",
    "lib/format.ts",
+   "lib/preview.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -2207,7 +2397,8 @@
   "key": "Elo rating",
   "files": [
    "app/[locale]/boxers/[slug]/opengraph-image.tsx",
-   "app/[locale]/rankings/[division]/page.tsx"
+   "app/[locale]/rankings/[division]/page.tsx",
+   "lib/preview.ts"
   ]
  },
  {
@@ -2470,6 +2661,21 @@
   ]
  },
  {
+  "key": "Fight preview",
+  "files": [
+   "app/[locale]/previews/[id]/opengraph-image.tsx",
+   "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Fight previews",
+  "files": [
+   "app/[locale]/events/page.tsx",
+   "app/[locale]/previews/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
   "key": "Fight record",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -2478,6 +2684,8 @@
  {
   "key": "fight score",
   "files": [
+   "app/[locale]/previews/[id]/opengraph-image.tsx",
+   "app/[locale]/previews/[id]/page.tsx",
    "components/Matchmaking.tsx",
    "components/TitlesCard.tsx"
   ]
@@ -2485,6 +2693,7 @@
  {
   "key": "Fight score out of 100: how close, relevant, entertaining, bookable, fresh and meaningful the fight is",
   "files": [
+   "app/[locale]/previews/[id]/page.tsx",
    "components/Matchmaking.tsx",
    "components/TitlesCard.tsx"
   ]
@@ -2656,6 +2865,12 @@
   ]
  },
  {
+  "key": "Finishing power: {pct}% of wins by stoppage",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
   "key": "First champion on record",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
@@ -2677,6 +2892,12 @@
   "key": "Flyweight",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Form",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
   ]
  },
  {
@@ -2713,13 +2934,16 @@
  {
   "key": "Full card",
   "files": [
-   "app/[locale]/page.tsx"
+   "app/[locale]/page.tsx",
+   "app/[locale]/previews/[id]/page.tsx",
+   "app/[locale]/previews/page.tsx"
   ]
  },
  {
   "key": "Full matchup breakdown",
   "files": [
    "app/[locale]/page.tsx",
+   "app/[locale]/previews/[id]/page.tsx",
    "components/Matchmaking.tsx"
   ]
  },
@@ -2832,7 +3056,8 @@
  {
   "key": "Head to head",
   "files": [
-   "app/[locale]/compare/page.tsx"
+   "app/[locale]/compare/page.tsx",
+   "app/[locale]/previews/[id]/page.tsx"
   ]
  },
  {
@@ -2874,7 +3099,8 @@
  {
   "key": "Height",
   "files": [
-   "app/[locale]/compare/page.tsx"
+   "app/[locale]/compare/page.tsx",
+   "lib/preview.ts"
   ]
  },
  {
@@ -2920,6 +3146,12 @@
   ]
  },
  {
+  "key": "How it could end",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "How often each judge sides with the majority",
   "files": [
    "app/[locale]/people/page.tsx"
@@ -2948,7 +3180,8 @@
   "plural": "In {n} day",
   "files": [
    "app/[locale]/events/[id]/page.tsx",
-   "app/[locale]/page.tsx"
+   "app/[locale]/page.tsx",
+   "app/[locale]/previews/[id]/page.tsx"
   ]
  },
  {
@@ -3039,6 +3272,12 @@
   ]
  },
  {
+  "key": "Keep going",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "Knockout",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -3077,7 +3316,8 @@
  {
   "key": "Knockouts",
   "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "lib/preview.ts"
   ]
  },
  {
@@ -3160,6 +3400,24 @@
   "key": "Last fight",
   "files": [
    "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "Last fight: {result} against {opp}, {n} months ago.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "Last five results",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Last fought",
+  "files": [
+   "lib/preview.ts"
   ]
  },
  {
@@ -3376,6 +3634,7 @@
   "key": "Main event",
   "files": [
    "app/[locale]/events/[id]/page.tsx",
+   "app/[locale]/previews/page.tsx",
    "components/Poster.tsx"
   ]
  },
@@ -3524,6 +3783,12 @@
   ]
  },
  {
+  "key": "Model estimates; the split between stoppage and points follows each fighter’s finishing record.",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "Model weights",
   "files": [
    "components/MatchupLab.tsx"
@@ -3564,6 +3829,18 @@
   "key": "More analytics",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "More experience: {a} fights against {b}",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "More on this fight",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
   ]
  },
  {
@@ -3749,6 +4026,12 @@
   "key": "No team history on record yet.",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "No upcoming cards on the calendar.",
+  "files": [
+   "app/[locale]/previews/page.tsx"
   ]
  },
  {
@@ -4278,6 +4561,12 @@
   ]
  },
  {
+  "key": "Previews for every main event and co-main on the upcoming calendar: what is at stake, the tale of the tape, form, the model's pick and how it expects each fight to end.",
+  "files": [
+   "app/[locale]/previews/page.tsx"
+  ]
+ },
+ {
   "key": "Pro debut",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -4462,6 +4751,7 @@
    "app/[locale]/compare/page.tsx",
    "components/MatchupLab.tsx",
    "lib/fit.ts",
+   "lib/preview.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -4481,6 +4771,15 @@
   "key": "Reach, power and chin decide fights",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Read the preview",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/events/[id]/page.tsx",
+   "app/[locale]/page.tsx",
+   "app/[locale]/previews/page.tsx"
   ]
  },
  {
@@ -4526,7 +4825,8 @@
    "app/[locale]/compare/page.tsx",
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
-   "app/[locale]/rankings/[division]/page.tsx"
+   "app/[locale]/rankings/[division]/page.tsx",
+   "lib/preview.ts"
   ]
  },
  {
@@ -5016,7 +5316,8 @@
  {
   "key": "Stance",
   "files": [
-   "app/[locale]/compare/page.tsx"
+   "app/[locale]/compare/page.tsx",
+   "lib/preview.ts"
   ]
  },
  {
@@ -5029,6 +5330,12 @@
   "key": "Status",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "stoppage chance",
+  "files": [
+   "app/[locale]/previews/[id]/opengraph-image.tsx"
   ]
  },
  {
@@ -5072,7 +5379,8 @@
   "key": "Style",
   "files": [
    "app/[locale]/compare/page.tsx",
-   "app/[locale]/rankings/[division]/page.tsx"
+   "app/[locale]/rankings/[division]/page.tsx",
+   "lib/preview.ts"
   ]
  },
  {
@@ -5175,6 +5483,12 @@
   ]
  },
  {
+  "key": "Tale of the tape",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "TBA",
   "files": [
    "components/ui.tsx"
@@ -5248,6 +5562,30 @@
   ]
  },
  {
+  "key": "The {belt} is on the line.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "The biggest factor is {factor}: {note}.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "The case for {name}",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "The cases",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "The fight calendar: upcoming cards with their main events and win probabilities, plus recent results and how each main event ended.",
   "files": [
    "app/[locale]/events/page.tsx"
@@ -5272,9 +5610,40 @@
   ]
  },
  {
+  "key": "The main event and co-main of each upcoming show: what is at stake, the tale of the tape, how each fighter has been doing, the model's pick and how it expects the fight to end. Written from the data; with an API key, Claude writes the article from those same facts.",
+  "files": [
+   "app/[locale]/previews/page.tsx"
+  ]
+ },
+ {
+  "key": "The model favours {name} at {pct}%",
+  "files": [
+   "app/[locale]/previews/[id]/opengraph-image.tsx",
+   "app/[locale]/previews/page.tsx"
+  ]
+ },
+ {
+  "key": "The model favours {name} at {pct}% ({confidence}), with a {ko}% chance of a stoppage.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "The model gives a {pct}% chance that this ends before the final bell.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
   "key": "The model sees a near coin-flip: {name} {pct}%",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "The model’s view (Elo, reach, age, layoff, power and chin), not a guarantee.",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
   ]
  },
  {
@@ -5287,6 +5656,12 @@
   "key": "The most complete records, trainers and weigh-ins in boxing",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "The numbers do not favour either side on this point.",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
   ]
  },
  {
@@ -5320,6 +5695,12 @@
   ]
  },
  {
+  "key": "The vacant {belt} is on the line.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
   "key": "Their careers did not overlap",
   "files": [
    "lib/matchmaking.ts"
@@ -5333,6 +5714,18 @@
   ]
  },
  {
+  "key": "They have met before and drew ({date}).",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "They have met before: {name} won their last fight ({date}).",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
   "key": "They have never fought each other.",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
@@ -5342,6 +5735,19 @@
   "key": "They have never met",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "They have never met and have no opponent in common.",
+  "files": [
+   "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "They have never met; they share {n} opponents.",
+  "plural": "They have never met; they share {n} opponent.",
+  "files": [
+   "lib/preview.ts"
   ]
  },
  {
@@ -5658,6 +6064,8 @@
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
    "app/[locale]/page.tsx",
+   "app/[locale]/previews/[id]/page.tsx",
+   "app/[locale]/previews/page.tsx",
    "components/Matchmaking.tsx",
    "components/Poster.tsx"
   ]
@@ -5752,6 +6160,18 @@
   ]
  },
  {
+  "key": "What is at stake",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "what is at stake in each upcoming fight",
+  "files": [
+   "app/[locale]/events/page.tsx"
+  ]
+ },
+ {
   "key": "What is in the database, where each kind of fact comes from, how complete it is, and how well the prediction model does on fights it has never seen.",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -5767,6 +6187,12 @@
   "key": "What the sport takes in and who gets paid. Every figure carries a badge saying how it is known (official record, press report or estimate) and a link to its source where one exists.",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "What to watch for",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
   ]
  },
  {
@@ -5809,6 +6235,12 @@
   "key": "Where it aired",
   "files": [
    "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Where to watch",
+  "files": [
+   "app/[locale]/previews/[id]/page.tsx"
   ]
  },
  {

@@ -14,9 +14,9 @@ import { normalize } from "./fighter-search";
 import { dictOf } from "./i18n/dicts";
 
 const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
-const hasKey = () => !!process.env.ANTHROPIC_API_KEY;
+export const hasKey = () => !!process.env.ANTHROPIC_API_KEY;
 
-async function claude(system: string, user: string, maxTokens = 600): Promise<string> {
+export async function claude(system: string, user: string, maxTokens = 600): Promise<string> {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01" },

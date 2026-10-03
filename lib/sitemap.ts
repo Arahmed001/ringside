@@ -10,7 +10,7 @@ export interface SitemapPath { path: string; lastmod: string }
 /** URLs per sitemap file. Every path is listed once per language, so a file holds twice this many <url> entries (the limit is 50,000). */
 export const PATHS_PER_FILE = 10000;
 
-const STATIC = ["/", "/rankings", "/boxers", "/events", "/compare", "/people", "/orgs", "/weights", "/money", "/titles", "/matchmaking", "/analytics", "/map", "/data"];
+const STATIC = ["/", "/rankings", "/boxers", "/events", "/compare", "/people", "/orgs", "/weights", "/money", "/titles", "/matchmaking", "/previews", "/analytics", "/map", "/data"];
 
 /**
  * Every page worth indexing, locale-free, with when it last changed. Thin pages are left out on purpose: of the bouts, only
@@ -26,6 +26,10 @@ export const sitemapPaths = (w: World): SitemapPath[] => memo(w, "sitemapPaths",
   for (const [, list] of w.boutsByEvent) {
     const main = list.find((b) => b.status !== "cancelled");
     for (const b of list) if (b.status !== "cancelled" && !b.upcoming && (b.title || b === main)) out.push({ path: `/bouts/${b.id}`, lastmod: b.date });
+  }
+  for (const e of w.events) { // previews: the main event and co-main of every upcoming card with a live bout
+    if (!e.upcoming || e.status === "cancelled") continue;
+    for (const b of (w.boutsByEvent.get(e.id) ?? []).filter((x) => x.status !== "cancelled" && x.upcoming).slice(0, 2)) out.push({ path: `/previews/${b.id}`, lastmod: w.today });
   }
   for (const p of w.people.values()) out.push({ path: `/people/${p.slug}`, lastmod: w.today });
   for (const o of w.orgs.values()) out.push({ path: `/orgs/${o.slug}`, lastmod: w.today });

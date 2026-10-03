@@ -20,6 +20,8 @@ export interface Pairing {
   parts: Parts; // each 0-1
   pA: number; pB: number; pDraw: number; koProb: number;
   reasons: string[]; // already in the reader's language
+  /** The same reasons labelled by what they are about, so a page can pick the kinds it wants. */
+  tagged: { kind: "competitive" | "stakes" | "relevance" | "style" | "length" | "novelty" | "availability" | "promoter"; text: string }[];
   meetings: BoutRow[];
 }
 
@@ -92,26 +94,28 @@ export function pairing(w: World, a: BoxerFull, b: BoxerFull, t: T = tEn, opts: 
   const score = Math.round(100 * (Object.keys(WEIGHTS) as (keyof Parts)[]).reduce((s, k) => s + WEIGHTS[k] * parts[k], 0));
 
   const reasons: string[] = [];
+  const tagged: Pairing["tagged"] = [];
+  const say = (kind: Pairing["tagged"][number]["kind"], text: string) => { reasons.push(text); tagged.push({ kind, text }); };
   const fav = p.pA >= p.pB ? a : b;
-  if (competitive >= 0.85) reasons.push(t("The model sees a near coin-flip: {name} {pct}%", { name: t.name(fav.name), pct: Math.round(Math.max(p.pA, p.pB) * 100) }));
-  else if (competitive >= 0.6) reasons.push(t("A competitive fight on paper: {name} {pct}%", { name: t.name(fav.name), pct: Math.round(Math.max(p.pA, p.pB) * 100) }));
-  if (st.kind === "unification") reasons.push(t("A unification: champions of different bodies in the same division"));
-  else if (st.kind === "defence") reasons.push(t("A title fight: a champion against a top-5 contender"));
-  if (ra !== null && ra <= 10 && rb !== null && rb <= 10) reasons.push(t("Both are top-10 in the division (#{a} and #{b})", { a: ra, b: rb }));
-  if (style >= 0.7) reasons.push(t("Style clash: {a} against {b}", { a: t(archetype(a)), b: t(archetype(b)) }));
-  if (p.koProb > 0.6) reasons.push(t("Likely to end early: {pct}% chance of a stoppage", { pct: Math.round(p.koProb * 100) }));
-  if (meetings.length === 0) reasons.push(t("They have never met"));
+  if (competitive >= 0.85) say("competitive", t("The model sees a near coin-flip: {name} {pct}%", { name: t.name(fav.name), pct: Math.round(Math.max(p.pA, p.pB) * 100) }));
+  else if (competitive >= 0.6) say("competitive", t("A competitive fight on paper: {name} {pct}%", { name: t.name(fav.name), pct: Math.round(Math.max(p.pA, p.pB) * 100) }));
+  if (st.kind === "unification") say("stakes", t("A unification: champions of different bodies in the same division"));
+  else if (st.kind === "defence") say("stakes", t("A title fight: a champion against a top-5 contender"));
+  if (ra !== null && ra <= 10 && rb !== null && rb <= 10) say("relevance", t("Both are top-10 in the division (#{a} and #{b})", { a: ra, b: rb }));
+  if (style >= 0.7) say("style", t("Style clash: {a} against {b}", { a: t(archetype(a)), b: t(archetype(b)) }));
+  if (p.koProb > 0.6) say("length", t("Likely to end early: {pct}% chance of a stoppage", { pct: Math.round(p.koProb * 100) }));
+  if (meetings.length === 0) say("novelty", t("They have never met"));
   else {
     const m = meetings[meetings.length - 1];
     const winner = m.winnerId ? (m.winnerId === a.id ? a : b) : null;
-    reasons.push(winner ? t("A rematch: {name} won their last fight", { name: t.name(winner.name) }) : t("A rematch of a draw"));
+    say("novelty", winner ? t("A rematch: {name} won their last fight", { name: t.name(winner.name) }) : t("A rematch of a draw"));
   }
   const fresh = [fa, fb].filter((f) => f.months !== null);
-  if (availability >= 0.99 && fresh.length === 2) reasons.push(t("Both are rested and active: last fought {a} and {b} months ago", { a: Math.round(fa.months!), b: Math.round(fb.months!) }));
-  else for (const [f, x] of (opts.subjectIsA ? [[fb, b]] : [[fa, a], [fb, b]]) as [typeof fa, BoxerFull][]) if (f.v <= 0.45 && f.months !== null) reasons.push(f.months < 2 ? t("{name} fought {n} weeks ago, a quick turnaround", { name: t.name(x.name), n: Math.max(1, Math.round(f.months * 4.3)) }) : t("{name} has been out for {n} months", { name: t.name(x.name), n: Math.round(f.months) }));
+  if (availability >= 0.99 && fresh.length === 2) say("availability", t("Both are rested and active: last fought {a} and {b} months ago", { a: Math.round(fa.months!), b: Math.round(fb.months!) }));
+  else for (const [f, x] of (opts.subjectIsA ? [[fb, b]] : [[fa, a], [fb, b]]) as [typeof fa, BoxerFull][]) if (f.v <= 0.45 && f.months !== null) say("availability", f.months < 2 ? t("{name} fought {n} weeks ago, a quick turnaround", { name: t.name(x.name), n: Math.max(1, Math.round(f.months * 4.3)) }) : t("{name} has been out for {n} months", { name: t.name(x.name), n: Math.round(f.months) }));
   const pa = currentOrg(w, a.id, "promoter"), pb = currentOrg(w, b.id, "promoter");
-  if (pa !== null && pa === pb) reasons.push(t("Same promoter: {name}", { name: t.name(w.orgs.get(pa)?.name ?? "") }));
-  return { a, b, score, parts, pA: p.pA, pB: p.pB, pDraw: p.pDraw, koProb: p.koProb, reasons, meetings };
+  if (pa !== null && pa === pb) say("promoter", t("Same promoter: {name}", { name: t.name(w.orgs.get(pa)?.name ?? "") }));
+  return { a, b, score, parts, pA: p.pA, pB: p.pB, pDraw: p.pDraw, koProb: p.koProb, reasons, tagged, meetings };
 }
 
 const booked = (w: World, id: number) => (w.boutsByBoxer.get(id) ?? []).some((x) => x.upcoming && x.status !== "cancelled");
