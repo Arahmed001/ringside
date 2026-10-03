@@ -84,20 +84,33 @@ const dbFile = path.join(root, "real.db"), cache = path.join(root, "cache");
 const live = { DATABASE_PATH: dbFile, BOXING_API_STORAGE_CONFIRMED: "1" };
 const count = (db: DatabaseSync, sql: string) => (db.prepare(sql).get() as { c: number }).c;
 
-test("--plan reads the fight list, prices the fighters, and writes nothing: no cache, no database, no confirmation needed", async () => {
+test("--plan reads the fight list, prices the fighters, and writes nothing: no cache, no database, and no storage warning because nothing is stored", async () => {
   const m = mark();
   const r = await run(["--plan"], { DATABASE_PATH: dbFile });
   assert.equal(r.code, 0, r.out);
   assert.match(r.out, /fights 4, events 4, fighters 6/); assert.match(r.out, /fight list pages fetched to find out: 2 request\(s\)/); assert.match(r.out, /fighters still to fetch: 6 request\(s\)/); assert.match(r.out, /Nothing was written/);
   assert.equal(since(m).filter((p) => p.startsWith("/v2/fighters/")).length, 0, "no fighter was fetched to find out");
   assert.ok(!fs.existsSync(dbFile) && !fs.existsSync(cache));
+  assert.doesNotMatch(r.out, /PROVISIONALLY/);
 });
 
-test("without the storage confirmation nothing is cached or loaded, and the message says why", async () => {
-  const r = await run(["--cache-dir", cache], { DATABASE_PATH: dbFile });
+test("storing switched off (BOXING_API_STORAGE_CONFIRMED=0) refuses before anything is created: no cache, no empty database", async () => {
+  const r = await run(["--cache-dir", cache], { DATABASE_PATH: dbFile, BOXING_API_STORAGE_CONFIRMED: "0" });
   assert.equal(r.code, 1);
-  assert.match(r.out, /terms on storing data are unconfirmed/);
+  assert.match(r.out, /switched off \(BOXING_API_STORAGE_CONFIRMED=0\)/);
   assert.ok(!fs.existsSync(cache) && !fs.existsSync(dbFile));
+});
+
+test("by default it stores provisionally and says so; once confirmed (=1) the warning goes", async () => {
+  const dir = path.join(root, "cache-provisional");
+  const r = await run(["--check", "--cache-dir", dir], { DATABASE_PATH: dbFile });
+  assert.equal(r.code, 0, r.out);
+  assert.match(r.out, /PROVISIONALLY: it has not yet confirmed in writing that stored data may be kept/);
+  assert.ok(fs.existsSync(dir) && fs.readdirSync(dir).length > 0, "it did store: that is the default now");
+  const confirmed = await run(["--check", "--cache-dir", dir], { DATABASE_PATH: dbFile, BOXING_API_STORAGE_CONFIRMED: "1" });
+  assert.equal(confirmed.code, 0, confirmed.out);
+  assert.doesNotMatch(confirmed.out, /PROVISIONALLY/);
+  fs.rmSync(dir, { recursive: true, force: true });
 });
 
 test("--check fetches into the cache and reports the validator, and never opens the database", async () => {

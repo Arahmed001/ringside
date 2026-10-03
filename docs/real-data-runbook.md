@@ -1,12 +1,12 @@
 # Real data runbook: the first load, then every day
 
-For the day a plan with full history is bought and the vendor has confirmed in writing that stored data may be kept. Until then none of this fills a database (see `docs/real-data-readiness.md` for why, and for what the adapter does and does not know).
+For the day a plan with full history is bought. **Storing the vendor's data is on by default while its written answer on storage is pending** (the owner's decision): every run that stores says so, until `BOXING_API_STORAGE_CONFIRMED=1` records that the vendor agreed in writing. If it says no, the data has to go: see "Undoing it" (a separate database file and a cache directory make that a clean delete). See `docs/real-data-readiness.md` for what the adapter does and does not know.
 
 Everything here is one command, `npm run vendor:backfill`, in four modes. It resumes after any interruption, backs up before writing, and refuses the mistakes that are easy to make (the wrong database, a half-fetched league, a failing validator).
 
 ## 0. Before you start
 
-- [ ] The vendor's **written** answer that a historical backfill may be stored and kept (`docs/boxing-data-api-enquiry.md`), and which plan has the full history.
+- [ ] The vendor's **written** answer that a historical backfill may be stored and kept (`docs/boxing-data-api-enquiry.md`): pending. Until it comes, everything below stores provisionally and says so. Also which plan has the full history.
 - [ ] That plan subscribed, and its request allowance known (Mega is listed at 500,000 a month; the first load is thousands, a day's update is tens).
 - [ ] **A new database file** for the real league: `DATABASE_PATH=/path/real.db`. Never the demo database: the command refuses to load into one that holds other fighters, because real and invented fighters would share the same rankings.
 - [ ] The readiness checklist read once (`docs/real-data-readiness.md`): the footer wording, photos, a way to report errors.
@@ -14,7 +14,7 @@ Everything here is one command, `npm run vendor:backfill`, in four modes. It res
 ```bash
 export BOXING_API_KEY='...'                      # from your shell or secret store, never from a file in the repo
 export DATABASE_PATH=/data/real.db               # a NEW file
-export BOXING_API_STORAGE_CONFIRMED=1            # only now, and only because the vendor confirmed in writing
+export BOXING_API_STORAGE_CONFIRMED=1            # once the vendor has agreed in writing (silences the provisional warning); =0 refuses to store at all
 ```
 
 In a container the cache must live on the volume, not in the image: add `--cache-dir /data/vendor-cache` to every command below. The default (`data/vendor-cache/` under the project) is inside the container's disposable layer.
@@ -25,7 +25,7 @@ In a container the cache must live on the volume, not in the image: add `--cache
 npm run vendor:backfill -- --plan
 ```
 
-Reads the fight list in memory (no cache, no database, no storage confirmation needed) and prints how many fights, events and distinct fighters the feed has and how many requests and minutes the fighters will cost. Nothing is written. If the numbers surprise you, stop here. On the free plan this shows only the last few weeks: that is the plan's date range, not the league.
+Reads the fight list in memory (no cache, no database, so nothing is stored and there is nothing to confirm) and prints how many fights, events and distinct fighters the feed has and how many requests and minutes the fighters will cost. Nothing is written. If the numbers surprise you, stop here. On the free plan this shows only the last few weeks: that is the plan's date range, not the league.
 
 ## 2. Fetch and inspect: `--check`
 
@@ -98,12 +98,12 @@ In a container, run it with the container's own environment: `docker exec ringsi
 ## Undoing it
 
 - **Wrong data loaded:** restore the last backup (`npm run backup -- verify <dir>` first, then copy `ringside.db` back over the database with the app stopped), or delete the database file and load again from the cache (free).
-- **Delete the vendor's data from disk** (if the licence ends or asks): remove the cache directory and the database. The cache is the vendor's data verbatim; the database holds it in rows.
+- **The vendor says no (or the licence ends or asks):** delete the vendor's data. Stop the app, remove the cache directory, the real-league database file (with its `-wal` and `-shm`), and the `backups/` folder beside it: the cache is the vendor's data verbatim and the database and backups hold it in rows. This is why the real league lives in its own database file: nothing else has to be untangled. Then set `BOXING_API_STORAGE_CONFIRMED=0` so nothing stores again.
 
 ## What is stored where
 
 | Where | What | Notes |
 |---|---|---|
-| `data/vendor-cache/` or `--cache-dir` | Every API answer, as received | The vendor's data on disk: counts as storage under their terms. Gitignored; never commit it |
+| `data/vendor-cache/` or `--cache-dir` | Every API answer, as received | The vendor's data on disk: counts as storage under their terms (provisional until confirmed). Gitignored; never commit it |
 | The database | The league, ratings, the live ledger | The ledger cannot be rebuilt: back it up and copy the backups off the volume |
 | `backups/` beside the database | Rolling copies (14) | Made before every load into a database with data |

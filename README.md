@@ -13,7 +13,7 @@ To regenerate the demo data, stop the server, delete `data/`, and start again.
 
 ## Optional settings (copy `.env.example` to `.env.local`)
 - `ANTHROPIC_API_KEY`: Claude-written search parsing, scouting reports and fight previews. Without it everything falls back to rules. `AI_DAILY_BUDGET` (default 1,000 calls per day), `AI_CLIENT_LIMIT` and `AI_CLIENT_WINDOW_MS` cap what visitors can spend (PLAN.md §21).
-- `BOXING_PROVIDER=licensed` plus `BOXING_API_KEY`: the Boxing Data API adapter (`lib/providers/boxing-data-api.ts`). It has not yet run against the real API and will not fill the database until `BOXING_API_STORAGE_CONFIRMED=1`; start with `npm run vendor:sample` and `docs/real-data-readiness.md`; the first load and the daily update are `docs/real-data-runbook.md` (`npm run vendor:backfill`).
+- `BOXING_PROVIDER=licensed` plus `BOXING_API_KEY`: the Boxing Data API adapter (`lib/providers/boxing-data-api.ts`). It has not yet run against the real API. Storing its data is on by default, provisionally, while the vendor's answer on storage is pending (every run says so; `BOXING_API_STORAGE_CONFIRMED=1` once it agrees in writing, `=0` to refuse); start with `npm run vendor:sample` and `docs/real-data-readiness.md`; the first load and the daily update are `docs/real-data-runbook.md` (`npm run vendor:backfill`).
 - `WIKIMEDIA_CONTACT` and `npm run media:resolve`: fetch freely licensed fighter photos from Wikimedia Commons (real fighters only).
 
 ## Scripts

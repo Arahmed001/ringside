@@ -9,7 +9,7 @@
  * It writes data/vendor-samples/boxing-data-api-<date>.json in the FeedData shape (gitignored: never commit vendor data) and
  * prints how many facts had to be approximated. Then check it without touching the database:
  *   npm run data:check -- --file data/vendor-samples/boxing-data-api-<date>.json
- * This is evaluation use; filling the database needs BOXING_API_STORAGE_CONFIRMED=1 (see lib/providers/boxing-data-api.ts).
+ * This is evaluation use; filling the database is `npm run vendor:backfill` (storing is on by default, provisionally; see docs/real-data-runbook.md).
  */
 import fs from "node:fs";
 import path from "node:path";

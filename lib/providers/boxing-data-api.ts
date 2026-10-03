@@ -12,9 +12,10 @@ import { currentYear, nowMs, todayIso } from "../clock";
  *
  * The feed has no corner colours, birth dates, round times, odds or card order, and some fields are loose (a free-text
  * `location`, a generic `PTS` result, no draw value). Wherever the mapping has to approximate, it does so the same way every
- * time and COUNTS it in `notes()`, so a reader can see how much of a feed rests on an assumption. Two things are deliberately
- * hard-wired for safety: a request budget (the free tier is 100 a month) and a refusal to fill the database until the
- * licence's storage terms are confirmed (BOXING_API_STORAGE_CONFIRMED=1); evaluating a sample is always allowed.
+ * time and COUNTS it in `notes()`, so a reader can see how much of a feed rests on an assumption. A request budget is hard-wired
+ * (the free tier is 100 a month). Storing the data is ON by default, as the owner decided while the vendor's answer on storage is
+ * pending: every run says so (STORAGE_WARNING) until BOXING_API_STORAGE_CONFIRMED=1 records that the vendor agreed in writing, and
+ * BOXING_API_STORAGE_CONFIRMED=0 switches storing off.
  */
 
 // ---- the documented response shapes (only the fields used here) ----
@@ -245,7 +246,7 @@ export interface BoxingDataApiOptions {
   retries?: number;
   /** replaces the real wait, for tests */
   sleep?: (ms: number) => Promise<void>;
-  /** "evaluation" fetches a sample for `npm run data:check`; "ingest" fills the database and needs BOXING_API_STORAGE_CONFIRMED=1. */
+  /** "evaluation" fetches a sample for `npm run data:check`; "ingest" fills the database (refused only when BOXING_API_STORAGE_CONFIRMED=0). */
   purpose: "evaluation" | "ingest";
 }
 export interface BackfillPlan {
@@ -267,15 +268,20 @@ export interface BoxingDataApiProvider extends DataProvider {
 const backoff = (attempt: number) => Math.min(30_000, 1000 * 2 ** attempt);
 const slug = (x: string) => x.replace(/[^a-z0-9._-]+/gi, "-").replace(/^-+|-+$/g, "");
 
-/** Throws unless storing the vendor's data has been confirmed (BOXING_API_STORAGE_CONFIRMED=1). Callers that do other work first (open a database) call this first. */
-export function assertStorageConfirmed(): void {
-  if (process.env.BOXING_API_STORAGE_CONFIRMED !== "1") {
-    throw new Error("Not filling the database from the Boxing Data API yet: its terms on storing data are unconfirmed (docs/boxing-data-api-enquiry.md). Evaluate a sample with `npm run vendor:sample`, and set BOXING_API_STORAGE_CONFIRMED=1 once the operator has confirmed in writing that stored data may be kept.");
-  }
+/** Said on every run that stores data while the vendor has not yet confirmed that it may be kept. */
+export const STORAGE_WARNING = "Storing the vendor's data PROVISIONALLY: it has not yet confirmed in writing that stored data may be kept (docs/boxing-data-api-enquiry.md). If it says no, delete the cache and the database (docs/real-data-runbook.md, \"Undoing it\"). Set BOXING_API_STORAGE_CONFIRMED=1 once it agrees, or =0 to refuse to store.";
+/**
+ * Whether the vendor's data may be stored: "confirmed" (BOXING_API_STORAGE_CONFIRMED=1) or "provisional" (the default, until the vendor's answer
+ * comes). Throws when storing is switched off (=0). Callers that do other work first (open a database) call this first.
+ */
+export function storageStatus(): "confirmed" | "provisional" {
+  const v = process.env.BOXING_API_STORAGE_CONFIRMED;
+  if (v === "0") throw new Error("Storing the Boxing Data API's data is switched off (BOXING_API_STORAGE_CONFIRMED=0). Unset it to store provisionally, or set it to 1 once the vendor has confirmed in writing. A sample can still be evaluated with `npm run vendor:sample`.");
+  return v === "1" ? "confirmed" : "provisional";
 }
 
 export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiProvider {
-  if (o.purpose === "ingest") assertStorageConfirmed();
+  if (o.purpose === "ingest" && storageStatus() === "provisional") (o.log ?? (() => {}))(STORAGE_WARNING);
   const base = (o.baseUrl ?? "https://boxing-data-api.p.rapidapi.com").replace(/\/+$/, "");
   const host = new URL(base).host;
   const doFetch = o.fetchImpl ?? fetch;

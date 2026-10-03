@@ -9,12 +9,13 @@
  * Options: --since YYYY-MM-DD  --refresh (fetch everything again)  --gap-ms 300  --retries 4  --max-requests 100000  --cache-dir <dir>
  *          --allow-incomplete (load even though some fighters could not be fetched)  --allow-errors (load even though the validator found errors)
  *          --into-existing (the database already holds other fighters: load alongside them)  --no-backup
- * Everything except --plan fills the cache and the database, so it needs BOXING_API_STORAGE_CONFIRMED=1: set it only once the operator has
- * confirmed in writing that stored data may be kept. Point DATABASE_PATH at a NEW file for the real league; never at the demo database.
+ * Everything except --plan fills the cache and the database. Storing is ON by default while the vendor's answer on storage is pending (every run
+ * says so); BOXING_API_STORAGE_CONFIRMED=1 records that the vendor agreed in writing and silences the warning, =0 refuses to store.
+ * Point DATABASE_PATH at a NEW file for the real league; never at the demo database.
  */
 process.env.RINGSIDE_NO_SEED = "1"; // an empty database is what we are here to fill: the app's own first-request seeding must not start
 import path from "node:path";
-import { assertStorageConfirmed, boxingDataApiProvider, type BoxingDataApiOptions } from "../lib/providers/boxing-data-api";
+import { boxingDataApiProvider, storageStatus, type BoxingDataApiOptions } from "../lib/providers/boxing-data-api";
 import { loadFeed } from "../lib/feed";
 import { countBySeverity, groupIssues, sanitizeFeed } from "../lib/validate";
 import { todayIso } from "../lib/clock";
@@ -30,7 +31,7 @@ async function main() {
   const key = process.env.BOXING_API_KEY;
   if (!key) throw new Error("Set BOXING_API_KEY (your RapidAPI key for the Boxing Data API).");
   const plan = flag("plan"), check = flag("check"), update = flag("update");
-  if (!plan) assertStorageConfirmed(); // before anything is created: a refusal leaves no cache and no empty database behind
+  if (!plan) storageStatus(); // before anything is created: if storing is switched off (=0) the refusal leaves no cache and no empty database behind
   const gapMs = Number(arg("gap-ms") ?? 300);
   const base: BoxingDataApiOptions = {
     key, baseUrl: process.env.BOXING_API_URL || undefined, purpose: plan ? "evaluation" : "ingest", // a plan reads the list in memory and keeps nothing

@@ -238,25 +238,46 @@ test("failures are loud and never leak the key: an API error, a rate limit, a se
   assert.ok(logs.some((l) => /fighter C1 skipped/.test(l)));
 });
 
-test("the database is not filled until the storage terms are confirmed; evaluating a sample is always allowed", () => {
-  delete process.env.BOXING_API_STORAGE_CONFIRMED;
-  assert.throws(() => B.boxingDataApiProvider({ key: KEY, purpose: "ingest" }), /storing data are unconfirmed/);
-  assert.doesNotThrow(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation" }));
-  process.env.BOXING_API_STORAGE_CONFIRMED = "1";
-  try { assert.doesNotThrow(() => B.boxingDataApiProvider({ key: KEY, purpose: "ingest" })); } finally { delete process.env.BOXING_API_STORAGE_CONFIRMED; }
+test("storing is on by default, provisionally and with a warning, until the vendor confirms; =1 silences the warning, =0 refuses", () => {
+  const logs: string[] = [];
+  try {
+    delete process.env.BOXING_API_STORAGE_CONFIRMED;
+    assert.equal(B.storageStatus(), "provisional");
+    assert.doesNotThrow(() => B.boxingDataApiProvider({ key: KEY, purpose: "ingest", log: (m) => logs.push(m) }));
+    assert.deepEqual(logs, [B.STORAGE_WARNING], "it says so, once");
+    assert.match(B.STORAGE_WARNING, /PROVISIONALLY/); assert.match(B.STORAGE_WARNING, /Undoing it/); assert.match(B.STORAGE_WARNING, /BOXING_API_STORAGE_CONFIRMED=1/);
+    logs.length = 0;
+    assert.doesNotThrow(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", log: (m) => logs.push(m) }));
+    assert.equal(logs.length, 0, "an evaluation stores nothing, so it says nothing");
+
+    process.env.BOXING_API_STORAGE_CONFIRMED = "1";
+    assert.equal(B.storageStatus(), "confirmed");
+    assert.doesNotThrow(() => B.boxingDataApiProvider({ key: KEY, purpose: "ingest", log: (m) => logs.push(m) }));
+    assert.equal(logs.length, 0, "confirmed: no warning");
+
+    process.env.BOXING_API_STORAGE_CONFIRMED = "0";
+    assert.throws(() => B.storageStatus(), /switched off/);
+    assert.throws(() => B.boxingDataApiProvider({ key: KEY, purpose: "ingest" }), /switched off/);
+    assert.doesNotThrow(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation" }), "a sample can still be evaluated");
+  } finally { delete process.env.BOXING_API_STORAGE_CONFIRMED; }
 });
 
-test("BOXING_PROVIDER=licensed needs a key, and without the storage confirmation it refuses to fill the database", async () => {
+test("BOXING_PROVIDER=licensed needs a key; storing is allowed by default and refused only when switched off", async () => {
   const { licensedProvider } = await import("../lib/providers/licensed");
   const saved = { ...process.env };
+  const log = console.log; const said: string[] = [];
+  console.log = (...a: unknown[]) => { said.push(a.join(" ")); };
   try {
     delete process.env.BOXING_API_KEY; delete process.env.BOXING_API_STORAGE_CONFIRMED;
     assert.throws(() => licensedProvider(), /BOXING_API_KEY/);
     process.env.BOXING_API_KEY = KEY;
-    assert.throws(() => licensedProvider(), /unconfirmed/);
+    assert.equal(licensedProvider().name, "boxing-data-api");
+    assert.ok(said.some((m) => /PROVISIONALLY/.test(m)), "and it says it is storing provisionally");
+    process.env.BOXING_API_STORAGE_CONFIRMED = "0";
+    assert.throws(() => licensedProvider(), /switched off/);
     process.env.BOXING_API_STORAGE_CONFIRMED = "1";
     assert.equal(licensedProvider().name, "boxing-data-api");
-  } finally { for (const k of ["BOXING_API_KEY", "BOXING_API_STORAGE_CONFIRMED"]) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; } }
+  } finally { console.log = log; for (const k of ["BOXING_API_KEY", "BOXING_API_STORAGE_CONFIRMED"]) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; } }
 });
 
 test("upcoming fights come from the schedule endpoint: asked for the coming days, no result carried, and a fight in both lists is taken once", async () => {
