@@ -236,3 +236,28 @@ test("a scaled demo league is still a valid feed with unique names, even when th
   assert.equal(errors.length, 0, `scaled feed has validation errors: ${JSON.stringify(errors.slice(0, 3))}`);
   assert.deepEqual(Object.values(dropped).filter((n) => n > 0), [], "nothing is dropped");
 });
+
+test("start-up warm-up builds the shared world and never throws; the daily refresh lands just after UTC midnight", async () => {
+  const warm = await import("../lib/warm");
+  worldMod.invalidateWorld();
+  const lines: string[] = [];
+  await warm.warmWorld((m) => lines.push(m));
+  assert.match(lines[0], /world ready in \d+ ms: \d+ fighters, \d+ bouts/);
+  const built = await worldMod.getWorld();
+  await warm.warmWorld(() => {});
+  assert.equal(await worldMod.getWorld(), built, "warming an up-to-date world must not rebuild it");
+
+  const DAY = 86_400_000, t0 = Date.parse("2026-10-03T23:59:00Z");
+  assert.equal(warm.msUntilNextDay(t0), 60_000 + 5_000, "one minute to midnight plus the slack");
+  assert.equal(warm.msUntilNextDay(Date.parse("2026-10-04T00:00:00Z")), DAY + 5_000, "exactly at midnight the next one is a day away");
+  assert.ok(warm.msUntilNextDay(Date.now()) > 5_000 && warm.msUntilNextDay(Date.now()) <= DAY + 5_000);
+
+  // a failing build is logged, not thrown, so the server still starts and the first request retries
+  const db = await (await import("../lib/db")).getDb();
+  worldMod.invalidateWorld();
+  db.exec("ALTER TABLE honours RENAME TO honours_off");
+  const bad: string[] = [];
+  try { await warm.warmWorld((m) => bad.push(m)); } finally { db.exec("ALTER TABLE honours_off RENAME TO honours"); worldMod.invalidateWorld(); }
+  assert.match(bad[0], /warm-up failed/);
+  assert.ok((await worldMod.getWorld()).boxers.length > 0, "and the world builds once the problem is gone");
+});
