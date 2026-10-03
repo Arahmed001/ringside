@@ -36,6 +36,19 @@ CREATE TABLE IF NOT EXISTS contributions (
   source_check TEXT, source_checked_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_contrib_status ON contributions(status);
+CREATE TABLE IF NOT EXISTS reports (
+  id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('error','about_me')),
+  target_type TEXT NOT NULL CHECK (target_type IN ('boxer','bout')), target_ext TEXT NOT NULL,
+  field TEXT, shown_value TEXT, proposed_value TEXT,
+  source_url TEXT, quote TEXT, note TEXT, contact TEXT,
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','accepted','rejected','withdrawn')),
+  created_at TEXT NOT NULL, reviewed_by INTEGER REFERENCES users(id) ON DELETE SET NULL, reviewed_at TEXT, review_note TEXT,
+  source_check TEXT, source_checked_at TEXT,
+  state TEXT CHECK (state IN ('active','vendor_changed','retired')), original_value TEXT, vendor_value TEXT, applied_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status, kind);
+CREATE INDEX IF NOT EXISTS idx_reports_target ON reports(target_type, target_ext);
 CREATE TABLE IF NOT EXISTS audit (
   id INTEGER PRIMARY KEY, at TEXT NOT NULL, actor TEXT, action TEXT NOT NULL, target TEXT, detail TEXT
 );

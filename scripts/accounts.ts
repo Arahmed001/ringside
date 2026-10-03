@@ -7,7 +7,7 @@
  *   npm run accounts -- audit [N]                  the last N audit entries (default 30)
  *   npm run accounts -- check                      integrity check, counts, and expired sessions waiting to be cleared
  *   npm run accounts -- purge                      delete expired sessions and reset codes
- *   npm run accounts -- apply                      replay approved community edits into the sports database
+ *   npm run accounts -- apply                      replay approved community edits and accepted corrections into the sports database (ratings are recomputed if a result changed)
  * ACCOUNTS_DB_PATH / DATABASE_PATH decide which files; the same values as the server.
  */
 import { DatabaseSync } from "node:sqlite";
@@ -15,6 +15,8 @@ import path from "node:path";
 import { accountsDb, accountsPath } from "../lib/accounts/store";
 import { issueResetCode, purgeExpired, setDisabled, setRole, type Role } from "../lib/accounts/users";
 import { applyContributions } from "../lib/accounts/contributions";
+import { applyCorrections } from "../lib/accounts/corrections";
+import { recomputeRatings } from "../lib/ingest";
 
 const [cmd, a, b] = process.argv.slice(2);
 const db = accountsDb();
@@ -22,7 +24,7 @@ console.log(`accounts database: ${accountsPath()}`);
 
 if (cmd === "list") {
   const rows = db.prepare(`SELECT u.username, u.role, u.disabled, u.created_at, u.last_login,
-    (SELECT COUNT(*) FROM picks p WHERE p.user_id = u.id) picks, (SELECT COUNT(*) FROM contributions c WHERE c.user_id = u.id) contributions FROM users u ORDER BY u.id`).all();
+    (SELECT COUNT(*) FROM picks p WHERE p.user_id = u.id) picks, (SELECT COUNT(*) FROM contributions c WHERE c.user_id = u.id) contributions, (SELECT COUNT(*) FROM reports r WHERE r.user_id = u.id) reports FROM users u ORDER BY u.id`).all();
   console.table(rows);
 } else if (cmd === "role") {
   if (!a || !["user", "editor", "admin"].includes(b)) { console.error("usage: role NAME user|editor|admin"); process.exit(2); }
@@ -38,7 +40,8 @@ if (cmd === "list") {
   const one = (q: string) => (db.prepare(q).get() as Record<string, number | string>);
   const integrity = String((one("PRAGMA integrity_check") as { integrity_check: string }).integrity_check);
   console.table({ integrity, users: one("SELECT COUNT(*) c FROM users").c, disabled: one("SELECT COUNT(*) c FROM users WHERE disabled = 1").c, picks: one("SELECT COUNT(*) c FROM picks").c,
-    pendingEdits: one("SELECT COUNT(*) c FROM contributions WHERE status = 'pending'").c, liveSessions: one(`SELECT COUNT(*) c FROM sessions WHERE expires_at >= '${new Date().toISOString()}'`).c,
+    pendingEdits: one("SELECT COUNT(*) c FROM contributions WHERE status = 'pending'").c, openReports: one("SELECT COUNT(*) c FROM reports WHERE status = 'open' AND kind = 'error'").c,
+    openAboutMe: one("SELECT COUNT(*) c FROM reports WHERE status = 'open' AND kind = 'about_me'").c, correctionsToReview: one("SELECT COUNT(*) c FROM reports WHERE state = 'vendor_changed'").c, liveSessions: one(`SELECT COUNT(*) c FROM sessions WHERE expires_at >= '${new Date().toISOString()}'`).c,
     expiredSessions: one(`SELECT COUNT(*) c FROM sessions WHERE expires_at < '${new Date().toISOString()}'`).c });
   process.exit(integrity === "ok" ? 0 : 1);
 } else if (cmd === "purge") {
@@ -47,4 +50,7 @@ if (cmd === "list") {
   const main = new DatabaseSync(process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db"));
   main.exec("PRAGMA foreign_keys = ON");
   console.log(applyContributions(main, db));
+  const fixed = applyCorrections(main, db);
+  console.log("corrections:", fixed);
+  if (fixed.boutsChanged) { recomputeRatings(main); console.log("ratings recomputed"); }
 } else { console.error("usage: list | role | disable | enable | reset | audit | check | purge | apply (see the header of scripts/accounts.ts)"); process.exit(2); }

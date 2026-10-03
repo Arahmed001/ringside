@@ -51,6 +51,25 @@ A card shows the person's own place ("#4 of 31 players"), or how many more grade
 
 Under it, a recap of what was graded since they last looked: right and wrong counts and the five newest fights. It is kept by a mark, not a clock: `users.picks_seen_through` holds the date of the latest graded fight they were shown, "Got it" moves it to the latest graded fight, and the recap is the graded picks on fights after the mark (so each fight is reported once, a result that arrives hours late is still reported, and the mark never moves backwards or accepts a junk date). New fights are therefore reported, old ones are not, however long they stay away. `GET /api/account/standing?lang=ar` returns both; `POST {through}` dismisses.
 
+## Reporting a wrong fact, and corrections
+
+Anyone **signed in** can report that a fact is wrong (`POST /api/report`; the screens come next). There are three kinds, and the difference matters:
+
+- **A correction** names one field of one fighter or fight and the value it should have, with a source link and the exact words from that page (the same rule as community edits). The fighter fields it can change are birth date, height, reach, stance, nickname and country; the fight fields are the result, the method and the end round. Each has its own checks (a height of 300 cm is refused; a result that makes the method contradict the winner is refused; a draw corrected to a win must say how it ended). The server records what the site showed at that moment, and refuses a report that changes nothing.
+- **Something else** (`field: other`) is a report an editor looks into: a name misspelt, a record one fight short. Nothing is applied.
+- **About me** is a fighter, or someone on their behalf, asking about their own details. It carries a note and an optional contact (never shown to the reporter's own list or to editors), is **never applied**, and only an **admin** sees and handles it, because it can raise privacy questions.
+
+Reports are a **private queue**: nothing appears on a fighter's page because someone reported it. An **editor who is not the reporter** reads the source (code can fetch the page and check the quote, as for community edits) and accepts or rejects, with a reason for a rejection. At most 20 reports can be open per person and 10 sent a day; a report that is refused outright does not use the day's allowance.
+
+**What an accepted correction does.** It is a sourced override of the vendor's value. The vendor's data is rewritten every day, so the override is applied again after every ingest (`ingest` does it before ratings are recomputed) and whenever the database opens, and it is kept in `accounts.db` with the rest, keyed by external ids. A corrected **result or method changes ratings**, so they are recomputed. The correction remembers the vendor's own value as it was:
+
+- if the vendor rewrites that same value, the correction is applied again;
+- if the vendor changes the field to something **else** since, the sourced value stays in and the correction is **flagged** (`vendor_changed`) for an editor, who either keeps it (the source still holds; the vendor's new value is what to compare against from now on) or retires it. The vendor may have fixed the error, or the source may now be stale. Where a value is one the adapter filled in (an imputed reach), the vendor's value can drift on its own, so expect some flags there;
+- **retiring** a correction puts the vendor's value back;
+- a newer correction for the same field retires the older one and puts the vendor's value back first, so it never mistakes the older correction's value for a change by the vendor.
+
+The vendor-record audit (`vendor:backfill`) still compares the loaded fights with the vendor's career totals, so a corrected result will show there as a disagreement with the vendor, which is the truth.
+
 ## Operator commands
 
 ```bash
@@ -61,7 +80,7 @@ npm run accounts -- reset NAME                   # a one-time code, valid an hou
 npm run accounts -- audit 50                     # the last 50 audit entries
 npm run accounts -- check                        # integrity check, counts, expired sessions waiting
 npm run accounts -- purge                        # delete expired sessions and reset codes
-npm run accounts -- apply                        # replay approved edits into the sports database by hand
+npm run accounts -- apply                        # replay approved edits and accepted corrections into the sports database by hand (recomputes ratings if a result changed)
 ```
 
 Run them where the files are (inside the container: `docker exec ringside npm run accounts -- list`).

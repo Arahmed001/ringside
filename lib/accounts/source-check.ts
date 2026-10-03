@@ -19,9 +19,10 @@ export type SourceCheck = "quote_found" | "quote_missing" | "unreadable" | "unav
 const plain = (s: string) => squash(s.replace(/\[ ?[A-Za-z0-9]{1,3} ?\]/g, " ")).replace(/\s+([.,;:!?])/g, "$1").replace(/\s+/g, " ").trim();
 export const checkQuote = (text: string, quote: string): boolean => plain(text).includes(plain(quote));
 
-export async function runSourceCheck(id: number, reviewer: string, acc: DatabaseSync = accountsDb(), get?: (url: string) => Promise<FetchOutcome>): Promise<SourceCheck | "not_found"> {
-  const c = acc.prepare("SELECT source_url, quote FROM contributions WHERE id = ?").get(id) as { source_url: string; quote: string } | undefined;
-  if (!c) return "not_found";
+export async function runSourceCheck(id: number, reviewer: string, acc: DatabaseSync = accountsDb(), get?: (url: string) => Promise<FetchOutcome>, table: "contributions" | "reports" = "contributions"): Promise<SourceCheck | "not_found"> {
+  const t = table === "reports" ? "reports" : "contributions"; // whitelisted: it is part of the query
+  const c = acc.prepare(`SELECT source_url, quote FROM ${t} WHERE id = ?`).get(id) as { source_url: string | null; quote: string | null } | undefined;
+  if (!c || !c.source_url || !c.quote) return "not_found";
   let result: SourceCheck;
   try {
     const fetchPage = get ?? (() => {
@@ -33,7 +34,7 @@ export async function runSourceCheck(id: number, reviewer: string, acc: Database
     if (!fetchPage) result = "unavailable";
     else { const res = await (fetchPage as (u: string) => Promise<FetchOutcome>)(c.source_url); result = !res.ok ? "unreadable" : checkQuote(res.text, c.quote) ? "quote_found" : "quote_missing"; }
   } catch { result = "unreadable"; }
-  acc.prepare("UPDATE contributions SET source_check = ?, source_checked_at = ? WHERE id = ?").run(result, nowIso(), id);
+  acc.prepare(`UPDATE ${t} SET source_check = ?, source_checked_at = ? WHERE id = ?`).run(result, nowIso(), id);
   audit(acc, reviewer, "source_check", `#${id}`, result);
   return result;
 }

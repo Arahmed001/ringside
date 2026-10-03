@@ -2,8 +2,9 @@ import { syncNamesFromFile } from "./i18n/names-file";
 import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
-import { ingest } from "./ingest";
+import { ingest, recomputeRatings } from "./ingest";
 import { applyContributions } from "./accounts/contributions";
+import { applyCorrections } from "./accounts/corrections";
 import { REIGN_SCHEMA } from "./importers/wikipedia-champions";
 
 const DB_PATH = process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db");
@@ -162,6 +163,8 @@ export const bumpDbVersion = () => { g.__ringsideBump = (g.__ringsideBump ?? 0) 
 /** Replays approved community edits (accounts database) into this database. Never lets a problem with the accounts file stop the site opening. */
 function syncCommunity(db: DatabaseSync) {
   try { applyContributions(db); } catch (e) { console.error("community edits not applied:", (e as Error).message); }
+  // accepted corrections to the vendor's values (a fresh or restored database has not had them applied); a corrected result changes ratings
+  try { if (applyCorrections(db).boutsChanged) recomputeRatings(db); } catch (e) { console.error("corrections not applied:", (e as Error).message); }
 }
 
 /** Opens the DB, creating and seeding it from the configured provider on first run. */
