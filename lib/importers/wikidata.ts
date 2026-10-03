@@ -30,7 +30,7 @@ export interface WikidataBoxer {
   teachers: string[];
 }
 
-type Binding = Record<string, { value: string } | undefined>;
+export type Binding = Record<string, { value: string } | undefined>;
 
 export function batchQuery(qids: string[]): string {
   return `SELECT ?b ?bLabel ?dob ?dobPrec ?pobLabel ?ctzLabel ?h ?m ?img ?boxrec ?resLabel ?dod ?teacherLabel WHERE {
@@ -141,7 +141,7 @@ export function parseBindings(bindings: Binding[]): Map<string, WikidataBoxer> {
 }
 
 let lastCall = 0;
-async function sparql(query: string): Promise<Binding[]> {
+export async function sparql(query: string): Promise<Binding[]> {
   for (let attempt = 0; attempt < 4; attempt++) {
     const wait = lastCall + 1200 - Date.now(); // one request at a time, ~1/s: well inside WDQS limits
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));

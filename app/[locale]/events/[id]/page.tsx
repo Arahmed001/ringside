@@ -37,12 +37,16 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const view = eventWithMain(w, e);
   if (!view) notFound();
   const { bouts, main, red, blue } = view;
+  const venue = w.venueOf(e);
   return (
     <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
       <JsonLd data={{
         "@type": "SportsEvent", name: t.name(e.name), sport: "Boxing", startDate: e.date, url: abs(localePath(t.locale, `/events/${e.id}`)), inLanguage: t.locale,
         eventStatus: e.status === "cancelled" ? "https://schema.org/EventCancelled" : e.status === "postponed" ? "https://schema.org/EventPostponed" : "https://schema.org/EventScheduled",
-        location: { "@type": "Place", name: t.name(e.venue), address: { "@type": "PostalAddress", addressLocality: t.name(e.city), addressCountry: e.country } },
+        location: {
+          "@type": "Place", name: t.name(e.venue), address: { "@type": "PostalAddress", addressLocality: t.name(e.city), addressCountry: e.country },
+          ...(venue ? { sameAs: [`https://www.wikidata.org/wiki/${venue.wikidataId}`], ...(venue.lat !== null && venue.lon !== null ? { geo: { "@type": "GeoCoordinates", latitude: venue.lat, longitude: venue.lon } } : {}), ...(venue.capacity ? { maximumAttendeeCapacity: venue.capacity } : {}) } : {}),
+        },
         competitor: [red, blue].map((f) => ({ "@type": "Person", name: t.name(f.name), url: abs(localePath(t.locale, `/boxers/${f.slug}`)) })),
       }} />
       <div className="min-w-0 lg:sticky lg:top-24 lg:self-start"><Poster event={e} main={main} red={red} blue={blue} /></div>
@@ -50,6 +54,14 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
         <div className="eyebrow mb-2">{e.status === "cancelled" ? t("Cancelled") : e.status === "postponed" ? t.n(daysUntil(e.date), "Postponed · now {n} day away", "Postponed · now {n} days away") : e.upcoming ? t.n(daysUntil(e.date), "In {n} day", "In {n} days") : t("Final results")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase leading-none">{t.name(e.name)}</h1>
         <div className="mt-2 text-muted">{fmtDate(e.date, { weekday: "long", month: "long", day: "numeric", year: "numeric" }, t.locale)} · {t.name(e.venue)}, {t.name(e.city)} {flag(e.country)}</div>
+        {venue && (venue.capacity || venue.lat !== null) && (
+          <div className="mt-1 text-xs text-muted">
+            {venue.capacity ? t("Seats about {n} (general figure)", { n: venue.capacity.toLocaleString("en") }) : null}
+            {venue.capacity && venue.lat !== null ? " · " : null}
+            {venue.lat !== null && venue.lon !== null && <a href={`https://www.openstreetmap.org/?mlat=${venue.lat}&mlon=${venue.lon}#map=16/${venue.lat}/${venue.lon}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{t("Map")}</a>}
+            {" · "}<a href={`https://www.wikidata.org/wiki/${venue.wikidataId}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{t("Venue data: Wikidata")}</a>
+          </div>
+        )}
         <EventMoney w={w} event={e} />
         <div className="mt-8 space-y-3">
           {bouts.map((b, i) => {

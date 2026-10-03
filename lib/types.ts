@@ -169,4 +169,6 @@ export interface Broadcast extends Provenance {
   eventId: number; broadcaster: string; platform: "ppv" | "streaming" | "subscription" | "free-tv"; region: string; viewersAvg: number | null; viewersPeak: number | null;
 }
 export interface Honour { boxerId: number; kind: "hall_of_fame" | "award" | "title"; label: string; year: number | null; source: string }
+/** A venue verified against Wikidata (lib/importers/venues.ts). Capacity is a general figure, not the boxing configuration. */
+export interface Venue { name: string; city: string; wikidataId: string; label: string; lat: number | null; lon: number | null; capacity: number | null }
 export interface Earning extends Provenance { boxerId: number; year: number; totalUsd: number; ringUsd: number | null; offRingUsd: number | null }

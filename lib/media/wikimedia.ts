@@ -23,7 +23,7 @@ export function userAgent(): string {
   return `RingsideBot/0.1 (${contact})`;
 }
 
-async function api<T>(base: string, params: Record<string, string>): Promise<T> {
+export async function api<T>(base: string, params: Record<string, string>): Promise<T> {
   const wait = lastCall + GAP_MS - Date.now();
   if (wait > 0) await new Promise((r) => setTimeout(r, wait));
   const url = `${base}?${new URLSearchParams({ format: "json", formatversion: "2", ...params })}`;

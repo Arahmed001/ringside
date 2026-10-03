@@ -70,6 +70,10 @@ CREATE TABLE IF NOT EXISTS honours (
   PRIMARY KEY (boxer_id, kind, label, year, source)
 );
 CREATE INDEX IF NOT EXISTS idx_honours_boxer ON honours(boxer_id);
+CREATE TABLE IF NOT EXISTS venues (
+  name TEXT NOT NULL, city TEXT NOT NULL, country TEXT, status TEXT NOT NULL, reason TEXT, wikidata_id TEXT, label TEXT,
+  lat REAL, lon REAL, capacity INTEGER, basis TEXT, checked_at TEXT, PRIMARY KEY (name, city)
+);
 CREATE TABLE IF NOT EXISTS event_financials (
   event_id INTEGER NOT NULL, gate_usd REAL, tickets_sold INTEGER, capacity INTEGER, site_fee_usd REAL, ppv_buys INTEGER, ppv_price_usd REAL,
   ppv_revenue_usd REAL, sponsorship_usd REAL, basis TEXT NOT NULL, source TEXT NOT NULL, source_url TEXT, retrieved_at TEXT, note TEXT,

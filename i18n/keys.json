@@ -2638,6 +2638,12 @@
   ]
  },
  {
+  "key": "fight cards",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
   "key": "Fight money",
   "files": [
    "app/[locale]/money/page.tsx",
@@ -3732,6 +3738,12 @@
   "key": "Managers",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Map",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
   ]
  },
  {
@@ -5191,6 +5203,12 @@
   ]
  },
  {
+  "key": "Seats about {n} (general figure)",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "selected features",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -6124,6 +6142,18 @@
   "key": "Vacant",
   "files": [
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Venue data: Wikidata",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Venue verified on Wikidata (capacity, coordinates)",
+  "files": [
+   "lib/coverage.ts"
   ]
  },
  {
