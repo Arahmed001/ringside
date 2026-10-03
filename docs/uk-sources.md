@@ -26,7 +26,7 @@ Both were on the list as "free pages with attribution". Looked at properly, neit
 **What is there.** Barb's own page says: "All the viewing data available on Barb's website is free for users to publish, although the data must be credited to Barb" (https://www.barb.co.uk/viewing-data/how-can-i-get-barb-data/, read 2026-10-03). The top 50 programmes of each week, with audiences. No `robots.txt` (the address returns a 404 page).
 
 **Why it was not built.**
-1. **Boxing barely appears.** The latest week on the page (7 to 13 September 2026) had no boxing in it, and Sky and DAZN pay-per-view fights are not what the top 50 measures. A fight shows up only when it is on a free-to-air or widely carried channel.
+1. **How often boxing appears is not known.** The table could not be read (point 2), so no week's list was seen, including the latest one (7 to 13 September 2026). A top 50 of the most-watched programmes of a week will only include a fight that was on a widely carried channel; whether pay-per-view cards are measured at all was not checked. Treat boxing as a rare entry until someone reads the archive.
 2. **The page has no data in it.** The table is filled in by the browser from a separate Barb service (`barb-api.mediatel.co.uk`), so the polite fetcher sees an empty table and the research checker could never find a quote on the page: every Barb claim would be `unconfirmed`. Calling that service directly would be using something the page does not offer to the public as an API, and its terms were not read.
 3. **The archive** (https://www.barb.co.uk/viewing-data/archive/) was not read.
 
@@ -34,4 +34,4 @@ Both were on the list as "free pages with attribution". Looked at properly, neit
 
 ## What this changes in the plan
 
-The survey's list (`docs/data-sources-survey.md`, section 12) put both as "small to medium". They are not: BBBofC needs a data-protection decision first and Barb has little boxing in it. Neither blocks anything else.
+The survey's list (`docs/data-sources-survey.md`, section 12) put both as "small to medium". They are not: BBBofC needs a data-protection decision first and Barb's usefulness is unknown and probably small (see above). Neither blocks anything else.
