@@ -488,6 +488,13 @@
   ]
  },
  {
+  "key": "{n} fights decided, {s} ended inside the distance.",
+  "plural": "{n} fight decided, {s} ended inside the distance.",
+  "files": [
+   "lib/night.ts"
+  ]
+ },
+ {
   "key": "{n} fights match. The first is {fight}, {result}.",
   "plural": "{n} fight matches. The first is {fight}, {result}.",
   "files": [
@@ -1085,6 +1092,12 @@
   "key": "{name}: estimated effect {effect} Elo against an average trainer ({verdict}); {fighters} fighters, {record} together.",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name}'s unbeaten run of {n} fights ended.",
+  "files": [
+   "lib/night.ts"
   ]
  },
  {
@@ -2235,6 +2248,12 @@
   ]
  },
  {
+  "key": "Biggest climb: {name}, from #{a} to #{b} at {division}.",
+  "files": [
+   "lib/night.ts"
+  ]
+ },
+ {
   "key": "Biggest gates, pay-per-view sales, fighter purses and career earnings, and which broadcasters show the fights. Every figure says how it is known and where it came from.",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -2244,6 +2263,12 @@
   "key": "Biggest live gates",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Biggest mover: {name} entered the {division} top 15 at #{n}.",
+  "files": [
+   "lib/night.ts"
   ]
  },
  {
@@ -3617,6 +3642,18 @@
   "key": "Factor",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Fastest finish: {winner} stopped {loser} in round {r}, at {time}.",
+  "files": [
+   "lib/night.ts"
+  ]
+ },
+ {
+  "key": "Fastest finish: {winner} stopped {loser} in round {r}.",
+  "files": [
+   "lib/night.ts"
   ]
  },
  {
@@ -5215,6 +5252,12 @@
   ]
  },
  {
+  "key": "Longest streak run up: {name}, {n} wins in a row.",
+  "files": [
+   "lib/night.ts"
+  ]
+ },
+ {
   "key": "Longest title reigns",
   "files": [
    "lib/records.ts"
@@ -5675,6 +5718,12 @@
   ]
  },
  {
+  "key": "New champion: {name}, {belt}.",
+  "files": [
+   "lib/night.ts"
+  ]
+ },
+ {
   "key": "New trainer · {n} months with current trainer",
   "plural": "New trainer · {n} month with current trainer",
   "files": [
@@ -5721,6 +5770,12 @@
   "key": "Next main event",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Night in review",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
   ]
  },
  {
@@ -8011,6 +8066,12 @@
   ]
  },
  {
+  "key": "The model picked {r} of {n} winners ({p}).",
+  "files": [
+   "lib/night.ts"
+  ]
+ },
+ {
   "key": "The model picked the loser",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -8062,6 +8123,12 @@
   "key": "The next card is {event} on {date}, headlined by {fight}.",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "The night's biggest surprise: {winner} beat {loser}, a {p} chance in the model's eyes.",
+  "files": [
+   "lib/night.ts"
   ]
  },
  {
@@ -8250,6 +8317,12 @@
   "key": "Title defences",
   "files": [
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Title defended: {name}, {belt}.",
+  "files": [
+   "lib/night.ts"
   ]
  },
  {
