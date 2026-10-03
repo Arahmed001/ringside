@@ -2532,6 +2532,12 @@
   ]
  },
  {
+  "key": "bout",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Bout not found",
   "files": [
    "app/[locale]/bouts/[id]/opengraph-image.tsx"
@@ -2546,6 +2552,7 @@
  {
   "key": "bouts",
   "files": [
+   "app/[locale]/data/page.tsx",
    "app/[locale]/opengraph-image.tsx"
   ]
  },
@@ -2613,6 +2620,12 @@
   ]
  },
  {
+  "key": "broadcast",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Broadcaster",
   "files": [
    "app/[locale]/money/page.tsx",
@@ -2630,6 +2643,12 @@
   "key": "Broadcasters",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "broadcasts",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -3094,6 +3113,18 @@
   "key": "Corner & camp",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "corner entries",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "corner entry",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -3575,7 +3606,7 @@
   ]
  },
  {
-  "key": "e.g. {example}",
+  "key": "e.g. <x>{example}</x>",
   "files": [
    "app/[locale]/data/page.tsx"
   ]
@@ -3611,9 +3642,21 @@
   ]
  },
  {
+  "key": "earnings",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Earnings",
   "files": [
    "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "earnings records",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -3789,6 +3832,12 @@
   ]
  },
  {
+  "key": "event",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Event",
   "files": [
    "lib/ask/tools.ts"
@@ -3803,6 +3852,7 @@
  {
   "key": "events",
   "files": [
+   "app/[locale]/data/page.tsx",
    "app/[locale]/opengraph-image.tsx"
   ]
  },
@@ -4254,6 +4304,12 @@
   ]
  },
  {
+  "key": "fighter",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Fighter",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
@@ -4330,6 +4386,7 @@
  {
   "key": "fighters",
   "files": [
+   "app/[locale]/data/page.tsx",
    "app/[locale]/opengraph-image.tsx"
   ]
  },
@@ -4490,6 +4547,18 @@
   "key": "Final results",
   "files": [
    "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "financial",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "financial records",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -6681,6 +6750,7 @@
  {
   "key": "official",
   "files": [
+   "app/[locale]/data/page.tsx",
    "components/WeightChart.tsx",
    "lib/ask/tools.ts"
   ]
@@ -6731,6 +6801,12 @@
   "key": "Official weights the day before, fight-night weights after rehydration, and what the gap does to the result.",
   "files": [
    "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "officials",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -6817,6 +6893,12 @@
   "key": "Or start from the calendar",
   "files": [
    "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "organisations",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -6955,6 +7037,12 @@
   "key": "peak {n}",
   "files": [
    "components/charts.tsx"
+  ]
+ },
+ {
+  "key": "people",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -7373,6 +7461,18 @@
   ]
  },
  {
+  "key": "punch record",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "punch records",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Punch statistics",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
@@ -7402,6 +7502,18 @@
   "key": "Pure Elo",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "purse",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "purses",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -7983,6 +8095,18 @@
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx",
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "scorecard",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "scorecards",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -8746,6 +8870,18 @@
  },
  {
   "key": "Team history rows by source: {stints}. Weigh-ins by source: {weighIns}. Wikidata staged: {staged} boxers, {linked} linked to our fighters.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "team stint",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "team stints",
   "files": [
    "app/[locale]/data/page.tsx"
   ]
@@ -10118,6 +10254,12 @@
   ]
  },
  {
+  "key": "weigh-in",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
   "key": "Weigh-in",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -10139,6 +10281,12 @@
   "key": "Weigh-in weights over time",
   "files": [
    "components/WeightChart.tsx"
+  ]
+ },
+ {
+  "key": "weigh-ins",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {

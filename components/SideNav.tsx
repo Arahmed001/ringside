@@ -37,7 +37,7 @@ export async function Logo({ collapsible = false }: { collapsible?: boolean }) {
   return (
     <Link href="/" className="flex items-center gap-2" dir="ltr" aria-label="Ringside">
       <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-red font-display text-lg font-extrabold">R</span>
-      <span className={`${collapsible ? "rail-collapsible " : ""}font-display text-2xl font-extrabold uppercase tracking-wide`}>Ring<span className="text-red-ink">side</span></span>
+      <span className={`${collapsible ? "rail-collapsible " : ""}font-display text-2xl font-extrabold uppercase tracking-wide`} lang="en">Ring<span className="text-red-ink">side</span></span>
     </Link>
   );
 }

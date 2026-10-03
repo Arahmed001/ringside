@@ -126,3 +126,48 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
   for (const [re, what] of slips) { const m = text.match(re); if (m) bad.push(`${what} in the page text: "…${text.slice(Math.max(0, (m.index ?? 0) - 40), (m.index ?? 0) + 40).trim()}…"`); }
   return bad;
 }
+
+/**
+ * English left behind on an Arabic page. Looked for in the page's own HTML (client components are rendered into it too):
+ *  - any Latin word of three or more letters in the text a reader sees, in the title or in the description, one block of text at a time,
+ *  - any attribute a reader's tools announce (aria-label, title, placeholder, alt) that has Latin words and no Arabic.
+ * Not counted: brand and technical terms (`LATIN_OK`), text inside an element marked `lang="en"` (words that are English by nature, such as a
+ * data source's name or a validator message, which a screen reader should say in English anyway), and ALL-CAPS abbreviations of five letters or fewer.
+ * Only meaningful for the demo league, whose names are all transliterated; a real feed's untransliterated names would be flagged.
+ */
+export const LATIN_OK = [/\bRingside\b/g, /\bElo\b/g, /\bPCA\b/g, /\bClaude\b/g, /\bEnglish\b/g /* the language switch names the other language in itself */, /\bnpm run [\w:-]+/g, /\bsample\.json\b/g, /\bdata:check\b/g, /Demo earnings list \(simulated\)/g /* the demo provider's own source label */,
+  /\b(?:Olympedia|BoxRec|CompuBox|Wikidata|Wikimedia|Commons|Forbes|Sportico|ESPN)\b/g /* other organisations' names */, /\blib\/providers\b/g, /\bPLAN\.md\b/g, /\bdemo\b/g /* the demo provider's name, shown as a data source */];
+const decode = (s: string) => s.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+/** Removes every element marked lang="en", with whatever is inside it (nested elements of the same name included). */
+export function withoutEnglishIslands(html: string): string {
+  const open = /<([a-z][a-z0-9]*)\b[^>]*\slang="en"[^>]*>/i;
+  let out = html;
+  for (let guard = 0; guard < 5000; guard++) {
+    const m = open.exec(out);
+    if (!m) return out;
+    const tag = m[1].toLowerCase(), re = new RegExp(`<(/?)${tag}\\b[^>]*>`, "gi");
+    re.lastIndex = m.index + m[0].length;
+    let depth = 1, end = -1, x: RegExpExecArray | null;
+    while ((x = re.exec(out))) { depth += x[1] ? -1 : /\/>$/.test(x[0]) ? 0 : 1; if (depth === 0) { end = x.index + x[0].length; break; } }
+    out = out.slice(0, m.index) + " " + (end < 0 ? "" : out.slice(end));
+  }
+  return out;
+}
+
+export function arabicLeaks(html: string): string[] {
+  const out: string[] = [];
+  const clean = (s: string) => LATIN_OK.reduce((t, re) => t.replace(re, " "), decode(s).replace(/\bR\s+Ring\s*side\b/g, " ")).replace(/\b[A-Z]{2,5}\b/g, " ");
+  const head = [...html.matchAll(/<title[^>]*>([^<]*)<\/title>/gi), ...html.matchAll(/<meta[^>]+(?:name|property)="(?:description|og:title|og:description|twitter:title|twitter:description)"[^>]+content="([^"]*)"/gi)].map((m) => m[1]);
+  const body = withoutEnglishIslands(html.replace(/<head[\s\S]*?<\/head>/i, "")).replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ");
+  const blocks = [...head.map((h) => ["head", h] as const), ...body.split(/<[^>]+>/).map((t) => ["text", t] as const)];
+  for (const [where, text] of blocks) {
+    const words = clean(text).match(/[A-Za-z][A-Za-z'’-]{2,}/g);
+    if (words) out.push(`${where}: "${decode(text).trim().replace(/\s+/g, " ").slice(0, 80)}"`);
+  }
+  const attrs = withoutEnglishIslands(html);
+  for (const m of attrs.matchAll(/\s(aria-label|title|placeholder|alt)="([^"]*)"/g)) {
+    const v = clean(m[2]).trim();
+    if (v && !/[\u0600-\u06ff]/.test(v) && /[A-Za-z]{3,}/.test(v)) out.push(`${m[1]}: "${decode(m[2]).slice(0, 80)}"`);
+  }
+  return [...new Set(out)];
+}

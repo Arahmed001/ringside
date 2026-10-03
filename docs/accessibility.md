@@ -68,3 +68,6 @@ Axe (WCAG 2.0 to 2.2 A/AA) over `/account`, `/leaderboard`, `/contribute`, `/rev
 **Home directions** (`/design/home`, development only): all three pass axe in both languages at 1280, and none overflows at 320 or 390 px. Findings that apply to the live home too: the pick'em panel needs about 19rem or its fighter names wrap to three lines (it is 22rem there, fine), and Arabic display headings need about 25% less size and a 1.25 line height than the Latin ones to keep the same composition.
 
 Round 20: the paging links are a `nav` named "Pages" with `rel=prev/next`, the year chips a `nav` named "Browse by year" with `aria-current` on the current one; arrows flip in Arabic.
+
+Round 26: text that is English by nature on the Arabic site (a data source's name, a validator message, the wordmark) is now marked `lang="en"`, so a screen reader pronounces it as English rather than reading Latin letters with Arabic rules; the smoke run checks the Arabic pages for any other English.
+

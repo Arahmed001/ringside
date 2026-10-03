@@ -3,7 +3,8 @@
  *
  * Seeds a throwaway database with the demo league (clock pinned to 2026-10-03), starts `next start` on a free port, requests a
  * representative page of every kind plus the JSON and image endpoints, and checks each (status, language and direction, a heading,
- * no "undefined" / NaN / unfilled placeholders / error pages in the text). Exits 1 with the list of problems. CI runs it after the build.
+ * no "undefined" / NaN / unfilled placeholders / error pages in the text, and on the Arabic pages of the demo league no English left behind:
+ * `arabicLeaks` in lib/smoke.ts). Exits 1 with the list of problems. CI runs it after the build.
  */
 import fs from "node:fs";
 import os from "node:os";
@@ -45,7 +46,7 @@ async function main() {
 
   // seed and read the league in this process, then let the server open the same file
   const { getWorld } = await import("../lib/world");
-  const { smokeRoutes, problemsIn } = await import("../lib/smoke");
+  const { smokeRoutes, problemsIn, arabicLeaks } = await import("../lib/smoke");
   const { securityProblems, STATIC_HEADERS } = await import("../lib/security");
   const world = await getWorld();
   const routes = smokeRoutes(world);
@@ -76,6 +77,7 @@ async function main() {
       const bad = problemsIn(route, locale, res.status, res.headers.get("content-type") ?? "", body);
       // the browser-side contract: the policy and nonce on every page, the standing headers on everything (see lib/security.ts)
       if (/text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...securityProblems(res.headers, body));
+      if (locale === "ar" && !feedName && /text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...arabicLeaks(body).map((l) => `English on the Arabic page: ${l}`));
       else for (const h of STATIC_HEADERS) if (res.headers.get(h.key) !== h.value) bad.push(`header ${h.key} is ${res.headers.get(h.key) ?? "missing"}`);
       checked++;
       const ms = Math.round(performance.now() - t0);

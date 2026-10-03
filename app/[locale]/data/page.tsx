@@ -30,6 +30,10 @@ const SEVERITY: Record<string, string> = { error: msg("error"), warning: msg("wa
 const RECOMMENDED: Record<string, string> = { "plain Elo": msg("plain Elo"), "Elo refit": msg("Elo refit"), "all features": msg("all features"), "selected features": msg("selected features") };
 const STATUS_LABEL: Record<Source["status"], string> = { built: msg("Built"), partly: msg("Partly built"), planned: msg("Not yet"), blocked: msg("Not used") };
 
+/** What the data load counts, and what a failed row can be, in words a reader of either language can follow (the keys are the loader's own names). */
+const COUNT: Record<string, string> = { boxers: msg("fighters"), events: msg("events"), bouts: msg("bouts"), people: msg("people"), orgs: msg("organisations"), stints: msg("team stints"), weighIns: msg("weigh-ins"), officials: msg("officials"), scorecards: msg("scorecards"), corners: msg("corner entries"), punches: msg("punch records"), financials: msg("financial records"), purses: msg("purses"), broadcasts: msg("broadcasts"), earnings: msg("earnings records") };
+const KIND: Record<string, string> = { boxer: msg("fighter"), event: msg("event"), bout: msg("bout"), stint: msg("team stint"), weigh_in: msg("weigh-in"), official: msg("official"), scorecard: msg("scorecard"), corner: msg("corner entry"), punch_stat: msg("punch record"), financials: msg("financial"), purse: msg("purse"), broadcast: msg("broadcast"), earning: msg("earnings") };
+
 export default async function DataPage() {
   const t = await getT();
   const cov = await coverage();
@@ -83,15 +87,15 @@ export default async function DataPage() {
               <span className="text-muted">{new Date(cov.lastRun.at).toLocaleString(t.locale === "ar" ? "ar-u-nu-latn-ca-gregory" : "en-GB", { dateStyle: "medium", timeStyle: "short" })}</span>
               <span className={`chip ${cov.lastRun.errors ? "!border-red/40 !text-red-ink" : "!border-win/40 !text-win"}`}>{t.n(cov.lastRun.errors, "{n} error", "{n} errors")}</span>
               <span className={`chip ${cov.lastRun.warnings ? "!border-gold/40 !text-gold" : ""}`}>{t.n(cov.lastRun.warnings, "{n} warning", "{n} warnings")}</span>
-              {Object.entries(cov.lastRun.dropped).map(([k, n]) => <span key={k} className="chip !border-red/40 !text-red-ink">{t.n(n, "{n} {kind} row dropped", "{n} {kind} rows dropped", { kind: k.replace("_", " ") })}</span>)}
+              {Object.entries(cov.lastRun.dropped).map(([k, n]) => <span key={k} className="chip !border-red/40 !text-red-ink">{t.n(n, "{n} {kind} row dropped", "{n} {kind} rows dropped", { kind: KIND[k] ? t(KIND[k]) : k.replace("_", " ") })}</span>)}
             </div>
-            <p className="mt-3 text-xs text-muted">{t("Loaded: {list}.", { list: Object.entries(cov.lastRun.counts).map(([k, n]) => `${n.toLocaleString("en-US")} ${k}`).join(" · ") })}</p>
+            <p className="mt-3 text-xs text-muted">{t("Loaded: {list}.", { list: Object.entries(cov.lastRun.counts).map(([k, n]) => `${n.toLocaleString("en-US")} ${COUNT[k] ? t(COUNT[k]) : k}`).join(" · ") })}</p>
             {cov.lastRun.issues.length ? (
               <ul className="mt-4 space-y-2 text-sm">
                 {cov.lastRun.issues.map((i) => (
                   <li key={`${i.severity}-${i.code}`} className="flex flex-wrap items-baseline gap-x-3 border-t border-line/60 pt-2">
                     <span className={`chip ${i.severity === "error" ? "!border-red/40 !text-red-ink" : i.severity === "warning" ? "!border-gold/40 !text-gold" : ""}`}>{SEVERITY[i.severity] ? t(SEVERITY[i.severity]) : i.severity}</span>
-                    <b>{i.code}</b><span className="tabular text-muted">×{i.n}</span><span className="text-xs text-muted">{t("e.g. {example}", { example: i.example })}</span>
+                    <b lang="en">{i.code}</b><span className="tabular text-muted">×{i.n}</span><span className="text-xs text-muted">{t.rich("e.g. <x>{example}</x>", { example: i.example, x: (c) => <span lang="en" dir="ltr">{c}</span> })}</span>
                   </li>
                 ))}
               </ul>
