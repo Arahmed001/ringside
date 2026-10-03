@@ -269,3 +269,49 @@ test("upcoming fights come from the schedule endpoint: asked for the coming days
   const none = mockFetch((path, q) => { assert.notEqual(path, "/v2/fights/schedule"); return standard(path, q); });
   assert.equal((await B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: none.impl, scheduleDays: 0 }).fetchBouts()).length, 2, "0 days: no schedule request at all");
 });
+
+test("a refusal says why: the vendor's message is in the error (with the key scrubbed), and its status is kept", async () => {
+  const refuse = (status: number, body: unknown) => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", scheduleDays: 0, fetchImpl: mockFetch(() => ({ status, body })).impl });
+  await assert.rejects(() => refuse(403, { message: "You are not subscribed to this API." }).fetchBouts(),
+    (e: Error) => e instanceof B.HttpError && e.status === 403 && /403 on \/v2\/fights\/: You are not subscribed to this API\./.test(e.message));
+  await assert.rejects(() => refuse(403, { message: `Invalid API key ${KEY} for this host` }).fetchBouts(), (e: Error) => /Invalid API key \*\*\* for this host/.test(e.message) && !e.message.includes(KEY), "a key echoed back by the server is scrubbed");
+  await assert.rejects(() => refuse(500, "<html>upstream down</html>").fetchBouts(), (e: Error) => /500 on \/v2\/fights\/: .*upstream down/.test(e.message), "a non-JSON body is shown as text");
+  await assert.rejects(() => refuse(403, {}).fetchBouts(), (e: Error) => /403 on \/v2\/fights\//.test(e.message), "and an empty one still names the endpoint");
+});
+
+test("a plan without the schedule endpoint still loads: the coming fights are asked for from the list, from today on, and it is counted", async () => {
+  const asked: string[] = [];
+  const { impl } = mockFetch((path, q) => {
+    asked.push(`${path}${q.get("date_from") ? `?from=${q.get("date_from")}&sort=${q.get("date_sort")}` : ""}`);
+    if (path === "/v2/fights/schedule") return { status: 403, body: { message: "This endpoint is not included in your plan." } };
+    if (path === "/v2/fights/" && q.get("date_from") === "2026-10-03") return { body: env([UPCOMING]) };
+    return standard(path, q);
+  });
+  const logs: string[] = [];
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, log: (m) => logs.push(m) });
+  const bouts = await p.fetchBouts();
+  assert.ok(bouts.some((b) => b.externalId === "bda-b-3"), "the upcoming fight arrived by the fallback");
+  assert.equal(p.notes().scheduleUnavailable, 1);
+  assert.deepEqual(asked.filter((a) => a !== "/v2/fights/" && !a.startsWith("/v2/fighters/")), ["/v2/fights/schedule", "/v2/fights/?from=2026-10-03&sort=ASC"]);
+  assert.ok(logs.some((l) => /schedule endpoint refused \(.*not included in your plan/.test(l)), "and the reason is shown");
+  // a server error is NOT a missing plan: it must stay loud
+  const broken = mockFetch((path, q) => (path === "/v2/fights/schedule" ? { status: 500, body: {} } : standard(path, q)));
+  await assert.rejects(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: broken.impl }).fetchBouts(), /500 on \/v2\/fights\/schedule/);
+});
+
+test("raw responses can be kept for offline fixes: one file per request, nothing secret in them, and off unless asked", async () => {
+  const fs = await import("node:fs"), os = await import("node:os"), path = await import("node:path");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "bda-raw-"));
+  const { impl } = mockFetch(standard);
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, rawDir: dir });
+  await p.fetchBouts();
+  const files = fs.readdirSync(dir).sort();
+  assert.equal(files.length, p.requests(), "one file per request");
+  assert.match(files[0], /^001-v2_fights\.json$/); assert.match(files[1], /^002-v2_fights_schedule\.json$/); assert.match(files[2], /^003-v2_fighters_/);
+  for (const f of files) assert.ok(!fs.readFileSync(path.join(dir, f), "utf8").includes(KEY), "responses never contain the key");
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, files[0]), "utf8")).data.length, 2, "the body as the API sent it");
+  const none = fs.mkdtempSync(path.join(os.tmpdir(), "bda-raw-off-"));
+  await B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: mockFetch(standard).impl }).fetchBouts();
+  assert.deepEqual(fs.readdirSync(none), [], "off by default");
+  fs.rmSync(dir, { recursive: true, force: true }); fs.rmSync(none, { recursive: true, force: true });
+});

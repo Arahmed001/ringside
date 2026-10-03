@@ -1,6 +1,7 @@
 /**
  * npm run vendor:sample -- --fights 10        fetch the latest 10 fights and their fighters from the Boxing Data API
  * npm run vendor:sample -- --fights 10 --since 2025-01-01 --max-requests 40
+ * npm run vendor:sample -- --fights 10 --save-raw     also keep every raw response in data/vendor-samples/raw/ (gitignored), to fix a mapping offline
  * Needs BOXING_API_KEY. A sample of N fights costs at most 1 + 2N requests (one list call, then each fighter once), so 10 fights is
  * about 21 of the free tier's 100 a month; the default cap is 60 and the run stops there rather than going over.
  *
@@ -23,6 +24,7 @@ async function main() {
   const p = boxingDataApiProvider({
     key, baseUrl: process.env.BOXING_API_URL || undefined, purpose: "evaluation", gapMs: 300, log: console.log,
     maxFights: fights, since: arg("since"), maxRequests: Number(arg("max-requests") ?? 60),
+    rawDir: process.argv.includes("--save-raw") ? path.join(process.cwd(), "data", "vendor-samples", "raw") : undefined,
   });
   const [boxers, events, bouts] = await Promise.all([p.fetchBoxers(), p.fetchEvents(), p.fetchBouts()]);
   const dir = path.join(process.cwd(), "data", "vendor-samples");

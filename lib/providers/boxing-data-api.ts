@@ -1,7 +1,9 @@
 import type { DataProvider, ProviderBoxer, ProviderBout, ProviderEvent } from "./index";
+import fs from "node:fs";
+import path from "node:path";
 import type { Method, Stance } from "../types";
 import { normalizeDivision } from "../divisions";
-import { currentYear, nowMs } from "../clock";
+import { currentYear, nowMs, todayIso } from "../clock";
 
 /**
  * Adapter for the Boxing Data API (boxing-data.com, via RapidAPI), written against its published docs
@@ -34,11 +36,11 @@ export interface ApiFight {
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
   | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter"
-  | "birthYearFromAge" | "birthYearUnknown" | "turnedProFromFirstFight" | "physicalsImputed" | "stanceDefaulted" | "locationUnparsed" | "divisionUnknown",
+  | "scheduleUnavailable" | "birthYearFromAge" | "birthYearUnknown" | "turnedProFromFirstFight" | "physicalsImputed" | "stanceDefaulted" | "locationUnparsed" | "divisionUnknown",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0,
+  ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, scheduleUnavailable: 0,
   birthYearFromAge: 0, birthYearUnknown: 0, turnedProFromFirstFight: 0, physicalsImputed: 0, stanceDefaulted: 0, locationUnparsed: 0, divisionUnknown: 0,
 });
 
@@ -158,10 +160,12 @@ export function finishBoxers(rows: Loose[], bouts: ProviderBout[], eventDates: M
 
 // ---- the client ----
 export class BudgetError extends Error {}
+/** An HTTP failure from the API, with the status so the caller can tell "not on your plan" from "broken". The message carries the vendor's own explanation. */
+export class HttpError extends Error { constructor(message: string, readonly status: number) { super(message); } }
 export interface BoxingDataApiOptions {
   key: string; baseUrl?: string; fetchImpl?: typeof fetch;
   /** Hard cap on requests per load (the free tier is 100 a month). Default 90. */
-  maxRequests?: number; pageSize?: number; since?: string; maxFights?: number; /** days of upcoming fights to include (default 60; 0 for none) */ scheduleDays?: number; gapMs?: number; log?: (m: string) => void;
+  maxRequests?: number; pageSize?: number; since?: string; maxFights?: number; /** days of upcoming fights to include (default 60; 0 for none) */ scheduleDays?: number; gapMs?: number; /** save every raw response here, so a mapping can be fixed offline without spending more requests */ rawDir?: string; log?: (m: string) => void;
   /** "evaluation" fetches a sample for `npm run data:check`; "ingest" fills the database and needs BOXING_API_STORAGE_CONFIRMED=1. */
   purpose: "evaluation" | "ingest";
 }
@@ -177,16 +181,25 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
   const max = o.maxRequests ?? 90, log = o.log ?? (() => {});
   let used = 0, notes = emptyNotes(), cache: Promise<{ boxers: ProviderBoxer[]; events: ProviderEvent[]; bouts: ProviderBout[] }> | null = null;
 
-  async function get<T>(path: string, params: Record<string, string | number | undefined> = {}): Promise<Envelope<T>> {
+  /** The vendor's own reason for a refusal ("not subscribed", "invalid key", "endpoint not on your plan"), with the key scrubbed out. */
+  async function explain(res: Response): Promise<string> {
+    const text = (await res.text().catch(() => "")).trim();
+    let msg = text;
+    try { const j = JSON.parse(text) as { message?: unknown; error?: unknown }; msg = String(j.message ?? (j.error && JSON.stringify(j.error)) ?? text); } catch { /* not JSON: use the text */ }
+    return (msg.split(o.key).join("***").replace(/\s+/g, " ").slice(0, 200)) || "no explanation given";
+  }
+
+  async function get<T>(p: string, params: Record<string, string | number | undefined> = {}): Promise<Envelope<T>> {
     if (used >= max) throw new BudgetError(`Stopped after ${used} requests (limit ${max}; raise BOXING_API_MAX_REQUESTS only if your plan allows it).`);
     used++;
     if (used > 1 && o.gapMs) await new Promise((r) => setTimeout(r, o.gapMs));
     const qs = Object.entries(params).filter(([, v]) => v !== undefined).map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
-    const res = await doFetch(`${base}${path}${qs ? `?${qs}` : ""}`, { headers: { "x-rapidapi-key": o.key, "x-rapidapi-host": host, accept: "application/json" } });
-    if (res.status === 429) throw new Error(`Boxing Data API rate limit hit on ${path} (retry after ${res.headers.get("retry-after") ?? "unknown"} s).`);
-    if (!res.ok) throw new Error(`Boxing Data API ${res.status} on ${path}`);
+    const res = await doFetch(`${base}${p}${qs ? `?${qs}` : ""}`, { headers: { "x-rapidapi-key": o.key, "x-rapidapi-host": host, accept: "application/json" } });
+    if (res.status === 429) throw new Error(`Boxing Data API rate limit hit on ${p} (retry after ${res.headers.get("retry-after") ?? "unknown"} s).`);
+    if (!res.ok) throw new HttpError(`Boxing Data API ${res.status} on ${p}: ${await explain(res)}`, res.status);
     const body = (await res.json()) as Envelope<T>;
-    if (body.error && Object.keys(body.error).length) throw new Error(`Boxing Data API error on ${path}: ${JSON.stringify(body.error).slice(0, 200)}`);
+    if (o.rawDir) { fs.mkdirSync(o.rawDir, { recursive: true }); fs.writeFileSync(path.join(o.rawDir, `${String(used).padStart(3, "0")}-${p.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "")}.json`), JSON.stringify(body, null, 2)); }
+    if (body.error && Object.keys(body.error).length) throw new Error(`Boxing Data API error on ${p}: ${JSON.stringify(body.error).slice(0, 200)}`);
     return body;
   }
 
@@ -195,10 +208,10 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     const limit = o.maxFights ?? Infinity;
     const events = new Map<string, ProviderEvent>(), bouts: ProviderBout[] = [], ids = new Set<string>(), seen = new Set<string>();
     // the list endpoint (newest first) and the schedule endpoint (the coming weeks); a fight in both is taken once
-    const collect = async (path: string, params: Record<string, string | number | undefined>, cap: number) => {
+    const collect = async (endpoint: string, params: Record<string, string | number | undefined>, cap: number) => {
       let taken = 0;
       for (let page = 1; taken < cap; page++) {
-        const r = await get<ApiFight[]>(path, { ...params, page_size: Math.min(o.pageSize ?? 100, cap), page_num: page });
+        const r = await get<ApiFight[]>(endpoint, { ...params, page_size: Math.min(o.pageSize ?? 100, cap), page_num: page });
         for (const f of r.data ?? []) {
           if (taken >= cap) break;
           if (f.id && seen.has(f.id)) continue;
@@ -212,7 +225,16 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
       }
     };
     await collect("/v2/fights/", { date_from: o.since, date_sort: "DESC" }, limit);
-    if (o.scheduleDays !== 0) await collect("/v2/fights/schedule", { days: o.scheduleDays ?? 60, date_sort: "ASC" }, limit);
+    if (o.scheduleDays !== 0) {
+      try { await collect("/v2/fights/schedule", { days: o.scheduleDays ?? 60, date_sort: "ASC" }, limit); }
+      catch (e) {
+        // some plans do not include the schedule endpoint: the coming fights are then asked for from the list endpoint, from today on
+        if (!(e instanceof HttpError) || (e.status !== 403 && e.status !== 404)) throw e;
+        notes.scheduleUnavailable++;
+        log(`schedule endpoint refused (${e.message}); asking the list endpoint for fights from today on`);
+        await collect("/v2/fights/", { date_from: todayIso(), date_sort: "ASC" }, limit);
+      }
+    }
     log(`fights: ${bouts.length}, events: ${events.size}, fighters to fetch: ${ids.size}`);
     const rows: Loose[] = [];
     for (const id of ids) {
