@@ -1,4 +1,5 @@
 import type { World } from "./world";
+import type { BoxerFull } from "./types";
 import { searchFighters } from "./fighter-search";
 import { normalize } from "./fighter-search";
 import { divisionLabel } from "./divisions";
@@ -58,8 +59,8 @@ export function globalSearch(w: World, query: string, t: T, names: Names, perGro
   const pages = PAGES.map((p) => ({ p, r: match(t(p.label), p.label, p.words) })).filter((x) => x.r >= 0).sort((a, b) => a.r - b.r).slice(0, 3);
   for (const { p } of pages) out.push({ kind: "page", title: t(p.label), href: p.href });
 
-  for (const b of searchFighters(w, query, { limit: perGroup, names }))
-    out.push({ kind: "fighter", title: t.name(b.name), subtitle: `${recordStr(b)} · ${divisionLabel(b.weightClass, b.sex, t)} · ${countryName(b.country, t.locale)}`, href: `/boxers/${b.slug}` });
+  const fighterHit = (b: BoxerFull): SearchHit => ({ kind: "fighter", title: t.name(b.name), subtitle: `${recordStr(b)} · ${divisionLabel(b.weightClass, b.sex, t)} · ${countryName(b.country, t.locale)}`, href: `/boxers/${b.slug}` });
+  for (const b of searchFighters(w, query, { limit: perGroup, names, forgiving: false })) out.push(fighterHit(b));
 
   const people = [...w.people.values()].map((p) => ({ p, r: match(p.name, names[p.name]) })).filter((x) => x.r >= 0).sort((a, b) => a.r - b.r || a.p.name.localeCompare(b.p.name)).slice(0, perGroup);
   for (const { p } of people) {
@@ -77,5 +78,7 @@ export function globalSearch(w: World, query: string, t: T, names: Names, perGro
 
   const orgs = [...w.orgs.values()].map((o) => ({ o, r: match(o.name, names[o.name]) })).filter((x) => x.r >= 0).sort((a, b) => a.r - b.r || a.o.name.localeCompare(b.o.name)).slice(0, perGroup);
   for (const { o } of orgs) out.push({ kind: "org", title: t.name(o.name), subtitle: [t(KIND_NAME[o.kind] ?? "Organisation"), o.city ? t.name(o.city) : null].filter(Boolean).join(" · "), href: `/orgs/${o.slug}` });
+  // a typo in a name is only worth a guess when nothing else matched: otherwise "rankigns" would show fighters beside the page it means
+  if (!out.length) for (const b of searchFighters(w, query, { limit: perGroup, names })) out.push(fighterHit(b));
   return out;
 }
