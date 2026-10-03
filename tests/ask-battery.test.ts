@@ -133,3 +133,67 @@ test("a model that does answer a year question is not told it was refused: the h
     assert.equal(a.hint, undefined, "it was answered, so there is nothing to explain");
   } finally { globalThis.fetch = realFetch; delete process.env.ANTHROPIC_API_KEY; G.resetAiGuard(); }
 });
+
+test("the words fans use for a filter: 'or more', left handed, a nationality, a country the league has no one from, and the Arabic for 'never lost'", async () => {
+  const { heuristicParse } = await import("../lib/ai");
+  assert.equal(heuristicParse("welterweights with 25 or more wins", []).minWins, 25);
+  assert.equal(heuristicParse("heavyweights with 20 plus knockouts", []).minKOs, 20);
+  assert.equal(heuristicParse("left handed boxers", []).stance, "Southpaw");
+  assert.equal(heuristicParse("lefties at lightweight", []).stance, "Southpaw");
+  assert.equal(heuristicParse("boxers from Spain", ["Mexico"]).country, "Spain", "a country nobody in the data is from is still the country asked about, so the answer is 'no one' and not everyone");
+  assert.equal(heuristicParse("Brazilian southpaws", []).country, "Brazil");
+  assert.equal(heuristicParse("South African boxers", []).country, "South Africa");
+  assert.equal(heuristicParse("Scottish boxers", []).country, "United Kingdom");
+  assert.equal(heuristicParse("Mexican boxers", ["Mexico"]).country, "Mexico", "and the countries the league does have still work");
+  assert.equal(heuristicParse("ملاكمون لم يخسروا", []).undefeated, true);
+  assert.equal(heuristicParse("ملاكمون بيد يمنى", []).stance, "Orthodox", "Arabic words are read folded: a pattern with ى in it can never match");
+  assert.equal(heuristicParse("ملاكمون يساريون", []).stance, "Southpaw");
+  assert.equal(heuristicParse("الأقوى", []).sort, "rating");
+  assert.equal(heuristicParse("ملاكمون مدى الذراع 190", []).minReach, 190, "مدى, folded");
+  assert.equal(heuristicParse("welterweights with 25 wins", []).minWins, 25, "the plain form still works");
+});
+
+test("a country alone, or another sport, is not a boxing question; with a boxing word it is", () => {
+  for (const q of ["how many people live in Mexico", "weather in Mexico City", "population of Japan", "who won the game last night", "who won the football match last night", "best tennis player of all time"]) assert.deepEqual(plan(q), [], q);
+  assert.equal(plan("who won the fight last night")[0].tool, "events", "the same question about a fight is answered");
+  assert.equal(plan("Mexican boxers")[0].tool, "fighters");
+  assert.equal(plan("tell me about boxing in Saudi Arabia")[0].tool, "fighters");
+  assert.equal(plan("fighters from Mexico")[0].tool, "fighters");
+  assert.equal(plan("Mexican southpaws")[0].tool, "fighters", "a second filter makes a country a search");
+});
+
+test("'best three middleweights' in Arabic is the ranking, with the number and the division", () => {
+  const three = plan("أفضل ثلاثة ملاكمين في الوزن المتوسط")[0];
+  assert.equal(three.tool, "rankings");
+  assert.equal(three.args.limit, 3);
+  assert.equal(three.args.division, "Middleweight");
+  assert.equal(plan("أفضل 5 ملاكمين في الوزن الخفيف")[0].args.limit, 5);
+  assert.equal(plan("كم عدد الضربات القاضية في 2024")[0].args.method, "stoppage");
+  assert.equal(plan("أكثر ضربات قاضية في 2024").length, 0, "a superlative with a year is still refused (the lists have no year)");
+});
+
+test("each way of saying it is its own rule: quality wins, upset-watch favourites, and the Arabic for the latest results", () => {
+  for (const q of ["who has beaten the most good opponents", "who has beaten the most strong opponents".replace("strong", "top"), "wins over top-rated opposition", "who has beaten the highest rated fighters"]) {
+    const c = plan(q)[0];
+    assert.equal(`${c?.tool}:${c?.args.list}`, "record_list:quality-wins", q);
+  }
+  for (const q of ["which favourites are at risk", "any favourites looking wobbly", "which favourites look shaky", "which favourites are in danger", "which favourites are in trouble"]) assert.equal(plan(q)[0]?.tool, "upset_watch", q);
+  for (const q of ["نتائج آخر فعالية", "نتائج الفعاليات", "آخر نتائج", "آخر فعاليات الملاكمة", "النتائج الأخيرة", "النزالات الأخيرة"]) { const c = plan(q)[0]; assert.equal(`${c?.tool}:${c?.args.when}`, "events:recent", q); }
+});
+
+test("a country nobody in the data is from is answered 'no fighters', in both languages, not by listing everyone", async () => {
+  const fs = await import("node:fs");
+  const { askData } = await import("../lib/ask");
+  const { tEn, makeT } = await import("../lib/i18n/t");
+  const arT = makeT("ar", JSON.parse(fs.readFileSync("i18n/ar.json", "utf8")));
+  const en = await askData("Brazilian southpaws", { w, t: tEn, names: {} });
+  assert.equal(en.calls[0].tool, "fighters");
+  assert.equal(en.results[0].tables.length, 0, "no table of fighters");
+  assert.match(en.answer, /No fighters in the data are from Brazil/);
+  assert.match((await askData("boxers from Spain", { w, t: tEn, names: {} })).answer, /from Spain/);
+  const ar = await askData("ملاكمون من البرازيل", { w, t: arT, names: {} });
+  assert.equal(ar.results[0]?.tables.length, 0, "the Arabic question names Brazil too");
+  assert.match(ar.answer, /لا يوجد في البيانات ملاكمون من/);
+  // a country the league has still lists its fighters
+  assert.ok((await askData("Mexican boxers", { w, t: tEn, names: {} })).results[0].tables.length > 0);
+});

@@ -69,7 +69,16 @@ const COUNTRY_ALIASES: Record<string, string> = {
   american: "United States", usa: "United States", us: "United States", mexican: "Mexico", british: "United Kingdom", uk: "United Kingdom",
   english: "United Kingdom", japanese: "Japan", ukrainian: "Ukraine", filipino: "Philippines", nigerian: "Nigeria", argentine: "Argentina",
   argentinian: "Argentina", saudi: "Saudi Arabia", german: "Germany",
+  brazilian: "Brazil", spanish: "Spain", french: "France", italian: "Italy", canadian: "Canada", australian: "Australia", cuban: "Cuba", russian: "Russia",
+  polish: "Poland", irish: "Ireland", ghanaian: "Ghana", kazakh: "Kazakhstan", thai: "Thailand", korean: "South Korea", chinese: "China",
+  "south african": "South Africa", colombian: "Colombia", venezuelan: "Venezuela", dominican: "Dominican Republic", "puerto rican": "Puerto Rico",
+  panamanian: "Panama", peruvian: "Peru", ecuadorian: "Ecuador", armenian: "Armenia", georgian: "Georgia", belarusian: "Belarus", uzbek: "Uzbekistan",
+  turkish: "Turkey", egyptian: "Egypt", moroccan: "Morocco", kenyan: "Kenya", ugandan: "Uganda", tanzanian: "Tanzania", emirati: "United Arab Emirates",
+  scottish: "United Kingdom", welsh: "United Kingdom", indian: "India", indonesian: "Indonesia", vietnamese: "Vietnam", nicaraguan: "Nicaragua", chilean: "Chile",
+  bulgarian: "Bulgaria", hungarian: "Hungary", romanian: "Romania", serbian: "Serbia", croatian: "Croatia", swedish: "Sweden", danish: "Denmark", dutch: "Netherlands",
 };
+/** Country names a question can use even when no fighter in the data is from there: "boxers from Spain" is a search that finds no one, not one that ignores Spain. */
+const WORLD_COUNTRIES = [...new Set(Object.values(COUNTRY_ALIASES))].filter((c) => c !== "United States");
 const CLASS_ALIASES: Record<string, string> = {
   fly: "Flyweight", bantam: "Bantamweight", feather: "Featherweight", lightweight: "Lightweight", welter: "Welterweight",
   middle: "Middleweight", "light heavy": "Light Heavyweight", "light-heavy": "Light Heavyweight", heavy: "Heavyweight", cruiser: "Light Heavyweight",
@@ -98,12 +107,12 @@ function arabicHints(q: string, f: Filters, countries: string[]) {
   const ar = dictOf("ar");
   const tr = (en: string) => { const v = ar[en]; return typeof v === "string" ? normalize(v) : ""; };
   for (const d of [...DIVISIONS].sort((a, b) => tr(b.name).length - tr(a.name).length)) { const x = tr(d.name); if (x && s.includes(x)) { f.weightClass ??= d.name; break; } }
-  for (const c of countries) { const x = normalize(countryName(c, "ar")); if (x !== normalize(c) && s.includes(x)) f.country ??= c; }
+  for (const c of [...new Set([...countries, ...WORLD_COUNTRIES])]) { const x = normalize(countryName(c, "ar")); if (x !== normalize(c) && s.includes(x)) f.country ??= c; }
   const has = (re: RegExp) => re.test(s);
   if (has(/ساوثباو|اعسر|يسار/)) f.stance ??= "Southpaw";
-  if (has(/ارثوذكس|ستاندرد|يمنى/)) f.stance ??= "Orthodox";
+  if (has(/ارثوذكس|ستاندرد|يمني/)) f.stance ??= "Orthodox"; // the question is folded (ى is ي) before it is read
   if (has(/نساء|سيدات|اناث|ملاكمات/)) f.sex ??= "female"; else if (has(/رجال|ذكور/)) f.sex ??= "male";
-  if (has(/لم يهزم|بدون هزيمه|بدون خساره|غير مهزوم|ارقام مثاليه/)) f.undefeated = true;
+  if (has(/لم يهزم|لم يخسر|بدون هزيمه|بدون خساره|دون خساره|غير مهزوم|ارقام مثاليه/)) f.undefeated = true;
   if (has(/معتزل/)) f.active = false; else if (has(/نشط|حاليا/)) f.active ??= true;
   const wins = s.match(/(\d+)\+?\s*(?:فوز|فوزا|انتصار|انتصارات)/); if (wins) f.minWins ??= +wins[1];
   const kos = s.match(/(\d+)\+?\s*(?:ضربه قاضيه|ضربات قاضيه|ك او)/); if (kos) f.minKOs ??= +kos[1];
@@ -112,8 +121,8 @@ function arabicHints(q: string, f: Filters, countries: string[]) {
   if (has(/هجوم مضاد/)) f.archetype ??= "Counter-Puncher";
   if (has(/شاب|صاعد|واعد/)) f.maxAge ??= 26;
   if (has(/مخضرم|كبار السن/)) f.minAge ??= 35;
-  if (has(/افضل|الاعلى تصنيفا|الاقوى/)) f.sort ??= "rating";
-  const reach = s.match(/(?:امتداد|مدى)\D{0,12}(\d{3})/); if (reach) f.minReach ??= +reach[1];
+  if (has(/افضل|الاعلي تصنيفا|الاقوي/)) f.sort ??= "rating";
+  const reach = s.match(/(?:امتداد|مدي)\D{0,12}(\d{3})/); if (reach) f.minReach ??= +reach[1];
 }
 
 export function heuristicParse(q: string, countries: string[]): Filters {
@@ -125,18 +134,19 @@ export function heuristicParse(q: string, countries: string[]): Filters {
   if (!f.weightClass) {
     for (const [k, v] of Object.entries(CLASS_ALIASES).sort((a, b) => b[0].length - a[0].length)) if (new RegExp(`\\b${k}`).test(s)) { f.weightClass = v; break; }
   }
-  if (/southpaw|lefty|left-hand/.test(s)) f.stance = "Southpaw";
+  if (/southpaw|lefty|lefties|left.?hand/.test(s)) f.stance = "Southpaw";
   if (/orthodox|right-hand/.test(s)) f.stance = "Orthodox";
   if (/\bswitch\b|ambidextrous|switch-hitter/.test(s)) f.stance = "Switch";
   if (/\bwom[ae]n['’]?s?\b|\bfemale\b|\bladies\b/.test(s)) f.sex = "female";
   else if (/\bmen['’]?s?\b|\bmale\b|\bguys\b/.test(s)) f.sex = "male";
   for (const c of countries) if (s.includes(c.toLowerCase())) f.country = c;
+  for (const c of WORLD_COUNTRIES) if (new RegExp(`\\b${c.toLowerCase()}\\b`).test(s) && (!f.country || c.length > f.country.length)) f.country = c;
   for (const [k, v] of Object.entries(COUNTRY_ALIASES)) if (new RegExp(`\\b${k}\\b`).test(s)) f.country = v;
   if (/undefeated|unbeaten|perfect record|0 losses/.test(s)) f.undefeated = true;
   if (/\bretired\b/.test(s)) f.active = false;
   else if (/\bactive\b|currently/.test(s)) f.active = true;
-  const wins = s.match(/(\d+)\+?\s*wins/); if (wins) f.minWins = +wins[1];
-  const kos = s.match(/(\d+)\+?\s*(?:kos?|knockouts?)/); if (kos) f.minKOs = +kos[1];
+  const wins = s.match(/(\d+)\+?\s*(?:or more |plus |and (?:over|up) )?wins/); if (wins) f.minWins = +wins[1];
+  const kos = s.match(/(\d+)\+?\s*(?:or more |plus |and (?:over|up) )?(?:kos?|knockouts?)/); if (kos) f.minKOs = +kos[1];
   const kor = s.match(/(\d+)\s*%\s*(?:ko|knockout)/) ?? s.match(/(?:ko|knockout) (?:rate|percentage|ratio)\s*(?:of|over|above|at least|>)?\s*(\d+)\s*%/); if (kor) f.minKoRate = +kor[1] / 100;
   if (/big puncher|heavy hand|power puncher|knockout artist|devastating/.test(s)) f.archetype = "Knockout Artist";
   if (/technician|technical|skilled boxer/.test(s)) f.archetype = "Technician";

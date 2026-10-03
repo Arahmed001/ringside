@@ -833,6 +833,7 @@
  "No fighter with 4+ bouts matches that.": "لا يوجد ملاكم بـ4 نزالات أو أكثر يطابق ذلك.",
  "No fighter with {n}+ bouts matches that.": "لا يوجد ملاكم لديه {n} نزالات فأكثر يطابق ذلك.",
  "No fighter with {n}+ bouts matches “{q}”.": "لا يوجد ملاكم بـ {n}+ نزالات يطابق “{q}”.",
+ "No fighters in the data are from {country}.": "لا يوجد في البيانات ملاكمون من {country}.",
  "No fighters match those filters.": "لا ملاكمين يطابقون هذه المعايير.",
  "No fighters on record.": "لا يوجد ملاكمون مسجلون.",
  "No fights were scored for that year.": "لم يُقيَّم أي نزال في تلك السنة.",
