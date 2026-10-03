@@ -151,7 +151,8 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
  * Only meaningful for the demo league, whose names are all transliterated; a real feed's untransliterated names would be flagged.
  */
 export const LATIN_OK = [/\bRingside\b/g, /\bElo\b/g, /\bPCA\b/g, /\bClaude\b/g, /\bEnglish\b/g /* the language switch names the other language in itself */, /\bnpm run [\w:-]+/g, /\bsample\.json\b/g, /\bdata:check\b/g, /Demo earnings list \(simulated\)/g /* the demo provider's own source label */,
-  /\b(?:Olympedia|BoxRec|CompuBox|Wikidata|Wikimedia|Commons|Forbes|Sportico|ESPN)\b/g /* other organisations' names */, /\blib\/providers\b/g, /\bPLAN\.md\b/g, /\bdemo\b/g /* the demo provider's name, shown as a data source */];
+  /\b(?:Olympedia|BoxRec|CompuBox|Wikidata|Wikimedia|Commons|Forbes|Sportico|ESPN)\b/g /* other organisations' names */, /\blib\/providers\b/g, /\bPLAN\.md\b/g, /\bdemo\b/g /* the demo provider's name, shown as a data source */,
+  /\blog-loss\b/g, /\bBrier\b/g /* statistics terms the Data page keeps in Latin until a native reviewer decides on an Arabic wording */];
 const decode = (s: string) => s.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
 /** Removes every element marked lang="en", with whatever is inside it (nested elements of the same name included). */
 export function withoutEnglishIslands(html: string): string {
