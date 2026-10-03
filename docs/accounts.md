@@ -53,13 +53,19 @@ Under it, a recap of what was graded since they last looked: right and wrong cou
 
 ## Reporting a wrong fact, and corrections
 
-Anyone **signed in** can report that a fact is wrong (`POST /api/report`; the screens come next). There are three kinds, and the difference matters:
+Anyone **signed in** can report that a fact is wrong (`POST /api/report`; the screens come next). There are three kinds, and the difference matters. First, the rule for **who is the source**: where a **verified owner** of the data exists, the source is that owner's own publication; otherwise what we ingest stands.
 
-- **A correction** names one field of one fighter or fight and the value it should have, with a source link and the exact words from that page (the same rule as community edits). The fighter fields it can change are birth date, height, reach, stance, nickname and country; the fight fields are the result, the method and the end round. Each has its own checks (a height of 300 cm is refused; a result that makes the method contradict the winner is refused; a draw corrected to a win must say how it ended). The server records what the site showed at that moment, and refuses a report that changes nothing.
+- **A fight's facts** (result, method, end round) belong to the **commission or sanctioning body** that ran it. A correction is accepted only if its source is published by an official host (any `.gov` host, plus the hosts in `data/research/official-hosts.txt`, the same list the research checker uses). A newspaper, a fan site or the fighter's own page is **not** the owner of a fight's result.
+- **A fighter's own details** (birth date, height, reach, stance, nickname, country) belong to the fighter. An account an **admin has linked to that fighter** (`accounts owner`, after checking out of band) corrects them **at once, with no source**; it is recorded as the fighter's own (`by_owner`), shown to editors in the `owner` tab to look over afterwards, and can be undone. Anyone else needs a source under one of the **fighter's registered official pages**.
+- A report with any other source can still be sent, but an editor can only mark it **noted**: the ingested value stands, and nothing is applied. Accepting it is refused (`source_not_owner`).
+
+
+
+- **A correction** names one field of one fighter or fight and the value it should have, with a source link and the exact words from that page (the same rule as community edits). The fighter fields it can change are birth date, height, reach, stance, nickname and country (a fighter's linked account needs no source or quote for these); the fight fields are the result, the method and the end round. Each has its own checks (a height of 300 cm is refused; a result that makes the method contradict the winner is refused; a draw corrected to a win must say how it ended). The server records what the site showed at that moment, and refuses a report that changes nothing.
 - **Something else** (`field: other`) is a report an editor looks into: a name misspelt, a record one fight short. Nothing is applied.
 - **About me** is a fighter, or someone on their behalf, asking about their own details. It carries a note and an optional contact (never shown to the reporter's own list or to editors), is **never applied**, and only an **admin** sees and handles it, because it can raise privacy questions.
 
-Reports are a **private queue**: nothing appears on a fighter's page because someone reported it. An **editor who is not the reporter** reads the source (code can fetch the page and check the quote, as for community edits) and accepts or rejects, with a reason for a rejection. At most 20 reports can be open per person and 10 sent a day; a report that is refused outright does not use the day's allowance.
+Reports are a **private queue**: nothing appears on a fighter's page because someone reported it. An **editor who is not the reporter** reads the source (code can fetch the page and check the quote, as for community edits) and accepts, rejects or **notes** it, with a reason for a rejection or a note. At most 20 reports can be open per person and 10 sent a day; a report that is refused outright does not use the day's allowance.
 
 **What an accepted correction does.** It is a sourced override of the vendor's value. The vendor's data is rewritten every day, so the override is applied again after every ingest (`ingest` does it before ratings are recomputed) and whenever the database opens, and it is kept in `accounts.db` with the rest, keyed by external ids. A corrected **result or method changes ratings**, so they are recomputed. The correction remembers the vendor's own value as it was:
 
@@ -80,6 +86,9 @@ npm run accounts -- reset NAME                   # a one-time code, valid an hou
 npm run accounts -- audit 50                     # the last 50 audit entries
 npm run accounts -- check                        # integrity check, counts, expired sessions waiting
 npm run accounts -- purge                        # delete expired sessions and reset codes
+npm run accounts -- owner NAME BOXER --url https://their-own-site.example/   # this account is that fighter (or authorised by them): their corrections to their own details apply at once; --url is the fighter's official page, a source there counts as theirs for others (repeat --url, add --note)
+npm run accounts -- unowner NAME BOXER           # remove the link
+npm run accounts -- owners                       # who is linked to which fighter
 npm run accounts -- apply                        # replay approved edits and accepted corrections into the sports database by hand (recomputes ratings if a result changed)
 ```
 

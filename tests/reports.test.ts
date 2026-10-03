@@ -20,6 +20,10 @@ wipe();
 after(async () => { (await import("../lib/accounts/store")).closeAccountsDb(); wipe(); cleanup(); });
 
 const SRC = "https://example.org/fight-report";
+/** the fighter's own registered page, and a commission's page (a .gov host is official without being listed) */
+const OWN = "https://fighter.example/ace";
+const SRC_BOXER = `${OWN}/bio`;
+const SRC_BOUT = "https://athletic.commission.gov/results/42";
 const QUOTE = "the official record gives the fighter's reach as 188 cm";
 
 async function setup() {
@@ -36,7 +40,11 @@ async function setup() {
   };
   const alice = await mk("alice_rep", "user"), eddie = await mk("eddie_edit", "editor"), carol = await mk("carol_admin", "admin"), frank = await mk("frank_user", "user");
   const C = await import("../lib/accounts/corrections");
-  return { main, acc, alice, eddie, carol, frank, C, users };
+  const ollie = await mk("ollie_owner", "user");
+  const first = (main.prepare("SELECT external_id e FROM boxers WHERE active = 1 ORDER BY id LIMIT 1").get() as { e: string }).e;
+  const linked = C.linkOwner(carol, "ollie_owner", first, { note: "Checked by video call, 2026-10-03", urls: [OWN] }, main, acc);
+  if (!linked.ok) throw new Error(linked.error);
+  return { main, acc, alice, eddie, carol, frank, ollie, C, users };
 }
 type Ctx = Awaited<ReturnType<typeof setup>>;
 let ctx: Ctx;
@@ -140,7 +148,7 @@ test("an accepted correction is applied at once, remembers the vendor's value, a
   const { main, acc, alice, eddie, C } = await get();
   const { boxer } = pick(main);
   const ext = String(boxer.e), vendor = reach(main, ext);
-  const r = C.submitReport(alice, { kind: "error", targetType: "boxer", targetExt: ext, field: "reach_cm", proposed: "188", sourceUrl: SRC, quote: QUOTE }, main, acc);
+  const r = C.submitReport(alice, { kind: "error", targetType: "boxer", targetExt: ext, field: "reach_cm", proposed: "188", sourceUrl: SRC_BOXER, quote: QUOTE }, main, acc);
   const id = (r as { id: number }).id;
   const acceptedBy = C.reviewReport(eddie, id, "accepted", "Checked the page: it says 188 cm.", main, acc);
   assert.ok(acceptedBy.ok && acceptedBy.applied.applied === 1 && acceptedBy.applied.boutsChanged === false);
@@ -179,7 +187,7 @@ test("a newer correction for the same field supersedes the older one and inherit
   const { boxer } = pick(main);
   const ext = String(boxer.e);
   main.prepare("UPDATE boxers SET height_cm = 170 WHERE external_id = ?").run(ext);
-  const send = (who: typeof alice, value: string) => (C.submitReport(who, { kind: "error", targetType: "boxer", targetExt: ext, field: "height_cm", proposed: value, sourceUrl: SRC, quote: QUOTE }, main, acc) as { id: number }).id;
+  const send = (who: typeof alice, value: string) => (C.submitReport(who, { kind: "error", targetType: "boxer", targetExt: ext, field: "height_cm", proposed: value, sourceUrl: SRC_BOXER, quote: QUOTE }, main, acc) as { id: number }).id;
   const first = send(alice, "175"), second = send(frank, "177");
   assert.ok(C.reviewReport(eddie, first, "accepted", "Source says 175.", main, acc).ok);
   assert.ok(C.reviewReport(eddie, second, "accepted", "A better source says 177.", main, acc).ok);
@@ -199,7 +207,7 @@ test("the daily update: a correction survives a real re-ingest, a corrected resu
   const names = main.prepare("SELECT (SELECT external_id FROM boxers WHERE id = ?) r, (SELECT external_id FROM boxers WHERE id = ?) u").get(decided.r, decided.u) as { r: string; u: string };
   const before = ratings();
   const flipTo = winnerIsRed ? "blue" : "red";
-  const rep = C.submitReport(alice, { kind: "error", targetType: "bout", targetExt: String(decided.e), field: "result", proposed: flipTo, sourceUrl: SRC, quote: QUOTE }, main, acc) as { id: number };
+  const rep = C.submitReport(alice, { kind: "error", targetType: "bout", targetExt: String(decided.e), field: "result", proposed: flipTo, sourceUrl: SRC_BOUT, quote: QUOTE }, main, acc) as { id: number };
   const acc1 = C.reviewReport(eddie, rep.id, "accepted", "The official result page gives the other fighter the win.", main, acc);
   assert.ok(acc1.ok && acc1.applied.boutsChanged, "a changed result is reported so ratings can be recomputed");
   // the route does the recompute; do it here as the route does
@@ -209,7 +217,7 @@ test("the daily update: a correction survives a real re-ingest, a corrected resu
   assert.ok(afterFlip[winnerExt] < before[winnerExt] && afterFlip[loserExt] > before[loserExt], "the fighter who no longer won rates lower, the other higher");
 
   // a birth date correction too
-  const rb = C.submitReport(alice, { kind: "error", targetType: "boxer", targetExt: String(boxer.e), field: "birth_date", proposed: "1990-03-04", sourceUrl: SRC, quote: QUOTE }, main, acc) as { id: number };
+  const rb = C.submitReport(alice, { kind: "error", targetType: "boxer", targetExt: String(boxer.e), field: "birth_date", proposed: "1990-03-04", sourceUrl: SRC_BOXER, quote: QUOTE }, main, acc) as { id: number };
   assert.ok(C.reviewReport(eddie, rb.id, "accepted", "The official page gives the date.", main, acc).ok);
   assert.deepEqual({ ...(main.prepare("SELECT birth_date d, birth_year y FROM boxers WHERE external_id = ?").get(String(boxer.e)) as object) }, { d: "1990-03-04", y: 1990 });
 
@@ -262,7 +270,7 @@ test("the routes: sign-in is needed, a foreign origin is refused, a refused repo
   const { limits } = await import("../lib/accounts/guard");
   limits().report.reset();
   const { boxer, decided } = pick(main);
-  const body = { kind: "error", boxerSlug: boxer.slug, field: "country", proposed: "Denmark", sourceUrl: SRC, quote: QUOTE };
+  const body = { kind: "error", boxerSlug: boxer.slug, field: "country", proposed: "Denmark", sourceUrl: SRC_BOXER, quote: QUOTE };
   assert.equal((await call(report.POST, "POST", body)).status, 401, "signed out");
   assert.equal((await call(report.GET, "GET")).status, 401);
   const A = cookie(alice), E = cookie(eddie), K = cookie(carol);
@@ -271,7 +279,7 @@ test("the routes: sign-in is needed, a foreign origin is refused, a refused repo
   assert.deepEqual([refused.status, refused.json.error], [400, "value_invalid"]);
   assert.equal(limits().report.left(`u${alice.id}`), 10, "a refused report does not use the day's allowance");
   const sent = await call(report.POST, "POST", { ...body, proposed: String(boxer.country) === "Denmark" ? "Norway" : "Denmark" }, { cookie: A }); assert.equal(sent.status, 201);
-  const bout = await call(report.POST, "POST", { kind: "error", boutId: decided.e, field: "end_round", proposed: "2", sourceUrl: SRC, quote: QUOTE }, { cookie: A }); assert.equal(bout.status, 201, JSON.stringify(bout.json));
+  const bout = await call(report.POST, "POST", { kind: "error", boutId: decided.e, field: "end_round", proposed: "2", sourceUrl: SRC_BOUT, quote: QUOTE }, { cookie: A }); assert.equal(bout.status, 201, JSON.stringify(bout.json));
   const mine = await call(report.GET, "GET", undefined, { cookie: A }); assert.equal(mine.json.items.length >= 2, true);
   assert.equal(mine.json.items.every((x: Json) => x.sourceCheck === null && x.contact === null), true);
   // review: an ordinary user is refused; an editor sees errors, not about-me; the admin sees both
@@ -289,7 +297,7 @@ test("the routes: sign-in is needed, a foreign origin is refused, a refused repo
   // a corrected result through the route recomputes the ratings
   const flip = decided.w === decided.r ? "blue" : "red";
   const before = (main.prepare("SELECT rating r FROM boxers WHERE id = ?").get(decided.w) as { r: number }).r;
-  const rep = await call(report.POST, "POST", { kind: "error", boutId: decided.e, field: "result", proposed: flip, sourceUrl: SRC, quote: QUOTE }, { cookie: A });
+  const rep = await call(report.POST, "POST", { kind: "error", boutId: decided.e, field: "result", proposed: flip, sourceUrl: SRC_BOUT, quote: QUOTE }, { cookie: A });
   assert.equal((await call(decide.POST, "POST", { decision: "accepted", note: "The result page agrees." }, { cookie: E, params: { id: String(rep.json.id) } })).status, 200);
   const after = (main.prepare("SELECT rating r FROM boxers WHERE id = ?").get(decided.w) as { r: number }).r;
   assert.ok(after < before, "the route recomputed the ratings: the fighter who no longer won rates lower");
@@ -316,4 +324,162 @@ test("the source check works on a report: the quote is looked for on the page, a
   assert.equal(C.myReports(alice.id, main, acc).find((x) => x.id === r.id)?.sourceCheck, null, "not shown to the reporter");
   // the other table is untouched by a check on reports
   assert.equal((acc.prepare("SELECT COUNT(*) c FROM contributions").get() as { c: number }).c >= 0, true);
+});
+
+
+// ---------- who may change what: the verified owner, or what we ingest ----------
+test("a fight's facts can only be changed by a source a commission or sanctioning body publishes; any other source is noted and the ingested value stands", async () => {
+  const { main, acc, alice, eddie, C } = await get();
+  const { decided } = pick(main);
+  const winnerIsRed = decided.w === decided.r, flip = winnerIsRed ? "blue" : "red";
+  const before = currentValueOf(main, String(decided.e));
+  const send = (src: string, field = "result", proposed = flip) => (C.submitReport(alice, { kind: "error", targetType: "bout", targetExt: String(decided.e), field, proposed, sourceUrl: src, quote: QUOTE }, main, acc) as { id: number }).id;
+  const news = send("https://sportsnews.example/story/9");
+  const open = C.reportQueue(eddie, main, {}, acc).find((x) => x.id === news)!;
+  assert.equal(open.sourceFromOwner, false, "the editor is told the source is not an owner's");
+  assert.deepEqual(C.reviewReport(eddie, news, "accepted", "It reads convincingly.", main, acc, []), { ok: false, error: "source_not_owner" }, "a news story is not the owner's word");
+  assert.equal(currentValueOf(main, String(decided.e)), before, "nothing changed");
+  assert.deepEqual(C.reviewReport(eddie, news, "noted", "no", main, acc, []), { ok: false, error: "note_required" });
+  const noted = C.reviewReport(eddie, news, "noted", "Plausible, but the story is not the commission's record: to chase with the commission.", main, acc, []);
+  assert.ok(noted.ok && noted.applied.applied === 0);
+  assert.equal(currentValueOf(main, String(decided.e)), before, "the ingested value stands");
+  assert.equal(C.reportQueue(eddie, main, { status: "noted" }, acc).some((x) => x.id === news), true, "kept on record, to chase at the source");
+  assert.equal((acc.prepare("SELECT state s FROM reports WHERE id = ?").get(news) as { s: string | null }).s, null);
+  assert.equal(C.applyCorrections(main, acc).applied, 0, "a noted report is never applied");
+  // a commission's own page: .gov is official without being listed; another body only if it is on the list
+  const gov = send(SRC_BOUT, "end_round", "5");
+  assert.equal(C.reportQueue(eddie, main, {}, acc).find((x) => x.id === gov)!.sourceFromOwner, true);
+  const body = send("https://bbbofc.example/results/42", "end_round", "6");
+  assert.equal(C.reviewReport(eddie, body, "accepted", "The Board's own result page.", main, acc, []).ok, false, "not listed: not an owner");
+  assert.equal(C.reviewReport(eddie, body, "accepted", "The Board's own result page.", main, acc, ["bbbofc.example"]).ok, true, "listed in official-hosts.txt: an owner");
+  assert.equal(C.reviewReport(eddie, gov, "accepted", "The commission's own result.", main, acc, []).ok, true);
+  // an about-me request is accepted or rejected, never "noted"
+  const { boxer } = pick(main);
+  const am = C.submitReport(alice, { kind: "about_me", targetType: "boxer", targetExt: String(boxer.e), note: "These are my details and my reach on this page is wrong, please look into it." }, main, acc) as { id: number };
+  const carol = (await get()).carol;
+  assert.deepEqual(C.reviewReport(carol, am.id, "noted", "Not applicable here.", main, acc), { ok: false, error: "not_a_correction" });
+});
+const currentValueOf = (main: DatabaseSync, ext: string) => JSON.stringify(main.prepare("SELECT winner_id w, method m, end_round e FROM bouts WHERE external_id = ?").get(ext));
+
+test("a fighter's details: a correction by anyone else needs the fighter's own registered page as its source; the page must be the fighter's, not merely look similar", async () => {
+  const { main, acc, alice, eddie, C } = await get();
+  const { boxer } = pick(main);
+  const send = (src: string, value: string) => (C.submitReport(alice, { kind: "error", targetType: "boxer", targetExt: String(boxer.e), field: "stance", proposed: value, sourceUrl: src, quote: QUOTE }, main, acc) as { id: number }).id;
+  const was = String(boxer.stance), other = was === "Southpaw" ? "Orthodox" : "Southpaw";
+  const bad = [`${OWN}-fan-page/bio`, "https://fighter.example.evil.org/ace/bio", "http://fighter.example/ace/bio", "https://fighter.example/aces/bio", "https://wikipedia.example/Ace", `https://fighter.example/other`];
+  for (const [i, src] of bad.entries()) {
+    const id = send(src, i % 2 ? other : `${other.toLowerCase()}`);
+    const r = C.reviewReport(eddie, id, "accepted", "Looks right to me.", main, acc, []);
+    assert.deepEqual(r, { ok: false, error: "source_not_owner" }, src);
+    C.reviewReport(eddie, id, "noted", "Not the fighter's own page: left as it is.", main, acc, []);
+  }
+  const good = send(`${OWN}/bio?lang=en`, other);
+  assert.equal(C.reportQueue(eddie, main, {}, acc).find((x) => x.id === good)!.sourceFromOwner, true);
+  assert.ok(C.reviewReport(eddie, good, "accepted", "The fighter's own page says so.", main, acc).ok);
+  assert.equal((main.prepare("SELECT stance s FROM boxers WHERE external_id = ?").get(String(boxer.e)) as { s: string }).s, other);
+  // retire it again so later tests see the ingested value
+  assert.ok(C.settleFlagged(eddie, good, "retire", "Put back for the next test.", main, acc).ok);
+});
+
+test("a verified owner corrects their own details at once, with no source; it is recorded as theirs, survives the daily update, and is bounded to their own profile", async () => {
+  const { main, acc, ollie, eddie, carol, alice, C, users } = await get();
+  const { boxer } = pick(main);
+  const ext = String(boxer.e);
+  const height = () => (main.prepare("SELECT height_cm h FROM boxers WHERE external_id = ?").get(ext) as { h: number }).h;
+  const vendor = height();
+  const mine = C.submitReport(ollie, { kind: "error", targetType: "boxer", targetExt: ext, field: "height_cm", proposed: String(vendor + 3) }, main, acc);
+  assert.ok(mine.ok && mine.applied && mine.applied.applied === 1, JSON.stringify(mine));
+  assert.equal(height(), vendor + 3, "applied at once: the fighter's own word is the source");
+  const row = acc.prepare("SELECT status, by_owner b, reviewed_by r, state, original_value o, review_note n FROM reports WHERE id = ?").get((mine as { id: number }).id) as Record<string, unknown>;
+  assert.deepEqual({ ...row }, { status: "accepted", b: 1, r: null, state: "active", o: String(vendor), n: "Provided by the fighter (verified owner of these details)." });
+  // the vendor rewrites its value: corrected again, and a different vendor value is flagged, as for any correction
+  main.prepare("UPDATE boxers SET height_cm = ? WHERE external_id = ?").run(vendor, ext);
+  assert.equal(C.applyCorrections(main, acc).applied, 1); assert.equal(height(), vendor + 3);
+  // a second statement from the owner supersedes the first and starts from the vendor's value
+  const again = C.submitReport(ollie, { kind: "error", targetType: "boxer", targetExt: ext, field: "height_cm", proposed: String(vendor + 5) }, main, acc);
+  assert.ok(again.ok); assert.equal(height(), vendor + 5);
+  assert.equal((acc.prepare("SELECT state s FROM reports WHERE id = ?").get((mine as { id: number }).id) as { s: string }).s, "retired");
+  // the owner's own refusals: the same value is no change, an invalid one is refused
+  assert.deepEqual(C.submitReport(ollie, { kind: "error", targetType: "boxer", targetExt: ext, field: "height_cm", proposed: String(vendor + 5) }, main, acc), { ok: false, error: "no_change" });
+  assert.deepEqual(C.submitReport(ollie, { kind: "error", targetType: "boxer", targetExt: ext, field: "height_cm", proposed: "300" }, main, acc), { ok: false, error: "value_invalid" });
+  // the after-the-fact look for editors
+  const seen = C.reportQueue(eddie, main, { kind: "owner" }, acc); assert.equal(seen[0].byOwner, true); assert.equal(seen.some((x) => x.id === (again as { id: number }).id), true);
+  // bounded to their own profile and to fighter details: another fighter, or a fight, still needs an owner's source and an editor
+  const another = (main.prepare("SELECT external_id e FROM boxers WHERE external_id != ? ORDER BY id LIMIT 1").get(ext) as { e: string }).e;
+  const elsewhere = C.submitReport(ollie, { kind: "error", targetType: "boxer", targetExt: another, field: "height_cm", proposed: "181", sourceUrl: SRC, quote: QUOTE }, main, acc);
+  assert.ok(elsewhere.ok && elsewhere.applied === undefined, "not their profile: queued like anyone's");
+  assert.deepEqual(C.reviewReport(eddie, (elsewhere as { id: number }).id, "accepted", "Fine.", main, acc, []), { ok: false, error: "source_not_owner" });
+  const { decided } = pick(main);
+  const fight = C.submitReport(ollie, { kind: "error", targetType: "bout", targetExt: String(decided.e), field: "end_round", proposed: "3", sourceUrl: SRC, quote: QUOTE }, main, acc);
+  assert.ok(fight.ok && fight.applied === undefined, "a fight is the commission's to state, even for a fighter in it");
+  // "something else is wrong" is a request for an editor to look into, never applied, even from the fighter
+  const third = (main.prepare("SELECT external_id e FROM boxers WHERE external_id NOT IN (?, ?) ORDER BY id DESC LIMIT 1").get(ext, another) as { e: string }).e;
+  assert.ok(C.linkOwner(carol, "ollie_owner", third, {}, main, acc).ok);
+  const other = C.submitReport(ollie, { kind: "error", targetType: "boxer", targetExt: third, field: "other", note: "My record is missing two fights from 2011, please look at it." }, main, acc);
+  assert.ok(other.ok && other.applied === undefined, "an `other` report from an owner is queued, not applied");
+  assert.equal((acc.prepare("SELECT status s FROM reports WHERE id = ?").get((other as { id: number }).id) as { s: string }).s, "open");
+  // only an admin links or unlinks, with what it needs
+  assert.deepEqual(C.linkOwner(eddie, "alice_rep", ext, {}, main, acc), { ok: false, error: "forbidden" });
+  assert.deepEqual(C.linkOwner(carol, "nobody_here", ext, {}, main, acc), { ok: false, error: "user_unknown" });
+  assert.deepEqual(C.linkOwner(carol, "alice_rep", "not-a-boxer", {}, main, acc), { ok: false, error: "boxer_unknown" });
+  assert.deepEqual(C.linkOwner(carol, "alice_rep", ext, { urls: ["javascript:alert(1)"] }, main, acc), { ok: false, error: "url_invalid" });
+  assert.equal(C.unlinkOwner(eddie, "ollie_owner", ext, main, acc), false);
+  assert.equal(C.isOwner(alice.id, ext, acc), false, "nobody is an owner until an admin says so");
+  // unlinking returns them to an ordinary reporter, and the audit trail says who vouched for whom
+  assert.ok(C.unlinkOwner(carol, "ollie_owner", ext, main, acc));
+  const after = C.submitReport(ollie, { kind: "error", targetType: "boxer", targetExt: ext, field: "height_cm", proposed: String(vendor + 7), sourceUrl: SRC, quote: QUOTE }, main, acc);
+  assert.ok(after.ok && after.applied === undefined, "no longer the owner: queued, needs a source");
+  const trail = (acc.prepare("SELECT actor, action FROM audit WHERE action LIKE 'owner_%' ORDER BY id").all() as { actor: string; action: string }[]).map((t) => `${t.actor}:${t.action}`);
+  assert.deepEqual(trail.slice(0, 1), ["carol_admin:owner_linked"]); assert.equal(trail.includes("ollie_owner:owner_correction"), true); assert.equal(trail.includes("carol_admin:owner_unlinked"), true);
+  void users;
+  // restore for the other tests
+  C.linkOwner(carol, "ollie_owner", ext, { urls: [OWN] }, main, acc);
+  main.prepare("UPDATE boxers SET height_cm = ? WHERE external_id = ?").run(vendor, ext);
+  acc.prepare("UPDATE reports SET state = 'retired' WHERE by_owner = 1").run();
+});
+
+test("through the route, a verified owner's correction is applied and the page world sees it at once; anyone else's goes to the queue", async () => {
+  const { main, acc, ollie, alice, carol, C, users } = await get();
+  const report = await import("../app/api/report/route");
+  const { limits } = await import("../lib/accounts/guard");
+  limits().report.reset();
+  const { boxer } = pick(main);
+  const cookie = (u: { id: number }) => `${users.SESSION_COOKIE}=${users.createSession(u.id, acc).token}`;
+  const owner = await call(report.POST, "POST", { kind: "error", boxerSlug: boxer.slug, field: "nickname", proposed: "The Ace" }, { cookie: cookie(ollie) });
+  assert.deepEqual([owner.status, owner.json.applied], [201, true], JSON.stringify(owner.json));
+  const w = await (await import("../lib/world")).getWorld();
+  assert.equal(w.bySlug.get(String(boxer.slug))?.nickname, "The Ace", "the page world rebuilt with the correction");
+  const other = await call(report.POST, "POST", { kind: "error", boxerSlug: boxer.slug, field: "nickname", proposed: "Aces High", sourceUrl: SRC_BOXER, quote: QUOTE }, { cookie: cookie(alice) });
+  assert.deepEqual([other.status, other.json.applied], [201, false], "not the owner: queued");
+  void carol; void C;
+  acc.prepare("UPDATE reports SET state = 'retired' WHERE by_owner = 1").run();
+  main.prepare("UPDATE boxers SET nickname = ? WHERE external_id = ?").run(boxer.nickname, String(boxer.e));
+});
+
+test("the operator commands: owner links an account to a fighter, owners lists it, unowner removes it, and a mistake says what was wrong", async () => {
+  const { spawnSync } = await import("node:child_process");
+  const { DatabaseSync } = await import("node:sqlite");
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ringside-owner-cli-"));
+  try {
+    const mainFile = path.join(dir, "main.db"), accFile2 = path.join(dir, "acc.db");
+    const m = new DatabaseSync(mainFile);
+    m.exec("CREATE TABLE boxers (id INTEGER PRIMARY KEY, external_id TEXT, slug TEXT, name TEXT)");
+    m.prepare("INSERT INTO boxers (external_id, slug, name) VALUES ('ext-1', 'ace-one', 'Ace One')").run(); m.close();
+    const env = { NODE_ENV: "development" as const, PATH: process.env.PATH ?? "", HOME: dir, DATABASE_PATH: mainFile, ACCOUNTS_DB_PATH: accFile2 };
+    const run = (...a: string[]) => spawnSync(process.execPath, ["--import", "tsx", "scripts/accounts.ts", ...a], { cwd: process.cwd(), env, encoding: "utf8" });
+    const users = await import("../lib/accounts/users");
+    assert.equal(run("list").status, 0, "the command creates its database");
+    const acc2 = new DatabaseSync(accFile2);
+    const made = await users.createUser("fran_fighter", "a-long-passphrase-for-tests-1", acc2);
+    assert.ok(!("error" in made)); acc2.close();
+    assert.equal(run("owner", "fran_fighter").status, 2, "both names are needed");
+    const bad = run("owner", "nobody", "ace-one"); assert.equal(bad.status, 1); assert.match(bad.stderr, /no user named nobody/);
+    const nof = run("owner", "fran_fighter", "nope"); assert.equal(nof.status, 1); assert.match(nof.stderr, /no fighter/);
+    const badUrl = run("owner", "fran_fighter", "ace-one", "--url", "javascript:alert(1)"); assert.equal(badUrl.status, 1); assert.match(badUrl.stderr, /not a valid/);
+    const ok = run("owner", "fran_fighter", "ace-one", "--url", "https://ace.example/", "--note", "video call"); assert.equal(ok.status, 0, ok.stderr); assert.match(ok.stdout, /verified owner of Ace One/);
+    const listed = run("owners"); assert.match(listed.stdout, /fran_fighter/); assert.match(listed.stdout, /ace\.example/);
+    assert.match(run("unowner", "fran_fighter", "ace-one").stdout, /no longer linked/);
+    assert.match(run("unowner", "fran_fighter", "ace-one").stdout, /was not linked/);
+    assert.doesNotMatch(run("owners").stdout, /fran_fighter/);
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });

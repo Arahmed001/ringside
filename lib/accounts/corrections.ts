@@ -4,6 +4,9 @@ import { todayIso } from "../clock";
 import { countryCode } from "../format";
 import { METHODS, hasWinner, isDrawResult } from "../methods";
 import { sourceUrlProblem } from "./contributions";
+import { isOfficialHost } from "../research/check";
+import { hostOf } from "../research/text";
+import { officialHostList } from "../research/official-hosts";
 import type { User } from "./users";
 
 /**
@@ -21,6 +24,15 @@ import type { User } from "./users";
  *  - retiring a correction puts the vendor's value back.
  * A correction to a result or method changes ratings, so callers recompute them when `boutsChanged`.
  *
+ * WHO MAY CHANGE WHAT. Where a verified owner of a fact exists, the source lies with them; otherwise what we ingest stands.
+ *  - A fight's result, method and end round are the commission's or the sanctioning body's to state: a correction can only be accepted if the page it cites is
+ *    published by one (a .gov site or a host on data/research/official-hosts.txt). The vendor relays a result, it does not own it.
+ *  - A fighter's own details (birth date, height, reach, stance, nickname, country) are theirs to state. An admin links a fighter's account to the profile after
+ *    checking who they are (`npm run accounts -- owner`; accounts have no email, so this is done out of band) and that account's corrections apply at once, with
+ *    no source needed. For anyone else, a correction to those details is accepted only if the page it cites is one of the fighter's registered official pages.
+ *  - A report citing anyone else is not thrown away: an editor marks it `noted` (valid, not from an owner), the ingested value stands, and it stays on record for
+ *    someone to chase at the source.
+ *
  * Stored in the accounts database, keyed by external ids, so a rebuilt sports database does not lose them.
  */
 export type TargetType = "boxer" | "bout";
@@ -29,6 +41,58 @@ export const BOUT_FIELDS = ["result", "method", "end_round", "other"] as const;
 export const FIELDS: Record<TargetType, readonly string[]> = { boxer: BOXER_FIELDS, bout: BOUT_FIELDS };
 /** Fields a correction can change. `other` is a report only: an editor looks into it, nothing is applied. */
 export const isApplicable = (field: string | null): boolean => !!field && field !== "other";
+
+export interface OwnerLink { userId: number; username: string; boxerExt: string; verifiedBy: string; verifiedAt: string; note: string | null; officialUrls: string[] }
+const owners = (acc: DatabaseSync, where: string, ...args: (string | number)[]): OwnerLink[] =>
+  (acc.prepare(`SELECT o.user_id, u.username, o.boxer_ext, o.verified_by, o.verified_at, o.note, o.official_urls FROM boxer_owners o JOIN users u ON u.id = o.user_id WHERE ${where} ORDER BY o.verified_at`).all(...args) as Record<string, unknown>[])
+    .map((r) => ({ userId: r.user_id as number, username: r.username as string, boxerExt: r.boxer_ext as string, verifiedBy: r.verified_by as string, verifiedAt: r.verified_at as string, note: (r.note as string | null) ?? null, officialUrls: JSON.parse(String(r.official_urls || "[]")) as string[] }));
+export const ownersOf = (boxerExt: string, acc: DatabaseSync = accountsDb()): OwnerLink[] => owners(acc, "o.boxer_ext = ?", boxerExt);
+export const ownedBy = (userId: number, acc: DatabaseSync = accountsDb()): OwnerLink[] => owners(acc, "o.user_id = ?", userId);
+export const isOwner = (userId: number, boxerExt: string, acc: DatabaseSync = accountsDb()): boolean => !!acc.prepare("SELECT 1 x FROM boxer_owners WHERE user_id = ? AND boxer_ext = ?").get(userId, boxerExt);
+
+/**
+ * An admin's statement that this account is this fighter (or authorised by them), made after checking out of band. `urls` are the fighter's own official pages: a source
+ * from there counts as the owner's for a correction by anyone else.
+ */
+export function linkOwner(admin: User, username: string, boxer: string, o: { note?: string; urls?: string[] } = {}, main: DatabaseSync, acc: DatabaseSync = accountsDb()): { ok: true; boxerExt: string; boxerName: string } | { ok: false; error: "forbidden" | "user_unknown" | "boxer_unknown" | "url_invalid" } {
+  if (admin.role !== "admin") return { ok: false, error: "forbidden" };
+  const u = acc.prepare("SELECT id FROM users WHERE username = ?").get(username) as { id: number } | undefined;
+  if (!u) return { ok: false, error: "user_unknown" };
+  const b = main.prepare("SELECT external_id e, name FROM boxers WHERE slug = ? OR external_id = ?").get(boxer, boxer) as { e: string; name: string } | undefined;
+  if (!b) return { ok: false, error: "boxer_unknown" };
+  const urls = (o.urls ?? []).map((x) => String(x).trim()).filter(Boolean);
+  if (urls.some(sourceUrlProblem)) return { ok: false, error: "url_invalid" };
+  acc.prepare("INSERT INTO boxer_owners (user_id, boxer_ext, verified_by, verified_at, note, official_urls) VALUES (?,?,?,?,?,?) ON CONFLICT(user_id, boxer_ext) DO UPDATE SET verified_by = excluded.verified_by, verified_at = excluded.verified_at, note = excluded.note, official_urls = excluded.official_urls")
+    .run(u.id, b.e, admin.username, nowIso(), o.note ? clean(o.note).slice(0, 300) : null, JSON.stringify(urls));
+  audit(acc, admin.username, "owner_linked", `${username} -> ${b.e}`, urls.join(" "));
+  return { ok: true, boxerExt: b.e, boxerName: b.name };
+}
+export function unlinkOwner(admin: User, username: string, boxer: string, main: DatabaseSync, acc: DatabaseSync = accountsDb()): boolean {
+  if (admin.role !== "admin") return false;
+  const b = main.prepare("SELECT external_id e FROM boxers WHERE slug = ? OR external_id = ?").get(boxer, boxer) as { e: string } | undefined;
+  const r = b ? acc.prepare("DELETE FROM boxer_owners WHERE boxer_ext = ? AND user_id = (SELECT id FROM users WHERE username = ?)").run(b.e, username).changes : 0;
+  if (r) audit(acc, admin.username, "owner_unlinked", `${username} -> ${b!.e}`);
+  return r > 0;
+}
+
+/** Is `url` the same page as `base` or somewhere under it (a whole path segment, never a longer name that merely starts the same)? */
+function underUrl(url: string, base: string): boolean {
+  try {
+    const u = new URL(url), b = new URL(base);
+    if (u.origin !== b.origin) return false;
+    const bp = b.pathname.replace(/\/+$/, ""), up = u.pathname.replace(/\/+$/, "");
+    return up === bp || up.startsWith(bp + "/");
+  } catch { return false; }
+}
+/**
+ * Is the cited page published by the verified owner of this kind of fact? A fight's facts: a commission or sanctioning body (an official host). A fighter's own
+ * details: one of that fighter's registered official pages. Anything else is not the owner's word, and the ingested value stands.
+ */
+export function sourceFromOwner(t: TargetType, ext: string, sourceUrl: string | null, acc: DatabaseSync = accountsDb(), hosts: string[] = officialHostList()): boolean {
+  if (!sourceUrl) return false;
+  if (t === "bout") return isOfficialHost(hostOf(sourceUrl), hosts);
+  return ownersOf(ext, acc).some((o) => o.officialUrls.some((base) => underUrl(sourceUrl, base)));
+}
 
 export interface ReportInput {
   kind: "error" | "about_me"; targetType: TargetType; targetExt: string; field?: string;
@@ -95,7 +159,7 @@ export interface NormalizedReport {
   sourceUrl: string | null; quote: string | null; note: string | null; contact: string | null;
 }
 
-export function validateReport(p: ReportInput, main: DatabaseSync, today = todayIso()): { ok: true; value: NormalizedReport } | { ok: false; error: ReportError } {
+export function validateReport(p: ReportInput, main: DatabaseSync, today = todayIso(), asOwner = false): { ok: true; value: NormalizedReport } | { ok: false; error: ReportError } {
   const err = (error: ReportError) => ({ ok: false as const, error });
   if (!p || (p.kind !== "error" && p.kind !== "about_me")) return err("kind_invalid");
   if (p.targetType !== "boxer" && p.targetType !== "bout") return err("target_unknown");
@@ -118,6 +182,7 @@ export function validateReport(p: ReportInput, main: DatabaseSync, today = today
   const url = p.sourceUrl ? String(p.sourceUrl).trim() : "";
   const quote = p.quote ? clean(String(p.quote)) : "";
   const withSource = () => {
+    if (asOwner && !url && !quote) return null; // the fighter's own word is the source
     if (!url || sourceUrlProblem(url)) return err("url_invalid");
     if (quote.length < 12) return err("quote_short");
     if (quote.length > 300) return err("quote_long");
@@ -186,13 +251,49 @@ export function validateReport(p: ReportInput, main: DatabaseSync, today = today
     }
   }
   if (proposed === (shown ?? "")) return err("no_change");
-  return { ok: true, value: { ...base, field, shown, proposed, sourceUrl: url, quote, note: note || null, contact: null } };
+  return { ok: true, value: { ...base, field, shown, proposed, sourceUrl: url || null, quote: quote || null, note: note || null, contact: null } };
 }
 
-export function submitReport(user: User, p: ReportInput, main: DatabaseSync, acc: DatabaseSync = accountsDb(), today = todayIso()): { ok: true; id: number } | { ok: false; error: ReportError } {
-  const v = validateReport(p, main, today);
+/**
+ * One correction at a time for a field: the earlier one is retired and the vendor's value it recorded is put back, so the new correction starts from the
+ * vendor's value (not from the earlier correction's own write, which it would take for a change by the vendor) and inherits that value as its original.
+ * Runs inside the caller's transaction on the accounts database. Returns whether a fight was changed by putting a value back.
+ */
+function supersede(acc: DatabaseSync, main: DatabaseSync, newId: number, t: TargetType, ext: string, field: string, actor: string): boolean {
+  let restoredBout = false;
+  const prev = acc.prepare("SELECT id, original_value, proposed_value FROM reports WHERE status = 'accepted' AND state IN ('active','vendor_changed') AND target_type = ? AND target_ext = ? AND field = ? AND id != ?").all(t, ext, field, newId) as { id: number; original_value: string | null; proposed_value: string }[];
+  for (const p of prev) {
+    acc.prepare("UPDATE reports SET state = 'retired' WHERE id = ?").run(p.id);
+    if (p.original_value !== null) {
+      acc.prepare("UPDATE reports SET original_value = ? WHERE id = ? AND original_value IS NULL").run(p.original_value, newId);
+      if (currentValue(main, t, ext, field) === p.proposed_value && write(main, t, ext, field, p.original_value) && t === "bout") restoredBout = true;
+    }
+    audit(acc, actor, "correction_superseded", `#${p.id}`, `by #${newId}`);
+  }
+  return restoredBout;
+}
+
+export type SubmitResult = { ok: true; id: number; /** set when the fighter's own correction was applied at once */ applied?: ApplyResult } | { ok: false; error: ReportError };
+export function submitReport(user: User, p: ReportInput, main: DatabaseSync, acc: DatabaseSync = accountsDb(), today = todayIso()): SubmitResult {
+  // the fighter's own word about their own details is the source: applied at once, with no source and no second person, and recorded as the owner's
+  const asOwner = p?.kind === "error" && p.targetType === "boxer" && isApplicable(p.field ?? null) && typeof p.targetExt === "string" && isOwner(user.id, p.targetExt, acc);
+  const v = validateReport(p, main, today, asOwner);
   if (!v.ok) return v;
   const x = v.value;
+  if (asOwner) {
+    acc.exec("BEGIN");
+    let id: number;
+    try {
+      id = (acc.prepare(`INSERT INTO reports (user_id, kind, target_type, target_ext, field, shown_value, proposed_value, source_url, quote, note, created_at, status, reviewed_at, review_note, state, by_owner) VALUES (?,?,?,?,?,?,?,?,?,?,?, 'accepted', ?, 'Provided by the fighter (verified owner of these details).', 'active', 1) RETURNING id`)
+        .get(user.id, x.kind, x.targetType, x.targetExt, x.field, x.shown, x.proposed, x.sourceUrl, x.quote, x.note, nowIso(), nowIso()) as { id: number }).id;
+      const restoredBout = supersede(acc, main, id, x.targetType, x.targetExt, x.field as string, user.username);
+      audit(acc, user.username, "owner_correction", `#${id}`, `${x.targetExt} ${x.field} -> ${x.proposed}`);
+      acc.exec("COMMIT");
+      const applied = applyCorrections(main, acc);
+      if (restoredBout) applied.boutsChanged = true;
+      return { ok: true, id, applied };
+    } catch (e) { acc.exec("ROLLBACK"); throw e; }
+  }
   const open = (acc.prepare("SELECT COUNT(*) c FROM reports WHERE user_id = ? AND status = 'open'").get(user.id) as { c: number }).c;
   if (open >= MAX_OPEN_PER_USER) return { ok: false, error: "too_many_open" };
   const dup = x.kind === "about_me"
@@ -209,9 +310,13 @@ export interface ReportView {
   field: string | null; shown: string | null; proposed: string | null; current: string | null; sourceUrl: string | null; quote: string | null; note: string | null; contact: string | null;
   createdAt: string; reporter: string | null; reviewedBy: string | null; reviewedAt: string | null; reviewNote: string | null; sourceCheck: string | null; sourceCheckedAt: string | null;
   originalValue: string | null; vendorValue: string | null;
+  /** a correction the fighter made about themself (applied at once) */
+  byOwner: boolean;
+  /** for a correction not yet decided: is the cited page published by the verified owner of this kind of fact? (null for a report that is not a correction) */
+  sourceFromOwner: boolean | null;
 }
 const SELECT = `SELECT r.*, u.username reporter, v.username reviewer FROM reports r LEFT JOIN users u ON u.id = r.user_id LEFT JOIN users v ON v.id = r.reviewed_by`;
-function view(r: Record<string, unknown>, main: DatabaseSync, forReviewer: boolean): ReportView {
+function view(r: Record<string, unknown>, main: DatabaseSync, forReviewer: boolean, acc: DatabaseSync, hosts: string[]): ReportView {
   const t = r.target_type as TargetType, ext = r.target_ext as string;
   let name: string | null = null, slug: string | null = null;
   if (t === "boxer") { const b = main.prepare("SELECT name, slug FROM boxers WHERE external_id = ?").get(ext) as { name: string; slug: string } | undefined; name = b?.name ?? null; slug = b?.slug ?? null; }
@@ -229,25 +334,29 @@ function view(r: Record<string, unknown>, main: DatabaseSync, forReviewer: boole
     createdAt: r.created_at as string, reporter: (r.reporter as string | null) ?? null, reviewedBy: (r.reviewer as string | null) ?? null, reviewedAt: (r.reviewed_at as string | null) ?? null,
     reviewNote: (r.review_note as string | null) ?? null, sourceCheck: forReviewer ? ((r.source_check as string | null) ?? null) : null, sourceCheckedAt: forReviewer ? ((r.source_checked_at as string | null) ?? null) : null,
     originalValue: forReviewer ? ((r.original_value as string | null) ?? null) : null, vendorValue: forReviewer ? ((r.vendor_value as string | null) ?? null) : null,
+    byOwner: r.by_owner === 1,
+    sourceFromOwner: forReviewer && r.kind === "error" && isApplicable(field) ? sourceFromOwner(t, ext, (r.source_url as string | null) ?? null, acc, hosts) : null,
   };
 }
 
 /** A person's own reports (without a reviewer's source check or anyone's contact details). */
 export const myReports = (userId: number, main: DatabaseSync, acc: DatabaseSync = accountsDb()): ReportView[] =>
-  (acc.prepare(`${SELECT} WHERE r.user_id = ? ORDER BY r.id DESC LIMIT 200`).all(userId) as Record<string, unknown>[]).map((r) => view(r, main, false));
+  (acc.prepare(`${SELECT} WHERE r.user_id = ? ORDER BY r.id DESC LIMIT 200`).all(userId) as Record<string, unknown>[]).map((r) => view(r, main, false, acc, []));
 
-export type QueueKind = "error" | "about_me" | "flagged";
+export type QueueKind = "error" | "about_me" | "flagged" | "owner";
 /**
  * The queue for a reviewer. Editors see error reports; only admins see about-me requests (they can raise privacy questions and carry contact details).
- * `flagged` is the accepted corrections whose vendor value has changed again since they were made.
+ * `flagged` is the accepted corrections whose vendor value has changed again since they were made; `owner` is what fighters changed about themselves (applied at once,
+ * so this is the after-the-fact look). Each open correction says whether its source is published by a verified owner (`sourceFromOwner`).
  */
-export function reportQueue(viewer: User, main: DatabaseSync, o: { status?: string; kind?: QueueKind } = {}, acc: DatabaseSync = accountsDb()): ReportView[] {
+export function reportQueue(viewer: User, main: DatabaseSync, o: { status?: string; kind?: QueueKind; hosts?: string[] } = {}, acc: DatabaseSync = accountsDb()): ReportView[] {
   if (viewer.role !== "editor" && viewer.role !== "admin") return [];
-  const kind: QueueKind = (["error", "about_me", "flagged"] as const).find((k) => k === o.kind) ?? "error"; // whitelisted: it is part of the query below
+  const kind: QueueKind = (["error", "about_me", "flagged", "owner"] as const).find((k) => k === o.kind) ?? "error"; // whitelisted: it is part of the query below
   if (kind === "about_me" && viewer.role !== "admin") return [];
-  const status = ["open", "accepted", "rejected", "withdrawn"].includes(o.status ?? "") ? o.status! : "open";
-  const where = kind === "flagged" ? "r.status = 'accepted' AND r.state = 'vendor_changed'" : `r.status = '${status}' AND r.kind = '${kind}'`;
-  return (acc.prepare(`${SELECT} WHERE ${where} ORDER BY r.id ${status === "open" || kind === "flagged" ? "ASC" : "DESC"} LIMIT 200`).all() as Record<string, unknown>[]).map((r) => view(r, main, true));
+  const status = ["open", "accepted", "rejected", "withdrawn", "noted"].includes(o.status ?? "") ? o.status! : "open";
+  const hosts = o.hosts ?? officialHostList();
+  const where = kind === "flagged" ? "r.status = 'accepted' AND r.state = 'vendor_changed'" : kind === "owner" ? "r.status = 'accepted' AND r.by_owner = 1" : `r.status = '${status}' AND r.kind = '${kind}'`;
+  return (acc.prepare(`${SELECT} WHERE ${where} ORDER BY r.id ${(status === "open" && kind !== "owner") || kind === "flagged" ? "ASC" : "DESC"} LIMIT 200`).all() as Record<string, unknown>[]).map((r) => view(r, main, true, acc, hosts));
 }
 
 export const withdrawReport = (user: User, id: number, acc: DatabaseSync = accountsDb()): boolean =>
@@ -256,34 +365,25 @@ export const withdrawReport = (user: User, id: number, acc: DatabaseSync = accou
 export interface ApplyResult { applied: number; unchanged: number; vendorChanged: number; skipped: number; boutsChanged: boolean }
 const none = (): ApplyResult => ({ applied: 0, unchanged: 0, vendorChanged: 0, skipped: 0, boutsChanged: false });
 
-export type ReviewError = "not_found" | "not_open" | "own" | "note_required" | "forbidden" | "not_a_correction";
-export function reviewReport(reviewer: User, id: number, decision: "accepted" | "rejected", note: string, main: DatabaseSync, acc: DatabaseSync = accountsDb()): { ok: true; applied: ApplyResult } | { ok: false; error: ReviewError } {
+export type ReviewError = "not_found" | "not_open" | "own" | "note_required" | "forbidden" | "not_a_correction" | "source_not_owner";
+export function reviewReport(reviewer: User, id: number, decision: "accepted" | "rejected" | "noted", note: string, main: DatabaseSync, acc: DatabaseSync = accountsDb(), hosts: string[] = officialHostList()): { ok: true; applied: ApplyResult } | { ok: false; error: ReviewError } {
   const c = acc.prepare("SELECT * FROM reports WHERE id = ?").get(id) as Record<string, unknown> | undefined;
   if (!c) return { ok: false, error: "not_found" };
   const aboutMe = c.kind === "about_me";
   if (reviewer.role !== "admin" && (reviewer.role !== "editor" || aboutMe)) return { ok: false, error: "forbidden" };
   if (c.status !== "open") return { ok: false, error: "not_open" };
   if (c.user_id === reviewer.id && reviewer.role !== "admin") return { ok: false, error: "own" };
+  if (decision === "noted" && aboutMe) return { ok: false, error: "not_a_correction" }; // an about-me request is accepted (handled) or rejected, never "noted"
   const n = clean(note).slice(0, 500);
-  if ((decision === "rejected" || aboutMe) && n.length < 5) return { ok: false, error: "note_required" };
+  if ((decision === "rejected" || decision === "noted" || aboutMe) && n.length < 5) return { ok: false, error: "note_required" };
   const apply = decision === "accepted" && !aboutMe && isApplicable(c.field as string | null);
+  // where a verified owner of the fact exists the source lies with them; a correction citing anyone else cannot change what the vendor said
+  if (apply && !sourceFromOwner(c.target_type as TargetType, c.target_ext as string, (c.source_url as string | null) ?? null, acc, hosts)) return { ok: false, error: "source_not_owner" };
   let restoredBout = false;
   acc.exec("BEGIN");
   try {
     acc.prepare("UPDATE reports SET status = ?, reviewed_by = ?, reviewed_at = ?, review_note = ?, state = ? WHERE id = ?").run(decision, reviewer.id, nowIso(), n || null, apply ? "active" : null, id);
-    if (apply) {
-      // one correction at a time for a field: the earlier one is retired and the vendor's value it recorded is put back, so the new correction starts from the
-      // vendor's value (not from the earlier correction's own write, which it would take for a change by the vendor) and inherits that value as its original
-      const prev = acc.prepare("SELECT id, original_value, proposed_value FROM reports WHERE status = 'accepted' AND state IN ('active','vendor_changed') AND target_type = ? AND target_ext = ? AND field = ? AND id != ?").all(c.target_type as string, c.target_ext as string, c.field as string, id) as { id: number; original_value: string | null; proposed_value: string }[];
-      for (const p of prev) {
-        acc.prepare("UPDATE reports SET state = 'retired' WHERE id = ?").run(p.id);
-        if (p.original_value !== null) {
-          acc.prepare("UPDATE reports SET original_value = ? WHERE id = ? AND original_value IS NULL").run(p.original_value, id);
-          if (currentValue(main, c.target_type as TargetType, c.target_ext as string, c.field as string) === p.proposed_value && write(main, c.target_type as TargetType, c.target_ext as string, c.field as string, p.original_value) && c.target_type === "bout") restoredBout = true;
-        }
-        audit(acc, reviewer.username, "correction_superseded", `#${p.id}`, `by #${id}`);
-      }
-    }
+    if (apply) restoredBout = supersede(acc, main, id, c.target_type as TargetType, c.target_ext as string, c.field as string, reviewer.username);
     audit(acc, reviewer.username, `report_${decision}`, `#${id}`, `${c.target_type} ${c.target_ext} ${c.field ?? c.kind}`);
     acc.exec("COMMIT");
   } catch (e) { acc.exec("ROLLBACK"); throw e; }

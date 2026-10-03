@@ -42,11 +42,17 @@ CREATE TABLE IF NOT EXISTS reports (
   target_type TEXT NOT NULL CHECK (target_type IN ('boxer','bout')), target_ext TEXT NOT NULL,
   field TEXT, shown_value TEXT, proposed_value TEXT,
   source_url TEXT, quote TEXT, note TEXT, contact TEXT,
-  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','accepted','rejected','withdrawn')),
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','accepted','rejected','withdrawn','noted')),
   created_at TEXT NOT NULL, reviewed_by INTEGER REFERENCES users(id) ON DELETE SET NULL, reviewed_at TEXT, review_note TEXT,
-  source_check TEXT, source_checked_at TEXT,
+  source_check TEXT, source_checked_at TEXT, by_owner INTEGER NOT NULL DEFAULT 0,
   state TEXT CHECK (state IN ('active','vendor_changed','retired')), original_value TEXT, vendor_value TEXT, applied_at TEXT
 );
+CREATE TABLE IF NOT EXISTS boxer_owners (
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, boxer_ext TEXT NOT NULL,
+  verified_by TEXT NOT NULL, verified_at TEXT NOT NULL, note TEXT, official_urls TEXT NOT NULL DEFAULT '[]',
+  PRIMARY KEY (user_id, boxer_ext)
+);
+CREATE INDEX IF NOT EXISTS idx_owners_boxer ON boxer_owners(boxer_ext);
 CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status, kind);
 CREATE INDEX IF NOT EXISTS idx_reports_target ON reports(target_type, target_ext);
 CREATE TABLE IF NOT EXISTS audit (

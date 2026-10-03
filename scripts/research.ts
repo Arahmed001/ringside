@@ -25,6 +25,7 @@ import { ask, loadEnv } from "../lib/i18n/translate";
 import { ingestMoney } from "../lib/ingest-money";
 import { decisionProblems, staleDecisions, type Decision } from "../lib/research/decisions";
 import { loadManifest, readDocument, registerDocument } from "../lib/research/documents";
+import { officialHostList } from "../lib/research/official-hosts";
 import type { CheckedFact, FactKind, ResearchFact } from "../lib/research/types";
 
 const DIR = process.env.RESEARCH_DIR ?? path.join(process.cwd(), "data", "research"); // RESEARCH_DIR is for the tests
@@ -32,7 +33,7 @@ const MANUAL = path.join(DIR, "manual");
 const INBOX = path.join(DIR, "inbox"), DECISIONS = path.join(DIR, "decisions.jsonl"), CHECKED = path.join(DIR, "checked.jsonl"), FEED = path.join(DIR, "money-feed.json");
 const readJsonl = <T,>(f: string): T[] => fs.readFileSync(f, "utf8").split("\n").filter((l) => l.trim()).map((l, i) => { try { return JSON.parse(l) as T; } catch { throw new Error(`${f}:${i + 1} is not valid JSON`); } });
 const decisions = (): Decision[] => (fs.existsSync(DECISIONS) ? readJsonl<Decision>(DECISIONS) : []);
-const officialHosts = () => { const f = path.join(DIR, "official-hosts.txt"); return fs.existsSync(f) ? fs.readFileSync(f, "utf8").split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#")) : []; };
+const officialHosts = () => officialHostList(DIR);
 
 function fetcher() {
   loadEnv();

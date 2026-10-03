@@ -1,4 +1,5 @@
-import { getDb } from "@/lib/db";
+import { getDb, bumpDbVersion } from "@/lib/db";
+import { recomputeRatings } from "@/lib/ingest";
 import { myReports, submitReport, withdrawReport, type ReportInput } from "@/lib/accounts/corrections";
 import { fail, json, postBody, str, userOf } from "@/lib/accounts/api";
 import { limits } from "@/lib/accounts/guard";
@@ -7,6 +8,7 @@ import { limits } from "@/lib/accounts/guard";
  * Reporting a wrong fact: GET lists your own reports, POST sends one, DELETE {id} withdraws one that is still open. Signed-in people only.
  * POST {kind: "error", boxerSlug | boutId, field, proposed, proposedMethod?, sourceUrl, quote, note?} for a correction, or
  *      {kind: "about_me", boxerSlug, note, contact?} for a person asking about their own details (goes to an admin, never applied).
+ * A fighter whose account an admin has linked to their profile corrects their own details with no source: it is applied at once ({id, applied: true}).
  */
 export async function GET(req: Request) {
   const user = userOf(req);
@@ -31,7 +33,8 @@ export async function POST(req: Request) {
   };
   const res = submitReport(user, p, db);
   if (!res.ok) { limits().report.clear(`u${user.id}`); return fail(res.error, 400); } // a refused report does not use up the day's allowance
-  return json({ id: res.id }, 201);
+  if (res.applied) { if (res.applied.boutsChanged) recomputeRatings(db); bumpDbVersion(); } // the fighter's own correction is in place: pages show it at once
+  return json({ id: res.id, applied: !!res.applied }, 201);
 }
 
 export async function DELETE(req: Request) {

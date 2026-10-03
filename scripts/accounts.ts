@@ -8,6 +8,9 @@
  *   npm run accounts -- check                      integrity check, counts, and expired sessions waiting to be cleared
  *   npm run accounts -- purge                      delete expired sessions and reset codes
  *   npm run accounts -- apply                      replay approved community edits and accepted corrections into the sports database (ratings are recomputed if a result changed)
+ *   npm run accounts -- owner NAME BOXER [--url URL]... [--note TEXT]   record that this account is that fighter (or authorised by them), after you have checked out of band; --url is the fighter's own official page
+ *   npm run accounts -- unowner NAME BOXER         remove that link
+ *   npm run accounts -- owners                     who is linked to which fighter
  * ACCOUNTS_DB_PATH / DATABASE_PATH decide which files; the same values as the server.
  */
 import { DatabaseSync } from "node:sqlite";
@@ -15,7 +18,7 @@ import path from "node:path";
 import { accountsDb, accountsPath } from "../lib/accounts/store";
 import { issueResetCode, purgeExpired, setDisabled, setRole, type Role } from "../lib/accounts/users";
 import { applyContributions } from "../lib/accounts/contributions";
-import { applyCorrections } from "../lib/accounts/corrections";
+import { applyCorrections, linkOwner, unlinkOwner } from "../lib/accounts/corrections";
 import { recomputeRatings } from "../lib/ingest";
 
 const [cmd, a, b] = process.argv.slice(2);
@@ -53,4 +56,18 @@ if (cmd === "list") {
   const fixed = applyCorrections(main, db);
   console.log("corrections:", fixed);
   if (fixed.boutsChanged) { recomputeRatings(main); console.log("ratings recomputed"); }
-} else { console.error("usage: list | role | disable | enable | reset | audit | check | purge | apply (see the header of scripts/accounts.ts)"); process.exit(2); }
+} else if (cmd === "owner" || cmd === "unowner" || cmd === "owners") {
+  const main = new DatabaseSync(process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db"));
+  const operator = { id: 0, username: "operator", role: "admin" as Role, createdAt: "", picksPublic: false };
+  if (cmd === "owners") {
+    console.table(db.prepare("SELECT u.username, o.boxer_ext, o.verified_by, o.verified_at, o.official_urls, o.note FROM boxer_owners o JOIN users u ON u.id = o.user_id ORDER BY o.verified_at").all());
+  } else if (!a || !b) { console.error(`usage: ${cmd} NAME BOXER${cmd === "owner" ? " [--url URL]... [--note TEXT]" : ""}`); process.exit(2); }
+  else if (cmd === "unowner") console.log(unlinkOwner(operator, a, b, main, db) ? `${a} is no longer linked to ${b}` : `${a} was not linked to ${b}`);
+  else {
+    const rest = process.argv.slice(5), urls: string[] = []; let note: string | undefined;
+    for (let i = 0; i < rest.length; i++) { if (rest[i] === "--url") urls.push(rest[++i] ?? ""); else if (rest[i] === "--note") note = rest[++i]; else { console.error(`unknown option ${rest[i]}`); process.exit(2); } }
+    const r = linkOwner(operator, a, b, { urls, note }, main, db);
+    if (!r.ok) { console.error({ user_unknown: `no user named ${a}`, boxer_unknown: `no fighter with slug or id ${b}`, url_invalid: "a --url is not a valid https address", forbidden: "not allowed" }[r.error]); process.exit(1); }
+    console.log(`${a} is now the verified owner of ${r.boxerName} (${r.boxerExt}): their own corrections to fighter details apply at once${urls.length ? `; sources under ${urls.join(", ")} count as the fighter's own` : ""}`);
+  }
+} else { console.error("usage: list | role | disable | enable | reset | audit | check | purge | apply | owner | unowner | owners (see the header of scripts/accounts.ts)"); process.exit(2); }
