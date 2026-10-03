@@ -32,6 +32,8 @@ jobs:
           RINGSIDE_NOW: "2026-10-03"
       - name: Production build
         run: npm run build
+      - name: Smoke test (every kind of page, both languages, on a production server)
+        run: npm run smoke
 
   audit:
     runs-on: ubuntu-24.04 # pinned: ubuntu-latest moves to 26.04 on 2026-10-19
