@@ -31,7 +31,7 @@ export const pickPoints = (g: GradedPick): number => {
 };
 
 export interface Standing { rank: number; username: string; points: number; right: number; graded: number; accuracy: number; perPick: number; bestStreak: number; pending: number }
-export interface Leaderboard { standings: Standing[]; unranked: number; model: { points: number; right: number; graded: number; accuracy: number; perPick: number; fights: number } | null; minRanked: number }
+export interface Leaderboard { standings: Standing[]; /** every ranked player's score, best first (the standings above show only the top 100), so anyone's place can be worked out */ field: { points: number; accuracy: number }[]; unranked: number; model: { points: number; right: number; graded: number; accuracy: number; perPick: number; fights: number } | null; minRanked: number }
 
 export function leaderboard(main: DatabaseSync, w: World, t: T = tEn, acc: DatabaseSync = accountsDb()): Leaderboard {
   const users = acc.prepare("SELECT id, username FROM users WHERE picks_public = 1 AND disabled = 0").all() as { id: number; username: string }[];
@@ -68,7 +68,7 @@ export function leaderboard(main: DatabaseSync, w: World, t: T = tEn, acc: Datab
   }
   let rank = 0, last: Omit<Standing, "rank"> | null = null, shown = 0;
   const out = standings.map((s): Standing => { shown++; if (!last || s.points !== last.points || s.accuracy !== last.accuracy) rank = shown; last = s; return { ...s, rank }; });
-  return { standings: out.slice(0, 100), unranked, model, minRanked: MIN_RANKED };
+  return { standings: out.slice(0, 100), field: out.map((x) => ({ points: x.points, accuracy: x.accuracy })), unranked, model, minRanked: MIN_RANKED };
 }
 
 /**
@@ -89,3 +89,70 @@ export function leaderboardCached(main: DatabaseSync, w: World, t: T = tEn, acc:
   return value;
 }
 export const clearLeaderboardCache = () => cache.clear();
+
+
+/** The place a score would take on the board: one more than the number of ranked players strictly ahead of it (same points and accuracy share a place, as on the board). */
+export const rankIn = (lb: Pick<Leaderboard, "field">, points: number, accuracy: number): number =>
+  1 + lb.field.filter((f) => f.points > points || (f.points === points && f.accuracy > accuracy)).length;
+
+export interface MyStanding {
+  graded: number; right: number; wrong: number; pending: number; points: number; perPick: number; accuracy: number;
+  /** their place among ranked players, or null until they have MIN_RANKED graded picks */
+  rank: number | null; ranked: number; minRanked: number; stillNeeded: number;
+  /** whether others can see them on the board */
+  public: boolean;
+  /** the model's score by the same rule on the fights this person picked and the model had a call on */
+  model: { fights: number; right: number; points: number } | null;
+}
+
+/** One person's own record, for them only: counted whether or not they are on the public board, and with their place if they would be ranked. */
+export function myStanding(main: DatabaseSync, w: World, t: T, userId: number, acc: DatabaseSync = accountsDb(), lb: Leaderboard = leaderboardCached(main, w, t, acc)): MyStanding {
+  const me = acc.prepare("SELECT picks_public FROM users WHERE id = ?").get(userId) as { picks_public: number } | undefined;
+  const picks = resolve(acc.prepare("SELECT bout_ext, boxer_ext FROM picks WHERE user_id = ?").all(userId) as { bout_ext: string; boxer_ext: string }[], main);
+  const infos = pickInfos(main, w, Object.keys(picks).map(Number), t, Infinity);
+  const { rows, summary } = grade(picks, infos);
+  const scored = rows.filter((r) => r.state === "right" || r.state === "wrong");
+  const points = scored.reduce((s, r) => s + pickPoints(r), 0);
+  const accuracy = summary.accuracy;
+  const ranked = scored.length >= MIN_RANKED;
+  let mp = 0, mr = 0, mf = 0;
+  for (const r of scored) {
+    if (r.modelPickId === null) continue;
+    mf++;
+    const pRed = r.info.modelPRed as number;
+    if (r.info.winnerId === r.modelPickId) { mr++; mp += 1 + (1 - Math.max(pRed, 1 - pRed)); }
+  }
+  return {
+    graded: scored.length, right: summary.right, wrong: scored.length - summary.right, pending: summary.pending, points, perPick: scored.length ? points / scored.length : 0, accuracy,
+    rank: ranked ? rankIn(lb, points, accuracy) : null, ranked: lb.field.length, minRanked: MIN_RANKED, stillNeeded: Math.max(0, MIN_RANKED - scored.length),
+    public: !!me?.picks_public, model: mf ? { fights: mf, right: mr, points: mp } : null,
+  };
+}
+
+export interface Recap { right: number; wrong: number; items: { boutId: number; fight: string; pick: string; right: boolean; date: string }[]; through: string }
+
+/**
+ * What was graded since the person last looked: their decided picks on fights after the last one they were shown ("seen through").
+ * Dismissing the recap moves that mark to the latest decided fight, so each fight is reported once, whatever the clock says.
+ * Null when nothing new has been graded.
+ */
+export function picksRecap(main: DatabaseSync, w: World, t: T, userId: number, acc: DatabaseSync = accountsDb()): Recap | null {
+  const seen = (acc.prepare("SELECT picks_seen_through s FROM users WHERE id = ?").get(userId) as { s: string | null } | undefined)?.s ?? null;
+  const picks = resolve(acc.prepare("SELECT bout_ext, boxer_ext FROM picks WHERE user_id = ?").all(userId) as { bout_ext: string; boxer_ext: string }[], main);
+  const { rows } = grade(picks, pickInfos(main, w, Object.keys(picks).map(Number), t, Infinity));
+  const decided = rows.filter((r) => r.state === "right" || r.state === "wrong");
+  if (!decided.length) return null;
+  const through = decided.reduce((m, r) => (r.info.date > m ? r.info.date : m), "");
+  const fresh = decided.filter((r) => !seen || r.info.date > seen).sort((a, b) => b.info.date.localeCompare(a.info.date) || b.info.boutId - a.info.boutId);
+  if (!fresh.length) return null;
+  return {
+    right: fresh.filter((r) => r.state === "right").length, wrong: fresh.filter((r) => r.state === "wrong").length, through,
+    items: fresh.slice(0, 5).map((r) => ({ boutId: r.info.boutId, fight: `${r.info.red.name} – ${r.info.blue.name}`, pick: r.pickId === r.info.red.id ? r.info.red.name : r.info.blue.name, right: r.state === "right", date: r.info.date })),
+  };
+}
+
+/** Records that everything graded up to `through` has been shown (it never moves backwards). */
+export function markRecapSeen(userId: number, through: string, acc: DatabaseSync = accountsDb()): void {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(through)) return;
+  acc.prepare("UPDATE users SET picks_seen_through = ? WHERE id = ? AND (picks_seen_through IS NULL OR picks_seen_through < ?)").run(through, userId, through);
+}

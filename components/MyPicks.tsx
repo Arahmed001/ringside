@@ -4,6 +4,7 @@ import Link from "@/components/L";
 import { usePicks } from "@/lib/usePicks";
 import { useLocale, useT } from "@/components/i18n";
 import { grade, type PickInfo } from "@/lib/picks-grade";
+import { PickStanding } from "@/components/PickStanding";
 
 const MIN_VERSUS = 10; // fewer shared fights than this say more about luck than about who is better
 
@@ -41,6 +42,7 @@ export function MyPicks() {
   const pct = (x: number) => `${Math.round(x * 100)}%`;
   return (
     <div className="space-y-8">
+      {mode === "account" && <PickStanding />}
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label={t("Picks made")} value={String(s.made)} sub={t("{n} still to come", { n: s.pending })} />
         <Stat label={t("Your record")} value={s.graded ? `${s.right}-${s.graded - s.right}` : "–"} sub={s.graded ? t("{p} right", { p: pct(s.accuracy) }) : t("Nothing graded yet")} />
