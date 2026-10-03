@@ -68,7 +68,7 @@ export default async function Home() {
           <h1 className="font-display text-6xl font-extrabold uppercase leading-[.92] sm:text-8xl">{t("Every fighter.")}<br /><span className="text-red-ink">{t("Every number.")}</span></h1>
           <p className="mt-5 max-w-xl text-lg text-muted">{t("Ratings, rankings, win-probabilities and AI scouting for the whole sport, in one place. Ask in plain English.")}</p>
           <form action={localePath(t.locale, "/boxers")} className="mt-7 flex max-w-xl gap-2">
-            <input name="q" placeholder={t("Try: {example}", { example: t(EXAMPLES[0]) })} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-5 py-3.5 outline-none transition placeholder:text-muted focus:border-gold/60" />
+            <input name="q" aria-label={t("Search fighters")} placeholder={t("Try: {example}", { example: t(EXAMPLES[0]) })} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-5 py-3.5 outline-none transition placeholder:text-muted focus:border-gold/60" />
             <button className="rounded-2xl bg-red-btn px-6 text-white font-display text-lg font-bold uppercase tracking-wide transition hover:brightness-90">{t("Ask")}</button>
           </form>
           <div className="mt-3 flex flex-wrap gap-2">

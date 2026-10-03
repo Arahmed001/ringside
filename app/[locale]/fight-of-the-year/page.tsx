@@ -47,7 +47,7 @@ export default async function FightOfTheYear() {
             <tbody>
               {winners.map(({ year, top }) => (
                 <tr key={year} className="border-t border-line/60">
-                  <th scope="row" className="whitespace-nowrap p-3 text-start font-display text-lg font-bold tabular"><Link href={`/fight-of-the-year/${year}`} className="hover:text-gold">{year}</Link>{year === currentYear() && <div className="text-xs font-normal text-muted">{t("so far")}</div>}</th>
+                  <th scope="row" className="whitespace-nowrap p-3 text-start font-display text-lg font-bold tabular"><Link href={`/fight-of-the-year/${year}`} className="inline-block py-0.5 hover:text-gold">{year}</Link>{year === currentYear() && <div className="text-xs font-normal text-muted">{t("so far")}</div>}</th>
                   <td><Link href={`/bouts/${top.bout.id}`} className="font-semibold hover:text-gold">{t.name(top.bout.redName)} <span className="text-muted">{t("vs")}</span> {t.name(top.bout.blueName)}</Link><div className="text-xs text-muted">{fmtDate(top.bout.date, { month: "short", day: "numeric" }, t.locale)} · {t.name(top.bout.eventName)}</div></td>
                   <td className="hidden text-muted md:table-cell">{resultLine(w, top.bout, t)}{hasWinner(top.bout.method) && ` · ${methodLabel(top.bout.method, top.bout.endRound, t)}`}</td>
                   <td className="pe-3 text-end"><ScoreBadge score={top.score} /></td>

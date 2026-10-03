@@ -96,7 +96,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
                       </div>
                     </Link>
                   ))}
-                  <Link href={`/bouts/${b.id}`} className="order-2 text-center transition hover:opacity-80" title={t("Full bout details")}><div className="font-display text-xl font-bold text-gold">{t("VS")}</div>{b.method && <div className="text-xs tabular text-muted">{methodLabel(b.method, b.endRound, t)}</div>}</Link>
+                  <Link href={`/bouts/${b.id}`} className="order-2 min-w-6 py-1 text-center transition hover:opacity-80" title={t("Full bout details")}><div className="font-display text-xl font-bold text-gold">{t("VS")}</div>{b.method && <div className="text-xs tabular text-muted">{methodLabel(b.method, b.endRound, t)}</div>}</Link>
                 </div>
                 {b.upcoming && !cancelled && <div className="mt-3 text-end"><Link href={`/previews/${b.id}`} className="inline-block py-1 text-sm text-muted hover:text-gold">{t("Read the preview")} <span className="inline-block rtl:rotate-180">→</span></Link></div>}
                 {b.upcoming && !cancelled && <div className="mt-4"><ProbBar a={t.name(r.name)} b={t.name(u.name)} pA={p.pA} pB={p.pB} pDraw={p.pDraw} /></div>}

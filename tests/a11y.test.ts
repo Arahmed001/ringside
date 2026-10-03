@@ -59,3 +59,26 @@ test("the new labels exist in Arabic", () => {
   const ar = JSON.parse(read("i18n/ar.json")) as Record<string, unknown>;
   for (const k of ["Skip to content", "Show as a list", "Show the map", "From {first} to {last}, peak {peak}"]) assert.ok(typeof ar[k] === "string" && ar[k] !== k, k);
 });
+
+test("every table has a name, every text input has a label, and every svg is described or hidden", () => {
+  for (const f of sources) {
+    const s = read(f);
+    for (const m of s.matchAll(/<table\b[^>]*>/g)) {
+      const after = s.slice(m.index! + m[0].length, m.index! + m[0].length + 240);
+      assert.ok(/aria-label|aria-labelledby/.test(m[0]) || after.includes("<caption"), `${f}: a <table> with no name (${m[0].slice(0, 60)})`);
+    }
+    for (const m of s.matchAll(/<input\b(?:=>|[^>])*>/g)) {
+      if (/type="hidden"/.test(m[0])) continue;
+      const around = s.slice(Math.max(0, m.index! - 300), m.index! + m[0].length + 60);
+      assert.ok(/aria-label|aria-labelledby/.test(m[0]) || /<label\b/.test(around), `${f}: an <input> with no label (${m[0].slice(0, 60)})`);
+    }
+    for (const m of s.matchAll(/<svg\b[^>]*>/g)) assert.ok(/aria-hidden|role=|aria-label|\{\.\.\./.test(m[0]), `${f}: an <svg> that is neither described nor hidden`);
+  }
+});
+
+test("screen-reader-only text inside a scrolling table cannot widen the page, and small controls keep a 24px hit area", () => {
+  // .sr-only is absolutely positioned: with no positioned ancestor it escapes an overflow container and stretches the whole page sideways (the heatmap did this at 320 px)
+  assert.match(read("components/ChartI18n.tsx"), /<td[^>]*className="relative /);
+  assert.match(css, /input\[type="range"\]\.rs \{[^}]*height: 24px/);
+  assert.match(css, /::-webkit-slider-thumb \{[^}]*width: 24px; height: 24px/);
+});

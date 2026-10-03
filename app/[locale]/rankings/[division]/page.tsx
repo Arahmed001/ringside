@@ -57,7 +57,7 @@ export default async function DivisionRankings({ params, searchParams }: { param
       )}
 
       <div className="card mt-6 overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm" aria-label={t("{division} rankings", { division: divisionLabel(d.name, sex, t) })}>
           <thead><tr className="text-start text-xs uppercase tracking-widest text-muted">
             <th className="p-3">#</th><th>{t("Fighter")}</th><th className="hidden sm:table-cell">{t("Style")}</th><th>{t("Record")}</th><th className="hidden md:table-cell">{t("KO%")}</th><th className="hidden md:table-cell">{t("Last fight")}</th><th className="text-end">{t("Rating")}</th><th className="p-3 text-end">{t("90d")}</th>
           </tr></thead>

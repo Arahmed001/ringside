@@ -118,7 +118,7 @@ export default async function PersonPage({ params }: { params: Promise<{ locale:
             <Stat label={t("Picks home fighter")} value={myJudge.homePickRate === null ? "–" : `${Math.round(myJudge.homePickRate * 100)}%`} sub={t("league {pct}% · n={n}", { pct: Math.round(judge.leagueHomePickRate * 100), n: myJudge.homeSamples })} />
           </div>
           <div className="card overflow-x-auto p-5">
-            <table className="w-full text-sm"><tbody>{recentBouts("judge").map((b) => (
+            <table className="w-full text-sm" aria-label={t("Scoring record")}><tbody>{recentBouts("judge").map((b) => (
               <tr key={b.id} className="border-t border-line/60 first:border-0"><td className="py-2 text-muted tabular">{fmtDate(b.date, { month: "short", day: "numeric", year: "numeric" }, t.locale)}</td><td><Link href={`/bouts/${b.id}`} className="hover:text-gold">{b.label}</Link></td><td className="tabular text-muted">{b.result}</td><td className="text-end tabular font-semibold">{b.detail}</td></tr>
             ))}</tbody></table>
           </div>
@@ -135,7 +135,7 @@ export default async function PersonPage({ params }: { params: Promise<{ locale:
             <Stat label={t("Early stoppages")} value={`${Math.round(myRef.earlyStopRate * 100)}%`} sub={t("rounds 1–3")} />
           </div>
           <div className="card overflow-x-auto p-5">
-            <table className="w-full text-sm"><tbody>{recentBouts("referee").map((b) => (
+            <table className="w-full text-sm" aria-label={t("Officiating record")}><tbody>{recentBouts("referee").map((b) => (
               <tr key={b.id} className="border-t border-line/60 first:border-0"><td className="py-2 text-muted tabular">{fmtDate(b.date, { month: "short", day: "numeric", year: "numeric" }, t.locale)}</td><td><Link href={`/bouts/${b.id}`} className="hover:text-gold">{b.label}</Link></td><td className="text-end tabular text-muted">{b.result}</td></tr>
             ))}</tbody></table>
           </div>

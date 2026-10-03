@@ -12,6 +12,7 @@
     "venues:resolve": "tsx scripts/resolve-venues.ts",
     "model:fit": "tsx scripts/fit-model.ts",
     "data:check": "tsx scripts/check-feed.ts",
+    "smoke": "tsx scripts/smoke.ts",
     "test": "node --import tsx --test tests/*.test.ts",
     "bench": "node --expose-gc --max-old-space-size=12288 --import tsx scripts/scale-bench.ts",
     "i18n:extract": "tsx scripts/i18n.ts extract",
