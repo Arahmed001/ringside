@@ -131,7 +131,7 @@ export default async function Money() {
         <div className="card min-w-0 p-5">
           <SectionTitle eyebrow={t("Who shows the fights")} title={t("Broadcasters")} />
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm" aria-label={t("Broadcasters")}>
               <thead><tr className="text-start text-xs font-normal uppercase tracking-widest text-muted"><th className="py-2 text-start font-normal">{t("Broadcaster")}</th><th className="text-start font-normal">{t("Type")}</th><th className="text-end font-normal">{t("Cards")}</th><th className="text-end font-normal">{t("Avg audience")}</th><th className="text-end font-normal">{t("PPV buys")}</th></tr></thead>
               <tbody>
                 {casters.map((c) => (

@@ -38,7 +38,7 @@ export default async function AllTimeList({ params, searchParams }: { params: Pr
         itemListElement: rows.filter((r) => r.boxer).slice(0, 25).map((r) => ({ "@type": "ListItem", position: r.rank, url: abs(localePath(t.locale, `/boxers/${r.boxer!.slug}`)), name: t.name(r.boxer!.name) })),
       }} />
       <div>
-        <div className="eyebrow mb-2"><Link href="/all-time" className="hover:text-ink">{t("All-time lists")}</Link>{scopeText && ` · ${scopeText}`}</div>
+        <div className="eyebrow mb-2"><Link href="/all-time" className="inline-block py-1 hover:text-ink">{t("All-time lists")}</Link>{scopeText && ` · ${scopeText}`}</div>
         <h1 className="font-display text-4xl font-extrabold uppercase sm:text-5xl">{t(def.title)}</h1>
         <p className="mt-2 max-w-3xl text-muted">{t(def.blurb)}</p>
         {span && <p className="mt-2 text-xs text-muted">{t("From {bouts} bouts, {from} to {to}.", { bouts: span.bouts.toLocaleString("en-US"), from: fmtDate(span.from, { month: "short", year: "numeric" }, t.locale), to: fmtDate(span.to, { month: "short", year: "numeric" }, t.locale) })}</p>}

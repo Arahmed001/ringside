@@ -37,7 +37,7 @@ export default async function Boxers({ searchParams }: { searchParams: Promise<{
       <div className="eyebrow mb-2">{t("Fighter database")}</div>
       <h1 className="font-display text-5xl font-extrabold uppercase">{t("Find a fighter")}</h1>
       <form className="mt-5 flex max-w-2xl gap-2">
-        <input name="q" defaultValue={q} placeholder={t("Ask in plain English — “southpaw welterweights with 10+ KOs after 2015”")} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-5 py-3.5 outline-none transition placeholder:text-muted focus:border-gold/60" />
+        <input name="q" aria-label={t("Search fighters")} defaultValue={q} placeholder={t("Ask in plain English — “southpaw welterweights with 10+ KOs after 2015”")} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-5 py-3.5 outline-none transition placeholder:text-muted focus:border-gold/60" />
         <button className="rounded-2xl bg-red-btn px-6 text-white font-display text-lg font-bold uppercase transition hover:brightness-90">{t("Search")}</button>
       </form>
       <div className="mt-4 flex gap-1.5">

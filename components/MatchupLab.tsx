@@ -22,7 +22,7 @@ function Slider({ label, value, min, max, step, onChange, display, color }: { la
   return (
     <label className="block">
       <div className="mb-1 flex justify-between text-xs"><span className="text-muted">{label}</span><span className="tabular font-semibold" style={{ color }}>{display}</span></div>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="rs w-full"
+      <input type="range" min={min} max={max} step={step} value={value} aria-valuetext={display} onChange={(e) => onChange(Number(e.target.value))} className="rs w-full"
         style={{ ["--c" as string]: color ?? "#d9b25f", ["--pct" as string]: `${((value - min) / (max - min)) * 100}%` }} />
     </label>
   );
@@ -63,6 +63,8 @@ export function MatchupLab({ a, b, defaults, modelNote, finish = null }: { a: Si
 
       <div className="rounded-2xl bg-panel2 p-5">
         <ProbBar a={a.name} b={b.name} pA={p.pA} pB={p.pB} pDraw={p.pDraw} />
+        {/* the bar is a picture; this is what a screen reader hears each time a slider or preset changes the odds */}
+        <p role="status" aria-live="polite" aria-atomic="true" className="sr-only">{t("{a} {pa}, {b} {pb}", { a: a.name, pa: `${Math.round(p.pA * 100)}%`, b: b.name, pb: `${Math.round(p.pB * 100)}%` })}</p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           <span className="chip !border-gold/40 !text-gold">✦ {t(p.confidence)}</span>
           <span className="chip">{t("{n}% KO/TKO", { n: Math.round(p.koProb * 100) })}</span>
