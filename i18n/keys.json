@@ -1515,7 +1515,7 @@
  {
   "key": "All-time",
   "files": [
-   "app/[locale]/layout.tsx"
+   "lib/nav.ts"
   ]
  },
  {
@@ -1568,8 +1568,8 @@
   "key": "Analytics",
   "files": [
    "app/[locale]/analytics/page.tsx",
-   "app/[locale]/layout.tsx",
    "app/[locale]/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -2123,6 +2123,12 @@
   ]
  },
  {
+  "key": "Camps and money",
+  "files": [
+   "lib/nav.ts"
+  ]
+ },
+ {
   "key": "cancelled",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -2252,6 +2258,12 @@
   ]
  },
  {
+  "key": "Close menu",
+  "files": [
+   "components/RailControls.tsx"
+  ]
+ },
+ {
   "key": "Closing odds",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
@@ -2263,6 +2275,12 @@
   "files": [
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/previews/page.tsx"
+  ]
+ },
+ {
+  "key": "Collapse menu",
+  "files": [
+   "components/RailControls.tsx"
   ]
  },
  {
@@ -2371,7 +2389,7 @@
  {
   "key": "Corners",
   "files": [
-   "app/[locale]/layout.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -2512,7 +2530,7 @@
  {
   "key": "Data",
   "files": [
-   "app/[locale]/layout.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -2520,6 +2538,12 @@
   "key": "Data & model",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Data and models",
+  "files": [
+   "lib/nav.ts"
   ]
  },
  {
@@ -2592,6 +2616,12 @@
   "key": "Different weight divisions in which a fighter has been champion of a belt.",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Discover",
+  "files": [
+   "lib/nav.ts"
   ]
  },
  {
@@ -2859,8 +2889,8 @@
   "key": "Events",
   "files": [
    "app/[locale]/events/page.tsx",
-   "app/[locale]/layout.tsx",
    "app/[locale]/orgs/[slug]/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -2984,6 +3014,12 @@
   "key": "Exact birth date",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Expand menu",
+  "files": [
+   "components/RailControls.tsx"
   ]
  },
  {
@@ -3116,6 +3152,7 @@
    "app/[locale]/all-time/page.tsx",
    "app/[locale]/fight-of-the-year/[year]/page.tsx",
    "app/[locale]/fight-of-the-year/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -3158,6 +3195,7 @@
   "files": [
    "app/[locale]/events/page.tsx",
    "app/[locale]/previews/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -3290,10 +3328,10 @@
   "files": [
    "app/[locale]/analytics/page.tsx",
    "app/[locale]/boxers/page.tsx",
-   "app/[locale]/layout.tsx",
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "lib/coverage.ts",
+   "lib/nav.ts",
    "lib/records.ts",
    "lib/search.ts"
   ]
@@ -3338,6 +3376,7 @@
   "key": "Fights",
   "files": [
    "app/[locale]/accountability/page.tsx",
+   "lib/nav.ts",
    "lib/records.ts"
   ]
  },
@@ -3593,6 +3632,7 @@
   "key": "Gyms, promotions & bodies",
   "files": [
    "app/[locale]/orgs/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts",
    "lib/seo-server.ts"
   ]
@@ -4387,7 +4427,7 @@
  {
   "key": "Main",
   "files": [
-   "app/[locale]/layout.tsx"
+   "components/SideNav.tsx"
   ]
  },
  {
@@ -4461,6 +4501,7 @@
    "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
    "components/TitlesCard.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -4480,7 +4521,7 @@
   "key": "Matchups",
   "files": [
    "app/[locale]/compare/page.tsx",
-   "app/[locale]/layout.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -4500,6 +4541,12 @@
    "app/[locale]/titles/page.tsx",
    "components/RecordsFilter.tsx",
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Menu",
+  "files": [
+   "components/RailControls.tsx"
   ]
  },
  {
@@ -4607,8 +4654,8 @@
  {
   "key": "Money",
   "files": [
-   "app/[locale]/layout.tsx",
-   "lib/coverage.ts"
+   "lib/coverage.ts",
+   "lib/nav.ts"
   ]
  },
  {
@@ -5678,9 +5725,9 @@
  {
   "key": "Rankings",
   "files": [
-   "app/[locale]/layout.tsx",
    "app/[locale]/rankings/page.tsx",
    "app/[locale]/titles/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -6540,8 +6587,8 @@
  {
   "key": "Style Map",
   "files": [
-   "app/[locale]/layout.tsx",
    "app/[locale]/map/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -7105,9 +7152,9 @@
  {
   "key": "Titles",
   "files": [
-   "app/[locale]/layout.tsx",
    "app/[locale]/people/page.tsx",
    "components/TitlesCard.tsx",
+   "lib/nav.ts",
    "lib/records.ts"
   ]
  },
@@ -7231,6 +7278,7 @@
   "files": [
    "app/[locale]/accountability/page.tsx",
    "app/[locale]/bouts/[id]/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -7495,8 +7543,8 @@
  {
   "key": "Weigh-ins",
   "files": [
-   "app/[locale]/layout.tsx",
    "app/[locale]/weights/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
