@@ -604,13 +604,14 @@ test("plan prices the backfill before it is spent: the list pages are fetched, t
   const dir = await tmp("plan");
   const m = mockFetch(standard);
   const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: m.impl, cacheDir: dir, scheduleDays: 0 });
-  assert.deepEqual(await p.plan(), { fights: 2, events: 2, fighters: 3, fightersCached: 0, fighterRequests: 3, requestsMade: 1 });
+  const sizes = (x: Awaited<ReturnType<typeof p.plan>>) => { const { selection, ...rest } = x; assert.ok(selection && selection.length >= 1, "the plan also says what taking only the most recent fighters would give"); return rest; };
+  assert.deepEqual(sizes(await p.plan()), { fights: 2, events: 2, fighters: 3, fightersCached: 0, fighterRequests: 3, requestsMade: 1 });
   assert.equal(countCalls(m.calls, "/v2/fighters/"), 0, "no fighter was fetched to find out");
   await p.fetchBouts();
   assert.equal(countCalls(m.calls, "/v2/fights"), 1, "the list pages were not fetched twice");
 
   const later = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: mockFetch(standard).impl, cacheDir: dir, scheduleDays: 0 });
-  assert.deepEqual(await later.plan(), { fights: 2, events: 2, fighters: 3, fightersCached: 3, fighterRequests: 0, requestsMade: 0 }, "everything is already in the cache");
+  assert.deepEqual(sizes(await later.plan()), { fights: 2, events: 2, fighters: 3, fightersCached: 3, fighterRequests: 0, requestsMade: 0 }, "everything is already in the cache");
   const fresh = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: mockFetch(standard).impl, cacheDir: dir, refresh: true, scheduleDays: 0 });
   assert.equal((await fresh.plan()).fighterRequests, 3, "with refresh nothing counts as cached");
   fs.rmSync(dir, { recursive: true, force: true });
