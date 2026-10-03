@@ -12,7 +12,7 @@ Ringside runs on a fictional league. This is what stands between it and a real f
 
 ```bash
 export BOXING_API_KEY=...            # the RapidAPI key from the free plan
-npm run vendor:sample -- --fights 10
+npm run vendor:sample -- --fights 10 --save-raw   # --save-raw keeps every raw response in data/vendor-samples/raw/ (gitignored)
 npm run data:check -- --file data/vendor-samples/boxing-data-api-<date>.json
 ```
 
@@ -42,6 +42,7 @@ Every approximation is counted. In a healthy feed these counts are small; a big 
 | `turnedProFromFirstFight` | No debut year | The year of the first fight in the feed, which may be later than the real debut | Fine once the whole career is loaded |
 | `ptsAsUnanimousDecision` | `PTS` is "points", not a decision type | `UD`, which claims unanimity the feed did not | Acceptable for ratings, wrong on a bout page's wording; consider a neutral "decision" method |
 | `drawInferred` / `resultMissing` | No draw value | See the table above | Check the sample |
+| `scheduleUnavailable` | The `/v2/fights/schedule` endpoint was refused (403/404), as it can be on a plan that does not include it | The coming fights are asked for from the list endpoint instead (from today on, soonest first) | Check upcoming fights still arrive; the refusal's own message is shown in the log |
 | `liveTreatedAsUpcoming` | `LIVE` fights | Treated as not yet decided | Fine |
 | `fightsSkipped` | A fight with no date or fewer than two fighters | Skipped | Check the count |
 | `boutsDroppedUnknownFighter` | A fighter's record could not be fetched | The bouts involving them are dropped, not stored with a hole | Re-run; a persistent one is a data gap |
