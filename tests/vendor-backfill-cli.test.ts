@@ -90,7 +90,6 @@ function run(args: string[], env: Record<string, string | undefined>): Promise<O
     child.on("close", (code) => resolve({ code, out }));
   });
 }
-const seen = (part: string) => state.requests.filter((r) => r.includes(part)).length;
 const mark = () => state.requests.length;
 const since = (n: number) => state.requests.slice(n);
 

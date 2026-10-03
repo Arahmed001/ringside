@@ -7,8 +7,9 @@ import { currentYear, nowMs, todayIso } from "../clock";
 
 /**
  * Adapter for the Boxing Data API (boxing-data.com, via RapidAPI), written against its published docs
- * (https://boxing-data.com/docs/endpoints/fighters, /fights, /events), not against a live key: the first run on the free
- * tier is the real test, and docs/real-data-readiness.md lists what to check. Nothing here scrapes any site.
+ * (https://boxing-data.com/docs/endpoints/fighters, /fights, /events) and then corrected by runs on the free plan's real
+ * answers (location format, `birth_year`, reach in inches, the schedule 403, `date_to` required). The free plan covers only a few
+ * weeks, so nothing here has been run against a full history; docs/real-data-readiness.md lists what to check. Nothing here scrapes any site.
  *
  * The feed has no corner colours, birth dates, round times, odds or card order, and some fields are loose (a free-text
  * `location`, a generic `PTS` result, no draw value). Wherever the mapping has to approximate, it does so the same way every
