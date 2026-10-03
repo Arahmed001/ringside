@@ -1,5 +1,8 @@
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
+import { getDb } from "@/lib/db";
+import { liveRecord } from "@/lib/ledger";
+import { LiveLedger } from "@/components/LiveLedger";
 import { calibrationVerdict, finishVerdict, record, weightsInUse } from "@/lib/accountability";
 import { CalibrationChart } from "@/components/CalibrationChart";
 import { BarList } from "@/components/charts";
@@ -18,6 +21,7 @@ export default async function Accountability() {
   const t = await getT();
   const w = await getWorld();
   const r = record(w);
+  const live = liveRecord(await getDb(), w);
   const rc = r.recent;
   const cal = calibrationVerdict(rc.calibration);
   const fin = finishVerdict(rc.finish);
@@ -38,6 +42,8 @@ export default async function Accountability() {
         <h1 className="font-display text-5xl font-extrabold uppercase">{t("Track record")}</h1>
         <p className="mt-2 max-w-2xl text-muted">{t("Before every fight the model gives each fighter a win probability. This page checks those numbers against what actually happened, using only what was known before each opening bell.")}</p>
       </div>
+
+      {live.locked > 0 && <LiveLedger w={w} rec={live} />}
 
       <section className="card p-5">
         <div className="eyebrow mb-2">{t("A backtest, not a live record")}</div>
