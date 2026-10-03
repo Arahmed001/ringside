@@ -10,6 +10,7 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { loadEnv } from "../lib/i18n/translate";
 import { diagnose, worst, type DbFacts, type Probe } from "../lib/doctor";
+import { latestUpdate } from "../lib/freshness";
 
 const argv = process.argv.slice(2);
 loadEnv();
@@ -29,7 +30,7 @@ const probe: Probe = {
         const have = (db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all() as { name: string }[]).map((r) => r.name);
         const rows: Record<string, number> = {};
         for (const t of tables) if (have.includes(t)) rows[t] = (db.prepare(`SELECT COUNT(*) c FROM "${t}"`).get() as { c: number }).c;
-        return { exists: true, bytes: st.size, mode: st.mode, quickCheck, tables: have, rows };
+        return { exists: true, bytes: st.size, mode: st.mode, quickCheck, tables: have, rows, lastUpdate: have.includes("ingest_runs") ? latestUpdate(db) : null };
       } finally { db.close(); }
     } catch (e) { return { exists: true, error: (e as Error).message.slice(0, 120) }; }
   },

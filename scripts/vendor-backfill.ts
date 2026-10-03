@@ -6,7 +6,7 @@
  *   npm run vendor:backfill                        fetch (resumable), validate (strict), back up, load into the database, recompute ratings
  *   npm run vendor:backfill -- --update            the daily job: fights since the latest card in the database (less 14 days) and the coming weeks, with fresh fighter records
  *
- * Options: --since YYYY-MM-DD  --refresh (fetch everything again)  --gap-ms 300  --retries 4  --max-requests 100000  --cache-dir <dir>
+ * Options: --since YYYY-MM-DD  --refresh (fetch everything again)  --gap-ms 300  --retries 4  --max-requests 100000  --cache-dir <dir>  --offset-limit 10000 (documents a page number can reach; a longer list is read in date windows)
  *          --allow-incomplete (load even though some fighters could not be fetched)  --allow-errors (load even though the validator found errors)
  *          --min-complete 0.9 (the share of fighters whose loaded fights must add up to the vendor's career record)  --allow-partial  --allow-conflicts
  *          --into-existing (the database already holds other fighters: load alongside them)  --no-backup
@@ -39,7 +39,7 @@ async function main() {
   const gapMs = Number(arg("gap-ms") ?? 300);
   const base: BoxingDataApiOptions = {
     key, baseUrl: process.env.BOXING_API_URL || undefined, purpose: plan ? "evaluation" : "ingest", // a plan reads the list in memory and keeps nothing
-    retries: Number(arg("retries") ?? 4), gapMs, maxRequests: Number(arg("max-requests") ?? 100_000), log, since: arg("since"),
+    retries: Number(arg("retries") ?? 4), gapMs, maxRequests: Number(arg("max-requests") ?? 100_000), log, since: arg("since"), offsetLimit: arg("offset-limit") ? Number(arg("offset-limit")) : undefined,
     ...(plan ? {} : { cacheDir: path.resolve(arg("cache-dir") ?? path.join(process.cwd(), "data", "vendor-cache", "boxing-data-api")) }),
     // a daily update must see today's results (not yesterday's cached pages) and fresh career records for the fighters who just fought (a cached record predates the fight, and the audit would call it a contradiction)
     refresh: flag("refresh") || update,

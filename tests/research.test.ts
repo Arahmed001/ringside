@@ -1,5 +1,8 @@
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { tempDb } from "./helpers";
 import { hostOf, numberStated, numbersIn, squash } from "../lib/research/text";
@@ -99,12 +102,16 @@ test("a robots.txt that answers 403 means stay away; a 404 means no restrictions
   const away = mk({ "https://closed.example/robots.txt": { status: 403, body: "" }, "https://closed.example/a": { body: "<p>hi</p>" } });
   const r = await away.f.get("https://closed.example/a");
   assert.ok(!r.ok && r.reason === "robots");
-  const open = mk({ "https://open.example/a": { body: "<p>hello</p>" } }, { cacheDir: `${process.env.TMPDIR ?? "/tmp"}/ringside-research-cache-${process.pid}` });
-  const first = await open.f.get("https://open.example/a");
-  assert.ok(first.ok && !first.fromCache);
-  const second = await open.f.get("https://open.example/a");
-  assert.ok(second.ok && second.fromCache, "the second read comes from the cache");
-  assert.equal(open.web.log.filter((u) => u === "https://open.example/a").length, 1);
+  // a fresh folder every time: one named after the process id could be left over from an earlier run that had the same id, and the first read would then come from it
+  const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "ringside-research-cache-"));
+  try {
+    const open = mk({ "https://open.example/a": { body: "<p>hello</p>" } }, { cacheDir });
+    const first = await open.f.get("https://open.example/a");
+    assert.ok(first.ok && !first.fromCache);
+    const second = await open.f.get("https://open.example/a");
+    assert.ok(second.ok && second.fromCache, "the second read comes from the cache");
+    assert.equal(open.web.log.filter((u) => u === "https://open.example/a").length, 1);
+  } finally { fs.rmSync(cacheDir, { recursive: true, force: true }); }
 });
 
 // ---------- the checker ----------
