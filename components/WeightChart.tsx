@@ -18,23 +18,32 @@ export async function WeightChart({ points, w = 900, h = 210 }: { points: Weight
     const base = t("{date}: scale {n} lb", { date: p.date, n: p.official! });
     return extra ? `${base} (${extra})` : base;
   };
+  // Tick numbers and the legend are HTML, not SVG text: SVG text scales with the picture, and on a phone this 900-wide chart shrinks to about a third, which put its labels at 3 px.
+  const legend = (dot: string) => <span className="inline-block h-2 w-2 rounded-full" style={{ background: dot }} />;
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="ltr-fixed w-full" role="img" aria-label={t("Weigh-in weights over time")}>
-      {ticks.map((k) => <g key={k}><line x1={pad + 22} x2={w - pad} y1={y(k)} y2={y(k)} stroke="#fff" strokeOpacity=".06" /><text x={pad + 18} y={y(k) + 3} textAnchor="end" fontSize="9" fill="#8d8d99">{k}</text></g>)}
-      {limits && <polyline points={limits} fill="none" stroke="#ecebe6" strokeOpacity=".45" strokeDasharray="4 5" />}
-      <polyline points={line("fightNight")} fill="none" stroke="#e5322d" strokeWidth="2" strokeLinejoin="round" />
-      <polyline points={line("official")} fill="none" stroke="#d9b25f" strokeWidth="2" strokeLinejoin="round" />
-      {pts.map((p, i) => (
-        <g key={p.boutId}>
-          <circle cx={x(i)} cy={y(p.official!)} r={p.made === false ? 5 : 2.6} fill={p.made === false ? "none" : "#d9b25f"} stroke={p.made === false ? "#e5322d" : "none"} strokeWidth="2" />
-          <title>{tip(p)}</title>
-        </g>
-      ))}
-      <g fontSize="10">
-        <circle cx={pad + 28} cy={h - 6} r="3" fill="#d9b25f" /><text x={pad + 35} y={h - 3} fill="#8d8d99">{t("official")}</text>
-        <circle cx={pad + 90} cy={h - 6} r="3" fill="#e5322d" /><text x={pad + 97} y={h - 3} fill="#8d8d99">{t("fight night")}</text>
-        <line x1={pad + 165} x2={pad + 180} y1={h - 6} y2={h - 6} stroke="#ecebe6" strokeOpacity=".6" strokeDasharray="3 3" /><text x={pad + 185} y={h - 3} fill="#8d8d99">{t("limit")}</text>
-      </g>
-    </svg>
+    <div className="ltr-fixed">
+      <div className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-1">
+        <div aria-hidden className="relative">
+          {ticks.map((k) => <span key={k} className="tabular absolute end-0 -translate-y-1/2 text-xs text-muted" style={{ top: `${(y(k) / h) * 100}%` }}>{k}</span>)}
+        </div>
+        <svg viewBox={`0 0 ${w} ${h}`} className="w-full" role="img" aria-label={t("Weigh-in weights over time")}>
+          {ticks.map((k) => <line key={k} x1={pad + 22} x2={w - pad} y1={y(k)} y2={y(k)} stroke="#fff" strokeOpacity=".06" />)}
+          {limits && <polyline points={limits} fill="none" stroke="#ecebe6" strokeOpacity=".45" strokeDasharray="4 5" />}
+          <polyline points={line("fightNight")} fill="none" stroke="#e5322d" strokeWidth="2" strokeLinejoin="round" />
+          <polyline points={line("official")} fill="none" stroke="#d9b25f" strokeWidth="2" strokeLinejoin="round" />
+          {pts.map((p, i) => (
+            <g key={p.boutId}>
+              <circle cx={x(i)} cy={y(p.official!)} r={p.made === false ? 5 : 2.6} fill={p.made === false ? "none" : "#d9b25f"} stroke={p.made === false ? "#e5322d" : "none"} strokeWidth="2" />
+              <title>{tip(p)}</title>
+            </g>
+          ))}
+        </svg>
+      </div>
+      <div aria-hidden className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 ps-8 text-xs text-muted">
+        <span className="inline-flex items-center gap-1.5" dir="auto">{legend("#d9b25f")}{t("official")}</span>
+        <span className="inline-flex items-center gap-1.5" dir="auto">{legend("#e5322d")}{t("fight night")}</span>
+        <span className="inline-flex items-center gap-1.5" dir="auto"><span className="inline-block w-4 border-t border-dashed border-ink/60" />{t("limit")}</span>
+      </div>
+    </div>
   );
 }

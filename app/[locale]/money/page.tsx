@@ -1,3 +1,4 @@
+import { ScrollRegion } from "@/components/ScrollRegion";
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
 import { broadcasterTable, compact, moneyCoverage, revenueByYear, topEarners, topGates, topPpv, topPurses, usd } from "@/lib/money";
@@ -130,7 +131,7 @@ export default async function Money() {
       <section className="grid gap-5 lg:grid-cols-[1.1fr_1fr]">
         <div className="card min-w-0 p-5">
           <SectionTitle eyebrow={t("Who shows the fights")} title={t("Broadcasters")} />
-          <div className="overflow-x-auto">
+          <ScrollRegion label={t("Broadcasters")}>
             <table className="w-full text-sm" aria-label={t("Broadcasters")}>
               <thead><tr className="text-start text-xs font-normal uppercase tracking-widest text-muted"><th className="py-2 text-start font-normal">{t("Broadcaster")}</th><th className="text-start font-normal">{t("Type")}</th><th className="text-end font-normal">{t("Cards")}</th><th className="text-end font-normal">{t("Avg audience")}</th><th className="text-end font-normal">{t("PPV buys")}</th></tr></thead>
               <tbody>
@@ -145,7 +146,7 @@ export default async function Money() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollRegion>
         </div>
         <div className="card min-w-0 p-5">
           <SectionTitle eyebrow={t("Year by year")} title={t("Gate and PPV revenue")} />

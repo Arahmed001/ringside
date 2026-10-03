@@ -20,18 +20,18 @@ export function CalibrationChart({ bins, label, desc, xLabel, yLabel, perfect }:
         <g key={v}>
           <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} stroke="#fff" strokeOpacity=".07" />
           <line x1={x(v)} x2={x(v)} y1={T} y2={H - B} stroke="#fff" strokeOpacity=".07" />
-          <text x={L - 6} y={y(v) + 4} textAnchor="end" fontSize="11" fill="#8d8d99">{Math.round(v * 100)}</text>
-          <text x={x(v)} y={H - B + 16} textAnchor="middle" fontSize="11" fill="#8d8d99">{Math.round(v * 100)}</text>
+          <text x={L - 6} y={y(v) + 5} textAnchor="end" fontSize="13.5" fill="#8d8d99">{Math.round(v * 100)}</text>
+          <text x={x(v)} y={H - B + 16} textAnchor="middle" fontSize="13.5" fill="#8d8d99">{Math.round(v * 100)}</text>
         </g>
       ))}
       <line x1={x(lo)} y1={y(lo)} x2={x(hi)} y2={y(hi)} stroke="#8d8d99" strokeDasharray="5 5" />
-      <text x={x(0.66)} y={y(0.66) - 12} fontSize="11" fill="#8d8d99" transform={`rotate(-34 ${x(0.66)} ${y(0.66) - 12})`} textAnchor="middle">{perfect}</text>
+      <text x={x(0.66)} y={y(0.66) - 12} fontSize="13.5" fill="#8d8d99" transform={`rotate(-34 ${x(0.66)} ${y(0.66) - 12})`} textAnchor="middle">{perfect}</text>
       {shown.length > 1 && <polyline fill="none" stroke="#d9b25f" strokeOpacity=".6" strokeWidth="2" points={shown.map((b) => `${x(b.predicted).toFixed(1)},${y(Math.max(lo, b.observed)).toFixed(1)}`).join(" ")} />}
       {shown.map((b) => (
         <circle key={b.lo} cx={x(b.predicted)} cy={y(Math.max(lo, b.observed))} r={4 + 9 * Math.sqrt(b.n / maxN)} fill="#d9b25f" fillOpacity=".85" stroke="#09090b" strokeWidth="1.5" />
       ))}
-      <text x={(L + W - R) / 2} y={H - 6} textAnchor="middle" fontSize="12" fill="#c9c9d1">{xLabel}</text>
-      <text x={12} y={(T + H - B) / 2} textAnchor="middle" fontSize="12" fill="#c9c9d1" transform={`rotate(-90 12 ${(T + H - B) / 2})`}>{yLabel}</text>
+      <text x={(L + W - R) / 2} y={H - 6} textAnchor="middle" fontSize="13.5" fill="#c9c9d1">{xLabel}</text>
+      <text x={12} y={(T + H - B) / 2} textAnchor="middle" fontSize="13.5" fill="#c9c9d1" transform={`rotate(-90 12 ${(T + H - B) / 2})`}>{yLabel}</text>
     </Svg>
   );
 }

@@ -1,3 +1,4 @@
+import { ScrollRegion } from "@/components/ScrollRegion";
 import Link from "@/components/L";
 import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
@@ -40,7 +41,7 @@ export default async function Leaderboard() {
       ) : (
         <section aria-labelledby="board">
           <h2 id="board" className="sr-only">{t("Standings")}</h2>
-          <div className="card overflow-x-auto">
+          <ScrollRegion className="card" label={t("Pick’em standings")}>
             <table className="w-full min-w-[34rem] text-sm" aria-label={t("Pick’em standings")}>
               <thead className="text-xs uppercase tracking-widest text-muted">
                 <tr>
@@ -78,7 +79,7 @@ export default async function Leaderboard() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollRegion>
           {lb.unranked > 0 && <p className="mt-3 text-xs text-muted">{t.n(lb.unranked, "{n} more player has fewer than {min} graded picks and is not ranked yet.", "{n} more players have fewer than {min} graded picks and are not ranked yet.", { min: MIN_RANKED })}</p>}
         </section>
       )}

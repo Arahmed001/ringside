@@ -1,3 +1,4 @@
+import { ScrollRegion } from "@/components/ScrollRegion";
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
 import { PENALTY, LOGIT_TO_ELO, VERDICT_LABEL, moves, switchStudy, trainerImpact, underdogLifters, type Impact } from "@/lib/trainer-impact";
@@ -100,7 +101,7 @@ export default async function Trainers() {
       {lifters.length > 0 && (
         <section>
           <SectionTitle eyebrow={t("A different measure")} title={t("Who gets underdogs over the line")} />
-          <div className="card overflow-x-auto">
+          <ScrollRegion className="card" label={t("Head trainers whose fighters beat the odds as underdogs")}>
             <table className="w-full text-sm">
               <caption className="sr-only">{t("Head trainers whose fighters beat the odds as underdogs")}</caption>
               <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th scope="col" className="p-3 text-start font-normal">{t("Trainer")}</th><th scope="col" className="text-end font-normal">{t("Underdog fights")}</th><th scope="col" className="text-end font-normal">{t("Wins")}</th><th scope="col" className="text-end font-normal">{t("Expected")}</th><th scope="col" className="pe-3 text-end font-normal">{t("Over")}</th></tr></thead>
@@ -111,7 +112,7 @@ export default async function Trainers() {
                 </tr>
               ))}</tbody>
             </table>
-          </div>
+          </ScrollRegion>
           <p className="mt-3 max-w-3xl text-xs text-muted">{t("Fights where the fighter was the underdog going in (under 40% by their ratings): wins against the wins the ratings expected. At these sample sizes a few lucky nights explain most of the gaps; read it as a list to watch, not a verdict.")}</p>
         </section>
       )}

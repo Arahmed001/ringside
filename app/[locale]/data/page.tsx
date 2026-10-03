@@ -1,3 +1,4 @@
+import { ScrollRegion } from "@/components/ScrollRegion";
 import { coverage } from "@/lib/coverage";
 import { loadFit } from "@/lib/model-fit";
 import { activeWeights, DEFAULT_WEIGHTS } from "@/lib/model";
@@ -106,7 +107,7 @@ export default async function DataPage() {
 
       <section>
         <SectionTitle eyebrow={t("Where facts come from")} title={t("Source registry")} />
-        <div className="card overflow-x-auto p-2">
+        <ScrollRegion className="card p-2" label={t("Source registry")}>
           <table className="w-full text-sm" aria-label={t("Source registry")}>
             <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th className="p-3">{t("Source")}</th><th>{t("Supplies")}</th><th>{t("Licence")}</th><th>{t("Status")}</th></tr></thead>
             <tbody>{SOURCES.map((s) => (
@@ -117,7 +118,7 @@ export default async function DataPage() {
               </tr>
             ))}</tbody>
           </table>
-        </div>
+        </ScrollRegion>
       </section>
 
       <section aria-labelledby="languages">
@@ -149,7 +150,7 @@ export default async function DataPage() {
                 );
               })}
             </div>
-            <div className="card overflow-x-auto p-5">
+            <ScrollRegion className="card p-5" label={t("What the data says each factor is worth")}>
               <div className="eyebrow mb-3">{t("What the data says each factor is worth ({n} fights, {from} to {to})", { n: fit.rows.train.toLocaleString("en-US"), from: fit.rows.from, to: fit.rows.splitDate })}</div>
               <table className="w-full text-sm" aria-label={t("What the data says each factor is worth")}>
                 <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th className="py-2">{t("Factor")}</th><th>{t("Effect on log-odds of winning")}</th><th>{t("± error")}</th><th>z</th><th className="text-end">{t("Clear signal?")}</th></tr></thead>
@@ -162,7 +163,7 @@ export default async function DataPage() {
                 ))}</tbody>
               </table>
               <p className="mt-3 text-xs text-muted">{t("A factor needs |z| of about 2 or more to count as signal. Fitted on rating, reach, age, layoff, knockout rate, KO losses, experience, usual rehydration, fight-night weight edge, new-trainer flag and the trainer's prior win rate. In this demo league the weigh-in and trainer effects were planted but are small, so they are not detectable at this sample size. That is the honest answer, and real data will say what is really there.")}</p>
-            </div>
+            </ScrollRegion>
             <div className="card p-5">
               <div className="eyebrow mb-3">{t("Is it calibrated? ({model}, held-out fights)", { model: RECOMMENDED[fit.recommended] ? t(RECOMMENDED[fit.recommended]) : fit.recommended })}</div>
               <ul className="space-y-2">{fit.calibration.map((c) => (

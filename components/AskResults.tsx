@@ -2,6 +2,7 @@ import Link from "@/components/L";
 import type { Answer } from "@/lib/ask";
 import type { Cell } from "@/lib/ask/types";
 import { getT } from "@/lib/i18n/server";
+import { ScrollRegion } from "./ScrollRegion";
 
 const cell = (c: Cell, key: string) => (typeof c === "string" ? c : c.href ? <Link key={key} href={c.href} className="hover:text-gold">{c.text}</Link> : c.text);
 
@@ -26,14 +27,14 @@ export async function AskResults({ a, compact }: { a: Answer; /** The home page'
       {tables.map((tb) => (
         <section key={tb.id} className="card p-5" aria-labelledby={`t-${tb.id}`}>
           <h3 id={`t-${tb.id}`} className="mb-3 font-display text-2xl font-bold uppercase leading-none">{tb.title}</h3>
-          <div className="overflow-x-auto">
+          <ScrollRegion label={tb.title}>
             <table className="w-full text-sm" aria-labelledby={`t-${tb.id}`}>
               <thead><tr className="text-start text-xs uppercase tracking-widest text-muted">{tb.columns.map((c, i) => c ? <th key={i} scope="col" className="py-2 pe-3 text-start font-normal">{c}</th> : <td key={i} />)}</tr></thead>
               <tbody>{tb.rows.slice(0, cut(tb.rows.length)).map((r, i) => (
                 <tr key={i} className="border-t border-line/60 tabular">{r.map((c, j) => j === 0 && tb.columns[0] === "#" ? <td key={j} className="py-2 pe-3 text-muted">{cell(c, `${i}-${j}`)}</td> : <td key={j} className="py-2 pe-3">{cell(c, `${i}-${j}`)}</td>)}</tr>
               ))}</tbody>
             </table>
-          </div>
+          </ScrollRegion>
           {tb.note && <p className="mt-2 text-xs text-muted">{tb.note}</p>}
           {compact && tb.rows.length > compact.rows && <p className="mt-2 text-xs text-muted">{t("Showing {n} of {total}.", { n: compact.rows, total: tb.rows.length })}</p>}
         </section>

@@ -4,6 +4,7 @@ import { getDb } from "@/lib/db";
 import { liveRecord } from "@/lib/ledger";
 import { LiveLedger } from "@/components/LiveLedger";
 import { calibrationVerdict, finishVerdict, record, weightsInUse } from "@/lib/accountability";
+import { ScrollRegion } from "@/components/ScrollRegion";
 import { CalibrationChart } from "@/components/CalibrationChart";
 import { BarList } from "@/components/charts";
 import { Stat } from "@/components/ui";
@@ -63,7 +64,7 @@ export default async function Accountability() {
         <div className="min-w-0">
           <h2 className="font-display text-3xl font-bold uppercase">{t("When the model says 70%, is it right 70% of the time?")}</h2>
           <p className="mt-2 text-sm text-ink/90">{calText}</p>
-          <div className="mt-4 overflow-x-auto rounded-2xl border border-line">
+          <ScrollRegion className="mt-4 rounded-2xl border border-line" label={t("When the model says 70%, is it right 70% of the time?")}>
             <table className="w-full min-w-[22rem] text-sm tabular" aria-label={t("When the model says 70%, is it right 70% of the time?")}>
               <thead className="text-xs uppercase tracking-widest text-muted"><tr className="border-b border-line"><th className="px-3 py-2 text-start">{t("Model's confidence")}</th><th className="px-3 py-2 text-end">{t("Fights")}</th><th className="px-3 py-2 text-end">{t("It said")}</th><th className="px-3 py-2 text-end">{t("Actually won")}</th></tr></thead>
               <tbody>
@@ -72,7 +73,7 @@ export default async function Accountability() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollRegion>
           <p className="mt-4 text-sm text-muted">{t("The model expected {p} of fights to end inside the distance; {o} did.", { p: pct(rc.finish.predicted), o: pct(rc.finish.observed) })} {finText}</p>
         </div>
       </section>

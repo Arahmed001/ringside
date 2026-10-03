@@ -40,6 +40,23 @@ test("no text under 12px", () => {
   for (const f of sources) assert.ok(!/text-\[(9|10|11)px\]/.test(read(f)), `${f} has text under 12px`);
 });
 
+test("no text under 12px inside a chart either: SVG text sizes are 12 or more (the poster, which is art, and the share image are the exceptions)", () => {
+  // SVG text scales with the picture, so a size in the chart's own units is only a lower bound on what is drawn; the browser sweep (docs/accessibility.md) measures the rendered size
+  const small: string[] = [];
+  for (const f of sources) {
+    if (/Poster\.tsx$/.test(f)) continue;
+    for (const m of read(f).matchAll(/fontSize=(?:\{)?["']?(\d+(?:\.\d+)?)/g)) if (Number(m[1]) < 12) small.push(`${f}: fontSize ${m[1]}`);
+  }
+  assert.deepEqual(small, []);
+});
+
+test("a box that scrolls sideways is a ScrollRegion (focusable, so a keyboard can scroll it), unless everything in it is a link", () => {
+  // The only places that may scroll sideways without one: rows of links, which a keyboard already reaches with Tab.
+  const OK = [/components\/ScrollRegion\.tsx$/, /rankings\/\[division\]\/page\.tsx$/, /components\/TenureTable\.tsx$/, /components\/TrainerImpactCard\.tsx$/, /\[locale\]\/page\.tsx$/, /\/design\//];
+  const bad = sources.filter((f) => /overflow-x-auto/.test(read(f)) && !OK.some((re) => re.test(f)));
+  assert.deepEqual(bad, [], "wrap the table in <ScrollRegion label=…> (components/ScrollRegion.tsx), or add the file here if every cell in it is a link");
+});
+
 test("every page has a level-one heading, and the layout has a skip link to the main landmark", () => {
   for (const f of sources.filter((x) => /app\/\[locale\]\/.*page\.tsx$/.test(x) && !x.includes("[...rest]"))) assert.ok(/<h1\b/.test(read(f)), `${f} has no <h1>`);
   const layout = read("app/[locale]/layout.tsx");
@@ -97,4 +114,16 @@ test("poster header text stays readable on every generated colour scheme", async
   // the same check must be able to fail: without the scrim the old numbers come back (2.4:1 measured on a rendered poster)
   const { HEADER_SCRIM } = await import("../lib/poster-colors");
   assert.ok(HEADER_SCRIM.stops[0][1] >= 0.5);
+});
+
+test("a scroll box is focusable and named, and is a group rather than a region (a region named like its section fails landmark-unique)", async () => {
+  const { renderToStaticMarkup } = await import("react-dom/server");
+  const { createElement } = await import("react");
+  const { ScrollRegion } = await import("../components/ScrollRegion");
+  const html = renderToStaticMarkup(createElement(ScrollRegion, { label: "Standings", className: "card", children: createElement("table") }));
+  assert.match(html, /tabindex="0"/);
+  assert.match(html, /role="group"/);
+  assert.match(html, /aria-label="Standings"/);
+  assert.match(html, /class="overflow-x-auto card"/);
+  assert.ok(!/role="region"/.test(html));
 });

@@ -53,8 +53,9 @@ export async function TeamTimeline({ rows, today }: { rows: TimelineRow[]; today
       <div className="grid grid-cols-[86px_1fr] gap-3 sm:grid-cols-[120px_1fr]">
         <span />
         <div className="ltr-fixed relative h-4 text-xs text-muted">
-          {years.filter((_, i) => i % step === 0).map((y) => (
-            <span key={y} className="absolute -translate-x-1/2" style={{ left: `${((Date.UTC(y, 0, 1) - min) / span) * 100}%` }}>{y}</span>
+          {years.filter((_, i) => i % step === 0).map((y, j) => (
+            // on a phone the strip is under 200 px wide, so every other year is dropped (seven labels of 28 px do not fit; four do)
+            <span key={y} className={`absolute -translate-x-1/2 ${j % 2 ? "hidden sm:block" : ""}`} style={{ left: `${((Date.UTC(y, 0, 1) - min) / span) * 100}%` }}>{y}</span>
           ))}
         </div>
       </div>
