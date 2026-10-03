@@ -18,6 +18,8 @@ jobs:
           node-version: 22 # node:sqlite needs 22.5+
           cache: npm
       - run: npm ci
+      - name: Generate route types
+        run: npx next typegen # LayoutProps, PageProps and next/root-params types are generated, not checked in
       - name: Type check
         run: npx tsc --noEmit
       - name: Lint
