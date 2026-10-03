@@ -10,7 +10,8 @@ import { isPrivateAddress, publicHostOnly } from "../lib/research/netguard";
 import { PoliteFetcher } from "../lib/research/fetcher";
 
 const cleanup = tempDb("accounts");
-const accFile = path.join(os.tmpdir(), `ringside-test-accounts-${process.pid}.db`);
+// a file of its own: the sports database from tempDb("accounts") is ringside-test-accounts-<pid>.db, and sharing it would hide mix-ups between the two
+const accFile = path.join(os.tmpdir(), `ringside-test-accounts-only-${process.pid}.db`);
 process.env.ACCOUNTS_DB_PATH = accFile;
 const wipe = () => { for (const e of ["", "-wal", "-shm"]) fs.rmSync(accFile + e, { force: true }); };
 wipe();
@@ -29,6 +30,7 @@ async function call(h: Handler, method: string, body?: unknown, o: { cookie?: st
   return { status: res.status, json: await res.json().catch(() => ({})), cookie: sc?.split(";")[0], headers: res.headers };
 }
 const routes = async () => ({
+  sessions: await import("../app/api/account/sessions/route"),
   signup: (await import("../app/api/account/signup/route")).POST, login: (await import("../app/api/account/login/route")).POST,
   logout: (await import("../app/api/account/logout/route")).POST, me: (await import("../app/api/account/me/route")).GET,
   password: (await import("../app/api/account/password/route")).POST, del: (await import("../app/api/account/delete/route")).POST,
@@ -537,4 +539,125 @@ test("every form field in the account screens is tied to its label", () => {
   assert.ok([...s.matchAll(/<Field id="/g)].length >= 8);
   const c = read("components/ContributeForm.tsx");
   for (const m of c.matchAll(/<label htmlFor="([\w-]+)"/g)) assert.match(c, new RegExp(`id="${m[1]}"`), `label for ${m[1]} has no field`);
+});
+
+// ---------- sessions: where you are signed in ----------
+test("device labels are coarse, and nothing else of the user agent is kept", async () => {
+  const { deviceLabel } = await import("../lib/accounts/users");
+  assert.equal(deviceLabel("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"), "Chrome on macOS");
+  assert.equal(deviceLabel("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36 Edg/126.0"), "Edge on Windows");
+  assert.equal(deviceLabel("Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"), "Safari on iOS");
+  assert.equal(deviceLabel("Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0"), "Firefox on Linux");
+  assert.equal(deviceLabel("curl/8.4.0"), null);
+  assert.equal(deviceLabel(undefined), null);
+  assert.ok(!(deviceLabel("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/126.0.0.0 Safari/537.36") ?? "").match(/\d/), "no version numbers or build ids");
+});
+
+test("sessions can be listed, ended one at a time or all but this one, and never across accounts", async () => {
+  const r = await routes();
+  const UA = { chrome: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/126.0.0.0 Safari/537.36", phone: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 Version/17.5 Mobile/15E148 Safari/604.1" };
+  const login = async (name: string, ua: string, ip: string) => {
+    const res = await r.login(new Request(`${HOST}/api/x`, { method: "POST", headers: { "content-type": "application/json", origin: HOST, "x-forwarded-for": ip, "user-agent": ua }, body: JSON.stringify({ username: name, password: PW }) }));
+    return res.headers.get("set-cookie")!.split(";")[0];
+  };
+  limits().signup.reset();
+  await call(r.signup, "POST", { username: "sess_one", password: PW }, { ip: "10.60.0.1" });
+  await call(r.signup, "POST", { username: "sess_two", password: PW }, { ip: "10.60.0.2" });
+  const a = await login("sess_one", UA.chrome, "10.60.1.1"), b = await login("sess_one", UA.phone, "10.60.1.2"), c = await login("sess_one", "curl/8", "10.60.1.3");
+  const other = await login("sess_two", UA.chrome, "10.60.1.4");
+  const list = (await call(r.sessions.GET, "GET", undefined, { cookie: a })).json.sessions as { id: string; label: string | null; current: boolean }[];
+  assert.ok(list.length >= 3);
+  assert.deepEqual(list.filter((s) => s.current).map((s) => s.label), ["Chrome on macOS"], "this device is marked");
+  assert.ok(list.some((s) => s.label === "Safari on iOS") && list.some((s) => s.label === null));
+  assert.ok(list.every((s) => /^[0-9a-f]{16}$/.test(s.id)), "the id is a short prefix, not a credential");
+  assert.equal((await call(r.sessions.GET, "GET")).status, 401);
+
+  const phone = list.find((s) => s.label === "Safari on iOS")!, mine = list.find((s) => s.current)!;
+  assert.equal((await call(r.sessions.POST, "POST", { action: "revoke", id: mine.id }, { cookie: a })).json.error, "this_session", "ending this one is what Sign out is for");
+  const theirs = ((await call(r.sessions.GET, "GET", undefined, { cookie: other })).json.sessions as { id: string }[])[0];
+  assert.equal((await call(r.sessions.POST, "POST", { action: "revoke", id: theirs.id }, { cookie: a })).status, 404, "another person's session id does nothing");
+  assert.equal((await call(r.me, "GET", undefined, { cookie: other })).json.user.username, "sess_two");
+  assert.equal((await call(r.sessions.POST, "POST", { action: "revoke", id: "not-an-id" }, { cookie: a })).status, 404);
+  assert.equal((await call(r.sessions.POST, "POST", { action: "revoke", id: phone.id }, { cookie: a })).status, 200);
+  assert.equal((await call(r.me, "GET", undefined, { cookie: b })).json.user, null, "the phone is signed out on the server");
+  const ended = await call(r.sessions.POST, "POST", { action: "others" }, { cookie: a });
+  assert.ok(ended.json.ended >= 1);
+  assert.equal((await call(r.me, "GET", undefined, { cookie: c })).json.user, null);
+  assert.equal((await call(r.me, "GET", undefined, { cookie: a })).json.user.username, "sess_one", "this device carries on");
+  assert.equal((await call(r.me, "GET", undefined, { cookie: other })).json.user.username, "sess_two", "and the other account is untouched");
+  assert.equal((await call(r.sessions.POST, "POST", { action: "wipe" }, { cookie: a })).status, 400);
+  assert.equal((await call(r.sessions.POST, "POST", { action: "others" }, { cookie: a, origin: "https://evil.example" })).status, 403, "cross-site requests are refused here too");
+});
+
+test("last-used is recorded at most once an hour, and an accounts file from before device labels is upgraded", async () => {
+  const { accountsDb, closeAccountsDb, accountsPath } = await import("../lib/accounts/store");
+  const { createSession, userForToken } = await import("../lib/accounts/users");
+  const db = accountsDb();
+  const uid = (db.prepare("SELECT id FROM users WHERE username = 'sess_two'").get() as { id: number }).id;
+  const t0 = Date.parse("2026-01-01T00:00:00Z");
+  const { token } = createSession(uid, db, t0, "curl/8");
+  const seen = () => (db.prepare("SELECT last_seen s FROM sessions WHERE user_id = ? AND created_at = ?").get(uid, new Date(t0).toISOString()) as { s: string }).s;
+  assert.equal(seen(), new Date(t0).toISOString());
+  userForToken(token, db, t0 + 10 * 60_000); assert.equal(seen(), new Date(t0).toISOString(), "ten minutes later: no write");
+  userForToken(token, db, t0 + 2 * 3600_000); assert.equal(seen(), new Date(t0 + 2 * 3600_000).toISOString(), "two hours later: updated");
+  // an old file: a sessions table without the new columns
+  closeAccountsDb();
+  const { DatabaseSync } = await import("node:sqlite");
+  const old = new DatabaseSync(accountsPath());
+  old.exec("ALTER TABLE sessions DROP COLUMN label; ALTER TABLE sessions DROP COLUMN last_seen;");
+  old.close();
+  const reopened = accountsDb();
+  const cols = (reopened.prepare("PRAGMA table_info(sessions)").all() as { name: string }[]).map((c) => c.name);
+  assert.ok(cols.includes("label") && cols.includes("last_seen"), "columns added on open");
+});
+
+// ---------- the leaderboard cache ----------
+test("the leaderboard is kept between requests and rebuilt when anything it depends on changes", async () => {
+  const { getDb } = await import("../lib/db");
+  const { getWorld } = await import("../lib/world");
+  const { leaderboardCached, clearLeaderboardCache } = await import("../lib/accounts/leaderboard");
+  const { accountsDb } = await import("../lib/accounts/store");
+  const { tEn } = await import("../lib/i18n/t");
+  const main = await getDb(), w = await getWorld(), acc = accountsDb();
+  clearLeaderboardCache();
+  const a = leaderboardCached(main, w, tEn, acc), b = leaderboardCached(main, w, tEn, acc);
+  assert.equal(a, b, "nothing changed: the same object comes back, no grading is done");
+  const uid = (acc.prepare("SELECT id FROM users WHERE username = 'sess_two'").get() as { id: number }).id;
+  acc.prepare("INSERT INTO picks (user_id, bout_ext, boxer_ext, picked_at) VALUES (?,?,?,?)").run(uid, "cache-test-bout", "cache-test-boxer", new Date().toISOString());
+  const c = leaderboardCached(main, w, tEn, acc);
+  assert.notEqual(c, a, "a new pick rebuilds it");
+  acc.prepare("UPDATE users SET picks_public = 0 WHERE id = ?").run(uid);
+  const d = leaderboardCached(main, w, tEn, acc);
+  assert.notEqual(d, c, "going private rebuilds it");
+  acc.prepare("UPDATE users SET picks_public = 1 WHERE id = ?").run(uid);
+  assert.notEqual(leaderboardCached(main, w, tEn, acc), d, "and so does coming back");
+  const before = leaderboardCached(main, w, tEn, acc);
+  acc.prepare("UPDATE picks SET picked_at = ? WHERE bout_ext = 'cache-test-bout'").run("2099-01-01T00:00:00Z");
+  assert.notEqual(leaderboardCached(main, w, tEn, acc), before, "changing a pick rebuilds it");
+  // results arriving (the sports database changing) and a new day both rebuild it: fights get graded and locks move
+  const stable = leaderboardCached(main, w, tEn, acc);
+  assert.equal(leaderboardCached(main, w, tEn, acc), stable);
+  (await import("../lib/db")).bumpDbVersion();
+  const afterData = leaderboardCached(main, w, tEn, acc);
+  assert.notEqual(afterData, stable, "a change to the sports data rebuilds it");
+  const day = process.env.RINGSIDE_NOW; process.env.RINGSIDE_NOW = "2026-10-04";
+  try { assert.notEqual(leaderboardCached(main, w, tEn, acc), afterData, "a new day rebuilds it"); } finally { process.env.RINGSIDE_NOW = day; }
+  acc.prepare("DELETE FROM picks WHERE bout_ext = 'cache-test-bout'").run();
+});
+
+test("expired sessions and reset codes can be purged, and live ones are left alone", async () => {
+  const { accountsDb } = await import("../lib/accounts/store");
+  const { createSession, issueResetCode, purgeExpired, userForToken } = await import("../lib/accounts/users");
+  const db = accountsDb();
+  const uid = (db.prepare("SELECT id FROM users WHERE username = 'sess_two'").get() as { id: number }).id;
+  const now = Date.now();
+  const old = createSession(uid, db, now - 40 * 86400_000), live = createSession(uid, db, now);
+  issueResetCode("sess_two", db, now - 3 * 3600_000);
+  const before = (db.prepare("SELECT COUNT(*) c FROM sessions").get() as { c: number }).c;
+  const gone = purgeExpired(db, now);
+  assert.ok(gone.resets >= 1, "the reset code issued three hours ago (valid an hour) is gone");
+  assert.equal((db.prepare("SELECT COUNT(*) c FROM resets WHERE expires_at < ?").get(new Date(now).toISOString()) as { c: number }).c, 0, "no expired code is left");
+  assert.equal((db.prepare("SELECT COUNT(*) c FROM sessions").get() as { c: number }).c, before - gone.sessions);
+  assert.equal(userForToken(old.token, db, now), null);
+  assert.equal(userForToken(live.token, db, now)?.username, "sess_two", "a live session survives the purge");
 });

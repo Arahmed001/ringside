@@ -1,8 +1,9 @@
 "use client";
-import { useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "@/components/L";
-import { useT } from "@/components/i18n";
+import { useLocale, useT } from "@/components/i18n";
 import { api, refreshAccount, setSignedIn, useAccount, type Me } from "@/lib/useAccount";
+import type { SessionInfo } from "@/lib/accounts/users";
 import { PICKS_KEY } from "@/lib/usePicks";
 import { explain } from "@/components/accountText";
 
@@ -117,8 +118,49 @@ function Signed({ me }: { me: Me }) {
         <Settings me={me} />
         <Password />
       </div>
+      <Sessions />
       <Danger />
     </div>
+  );
+}
+
+/** Where the account is signed in, with a way to end the ones you do not recognise. */
+function Sessions() {
+  const t = useT();
+  const locale = useLocale();
+  const [list, setList] = useState<SessionInfo[] | null>(null);
+  const [msg, setMsg] = useState("");
+  const load = useCallback(() => { void api<{ sessions: SessionInfo[] }>("/api/account/sessions", "GET").then((r) => { if (r.ok) setList(r.data.sessions); }); }, []);
+  useEffect(() => { load(); }, [load]);
+  const when = (iso: string) => new Date(iso).toLocaleDateString(locale === "ar" ? "ar-EG-u-nu-latn" : "en-US", { month: "short", day: "numeric", year: "numeric" });
+  async function end(id: string) { setMsg(""); const r = await api("/api/account/sessions", "POST", { action: "revoke", id }); if (!r.ok) setMsg(explain(t, r.data.error)); load(); }
+  async function others() {
+    setMsg("");
+    const r = await api<{ ended: number }>("/api/account/sessions", "POST", { action: "others" });
+    if (!r.ok) { setMsg(explain(t, r.data.error)); return; }
+    setMsg(t.n(r.data.ended ?? 0, "Signed out of {n} other device.", "Signed out of {n} other devices."));
+    load();
+  }
+  if (!list) return null;
+  return (
+    <section className="card space-y-3 p-5" aria-labelledby="sess-h">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="sess-h" className="font-display text-2xl font-bold uppercase">{t("Where you are signed in")}</h2>
+        {list.length > 1 && <button className={secondary} onClick={() => void others()}>{t("Sign out everywhere else")}</button>}
+      </div>
+      <ul className="divide-y divide-line text-sm">
+        {list.map((x) => (
+          <li key={x.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+            <span>
+              <span className="font-semibold">{x.label ?? t("Unknown device")}</span> {x.current && <span className="chip align-middle">{t("This device")}</span>}
+              <span className="block text-xs text-muted">{t("Signed in {date}", { date: when(x.createdAt) })}{x.lastSeen ? ` · ${t("last used {date}", { date: when(x.lastSeen) })}` : ""}</span>
+            </span>
+            {!x.current && <button className="text-xs underline decoration-dotted hover:text-red-ink" onClick={() => void end(x.id)}>{t("Sign out")}</button>}
+          </li>
+        ))}
+      </ul>
+      <p role="status" aria-live="polite" className="text-xs text-muted">{msg}</p>
+    </section>
   );
 }
 

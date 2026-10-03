@@ -42,18 +42,49 @@ export async function checkLogin(username: string, password: string, db: Databas
 }
 
 /** A new session: returns the secret to put in the cookie. Only its hash is stored, so a copy of the database cannot be used to sign in. */
-export function createSession(userId: number, db: DatabaseSync = accountsDb(), now = Date.now()): { token: string; expires: Date } {
+export function createSession(userId: number, db: DatabaseSync = accountsDb(), now = Date.now(), userAgent?: string | null): { token: string; expires: Date } {
   const token = crypto.randomBytes(32).toString("base64url");
   const expires = new Date(now + SESSION_DAYS * 86400000);
   db.prepare("DELETE FROM sessions WHERE expires_at < ?").run(new Date(now).toISOString());
-  db.prepare("INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES (?,?,?,?)").run(sha(token), userId, new Date(now).toISOString(), expires.toISOString());
+  db.prepare("INSERT INTO sessions (token_hash, user_id, created_at, expires_at, label, last_seen) VALUES (?,?,?,?,?,?)").run(sha(token), userId, new Date(now).toISOString(), expires.toISOString(), deviceLabel(userAgent), new Date(now).toISOString());
   return { token, expires };
 }
 
 export function userForToken(token: string | undefined, db: DatabaseSync = accountsDb(), now = Date.now()): User | null {
   if (!token || token.length > 100) return null;
   const r = db.prepare(`SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ? AND u.disabled = 0`).get(sha(token), new Date(now).toISOString()) as Record<string, unknown> | undefined;
-  return r ? rowToUser(r) : null;
+  if (!r) return null;
+  // remember when a session was last used, but write at most once an hour (this runs on every signed-in request)
+  db.prepare("UPDATE sessions SET last_seen = ? WHERE token_hash = ? AND (last_seen IS NULL OR last_seen < ?)").run(new Date(now).toISOString(), sha(token), new Date(now - 3600_000).toISOString());
+  return rowToUser(r);
+}
+
+/** A short, coarse description of a browser for the "where you are signed in" list: "Chrome on macOS". Nothing else from the user agent is kept. */
+export function deviceLabel(ua: string | null | undefined): string | null {
+  if (!ua) return null;
+  const browser = /Edg\//.test(ua) ? "Edge" : /OPR\/|Opera/.test(ua) ? "Opera" : /Firefox\//.test(ua) ? "Firefox" : /Chrome\/|CriOS/.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : null;
+  const os = /iPhone|iPad|iOS/.test(ua) ? "iOS" : /Android/.test(ua) ? "Android" : /Windows/.test(ua) ? "Windows" : /Mac OS X|Macintosh/.test(ua) ? "macOS" : /Linux|X11/.test(ua) ? "Linux" : null;
+  return browser && os ? `${browser} on ${os}` : browser ?? os;
+}
+
+export interface SessionInfo { id: string; label: string | null; createdAt: string; lastSeen: string | null; current: boolean }
+/** The user's live sessions, newest first. `id` is a prefix of the stored hash: enough to name one session, useless for signing in. */
+export function listSessions(userId: number, currentToken: string | undefined, db: DatabaseSync = accountsDb(), now = Date.now()): SessionInfo[] {
+  const cur = currentToken ? sha(currentToken) : "";
+  return (db.prepare("SELECT token_hash, label, created_at, last_seen FROM sessions WHERE user_id = ? AND expires_at > ? ORDER BY created_at DESC").all(userId, new Date(now).toISOString()) as { token_hash: string; label: string | null; created_at: string; last_seen: string | null }[])
+    .map((r) => ({ id: r.token_hash.slice(0, 16), label: r.label, createdAt: r.created_at, lastSeen: r.last_seen, current: r.token_hash === cur }));
+}
+/** Ends one of the user's own sessions (by the id from `listSessions`). */
+export const revokeSession = (userId: number, id: string, db: DatabaseSync = accountsDb()): boolean =>
+  typeof id === "string" && /^[0-9a-f]{16}$/.test(id) && db.prepare("DELETE FROM sessions WHERE user_id = ? AND substr(token_hash, 1, 16) = ?").run(userId, id).changes > 0;
+/** Ends every session of the user except the one making the request. */
+export const revokeOtherSessions = (userId: number, currentToken: string | undefined, db: DatabaseSync = accountsDb()): number =>
+  db.prepare("DELETE FROM sessions WHERE user_id = ? AND token_hash != ?").run(userId, currentToken ? sha(currentToken) : "").changes as number;
+
+/** Removes sessions and reset codes that have expired. Returns how many of each. (Sessions are also cleared whenever a new one is made.) */
+export function purgeExpired(db: DatabaseSync = accountsDb(), now = Date.now()): { sessions: number; resets: number } {
+  const iso = new Date(now).toISOString();
+  return { sessions: db.prepare("DELETE FROM sessions WHERE expires_at < ?").run(iso).changes as number, resets: db.prepare("DELETE FROM resets WHERE expires_at < ?").run(iso).changes as number };
 }
 
 export const endSession = (token: string | undefined, db: DatabaseSync = accountsDb()) => { if (token) db.prepare("DELETE FROM sessions WHERE token_hash = ?").run(sha(token)); };

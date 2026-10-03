@@ -3,7 +3,7 @@ import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
 import { getDb } from "@/lib/db";
 import { getWorld } from "@/lib/world";
-import { leaderboard, MIN_RANKED } from "@/lib/accounts/leaderboard";
+import { leaderboardCached, MIN_RANKED } from "@/lib/accounts/leaderboard";
 import { accountsDbIfAny } from "@/lib/accounts/store";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({
@@ -14,7 +14,7 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string 
 export default async function Leaderboard() {
   const t = await getT();
   const acc = accountsDbIfAny();
-  const lb = acc ? leaderboard(await getDb(), await getWorld(), t, acc) : null;
+  const lb = acc ? leaderboardCached(await getDb(), await getWorld(), t, acc) : null;
   const pct = (x: number) => `${Math.round(x * 100)}%`;
   const pts = (x: number) => x.toFixed(1);
   return (

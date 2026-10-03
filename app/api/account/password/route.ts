@@ -12,6 +12,6 @@ export async function POST(req: Request) {
   if (res === "wrong_password") return fail("wrong_password", 400);
   if (res !== "ok") return fail(res, 400);
   limits().loginName.clear(`pw:${user.id}`);
-  const s = createSession(user.id); // every other device was signed out; this one continues
+  const s = createSession(user.id, undefined, undefined, req.headers.get("user-agent")); // every other device was signed out; this one continues
   return json({ ok: true }, 200, { "set-cookie": sessionCookie(req, s.token, s.expires) });
 }

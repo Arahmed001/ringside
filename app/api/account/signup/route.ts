@@ -8,6 +8,6 @@ export async function POST(req: Request) {
   if (!limits().signup.take(r.ip) || !hashingAllowed()) return fail("rate_limited", 429, { "retry-after": "3600" });
   const made = await createUser(str(r.body.username, 40), str(r.body.password, 400));
   if ("error" in made) return fail(made.error, 400);
-  const s = createSession(made.user.id);
+  const s = createSession(made.user.id, undefined, undefined, req.headers.get("user-agent"));
   return json({ user: made.user }, 201, { "set-cookie": sessionCookie(req, s.token, s.expires) });
 }

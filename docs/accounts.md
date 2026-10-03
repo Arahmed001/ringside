@@ -39,6 +39,12 @@ Approved community edits are written into `ringside.db` as `team_stints` rows wi
 
 Known limits, said plainly: usernames are not moderated (an operator can `disable` one, which hides it and signs it out); there is no CAPTCHA, so determined bulk sign-up from many addresses is slowed, not stopped; limits live in memory, per process (one instance, as `docs/deploy.md` already requires); the client address comes from `X-Forwarded-For`, which only a proxy you control can be trusted to set; there is no email, so a lost password needs the operator; no two-factor sign-in.
 
+## Sessions and the leaderboard at scale
+
+`/account` lists where the person is signed in (a coarse "Chrome on macOS", the sign-in date, last use recorded at most once an hour; nothing else of the user agent is kept) and can end any other session or all of them but this one. A session id shown there is a short prefix of the stored hash: it names a session but cannot be used to sign in, and ending a session only works on your own.
+
+The leaderboard grades every public player's picks, which measured about 0.2 s at 500 players with 100 picks each and **1.9 s, blocking, at 5,000**. Pages therefore use `leaderboardCached`: one result per language, rebuilt when the day, the sports database, any pick, or the set of public players changes (each of those has a test that fails if it is dropped from the cache key). Beyond tens of thousands of players it needs a database-side aggregate instead.
+
 ## Operator commands
 
 ```bash
@@ -47,6 +53,8 @@ npm run accounts -- role NAME editor             # user | editor | admin (nobody
 npm run accounts -- disable NAME                 # signed out, cannot sign in, off the leaderboard (enable to undo)
 npm run accounts -- reset NAME                   # a one-time code, valid an hour, for someone who forgot their password
 npm run accounts -- audit 50                     # the last 50 audit entries
+npm run accounts -- check                        # integrity check, counts, expired sessions waiting
+npm run accounts -- purge                        # delete expired sessions and reset codes
 npm run accounts -- apply                        # replay approved edits into the sports database by hand
 ```
 

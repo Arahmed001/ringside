@@ -6,6 +6,8 @@ import { accountsDb } from "./store";
 import { resolve } from "./picks";
 import type { T } from "../i18n/t";
 import { tEn } from "../i18n/t";
+import { dbVersion } from "../db";
+import { todayIso } from "../clock";
 
 /**
  * The pick'em leaderboard.
@@ -68,3 +70,22 @@ export function leaderboard(main: DatabaseSync, w: World, t: T = tEn, acc: Datab
   const out = standings.map((s): Standing => { shown++; if (!last || s.points !== last.points || s.accuracy !== last.accuracy) rank = shown; last = s; return { ...s, rank }; });
   return { standings: out.slice(0, 100), unranked, model, minRanked: MIN_RANKED };
 }
+
+/**
+ * `leaderboard()` grades every public player's picks, which is a second of blocking work at 5,000 players with 100 picks each (measured), so
+ * pages use this: the result is kept until something it depends on changes. That is the day, the sports database (results come in), any pick
+ * made or changed, and who is public or disabled or new. One entry per language.
+ */
+const cache = new Map<string, { key: string; value: Leaderboard }>();
+export function leaderboardCached(main: DatabaseSync, w: World, t: T = tEn, acc: DatabaseSync = accountsDb()): Leaderboard {
+  const sig = acc.prepare(`SELECT (SELECT COUNT(*) FROM picks) p, (SELECT COALESCE(MAX(picked_at), '') FROM picks) m,
+    (SELECT COUNT(*) FROM users WHERE picks_public = 1 AND disabled = 0) u, (SELECT COALESCE(MAX(id), 0) FROM users) i`).get() as Record<string, string | number>;
+  const key = `${todayIso()}|${dbVersion(main)}|${sig.p}|${sig.m}|${sig.u}|${sig.i}`;
+  const id = `${t.locale}`;
+  const hit = cache.get(id);
+  if (hit?.key === key) return hit.value;
+  const value = leaderboard(main, w, t, acc);
+  cache.set(id, { key, value });
+  return value;
+}
+export const clearLeaderboardCache = () => cache.clear();

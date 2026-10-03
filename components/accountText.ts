@@ -38,6 +38,7 @@ export function explain(t: T, code: string | undefined): string {
     case "not_pending": return t("Someone has already decided this.");
     case "own": return t("You cannot decide your own proposal.");
     case "note_required": return t("Say why, in a few words.");
+    case "this_session": return t("That is this device: use Sign out.");
     case "network": return t("Could not reach the server. Check your connection and try again.");
     default: return t("Something went wrong. Try again.");
   }

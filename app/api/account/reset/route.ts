@@ -13,6 +13,6 @@ export async function POST(req: Request) {
   const res = await redeemResetCode(name, str(r.body.code, 100), str(r.body.password, 400));
   if (res !== "ok") return fail(res, 400);
   const user = (await import("@/lib/accounts/store")).accountsDb().prepare("SELECT id FROM users WHERE username = ?").get(name) as { id: number };
-  const s = createSession(user.id);
+  const s = createSession(user.id, undefined, undefined, req.headers.get("user-agent"));
   return json({ ok: true }, 200, { "set-cookie": sessionCookie(req, s.token, s.expires) });
 }

@@ -60,13 +60,17 @@ Run the long imports against a copy of the volume if you would rather not write 
 
 ## Backups
 
-The ledger is the one thing that cannot be re-derived. Take a consistent copy while the app runs:
+Two files cannot be re-derived: the live **ledger** inside `ringside.db` and everything in `accounts.db` (people, picks, edits). One command takes a consistent snapshot of both while the app keeps running (`VACUUM INTO`, not a file copy, which can tear):
 
 ```bash
-docker exec ringside node -e "const {DatabaseSync}=require('node:sqlite');const d=new DatabaseSync(process.env.DATABASE_PATH);d.exec(\"VACUUM INTO '/data/backup.db'\")"
+docker exec ringside npm run backup                 # -> /data/backups/2026-10-03T12-00-00Z/{ringside.db, accounts.db, model-fit.json}
+docker exec ringside npm run backup -- --keep 30    # how many snapshots to keep (default 14; only folders with that timestamp name are ever removed)
+docker exec ringside npm run backup -- verify /data/backups/2026-10-03T12-00-00Z
 ```
 
-and the same for the accounts file (`ACCOUNTS_DB_PATH`, default `/data/accounts.db`, saved as `/data/accounts-backup.db`), then copy both off the volume (and delete them from the volume). Copying `ringside.db` alone while the app is writing can give you a torn file; the `-wal` file holds recent writes.
+Every copy is opened and checked with `integrity_check` as it is written, and `verify` repeats that later and checks the important tables are there (the ledger table included); the command exits non-zero if anything is wrong, so a scheduler can alert on it. The accounts copy is personal data and is written readable by its owner only. **A backup on the volume that dies is not a backup:** copy the newest folder off the machine (an object store, another host) on a schedule, for example a daily `docker exec ringside npm run backup` followed by an upload of the newest `/data/backups/*` folder.
+
+**Restoring:** stop the container, replace `ringside.db` and/or `accounts.db` in `/data` with the files from a snapshot (delete the old `-wal` and `-shm` files beside them), start it again. Run `verify` on the snapshot first. Restoring `ringside.db` rolls the ledger back to that day, so predictions locked since then are gone; restoring `accounts.db` rolls back sign-ups and picks the same way. A restore has not been rehearsed on a real host: do it once, on a copy, before you need it.
 
 ## Updating
 

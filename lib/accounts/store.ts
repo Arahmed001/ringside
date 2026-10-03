@@ -52,6 +52,10 @@ export function accountsDb(): DatabaseSync {
   const db = new DatabaseSync(file);
   db.exec("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 3000;");
   db.exec(SCHEMA);
+  // forward-only migration for accounts files created before sessions carried a device label
+  const cols = (db.prepare("PRAGMA table_info(sessions)").all() as { name: string }[]).map((c) => c.name);
+  if (!cols.includes("label")) db.exec("ALTER TABLE sessions ADD COLUMN label TEXT");
+  if (!cols.includes("last_seen")) db.exec("ALTER TABLE sessions ADD COLUMN last_seen TEXT");
   try { fs.chmodSync(file, 0o600); } catch { /* not supported on every filesystem */ }
   g.__accountsDb = { file, db };
   return db;

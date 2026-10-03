@@ -13,6 +13,6 @@ export async function POST(req: Request) {
   const user = await checkLogin(name, str(r.body.password, 400));
   if (!user) return fail("bad_login", 401);
   l.loginName.clear(name);
-  const s = createSession(user.id);
+  const s = createSession(user.id, undefined, undefined, req.headers.get("user-agent"));
   return json({ user }, 200, { "set-cookie": sessionCookie(req, s.token, s.expires) });
 }
