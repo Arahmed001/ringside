@@ -50,3 +50,6 @@ data/research/cache/
 
 # generated Arabic review sheets and a reviewer's answers: send them, do not commit them
 review/
+
+# vendor samples fetched for evaluation (never commit licensed data)
+data/vendor-samples/

@@ -19,8 +19,11 @@ async function main() {
   const f = r.finish;
   if (f) {
     console.log(`\nearly-finish estimate (${f.rows.train} train + ${f.rows.test} held-out; ${pct(f.observed.test)} of held-out fights ended by stoppage):`);
-    console.log(`  fitted: logit = ${f.coef.intercept.toFixed(3)} ${f.coef.koRate >= 0 ? "+" : "-"} ${Math.abs(f.coef.koRate).toFixed(3)}·(both KO rates) ${f.coef.koLoss >= 0 ? "+" : "-"} ${Math.abs(f.coef.koLoss).toFixed(3)}·(both KO-loss rates)`);
-    for (const [k, v] of [["base rate only", f.test.constant], ["hand-set rule", f.test.heuristic], ["fitted", f.test.fitted]] as const) console.log(`  ${k.padEnd(16)} log-loss ${v.logLoss.toFixed(4)}   brier ${v.brier.toFixed(4)}   said ${pct(v.predicted)} on average, happened ${pct(v.observed)}`);
+    const label: Record<string, string> = { koRate: "both KO rates", koLoss: "both KO-loss rates", mismatch: "rating mismatch", weight: "weight class (heavier = more)" };
+    console.log(`  inputs (z on the training fights; kept only if |z| >= 2):`);
+    for (const k of ["koRate", "koLoss", "mismatch", "weight"] as const) console.log(`    ${label[k].padEnd(30)} z ${f.coef.z[k].toFixed(1).padStart(5)}   ${f.coef.kept.includes(k) ? `kept, coefficient ${f.coef[k] >= 0 ? "+" : ""}${f.coef[k].toFixed(3)}` : "dropped"}`);
+    console.log(`  intercept ${f.coef.intercept.toFixed(3)}`);
+    for (const [k, v] of [["base rate only", f.test.constant], ["hand-set rule", f.test.heuristic], ["KO rates alone", f.test.koOnly], ["fitted", f.test.fitted]] as const) console.log(`  ${k.padEnd(16)} log-loss ${v.logLoss.toFixed(4)}   brier ${v.brier.toFixed(4)}   said ${pct(v.predicted)} on average, happened ${pct(v.observed)}`);
     console.log(`  recommended: ${f.recommended === "fitted" ? "fitted (applied to every finish estimate)" : "hand-set rule (the fit does not beat it by enough)"}`);
   } else console.log("\nearly-finish estimate: too few bouts to fit");
   fs.mkdirSync(path.join(process.cwd(), "data"), { recursive: true });

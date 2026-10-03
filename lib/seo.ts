@@ -10,7 +10,9 @@ export const abs = (path: string) => `${siteUrl()}${path}`;
  * names, so every page, the sitemap and robots.txt switch themselves off unless a real provider is configured
  * (or INDEXABLE=1 is set on purpose).
  */
-export const indexable = () => process.env.INDEXABLE === "1" || (process.env.BOXING_PROVIDER ?? "demo") !== "demo";
+/** True while the site runs on the fictional demo league (no real provider configured). Drives the "fictional data" footer, the Data page note and indexing. */
+export const isDemoData = () => (process.env.BOXING_PROVIDER ?? "demo") === "demo";
+export const indexable = () => process.env.INDEXABLE === "1" || !isDemoData();
 
 const OG_LOCALE: Record<Locale, string> = { en: "en_US", ar: "ar_AR" };
 

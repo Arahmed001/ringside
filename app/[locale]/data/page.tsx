@@ -7,6 +7,7 @@ import { arabicReviewStatus } from "@/lib/i18n/review-status";
 import { getT } from "@/lib/i18n/server";
 import { msg } from "@/lib/i18n/t";
 import { metaFor } from "@/lib/seo-server";
+import { isDemoData } from "@/lib/seo";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({
   path: "/data", title: t("Data & model"),
@@ -34,7 +35,7 @@ export default async function DataPage() {
   const cov = await coverage();
   const fit = loadFit();
   const ar = await arabicReviewStatus();
-  const demo = (process.env.BOXING_PROVIDER ?? "demo") === "demo";
+  const demo = isDemoData();
   const act = activeWeights();
   const eloScale = act.rating / DEFAULT_WEIGHTS.rating;
 

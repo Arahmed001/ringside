@@ -7,7 +7,7 @@ import { CommandPalette } from "@/components/CommandPalette";
 import { AccountMenu } from "@/components/AccountMenu";
 import { dirOf, isLocale, localePath } from "@/lib/i18n/config";
 import { clientDict, tFor } from "@/lib/i18n/dicts";
-import { abs, indexable, jsonLd, siteUrl } from "@/lib/seo";
+import { abs, indexable, isDemoData, jsonLd, siteUrl } from "@/lib/seo";
 import { NavGroups, Logo } from "@/components/SideNav";
 import { MobileMenu, RailToggle } from "@/components/RailControls";
 import { InlineScript } from "@/components/InlineScript";
@@ -80,7 +80,9 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
               </header>
               <main id="main" tabIndex={-1} className="mx-auto max-w-7xl px-5 py-8 outline-none">{children}</main>
               <footer className="mx-auto max-w-7xl px-5 pb-12 pt-6 text-xs text-muted">
-                {t.rich("Ringside demo build · All fighters, fights and events shown are <b>fictional, simulated data</b>. Ratings are Elo-style and unofficial.", { b: (c) => <b className="text-ink/80">{c}</b> })}
+                {isDemoData()
+                  ? t.rich("Ringside demo build · All fighters, fights and events shown are <b>fictional, simulated data</b>. Ratings are Elo-style and unofficial.", { b: (c) => <b className="text-ink/80">{c}</b> })
+                  : t("Ringside · Ratings are Elo-style and unofficial. Data sources and their licences are listed on the Data page.")}
               </footer>
             </div>
           </div>

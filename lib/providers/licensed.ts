@@ -1,23 +1,21 @@
 import type { DataProvider } from "./index";
+import { boxingDataApiProvider } from "./boxing-data-api";
 
 /**
- * Placeholder for the licensed API adapter. Fill in once a provider is chosen:
- * map the vendor's payloads to ProviderBoxer/Event/Bout and respect the
- * licence's rate limits and caching terms. Nothing here scrapes any site.
+ * BOXING_PROVIDER=licensed: the Boxing Data API adapter (lib/providers/boxing-data-api.ts).
+ *   BOXING_API_KEY                  the RapidAPI key
+ *   BOXING_API_URL                  optional; defaults to https://boxing-data-api.p.rapidapi.com
+ *   BOXING_API_MAX_REQUESTS         optional request cap per load (default 90, under the free tier's 100 a month)
+ *   BOXING_API_SINCE                optional yyyy-mm-dd; only fights from this date
+ *   BOXING_API_STORAGE_CONFIRMED=1  required to fill the database: set it only once the operator has confirmed in writing that stored data may be kept
+ * Another vendor means another adapter behind the same DataProvider contract. Nothing here scrapes any site.
  */
 export function licensedProvider(): DataProvider {
-  const baseUrl = process.env.BOXING_API_URL;
   const key = process.env.BOXING_API_KEY;
-  if (!baseUrl || !key) {
-    throw new Error("Set BOXING_API_URL and BOXING_API_KEY to use the licensed provider.");
-  }
-  const notImplemented = async () => {
-    throw new Error("Licensed provider mapping not implemented yet (see lib/providers/licensed.ts).");
-  };
-  return {
-    name: "licensed",
-    fetchBoxers: notImplemented,
-    fetchEvents: notImplemented,
-    fetchBouts: notImplemented,
-  };
+  if (!key) throw new Error("Set BOXING_API_KEY (and optionally BOXING_API_URL) to use the licensed provider.");
+  return boxingDataApiProvider({
+    key, baseUrl: process.env.BOXING_API_URL || undefined, purpose: "ingest", gapMs: 250, log: console.log,
+    maxRequests: process.env.BOXING_API_MAX_REQUESTS ? Number(process.env.BOXING_API_MAX_REQUESTS) : undefined,
+    since: process.env.BOXING_API_SINCE || undefined,
+  });
 }
