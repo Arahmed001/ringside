@@ -725,9 +725,27 @@
   ]
  },
  {
+  "key": "{name} beat the champion and took the {belt}.",
+  "files": [
+   "lib/recap.ts"
+  ]
+ },
+ {
+  "key": "{name} became the first champion on record of the {belt}.",
+  "files": [
+   "lib/recap.ts"
+  ]
+ },
+ {
   "key": "{name} by stoppage",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} climbed from #{a} to #{b} at {division}.",
+  "files": [
+   "lib/recap.ts"
   ]
  },
  {
@@ -741,6 +759,18 @@
   "key": "{name} down {n}×",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} dropped out of the {division} ranking.",
+  "files": [
+   "lib/recap.ts"
+  ]
+ },
+ {
+  "key": "{name} fell from #{a} to #{b} at {division}.",
+  "files": [
+   "lib/recap.ts"
   ]
  },
  {
@@ -787,6 +817,18 @@
   ]
  },
  {
+  "key": "{name} has now lost {n} in a row.",
+  "files": [
+   "lib/recap.ts"
+  ]
+ },
+ {
+  "key": "{name} has now won {n} in a row.",
+  "files": [
+   "lib/recap.ts"
+  ]
+ },
+ {
   "key": "{name} has won {w} of the last {n} fights.",
   "files": [
    "lib/preview.ts"
@@ -817,6 +859,18 @@
   ]
  },
  {
+  "key": "{name} made defence number {n} of the {belt}.",
+  "files": [
+   "lib/recap.ts"
+  ]
+ },
+ {
+  "key": "{name} moved into the {division} top 15 at #{n}.",
+  "files": [
+   "lib/recap.ts"
+  ]
+ },
+ {
   "key": "{name} on points",
   "files": [
    "lib/preview.ts"
@@ -826,6 +880,19 @@
   "key": "{name} on Ringside: current titleholders by division and recent title fights, drawn from {n} title bouts on record.",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} took the {belt}, ending {loser}'s reign of {days} days and {n} defences.",
+  "plural": "{name} took the {belt}, ending {loser}'s reign of {days} days and {n} defence.",
+  "files": [
+   "lib/recap.ts"
+  ]
+ },
+ {
+  "key": "{name} took the {belt}: the champion was not in the ring.",
+  "files": [
+   "lib/recap.ts"
   ]
  },
  {
@@ -847,6 +914,12 @@
   ]
  },
  {
+  "key": "{name} won the vacant {belt}.",
+  "files": [
+   "lib/recap.ts"
+  ]
+ },
+ {
   "key": "{name} won with only a {pct}% chance beforehand",
   "files": [
    "lib/fight-score.ts"
@@ -856,6 +929,12 @@
   "key": "{name}: {division} boxer from {country}. Record {record} with {kos} KOs and a {rating} Elo rating. Fight history, team, weigh-ins and scouting report.",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name}'s unbeaten run of {n} fights is over.",
+  "files": [
+   "lib/recap.ts"
   ]
  },
  {
@@ -997,6 +1076,12 @@
   "key": "{winner} beat {loser}",
   "files": [
    "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "{winner} gained {a} rating points, to {ra}; {loser} lost {b}, to {rb}.",
+  "files": [
+   "lib/recap.ts"
   ]
  },
  {
@@ -1193,6 +1278,12 @@
   ]
  },
  {
+  "key": "A close call on paper: the model had {name} at {p}.",
+  "files": [
+   "lib/recap.ts"
+  ]
+ },
+ {
   "key": "A competitive fight on paper: {name} {pct}%",
   "files": [
    "lib/matchmaking.ts"
@@ -1253,6 +1344,12 @@
   ]
  },
  {
+  "key": "A major upset: the model gave {name} only {p}.",
+  "files": [
+   "lib/recap.ts"
+  ]
+ },
+ {
   "key": "A pressure fighter who walks through return fire and bets her chin beats yours.",
   "files": [
    "lib/ai.ts"
@@ -1280,6 +1377,12 @@
   "key": "A split decision: the judges scored it {cards}",
   "files": [
    "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "A title fight, but the belt did not change hands.",
+  "files": [
+   "lib/recap.ts"
   ]
  },
  {
@@ -1322,6 +1425,12 @@
   "key": "a win",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "A win the model saw coming: {p} for {name}.",
+  "files": [
+   "lib/recap.ts"
   ]
  },
  {
@@ -1532,6 +1641,12 @@
   ]
  },
  {
+  "key": "An upset: the model gave {name} {p}.",
+  "files": [
+   "lib/recap.ts"
+  ]
+ },
+ {
   "key": "Analysing…",
   "files": [
    "components/PreviewArticle.tsx",
@@ -1557,6 +1672,12 @@
   "key": "Apply",
   "files": [
    "components/RecordsFilter.tsx"
+  ]
+ },
+ {
+  "key": "As expected: the model had {name} at {p}.",
+  "files": [
+   "lib/recap.ts"
   ]
  },
  {
@@ -5718,6 +5839,12 @@
   ]
  },
  {
+  "key": "Records now: {winner} {a}, {loser} {b}.",
+  "files": [
+   "lib/recap.ts"
+  ]
+ },
+ {
   "key": "Referee",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
@@ -6606,6 +6733,12 @@
   ]
  },
  {
+  "key": "The first time {name} has been stopped in {n} fights.",
+  "files": [
+   "lib/recap.ts"
+  ]
+ },
+ {
   "key": "The full top ten",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
@@ -7032,6 +7165,7 @@
   "files": [
    "app/[locale]/accountability/page.tsx",
    "app/[locale]/bouts/[id]/page.tsx",
+   "lib/nav.ts",
    "lib/search.ts"
   ]
  },
@@ -7378,6 +7512,12 @@
   "key": "What the sport takes in and who gets paid. Every figure carries a badge saying how it is known (official record, press report or estimate) and a link to its source where one exists.",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "What this result changed",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
   ]
  },
  {
