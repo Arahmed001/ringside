@@ -15,7 +15,7 @@ export const overview = (w: World) => memo(w, "overview", () => {
     bouts: d.length,
     events: w.events.filter((e) => !e.upcoming).length,
     countries: new Set(w.boxers.map((b) => b.country)).size,
-    finishRate: d.filter((b) => isKO(b.method)).length / d.length,
+    finishRate: d.length ? d.filter((b) => isKO(b.method)).length / d.length : 0,
   };
 });
 
@@ -111,7 +111,7 @@ export const longestStreaks = (w: World, n = 6) => memo(w, `longestStreaks:${n}`
   for (const b of w.boxers) {
     let cur = 0, best = 0;
     for (const x of w.boutsByBoxer.get(b.id) ?? []) {
-      if (x.upcoming || !x.method) continue;
+      if (x.upcoming || !countsInRecord(x.method)) continue; // a no-contest is not in a fighter's record, so it cannot end a win streak either
       if (x.winnerId === b.id) { cur++; best = Math.max(best, cur); } else cur = 0;
     }
     out.push({ boxerId: b.id, len: best });

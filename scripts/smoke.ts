@@ -1,5 +1,5 @@
 /**
- * npm run build && npm run smoke       render every kind of page in English and Arabic on a real production server and inspect it
+ * npm run build && npm run smoke [-- --feed sparse|empty]      render every kind of page in English and Arabic on a real production server and inspect it
  *
  * Seeds a throwaway database with the demo league (clock pinned to 2026-10-03), starts `next start` on a free port, requests a
  * representative page of every kind plus the JSON and image endpoints, and checks each (status, language and direction, a heading,
@@ -27,6 +27,21 @@ async function main() {
   const accounts = db.replace(/\.db$/, "-accounts.db"); // never touch a real accounts file
   process.env.ACCOUNTS_DB_PATH = accounts;
   process.env.RINGSIDE_NOW = "2026-10-03";
+
+  // `--feed sparse` (one finished card, nothing upcoming) or `--feed empty` (no data at all) run the same checks on a league the real
+  // world can be in (the first load, or the gap between seasons): no page may fail because something it expects is not there yet
+  const feedName = arg("feed");
+  if (feedName) {
+    if (feedName !== "sparse" && feedName !== "empty") { console.error('--feed is "sparse" or "empty"'); process.exit(2); }
+    const { miniFeed } = await import("../tests/helpers");
+    const f = miniFeed();
+    const feed = feedName === "empty" ? { ...f, boxers: [], events: [], bouts: [], people: [], orgs: [], stints: [], weighIns: [], officials: [], scorecards: [], corners: [], punches: [] } : f;
+    const file = path.join(os.tmpdir(), `ringside-smoke-feed-${process.pid}.json`);
+    fs.writeFileSync(file, JSON.stringify(feed));
+    process.env.BOXING_PROVIDER = "file"; process.env.BOXING_FILE = file;
+    process.on("exit", () => fs.rmSync(file, { force: true }));
+    console.log(`feed: ${feedName}`);
+  }
 
   // seed and read the league in this process, then let the server open the same file
   const { getWorld } = await import("../lib/world");

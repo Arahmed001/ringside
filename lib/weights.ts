@@ -47,8 +47,14 @@ export interface EdgeBucket { label: string; n: number; winRate: number }
 /** Win rate bucketed by how much heavier (on fight night) a fighter was than his opponent. Decisive bouts only. */
 export const fightNightEdge = (w: World) => memo(w, "fightNightEdge", () => computeEdge(w));
 function computeEdge(w: World): EdgeBucket[] {
-  const edges = [-Infinity, -8, -4, -1.5, 1.5, 4, 8, Infinity];
+  // Bucket by how big the gap is, then by which side the fighter was on. Cutting the signed gap at -8, -4, -1.5, 1.5, 4, 8 put a gap of exactly
+  // 8 lb into "8+ heavier" for one fighter and "4-8 lighter" for the other, so the two sides of one fight landed in rows that were not mirrors.
+  const magnitudes = [8, 4, 1.5]; // 8+, 4 up to 8, 1.5 up to 4; under 1.5 is "within"
   const labels = [msg("8+ lb lighter"), msg("4–8 lb lighter"), msg("1.5–4 lb lighter"), msg("within 1.5 lb"), msg("1.5–4 lb heavier"), msg("4–8 lb heavier"), msg("8+ lb heavier")];
+  const bucket = (d: number) => {
+    const m = magnitudes.findIndex((edge) => Math.abs(d) >= edge); // 0: 8+, 1: 4-8, 2: 1.5-4, -1: within
+    return m < 0 ? 3 : d < 0 ? m : 6 - m;
+  };
   const tally = labels.map(() => ({ n: 0, wins: 0 }));
   for (const b of w.bouts) {
     if (b.upcoming || !b.winnerId) continue;
@@ -56,8 +62,7 @@ function computeEdge(w: World): EdgeBucket[] {
     const r = list?.find((x) => x.boxerId === b.redId), u = list?.find((x) => x.boxerId === b.blueId);
     if (!r?.fightNightLb || !u?.fightNightLb) continue;
     for (const [mine, theirs, id] of [[r.fightNightLb, u.fightNightLb, b.redId], [u.fightNightLb, r.fightNightLb, b.blueId]] as const) {
-      const d = mine - theirs;
-      const i = edges.findIndex((e, k) => d >= e && d < edges[k + 1]);
+      const i = bucket(mine - theirs);
       tally[i].n++; if (b.winnerId === id) tally[i].wins++;
     }
   }

@@ -55,6 +55,7 @@ export function similarTo(b: BoxerFull, w: World, n = 5) {
 /** Projects all fighters to 2-D with PCA (power iteration) for the style map. */
 export function styleMap(w: World) {
   const pool = w.boxers.filter((b) => b.bouts >= 8);
+  if (pool.length === 0) return []; // a new or tiny league: nobody has eight fights yet
   const X = pool.map((b) => vector(b, w));
   const d = X[0].length, n = X.length;
   const mean = Array.from({ length: d }, (_, j) => X.reduce((s, r) => s + r[j], 0) / n);
@@ -79,7 +80,9 @@ export function styleMap(w: World) {
   }));
   const xs = pts.map((p) => p.x), ys = pts.map((p) => p.y);
   const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-  return pts.map((p) => ({ ...p, x: (p.x - x0) / (x1 - x0), y: (p.y - y0) / (y1 - y0) }));
+  // one fighter, or fighters with identical styles, have no spread to scale by: put them in the middle rather than dividing by zero
+  const at = (v: number, lo: number, hi: number) => (hi > lo ? (v - lo) / (hi - lo) : 0.5);
+  return pts.map((p) => ({ ...p, x: at(p.x, x0, x1), y: at(p.y, y0, y1) }));
 }
 
 /**

@@ -65,3 +65,39 @@ export function providerOf(feed: FeedData, name = "test"): DataProvider {
     fetchFinancials: async () => feed.financials, fetchPurses: async () => feed.purses, fetchBroadcasts: async () => feed.broadcasts, fetchEarnings: async () => feed.earnings,
   };
 }
+
+
+// ---- shared checks for the "does the whole site cope with this league" tests ----
+import type { Cell, ToolResult } from "../lib/ask/types";
+const JUNK = /undefined|NaN|\[object|\{[a-z]+\}/;
+const cellText = (c: Cell) => (typeof c === "string" ? c : c.text);
+
+/** What is wrong with one Ask-the-data tool result: no summary, junk in the text, a ragged table, a link that is not a site path. */
+export function askResultProblems(r: ToolResult, tool: string): string[] {
+  const p: string[] = [];
+  if (r.tool !== tool) p.push(`reports itself as ${r.tool}`);
+  if (typeof r.summary !== "string" || !r.summary.trim()) p.push("no summary");
+  if (JUNK.test(r.summary)) p.push(`summary: ${r.summary}`);
+  for (const l of r.lines) if (typeof l !== "string" || JUNK.test(l)) p.push(`line: ${l}`);
+  for (const t of r.tables) {
+    if (!t.columns.length) p.push(`table ${t.id} has no columns`);
+    for (const row of t.rows) {
+      if (row.length !== t.columns.length) p.push(`table ${t.id}: a row has ${row.length} cells for ${t.columns.length} columns`);
+      for (const c of row) {
+        if (JUNK.test(cellText(c))) p.push(`table ${t.id}: cell "${cellText(c)}"`);
+        if (typeof c !== "string" && c.href && !c.href.startsWith("/")) p.push(`table ${t.id}: link ${c.href} is not a site path`);
+      }
+    }
+  }
+  return p;
+}
+
+/** Every number reachable from `v` that is NaN or infinite (JSON would print these as null and hide them). */
+export function badNumbers(v: unknown, path = "$", seen = new WeakSet<object>(), out: string[] = []): string[] {
+  if (typeof v === "number") { if (!Number.isFinite(v)) out.push(`${path} = ${v}`); return out; }
+  if (!v || typeof v !== "object" || seen.has(v)) return out;
+  seen.add(v);
+  if (v instanceof Map) { for (const [k, x] of v) badNumbers(x, `${path}[${String(k)}]`, seen, out); return out; }
+  for (const [k, x] of Object.entries(v)) { if (out.length > 20) break; badNumbers(x, `${path}.${k}`, seen, out); }
+  return out;
+}

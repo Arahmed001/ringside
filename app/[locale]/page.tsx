@@ -42,8 +42,8 @@ export default async function Home() {
   const o = overview(w);
   const upcoming = upcomingEvents(w);
   const ups = eventViews(w, upcoming.slice(0, STRIP + 1));
-  const next = ups[0];
-  const p = predict(next.red, next.blue, t);
+  const next = ups[0] ?? null; // null between seasons, or before the first fixtures are loaded: the page must still render
+  const p = next ? predict(next.red, next.blue, t) : null;
   const p4p = pound4pound(w, 8);
   const recent = eventViews(w, recentEvents(w, 5));
   const upset = biggestUpsets(w.bouts.length ? { ...w, bouts: w.bouts.filter((b) => b.date >= `${currentYear() - 1}-01-01`) } : w, 1)[0];
@@ -52,7 +52,7 @@ export default async function Home() {
   const fy = featuredYear(w);
   const foty = fy ? { year: fy, top: fightsOfYear(w, fy)[0] } : null;
 
-  const pickBouts = next.bouts.filter(isLive).slice().reverse().map((b) => {
+  const pickBouts = (next?.bouts ?? []).filter(isLive).slice().reverse().map((b) => {
     const r = w.byId.get(b.redId)!, u = w.byId.get(b.blueId)!;
     const pr = predict(r, u, t);
     const redFav = pr.pA >= pr.pB;
@@ -62,7 +62,7 @@ export default async function Home() {
   return (
     <div className="space-y-16 overflow-x-clip">
       {/* Hero */}
-      <section className="rise grid items-center gap-10 lg:grid-cols-[1.15fr_.85fr]">
+      <section className={`rise grid items-center gap-10 ${next ? "lg:grid-cols-[1.15fr_.85fr]" : ""}`}>
         <div>
           <div className="eyebrow mb-3">{t("Boxing intelligence · {fighters} fighters · {bouts} bouts", { fighters: o.boxers, bouts: o.bouts.toLocaleString("en-US") })}</div>
           <h1 className="font-display text-6xl font-extrabold uppercase leading-[.92] sm:text-8xl">{t("Every fighter.")}<br /><span className="text-red-ink">{t("Every number.")}</span></h1>
@@ -74,17 +74,20 @@ export default async function Home() {
           <div className="mt-3 flex flex-wrap gap-2">
             {EXAMPLES.map((q) => <Link key={q} href={`/boxers?q=${encodeURIComponent(q)}`} className="chip transition hover:text-ink">{t(q)}</Link>)}
           </div>
+          {!next && <p className="mt-6 max-w-xl rounded-xl border border-line bg-panel px-4 py-3 text-sm text-muted">{t("No upcoming fights are scheduled yet.")}</p>}
           <p className="mt-3 text-sm text-muted">{t("Want an answer rather than a list?")} <Link href="/ask" className="text-ink underline decoration-dotted hover:text-gold">{t("Ask the data")}</Link></p>
         </div>
+        {next && (
         <div className="relative mx-auto w-full max-w-sm">
           <div className="absolute -inset-6 -z-10 rounded-[2rem] bg-red/20 blur-3xl live" />
           <Link href={`/events/${next.event.id}`} className="block transition hover:scale-[1.015]">
             <Poster event={next.event} main={next.main} red={next.red} blue={next.blue} />
           </Link>
         </div>
+        )}
       </section>
 
-      {/* Next main event */}
+      {next && p && (
       <section>
         <SectionTitle eyebrow={t.n(daysUntil(next.event.date), "In {n} day", "In {n} days")} title={t("Next main event")} href={`/events/${next.event.id}`} cta={t("Full card")} />
         <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
@@ -110,8 +113,9 @@ export default async function Home() {
           <PickEm bouts={pickBouts} />
         </div>
       </section>
+      )}
 
-      {/* Upcoming strip */}
+      {ups.length > 1 && (
       <section>
         <SectionTitle eyebrow={t("Fight calendar")} title={t("Coming up")} href="/events" cta={upcoming.length > STRIP + 1 ? t.n(upcoming.length, "All {n} upcoming card", "All {n} upcoming cards") : undefined} />
         <div className="-mx-5 flex gap-4 overflow-x-auto px-5 pb-3">
@@ -122,6 +126,7 @@ export default async function Home() {
           ))}
         </div>
       </section>
+      )}
 
       {/* Rankings */}
       <section className="grid gap-8 lg:grid-cols-[1fr_1fr]">

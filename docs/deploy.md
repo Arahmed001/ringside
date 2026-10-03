@@ -47,6 +47,10 @@ Put the key in your host's secret store, not in the image or the repository.
 - Security headers need nothing from the proxy except what is above: the app sets a content security policy (a fresh nonce per page), `X-Frame-Options`, `nosniff`, a referrer and permissions policy itself, and `Strict-Transport-Security` once it knows it is behind https. Do not add a second, different `Content-Security-Policy` in the proxy: browsers apply both, and the nonce-based one here would be defeated or broken. See `docs/security.md`.
 - English is at `/`, Arabic at `/ar`; there is no redirect on `Accept-Language`, by design.
 
+## First start, and the gap between seasons
+
+The site renders with no data at all and with data but nothing upcoming: the home page says no fights are scheduled and drops the poster and calendar, the style map is empty until someone has eight bouts, rankings and analytics read zero rather than NaN. Both states are exercised in CI (`npm run smoke -- --feed empty` and `-- --feed sparse`, 68 and 95 pages in both languages) and by tests that call every aggregate and every Ask-the-data tool on those leagues. Before this was checked the home page and the style map returned a 500 in both states, which a real feed would have hit between seasons.
+
 ## Sizing
 
 Measured on a production build with the demo league (968 fighters, 7,466 bouts; one Node process, one core, Apple laptop, a browser on the same machine, so network time is not in these numbers):
