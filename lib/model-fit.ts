@@ -24,7 +24,7 @@ export function loadFit(): FitReport | null {
 export function applyFittedFinish(fit: FitReport | null): boolean {
   const f = fit?.finish;
   if (!f || f.recommended !== "fitted") { setActiveFinish(undefined); return false; }
-  setActiveFinish({ intercept: f.coef.intercept, koRate: f.coef.koRate, koLoss: f.coef.koLoss });
+  setActiveFinish({ intercept: f.coef.intercept, koRate: f.coef.koRate, koLoss: f.coef.koLoss, mismatch: f.coef.mismatch ?? 0, weight: f.coef.weight ?? 0 });
   return true;
 }
 
