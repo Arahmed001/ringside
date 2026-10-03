@@ -11,6 +11,7 @@ import { DatabaseSync } from "node:sqlite";
 import { extractKeys } from "../lib/i18n/extract";
 import { EMPTY_META, GROUP_ORDER, applyReview, glossaryReport, groupOf, hashOf, qaEntry, statusOf, summarise, type ReviewFile, type ReviewMeta } from "../lib/i18n/review";
 import { buildSheet } from "../lib/i18n/review-sheet";
+import { readNamesFile, saveNamesToFile } from "../lib/i18n/names-file";
 import type { Dict } from "../lib/i18n/t";
 
 const DIR = process.env.I18N_DIR ?? path.join(process.cwd(), "i18n"); // the env override is for tests, which run the real commands on a copy
@@ -72,7 +73,11 @@ async function main() {
   } else if (cmd === "export") {
     const out = arg ?? path.join(OUT, "arabic-review.html");
     const db = dbHandle();
-    const names = db ? (db.prepare("SELECT en, text, source, reviewed FROM name_translations WHERE locale = 'ar' ORDER BY en").all() as { en: string; text: string; source: string; reviewed: number }[]).map((r) => ({ en: r.en, ar: r.text, source: r.source, reviewed: !!r.reviewed })) : [];
+    // the committed file is the source of truth for names; a database that has not loaded it yet is only the fallback
+    const file = readNamesFile();
+    const names = Object.keys(file).length
+      ? Object.entries(file).sort(([x], [y]) => x.localeCompare(y)).map(([en, e]) => ({ en, ar: e.ar, source: e.source, reviewed: e.reviewed }))
+      : db ? (db.prepare("SELECT en, text, source, reviewed FROM name_translations WHERE locale = 'ar' ORDER BY en").all() as { en: string; text: string; source: string; reviewed: number }[]).map((r) => ({ en: r.en, ar: r.text, source: r.source, reviewed: !!r.reviewed })) : [];
     const order = (k: string) => GROUP_ORDER.indexOf(groupOf(found.get(k)!.files));
     const entries = [...keys].sort((a, b) => order(a) - order(b) || a.localeCompare(b)).map((k) => {
       const f = found.get(k)!;
@@ -106,7 +111,7 @@ async function main() {
           else db.prepare("UPDATE name_translations SET reviewed = 1 WHERE en = ? AND locale = 'ar'").run(x.en);
           n++;
         }
-        console.log(`  names: ${n} stored as reviewed`);
+        console.log(`  names: ${n} stored as reviewed; i18n/names.ar.json now holds ${saveNamesToFile(db)} names`);
       }
     }
     if ((file as unknown as { answers?: Record<string, string> }).answers && Object.keys((file as unknown as { answers: Record<string, string> }).answers).length) {
