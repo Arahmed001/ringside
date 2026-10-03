@@ -7,6 +7,9 @@ import { TitlesCard, NextFightCard } from "@/components/TitlesCard";
 import { BoxerRecords } from "@/components/Awards";
 import { notFound } from "next/navigation";
 import { getWorld, recordStr } from "@/lib/world";
+import { getDb } from "@/lib/db";
+import { boxerPageNotes } from "@/lib/accounts/corrections";
+import { CorrectionNotes, type NoteRow } from "@/components/CorrectionNotes";
 import { rankOf } from "@/lib/rankings";
 import { similarTo, archetype, ARCH_COLOR } from "@/lib/style";
 import { rulesReport } from "@/lib/ai";
@@ -84,6 +87,11 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
         return { from: v.stint.start, to: v.stint.end, label: name, sub: v.record.bouts ? `${v.record.wins}-${v.record.losses}-${v.record.draws}` : undefined, href, current: v.current };
       }),
     }));
+  const noted = boxerPageNotes(await getDb(), b.id);
+  const noteRows: NoteRow[] = [
+    ...noted.boxer,
+    ...noted.bouts.map((n) => { const x = w.boutById.get(n.boutId), r = x && w.byId.get(x.redId), u = x && w.byId.get(x.blueId); return { ...n, about: { href: `/bouts/${n.boutId}`, label: r && u ? t("{a} vs {b}", { a: t.name(r.name), b: t.name(u.name) }) : t("Fight") }, names: (r && u ? [t.name(r.name), t.name(u.name)] : undefined) as [string, string] | undefined }; }),
+  ];
   const community = (w.stintsByBoxer.get(b.id) ?? []).filter((x) => x.source === EDIT_SOURCE && x.personId).map((x) => ({ id: x.id, person: w.people.get(x.personId!)?.name ?? "", role: x.role, start: x.start, sourceUrl: x.sourceUrl ?? null })).filter((x) => x.person);
   const teamNow = (["head_trainer", "gym", "manager", "promoter"] as const).map((r) => ({ role: r, v: currentOf(team, r) })).filter((x) => x.v);
   const honours = w.honoursByBoxer.get(b.id) ?? [];
@@ -172,6 +180,8 @@ const HONOURS_SHOWN = 8;
               }</dd></div>
             )}
           </dl>
+          <CorrectionNotes rows={noteRows} />
+          <p className="mt-3 text-xs text-muted"><Link href={`/report?boxer=${b.slug}`} className="underline decoration-dotted hover:text-ink">{t("Report a mistake on this profile")}</Link></p>
           <BoxerRecords w={w} boxerId={b.id} />
           {honours.length > 0 && (
             <div className="mt-4 border-t border-line/60 pt-3">

@@ -2,6 +2,8 @@ import Link from "@/components/L";
 import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { getWorld, recordStr } from "@/lib/world";
+import { boutPageNotes } from "@/lib/accounts/corrections";
+import { CorrectionNotes } from "@/components/CorrectionNotes";
 import { Headshot } from "@/components/Portrait";
 import { ScoreCards } from "@/components/ScoreCards";
 import { PunchStats } from "@/components/PunchStats";
@@ -116,6 +118,8 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
               {b.kdBlue > 0 && <span className="chip !border-blue/50 !text-blue">{t("{name} down {n}×", { name: surname(blue.name), n: b.kdBlue })}</span>}
             </div>
           )}
+          <CorrectionNotes rows={boutPageNotes(db, b.id).map((n) => ({ ...n, names: [t.name(red.name), t.name(blue.name)] as [string, string] }))} />
+          {b.method && <p className="mt-3 text-center text-xs text-muted"><Link href={`/report?bout=${b.id}`} className="underline decoration-dotted hover:text-ink">{t("Report a mistake in this result")}</Link></p>}
         </div>
       </section>
 

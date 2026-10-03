@@ -5,7 +5,7 @@ import { useLocale, useT } from "@/components/i18n";
 import { api, refreshAccount, setSignedIn, useAccount, type Me } from "@/lib/useAccount";
 import type { SessionInfo } from "@/lib/accounts/users";
 import { PICKS_KEY } from "@/lib/usePicks";
-import { explain } from "@/components/accountText";
+import { explain } from "@/lib/account-text";
 
 const input = "w-full rounded-xl border border-line bg-panel2 px-3 py-2.5 text-sm outline-none placeholder:text-muted focus:border-gold/60";
 const primary = "rounded-xl bg-red-btn px-5 py-2.5 font-display text-lg font-bold uppercase text-white transition hover:brightness-90 disabled:opacity-60";
@@ -111,6 +111,7 @@ function Signed({ me }: { me: Me }) {
           <Link href="/picks" className="chip hover:!text-gold">{t("My picks")}</Link>
           <Link href="/leaderboard" className="chip hover:!text-gold">{t("Leaderboard")}</Link>
           <Link href="/contribute" className="chip hover:!text-gold">{t("Suggest an edit")}</Link>
+          <Link href="/report" className="chip hover:!text-gold">{t("Report a mistake")}</Link>
           {(me.role === "editor" || me.role === "admin") && <Link href="/review" className="chip hover:!text-gold">{t("Review queue")}</Link>}
         </div>
       </section>

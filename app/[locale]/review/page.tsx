@@ -1,3 +1,4 @@
+import Link from "@/components/L";
 import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
 import { ReviewQueue } from "@/components/ReviewQueue";
@@ -14,6 +15,7 @@ export default async function Review() {
         <div className="eyebrow mb-2">{t("Editors")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase">{t("Review queue")}</h1>
         <p className="mt-2 max-w-2xl text-muted">{t("Read the source, have the quote checked on the live page, then approve or reject. Approving publishes the edit at once, marked as a community edit with its link. You cannot decide your own proposal.")}</p>
+        <p className="mt-3 text-sm"><Link href="/review/reports" className="underline decoration-dotted hover:text-ink">{t("Reports of mistakes")}</Link></p>
       </div>
       <ReviewQueue />
     </div>

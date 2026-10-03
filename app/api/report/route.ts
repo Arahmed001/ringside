@@ -1,6 +1,6 @@
 import { getDb, bumpDbVersion } from "@/lib/db";
 import { recomputeRatings } from "@/lib/ingest";
-import { myReports, submitReport, withdrawReport, type ReportInput } from "@/lib/accounts/corrections";
+import { myOwned, myReports, submitReport, withdrawReport, type ReportInput } from "@/lib/accounts/corrections";
 import { fail, json, postBody, str, userOf } from "@/lib/accounts/api";
 import { limits } from "@/lib/accounts/guard";
 
@@ -13,7 +13,8 @@ import { limits } from "@/lib/accounts/guard";
 export async function GET(req: Request) {
   const user = userOf(req);
   if (!user) return fail("unauthorized", 401);
-  return json({ items: myReports(user.id, await getDb()) });
+  const db = await getDb();
+  return json({ items: myReports(user.id, db), owned: myOwned(user.id, db) });
 }
 
 export async function POST(req: Request) {

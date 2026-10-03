@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { usePicks } from "@/lib/usePicks";
-import { explain } from "@/components/accountText";
+import { explain } from "@/lib/account-text";
 import { useT } from "@/components/i18n";
 import Link from "@/components/L";
 

@@ -4,7 +4,7 @@ import Link from "@/components/L";
 import { useT } from "@/components/i18n";
 import { FighterPicker } from "@/components/FighterPicker";
 import { api, useAccount } from "@/lib/useAccount";
-import { explain } from "@/components/accountText";
+import { explain } from "@/lib/account-text";
 import type { ContributionView } from "@/lib/accounts/contributions";
 
 const input = "w-full rounded-xl border border-line bg-panel2 px-3 py-2.5 text-sm outline-none placeholder:text-muted focus:border-gold/60";
