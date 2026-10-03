@@ -21,7 +21,7 @@ export interface ReportBout { ext: string; red: string; blue: string; rounds: nu
  * Report a wrong fact. Whose word counts depends on who owns the fact: a fight's result belongs to the commission that ran it, a fighter's details to the
  * fighter. So the form asks for a source, says which sources the site can use, and tells a verified fighter that their own corrections apply at once.
  */
-export function ReportForm({ initial, bout }: { initial?: { slug: string; name: string }; bout?: ReportBout }) {
+export function ReportForm({ initial, bout, contact }: { initial?: { slug: string; name: string }; bout?: ReportBout; contact?: { label: string; href: string } | null }) {
   const t = useT();
   const me = useAccount();
   const [busy, setBusy] = useState(false);
@@ -40,6 +40,7 @@ export function ReportForm({ initial, bout }: { initial?: { slug: string; name: 
     <div className="card p-6">
       <p className="text-muted">{t("Sign in to report a mistake. Every report goes to an editor, who checks the source before anything changes.")}</p>
       <p className="mt-3"><Link href="/account" className="chip !border-gold/40 hover:!text-gold">{t("Sign in or create an account")}</Link></p>
+      {contact && <p className="mt-4 text-sm text-muted">{t("Prefer not to sign in? Write to")} <a href={contact.href} lang="en" dir="ltr" {...(contact.href.startsWith("mailto:") ? {} : { target: "_blank", rel: "noopener noreferrer" })} className="underline decoration-dotted hover:text-ink">{contact.label}</a></p>}
     </div>
   );
 
