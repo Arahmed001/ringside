@@ -180,8 +180,13 @@ export async function getDb(): Promise<DatabaseSync> {
   const db = g.__ringsideDb;
   if (!g.__ringsideReady) {
     const count = (db.prepare("SELECT COUNT(*) c FROM boxers").get() as { c: number }).c;
-    // RINGSIDE_NO_SEED lets a script (the scale benchmark) load its own data into an empty database instead
-    g.__ringsideReady = count === 0 && !process.env.RINGSIDE_NO_SEED ? ingest(db).then(() => { syncCommunity(db); }) : Promise.resolve();
+    // RINGSIDE_NO_SEED lets a script (the scale benchmark, the vendor backfill) load its own data into an empty database instead
+    const seed = count === 0 && !process.env.RINGSIDE_NO_SEED;
+    // a licensed feed is thousands of requests and costs money: never start one because somebody opened a page (the health check would trigger it too)
+    if (seed && process.env.BOXING_PROVIDER === "licensed") {
+      g.__ringsideReady = Promise.reject(new Error("This database is empty and BOXING_PROVIDER=licensed. The app does not fetch a licensed history on a page view: fill the database first with `npm run vendor:backfill` (docs/real-data-runbook.md), then start the app."));
+      g.__ringsideReady.catch(() => {}); // reported to the caller below; no unhandled rejection
+    } else g.__ringsideReady = seed ? ingest(db).then(() => { syncCommunity(db); }) : Promise.resolve();
   }
   try {
     await g.__ringsideReady;

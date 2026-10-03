@@ -229,22 +229,60 @@ export function replayFetch(dir: string): typeof fetch {
 export class HttpError extends Error { constructor(message: string, readonly status: number) { super(message); } }
 export interface BoxingDataApiOptions {
   key: string; baseUrl?: string; fetchImpl?: typeof fetch;
-  /** Hard cap on requests per load (the free tier is 100 a month). Default 90. */
+  /** Hard cap on requests per load (the free tier is 100 a month). Default 90. A retry counts as a request, as it does for the vendor. */
   maxRequests?: number; pageSize?: number; since?: string; maxFights?: number; /** days of upcoming fights to include (default 60; 0 for none) */ scheduleDays?: number; gapMs?: number; /** save every raw response here, so a mapping can be fixed offline without spending more requests */ rawDir?: string; log?: (m: string) => void;
+  /**
+   * A read-through cache of every successful response (the backfill's checkpoint): a re-run after a crash, a rate limit or a closed laptop
+   * costs only the requests that never completed, and a mapping fix costs none. This is vendor data on disk, so it is only for "ingest"
+   * (storage confirmed) or an evaluation you are keeping out of git.
+   */
+  cacheDir?: string;
+  /** with cacheDir: ignore what is cached and fetch again (and overwrite it) */
+  refresh?: boolean;
+  /** with cacheDir: ignore cached fight-list pages (a daily update must see today's results) but still reuse cached fighters */
+  refreshLists?: boolean;
+  /** extra attempts after a 429, a 500/502/503/504 or a network failure, waiting out Retry-After or backing off 1, 2, 4 ... seconds (max 30). Default 0. */
+  retries?: number;
+  /** replaces the real wait, for tests */
+  sleep?: (ms: number) => Promise<void>;
   /** "evaluation" fetches a sample for `npm run data:check`; "ingest" fills the database and needs BOXING_API_STORAGE_CONFIRMED=1. */
   purpose: "evaluation" | "ingest";
 }
-export interface BoxingDataApiProvider extends DataProvider { notes(): Notes; requests(): number }
+export interface BackfillPlan {
+  /** fights, events and distinct fighters the list pages came to */
+  fights: number; events: number; fighters: number;
+  /** fighters already in the cache, and so free */
+  fightersCached: number;
+  /** requests still to make for the fighters (the list pages are already done by the time this is known) */
+  fighterRequests: number;
+  /** requests made so far (list pages) */
+  requestsMade: number;
+}
+export interface BoxingDataApiProvider extends DataProvider {
+  notes(): Notes; requests(): number; cacheHits(): number;
+  /** Fetches the fight list pages only and says what the fighters will cost, without fetching them: "what will this backfill cost" before it is spent. */
+  plan(): Promise<BackfillPlan>;
+}
 
-export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiProvider {
-  if (o.purpose === "ingest" && process.env.BOXING_API_STORAGE_CONFIRMED !== "1") {
+const backoff = (attempt: number) => Math.min(30_000, 1000 * 2 ** attempt);
+const slug = (x: string) => x.replace(/[^a-z0-9._-]+/gi, "-").replace(/^-+|-+$/g, "");
+
+/** Throws unless storing the vendor's data has been confirmed (BOXING_API_STORAGE_CONFIRMED=1). Callers that do other work first (open a database) call this first. */
+export function assertStorageConfirmed(): void {
+  if (process.env.BOXING_API_STORAGE_CONFIRMED !== "1") {
     throw new Error("Not filling the database from the Boxing Data API yet: its terms on storing data are unconfirmed (docs/boxing-data-api-enquiry.md). Evaluate a sample with `npm run vendor:sample`, and set BOXING_API_STORAGE_CONFIRMED=1 once the operator has confirmed in writing that stored data may be kept.");
   }
+}
+
+export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiProvider {
+  if (o.purpose === "ingest") assertStorageConfirmed();
   const base = (o.baseUrl ?? "https://boxing-data-api.p.rapidapi.com").replace(/\/+$/, "");
   const host = new URL(base).host;
   const doFetch = o.fetchImpl ?? fetch;
   const max = o.maxRequests ?? 90, log = o.log ?? (() => {});
-  let used = 0, notes = emptyNotes(), cache: Promise<{ boxers: ProviderBoxer[]; events: ProviderEvent[]; bouts: ProviderBout[] }> | null = null;
+  const sleep = o.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  let used = 0, hits = 0, notes = emptyNotes(), cache: Promise<{ boxers: ProviderBoxer[]; events: ProviderEvent[]; bouts: ProviderBout[] }> | null = null;
+  let listed: Promise<{ events: Map<string, ProviderEvent>; bouts: ProviderBout[]; ids: Set<string> }> | null = null;
 
   /** The vendor's own reason for a refusal ("not subscribed", "invalid key", "endpoint not on your plan"), with the key scrubbed out. */
   async function explain(res: Response): Promise<string> {
@@ -254,21 +292,53 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     return (msg.split(o.key).join("***").replace(/\s+/g, " ").slice(0, 200)) || "no explanation given";
   }
 
+  const cacheFile = (p: string, params: Record<string, string | number | undefined>) => {
+    const q = Object.entries(params).filter(([, v]) => v !== undefined).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => `${k}-${v}`).join("__");
+    return path.join(o.cacheDir!, `${slug(p)}${q ? `__${slug(q)}` : ""}.json`);
+  };
+  const fromCache = <T,>(file: string): Envelope<T> | undefined => {
+    try { return JSON.parse(fs.readFileSync(file, "utf8")) as Envelope<T>; } catch { return undefined; } // missing or half-written: fetch it again
+  };
+  const toCache = (file: string, body: unknown) => {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const tmp = `${file}.${process.pid}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(body));
+    fs.renameSync(tmp, file); // a crash mid-write leaves no half file for the next run to trust
+  };
+
   async function get<T>(p: string, params: Record<string, string | number | undefined> = {}): Promise<Envelope<T>> {
-    if (used >= max) throw new BudgetError(`Stopped after ${used} requests (limit ${max}; raise BOXING_API_MAX_REQUESTS only if your plan allows it).`);
-    used++;
-    if (used > 1 && o.gapMs) await new Promise((r) => setTimeout(r, o.gapMs));
+    const file = o.cacheDir ? cacheFile(p, params) : undefined;
+    if (file && !o.refresh && !(o.refreshLists && p.startsWith("/v2/fights"))) { const hit = fromCache<T>(file); if (hit) { hits++; return hit; } }
     const qs = Object.entries(params).filter(([, v]) => v !== undefined).map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
-    const res = await doFetch(`${base}${p}${qs ? `?${qs}` : ""}`, { headers: { "x-rapidapi-key": o.key, "x-rapidapi-host": host, accept: "application/json" } });
-    if (res.status === 429) throw new Error(`Boxing Data API rate limit hit on ${p} (retry after ${res.headers.get("retry-after") ?? "unknown"} s).`);
-    if (!res.ok) throw new HttpError(`Boxing Data API ${res.status} on ${p}: ${await explain(res)}`, res.status);
-    const body = (await res.json()) as Envelope<T>;
-    if (o.rawDir) { fs.mkdirSync(o.rawDir, { recursive: true }); fs.writeFileSync(path.join(o.rawDir, `${String(used).padStart(3, "0")}-${p.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "")}.json`), JSON.stringify(body, null, 2)); }
-    if (body.error && Object.keys(body.error).length) throw new Error(`Boxing Data API error on ${p}: ${JSON.stringify(body.error).slice(0, 200)}`);
-    return body;
+    const attempts = 1 + (o.retries ?? 0);
+    for (let attempt = 0; ; attempt++) {
+      if (used >= max) throw new BudgetError(`Stopped after ${used} requests (limit ${max}; raise BOXING_API_MAX_REQUESTS only if your plan allows it).`);
+      used++;
+      if (used > 1 && o.gapMs) await sleep(o.gapMs);
+      let res: Response;
+      try { res = await doFetch(`${base}${p}${qs ? `?${qs}` : ""}`, { headers: { "x-rapidapi-key": o.key, "x-rapidapi-host": host, accept: "application/json" } }); }
+      catch (e) {
+        if (attempt + 1 < attempts) { log(`network error on ${p} (${e instanceof Error ? e.message : e}); retrying`); await sleep(backoff(attempt)); continue; }
+        throw new Error(`Boxing Data API unreachable on ${p}: ${e instanceof Error ? e.message : e}`);
+      }
+      if ((res.status === 429 || [500, 502, 503, 504].includes(res.status)) && attempt + 1 < attempts) {
+        const wait = Number(res.headers.get("retry-after"));
+        log(`${res.status} on ${p}; retrying (attempt ${attempt + 2} of ${attempts})`);
+        await sleep(Number.isFinite(wait) && wait > 0 ? Math.min(wait, 120) * 1000 : backoff(attempt));
+        continue;
+      }
+      if (res.status === 429) throw new Error(`Boxing Data API rate limit hit on ${p} (retry after ${res.headers.get("retry-after") ?? "unknown"} s).`);
+      if (!res.ok) throw new HttpError(`Boxing Data API ${res.status} on ${p}: ${await explain(res)}`, res.status);
+      const body = (await res.json()) as Envelope<T>;
+      if (o.rawDir) { fs.mkdirSync(o.rawDir, { recursive: true }); fs.writeFileSync(path.join(o.rawDir, `${String(used).padStart(3, "0")}-${p.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "")}.json`), JSON.stringify(body, null, 2)); }
+      if (body.error && Object.keys(body.error).length) throw new Error(`Boxing Data API error on ${p}: ${JSON.stringify(body.error).slice(0, 200)}`);
+      if (file) toCache(file, body); // only a good answer is kept: an error body is never a checkpoint
+      return body;
+    }
   }
 
-  async function load() {
+  /** The fight list pages (and the schedule, if the list showed no coming fights): the fights, their events and the fighters they involve. */
+  async function listFights() {
     notes = emptyNotes();
     const limit = o.maxFights ?? Infinity;
     const events = new Map<string, ProviderEvent>(), bouts: ProviderBout[] = [], ids = new Set<string>(), seen = new Set<string>();
@@ -286,6 +356,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
           events.set(m.event.externalId, m.event); bouts.push(m.bout); m.fighterIds.forEach((i) => ids.add(i));
         }
         const total = r.pagination?.total_pages ?? page;
+        if (page % 25 === 0) log(`fight pages: ${page} of ${total}`);
         if (page >= total || !(r.data ?? []).length) break;
       }
     };
@@ -310,12 +381,26 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
       }
     }
     log(`fights: ${bouts.length}, events: ${events.size}, fighters to fetch: ${ids.size}`);
+    return { events, bouts, ids };
+  }
+  const fightsOnce = () => (listed ??= listFights());
+
+  async function load() {
+    const { events, bouts, ids } = await fightsOnce();
     const rows: Loose[] = [];
+    let n = 0, cachedFighters = 0;
+    const started = Date.now();
     for (const id of ids) {
+      const before = hits;
       try {
         const m = mapFighter((await get<ApiFighter>(`/v2/fighters/${id}`)).data, notes);
         if (m) rows.push(m);
       } catch (e) { if (e instanceof BudgetError) throw e; log(`fighter ${id} skipped: ${e instanceof Error ? e.message : e}`); }
+      if (hits > before) cachedFighters++;
+      if (++n % 100 === 0) {
+        const perRequest = (Date.now() - started) / Math.max(1, n - cachedFighters); // cached fighters cost nothing, so time per fighter actually fetched
+        log(`fighters: ${n} of ${ids.size}${cachedFighters ? ` (${cachedFighters} from the cache)` : ""}, at most ${Math.ceil(((ids.size - n) * perRequest) / 60000)} min to go`);
+      }
     }
     const have = new Set(rows.map((r) => r.externalId));
     const keep = bouts.filter((b) => { const ok = have.has(b.redExternalId) && have.has(b.blueExternalId); if (!ok) notes.boutsDroppedUnknownFighter++; return ok; });
@@ -326,6 +411,11 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
   return {
     name: "boxing-data-api",
     fetchBoxers: async () => (await once()).boxers, fetchEvents: async () => (await once()).events, fetchBouts: async () => (await once()).bouts,
-    notes: () => ({ ...notes }), requests: () => used,
+    notes: () => ({ ...notes }), requests: () => used, cacheHits: () => hits,
+    async plan() {
+      const { events, bouts, ids } = await fightsOnce();
+      const cached = o.cacheDir && !o.refresh ? [...ids].filter((id) => fromCache(cacheFile(`/v2/fighters/${id}`, {}))).length : 0;
+      return { fights: bouts.length, events: events.size, fighters: ids.size, fightersCached: cached, fighterRequests: ids.size - cached, requestsMade: used };
+    },
   };
 }

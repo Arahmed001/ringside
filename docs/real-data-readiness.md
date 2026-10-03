@@ -79,6 +79,10 @@ Not in the feed at all, so absent from the real-data version of the site: punch 
 6. **Wording (fixed while writing this).** The footer used to say "fictional, simulated data" on every page unconditionally, which would have been false the day real data loaded. It, the Data page's "Demo mode" note, the noindex rule, the sitemap and the structured data now all hang on one check (`isDemoData()` in `lib/seo.ts`, true unless `BOXING_PROVIDER` names a real provider). Checked by serving the demo league's feed as a non-demo provider: 20 section pages in real mode contain none of "fictional", "simulated", "demo build", "demo league" or "demo mode"; the footer points to the Data page for sources; the pages are indexable and the sitemap is served. Demo mode is unchanged.
 7. **Credits and terms.** The Data page lists sources; add the vendor with its licence terms and any attribution it requires, once the terms are known.
 
+## When the plan is bought
+
+`docs/real-data-runbook.md` is the procedure: price it, fetch and inspect, load, check, then the daily update. Everything in it resumes after an interruption.
+
 ## Decision gate before any money
 
 1. Run the 20-request sample above and read the approximations.
