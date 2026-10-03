@@ -96,6 +96,7 @@
   "files": [
    "app/[locale]/bouts/[id]/opengraph-image.tsx",
    "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/design/home/page.tsx",
    "app/[locale]/events/[id]/opengraph-image.tsx",
    "app/[locale]/money/page.tsx",
@@ -396,6 +397,7 @@
   "files": [
    "app/[locale]/compare/page.tsx",
    "components/MatchupLab.tsx",
+   "lib/correction-text.ts",
    "lib/preview.ts"
   ]
  },
@@ -1130,6 +1132,12 @@
   ]
  },
  {
+  "key": "{name} won",
+  "files": [
+   "lib/correction-text.ts"
+  ]
+ },
+ {
   "key": "{name} won after being knocked down",
   "files": [
    "lib/fight-score.ts"
@@ -1145,6 +1153,12 @@
   "key": "{name} won with only a {pct}% chance beforehand",
   "files": [
    "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "{name} won: {how}",
+  "files": [
+   "lib/correction-text.ts"
   ]
  },
  {
@@ -1610,6 +1624,7 @@
  {
   "key": "a deleted account",
   "files": [
+   "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
   ]
  },
@@ -1647,6 +1662,24 @@
   "key": "A factor needs |z| of about 2 or more to count as signal. Fitted on rating, reach, age, layoff, knockout rate, KO losses, experience, usual rehydration, fight-night weight edge, new-trainer flag and the trainer's prior win rate. In this demo league the weigh-in and trainer effects were planted but are small, so they are not detectable at this sample size. That is the honest answer, and real data will say what is really there.",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "A fight’s result can only be corrected from a page its commission or sanctioning body published; a fighter’s details from the fighter’s own page or their confirmed account. Anything else can be noted, and the data feed’s value stands. You cannot decide your own report.",
+  "files": [
+   "app/[locale]/review/reports/page.tsx"
+  ]
+ },
+ {
+  "key": "A fight’s result is the commission’s or sanctioning body’s to state. Give a page they published (a commission’s results or official record). Other sources are kept as a note, but cannot change what the site shows.",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "A fighter’s details are the fighter’s to state. Give the fighter’s own official page. Other sources are kept as a note, but cannot change what the site shows. If you are this fighter, choose “This is about me”.",
+  "files": [
+   "components/ReportForm.tsx"
   ]
  },
  {
@@ -1773,6 +1806,44 @@
   "key": "A win the model saw coming: {p} for {name}.",
   "files": [
    "lib/recap.ts"
+  ]
+ },
+ {
+  "key": "About me",
+  "files": [
+   "components/ReportForm.tsx",
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Accept",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Accepted",
+  "files": [
+   "components/ReportQueue.tsx",
+   "lib/correction-text.ts"
+  ]
+ },
+ {
+  "key": "Accepted, since withdrawn",
+  "files": [
+   "lib/correction-text.ts"
+  ]
+ },
+ {
+  "key": "Accepted, to be rechecked",
+  "files": [
+   "lib/correction-text.ts"
+  ]
+ },
+ {
+  "key": "Accepted.",
+  "files": [
+   "components/ReportQueue.tsx"
   ]
  },
  {
@@ -2022,6 +2093,12 @@
   ]
  },
  {
+  "key": "An administrator has confirmed that you are, or act for, these fighters. Your corrections to their own details (not to fights) are applied at once, without a source.",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
   "key": "An AI model chose which of our fixed, read-only queries to run. It cannot run anything else, and every number comes from the queries below, not from the model.",
   "files": [
    "components/AskResults.tsx"
@@ -2094,7 +2171,8 @@
  {
   "key": "Anything else the editor should know (optional)",
   "files": [
-   "components/ContributeForm.tsx"
+   "components/ContributeForm.tsx",
+   "components/ReportForm.tsx"
   ]
  },
  {
@@ -2784,6 +2862,12 @@
   ]
  },
  {
+  "key": "By the fighter",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
   "key": "by the model, across live and longshot fights",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
@@ -2965,6 +3049,7 @@
  {
   "key": "Check the quote on the page",
   "files": [
+   "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
   ]
  },
@@ -2977,18 +3062,21 @@
  {
   "key": "Checked by code: the page could not be read (blocked, gone or not text).",
   "files": [
+   "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
   ]
  },
  {
   "key": "Checked by code: the quote is NOT on the page.",
   "files": [
+   "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
   ]
  },
  {
   "key": "Checked by code: the quote is on the page.",
   "files": [
+   "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
   ]
  },
@@ -3001,7 +3089,25 @@
  {
   "key": "Choose a role.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "Choose what kind of report this is.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "Choose which detail is wrong.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "Choose…",
+  "files": [
+   "components/ReportForm.tsx"
   ]
  },
  {
@@ -3200,6 +3306,12 @@
   ]
  },
  {
+  "key": "Contact left: {contact}",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
   "key": "Contributor terms",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -3208,7 +3320,8 @@
  {
   "key": "Copy them exactly, up to 300 characters. Editors check that they are really on the page.",
   "files": [
-   "components/ContributeForm.tsx"
+   "components/ContributeForm.tsx",
+   "components/ReportForm.tsx"
   ]
  },
  {
@@ -3257,6 +3370,31 @@
   ]
  },
  {
+  "key": "Correct it now",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "Corrected",
+  "files": [
+   "components/CorrectionNotes.tsx"
+  ]
+ },
+ {
+  "key": "corrected from a source",
+  "files": [
+   "components/CorrectionNotes.tsx"
+  ]
+ },
+ {
+  "key": "Corrections",
+  "files": [
+   "app/[locale]/report/page.tsx",
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
   "key": "Corrections and trainer/manager history with sources",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -3265,7 +3403,7 @@
  {
   "key": "Could not reach the server. Check your connection and try again.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -3284,6 +3422,12 @@
   "key": "Counter-Puncher",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Country",
+  "files": [
+   "lib/correction-text.ts"
   ]
  },
  {
@@ -3443,9 +3587,15 @@
   ]
  },
  {
+  "key": "Date of birth",
+  "files": [
+   "lib/correction-text.ts"
+  ]
+ },
+ {
   "key": "Dates cannot be in the future.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -3457,6 +3607,7 @@
  {
   "key": "Decided by {name} on {date}",
   "files": [
+   "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
   ]
  },
@@ -3640,6 +3791,12 @@
   ]
  },
  {
+  "key": "Done. The correction is on your profile now. Editors can look it over afterwards.",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
   "key": "dormant",
   "files": [
    "app/[locale]/titles/page.tsx"
@@ -3671,6 +3828,8 @@
    "app/[locale]/orgs/[slug]/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/weights/page.tsx",
+   "components/ReportForm.tsx",
+   "lib/correction-text.ts",
    "lib/format.ts",
    "lib/preview.ts",
    "lib/i18n/dynamic-keys.ts"
@@ -3686,6 +3845,12 @@
   "key": "draw {pct}",
   "files": [
    "components/ChartI18n.tsx"
+  ]
+ },
+ {
+  "key": "Draw: {how}",
+  "files": [
+   "lib/correction-text.ts"
   ]
  },
  {
@@ -3770,14 +3935,22 @@
  {
   "key": "Editor’s note: {note}",
   "files": [
-   "components/ContributeForm.tsx"
+   "components/ContributeForm.tsx",
+   "components/ReportForm.tsx"
   ]
  },
  {
   "key": "Editors",
   "files": [
    "app/[locale]/data/page.tsx",
-   "app/[locale]/review/page.tsx"
+   "app/[locale]/review/page.tsx",
+   "app/[locale]/review/reports/page.tsx"
+  ]
+ },
+ {
+  "key": "Editors check reports of wrong facts against sources published by their owners.",
+  "files": [
+   "app/[locale]/review/reports/page.tsx"
   ]
  },
  {
@@ -3858,25 +4031,25 @@
  {
   "key": "Enter a full web address (https://…) for the source.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "Enter the end date as year-month-day, or leave it empty.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "Enter the person’s name (letters only, no links).",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "Enter the start date as year-month-day.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -4239,7 +4412,9 @@
  {
   "key": "Fight",
   "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/fight-of-the-year/page.tsx",
+   "components/ReportForm.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -4418,6 +4593,7 @@
    "app/[locale]/rankings/[division]/page.tsx",
    "app/[locale]/weights/page.tsx",
    "components/ContributeForm.tsx",
+   "components/ReportForm.tsx",
    "components/StyleMap.tsx",
    "components/TenureTable.tsx",
    "components/TrainerImpactCard.tsx",
@@ -4590,6 +4766,12 @@
   "key": "Fighters, events, bouts, results, belts; sometimes weights, scorecards, referees",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Fighters’ own changes",
+  "files": [
+   "components/ReportQueue.tsx"
   ]
  },
  {
@@ -4982,6 +5164,12 @@
   ]
  },
  {
+  "key": "Handled",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
   "key": "Happened",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
@@ -5090,6 +5278,7 @@
   "key": "Height",
   "files": [
    "app/[locale]/compare/page.tsx",
+   "lib/correction-text.ts",
    "lib/preview.ts"
   ]
  },
@@ -5197,6 +5386,19 @@
   ]
  },
  {
+  "key": "How it ended",
+  "files": [
+   "components/ReportForm.tsx",
+   "lib/correction-text.ts"
+  ]
+ },
+ {
+  "key": "How it ended (if it changes)",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
   "key": "How it is scored",
   "files": [
    "app/[locale]/leaderboard/page.tsx"
@@ -5263,6 +5465,12 @@
   ]
  },
  {
+  "key": "How to reach you (optional, seen by an administrator only)",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
   "key": "HVY",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -5284,6 +5492,12 @@
   "key": "Identifiers",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "If you are this fighter, or act for them, tell us. This goes to an administrator only. Nothing is changed by it: an administrator checks who you are first, and can then link your account to the profile.",
+  "files": [
+   "components/ReportForm.tsx"
   ]
  },
  {
@@ -5423,6 +5637,18 @@
   "key": "Keep going",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Keep the correction",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Kept.",
+  "files": [
+   "components/ReportQueue.tsx"
   ]
  },
  {
@@ -5843,6 +6069,8 @@
   "files": [
    "components/AccountPanel.tsx",
    "components/ContributeForm.tsx",
+   "components/ReportForm.tsx",
+   "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
   ]
  },
@@ -5916,6 +6144,12 @@
   "key": "Longshots",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Look again",
+  "files": [
+   "components/ReportQueue.tsx"
   ]
  },
  {
@@ -5996,6 +6230,12 @@
   "key": "Map",
   "files": [
    "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Marked as handled.",
+  "files": [
+   "components/ReportQueue.tsx"
   ]
  },
  {
@@ -6464,6 +6704,12 @@
   ]
  },
  {
+  "key": "Nickname",
+  "files": [
+   "lib/correction-text.ts"
+  ]
+ },
+ {
   "key": "Night in review",
   "files": [
    "app/[locale]/events/[id]/page.tsx"
@@ -6502,6 +6748,8 @@
  {
   "key": "No contest",
   "files": [
+   "components/ReportForm.tsx",
+   "lib/correction-text.ts",
    "lib/format.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
@@ -6516,6 +6764,12 @@
   "key": "No fighter found by that name.",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "No fighter has changed their own details yet.",
+  "files": [
+   "components/ReportQueue.tsx"
   ]
  },
  {
@@ -6721,7 +6975,8 @@
  {
   "key": "none",
   "files": [
-   "app/[locale]/data/page.tsx"
+   "app/[locale]/data/page.tsx",
+   "lib/correction-text.ts"
   ]
  },
  {
@@ -6741,7 +6996,9 @@
   "key": "Not accepted",
   "files": [
    "components/ContributeForm.tsx",
-   "components/ReviewQueue.tsx"
+   "components/ReportQueue.tsx",
+   "components/ReviewQueue.tsx",
+   "lib/correction-text.ts"
   ]
  },
  {
@@ -6811,9 +7068,45 @@
   ]
  },
  {
+  "key": "Note (needed to reject or note)",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
   "key": "Note (needed to reject)",
   "files": [
    "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Note (needed)",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Note it",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Noted",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Noted, nothing changed",
+  "files": [
+   "lib/correction-text.ts"
+  ]
+ },
+ {
+  "key": "Noted. The data is unchanged.",
+  "files": [
+   "components/ReportQueue.tsx"
   ]
  },
  {
@@ -6837,6 +7130,7 @@
  {
   "key": "Nothing here yet.",
   "files": [
+   "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
   ]
  },
@@ -6849,6 +7143,7 @@
  {
   "key": "Nothing is waiting.",
   "files": [
+   "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
   ]
  },
@@ -6856,6 +7151,12 @@
   "key": "Nothing matches that.",
   "files": [
    "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "Nothing needs a second look.",
+  "files": [
+   "components/ReportQueue.tsx"
   ]
  },
  {
@@ -7014,6 +7315,12 @@
   ]
  },
  {
+  "key": "Only editors can review reports.",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
   "key": "Only fighters who changed trainer tell a trainer's effect apart from their fighters' ability. A trainer whose fighters never left is pulled toward zero, however good the results.",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -7060,6 +7367,7 @@
  {
   "key": "Orthodox",
   "files": [
+   "components/ReportForm.tsx",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -7301,7 +7609,7 @@
  {
   "key": "Pick a fighter from the list.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -7612,6 +7920,18 @@
   ]
  },
  {
+  "key": "provided by the fighter",
+  "files": [
+   "components/CorrectionNotes.tsx"
+  ]
+ },
+ {
+  "key": "Provided by the fighter",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
   "key": "Public records",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -7712,7 +8032,7 @@
  {
   "key": "Quote the words from the page that say it (at least a short sentence).",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -7800,6 +8120,7 @@
    "app/[locale]/compare/page.tsx",
    "components/MatchupLab.tsx",
    "lib/ask/tools.ts",
+   "lib/correction-text.ts",
    "lib/fit.ts",
    "lib/preview.ts",
    "lib/i18n/dynamic-keys.ts"
@@ -8002,19 +8323,66 @@
  {
   "key": "Reject",
   "files": [
+   "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
   ]
  },
  {
   "key": "Rejected.",
   "files": [
+   "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Report a mistake",
+  "files": [
+   "app/[locale]/report/page.tsx",
+   "components/AccountPanel.tsx",
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "Report a mistake in this result",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Report a mistake on this profile",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
   "key": "Reported",
   "files": [
    "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Reported by {name}",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Reporter’s note: {note}",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Reports",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Reports of mistakes",
+  "files": [
+   "app/[locale]/review/page.tsx",
+   "app/[locale]/review/reports/page.tsx"
   ]
  },
  {
@@ -8040,7 +8408,8 @@
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx",
    "app/[locale]/weights/page.tsx",
-   "lib/ask/tools.ts"
+   "lib/ask/tools.ts",
+   "lib/correction-text.ts"
   ]
  },
  {
@@ -8060,6 +8429,12 @@
   "key": "Results only: ignore everything else",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Retire it",
+  "files": [
+   "components/ReportQueue.tsx"
   ]
  },
  {
@@ -8149,7 +8524,8 @@
  {
   "key": "Round {r}",
   "files": [
-   "app/[locale]/bouts/[id]/page.tsx"
+   "app/[locale]/bouts/[id]/page.tsx",
+   "lib/correction-text.ts"
   ]
  },
  {
@@ -8162,6 +8538,12 @@
   "key": "Round and time of stoppage",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Round it ended",
+  "files": [
+   "lib/correction-text.ts"
   ]
  },
  {
@@ -8232,9 +8614,21 @@
   ]
  },
  {
+  "key": "Say a little more (at least a couple of sentences).",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "Say how the fight ended.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
   "key": "Say why, in a few words.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -8352,7 +8746,8 @@
   "key": "Search for a fighter…",
   "files": [
    "app/[locale]/matchmaking/page.tsx",
-   "components/ContributeForm.tsx"
+   "components/ContributeForm.tsx",
+   "components/ReportForm.tsx"
   ]
  },
  {
@@ -8401,7 +8796,8 @@
  {
   "key": "Send for review",
   "files": [
-   "components/ContributeForm.tsx"
+   "components/ContributeForm.tsx",
+   "components/ReportForm.tsx"
   ]
  },
  {
@@ -8462,6 +8858,18 @@
   "key": "She wins by accumulation, throwing in volume and trusting the scorecards over a single big shot.",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Should be",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Show",
+  "files": [
+   "components/ReportQueue.tsx"
   ]
  },
  {
@@ -8532,6 +8940,12 @@
   ]
  },
  {
+  "key": "Shows now",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
   "key": "Sign",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
@@ -8542,6 +8956,7 @@
   "files": [
    "components/AccountMenu.tsx",
    "components/AccountPanel.tsx",
+   "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
   ]
  },
@@ -8552,15 +8967,22 @@
   ]
  },
  {
+  "key": "Sign in as an editor to review reports.",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
   "key": "Sign in first.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "Sign in or create an account",
   "files": [
-   "components/ContributeForm.tsx"
+   "components/ContributeForm.tsx",
+   "components/ReportForm.tsx"
   ]
  },
  {
@@ -8579,6 +9001,12 @@
   "key": "Sign in to keep your picks on every device, join the leaderboard and suggest corrections.",
   "files": [
    "app/[locale]/account/page.tsx"
+  ]
+ },
+ {
+  "key": "Sign in to report a mistake. Every report goes to an editor, who checks the source before anything changes.",
+  "files": [
+   "components/ReportForm.tsx"
   ]
  },
  {
@@ -8700,7 +9128,13 @@
  {
   "key": "Someone has already decided this.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "Someone has already reported exactly this and it is waiting for review.",
+  "files": [
+   "lib/account-text.ts"
   ]
  },
  {
@@ -8710,9 +9144,21 @@
   ]
  },
  {
+  "key": "Something else",
+  "files": [
+   "lib/correction-text.ts"
+  ]
+ },
+ {
+  "key": "Something on the profile is wrong",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
   "key": "Something went wrong. Try again.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -8730,7 +9176,8 @@
  {
   "key": "source",
   "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "components/CorrectionNotes.tsx"
   ]
  },
  {
@@ -8742,7 +9189,14 @@
  {
   "key": "Source page",
   "files": [
-   "components/ContributeForm.tsx"
+   "components/ContributeForm.tsx",
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "Source page (optional)",
+  "files": [
+   "components/ReportForm.tsx"
   ]
  },
  {
@@ -8760,6 +9214,7 @@
  {
   "key": "Southpaw",
   "files": [
+   "components/ReportForm.tsx",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -8788,6 +9243,12 @@
   ]
  },
  {
+  "key": "Spotted something wrong? Tell us, with the page that says so. An editor reads the source before anything changes, and nothing appears on a page just because someone reported it. Results of fights come from the commission or sanctioning body that ran them; a fighter’s own details come from the fighter.",
+  "files": [
+   "app/[locale]/report/page.tsx"
+  ]
+ },
+ {
   "key": "Stable",
   "files": [
    "app/[locale]/people/[slug]/page.tsx"
@@ -8803,6 +9264,7 @@
   "key": "Stance",
   "files": [
    "app/[locale]/compare/page.tsx",
+   "lib/correction-text.ts",
    "lib/preview.ts"
   ]
  },
@@ -9036,6 +9498,7 @@
  {
   "key": "Switch",
   "files": [
+   "components/ReportForm.tsx",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -9089,6 +9552,12 @@
   ]
  },
  {
+  "key": "Team-history edits",
+  "files": [
+   "app/[locale]/review/reports/page.tsx"
+  ]
+ },
+ {
   "key": "Tech draw",
   "files": [
    "lib/format.ts"
@@ -9126,57 +9595,87 @@
   ]
  },
  {
+  "key": "Tell us a fact on a fighter or fight page is wrong, with the source that says so.",
+  "files": [
+   "app/[locale]/report/page.tsx"
+  ]
+ },
+ {
+  "key": "Thank you. An administrator will read this and get back to you if you left a contact.",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
   "key": "Thank you. An editor will check the source before this is published.",
   "files": [
    "components/ContributeForm.tsx"
   ]
  },
  {
+  "key": "Thank you. An editor will check the source. Nothing on the page changes until then.",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
   "key": "That code is wrong or has expired.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "That fight is not on the card any more.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "That fighter is not in this bout.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "That fighter or fight could not be found.",
+  "files": [
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "That is this device: use Sign out.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "That is what the site already shows.",
+  "files": [
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "That name and password do not match.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "That name is reserved.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "That name is taken.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "That no longer exists.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -9188,25 +9687,43 @@
  {
   "key": "That password is not right.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "That password is too easy to guess.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "That password is too long.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "That record list does not exist.",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "That request is not a correction.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "That value does not look right for this detail.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "That way of ending does not fit the result.",
+  "files": [
+   "lib/account-text.ts"
   ]
  },
  {
@@ -9258,6 +9775,12 @@
   ]
  },
  {
+  "key": "The blue corner",
+  "files": [
+   "lib/correction-text.ts"
+  ]
+ },
+ {
   "key": "The case for {name}",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
@@ -9267,6 +9790,12 @@
   "key": "The cases",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "The contact detail is too long.",
+  "files": [
+   "lib/account-text.ts"
   ]
  },
  {
@@ -9308,7 +9837,19 @@
  {
   "key": "The end date is before the start date.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "The feed gave",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "The feed now says",
+  "files": [
+   "components/ReportQueue.tsx"
   ]
  },
  {
@@ -9561,7 +10102,7 @@
  {
   "key": "The note is too long.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -9573,13 +10114,13 @@
  {
   "key": "The password must not contain your name.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "The password needs at least 10 characters.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -9597,7 +10138,7 @@
  {
   "key": "The quote is too long: copy only the passage that says it (300 characters at most).",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -9610,6 +10151,12 @@
   "key": "The rating weight is fitted on {n} past bouts (held-out log-loss {fit} vs {base} for plain Elo). Other weights are hand-set; see Data & model for how each compares.",
   "files": [
    "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "The red corner",
+  "files": [
+   "lib/correction-text.ts"
   ]
  },
  {
@@ -9643,6 +10190,18 @@
   ]
  },
  {
+  "key": "The site showed",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "The site shows: {value}",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
   "key": "The site's default predictions use the fitted rating scale (<b>{scale}</b> a plain Elo expectation); the fit found ratings are compressed relative to true skill gaps in this league.",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -9657,7 +10216,20 @@
  {
   "key": "The source check is not set up on this server.",
   "files": [
+   "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "The source is not published by the owner of this fact (a commission or sanctioning body for a fight; the fighter’s own page for their details). It can be noted, but cannot change the data.",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "The source is published by the owner of this fact.",
+  "files": [
+   "components/ReportQueue.tsx"
   ]
  },
  {
@@ -9687,7 +10259,14 @@
  {
   "key": "The words on that page that say it",
   "files": [
-   "components/ContributeForm.tsx"
+   "components/ContributeForm.tsx",
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "The words on that page that say it (optional)",
+  "files": [
+   "components/ReportForm.tsx"
   ]
  },
  {
@@ -9789,15 +10368,27 @@
   ]
  },
  {
+  "key": "This fight has no result yet, so there is nothing to correct.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
   "key": "This fight is locked: picks close when fight day begins.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "This is about me",
+  "files": [
+   "components/ReportForm.tsx"
   ]
  },
  {
   "key": "This is already in the data.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -9810,6 +10401,12 @@
   "key": "This removes your name, your picks and your sign-ins for good. Edits you proposed stay in the record without your name. Enter your password to confirm.",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "This source is not published by the owner of that fact, so it cannot change what the site shows. Note it instead.",
+  "files": [
+   "lib/account-text.ts"
   ]
  },
  {
@@ -9914,6 +10511,12 @@
   ]
  },
  {
+  "key": "To link this account to the fighter, once you have checked who they are, use the owner command on the server (see the accounts guide).",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
   "key": "to move",
   "files": [
    "components/CommandPalette.tsx"
@@ -9970,7 +10573,7 @@
  {
   "key": "Too many tries. Wait a while and try again.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -10240,6 +10843,18 @@
   ]
  },
  {
+  "key": "Undo it",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Undone: the feed’s value is back.",
+  "files": [
+   "components/ReportQueue.tsx"
+  ]
+ },
+ {
   "key": "Unified champion",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -10347,13 +10962,13 @@
  {
   "key": "Use 3 to 24 letters, digits or underscores.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "Use more than one or two different characters.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -10415,6 +11030,7 @@
    "app/[locale]/people/page.tsx",
    "components/Awards.tsx",
    "components/RecordRows.tsx",
+   "components/ReportForm.tsx",
    "components/WatchCard.tsx",
    "lib/ask/tools.ts"
   ]
@@ -10459,13 +11075,15 @@
  {
   "key": "Waiting",
   "files": [
+   "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
   ]
  },
  {
   "key": "Waiting for review",
   "files": [
-   "components/ContributeForm.tsx"
+   "components/ContributeForm.tsx",
+   "lib/correction-text.ts"
   ]
  },
  {
@@ -10599,6 +11217,24 @@
   ]
  },
  {
+  "key": "What is this about?",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "What is wrong",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "What it should say",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
   "key": "What the data can and cannot say",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -10632,6 +11268,12 @@
   "key": "What to watch for",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "What you want to tell us",
+  "files": [
+   "components/ReportForm.tsx"
   ]
  },
  {
@@ -10792,6 +11434,18 @@
   "key": "Who trains, manages, scores and referees. Every fighter's team history is tracked with dates, so you can see how fighters did before, during and after a trainer.",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Who won",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "Who won?",
+  "files": [
+   "components/ReportForm.tsx"
   ]
  },
  {
@@ -10992,13 +11646,15 @@
  {
   "key": "Withdraw",
   "files": [
-   "components/ContributeForm.tsx"
+   "components/ContributeForm.tsx",
+   "components/ReportForm.tsx"
   ]
  },
  {
   "key": "Withdrawn",
   "files": [
-   "components/ContributeForm.tsx"
+   "components/ContributeForm.tsx",
+   "lib/correction-text.ts"
   ]
  },
  {
@@ -11131,6 +11787,12 @@
   ]
  },
  {
+  "key": "You are confirmed as this fighter, so this is applied at once and needs no source.",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
   "key": "You are hidden from the leaderboard, so only you see this.",
   "files": [
    "components/PickStanding.tsx"
@@ -11139,7 +11801,7 @@
  {
   "key": "You are not allowed to do that.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -11157,7 +11819,13 @@
  {
   "key": "You cannot decide your own proposal.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "You have 20 reports waiting. Wait for a decision, or withdraw one.",
+  "files": [
+   "lib/account-text.ts"
   ]
  },
  {
@@ -11173,6 +11841,12 @@
   ]
  },
  {
+  "key": "You have not reported anything yet.",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
   "key": "You have not suggested anything yet.",
   "files": [
    "components/ContributeForm.tsx"
@@ -11181,13 +11855,13 @@
  {
   "key": "You have reached the limit.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
   "key": "You or someone else has already proposed this.",
   "files": [
-   "components/accountText.ts"
+   "lib/account-text.ts"
   ]
  },
  {
@@ -11264,6 +11938,12 @@
   ]
  },
  {
+  "key": "Your profile",
+  "files": [
+   "components/ReportForm.tsx"
+  ]
+ },
+ {
   "key": "Your question",
   "files": [
    "app/[locale]/ask/page.tsx"
@@ -11273,6 +11953,12 @@
   "key": "Your record",
   "files": [
    "components/MyPicks.tsx"
+  ]
+ },
+ {
+  "key": "Your reports",
+  "files": [
+   "components/ReportForm.tsx"
   ]
  },
  {

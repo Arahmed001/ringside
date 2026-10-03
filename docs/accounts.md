@@ -53,7 +53,7 @@ Under it, a recap of what was graded since they last looked: right and wrong cou
 
 ## Reporting a wrong fact, and corrections
 
-Anyone **signed in** can report that a fact is wrong (`POST /api/report`; the screens come next). There are three kinds, and the difference matters. First, the rule for **who is the source**: where a **verified owner** of the data exists, the source is that owner's own publication; otherwise what we ingest stands.
+Anyone **signed in** can report that a fact is wrong (`POST /api/report`, or the **Report a mistake** page: `/report`, linked from every fighter profile and fight page and from the account page). There are three kinds, and the difference matters. First, the rule for **who is the source**: where a **verified owner** of the data exists, the source is that owner's own publication; otherwise what we ingest stands.
 
 - **A fight's facts** (result, method, end round) belong to the **commission or sanctioning body** that ran it. A correction is accepted only if its source is published by an official host (any `.gov` host, plus the hosts in `data/research/official-hosts.txt`, the same list the research checker uses). A newspaper, a fan site or the fighter's own page is **not** the owner of a fight's result.
 - **A fighter's own details** (birth date, height, reach, stance, nickname, country) belong to the fighter. An account an **admin has linked to that fighter** (`accounts owner`, after checking out of band) corrects them **at once, with no source**; it is recorded as the fighter's own (`by_owner`), shown to editors in the `owner` tab to look over afterwards, and can be undone. Anyone else needs a source under one of the **fighter's registered official pages**.
@@ -75,6 +75,8 @@ Reports are a **private queue**: nothing appears on a fighter's page because som
 - a newer correction for the same field retires the older one and puts the vendor's value back first, so it never mistakes the older correction's value for a change by the vendor.
 
 The vendor-record audit (`vendor:backfill`) still compares the loaded fights with the vendor's career totals, so a corrected result will show there as a disagreement with the vendor, which is the truth.
+
+**What people see.** `/report?boxer=SLUG` and `/report?bout=ID` are the form: the field to correct, what it should say, the source and the words from it, with a note of which sources can be used (and, for a confirmed fighter, that no source is needed). Below the form is the person's own list with each report's status (waiting, accepted, not accepted, noted, withdrawn) and a Withdraw button. Editors and admins review at `/review/reports`: tabs for **Corrections** (waiting, accepted, not accepted, noted), **Look again** (corrections the feed has changed under), **Fighters' own changes** (with Undo) and, for admins only, **About me**. A correction whose source is not published by the owner of that fact shows no Accept button, only Note it or Reject. On a fighter's page and a fight page an accepted correction is shown under the data, "corrected from a source" with the link, or "provided by the fighter"; a report that is only waiting, rejected or noted shows nothing.
 
 ## Operator commands
 
