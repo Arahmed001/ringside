@@ -10,6 +10,8 @@ import { countsInRecord } from "./methods";
 import { countryName, fmtDate } from "./format";
 import { missCount } from "./weights";
 import { monthsWithCurrentTrainer } from "./team";
+import { AiLimited } from "./ai-guard";
+import { Lru } from "./lru";
 import { rankDivision } from "./rankings";
 import { eventMoney } from "./money";
 import { tEn, type T } from "./i18n/t";
@@ -194,27 +196,28 @@ export function buildPreview(w: World, bout: BoutRow, t: T = tEn): Preview {
 }
 
 // ---------- the written article: Claude when a key is set, the plain prose otherwise ----------
-const cache = new Map<string, { paragraphs: string[]; source: "ai" | "rules" }>();
+const cache = new Lru<string, { paragraphs: string[]; source: "ai" | "rules" }>(2000);
 
 /** The preview as paragraphs. With ANTHROPIC_API_KEY, Claude writes it from the facts above (and only those); on any failure the plain version stands. */
-export async function previewArticle(w: World, bout: BoutRow, t: T = tEn): Promise<{ paragraphs: string[]; source: "ai" | "rules" }> {
+export async function previewArticle(w: World, bout: BoutRow, t: T = tEn, client?: string): Promise<{ paragraphs: string[]; source: "ai" | "rules" }> {
   const key = `${bout.id}|${w.today}|${t.locale}`;
   const hit = cache.get(key);
   if (hit) return hit;
   const pv = buildPreview(w, bout, t);
   let out: { paragraphs: string[]; source: "ai" | "rules" } = { paragraphs: pv.prose, source: "rules" };
   const ai = await import("./ai");
+  let cacheable = true;
   if (ai.hasKey()) {
     try {
       const language = t.locale === "ar" ? " Write in clear Modern Standard Arabic, the way a Saudi sports desk would; keep names exactly as given in the facts and use Western digits (0-9)." : "";
       const text = await ai.claude(
         `You are a boxing writer producing a fight preview for a statistics site: three short paragraphs (170-230 words in total), plain text, no headings or lists. Use ONLY the facts in the JSON: do not invent results, quotes, injuries, opinions of third parties, odds or biography. Lead with the stakes, then the tape and form, then how it is likely to be won (cite the model's percentage as the model's view, not as certainty). Never claim anything about the future as fact.${language}`,
-        JSON.stringify(pv.facts), 700,
+        JSON.stringify(pv.facts), 700, client,
       );
       const paragraphs = text.split(/\n{2,}/).map((s) => s.trim()).filter(Boolean);
       if (paragraphs.length >= 2) out = { paragraphs, source: "ai" };
-    } catch { /* keep the plain version */ }
+    } catch (e) { if (e instanceof AiLimited) cacheable = false; /* keep the plain version; a refused call is not remembered */ }
   }
-  cache.set(key, out);
+  if (cacheable) cache.set(key, out);
   return out;
 }

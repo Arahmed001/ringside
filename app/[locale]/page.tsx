@@ -13,6 +13,8 @@ import { PickEm } from "@/components/PickEm";
 import { WatchlistStrip } from "@/components/Watch";
 import { BoxerCard, SectionTitle } from "@/components/ui";
 import { ScoreBadge } from "@/components/Awards";
+import { WatchCard } from "@/components/WatchCard";
+import { upsetWatch } from "@/lib/upsets";
 import { featuredYear, fightsOfYear, resultLine } from "@/lib/fight-score";
 import { daysUntil, fmtDate, flag, methodLabel } from "@/lib/format";
 import { recordStr } from "@/lib/world";
@@ -46,6 +48,7 @@ export default async function Home() {
   const recent = eventViews(w, recentEvents(w, 5));
   const upset = biggestUpsets(w.bouts.length ? { ...w, bouts: w.bouts.filter((b) => b.date >= `${currentYear() - 1}-01-01`) } : w, 1)[0];
 
+  const watchTop = upsetWatch(w, t).find((x) => x.tier === "live") ?? null;
   const fy = featuredYear(w);
   const foty = fy ? { year: fy, top: fightsOfYear(w, fy)[0] } : null;
 
@@ -170,6 +173,12 @@ export default async function Home() {
               <div className="mt-3 text-sm text-muted">{t.rich("Winner entered rated <b>{winner}</b> against <b>{loser}</b> — a {gap}-point underdog.", { winner: Math.round(upset.winnerRating), loser: Math.round(upset.loserRating), gap: Math.round(upset.gap), b: (c) => <b className="text-ink">{c}</b> })}</div>
             </div>
           ) : <div className="card p-5 text-sm text-muted">{t("No upsets recorded yet.")}</div>}
+          {watchTop && (
+            <div className="mt-6">
+              <SectionTitle eyebrow={t("Fights to watch")} title={t("Upset watch")} href="/upset-watch" cta={t("All upcoming fights")} />
+              <WatchCard x={watchTop} />
+            </div>
+          )}
           {foty && (
             <div className="mt-6">
               <SectionTitle eyebrow={t("Awards")} title={t("Fight of the year {year}", { year: foty.year })} href={`/fight-of-the-year/${foty.year}`} cta={t("Why it won")} />

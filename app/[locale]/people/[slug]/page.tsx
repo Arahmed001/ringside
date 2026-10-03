@@ -8,6 +8,7 @@ import { personStable } from "@/lib/team";
 import { judgeStats, refereeStats } from "@/lib/officials";
 import { TenureTable } from "@/components/TenureTable";
 import { TeamTimeline } from "@/components/TeamTimeline";
+import { TrainerImpactCard } from "@/components/TrainerImpactCard";
 import { SectionTitle, Stat } from "@/components/ui";
 import { countryName, flag, fmtDate, methodLabel } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
@@ -92,6 +93,8 @@ export default async function PersonPage({ params }: { params: Promise<{ locale:
           {trainer && trainer.tenures.length > head.tenures.length && <p className="text-xs text-muted">{t("Also worked in other corner roles (assistant, strength and conditioning) with {n} further fighters.", { n: trainer.fighters - head.fighters })}</p>}
         </section>
       )}
+
+      {head && head.tenures.length > 0 && <TrainerImpactCard w={w} personId={p.id} />}
 
       {manager && (
         <section className="space-y-5">
