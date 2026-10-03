@@ -1,0 +1,33 @@
+import { normalize } from "./fighter-search";
+import { buildWordIndex, nearTexts, wordsOf } from "./fuzzy";
+import { paginate } from "./paging";
+import type { Names } from "./i18n/t";
+
+/** Rows per page on the corners and officials leaderboards: all of a list is reachable, 50 at a time. */
+export const PEOPLE_PAGE = 50;
+
+/** A row with its place in the full, unfiltered ranking, so a filtered or paged list still says where each person stands. */
+export interface Ranked<T> { rank: number; row: T }
+export const ranked = <T,>(rows: T[]): Ranked<T>[] => rows.map((row, i) => ({ rank: i + 1, row }));
+
+/**
+ * The rows whose name has every word typed in it (accents and capitals ignored; English, and Arabic when the table has it), in ranking order. When nobody's
+ * name has them all, the rows with a name a slip or two away from each word (see lib/fuzzy.ts), fewest slips first, and `close` says so: the page tells
+ * the reader these are the nearest spellings. An empty query is every row.
+ */
+export function filterByName<T>(rows: Ranked<T>[], nameOf: (row: T) => string, query: string | undefined, names: Names): { rows: Ranked<T>[]; close: boolean } {
+  const typed = wordsOf(normalize(query ?? ""));
+  if (!typed.length) return { rows, close: false };
+  const hay = rows.map((r) => { const n = nameOf(r.row); return normalize(names[n] ? `${n} ${names[n]}` : n); });
+  const exact = rows.filter((_, i) => typed.every((word) => hay[i].includes(word)));
+  if (exact.length) return { rows: exact, close: false };
+  const near = [...nearTexts(buildWordIndex(hay), typed)].sort((a, b) => a[1] - b[1] || rows[a[0]].rank - rows[b[0]].rank).map(([i]) => rows[i]);
+  return { rows: near, close: near.length > 0 };
+}
+
+/** One leaderboard as the page shows it: filtered by the name typed, then cut to the page asked for (a bad page number lands on a real one). */
+export function pageRows<T>(rows: T[], nameOf: (row: T) => string, opts: { q?: string; page?: string; names: Names }) {
+  const found = filterByName(ranked(rows), nameOf, opts.q, opts.names);
+  const { page, pages, first } = paginate(found.rows.length, opts.page, PEOPLE_PAGE);
+  return { shown: found.rows.slice(first, first + PEOPLE_PAGE), total: found.rows.length, of: rows.length, close: found.close, page, pages };
+}

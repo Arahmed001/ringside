@@ -11,6 +11,9 @@ import { slugifyDivision } from "./divisions";
 import { LISTS } from "./records";
 import { belts } from "./lineage";
 import { fightYears } from "./fight-score";
+import { trainerLeaderboard } from "./team";
+import { judgeStats } from "./officials";
+import { PEOPLE_PAGE } from "./people-list";
 
 export type Locale = "en" | "ar";
 export interface SmokeRoute { path: string; kind: "page" | "api" | "svg" | "missing"; label: string; /** text the page must show (a search that has to find someone) */ mustShow?: string; /** not requested on the Arabic site: the path carries English the person typed, which the page rightly echoes */ englishOnly?: boolean }
@@ -64,6 +67,15 @@ export function smokeRoutes(w: World): SmokeRoute[] {
 
   const roles = (r: string) => [...w.people.values()].find((p) => w.roles.get(p.id)?.has(r));
   for (const r of ["trainer", "manager", "judge", "referee"]) { const p = roles(r); if (p) page(`/people/${p.slug}`, `person: ${r}`); }
+  // the leaderboards are paged and have a name filter: a trainer below the first page must be on the second, and a judge spelt with a letter missing must still be found
+  const trainers = trainerLeaderboard(w, 4);
+  if (trainers.length > PEOPLE_PAGE) out.push({ path: "/people?role=trainer&page=2", kind: "page", label: "second page of the trainer leaderboard", mustShow: trainers[PEOPLE_PAGE].person.name });
+  const judge = judgeStats(w).judges.find((j) => j.person.name.split(" ").slice(-1)[0].length >= 6);
+  if (judge) {
+    const p = judge.person.name.split(" "), last = p[p.length - 1];
+    out.push({ path: `/people?role=judge&q=${q(`${p.slice(0, -1).join(" ")} ${last.slice(0, 2)}${last.slice(3)}`)}`, kind: "page", label: "judge search with a letter missing", mustShow: judge.person.name, englishOnly: true });
+  }
+  page("/people?role=trainer&page=9999", "trainer leaderboard page beyond the end");
   const org = (kind: string) => [...w.orgs.values()].find((o) => o.kind === kind);
   for (const k of ["gym", "promotion", "sanctioning_body"]) { const o = org(k); if (o) page(`/orgs/${o.slug}`, `org: ${k}`); }
   for (const b of belts(w).slice(0, 2)) page(`/titles/${b.slug}`, `belt: ${b.title}`);
