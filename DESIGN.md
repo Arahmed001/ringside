@@ -71,7 +71,13 @@ Every choice below serves that. The risk is turning drama into noise, so drama i
 |---|---|---|
 | 2026-10-03 | Dark editorial direction, red/blue corner semantics | Boxing's own visual language (corners, ring lights) doubles as a data encoding |
 | 2026-10-03 | Replaced Inter with Geist for body text | Inter is the converged default; Geist is as legible, and has tabular numerals |
+| 2026-10-03 | Arabic edition: mirrored layout, fixed red/blue corners, Plex Arabic + Tajawal + Amiri | Reading order flips, data encoding does not |
 | 2026-10-03 | Added Instrument Serif italic for nicknames | One deliberate departure from category norms; gives the program/announcer feel |
+
+## Arabic (RTL)
+- **Mirrored, with fixed corners.** The page mirrors; charts, probability bars, posters, timelines and punch bars do not: red stays on the left and blue on the right in both languages, because the corners are a data encoding, not reading order. Text captions around them do flow right to left.
+- **Type:** IBM Plex Sans Arabic for text, Tajawal 500-800 for the poster voice (compact and heavy like Barlow Condensed), Amiri for nicknames (Arabic has no italics, so the gold serif accent becomes a calligraphic face). No letter-spacing and no uppercase in Arabic; heading leading is loosened to 1.3 so marks above and below the line are not clipped; poster surnames are set smaller because Arabic glyphs run wider.
+- **Numbers and dates:** Western digits (0-9) and the Gregorian calendar, as Saudi and Gulf sports media print them.
 
 ## Still to do (needs a running browser)
 1. Look at every page at 375, 768 and 1280px and fix whatever is off.

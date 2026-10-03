@@ -11,7 +11,16 @@
     "wikidata:import": "tsx scripts/import-wikidata.ts",
     "model:fit": "tsx scripts/fit-model.ts",
     "data:check": "tsx scripts/check-feed.ts",
-    "test": "node --import tsx --test tests/*.test.ts"
+    "test": "node --import tsx --test tests/*.test.ts",
+    "bench": "node --expose-gc --max-old-space-size=12288 --import tsx scripts/scale-bench.ts",
+    "i18n:extract": "tsx scripts/i18n.ts extract",
+    "i18n:check": "tsx scripts/i18n.ts check",
+    "i18n:missing": "tsx scripts/i18n.ts missing",
+    "i18n:merge": "tsx scripts/i18n.ts merge",
+    "i18n:translate": "tsx scripts/i18n.ts translate",
+    "i18n:names": "tsx scripts/i18n-names.ts",
+    "data:ingest": "tsx scripts/ingest.ts",
+    "research": "tsx scripts/research.ts"
   },
   "dependencies": {
     "next": "^16.3.8",

@@ -149,6 +149,71 @@ export interface ProviderPunchLine {
   jabLanded?: number;
 }
 
+/**
+ * How a money figure is known, strongest first.
+ *   disclosed  an official record: a commission purse disclosure, a company filing, a promoter's own announcement
+ *   reported   published by a named outlet that cites people or documents ("ESPN reported Canelo will earn $...")
+ *   estimated  an outlet's or analyst's estimate, or a figure derived from other figures
+ * Every money row must say which, and name where it came from; the site shows the basis next to the number.
+ */
+export type MoneyBasis = "disclosed" | "reported" | "estimated";
+
+/** Provenance carried by every financial row. */
+export interface Sourced {
+  basis: MoneyBasis;
+  /** Who published it: "Nevada Athletic Commission", "ESPN", "TKO Group 10-K". */
+  source: string;
+  /** The page or document, so a reader can check it. Strongly encouraged; its absence is flagged. */
+  sourceUrl?: string;
+  /** When the figure was read from the source (ISO date). */
+  retrievedAt?: string;
+  /** A short caveat or the wording that mattered ("gate only, excludes site fee"). */
+  note?: string;
+}
+
+/** What an event took in. All amounts are US dollars; keep the original currency in `note` when it was not. */
+export interface ProviderEventFinancials extends Sourced {
+  eventExternalId: string;
+  gateUsd?: number; // live gate: ticket revenue
+  ticketsSold?: number;
+  capacity?: number;
+  siteFeeUsd?: number; // paid by a venue or government to host the card
+  ppvBuys?: number;
+  ppvPriceUsd?: number; // US retail price of the standard definition/HD purchase
+  ppvRevenueUsd?: number; // gross retail PPV revenue; derived from buys x price when only those are known
+  sponsorshipUsd?: number;
+}
+
+/** One fighter's pay for one bout. `totalUsd` is the headline number; guaranteed + bonus when both are known. */
+export interface ProviderPurse extends Sourced {
+  boutExternalId: string;
+  boxerExternalId: string;
+  guaranteedUsd?: number;
+  bonusUsd?: number; // PPV share, incentives, performance bonuses
+  totalUsd?: number;
+}
+
+export type BroadcastPlatform = "ppv" | "streaming" | "subscription" | "free-tv";
+
+/** Who showed an event, where, and how many watched. One row per broadcaster and region. */
+export interface ProviderBroadcast extends Sourced {
+  eventExternalId: string;
+  broadcaster: string;
+  platform: BroadcastPlatform;
+  region?: string; // "United States", "UK & Ireland", "Worldwide"
+  viewersAvg?: number;
+  viewersPeak?: number;
+}
+
+/** A fighter's earnings for a calendar year from a published list or filing (ring pay and everything else). */
+export interface ProviderEarning extends Sourced {
+  boxerExternalId: string;
+  year: number;
+  totalUsd: number;
+  ringUsd?: number;
+  offRingUsd?: number; // endorsements, business, appearances
+}
+
 export interface DataProvider {
   name: string;
   fetchBoxers(since?: string): Promise<ProviderBoxer[]>;
@@ -162,4 +227,8 @@ export interface DataProvider {
   fetchScorecards?(): Promise<ProviderScorecard[]>;
   fetchCorners?(): Promise<ProviderCorner[]>;
   fetchPunchStats?(): Promise<ProviderPunchLine[]>;
+  fetchFinancials?(): Promise<ProviderEventFinancials[]>;
+  fetchPurses?(): Promise<ProviderPurse[]>;
+  fetchBroadcasts?(): Promise<ProviderBroadcast[]>;
+  fetchEarnings?(): Promise<ProviderEarning[]>;
 }

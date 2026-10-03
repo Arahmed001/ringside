@@ -155,3 +155,15 @@ export interface PunchLine {
   boutId: number; boxerId: number; round: number; thrown: number; landed: number;
   powerThrown: number; powerLanded: number; jabThrown: number | null; jabLanded: number | null;
 }
+
+/** A money figure's provenance, shown beside the number everywhere. */
+export interface Provenance { basis: "disclosed" | "reported" | "estimated"; source: string; sourceUrl: string | null; retrievedAt: string | null; note: string | null }
+export interface EventFinancials extends Provenance {
+  eventId: number; gateUsd: number | null; ticketsSold: number | null; capacity: number | null; siteFeeUsd: number | null;
+  ppvBuys: number | null; ppvPriceUsd: number | null; ppvRevenueUsd: number | null; sponsorshipUsd: number | null;
+}
+export interface Purse extends Provenance { boutId: number; boxerId: number; guaranteedUsd: number | null; bonusUsd: number | null; totalUsd: number }
+export interface Broadcast extends Provenance {
+  eventId: number; broadcaster: string; platform: "ppv" | "streaming" | "subscription" | "free-tv"; region: string; viewersAvg: number | null; viewersPeak: number | null;
+}
+export interface Earning extends Provenance { boxerId: number; year: number; totalUsd: number; ringUsd: number | null; offRingUsd: number | null }

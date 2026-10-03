@@ -26,13 +26,16 @@ let events: typeof import("../lib/events");
 before(async () => {
   const feed = miniFeed();
   feed.boxers.push(...["C", "D", "E", "F", "G", "H"].map((id) => makeBoxer(id)));
-  feed.events.push(ev("E2", "2026-12-01"), ev("E3", "2026-12-08", "cancelled"), ev("E4", "2026-12-15", "postponed"), ev("E5", "2026-03-01", "cancelled"));
+  feed.events.push(ev("E2", "2026-12-01"), ev("E3", "2026-12-08", "cancelled"), ev("E4", "2026-12-15", "postponed"), ev("E5", "2026-03-01", "cancelled"),
+    ev("E6", "2026-12-22"), ev("E7", "2026-02-01")); // E6 and E7 are not cancelled themselves, but every bout on them is
   feed.bouts.push(
     bout("E2-1", "E2", "A", "B", 5, "cancelled"), // higher billing than E2-2, but cancelled
     bout("E2-2", "E2", "C", "D", 1),
     bout("E3-1", "E3", "E", "F", 0, "cancelled"),
     bout("E4-1", "E4", "G", "H", 0),
     bout("E5-1", "E5", "E", "F", 0, "cancelled"),
+    bout("E6-1", "E6", "E", "F", 0, "cancelled"),
+    bout("E7-1", "E7", "G", "H", 0, "cancelled"),
   );
   const file = path.join(dir, "feed.json");
   fs.writeFileSync(file, JSON.stringify(feed));
@@ -66,6 +69,9 @@ test("calendar membership: live and postponed cards in, cancelled cards out", ()
   assert.ok(e3.status === "cancelled" && !e3.upcoming);
   const recent = events.recentEvents(w, 100).map((e) => e.name);
   assert.deepEqual(recent, ["Test Night"], "cancelled cards never appear as results");
+  const names = (list: { name: string }[]) => list.map((e) => e.name);
+  assert.ok(!names(events.upcomingEvents(w)).includes("Card E6"), "a future card whose every bout is cancelled is not on the calendar");
+  assert.ok(!names(events.recentEvents(w, 100)).includes("Card E7"), "a past card whose every bout is cancelled is not a result");
 });
 
 test("cancellations do not touch anyone's record", () => {

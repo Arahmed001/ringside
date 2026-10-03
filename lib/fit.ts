@@ -10,20 +10,21 @@
  * (a fight-night weight edge, trainers, a home-judge bias); on real data it finds whatever is actually there.
  */
 import type { World } from "./world";
+import { msg } from "./i18n/t";
 import { countsInRecord, isStoppage } from "./methods";
 
 export const FEATURES = [
-  { key: "elo", label: "Elo rating gap", unit: "per 100 pts", scale: 1 },
-  { key: "reach", label: "Reach", unit: "per cm", scale: 1 },
-  { key: "age", label: "Age", unit: "per year", scale: 1 },
-  { key: "idle", label: "Layoff", unit: "per month", scale: 1 },
-  { key: "ko", label: "Knockout rate", unit: "per 10 pts", scale: 0.1 },
-  { key: "chin", label: "KO-loss rate", unit: "per 10 pts", scale: 0.1 },
-  { key: "exp", label: "Experience (log fights)", unit: "per unit", scale: 1 },
-  { key: "rehyd", label: "Usual rehydration", unit: "per lb", scale: 1 },
-  { key: "weightEdge", label: "Fight-night weight edge", unit: "per lb", scale: 1 },
-  { key: "newTrainer", label: "New trainer (<6 mo)", unit: "vs not", scale: 1 },
-  { key: "trainerWins", label: "Trainer's prior win rate", unit: "per 10 pts", scale: 0.1 },
+  { key: "elo", label: msg("Elo rating gap"), unit: msg("per 100 pts"), scale: 1 },
+  { key: "reach", label: msg("Reach"), unit: msg("per cm"), scale: 1 },
+  { key: "age", label: msg("Age"), unit: msg("per year"), scale: 1 },
+  { key: "idle", label: msg("Layoff"), unit: msg("per month"), scale: 1 },
+  { key: "ko", label: msg("Knockout rate"), unit: msg("per 10 pts"), scale: 0.1 },
+  { key: "chin", label: msg("KO-loss rate"), unit: msg("per 10 pts"), scale: 0.1 },
+  { key: "exp", label: msg("Experience (log fights)"), unit: msg("per unit"), scale: 1 },
+  { key: "rehyd", label: msg("Usual rehydration"), unit: msg("per lb"), scale: 1 },
+  { key: "weightEdge", label: msg("Fight-night weight edge"), unit: msg("per lb"), scale: 1 },
+  { key: "newTrainer", label: msg("New trainer (<6 mo)"), unit: msg("vs not"), scale: 1 },
+  { key: "trainerWins", label: msg("Trainer's prior win rate"), unit: msg("per 10 pts"), scale: 0.1 },
 ] as const;
 export type FeatureKey = (typeof FEATURES)[number]["key"];
 

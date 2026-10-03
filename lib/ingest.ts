@@ -8,6 +8,7 @@ import { isStoppage } from "./methods";
 import { nowMs, todayIso } from "./clock";
 import { loadFeed } from "./feed";
 import { countBySeverity, sanitizeFeed, type Issue } from "./validate";
+import { writeMoney } from "./ingest-money";
 
 const K = 24;
 
@@ -58,7 +59,7 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
   const { feed, issues, dropped } = sanitizeFeed(raw, { today: todayIso() });
   const sev = countBySeverity(issues);
   if (opts.strict && sev.errors > 0) throw new Error(`Feed has ${sev.errors} error(s); first: ${issues.find((i) => i.severity === "error")?.message}. Run \`npm run data:check\` for the full report.`);
-  const { boxers, events, bouts, people, orgs, stints, weighIns, officials, scorecards, corners, punches } = feed;
+  const { boxers, events, bouts, people, orgs, stints, weighIns, officials, scorecards, corners, punches, financials, purses, broadcasts, earnings } = feed;
   const src = (s?: string) => s ?? `provider:${provider.name}`;
 
   db.exec("BEGIN");
@@ -159,6 +160,7 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
       const ins = db.prepare("INSERT INTO punch_stats (bout_id, boxer_id, round, thrown, landed, power_thrown, power_landed, jab_thrown, jab_landed) VALUES (?,?,?,?,?,?,?,?,?)");
       for (const p of punches) ins.run(bo.get(p.boutExternalId)!, bx.get(p.boxerExternalId)!, p.round, p.thrown, p.landed, p.powerThrown, p.powerLanded, num(p.jabThrown), num(p.jabLanded));
     }
+    writeMoney(db, { ev, bo, bx }, { financials, purses, broadcasts, earnings });
     db.exec("COMMIT");
   } catch (e) {
     db.exec("ROLLBACK");
@@ -167,7 +169,7 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
   recomputeRatings(db);
 
   // ----- record the run: what came in, what was dropped, and the issues found -----
-  const counts = { boxers: boxers.length, events: events.length, bouts: bouts.length, people: people.length, orgs: orgs.length, stints: stints.length, weighIns: weighIns.length, officials: officials.length, scorecards: scorecards.length, corners: corners.length, punches: punches.length };
+  const counts = { boxers: boxers.length, events: events.length, bouts: bouts.length, people: people.length, orgs: orgs.length, stints: stints.length, weighIns: weighIns.length, officials: officials.length, scorecards: scorecards.length, corners: corners.length, punches: punches.length, financials: financials.length, purses: purses.length, broadcasts: broadcasts.length, earnings: earnings.length };
   const runId = Number((db.prepare("INSERT INTO ingest_runs (at, provider, errors, warnings, infos, counts, dropped) VALUES (?,?,?,?,?,?,?)").run(new Date().toISOString(), provider.name, sev.errors, sev.warnings, sev.infos, JSON.stringify(counts), JSON.stringify(dropped)) as { lastInsertRowid: number | bigint }).lastInsertRowid);
   const keep = [...issues].sort((a, b) => ({ error: 0, warning: 1, info: 2 }[a.severity] - { error: 0, warning: 1, info: 2 }[b.severity])).slice(0, 400);
   const insI = db.prepare("INSERT INTO ingest_issues (run_id, severity, code, entity, ref, message) VALUES (?,?,?,?,?,?)");

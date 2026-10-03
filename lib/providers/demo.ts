@@ -1,4 +1,5 @@
 import { mulberry32 } from "../prng";
+import { demoMoney } from "./demo-money";
 import { WEIGHT_CLASSES } from "../types";
 import type { Method } from "../types";
 import { DIVISIONS } from "../divisions";
@@ -54,7 +55,14 @@ const DAY = 86400000;
 const round1 = (x: number) => Math.round(x * 10) / 10;
 const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x));
 
-export function demoProvider(now = new Date()): DataProvider {
+export interface DemoOptions {
+  /** Multiplies the league: fighters, officials, gyms, trainers and cards per month. 1 is the default league the tests use. */
+  scale?: number;
+}
+
+export function demoProvider(now = new Date(), opts: DemoOptions = {}): DataProvider {
+  const scale = Math.max(1, Math.round(opts.scale ?? 1));
+  const sqrtScale = Math.ceil(Math.sqrt(scale)); // officials and promotions grow more slowly than fighters
   const rnd = mulberry32(20261003);
   const nowMs = now.getTime();
   const startMs = Date.UTC(2014, 0, 1);
@@ -78,7 +86,9 @@ export function demoProvider(now = new Date()): DataProvider {
     const pool = POOLS[country];
     const firsts = sex === "female" ? FIRST_F[country] : pool.first;
     for (let attempt = 0; ; attempt++) {
-      const mid = attempt < 25 ? "" : ` ${String.fromCharCode(65 + Math.floor(rnd() * 26))}.`;
+      // plain name first; then one middle initial; then two, so a very large league can never loop forever
+      const initial = () => String.fromCharCode(65 + Math.floor(rnd() * 26));
+      const mid = attempt < 25 ? "" : attempt < 200 ? ` ${initial()}.` : ` ${initial()}. ${initial()}.`;
       const name = `${pick(rnd, firsts)}${mid} ${pick(rnd, pool.last)}`;
       if (!used.has(name)) { used.add(name); return name; }
     }
@@ -87,14 +97,19 @@ export function demoProvider(now = new Date()): DataProvider {
   // ---------- organisations ----------
   const gymNames = new Set<string>();
   const gyms: { ext: string; name: string; country: string }[] = [];
-  for (let i = 0; i < 64; i++) {
+  for (let i = 0; i < 64 * scale; i++) {
     const country = pick(rnd, COUNTRIES);
     let name = "";
-    do name = `${pick(rnd, GYM_A)} ${pick(rnd, GYM_B)}`; while (gymNames.has(name));
+    // 16 x 6 name parts give only 96 plain names, so a bigger league needs a fallback: the same name in another city, then a number
+    let attempts = 0;
+    do name = `${pick(rnd, GYM_A)} ${pick(rnd, GYM_B)}`; while (gymNames.has(name) && ++attempts < 40);
+    const city = pick(rnd, CITY_OF[country]);
+    if (gymNames.has(name)) name = `${name}, ${city}`;
+    for (let n = 2; gymNames.has(name); n++) name = `${name.replace(/ #\d+$/, "")} #${n}`;
     gymNames.add(name);
     const g = { ext: `gym-${i}`, name, country };
     gyms.push(g);
-    orgs.push({ externalId: g.ext, name, kind: "gym", country, city: pick(rnd, CITY_OF[country]) });
+    orgs.push({ externalId: g.ext, name, kind: "gym", country, city });
   }
   const promotions = PROMOTIONS.map((name, i) => {
     const country = pick(rnd, ["United States", "United States", "United Kingdom", "Mexico", "Japan", "Germany", "Saudi Arabia"]);
@@ -105,29 +120,31 @@ export function demoProvider(now = new Date()): DataProvider {
 
   // ---------- people ----------
   const trainers: TrainerSim[] = [];
-  for (let i = 0; i < 150; i++) {
+  for (let i = 0; i < 150 * scale; i++) {
     const country = pick(rnd, COUNTRIES);
     const t: TrainerSim = { ext: `tr-${i}`, name: uniqueName(country, usedPeople), country, boost: clamp(gauss(rnd) * 45, -110, 110), gym: gyms[i % gyms.length].ext };
     trainers.push(t);
     people.push({ externalId: t.ext, name: t.name, country });
   }
   const trainerBy = new Map(trainers.map((t) => [t.ext, t]));
+  const trainersByCountry = new Map<string, TrainerSim[]>();
+  for (const t of trainers) (trainersByCountry.get(t.country) ?? trainersByCountry.set(t.country, []).get(t.country)!).push(t);
   const managers: { ext: string; name: string; country: string }[] = [];
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < 70 * scale; i++) {
     const country = pick(rnd, COUNTRIES);
     const m = { ext: `mg-${i}`, name: uniqueName(country, usedPeople), country };
     managers.push(m);
     people.push({ externalId: m.ext, name: m.name, country });
   }
   const judges: JudgeSim[] = [];
-  for (let i = 0; i < 64; i++) {
+  for (let i = 0; i < 64 * sqrtScale; i++) {
     const country = pick(rnd, COUNTRIES);
     const j: JudgeSim = { ext: `jd-${i}`, name: uniqueName(country, usedPeople), country, bias: clamp(0.025 + gauss(rnd) * 0.035, 0, 0.12) };
     judges.push(j);
     people.push({ externalId: j.ext, name: j.name, country });
   }
   const referees: RefSim[] = [];
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 40 * sqrtScale; i++) {
     const country = pick(rnd, COUNTRIES);
     const r: RefSim = { ext: `rf-${i}`, name: uniqueName(country, usedPeople), country, quick: gauss(rnd) };
     referees.push(r);
@@ -174,7 +191,7 @@ export function demoProvider(now = new Date()): DataProvider {
     const kT = jm ? 1 + (rnd() < 0.3 ? 1 : 0) : 1 + (rnd() < 0.5 ? 1 : 0) + (rnd() < 0.22 ? 1 : 0) + (rnd() < 0.08 ? 1 : 0);
     const trainerPick = (prev: string | null) => {
       for (let n = 0; n < 12; n++) {
-        const local = trainers.filter((t) => t.country === country);
+        const local = trainersByCountry.get(country) ?? [];
         const t = rnd() < 0.55 && local.length ? pick(rnd, local) : pick(rnd, trainers);
         if (t.ext !== prev) return t.ext;
       }
@@ -232,10 +249,10 @@ export function demoProvider(now = new Date()): DataProvider {
     });
   };
 
-  const STARS = 22;
-  WEIGHT_CLASSES.forEach((_, ci) => { for (let i = 0; i < STARS + 22; i++) makeFighter(ci, i, i >= STARS); });
+  const STARS = 22 * scale;
+  WEIGHT_CLASSES.forEach((_, ci) => { for (let i = 0; i < STARS + 22 * scale; i++) makeFighter(ci, i, i >= STARS); });
   // women's roster: a smaller pool in flyweight through super middleweight
-  WEIGHT_CLASSES.forEach((_, ci) => { if (WOMEN_CLASSES.has(ci)) for (let i = 0; i < 10 + 10; i++) makeFighter(ci, i, i >= 10, "female"); });
+  WEIGHT_CLASSES.forEach((_, ci) => { if (WOMEN_CLASSES.has(ci)) for (let i = 0; i < 20 * scale; i++) makeFighter(ci, i, i >= 10 * scale, "female"); });
   const simBy = new Map(sims.map((s) => [s.ext, s]));
 
   // ---------- bout simulation ----------
@@ -406,8 +423,10 @@ export function demoProvider(now = new Date()): DataProvider {
     }
   };
 
-  const eligible = (cls: number, t: number, minRest: number) =>
-    sims.filter((s) => s.cls === cls && s.start <= t && s.end > t && t - s.last > minRest);
+  const groups = new Map<string, Sim[]>(); // fighters by division and sex, in creation order
+  for (const s of sims) (groups.get(`${s.cls}|${s.sex}`) ?? groups.set(`${s.cls}|${s.sex}`, []).get(`${s.cls}|${s.sex}`)!).push(s);
+  const eligible = (cls: number, sex: "male" | "female", t: number, minRest: number) =>
+    (groups.get(`${cls}|${sex}`) ?? []).filter((s) => s.start <= t && s.end > t && t - s.last > minRest);
 
   const BELT = ["World Title", "Interim World Title", "Continental Title"];
   const titleFor = (headline: boolean) => {
@@ -416,19 +435,22 @@ export function demoProvider(now = new Date()): DataProvider {
     return { title, org: title === "Continental Title" ? "body-pcbu" : pick(rnd, ["body-gbc", "body-ira", "body-wpa"]), vacant: rnd() < 0.12 };
   };
 
+  const eventByExt = new Map<string, ProviderEvent>();
   const makeEvent = (date: Date) => {
     const [city, country, venue] = pick(rnd, CITIES);
     const ext = `demo-ev-${events.length}`;
-    events.push({
+    const ev: ProviderEvent = {
       externalId: ext, name: "", date: iso(date), venue, city, country,
       broadcaster: pick(rnd, BROADCASTERS),
       attendance: Math.round((VENUE_CAP[venue] ?? 9000) * (0.45 + rnd() * 0.55)),
-    });
+    };
+    events.push(ev);
+    eventByExt.set(ext, ev);
     return { ext, country };
   };
 
   const finalizeEvent = (evExt: string, mainCard: Card | undefined, t: number) => {
-    const ev = events.find((x) => x.externalId === evExt)!;
+    const ev = eventByExt.get(evExt)!;
     if (mainCard) {
       ev.name = `${mainCard.red.name.split(" ").slice(-1)[0]} vs ${mainCard.blue.name.split(" ").slice(-1)[0]}`;
       const pr = tenureAt(mainCard.red.promoters, t) ?? tenureAt(mainCard.blue.promoters, t);
@@ -440,7 +462,7 @@ export function demoProvider(now = new Date()): DataProvider {
     const cards: Card[] = [];
     for (const cls of classes) for (const sex of ["male", "female"] as const) {
       if (sex === "female" && !(WOMEN_CLASSES.has(cls) && rnd() < 0.55)) continue;
-      const pool = eligible(cls, t, 40 * DAY).filter((s) => s.sex === sex && !taken.has(s.ext));
+      const pool = eligible(cls, sex, t, 40 * DAY).filter((s) => !taken.has(s.ext));
       const stars = pool.filter((s) => !s.jm);
       const jms = pool.filter((s) => s.jm);
       const pairsHere = sex === "male" && stars.length >= 4 && rnd() < 0.5 ? 2 : 1;
@@ -470,11 +492,12 @@ export function demoProvider(now = new Date()): DataProvider {
   // ---------- past events (~4 a month) ----------
   const cursor = new Date(startMs);
   while (cursor.getTime() < nowMs - 3 * DAY) {
-    for (let e = 0; e < 4; e++) {
-      const d = new Date(cursor.getTime() + (e * 7 + 2 + Math.floor(rnd() * 5)) * DAY);
+    for (let e = 0; e < 4 * scale; e++) {
+      const d = new Date(cursor.getTime() + ((e % 4) * 7 + 2 + Math.floor(rnd() * 5)) * DAY);
       if (d.getTime() > nowMs - 3 * DAY) continue;
       const t = d.getTime();
       const { ext: evExt, country } = makeEvent(d);
+      const boutsBefore = bouts.length;
       const evCancelled = rnd() < 0.008; // a card that never happened
       if (evCancelled) events[events.length - 1].status = "cancelled";
       const classes = shuffle([...Array(WEIGHT_CLASSES.length).keys()]).slice(0, 6 + Math.floor(rnd() * 3));
@@ -506,15 +529,16 @@ export function demoProvider(now = new Date()): DataProvider {
         if (rnd() < 0.45) punchStats(o.ext, o, c.red, c.blue, t);
       });
       finalizeEvent(evExt, cards[cards.length - 1], t);
-      if (!bouts.some((b) => b.eventExternalId === evExt)) events.pop();
+      if (bouts.length === boutsBefore) events.pop(); // a card nobody could be found for
     }
     cursor.setUTCMonth(cursor.getUTCMonth() + 1);
   }
 
   // ---------- upcoming: 6 cards over ~10 weeks, each fighter booked at most once ----------
   const booked = new Set<string>();
-  for (let e = 0; e < 6; e++) {
-    const d = new Date(nowMs + (6 + e * 11 + Math.floor(rnd() * 4)) * DAY);
+  const upcomingCards = 6 * sqrtScale;
+  for (let e = 0; e < upcomingCards; e++) {
+    const d = new Date(nowMs + (6 + (e % 6) * 11 + Math.floor(rnd() * 4)) * DAY);
     const t = d.getTime();
     const { ext: evExt, country } = makeEvent(d);
     const evStatus = e === 4 ? "postponed" : e === 5 ? "cancelled" : undefined; // exercise the calendar states
@@ -523,7 +547,7 @@ export function demoProvider(now = new Date()): DataProvider {
     const cards: Card[] = [];
     for (const cls of shuffle([...Array(WEIGHT_CLASSES.length).keys()]).slice(0, 7)) for (const sex of ["male", "female"] as const) {
       if (sex === "female" && !(WOMEN_CLASSES.has(cls) && rnd() < 0.4)) continue;
-      const pool = sims.filter((s) => s.cls === cls && s.sex === sex && !s.jm && s.end > t && s.start < nowMs - 400 * DAY && !taken.has(s.ext) && !booked.has(s.ext))
+      const pool = (groups.get(`${cls}|${sex}`) ?? []).filter((s) => !s.jm && s.end > t && s.start < nowMs - 400 * DAY && !taken.has(s.ext) && !booked.has(s.ext))
         .sort((x, y) => y.r - x.r).slice(0, 8);
       if (pool.length < 2) continue;
       const a = pool.splice(Math.floor(rnd() * Math.min(3, pool.length)), 1)[0];
@@ -556,6 +580,15 @@ export function demoProvider(now = new Date()): DataProvider {
   }
   void simBy;
 
+  // money comes from its own random stream, after everything else, so the league itself is unchanged by it
+  let money: ReturnType<typeof demoMoney> | undefined;
+  const getMoney = () => (money ??= demoMoney(events, bouts, now));
+  const moneyFetchers = {
+    fetchFinancials: async () => getMoney().financials,
+    fetchPurses: async () => getMoney().purses,
+    fetchBroadcasts: async () => getMoney().broadcasts,
+    fetchEarnings: async () => getMoney().earnings,
+  };
   return {
     name: "demo",
     fetchBoxers: async () => boxers,
@@ -569,5 +602,6 @@ export function demoProvider(now = new Date()): DataProvider {
     fetchScorecards: async () => scorecards,
     fetchCorners: async () => corners,
     fetchPunchStats: async () => punches,
+    ...moneyFetchers,
   };
 }

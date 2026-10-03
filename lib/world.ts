@@ -1,8 +1,9 @@
-import { getDb } from "./db";
+import type { DatabaseSync } from "node:sqlite";
+import { getDb, dbVersion } from "./db";
 import { applyFittedWeights } from "./model-fit";
 import { currentYear, todayIso } from "./clock";
 import { countsInRecord, isStoppage } from "./methods";
-import type { Boxer, BoxerFull, BoutRow, Corner, EventRow, Method, Official, Org, Person, Scorecard, Status, TeamStint, WeighIn } from "./types";
+import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, EventFinancials, EventRow, Purse, Method, Official, Org, Person, Scorecard, Status, TeamStint, WeighIn } from "./types";
 
 export interface World {
   today: string;
@@ -11,6 +12,8 @@ export interface World {
   bySlug: Map<string, BoxerFull>;
   bouts: BoutRow[]; // chronological
   events: EventRow[];
+  boutById: Map<number, BoutRow>;
+  eventById: Map<number, EventRow>;
   boutsByBoxer: Map<number, BoutRow[]>; // chronological
   boutsByEvent: Map<number, BoutRow[]>; // main event first
   history: Map<number, { date: string; rating: number; boutId: number; opp: number }[]>;
@@ -27,23 +30,40 @@ export interface World {
   weighInsByBout: Map<number, WeighIn[]>;
   weighInsByBoxer: Map<number, WeighIn[]>; // chronological
   officialsByBout: Map<number, Official[]>;
+  officialsByPerson: Map<number, Official[]>; // every assignment a judge or referee has worked
   scorecardsByBout: Map<number, Scorecard[]>;
   cornersByBout: Map<number, Corner[]>;
+  financialsByEvent: Map<number, EventFinancials[]>; // one row per source
+  pursesByBout: Map<number, Purse[]>;
+  pursesByBoxer: Map<number, Purse[]>;
+  broadcastsByEvent: Map<number, Broadcast[]>;
+  earningsByBoxer: Map<number, Earning[]>;
 }
 
-const g = globalThis as unknown as { __world?: World; __worldAt?: number };
+const g = globalThis as unknown as { __world?: World; __worldKey?: string };
 
-/** Rebuilt at most every 10 minutes so "today", upcoming/past and rankings can't go stale in a long-running server. */
-const WORLD_TTL_MS = 10 * 60 * 1000;
+/**
+ * A world stays valid until something it was built from changes: the calendar day (upcoming vs past, ages and
+ * ranking windows all hang off "today") or the database itself (see `dbVersion`). Checking is a pair of one-row
+ * lookups; the rebuild is not (about 3.6 s, blocking, at 160k bouts), which is why it no longer runs on a timer.
+ */
+const worldKey = (db: DatabaseSync) => `${todayIso()}|${dbVersion(db)}`;
 
 export function invalidateWorld() {
   g.__world = undefined;
-  g.__worldAt = undefined;
+  g.__worldKey = undefined;
 }
 
 export async function getWorld(): Promise<World> {
-  if (g.__world && Date.now() - (g.__worldAt ?? 0) < WORLD_TTL_MS) return g.__world;
   const db = await getDb();
+  const key = worldKey(db);
+  if (g.__world && g.__worldKey === key) return g.__world;
+  // The build below is synchronous, so a request that was already waiting on getDb() when another one built the
+  // world sees the fresh cache here instead of building a second copy (4 simultaneous callers used to build 4).
+  return buildWorld(db, key);
+}
+
+function buildWorld(db: DatabaseSync, key: string): World {
   const today = todayIso();
 
   const rawBoxers = db.prepare("SELECT * FROM boxers").all() as Record<string, unknown>[];
@@ -128,10 +148,10 @@ export async function getWorld(): Promise<World> {
   const boutDate = new Map(bouts.map((b) => [b.id, b.date]));
   for (const list of weighInsByBoxer.values()) list.sort((a, b) => (boutDate.get(a.boutId) ?? "").localeCompare(boutDate.get(b.boutId) ?? ""));
 
-  const officialsByBout = new Map<number, Official[]>();
+  const officialsByBout = new Map<number, Official[]>(), officialsByPerson = new Map<number, Official[]>();
   for (const r of db.prepare("SELECT * FROM officials ORDER BY seat").all() as Record<string, unknown>[]) {
     const o: Official = { boutId: r.bout_id as number, role: r.role as Official["role"], personId: r.person_id as number, seat: (r.seat as number) ?? null };
-    push(officialsByBout, o.boutId, o); addRole(o.personId, o.role);
+    push(officialsByBout, o.boutId, o); push(officialsByPerson, o.personId, o); addRole(o.personId, o.role);
   }
   const scorecardsByBout = new Map<number, Scorecard[]>();
   for (const r of db.prepare("SELECT * FROM scorecards ORDER BY seat").all() as Record<string, unknown>[])
@@ -139,6 +159,24 @@ export async function getWorld(): Promise<World> {
   const cornersByBout = new Map<number, Corner[]>();
   for (const r of db.prepare("SELECT * FROM corners").all() as Record<string, unknown>[])
     push(cornersByBout, r.bout_id as number, { boutId: r.bout_id as number, boxerId: r.boxer_id as number, role: r.role as Corner["role"], personId: r.person_id as number });
+
+  // ----- money -----
+  const prov = (r: Record<string, unknown>) => ({ basis: r.basis as Purse["basis"], source: r.source as string, sourceUrl: (r.source_url as string) ?? null, retrievedAt: (r.retrieved_at as string) ?? null, note: (r.note as string) ?? null });
+  const n0 = (v: unknown) => (v === null || v === undefined ? null : (v as number));
+  const financialsByEvent = new Map<number, EventFinancials[]>();
+  for (const r of db.prepare("SELECT * FROM event_financials").all() as Record<string, unknown>[])
+    push(financialsByEvent, r.event_id as number, { eventId: r.event_id as number, gateUsd: n0(r.gate_usd), ticketsSold: n0(r.tickets_sold), capacity: n0(r.capacity), siteFeeUsd: n0(r.site_fee_usd), ppvBuys: n0(r.ppv_buys), ppvPriceUsd: n0(r.ppv_price_usd), ppvRevenueUsd: n0(r.ppv_revenue_usd), sponsorshipUsd: n0(r.sponsorship_usd), ...prov(r) });
+  const pursesByBout = new Map<number, Purse[]>(), pursesByBoxer = new Map<number, Purse[]>();
+  for (const r of db.prepare("SELECT * FROM purses").all() as Record<string, unknown>[]) {
+    const p: Purse = { boutId: r.bout_id as number, boxerId: r.boxer_id as number, guaranteedUsd: n0(r.guaranteed_usd), bonusUsd: n0(r.bonus_usd), totalUsd: (r.total_usd as number) ?? 0, ...prov(r) };
+    push(pursesByBout, p.boutId, p); push(pursesByBoxer, p.boxerId, p);
+  }
+  const broadcastsByEvent = new Map<number, Broadcast[]>();
+  for (const r of db.prepare("SELECT * FROM event_broadcasts").all() as Record<string, unknown>[])
+    push(broadcastsByEvent, r.event_id as number, { eventId: r.event_id as number, broadcaster: r.broadcaster as string, platform: r.platform as Broadcast["platform"], region: r.region as string, viewersAvg: n0(r.viewers_avg), viewersPeak: n0(r.viewers_peak), ...prov(r) });
+  const earningsByBoxer = new Map<number, Earning[]>();
+  for (const r of db.prepare("SELECT * FROM earnings ORDER BY year").all() as Record<string, unknown>[])
+    push(earningsByBoxer, r.boxer_id as number, { boxerId: r.boxer_id as number, year: r.year as number, totalUsd: r.total_usd as number, ringUsd: n0(r.ring_usd), offRingUsd: n0(r.off_ring_usd), ...prov(r) });
 
   const boutsByEvent = new Map<number, BoutRow[]>();
   for (const b of bouts) push(boutsByEvent, b.eventId, b);
@@ -189,13 +227,14 @@ export async function getWorld(): Promise<World> {
   });
 
   applyFittedWeights();
-  g.__worldAt = Date.now();
+  g.__worldKey = key;
   g.__world = {
     today, boxers, byId: new Map(boxers.map((b) => [b.id, b])), bySlug: new Map(boxers.map((b) => [b.slug, b])),
-    bouts, events, boutsByBoxer, boutsByEvent, history, boutPre,
+    bouts, events, boutById: new Map(bouts.map((b) => [b.id, b])), eventById: evOf, boutsByBoxer, boutsByEvent, history, boutPre,
     people, peopleBySlug: new Map([...people.values()].map((p) => [p.slug, p])), roles,
     orgs, orgsBySlug: new Map([...orgs.values()].map((o) => [o.slug, o])),
-    stints, stintsByBoxer, stintsByPerson, stintsByOrg, weighInsByBout, weighInsByBoxer, officialsByBout, scorecardsByBout, cornersByBout,
+    stints, stintsByBoxer, stintsByPerson, stintsByOrg, weighInsByBout, weighInsByBoxer, officialsByBout, officialsByPerson, scorecardsByBout, cornersByBout,
+    financialsByEvent, pursesByBout, pursesByBoxer, broadcastsByEvent, earningsByBoxer,
   };
   return g.__world;
 }

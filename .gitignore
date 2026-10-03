@@ -45,3 +45,5 @@ data/model-fit.json
 
 # keep the documented template even though .env* is ignored
 !.env.example
+data/bench-*.json
+data/research/cache/

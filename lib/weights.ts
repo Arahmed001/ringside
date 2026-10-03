@@ -1,6 +1,8 @@
 import type { World } from "./world";
-import type { BoxerFull, WeighIn } from "./types";
+import { msg } from "./i18n/t";
+import type { BoxerFull } from "./types";
 import { DIVISIONS } from "./divisions";
+import { memo } from "./memo";
 
 export interface DivisionWeights {
   division: string;
@@ -12,31 +14,30 @@ export interface DivisionWeights {
   avgFightNight: number;
 }
 
-const bouts = (w: World) => new Map(w.bouts.map((b) => [b.id, b]));
+const bouts = (w: World) => w.boutById;
 
-/** All weigh-ins with their bout's division attached (completed bouts only). */
-function rows(w: World) {
-  const bm = bouts(w);
-  const out: { wi: WeighIn; division: string; date: string }[] = [];
+export const divisionWeights = (w: World) => memo(w, "divisionWeights", () => computeDivisionWeights(w));
+
+/** One pass over every weigh-in (completed bouts only), accumulating per division; the old version re-filtered all of them once per division. */
+function computeDivisionWeights(w: World): DivisionWeights[] {
+  const acc = new Map(DIVISIONS.map((d) => [d.name, { n: 0, missed: 0, underSum: 0, underN: 0, gainSum: 0, gainN: 0, nightSum: 0, nightN: 0 }]));
   for (const list of w.weighInsByBout.values()) for (const wi of list) {
-    const b = bm.get(wi.boutId);
-    if (b && !b.upcoming) out.push({ wi, division: b.weightClass, date: b.date });
+    const b = w.boutById.get(wi.boutId);
+    const a = b && !b.upcoming ? acc.get(b.weightClass) : undefined;
+    if (!a || wi.officialLb === null) continue;
+    a.n++;
+    if (wi.madeWeight === false) a.missed++;
+    else if (wi.limitLb !== null) { a.underSum += wi.limitLb - wi.officialLb; a.underN++; }
+    if (wi.fightNightLb !== null) { a.gainSum += wi.fightNightLb - wi.officialLb; a.gainN++; a.nightSum += wi.fightNightLb; a.nightN++; }
   }
-  return out;
-}
-
-export function divisionWeights(w: World): DivisionWeights[] {
-  const all = rows(w);
   return DIVISIONS.map((d) => {
-    const r = all.filter((x) => x.division === d.name && x.wi.officialLb !== null);
-    const made = r.filter((x) => x.wi.madeWeight !== false);
-    const gains = r.filter((x) => x.wi.fightNightLb !== null && x.wi.officialLb !== null).map((x) => x.wi.fightNightLb! - x.wi.officialLb!);
-    const under = d.lb !== null ? made.filter((x) => x.wi.limitLb !== null).map((x) => x.wi.limitLb! - x.wi.officialLb!) : [];
-    const mean = (a: number[]) => (a.length ? a.reduce((s, v) => s + v, 0) / a.length : 0);
+    const a = acc.get(d.name)!;
     return {
-      division: d.name, limitLb: d.lb, n: r.length,
-      missRate: d.lb !== null && r.length ? r.filter((x) => x.wi.madeWeight === false).length / r.length : 0,
-      avgUnderLimit: mean(under), avgGain: mean(gains), avgFightNight: mean(r.filter((x) => x.wi.fightNightLb !== null).map((x) => x.wi.fightNightLb!)),
+      division: d.name, limitLb: d.lb, n: a.n,
+      missRate: d.lb !== null && a.n ? a.missed / a.n : 0,
+      avgUnderLimit: d.lb !== null && a.underN ? a.underSum / a.underN : 0,
+      avgGain: a.gainN ? a.gainSum / a.gainN : 0,
+      avgFightNight: a.nightN ? a.nightSum / a.nightN : 0,
     };
   });
 }
@@ -44,9 +45,10 @@ export function divisionWeights(w: World): DivisionWeights[] {
 export interface EdgeBucket { label: string; n: number; winRate: number }
 
 /** Win rate bucketed by how much heavier (on fight night) a fighter was than his opponent. Decisive bouts only. */
-export function fightNightEdge(w: World): EdgeBucket[] {
+export const fightNightEdge = (w: World) => memo(w, "fightNightEdge", () => computeEdge(w));
+function computeEdge(w: World): EdgeBucket[] {
   const edges = [-Infinity, -8, -4, -1.5, 1.5, 4, 8, Infinity];
-  const labels = ["8+ lb lighter", "4–8 lb lighter", "1.5–4 lb lighter", "within 1.5 lb", "1.5–4 lb heavier", "4–8 lb heavier", "8+ lb heavier"];
+  const labels = [msg("8+ lb lighter"), msg("4–8 lb lighter"), msg("1.5–4 lb lighter"), msg("within 1.5 lb"), msg("1.5–4 lb heavier"), msg("4–8 lb heavier"), msg("8+ lb heavier")];
   const tally = labels.map(() => ({ n: 0, wins: 0 }));
   for (const b of w.bouts) {
     if (b.upcoming || !b.winnerId) continue;
@@ -64,7 +66,8 @@ export function fightNightEdge(w: World): EdgeBucket[] {
 
 export interface WeightMiss { boxer: BoxerFull; boutId: number; date: string; over: number; limitLb: number; won: boolean | null; opponent: string }
 
-export function missedWeights(w: World, limit = 12): { misses: WeightMiss[]; total: number; winRate: number } {
+export const missedWeights = (w: World, limit = 12) => memo(w, `missedWeights:${limit}`, () => computeMisses(w, limit));
+function computeMisses(w: World, limit: number): { misses: WeightMiss[]; total: number; winRate: number } {
   const bm = bouts(w);
   const all: WeightMiss[] = [];
   let wins = 0, decided = 0;

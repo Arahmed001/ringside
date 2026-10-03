@@ -1,0 +1,5343 @@
+[
+ {
+  "key": "…",
+  "files": [
+   "components/ChartI18n.tsx",
+   "lib/seo-server.ts"
+  ]
+ },
+ {
+  "key": "“C” marks the top-rated fighter in the division, not an official sanctioning-body champion.",
+  "files": [
+   "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "“Picks the home fighter” counts decisive cards in bouts where exactly one fighter was a home national (league average {pct}%). With fewer than about 40 such cards the number is mostly noise.",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "(limit {n})",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "{a} {pa}, {b} {pb}",
+  "files": [
+   "components/ChartI18n.tsx"
+  ]
+ },
+ {
+  "key": "{a} vs {b}",
+  "files": [
+   "app/[locale]/bouts/[id]/opengraph-image.tsx",
+   "app/[locale]/events/[id]/opengraph-image.tsx",
+   "app/[locale]/money/page.tsx",
+   "lib/predict.ts"
+  ]
+ },
+ {
+  "key": "{a} vs {b} Elo",
+  "files": [
+   "lib/predict.ts"
+  ]
+ },
+ {
+  "key": "{a} vs {b} months since last fight",
+  "files": [
+   "lib/predict.ts"
+  ]
+ },
+ {
+  "key": "{a}% vs {b}% KO rate",
+  "files": [
+   "lib/predict.ts"
+  ]
+ },
+ {
+  "key": "{a}% vs {b}% of fights lost by KO",
+  "files": [
+   "lib/predict.ts"
+  ]
+ },
+ {
+  "key": "{a}cm vs {b}cm",
+  "files": [
+   "lib/predict.ts"
+  ]
+ },
+ {
+  "key": "{amount} revenue",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "{city}, {country}",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{confidence}: {name} {pct}%. {ending}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "{count} · showing top {n}",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "{country} · Age {age} · {stance} · Pro since {year}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{date} · {city}",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "{date} · {event}",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "{date} vs {name}",
+  "files": [
+   "lib/watch.ts"
+  ]
+ },
+ {
+  "key": "{date} vs <b>{name}</b>",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{date}: {result}",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "{date}: {winner} by {method}",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "{date}: scale {n} lb",
+  "files": [
+   "components/WeightChart.tsx"
+  ]
+ },
+ {
+  "key": "{division} · {n} rounds",
+  "plural": "{division} · {n} round",
+  "files": [
+   "components/Poster.tsx"
+  ]
+ },
+ {
+  "key": "{division} rankings",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "{events} events · {fighters} fighters signed · {w}-{l} combined",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "{from} → {to}",
+  "files": [
+   "components/TeamTimeline.tsx"
+  ]
+ },
+ {
+  "key": "{gate} gate · {ppv} PPV · {n} cards",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "{h} cm / {r} cm",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{h}cm tall · {limit}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{label} · R{round}: {pct}% of finishes",
+  "files": [
+   "components/ChartI18n.tsx"
+  ]
+ },
+ {
+  "key": "{lb} lb",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "{lb} lb · {kg} kg",
+  "files": [
+   "lib/divisions.ts"
+  ]
+ },
+ {
+  "key": "{m} R{r}",
+  "files": [
+   "lib/format.ts"
+  ]
+ },
+ {
+  "key": "{n} {kind} rows dropped",
+  "plural": "{n} {kind} row dropped",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} attended",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} avg viewers",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "{n} bouts",
+  "plural": "{n} bout",
+  "files": [
+   "app/[locale]/analytics/page.tsx",
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} buys",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} cm",
+  "files": [
+   "app/[locale]/compare/page.tsx",
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "{n} countries",
+  "plural": "{n} country",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} current",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} dissents",
+  "plural": "{n} dissent",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} divisions",
+  "plural": "{n} division",
+  "files": [
+   "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} Elo",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx",
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "{n} errors",
+  "plural": "{n} error",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} events",
+  "plural": "{n} event",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} fighters",
+  "plural": "{n} fighter",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} fighters · {rate} win rate",
+  "plural": "{n} fighter · {rate} win rate",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} fighters ever",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} fights",
+  "plural": "{n} fight",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} KO",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx",
+   "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "{n} lb",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} lb on fight night",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} missed weights",
+  "plural": "{n} missed weight",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} misses · they won {rate}",
+  "plural": "{n} miss · they won {rate}",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} mo",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "{n} months with current trainer",
+  "plural": "{n} month with current trainer",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} on record",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} pts",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "{n} pts for {name} vs default",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "{n} purses",
+  "plural": "{n} purse",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} purses on record",
+  "plural": "{n} purse on record",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "{n} rds",
+  "plural": "{n} rd",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} results",
+  "plural": "{n} result",
+  "files": [
+   "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "{n} rounds",
+  "plural": "{n} round",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} tickets",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} title bouts on record",
+  "plural": "{n} title bout on record",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} upcoming",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} warnings",
+  "plural": "{n} warning",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "{n}% chance of KO/TKO",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "{n}% KO/TKO",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "{n}% match",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n}% of bouts",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n}% wins",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx",
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n}+ KOs",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "{n}+ losses",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "{n}+ wins",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "{n}cm",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} ({kind}) on Ringside: {now} fighters now, {ever} ever, a {record} combined record and {titles} title wins.",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} ({role}) on Ringside: team history, fighters worked with and results across the boxing league.",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} ({role}): {bouts} bouts officiated, {stoppages} stoppages and a {pct}% stoppage rate, plus recent bouts refereed.",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} ({role}): {cards} cards scored, with the majority on {pct}% of them and {dissents} dissents, plus recent bouts judged.",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} ({role}): {fighters} fighters on record, {record} together, {titles} title wins, with dated team history and Elo change per tenure.",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} (+{n} lb)",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} down {n}×",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} on Ringside: current titleholders by division and recent title fights, drawn from {n} title bouts on record.",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} weighed {n} lb more on fight night.",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} wins · {result}",
+  "files": [
+   "app/[locale]/bouts/[id]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "{name}: {division} boxer from {country}. Record {record} with {kos} KOs and a {rating} Elo rating. Fight history, team, weigh-ins and scouting report.",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name}{nick} is a {age}-year-old {stance} {division} from {country}, {record} with {kos} knockouts ({pct}% of wins).",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "{now} training now · {ever} ever · {pct}% wins",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "{p} of wins",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{pct}% from official records",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "{pct}% official",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "{record} · {country}",
+  "files": [
+   "components/Poster.tsx"
+  ]
+ },
+ {
+  "key": "{record} · {n} KO · Elo {elo}",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "{red} vs {blue}",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/orgs/[slug]/page.tsx",
+   "app/[locale]/page.tsx",
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{red} vs {blue}, a {rounds}-round {division} bout at {event} in {city} on {date}. Result: {result}, with scorecards, weigh-ins and punch stats.",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "{red} vs {blue}, a {rounds}-round {division} bout at {event} in {city} on {date}. Win probability, weigh-ins and head-to-head on Ringside.",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "{style} · {division} · {record}",
+  "files": [
+   "components/StyleMap.tsx"
+  ]
+ },
+ {
+  "key": "{title} · {division}",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{title} (vacant)",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "{title} (vacant) · {division}",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{venue} · {city}",
+  "files": [
+   "components/Poster.tsx"
+  ]
+ },
+ {
+  "key": "{winner} <m>upset</m> {loser}",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "{wins}% wins · {ko}% KO",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "#{rank} {division}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "+{n} lb",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "± error",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "<b>{winner}</b> <m>beat</m> {loser}",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "<b>Demo mode.</b> Every fighter, trainer, judge and result here is fictional and simulated. Real data arrives through a licensed provider; nothing is scraped.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "<b>Live provider.</b> Data comes from the configured licensed feed.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "<c>{name}</c> head trainer",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "~19.6k boxers; no bouts, weigh-ins or reliable trainers. Importer + enrichment tested.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "★ Watching",
+  "files": [
+   "components/Watch.tsx"
+  ]
+ },
+ {
+  "key": "☆ Watch",
+  "files": [
+   "components/Watch.tsx"
+  ]
+ },
+ {
+  "key": "✦ marks the model’s pick. Picks are saved in this browser.",
+  "files": [
+   "components/PickEm.tsx"
+  ]
+ },
+ {
+  "key": "✦ Written by Claude",
+  "files": [
+   "components/ScoutingReport.tsx"
+  ]
+ },
+ {
+  "key": "1.5–4 lb heavier",
+  "files": [
+   "lib/weights.ts"
+  ]
+ },
+ {
+  "key": "1.5–4 lb lighter",
+  "files": [
+   "lib/weights.ts"
+  ]
+ },
+ {
+  "key": "200+ lb",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "4–8 lb heavier",
+  "files": [
+   "lib/weights.ts"
+  ]
+ },
+ {
+  "key": "4–8 lb lighter",
+  "files": [
+   "lib/weights.ts"
+  ]
+ },
+ {
+  "key": "8+ lb heavier",
+  "files": [
+   "lib/weights.ts"
+  ]
+ },
+ {
+  "key": "8+ lb lighter",
+  "files": [
+   "lib/weights.ts"
+  ]
+ },
+ {
+  "key": "90d",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "A",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "A {cm}cm reach-over-height advantage gives her a natural jab.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "A {cm}cm reach-over-height advantage gives him a natural jab.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "A clean, economical boxer who wins on timing and distance rather than raw power.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "A durable professional who takes tough fights on short notice; he tests rising contenders more often than he beats them.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "A durable professional who takes tough fights on short notice; she tests rising contenders more often than she beats them.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "A factor needs |z| of about 2 or more to count as signal. Fitted on rating, reach, age, layoff, knockout rate, KO losses, experience, usual rehydration, fight-night weight edge, new-trainer flag and the trainer's prior win rate. In this demo league the weigh-in and trainer effects were planted but are small, so they are not detectable at this sample size. That is the honest answer, and real data will say what is really there.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "A pressure fighter who walks through return fire and bets her chin beats yours.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "A pressure fighter who walks through return fire and bets his chin beats yours.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Accuracy",
+  "files": [
+   "components/PunchStats.tsx"
+  ]
+ },
+ {
+  "key": "across {n} cards",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Across all weights",
+  "files": [
+   "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "Active",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "active fighters",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Adapter contract is ready (lib/providers). Shortlist in PLAN.md §4.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Add an ANTHROPIC_API_KEY to enable richer AI reports.",
+  "files": [
+   "components/ScoutingReport.tsx"
+  ]
+ },
+ {
+  "key": "age",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Age",
+  "files": [
+   "app/[locale]/compare/page.tsx",
+   "components/MatchupLab.tsx",
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "Age (past 34)",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Age ≤ {n}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Age ≥ {n}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Age and layoffs hurt more",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "AI scouting report",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "All {n} upcoming cards",
+  "plural": "All {n} upcoming card",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "All division rankings",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "All divisions",
+  "files": [
+   "app/[locale]/boxers/page.tsx",
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "all features",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "All features",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "All fighters",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Also known as",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Also worked in other corner roles (assistant, strength and conditioning) with {n} further fighters.",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "An outlet's or analyst's estimate, or worked out from other figures. Treat as approximate.",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Analysing…",
+  "files": [
+   "components/ScoutingReport.tsx"
+  ]
+ },
+ {
+  "key": "Analytics",
+  "files": [
+   "app/[locale]/analytics/page.tsx",
+   "app/[locale]/layout.tsx",
+   "app/[locale]/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "As head trainer",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "As judge",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "As manager",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "As referee",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Ask",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Ask anything… “southpaw welterweights with 10+ KOs”",
+  "files": [
+   "app/[locale]/layout.tsx"
+  ]
+ },
+ {
+  "key": "Ask in plain English — “southpaw welterweights with 10+ KOs after 2015”",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "Assistant trainer",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "at ${price} each",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "at least one fighter's purse",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Athletic commission results",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Attribute radar",
+  "files": [
+   "components/charts.tsx"
+  ]
+ },
+ {
+  "key": "Auto-generated from stats",
+  "files": [
+   "components/ScoutingReport.tsx"
+  ]
+ },
+ {
+  "key": "Automated requests to the Nevada site are blocked, so files must be downloaded manually. A parser is not built.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Average rehydration (official → fight night)",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Avg audience",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Avg Elo change",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx",
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Avg margin",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx",
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Avg rehydration",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Avg stoppage round",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx",
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "B",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Back to the ring",
+  "files": [
+   "app/[locale]/not-found.tsx"
+  ]
+ },
+ {
+  "key": "Balanced",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "BAN",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Bantamweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Bars extend toward the fighter the factor favours: left for {a}, right for {b}.",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Bars: ring pay (solid) and, where a published list has it, endorsements and other income (light). ● official, ◐ reported, ○ estimated.",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "beat {name}",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Belts",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "best",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Biggest gates, pay-per-view sales, fighter purses and career earnings, and which broadcasters show the fights. Every figure says how it is known and where it came from.",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Biggest live gates",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Biggest night:",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Biggest purse",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Biggest upsets",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Birth date and place, nationality, height, weight, image, BoxRec ID, a few trainer links",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Birthplace",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Booked fights",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Born",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Born in {place}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Bout not found",
+  "files": [
+   "app/[locale]/bouts/[id]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "bouts",
+  "files": [
+   "app/[locale]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "Bouts",
+  "files": [
+   "app/[locale]/analytics/page.tsx",
+   "app/[locale]/people/[slug]/page.tsx",
+   "app/[locale]/people/page.tsx",
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "bouts on the card",
+  "files": [
+   "app/[locale]/events/[id]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "Bouts per year",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Boxing gyms, promotions and sanctioning bodies: who trains and signs the fighters, how many events each promotes and which belts they sanction.",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "Boxing intelligence",
+  "files": [
+   "app/[locale]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "Boxing intelligence · {fighters} fighters · {bouts} bouts",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Boxing ratings, rankings and predictions",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "BoxRec",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "BoxRec ID (cross-reference only)",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "BoxRec ID {id}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Broadcaster",
+  "files": [
+   "app/[locale]/money/page.tsx",
+   "app/[locale]/orgs/[slug]/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Broadcaster and audience",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Broadcasters",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Built",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "By current fighters",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "By current fighters · top {top} of {total}",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "By events promoted",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "By events promoted · top {top} of {total}",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "By number of fighters managed",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "By rating gap",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "By weight class",
+  "files": [
+   "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "C",
+  "files": [
+   "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "Call the card",
+  "files": [
+   "components/PickEm.tsx"
+  ]
+ },
+ {
+  "key": "cancelled",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Cancelled",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx",
+   "components/Poster.tsx",
+   "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "Cards",
+  "files": [
+   "app/[locale]/money/page.tsx",
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Cards scored",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Career pay from purses",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Catchweight {n} lb",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "CC BY / BY-SA / CC0 / public domain, attribution shown",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "CC0",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Change the fight",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Checked before anything is written",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Chin",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Clear favourite",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Clear signal?",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Clients",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Clients now / ever",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Closing odds",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx",
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Co-main",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Column chart",
+  "files": [
+   "components/charts.tsx"
+  ]
+ },
+ {
+  "key": "Combined record",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Coming up",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "completed",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "completed cards",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "CompuBox",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "CompuBox-style statistics: only some bouts are covered.",
+  "files": [
+   "components/PunchStats.tsx"
+  ]
+ },
+ {
+  "key": "CompuBox-style; paid and partial in reality",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Concern: most of her defeats came by stoppage.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Concern: most of his defeats came by stoppage.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Contributor terms",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Corner & camp",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Corner retirement",
+  "files": [
+   "app/[locale]/analytics/page.tsx",
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Corner trainers",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Corners",
+  "files": [
+   "app/[locale]/layout.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Corners & officials",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Corrections and trainer/manager history with sources",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Couldn’t load your watchlist. Try again in a moment.",
+  "files": [
+   "components/Watch.tsx"
+  ]
+ },
+ {
+  "key": "Counter-Puncher",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Coverage: {withFin} of {events} completed cards have gate or PPV figures and {purses} purses are on file ({disclosed} official, {reported} reported, {estimated} estimated). Rankings below cover only what is on file.",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "CRU",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Cruiserweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Current {division} boxing rankings by Elo rating, with record, style, KO rate and recent form for every qualifying fighter.",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "Current {division} boxing rankings by Elo rating, with record, style, KO rate and recent form. {name} ({record}) is the top-rated fighter.",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "Current boxing rankings for every weight class and pound for pound, rated by an Elo-style system and updated after every fight.",
+  "files": [
+   "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "Current head trainer",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Current manager",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Current rankings",
+  "files": [
+   "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "Current roster",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Current titleholders",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Currently trained by {name}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Cutman",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "D",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "Data",
+  "files": [
+   "app/[locale]/layout.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Data & model",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Date",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Decisions",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "decisions only",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Demo league",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Development data only. It carries every field the real contract supports.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Different divisions — treat with caution",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Disqualification",
+  "files": [
+   "app/[locale]/analytics/page.tsx",
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Dissents",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Distance likely · {pct}% KO/TKO",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Distribution",
+  "files": [
+   "components/charts.tsx"
+  ]
+ },
+ {
+  "key": "division",
+  "files": [
+   "app/[locale]/bouts/[id]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "Division",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Divisions",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Does being heavier on fight night help?",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "DQ",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Draw",
+  "files": [
+   "app/[locale]/analytics/page.tsx",
+   "app/[locale]/orgs/[slug]/page.tsx",
+   "app/[locale]/page.tsx",
+   "app/[locale]/weights/page.tsx",
+   "lib/format.ts",
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "DRAW",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "draw {pct}",
+  "files": [
+   "components/ChartI18n.tsx"
+  ]
+ },
+ {
+  "key": "Durability",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "e.g. {example}",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Early (R1–3)",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Early stoppages",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Earnings",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Editors",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Effect on log-odds of winning",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Elo change",
+  "files": [
+   "app/[locale]/people/page.tsx",
+   "components/TenureTable.tsx"
+  ]
+ },
+ {
+  "key": "Elo change is the average rating gain (or loss) a fighter had during each tenure. It reflects the fighter as much as the trainer, since trainers also pick up and lose fighters at different career stages. Treat it as a lead, not a verdict.",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Elo gap",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Elo plus small physical and form edges",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Elo rating",
+  "files": [
+   "app/[locale]/boxers/[slug]/opengraph-image.tsx",
+   "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "Elo rating gap",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "Elo refit",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Elo says {n}%",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Elo-style",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "error",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Estimated",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Event not found",
+  "files": [
+   "app/[locale]/events/[id]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "events",
+  "files": [
+   "app/[locale]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "Events",
+  "files": [
+   "app/[locale]/events/page.tsx",
+   "app/[locale]/layout.tsx",
+   "app/[locale]/orgs/[slug]/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Events promoted",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Every division ranked by Elo-style rating. Active fighters with five or more bouts, a winning record and a fight in the last 24 months qualify. Arrows show movement over the last 90 days.",
+  "files": [
+   "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "Every fighter plotted by how they fight — power, durability, workrate, reach, age and form — compressed to two dimensions. Fighters close together fight alike. Click a legend chip to isolate a style.",
+  "files": [
+   "app/[locale]/map/page.tsx"
+  ]
+ },
+ {
+  "key": "Every fighter plotted by how they fight, with power, durability, workrate, reach, age and form compressed into one map. Fighters close together fight alike.",
+  "files": [
+   "app/[locale]/map/page.tsx"
+  ]
+ },
+ {
+  "key": "Every fighter, every fight, every number. Ratings, rankings, predictions and AI scouting for professional boxing.",
+  "files": [
+   "app/[locale]/layout.tsx",
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Every fighter.",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Every fighter. Every number.",
+  "files": [
+   "app/[locale]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "Every figure shows how it is known. Estimated figures are approximate; follow the source link to check.",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Every number.",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Every row already carries a source field to make this auditable.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Everyone",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "Everything: fictional fighters, trainers, weigh-ins, scorecards, punch stats",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Exact birth date",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Expect a stoppage.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Experience",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Experience (log fights)",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "Factor",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Father Time",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "FEA",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Featherweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "few commissions record these",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Field coverage",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Fight calendar",
+  "files": [
+   "app/[locale]/events/page.tsx",
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Fight card for {event} on {date} at {venue}, {city}. {red} vs {blue} headlines, with predictions and results for every bout.",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Fight money",
+  "files": [
+   "app/[locale]/money/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "fight night",
+  "files": [
+   "components/WeightChart.tsx"
+  ]
+ },
+ {
+  "key": "Fight night",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "fight night {n}",
+  "files": [
+   "components/WeightChart.tsx"
+  ]
+ },
+ {
+  "key": "Fight night pick’em",
+  "files": [
+   "components/PickEm.tsx"
+  ]
+ },
+ {
+  "key": "Fight predictor",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Fight record",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Fight stats",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Fight-night (pre-fight) weights",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Fight-night weight edge",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "Fighter",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/rankings/[division]/page.tsx",
+   "app/[locale]/weights/page.tsx",
+   "components/TenureTable.tsx"
+  ]
+ },
+ {
+  "key": "Fighter {label}",
+  "files": [
+   "components/FighterPicker.tsx"
+  ]
+ },
+ {
+  "key": "Fighter {label}…",
+  "files": [
+   "components/FighterPicker.tsx"
+  ]
+ },
+ {
+  "key": "Fighter database",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "Fighter not found",
+  "files": [
+   "app/[locale]/boxers/[slug]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "Fighter profile on Ringside: record, ratings, team and fight history.",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Fighter purses",
+  "files": [
+   "components/Money.tsx",
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Fighter style map",
+  "files": [
+   "components/StyleMap.tsx"
+  ]
+ },
+ {
+  "key": "fighters",
+  "files": [
+   "app/[locale]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "Fighters",
+  "files": [
+   "app/[locale]/analytics/page.tsx",
+   "app/[locale]/boxers/page.tsx",
+   "app/[locale]/layout.tsx",
+   "app/[locale]/people/[slug]/page.tsx",
+   "app/[locale]/people/page.tsx",
+   "lib/coverage.ts",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Fighters like her",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Fighters like him",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Fighters now / ever",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Fighters over time",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Fighters over time (latest 16 of {n})",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Fighters, events, bouts, results, belts; sometimes weights, scorecards, referees",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Final results",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Find a fighter",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "Finish rate",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "FINISHED",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Fit on past bouts, tested on the most recent 25%",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "FLY",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Flyweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "free TV",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Freely licensed fighter photos with author and licence",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "From an official record: a commission disclosure, a company filing or the promoter's own statement.",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Full bout details",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx",
+   "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "Full card",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Full matchup breakdown",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "gate + PPV + site fee + sponsors",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Gate and PPV revenue",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Gate, tickets or PPV figures",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Gates, pay-per-view and purses",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Generated, no rights issues",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Gold bar = average probability the model gave; green tick = how often those fighters actually won.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Gym",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx",
+   "lib/search.ts",
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Gym {name}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Gyms",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "Gyms, promotions & bodies",
+  "files": [
+   "app/[locale]/orgs/page.tsx",
+   "lib/search.ts",
+   "lib/seo-server.ts"
+  ]
+ },
+ {
+  "key": "Has missed weight",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "He arrives on a {n}-fight win streak.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "He fights to finish: short fights, heavy shots, and opponents who rarely hear the final bell.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "He has lost his last {n} and needs a response.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "He lets opponents lead, punishing mistakes — outcomes hinge on who forces the pace.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "He wins by accumulation, throwing in volume and trusting the scorecards over a single big shot.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Head to head",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Head trainer",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Head trainers with 4+ fights on record",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Heavier fighters are also usually the bigger, stronger natural fighters, so this is a correlation, not proof that rehydration wins fights. In this demo league the effect is built into the simulator.",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Heaviest edge",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Heavy favourite",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Heavyweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Height",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Height / reach",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Highest purses",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Hover a dot · click to open the profile",
+  "files": [
+   "components/StyleMap.tsx"
+  ]
+ },
+ {
+  "key": "How fights end",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "How he wins",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "How often each judge sides with the majority",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "How she wins",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "HVY",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Identifiers",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "In {n} days",
+  "plural": "In {n} day",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx",
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "incl. {amount} PPV share",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "info",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Insights engine",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Interactive tale of the tape",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Interpreted as",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "Iron-Chin Brawler",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Is it calibrated? ({model}, held-out fights)",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Jabs",
+  "files": [
+   "components/PunchStats.tsx"
+  ]
+ },
+ {
+  "key": "Japanese lightweights",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Journeyman",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Judge",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx",
+   "app/[locale]/people/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Judge {n}",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx",
+   "components/ScoreCards.tsx"
+  ]
+ },
+ {
+  "key": "Judges",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Judges' scorecards",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Knockout",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Knockout Artist",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "knockout artists with 15+ KOs",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Knockout rate",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "Knockout rates by division, when fights end, the biggest upsets, leading nations and the longest win streaks across every professional bout in the database.",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "knockouts",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Knockouts",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "KO",
+  "files": [
+   "app/[locale]/analytics/page.tsx",
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "KO rate",
+  "files": [
+   "app/[locale]/boxers/[slug]/opengraph-image.tsx",
+   "app/[locale]/compare/page.tsx",
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "KO rate ≤ {n}%",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "KO rate ≥ {n}%",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "KO rate by division",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "KO share",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "KO-loss rate",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "KO/TKO",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "KO%",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "L",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "Last data load",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Last fight",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "Latest",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Layoff",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "Leaderboards for trainers, managers, judges and referees: who trains, manages, scores and officiates, with dated team histories and results.",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "league {n}",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "league {pct}% · n={n}",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "League average stoppage: round {n}",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "League weigh-in stats",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Lean",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "LFLY",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "LHW",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Licence",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Licensed results feed",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "LIG",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Light Flyweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Light Heavyweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Lightweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Likely goes the distance.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "limit",
+  "files": [
+   "components/WeightChart.tsx"
+  ]
+ },
+ {
+  "key": "Limit",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "limit {n}",
+  "files": [
+   "components/WeightChart.tsx"
+  ]
+ },
+ {
+  "key": "limit {n} lb",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Live from the database",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Live gate",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Live gates",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Lives in",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Loaded: {list}.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Loading your watchlist…",
+  "files": [
+   "components/Watch.tsx"
+  ]
+ },
+ {
+  "key": "log-loss · {acc} correct · Brier {brier}",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "longer-armed wins ({n} fights, 5cm+ gap)",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Longest win streaks",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Lost",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Main",
+  "files": [
+   "app/[locale]/layout.tsx"
+  ]
+ },
+ {
+  "key": "Main event",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx",
+   "components/Poster.tsx"
+  ]
+ },
+ {
+  "key": "Majority",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Majority decision",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Managed by {name}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Manager",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx",
+   "app/[locale]/people/page.tsx",
+   "lib/search.ts",
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Managers",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Market implied (red)",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Matches only on verified identity; non-commercial licences rejected.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Matchup lab",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Matchups",
+  "files": [
+   "app/[locale]/compare/page.tsx",
+   "app/[locale]/layout.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "MD",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Men",
+  "files": [
+   "app/[locale]/boxers/page.tsx",
+   "app/[locale]/rankings/[division]/page.tsx",
+   "app/[locale]/rankings/page.tsx",
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "MID",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Middleweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "MIN",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Minimumweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Missed weight",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "MISSED WEIGHT",
+  "files": [
+   "components/WeightChart.tsx"
+  ]
+ },
+ {
+  "key": "Missed weight: {a}",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Missed weight: {a} and {b}",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Missed-weight rate by division",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Model weights",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Model: {pct}%",
+  "files": [
+   "components/PickEm.tsx"
+  ]
+ },
+ {
+  "key": "Model: <b>{p}%</b> win",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Money",
+  "files": [
+   "app/[locale]/layout.tsx",
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Money rows with a source link",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Months since last fight",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "More analytics",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "n={n}",
+  "files": [
+   "app/[locale]/data/page.tsx",
+   "app/[locale]/people/page.tsx",
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Name “{text}”",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Nations",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "NC",
+  "files": [
+   "components/ui.tsx",
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Never missed weight",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "NEW",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "New trainer · {n} months with current trainer",
+  "plural": "New trainer · {n} month with current trainer",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "New trainer (<6 mo)",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "New trainer (9 months)",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Next fight",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Next main event",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "no",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "No contest",
+  "files": [
+   "lib/format.ts",
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "No fight booked",
+  "files": [
+   "components/Watch.tsx"
+  ]
+ },
+ {
+  "key": "No fighter matches that.",
+  "files": [
+   "components/FighterPicker.tsx"
+  ]
+ },
+ {
+  "key": "No fighter with {n}+ bouts matches “{q}”.",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "No fighter with {n}+ bouts matches that.",
+  "files": [
+   "components/FighterPicker.tsx"
+  ]
+ },
+ {
+  "key": "No fighters on record.",
+  "files": [
+   "components/TenureTable.tsx"
+  ]
+ },
+ {
+  "key": "No financial figures are loaded yet. They arrive with a data feed that carries them, or from the research pipeline (see docs/research.md).",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "No fit yet. Run <c>{cmd}</c> to learn weights from the bouts in the database.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "No issues found. Rows that fail a check are dropped and listed here; suspicious ones are kept and flagged. Run <c>{cmd}</c> to test a vendor sample first.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "No qualifying fighters in this division yet.",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "no recognised filters",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "No team history on record yet.",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "No upsets recorded yet.",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "No weigh-in data recorded for this bout yet.",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "No wins yet.",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Nobody matches that. Loosen a filter or try a different phrasing.",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "none",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "not disclosed",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Not enough fights yet",
+  "files": [
+   "components/charts.tsx"
+  ]
+ },
+ {
+  "key": "Not enough qualifying fighters yet.",
+  "files": [
+   "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "Not enough qualifying fighters.",
+  "files": [
+   "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "Not enough weigh-ins on record",
+  "files": [
+   "components/WeightChart.tsx"
+  ]
+ },
+ {
+  "key": "Not on the card",
+  "files": [
+   "app/[locale]/not-found.tsx"
+  ]
+ },
+ {
+  "key": "Not used",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Not used. Data is licensed to partners; an enquiry is the only legitimate route. Only the numeric ID is stored, as a cross-reference.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Not yet",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Nothing matches that.",
+  "files": [
+   "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "of {n} seats",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "of completed cards have financial figures.",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "official",
+  "files": [
+   "components/WeightChart.tsx"
+  ]
+ },
+ {
+  "key": "Official",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Official and fight-night weights, how often fighters miss the limit, how much they rehydrate, and what the weight gap does to the result.",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Official and pre-fight weights, officials, purses (US states such as Nevada)",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Official names & limits",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Official result",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Official weight",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "official weights on record",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Official weights the day before, fight-night weights after rehydration, and what the gap does to the result.",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Officiating record",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Old school",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "One night's pay",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Only cards with figures on file are counted, so a year can look small because data is thin, not because the money was.",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Opponent",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Or start from the calendar",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Orthodox",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Orthodox win rate",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "otherwise a generated portrait",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Over 200 lb",
+  "files": [
+   "lib/divisions.ts"
+  ]
+ },
+ {
+  "key": "Over the limit",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Overall: round 1 accounts for {p} of all stoppages.",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Paid",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "paid to host the card",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Partly built",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "pay-per-view",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Pay-per-view",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "peak {n}",
+  "files": [
+   "components/charts.tsx"
+  ]
+ },
+ {
+  "key": "per 10 pts",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "per 100 pts",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "per cm",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "Per contract (storing and redisplay must be confirmed)",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "per lb",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "per month",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "per tenure",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "per unit",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "per year",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "Period",
+  "files": [
+   "components/TenureTable.tsx"
+  ]
+ },
+ {
+  "key": "Person",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Photo (licensed or Wikimedia)",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Photo:",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Pick any two fighters — even from different eras or weights — and see win probability, how the fight likely ends, and what drives the number.",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Pick any two fighters and see win probability, how the fight likely ends and what drives the number, with an interactive model you can re-weight.",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Picks home fighter",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "picks made",
+  "files": [
+   "components/PickEm.tsx"
+  ]
+ },
+ {
+  "key": "Picks the home fighter",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "plain Elo",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Plain Elo",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "points",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Portrait of {name}",
+  "files": [
+   "components/Portrait.tsx"
+  ]
+ },
+ {
+  "key": "Poster: {red} vs {blue}",
+  "files": [
+   "components/Poster.tsx"
+  ]
+ },
+ {
+  "key": "postponed",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Postponed · new date",
+  "files": [
+   "components/Poster.tsx"
+  ]
+ },
+ {
+  "key": "Postponed · now {n} days away",
+  "plural": "Postponed · now {n} day away",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Pound for pound",
+  "files": [
+   "app/[locale]/page.tsx",
+   "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "Power",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Power punches",
+  "files": [
+   "components/PunchStats.tsx"
+  ]
+ },
+ {
+  "key": "PPV buys",
+  "files": [
+   "app/[locale]/money/page.tsx",
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "PPV leaders",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "PPV revenue",
+  "files": [
+   "app/[locale]/money/page.tsx",
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Predict",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Prediction model",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "present",
+  "files": [
+   "components/TeamTimeline.tsx",
+   "components/TenureTable.tsx"
+  ]
+ },
+ {
+  "key": "Pro debut",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Pro debut ≤ {year}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Pro debut ≥ {year}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Profile",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Promoter",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Promoter {name}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Promotion",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Promotions",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "Prospect",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Provenance",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Public records",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Published by a named outlet that cited people or documents.",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Punch statistics",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/data/page.tsx",
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "punches landed per round",
+  "files": [
+   "components/PunchStats.tsx"
+  ]
+ },
+ {
+  "key": "Punching power",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Pure Elo",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Purses backed by an official record",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Purses on file",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Quick links",
+  "files": [
+   "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "Rankings",
+  "files": [
+   "app/[locale]/layout.tsx",
+   "app/[locale]/rankings/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Rated {elo} Elo, currently #{rank} among all {division} fighters in the database.{streak}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "rating",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Rating",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/compare/page.tsx",
+   "app/[locale]/rankings/[division]/page.tsx",
+   "components/MatchupLab.tsx",
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Rating history",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Rating over time",
+  "files": [
+   "components/charts.tsx"
+  ]
+ },
+ {
+  "key": "Ratings, rankings and predictions",
+  "files": [
+   "lib/og.tsx"
+  ]
+ },
+ {
+  "key": "Ratings, rankings, win-probabilities and AI scouting for the whole sport, in one place. Ask in plain English.",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "reach",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Reach",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/compare/page.tsx",
+   "components/MatchupLab.tsx",
+   "lib/fit.ts",
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Reach ≥ {n}cm",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Reach edge",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Reach, power and chin decide fights",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Recent events",
+  "files": [
+   "app/[locale]/events/page.tsx"
+  ]
+ },
+ {
+  "key": "Recent main events",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Recent missed weights",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Recent title fights",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "record",
+  "files": [
+   "app/[locale]/boxers/[slug]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "Record",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/compare/page.tsx",
+   "app/[locale]/people/[slug]/page.tsx",
+   "app/[locale]/people/page.tsx",
+   "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "Record together",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx",
+   "app/[locale]/people/page.tsx",
+   "components/TenureTable.tsx"
+  ]
+ },
+ {
+  "key": "Records",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Referee",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/people/[slug]/page.tsx",
+   "app/[locale]/people/page.tsx",
+   "lib/coverage.ts",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Referees",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Rehydrates +{n} lb",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Rehydration",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Reported",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Reset",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Residence",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "rest are reported or estimated",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Result",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Results",
+  "files": [
+   "app/[locale]/events/page.tsx"
+  ]
+ },
+ {
+  "key": "Results only: ignore everything else",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Retired",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Retired after round {r}",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Ring rust (past 12 mo)",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Ringside — Boxing Intelligence",
+  "files": [
+   "app/[locale]/layout.tsx"
+  ]
+ },
+ {
+  "key": "Ringside demo build · All fighters, fights and events shown are <b>fictional, simulated data</b>. Ratings are Elo-style and unofficial.",
+  "files": [
+   "app/[locale]/layout.tsx"
+  ]
+ },
+ {
+  "key": "Round {r}",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Round {r}, {time}",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Round and time of stoppage",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "rounds 1–3",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "RTD",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "rule-based parser",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "said {bucket}",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Sanctioning bodies",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "Sanctioning body",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "SBAN",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "scale to fight night",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Scale to ring",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "scheduled",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Scorecards",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Scoring disputes",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Scoring record",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Scraping prohibited by its terms",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "SD",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Search",
+  "files": [
+   "app/[locale]/boxers/page.tsx",
+   "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "Search every fighter in the Ringside database in plain language, or filter by division and sex: records, ratings, knockouts and fighting styles.",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "Search everything",
+  "files": [
+   "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "Search everything (Ctrl+K)",
+  "files": [
+   "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "Search fighters",
+  "files": [
+   "app/[locale]/layout.tsx"
+  ]
+ },
+ {
+  "key": "Search fighters, trainers, events, gyms…",
+  "files": [
+   "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "Searching…",
+  "files": [
+   "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "selected features",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Selected features",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "SFEA",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "SFLY",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Share of each division’s finishes by round. Brighter = more stoppages. Heavier divisions end early; lighter ones grind.",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "She arrives on a {n}-fight win streak.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "She fights to finish: short fights, heavy shots, and opponents who rarely hear the final bell.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "She has lost her last {n} and needs a response.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "She lets opponents lead, punishing mistakes — outcomes hinge on who forces the pace.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "She wins by accumulation, throwing in volume and trusting the scorecards over a single big shot.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Show all {n}",
+  "files": [
+   "app/[locale]/events/page.tsx"
+  ]
+ },
+ {
+  "key": "Show the next {n}",
+  "files": [
+   "app/[locale]/events/page.tsx"
+  ]
+ },
+ {
+  "key": "Showing the {limit} most recent of {total}.",
+  "files": [
+   "components/TenureTable.tsx"
+  ]
+ },
+ {
+  "key": "Showing the {perStyle} highest-rated fighters of each style: {shown} of {total} with eight or more bouts. All of them shaped the projection.",
+  "files": [
+   "app/[locale]/map/page.tsx"
+  ]
+ },
+ {
+  "key": "Signed now",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Site fee",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "SLIG",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "SMID",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "so a reader can check it",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "sold out · capacity {n}",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Sort by",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Sorted by {sort}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Source",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Source registry",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Source: {source}",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Southpaw",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Southpaw win rate",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Split",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Split decision",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Sponsorship",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Stable",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Stance",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Star a fighter (☆ Watch on any profile) and their next fight shows up here.",
+  "files": [
+   "components/Watch.tsx"
+  ]
+ },
+ {
+  "key": "Status",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Stoppage likely · {pct}% KO/TKO",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Stoppage rate",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Stoppages",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx",
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "streaming",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Strength",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Strength & conditioning",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Style",
+  "files": [
+   "app/[locale]/compare/page.tsx",
+   "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "Style map",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/map/page.tsx"
+  ]
+ },
+ {
+  "key": "Style Map",
+  "files": [
+   "app/[locale]/layout.tsx",
+   "app/[locale]/map/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Style similarity",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Style: {style}. {description}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "subscription TV",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Super Bantamweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Super Featherweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Super Flyweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Super Lightweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Super Middleweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Super Welterweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Supplies",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "SWEL",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Switch",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "TBA",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "TD",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "TDRAW",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Team history rows by source: {stints}. Weigh-ins by source: {weighIns}. Wikidata staged: {staged} boxers, {linked} linked to our fighters.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Tech draw",
+  "files": [
+   "lib/format.ts"
+  ]
+ },
+ {
+  "key": "Tech draw R{r}",
+  "files": [
+   "lib/format.ts"
+  ]
+ },
+ {
+  "key": "Technical decision",
+  "files": [
+   "app/[locale]/analytics/page.tsx",
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Technical draw",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Technical knockout",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Technician",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "technicians with 20+ wins",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "That page doesn’t exist, or the fighter or event was removed.",
+  "files": [
+   "app/[locale]/not-found.tsx"
+  ]
+ },
+ {
+  "key": "The fight calendar: upcoming cards with their main events and win probabilities, plus recent results and how each main event ended.",
+  "files": [
+   "app/[locale]/events/page.tsx"
+  ]
+ },
+ {
+  "key": "The money",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "The most complete records, trainers and weigh-ins in boxing",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "The people behind the fights",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "The rating weight is fitted on {n} past bouts (held-out log-loss {fit} vs {base} for plain Elo). Other weights are hand-set; see Data & model for how each compares.",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "The schema and charts are ready; needs a licence.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "The site's default predictions use the fitted rating scale (<b>{scale}</b> a plain Elo expectation); the fit found ratings are compressed relative to true skill gaps in this league.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "The site's default predictions use the standard Elo scale.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Ticket revenue",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Tickets sold",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Title wins",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx",
+   "app/[locale]/people/[slug]/page.tsx",
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Titles",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "TKO",
+  "files": [
+   "app/[locale]/analytics/page.tsx",
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "to close",
+  "files": [
+   "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "to move",
+  "files": [
+   "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "to open",
+  "files": [
+   "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "Too few rounds on the record to pin down a style; every fight right now is a data point.",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Top earners",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Top earners in {year}",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Top rated",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "Toss-up",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Total gross",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Total landed / thrown",
+  "files": [
+   "components/PunchStats.tsx"
+  ]
+ },
+ {
+  "key": "Trained by {name}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Trainer",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx",
+   "app/[locale]/people/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Trainer history (2+ trainers on record)",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Trainer leaderboard",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Trainer's prior win rate",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "Trainers",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Training now",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Try: {example}",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Type",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "UD",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Unanimous",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Unanimous decision",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Undefeated",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "undefeated fighters",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Undercard",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Unknown",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Unsupervised · PCA projection",
+  "files": [
+   "app/[locale]/map/page.tsx"
+  ]
+ },
+ {
+  "key": "Upcoming",
+  "files": [
+   "app/[locale]/events/page.tsx"
+  ]
+ },
+ {
+  "key": "Upcoming · {rounds} rounds",
+  "files": [
+   "app/[locale]/bouts/[id]/opengraph-image.tsx"
+  ]
+ },
+ {
+  "key": "Updated after every fight",
+  "files": [
+   "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "Upset of the year",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Usual rehydration",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "View all",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "Volume Boxer",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "vs",
+  "files": [
+   "app/[locale]/compare/page.tsx",
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "VS",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/compare/page.tsx",
+   "app/[locale]/events/[id]/page.tsx",
+   "app/[locale]/page.tsx",
+   "components/Poster.tsx"
+  ]
+ },
+ {
+  "key": "vs {name}, {date}",
+  "files": [
+   "app/[locale]/money/page.tsx",
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "vs not",
+  "files": [
+   "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "W",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "warning",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Weigh-in",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Weigh-in history",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Weigh-in weights",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Weigh-in weights over time",
+  "files": [
+   "components/WeightChart.tsx"
+  ]
+ },
+ {
+  "key": "Weigh-ins",
+  "files": [
+   "app/[locale]/layout.tsx",
+   "app/[locale]/weights/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Weights are hand-set until real results are available to fit the model.",
+  "files": [
+   "app/[locale]/compare/page.tsx",
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "WEL",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Welterweight",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "What {n} professional bouts actually say about the sport.",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "what actually happened",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "What is in the database, where each kind of fact comes from, how complete it is, and how well the prediction model does on fights it has never seen.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "What the data says each factor is worth ({n} fights, {from} to {to})",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "What the sport takes in and who gets paid. Every figure carries a badge saying how it is known (official record, press report or estimate) and a link to its source where one exists.",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "what-if",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "What’s driving the number",
+  "files": [
+   "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "When knockouts land",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Where every fact in the database comes from, how complete each field is, the latest data load, and how well the prediction model does on fights it has never seen.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Where facts come from",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Where fighters train, sign and win belts",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "Where it aired",
+  "files": [
+   "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Who shows the fights",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Who trains, manages, scores and referees. Every fighter's team history is tracked with dates, so you can see how fighters did before, during and after a trainer.",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Widest disagreement between judges",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Wikidata",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Wikidata {id}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Wikidata link",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Wikimedia Commons",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Win rate",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Win rate by how much heavier (or lighter) a fighter was than his opponent at the pre-fight check. The dashed line is 50%.",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "win rate when 8+ lb heavier",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Win%",
+  "files": [
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "WINNER",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Winner entered rated <b>{winner}</b> against <b>{loser}</b> — a {gap}-point underdog.",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Winner of the most recent title fight",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Winning",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "wins",
+  "files": [
+   "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "WINS",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "With majority",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx",
+   "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "within 1.5 lb",
+  "files": [
+   "lib/weights.ts"
+  ]
+ },
+ {
+  "key": "Women",
+  "files": [
+   "app/[locale]/boxers/page.tsx",
+   "app/[locale]/rankings/[division]/page.tsx",
+   "app/[locale]/rankings/page.tsx",
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Women's {division}",
+  "files": [
+   "lib/divisions.ts"
+  ]
+ },
+ {
+  "key": "Women’s pound for pound",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Women’s rankings",
+  "files": [
+   "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "Won",
+  "files": [
+   "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "won {date}",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Year by year",
+  "files": [
+   "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Yearly earnings lists",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "yes",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "you side with the model on <b>{n}</b>",
+  "files": [
+   "components/PickEm.tsx"
+  ]
+ },
+ {
+  "key": "young heavyweights with reach over 190",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Your watchlist",
+  "files": [
+   "app/[locale]/page.tsx"
+  ]
+ }
+]

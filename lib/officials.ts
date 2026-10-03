@@ -1,6 +1,7 @@
 import type { World } from "./world";
 import type { BoutRow, Person } from "./types";
 import { isRefereeStoppage } from "./methods";
+import { memo } from "./memo";
 
 export interface JudgeStats {
   person: Person;
@@ -16,14 +17,15 @@ export interface RefereeStats { person: Person; bouts: number; stoppages: number
 const side = (red: number, blue: number): "red" | "blue" | "even" => (red > blue ? "red" : blue > red ? "blue" : "even");
 
 function homeSide(w: World, b: BoutRow): "red" | "blue" | null {
-  const ev = w.events.find((e) => e.id === b.eventId);
+  const ev = w.eventById.get(b.eventId);
   if (!ev) return null;
   const r = w.byId.get(b.redId)?.country === ev.country, u = w.byId.get(b.blueId)?.country === ev.country;
   return r && !u ? "red" : u && !r ? "blue" : null;
 }
 
-export function judgeStats(w: World): { judges: JudgeStats[]; leagueHomePickRate: number } {
-  const boutById = new Map(w.bouts.map((b) => [b.id, b]));
+export const judgeStats = (w: World) => memo(w, "judgeStats", () => computeJudgeStats(w));
+function computeJudgeStats(w: World): { judges: JudgeStats[]; leagueHomePickRate: number } {
+  const boutById = w.boutById;
   const acc = new Map<number, { cards: number; agree: number; dissent: number; margin: number; homePick: number; homeN: number }>();
   let lgPick = 0, lgN = 0;
   for (const [boutId, cards] of w.scorecardsByBout) {
@@ -51,8 +53,9 @@ export function judgeStats(w: World): { judges: JudgeStats[]; leagueHomePickRate
   return { judges: judges.sort((a, b) => b.cards - a.cards), leagueHomePickRate: lgN ? lgPick / lgN : 0.5 };
 }
 
-export function refereeStats(w: World): { referees: RefereeStats[]; leagueAvgStopRound: number } {
-  const boutById = new Map(w.bouts.map((b) => [b.id, b]));
+export const refereeStats = (w: World) => memo(w, "refereeStats", () => computeRefereeStats(w));
+function computeRefereeStats(w: World): { referees: RefereeStats[]; leagueAvgStopRound: number } {
+  const boutById = w.boutById;
   const acc = new Map<number, { bouts: number; stops: number; roundSum: number; early: number }>();
   let rs = 0, rn = 0;
   for (const [boutId, offs] of w.officialsByBout) {
@@ -76,7 +79,8 @@ export function refereeStats(w: World): { referees: RefereeStats[]; leagueAvgSto
 export interface Dispute { bout: BoutRow; spread: number; cards: { judge: string; red: number; blue: number }[] }
 
 /** Decisions where judges disagreed most: the biggest gap between how far one judge favoured red and another favoured blue. */
-export function scoringDisputes(w: World, n = 8): Dispute[] {
+export const scoringDisputes = (w: World, n = 8) => memo(w, `scoringDisputes:${n}`, () => computeDisputes(w, n));
+function computeDisputes(w: World, n: number): Dispute[] {
   const out: Dispute[] = [];
   for (const b of w.bouts) {
     if (b.upcoming) continue;

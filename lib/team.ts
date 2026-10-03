@@ -3,6 +3,7 @@ import type { BoutRow, BoxerFull, Org, Person, TeamRole, TeamStint } from "./typ
 import { ratingAt } from "./rankings";
 import { countsInRecord, isStoppage } from "./methods";
 import { nowMs } from "./clock";
+import { memo } from "./memo";
 
 export const ROLE_LABEL: Record<TeamRole, string> = {
   head_trainer: "Head trainer", assistant_trainer: "Assistant trainer", strength_coach: "Strength & conditioning",
@@ -105,10 +106,38 @@ function buildStable(w: World, stints: TeamStint[], roleFilter?: TeamRole[]): St
 export const personStable = (w: World, personId: number, roles?: TeamRole[]) => buildStable(w, w.stintsByPerson.get(personId) ?? [], roles);
 export const orgStable = (w: World, orgId: number, roles?: TeamRole[]) => buildStable(w, w.stintsByOrg.get(orgId) ?? [], roles);
 
+/** The gyms and promotions the organisations index shows. */
+export interface OrgsIndex {
+  gyms: { o: Org; s: Stable }[];
+  promos: { o: Org; s: Stable; events: number }[];
+  gymTotal: number;
+  promoTotal: number;
+}
+
+/**
+ * Ranks every gym (by fighters training there now) and promotion (by events promoted) on a cheap count, then computes
+ * the expensive stable stats (records, tenures, rating changes) for the `top` cards only. Doing the stats for every
+ * organisation first, as the page used to, cost 400 ms at 1,300 organisations. Shared result: read-only.
+ */
+export const orgsIndex = (w: World, top = 36) => memo(w, `orgsIndex:${top}`, (): OrgsIndex => {
+  const ofKind = (kind: Org["kind"]) => [...w.orgs.values()].filter((o) => o.kind === kind);
+  const trainingNow = (id: number) => (w.stintsByOrg.get(id) ?? []).filter((s) => s.role === "gym" && s.end === null && w.byId.has(s.boxerId)).length;
+  const gymsRanked = ofKind("gym").map((o) => ({ o, n: trainingNow(o.id) })).sort((a, b) => b.n - a.n);
+  const eventsBy = new Map<number, number>();
+  for (const e of w.events) if (e.promoterOrgId && !e.upcoming) eventsBy.set(e.promoterOrgId, (eventsBy.get(e.promoterOrgId) ?? 0) + 1);
+  const promosRanked = ofKind("promotion").map((o) => ({ o, events: eventsBy.get(o.id) ?? 0 })).sort((a, b) => b.events - a.events);
+  return {
+    gyms: gymsRanked.slice(0, top).map(({ o }) => ({ o, s: orgStable(w, o.id, ["gym"]) })),
+    promos: promosRanked.slice(0, top).map(({ o, events }) => ({ o, events, s: orgStable(w, o.id, ["promoter"]) })),
+    gymTotal: gymsRanked.length, promoTotal: promosRanked.length,
+  };
+});
+
 export interface TrainerRow { person: Person; stable: Stable }
 
-/** Head trainers ranked by how much their fighters' ratings rose while working together. */
-export function trainerLeaderboard(w: World, minTenureFights = 4): TrainerRow[] {
+/** Head trainers ranked by how much their fighters' ratings rose while working together. Shared result: copy before re-sorting. */
+export const trainerLeaderboard = (w: World, minTenureFights = 4) => memo(w, `trainerLeaderboard:${minTenureFights}`, () => computeLeaderboard(w, minTenureFights));
+function computeLeaderboard(w: World, minTenureFights: number): TrainerRow[] {
   const rows: TrainerRow[] = [];
   for (const p of w.people.values()) {
     if (!w.roles.get(p.id)?.has("trainer")) continue;
@@ -119,7 +148,8 @@ export function trainerLeaderboard(w: World, minTenureFights = 4): TrainerRow[] 
 }
 
 /** Fighters whose head trainer changed in the last `months`, a cue worth watching before a fight. */
-export function recentTrainerChanges(w: World, months = 9): { boxer: BoxerFull; from: Person | null; to: Person | null; date: string }[] {
+export const recentTrainerChanges = (w: World, months = 9) => memo(w, `recentTrainerChanges:${months}`, () => computeTrainerChanges(w, months));
+function computeTrainerChanges(w: World, months: number): { boxer: BoxerFull; from: Person | null; to: Person | null; date: string }[] {
   const cutoff = new Date(nowMs() - months * 30.4 * 86400000).toISOString().slice(0, 10);
   const out: { boxer: BoxerFull; from: Person | null; to: Person | null; date: string }[] = [];
   for (const [boxerId, list] of w.stintsByBoxer) {

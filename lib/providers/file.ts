@@ -31,5 +31,9 @@ export function fileProvider(path: string): DataProvider {
     fetchScorecards: async () => load().scorecards,
     fetchCorners: async () => load().corners,
     fetchPunchStats: async () => load().punches,
+    fetchFinancials: async () => load().financials,
+    fetchPurses: async () => load().purses,
+    fetchBroadcasts: async () => load().broadcasts,
+    fetchEarnings: async () => load().earnings,
   };
 }

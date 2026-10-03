@@ -81,3 +81,16 @@ export function styleMap(w: World) {
   const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
   return pts.map((p) => ({ ...p, x: (p.x - x0) / (x1 - x0), y: (p.y - y0) / (y1 - y0) }));
 }
+
+/**
+ * The points the style map draws. The projection is computed over every fighter with eight or more bouts, but the
+ * browser gets only the `perStyle` highest-rated of each style: at 16,500 fighters the full set was a 1.9 MB payload
+ * and 16,500 SVG nodes. The demo league (800 plotted) is below the cap, so nothing is dropped there.
+ */
+export function styleMapSample(w: World, perStyle = 400) {
+  const all = styleMap(w);
+  const byStyle = new Map<string, typeof all>();
+  for (const p of all) { const a = byStyle.get(p.arch); if (a) a.push(p); else byStyle.set(p.arch, [p]); }
+  const points = [...byStyle.values()].flatMap((list) => (list.length > perStyle ? list.sort((x, y) => y.boxer.rating - x.boxer.rating).slice(0, perStyle) : list));
+  return { points, total: all.length, perStyle };
+}

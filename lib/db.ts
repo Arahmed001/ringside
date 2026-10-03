@@ -64,6 +64,28 @@ CREATE TABLE IF NOT EXISTS wikidata_boxers (
 );
 CREATE INDEX IF NOT EXISTS idx_wd_boxrec ON wikidata_boxers(boxrec_id);
 CREATE INDEX IF NOT EXISTS idx_wd_year ON wikidata_boxers(birth_year);
+CREATE TABLE IF NOT EXISTS event_financials (
+  event_id INTEGER NOT NULL, gate_usd REAL, tickets_sold INTEGER, capacity INTEGER, site_fee_usd REAL, ppv_buys INTEGER, ppv_price_usd REAL,
+  ppv_revenue_usd REAL, sponsorship_usd REAL, basis TEXT NOT NULL, source TEXT NOT NULL, source_url TEXT, retrieved_at TEXT, note TEXT,
+  PRIMARY KEY (event_id, source)
+);
+CREATE TABLE IF NOT EXISTS purses (
+  bout_id INTEGER NOT NULL, boxer_id INTEGER NOT NULL, guaranteed_usd REAL, bonus_usd REAL, total_usd REAL, basis TEXT NOT NULL, source TEXT NOT NULL,
+  source_url TEXT, retrieved_at TEXT, note TEXT, PRIMARY KEY (bout_id, boxer_id, source)
+);
+CREATE INDEX IF NOT EXISTS idx_purses_boxer ON purses(boxer_id);
+CREATE TABLE IF NOT EXISTS event_broadcasts (
+  event_id INTEGER NOT NULL, broadcaster TEXT NOT NULL, platform TEXT NOT NULL, region TEXT NOT NULL DEFAULT '', viewers_avg INTEGER, viewers_peak INTEGER,
+  basis TEXT NOT NULL, source TEXT NOT NULL, source_url TEXT, retrieved_at TEXT, note TEXT, PRIMARY KEY (event_id, broadcaster, region, source)
+);
+CREATE TABLE IF NOT EXISTS earnings (
+  boxer_id INTEGER NOT NULL, year INTEGER NOT NULL, total_usd REAL NOT NULL, ring_usd REAL, off_ring_usd REAL, basis TEXT NOT NULL, source TEXT NOT NULL,
+  source_url TEXT, retrieved_at TEXT, note TEXT, PRIMARY KEY (boxer_id, year, source)
+);
+CREATE TABLE IF NOT EXISTS name_translations (
+  en TEXT NOT NULL, locale TEXT NOT NULL, text TEXT NOT NULL, source TEXT NOT NULL DEFAULT 'claude', reviewed INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (en, locale)
+);
 CREATE TABLE IF NOT EXISTS ingest_runs (
   id INTEGER PRIMARY KEY, at TEXT, provider TEXT, errors INTEGER, warnings INTEGER, infos INTEGER, counts TEXT, dropped TEXT
 );
@@ -100,6 +122,17 @@ function addMissingColumns(db: DatabaseSync) {
   }
 }
 
+/**
+ * Changes whenever the data does. `PRAGMA data_version` moves when ANOTHER connection commits (a CLI importer, the
+ * headshot resolver); this connection's own writes don't move it, so the latest ingest run id covers a re-ingest here.
+ * Two one-row lookups: cheap enough to call on every request, and what the world and coverage caches key on.
+ */
+export function dbVersion(db: DatabaseSync): string {
+  const dv = (db.prepare("PRAGMA data_version").get() as { data_version: number }).data_version;
+  const run = (db.prepare("SELECT COALESCE(MAX(id), 0) AS m FROM ingest_runs").get() as { m: number }).m;
+  return `${dv}.${run}`;
+}
+
 const g = globalThis as unknown as { __ringsideDb?: DatabaseSync; __ringsideReady?: Promise<void> };
 
 /** Opens the DB, creating and seeding it from the configured provider on first run. */
@@ -118,7 +151,8 @@ export async function getDb(): Promise<DatabaseSync> {
   const db = g.__ringsideDb;
   if (!g.__ringsideReady) {
     const count = (db.prepare("SELECT COUNT(*) c FROM boxers").get() as { c: number }).c;
-    g.__ringsideReady = count === 0 ? ingest(db).then(() => undefined) : Promise.resolve();
+    // RINGSIDE_NO_SEED lets a script (the scale benchmark) load its own data into an empty database instead
+    g.__ringsideReady = count === 0 && !process.env.RINGSIDE_NO_SEED ? ingest(db).then(() => undefined) : Promise.resolve();
   }
   try {
     await g.__ringsideReady;

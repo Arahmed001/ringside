@@ -1,3 +1,5 @@
+import { tEn, type T } from "./i18n/t";
+
 /** Canonical professional divisions (men's), lightest to heaviest. */
 export interface Division {
   name: string;
@@ -35,14 +37,14 @@ const byAlias = new Map<string, Division>();
 for (const d of DIVISIONS) for (const a of d.aliases) byAlias.set(a, d);
 
 /** "Welterweight" or "Women's Welterweight": the divisions share names and limits, but the rankings are separate. */
-export const divisionLabel = (name: string, sex: "male" | "female") => (sex === "female" ? `Women's ${name}` : name);
+export const divisionLabel = (name: string, sex: "male" | "female", t: T = tEn) => (sex === "female" ? t("Women's {division}", { division: t(name) }) : t(name));
 
 export const slugifyDivision = (n: string) => n.toLowerCase().replace(/\s+/g, "-");
 export const divisionFromSlug = (s: string) => DIVISIONS.find((d) => slugifyDivision(d.name) === s);
 export const divisionInfo = (name: string) => byName.get(name.toLowerCase());
 
-export function limitLabel(d: Division): string {
-  return d.lb === null ? "Over 200 lb" : `${d.lb} lb · ${d.kg} kg`;
+export function limitLabel(d: Division, t: T = tEn): string {
+  return d.lb === null ? t("Over 200 lb") : t("{lb} lb · {kg} kg", { lb: d.lb, kg: d.kg ?? "" });
 }
 
 /** Maps vendor strings ("Jr. Welterweight", "Light-Middle", "154lbs", "Super-Middle") to a canonical name. */

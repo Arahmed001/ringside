@@ -6,6 +6,12 @@ import { archetype } from "./style";
 import { predict } from "./predict";
 import { missCount } from "./weights";
 import { recentTrainerChanges } from "./team";
+import { msg, tEn, type T } from "./i18n/t";
+import { divisionLabel } from "./divisions";
+import { countryName } from "./format";
+import { DIVISIONS } from "./divisions";
+import { normalize } from "./fighter-search";
+import { dictOf } from "./i18n/dicts";
 
 const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
 const hasKey = () => !!process.env.ANTHROPIC_API_KEY;
@@ -80,8 +86,34 @@ function peelTeam(q: string, f: Filters): string {
   return q;
 }
 
+/** Arabic phrases the rule-based parser understands (with a key, Claude parses any wording; this is the no-key fallback). Compared after normalize(). */
+function arabicHints(q: string, f: Filters, countries: string[]) {
+  const s = normalize(q);
+  if (!/[\u0600-\u06ff]/.test(s)) return;
+  const ar = dictOf("ar");
+  const tr = (en: string) => { const v = ar[en]; return typeof v === "string" ? normalize(v) : ""; };
+  for (const d of [...DIVISIONS].sort((a, b) => tr(b.name).length - tr(a.name).length)) { const x = tr(d.name); if (x && s.includes(x)) { f.weightClass ??= d.name; break; } }
+  for (const c of countries) { const x = normalize(countryName(c, "ar")); if (x !== normalize(c) && s.includes(x)) f.country ??= c; }
+  const has = (re: RegExp) => re.test(s);
+  if (has(/ساوثباو|اعسر|يسار/)) f.stance ??= "Southpaw";
+  if (has(/ارثوذكس|ستاندرد|يمنى/)) f.stance ??= "Orthodox";
+  if (has(/نساء|سيدات|اناث|ملاكمات/)) f.sex ??= "female"; else if (has(/رجال|ذكور/)) f.sex ??= "male";
+  if (has(/لم يهزم|بدون هزيمه|بدون خساره|غير مهزوم|ارقام مثاليه/)) f.undefeated = true;
+  if (has(/معتزل/)) f.active = false; else if (has(/نشط|حاليا/)) f.active ??= true;
+  const wins = s.match(/(\d+)\+?\s*(?:فوز|فوزا|انتصار|انتصارات)/); if (wins) f.minWins ??= +wins[1];
+  const kos = s.match(/(\d+)\+?\s*(?:ضربه قاضيه|ضربات قاضيه|ك او)/); if (kos) f.minKOs ??= +kos[1];
+  if (has(/ضربات قاضيه|قاتل|لكمه قويه|قوه ضرب/) && !kos) f.archetype ??= "Knockout Artist";
+  if (has(/تقني|فني/)) f.archetype ??= "Technician";
+  if (has(/هجوم مضاد/)) f.archetype ??= "Counter-Puncher";
+  if (has(/شاب|صاعد|واعد/)) f.maxAge ??= 26;
+  if (has(/مخضرم|كبار السن/)) f.minAge ??= 35;
+  if (has(/افضل|الاعلى تصنيفا|الاقوى/)) f.sort ??= "rating";
+  const reach = s.match(/(?:امتداد|مدى)\D{0,12}(\d{3})/); if (reach) f.minReach ??= +reach[1];
+}
+
 export function heuristicParse(q: string, countries: string[]): Filters {
   const f: Filters = {};
+  const original = q;
   q = peelTeam(q, f);
   const s = q.toLowerCase();
   for (const wc of [...WEIGHT_CLASSES].sort((a, b) => b.length - a.length)) if (s.includes(wc.toLowerCase())) { f.weightClass = wc; break; }
@@ -117,6 +149,7 @@ export function heuristicParse(q: string, countries: string[]): Filters {
   if (/best|top|highest rated|greatest/.test(s)) f.sort = "rating";
   if (/most (?:ko|knockout)/.test(s)) f.sort = "kos";
   if (/most wins/.test(s)) f.sort = "wins";
+  arabicHints(original, f, countries);
   if (!Object.keys(f).length && q.trim()) f.text = q.trim();
   return f;
 }
@@ -125,7 +158,7 @@ export async function parseQuery(q: string, w: World): Promise<{ filters: Filter
   const countries = [...new Set(w.boxers.map((b) => b.country))];
   if (hasKey()) {
     try {
-      const sys = `You turn boxing database search requests into JSON filters. Respond with ONLY a JSON object, no prose.
+      const sys = `You turn boxing database search requests into JSON filters. The request may be in English or Arabic. Respond with ONLY a JSON object, no prose.
 Allowed keys: weightClass (one of ${WEIGHT_CLASSES.join(", ")}), stance (Orthodox|Southpaw|Switch), sex (male|female), country (one of ${countries.join(", ")}), active (bool), undefeated (bool), minWins, minKOs (ints), minKoRate, maxKoRate (0-1), minLosses, debutAfter, debutBefore (years), minReach (cm), minAge, maxAge, archetype (Knockout Artist|Volume Boxer|Technician|Iron-Chin Brawler|Counter-Puncher|Journeyman|Prospect), text (name fragment), trainer, manager, gym, promoter, bornIn (name fragments), trainerCurrent, missedWeight, newTrainer (bools), sort (rating|wins|kos|koRate|age|reach). Omit keys that do not apply.`;
       const out = await claude(sys, q, 300);
       const json = JSON.parse(out.slice(out.indexOf("{"), out.lastIndexOf("}") + 1));
@@ -169,7 +202,7 @@ function idsVia(w: World, frag: string, source: "person" | "org", roles: string[
   return ids;
 }
 
-export function applyFilters(boxers: BoxerFull[], f: Filters, w?: World): BoxerFull[] {
+export function applyFilters(boxers: BoxerFull[], f: Filters, w?: World, names: Record<string, string> = {}): BoxerFull[] {
   const via = new Map<string, Set<number>>();
   if (w) {
     if (f.trainer) via.set("trainer", idsVia(w, f.trainer, "person", ["head_trainer", "assistant_trainer"], !!f.trainerCurrent));
@@ -201,41 +234,44 @@ export function applyFilters(boxers: BoxerFull[], f: Filters, w?: World): BoxerF
     (f.minAge === undefined || b.age >= f.minAge) &&
     (f.maxAge === undefined || b.age <= f.maxAge) &&
     (!f.archetype || archetype(b) === f.archetype) &&
-    (!f.text || `${b.name} ${b.nickname ?? ""}`.toLowerCase().includes(f.text.toLowerCase())),
+    (!f.text || normalize(`${b.name} ${names[b.name] ?? ""} ${b.nickname ?? ""} ${b.nickname ? names[b.nickname] ?? "" : ""}`).includes(normalize(f.text))),
   );
   const key = f.sort ?? "rating";
   const val = (b: BoxerFull) => ({ rating: b.rating, wins: b.wins, kos: b.kos, koRate: b.koRate, age: -b.age, reach: b.reachCm })[key];
   return out.sort((a, b) => val(b) - val(a));
 }
 
-export function describeFilters(f: Filters): string[] {
+const SORT_LABEL: Record<string, string> = { rating: "rating", wins: "wins", kos: "knockouts", koRate: "KO rate", age: "age", reach: "reach" };
+
+/** The chips under a search box: what the parser understood. `t` localises the wording; names and numbers pass through. */
+export function describeFilters(f: Filters, t: T = tEn): string[] {
   const c: string[] = [];
-  if (f.weightClass) c.push(f.weightClass);
-  if (f.stance) c.push(f.stance);
-  if (f.sex) c.push(f.sex === "female" ? "Women" : "Men");
-  if (f.country) c.push(f.country);
-  if (f.active !== undefined) c.push(f.active ? "Active" : "Retired");
-  if (f.undefeated) c.push("Undefeated");
-  if (f.minWins !== undefined) c.push(`${f.minWins}+ wins`);
-  if (f.minKOs !== undefined) c.push(`${f.minKOs}+ KOs`);
-  if (f.minKoRate !== undefined) c.push(`KO rate ≥ ${Math.round(f.minKoRate * 100)}%`);
-  if (f.maxKoRate !== undefined) c.push(`KO rate ≤ ${Math.round(f.maxKoRate * 100)}%`);
-  if (f.minLosses !== undefined) c.push(`${f.minLosses}+ losses`);
-  if (f.debutAfter !== undefined) c.push(`Pro debut ≥ ${f.debutAfter}`);
-  if (f.debutBefore !== undefined) c.push(`Pro debut ≤ ${f.debutBefore}`);
-  if (f.minReach !== undefined) c.push(`Reach ≥ ${f.minReach}cm`);
-  if (f.minAge !== undefined) c.push(`Age ≥ ${f.minAge}`);
-  if (f.maxAge !== undefined) c.push(`Age ≤ ${f.maxAge}`);
-  if (f.archetype) c.push(f.archetype);
-  if (f.text) c.push(`Name “${f.text}”`);
-  if (f.trainer) c.push(`${f.trainerCurrent ? "Currently trained" : "Trained"} by ${f.trainer}`);
-  if (f.manager) c.push(`Managed by ${f.manager}`);
-  if (f.promoter) c.push(`Promoter ${f.promoter}`);
-  if (f.gym) c.push(`Gym ${f.gym}`);
-  if (f.bornIn) c.push(`Born in ${f.bornIn}`);
-  if (f.missedWeight) c.push("Has missed weight");
-  if (f.newTrainer) c.push("New trainer (9 months)");
-  if (f.sort) c.push(`Sorted by ${f.sort}`);
+  if (f.weightClass) c.push(t(f.weightClass));
+  if (f.stance) c.push(t(f.stance));
+  if (f.sex) c.push(f.sex === "female" ? t("Women") : t("Men"));
+  if (f.country) c.push(countryName(f.country, t.locale));
+  if (f.active !== undefined) c.push(f.active ? t("Active") : t("Retired"));
+  if (f.undefeated) c.push(t("Undefeated"));
+  if (f.minWins !== undefined) c.push(t("{n}+ wins", { n: f.minWins }));
+  if (f.minKOs !== undefined) c.push(t("{n}+ KOs", { n: f.minKOs }));
+  if (f.minKoRate !== undefined) c.push(t("KO rate ≥ {n}%", { n: Math.round(f.minKoRate * 100) }));
+  if (f.maxKoRate !== undefined) c.push(t("KO rate ≤ {n}%", { n: Math.round(f.maxKoRate * 100) }));
+  if (f.minLosses !== undefined) c.push(t("{n}+ losses", { n: f.minLosses }));
+  if (f.debutAfter !== undefined) c.push(t("Pro debut ≥ {year}", { year: f.debutAfter }));
+  if (f.debutBefore !== undefined) c.push(t("Pro debut ≤ {year}", { year: f.debutBefore }));
+  if (f.minReach !== undefined) c.push(t("Reach ≥ {n}cm", { n: f.minReach }));
+  if (f.minAge !== undefined) c.push(t("Age ≥ {n}", { n: f.minAge }));
+  if (f.maxAge !== undefined) c.push(t("Age ≤ {n}", { n: f.maxAge }));
+  if (f.archetype) c.push(t(f.archetype));
+  if (f.text) c.push(t("Name “{text}”", { text: f.text }));
+  if (f.trainer) c.push(f.trainerCurrent ? t("Currently trained by {name}", { name: t.name(f.trainer) }) : t("Trained by {name}", { name: t.name(f.trainer) }));
+  if (f.manager) c.push(t("Managed by {name}", { name: t.name(f.manager) }));
+  if (f.promoter) c.push(t("Promoter {name}", { name: t.name(f.promoter) }));
+  if (f.gym) c.push(t("Gym {name}", { name: t.name(f.gym) }));
+  if (f.bornIn) c.push(t("Born in {place}", { place: f.bornIn }));
+  if (f.missedWeight) c.push(t("Has missed weight"));
+  if (f.newTrainer) c.push(t("New trainer (9 months)"));
+  if (f.sort) c.push(t("Sorted by {sort}", { sort: t(SORT_LABEL[f.sort] ?? f.sort) }));
   return c;
 }
 
@@ -243,53 +279,64 @@ export function describeFilters(f: Filters): string[] {
 
 const reportCache = new Map<string, { text: string; source: "ai" | "rules" }>();
 
-export function rulesReport(b: BoxerFull, w: World): string {
+const STYLE_TEXT: Record<string, [string, string]> = { // [male, female]; Arabic verbs and pronouns are gendered
+  "Knockout Artist": [msg("He fights to finish: short fights, heavy shots, and opponents who rarely hear the final bell."), msg("She fights to finish: short fights, heavy shots, and opponents who rarely hear the final bell.")],
+  "Volume Boxer": [msg("He wins by accumulation, throwing in volume and trusting the scorecards over a single big shot."), msg("She wins by accumulation, throwing in volume and trusting the scorecards over a single big shot.")],
+  Technician: [msg("A clean, economical boxer who wins on timing and distance rather than raw power."), msg("A clean, economical boxer who wins on timing and distance rather than raw power.")],
+  "Iron-Chin Brawler": [msg("A pressure fighter who walks through return fire and bets his chin beats yours."), msg("A pressure fighter who walks through return fire and bets her chin beats yours.")],
+  "Counter-Puncher": [msg("He lets opponents lead, punishing mistakes — outcomes hinge on who forces the pace."), msg("She lets opponents lead, punishing mistakes — outcomes hinge on who forces the pace.")],
+  Journeyman: [msg("A durable professional who takes tough fights on short notice; he tests rising contenders more often than he beats them."), msg("A durable professional who takes tough fights on short notice; she tests rising contenders more often than she beats them.")],
+  Prospect: [msg("Too few rounds on the record to pin down a style; every fight right now is a data point."), msg("Too few rounds on the record to pin down a style; every fight right now is a data point.")],
+};
+
+export function rulesReport(b: BoxerFull, w: World, t: T = tEn): string {
   const a = archetype(b);
-  const rank = w.boxers.filter((x) => x.weightClass === b.weightClass && x.active && x.rating > b.rating).length + 1;
+  const f = b.sex === "female";
+  const rank = w.boxers.filter((x) => x.weightClass === b.weightClass && x.sex === b.sex && x.active && x.rating > b.rating).length + 1;
+  const division = divisionLabel(b.weightClass, b.sex, t).toLowerCase();
   const parts: string[] = [];
-  parts.push(`${b.name}${b.nickname ? ` “${b.nickname}”` : ""} is a ${b.age}-year-old ${b.stance.toLowerCase()} ${b.weightClass.toLowerCase()} from ${b.country}, ${recordStr(b)} with ${b.kos} knockouts (${Math.round(b.koRate * 100)}% of wins).`);
-  const style: Record<string, string> = {
-    "Knockout Artist": "He fights to finish: short fights, heavy shots, and opponents who rarely hear the final bell.",
-    "Volume Boxer": "He wins by accumulation, throwing in volume and trusting the scorecards over a single big shot.",
-    Technician: "A clean, economical boxer who wins on timing and distance rather than raw power.",
-    "Iron-Chin Brawler": "A pressure fighter who walks through return fire and bets his chin beats yours.",
-    "Counter-Puncher": "He lets opponents lead, punishing mistakes — outcomes hinge on who forces the pace.",
-    Journeyman: "A durable professional who takes tough fights on short notice; he tests rising contenders more often than he beats them.",
-    Prospect: "Too few rounds on the record to pin down a style; every fight right now is a data point.",
-  };
-  parts.push(`Style: ${a}. ${style[a]}`);
-  parts.push(`Rated ${Math.round(b.rating)} Elo, currently #${rank} among all ${b.weightClass.toLowerCase()} fighters in the database.${b.streak.type === "W" && b.streak.count >= 3 ? ` He arrives on a ${b.streak.count}-fight win streak.` : b.streak.type === "L" && b.streak.count >= 2 ? ` He has lost his last ${b.streak.count} and needs a response.` : ""}`);
-  if (b.reachCm - b.heightCm >= 5) parts.push(`A ${b.reachCm - b.heightCm}cm reach-over-height advantage gives him a natural jab.`);
-  if (b.losses && b.koLosses / b.losses >= 0.6) parts.push("Concern: most of his defeats came by stoppage.");
+  parts.push(t("{name}{nick} is a {age}-year-old {stance} {division} from {country}, {record} with {kos} knockouts ({pct}% of wins).", {
+    name: t.name(b.name), nick: b.nickname ? ` “${t.name(b.nickname)}”` : "", age: b.age, stance: t(b.stance).toLowerCase(), division,
+    country: countryName(b.country, t.locale), record: recordStr(b), kos: b.kos, pct: Math.round(b.koRate * 100),
+  }));
+  parts.push(t("Style: {style}. {description}", { style: t(a), description: t(STYLE_TEXT[a][f ? 1 : 0]) }));
+  const streak = b.streak.type === "W" && b.streak.count >= 3
+    ? " " + (f ? t("She arrives on a {n}-fight win streak.", { n: b.streak.count }) : t("He arrives on a {n}-fight win streak.", { n: b.streak.count }))
+    : b.streak.type === "L" && b.streak.count >= 2 ? " " + (f ? t("She has lost her last {n} and needs a response.", { n: b.streak.count }) : t("He has lost his last {n} and needs a response.", { n: b.streak.count })) : "";
+  parts.push(t("Rated {elo} Elo, currently #{rank} among all {division} fighters in the database.{streak}", { elo: Math.round(b.rating), rank, division, streak }));
+  if (b.reachCm - b.heightCm >= 5) parts.push(f ? t("A {cm}cm reach-over-height advantage gives her a natural jab.", { cm: b.reachCm - b.heightCm }) : t("A {cm}cm reach-over-height advantage gives him a natural jab.", { cm: b.reachCm - b.heightCm }));
+  if (b.losses && b.koLosses / b.losses >= 0.6) parts.push(f ? t("Concern: most of her defeats came by stoppage.") : t("Concern: most of his defeats came by stoppage."));
   return parts.join(" ");
 }
 
-export async function scoutingReport(b: BoxerFull, w: World) {
-  const cached = reportCache.get(b.slug + w.today);
+export async function scoutingReport(b: BoxerFull, w: World, t: T = tEn) {
+  const key = `${b.slug}|${w.today}|${t.locale}`;
+  const cached = reportCache.get(key);
   if (cached) return cached;
-  let result = { text: rulesReport(b, w), source: "rules" as "ai" | "rules" };
+  let result = { text: rulesReport(b, w, t), source: "rules" as "ai" | "rules" };
   if (hasKey()) {
     try {
       const recent = (w.boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming && x.method).slice(-6).map((x) => {
         const opp = x.redId === b.id ? x.blueName : x.redName;
         const r = x.winnerId === null ? "D" : x.winnerId === b.id ? "W" : "L";
-        return `${r} ${x.method}${x.endRound ? " R" + x.endRound : ""} vs ${opp}`;
+        return `${r} ${x.method}${x.endRound ? " R" + x.endRound : ""} vs ${t.name(opp)}`;
       });
-      const facts = `${b.name} (${b.nickname ?? "no nickname"}), ${b.age}, ${b.country}, ${b.stance}, ${b.weightClass}, ${b.heightCm}cm/${b.reachCm}cm reach, record ${recordStr(b)}, ${b.kos} KOs, ${b.koLosses} KO losses, Elo ${Math.round(b.rating)}, style archetype ${archetype(b)}, avg fight length ${b.avgRounds.toFixed(1)} rounds. Last fights: ${recent.join("; ")}.`;
+      const facts = `${t.name(b.name)} (${b.nickname ? t.name(b.nickname) : "no nickname"}), ${b.sex}, ${b.age}, ${b.country}, ${b.stance}, ${b.weightClass}, ${b.heightCm}cm/${b.reachCm}cm reach, record ${recordStr(b)}, ${b.kos} KOs, ${b.koLosses} KO losses, Elo ${Math.round(b.rating)}, style archetype ${archetype(b)}, avg fight length ${b.avgRounds.toFixed(1)} rounds. Last fights: ${recent.join("; ")}.`;
+      const language = t.locale === "ar" ? " Write in clear Modern Standard Arabic, the way a Saudi sports desk would; keep fighter names exactly as given in the facts and write numbers with Western digits (0-9)." : "";
       const text = await claude(
-        "You are a boxing analyst writing a short scouting report (90-130 words, 2 paragraphs) for a stats site. Use ONLY the facts supplied; do not invent opponents, titles, or biography. Note that this is a fictional demo dataset only if asked. Plain text, no headings.",
+        `You are a boxing analyst writing a short scouting report (90-130 words, 2 paragraphs) for a stats site. Use ONLY the facts supplied; do not invent opponents, titles, or biography. Note that this is a fictional demo dataset only if asked. Plain text, no headings.${language}`,
         facts, 400,
       );
       result = { text: text.trim(), source: "ai" };
     } catch { /* keep rules */ }
   }
-  reportCache.set(b.slug + w.today, result);
+  reportCache.set(key, result);
   return result;
 }
 
-export function matchupBlurb(a: BoxerFull, b: BoxerFull): string {
-  const p = predict(a, b);
+export function matchupBlurb(a: BoxerFull, b: BoxerFull, t: T = tEn): string {
+  const p = predict(a, b, t);
   const fav = p.pA >= p.pB ? a : b;
   const pf = Math.max(p.pA, p.pB);
-  return `${p.confidence}: ${fav.name} ${Math.round(pf * 100)}%. ${p.koProb > 0.5 ? "Expect a stoppage." : "Likely goes the distance."}`;
+  return t("{confidence}: {name} {pct}%. {ending}", { confidence: t(p.confidence), name: t.name(fav.name), pct: Math.round(pf * 100), ending: p.koProb > 0.5 ? t("Expect a stoppage.") : t("Likely goes the distance.") });
 }

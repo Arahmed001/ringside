@@ -10,13 +10,12 @@ import type { FeedData } from "./feed";
 import { DIVISIONS, normalizeDivision } from "./divisions";
 import { METHODS, endsEarly, hasScorecards, hasWinner, isDrawResult } from "./methods";
 import type { ProviderBout } from "./providers";
+import { sanitizeMoney, validDate } from "./validate-money";
 
 export type Severity = "error" | "warning" | "info";
 export interface Issue { severity: Severity; code: string; entity: string; ref: string; message: string }
 export interface Sanitized { feed: FeedData; issues: Issue[]; dropped: Record<string, number> }
 
-const ISO = /^\d{4}-\d{2}-\d{2}$/;
-const validDate = (s: string | null | undefined) => !!s && ISO.test(s) && !Number.isNaN(Date.parse(s + "T12:00:00Z")) && new Date(s + "T12:00:00Z").toISOString().slice(0, 10) === s;
 const PERSON_ROLES = new Set(["head_trainer", "assistant_trainer", "strength_coach", "cutman", "manager"]);
 const ORG_ROLES = new Set(["gym", "promoter"]);
 
@@ -194,6 +193,13 @@ export function sanitizeFeed(input: FeedData, opts: { today?: string } = {}): Sa
     return true;
   });
 
+  // ---------- money ----------
+  const { financials, purses, broadcasts, earnings } = sanitizeMoney(
+    { financials: input.financials, purses: input.purses, broadcasts: input.broadcasts, earnings: input.earnings },
+    { eventIds: new Set(eventDate.keys()), boxerIds, bouts: new Map(bouts.map((b) => [b.externalId, { red: b.redExternalId, blue: b.blueExternalId }])), today },
+    add, drop,
+  );
+
   // ---------- orphans ----------
   const usedPeople = new Set<string>([...stints.map((s) => s.personExternalId), ...officials.map((o) => o.personExternalId), ...scorecards.map((c) => c.judgeExternalId), ...corners.map((c) => c.personExternalId)].filter((x): x is string => !!x));
   const usedOrgs = new Set<string>([...stints.map((s) => s.orgExternalId), ...events.map((e) => e.promoterExternalId), ...bouts.map((b) => b.titleOrgExternalId)].filter((x): x is string => !!x));
@@ -201,7 +207,7 @@ export function sanitizeFeed(input: FeedData, opts: { today?: string } = {}): Sa
   if (orphanP) add("info", "orphan_people", "person", "*", `${orphanP} people are not linked to any fighter, bout or card`);
   if (orphanO) add("info", "orphan_orgs", "org", "*", `${orphanO} organisations are not linked to anything`);
 
-  return { feed: { boxers, events, bouts, people, orgs, stints, weighIns, officials, scorecards, corners, punches }, issues, dropped };
+  return { feed: { boxers, events, bouts, people, orgs, stints, weighIns, officials, scorecards, corners, punches, financials, purses, broadcasts, earnings }, issues, dropped };
 }
 
 export interface IssueGroup { severity: Severity; code: string; count: number; examples: Issue[] }

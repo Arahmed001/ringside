@@ -1,4 +1,7 @@
-import { getDb } from "./db";
+import type { DatabaseSync } from "node:sqlite";
+import { msg } from "./i18n/t";
+import { getDb, dbVersion } from "./db";
+import { todayIso } from "./clock";
 
 export interface CoverageRow { field: string; have: number; of: number; note?: string }
 export interface CoverageGroup { title: string; rows: CoverageRow[] }
@@ -10,8 +13,21 @@ export interface LastRun {
   issues: { severity: string; code: string; n: number; example: string }[];
 }
 
-export async function coverage(): Promise<{ lastRun: LastRun | null; groups: CoverageGroup[]; stintSources: { source: string; n: number }[]; weighInSources: { source: string; n: number }[]; wikidataStaged: number; wikidataLinked: number }> {
+export interface Coverage { lastRun: LastRun | null; groups: CoverageGroup[]; stintSources: { source: string; n: number }[]; weighInSources: { source: string; n: number }[]; wikidataStaged: number; wikidataLinked: number }
+
+const cached = globalThis as unknown as { __coverage?: { key: string; value: Coverage } };
+
+/** About twenty COUNT / COUNT DISTINCT scans (a quarter of a second at 160k bouts), so they run once per database version, not per page view. */
+export async function coverage(): Promise<Coverage> {
   const db = await getDb();
+  const key = dbVersion(db);
+  if (cached.__coverage?.key === key) return cached.__coverage.value;
+  const value = computeCoverage(db);
+  cached.__coverage = { key, value };
+  return value;
+}
+
+function computeCoverage(db: DatabaseSync): Coverage {
   const n = (sql: string) => (db.prepare(sql).get() as { c: number }).c;
   const boxers = n("SELECT COUNT(*) c FROM boxers");
   const done = n("SELECT COUNT(*) c FROM bouts WHERE method IS NOT NULL");
@@ -20,30 +36,41 @@ export async function coverage(): Promise<{ lastRun: LastRun | null; groups: Cov
   const activeBoxers = n("SELECT COUNT(*) c FROM boxers WHERE active = 1");
   const groups: CoverageGroup[] = [
     {
-      title: "Fighters",
+      title: msg("Fighters"),
       rows: [
-        { field: "Exact birth date", have: n("SELECT COUNT(*) c FROM boxers WHERE birth_date IS NOT NULL"), of: boxers },
-        { field: "Birthplace", have: n("SELECT COUNT(*) c FROM boxers WHERE birth_place IS NOT NULL"), of: boxers },
-        { field: "Residence", have: n("SELECT COUNT(*) c FROM boxers WHERE residence IS NOT NULL"), of: boxers },
-        { field: "Wikidata link", have: n("SELECT COUNT(*) c FROM boxers WHERE wikidata_id IS NOT NULL"), of: boxers },
-        { field: "BoxRec ID (cross-reference only)", have: n("SELECT COUNT(*) c FROM boxers WHERE boxrec_id IS NOT NULL"), of: boxers },
-        { field: "Photo (licensed or Wikimedia)", have: n("SELECT COUNT(*) c FROM boxers WHERE photo_url IS NOT NULL"), of: boxers, note: "otherwise a generated portrait" },
-        { field: "Current head trainer", have: n("SELECT COUNT(DISTINCT boxer_id) c FROM team_stints WHERE role='head_trainer' AND end_date IS NULL"), of: activeBoxers, note: "active fighters" },
-        { field: "Current manager", have: n("SELECT COUNT(DISTINCT boxer_id) c FROM team_stints WHERE role='manager' AND end_date IS NULL"), of: activeBoxers, note: "active fighters" },
-        { field: "Trainer history (2+ trainers on record)", have: n("SELECT COUNT(*) c FROM (SELECT boxer_id FROM team_stints WHERE role='head_trainer' GROUP BY boxer_id HAVING COUNT(*) >= 2)"), of: boxers },
+        { field: msg("Exact birth date"), have: n("SELECT COUNT(*) c FROM boxers WHERE birth_date IS NOT NULL"), of: boxers },
+        { field: msg("Birthplace"), have: n("SELECT COUNT(*) c FROM boxers WHERE birth_place IS NOT NULL"), of: boxers },
+        { field: msg("Residence"), have: n("SELECT COUNT(*) c FROM boxers WHERE residence IS NOT NULL"), of: boxers },
+        { field: msg("Wikidata link"), have: n("SELECT COUNT(*) c FROM boxers WHERE wikidata_id IS NOT NULL"), of: boxers },
+        { field: msg("BoxRec ID (cross-reference only)"), have: n("SELECT COUNT(*) c FROM boxers WHERE boxrec_id IS NOT NULL"), of: boxers },
+        { field: msg("Photo (licensed or Wikimedia)"), have: n("SELECT COUNT(*) c FROM boxers WHERE photo_url IS NOT NULL"), of: boxers, note: msg("otherwise a generated portrait") },
+        { field: msg("Current head trainer"), have: n("SELECT COUNT(DISTINCT boxer_id) c FROM team_stints WHERE role='head_trainer' AND end_date IS NULL"), of: activeBoxers, note: msg("active fighters") },
+        { field: msg("Current manager"), have: n("SELECT COUNT(DISTINCT boxer_id) c FROM team_stints WHERE role='manager' AND end_date IS NULL"), of: activeBoxers, note: msg("active fighters") },
+        { field: msg("Trainer history (2+ trainers on record)"), have: n("SELECT COUNT(*) c FROM (SELECT boxer_id FROM team_stints WHERE role='head_trainer' GROUP BY boxer_id HAVING COUNT(*) >= 2)"), of: boxers },
       ],
     },
     {
-      title: "Bouts",
+      title: msg("Bouts"),
       rows: [
-        { field: "Weigh-in weights", have: n("SELECT COUNT(DISTINCT bout_id) c FROM weigh_ins WHERE official_lb IS NOT NULL"), of: done },
-        { field: "Fight-night (pre-fight) weights", have: n("SELECT COUNT(DISTINCT bout_id) c FROM weigh_ins WHERE fight_night_lb IS NOT NULL"), of: done, note: "few commissions record these" },
-        { field: "Referee", have: n("SELECT COUNT(DISTINCT bout_id) c FROM officials WHERE role='referee'"), of: done },
-        { field: "Judges' scorecards", have: n("SELECT COUNT(DISTINCT bout_id) c FROM scorecards"), of: decisions, note: "decisions only" },
-        { field: "Corner trainers", have: n("SELECT COUNT(DISTINCT bout_id) c FROM corners"), of: done },
-        { field: "Round and time of stoppage", have: n("SELECT COUNT(*) c FROM bouts WHERE method IN ('KO','TKO') AND round_time IS NOT NULL"), of: stoppages },
-        { field: "Closing odds", have: n("SELECT COUNT(*) c FROM bouts WHERE odds_red IS NOT NULL"), of: n("SELECT COUNT(*) c FROM bouts") },
-        { field: "Punch statistics", have: n("SELECT COUNT(DISTINCT bout_id) c FROM punch_stats"), of: done, note: "CompuBox-style; paid and partial in reality" },
+        { field: msg("Weigh-in weights"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM weigh_ins WHERE official_lb IS NOT NULL"), of: done },
+        { field: msg("Fight-night (pre-fight) weights"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM weigh_ins WHERE fight_night_lb IS NOT NULL"), of: done, note: msg("few commissions record these") },
+        { field: msg("Referee"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM officials WHERE role='referee'"), of: done },
+        { field: msg("Judges' scorecards"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM scorecards"), of: decisions, note: msg("decisions only") },
+        { field: msg("Corner trainers"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM corners"), of: done },
+        { field: msg("Round and time of stoppage"), have: n("SELECT COUNT(*) c FROM bouts WHERE method IN ('KO','TKO') AND round_time IS NOT NULL"), of: stoppages },
+        { field: msg("Closing odds"), have: n("SELECT COUNT(*) c FROM bouts WHERE odds_red IS NOT NULL"), of: n("SELECT COUNT(*) c FROM bouts") },
+        { field: msg("Punch statistics"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM punch_stats"), of: done, note: msg("CompuBox-style; paid and partial in reality") },
+      ],
+    },
+    {
+      title: msg("Money"),
+      rows: [
+        { field: msg("Gate, tickets or PPV figures"), have: n("SELECT COUNT(DISTINCT event_id) c FROM event_financials"), of: n(`SELECT COUNT(*) c FROM events WHERE COALESCE(status, '') != 'cancelled' AND date <= '${todayIso()}'`), note: msg("completed cards") },
+        { field: msg("Fighter purses"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM purses"), of: done, note: msg("at least one fighter's purse") },
+        { field: msg("Purses backed by an official record"), have: n("SELECT COUNT(*) c FROM purses WHERE basis = 'disclosed'"), of: n("SELECT COUNT(*) c FROM purses"), note: msg("rest are reported or estimated") },
+        { field: msg("Broadcaster and audience"), have: n("SELECT COUNT(DISTINCT event_id) c FROM event_broadcasts"), of: n("SELECT COUNT(*) c FROM events WHERE COALESCE(status, '') != 'cancelled'") },
+        { field: msg("Yearly earnings lists"), have: n("SELECT COUNT(DISTINCT boxer_id) c FROM earnings"), of: boxers },
+        { field: msg("Money rows with a source link"), have: n("SELECT (SELECT COUNT(*) FROM purses WHERE source_url IS NOT NULL) + (SELECT COUNT(*) FROM event_financials WHERE source_url IS NOT NULL) + (SELECT COUNT(*) FROM event_broadcasts WHERE source_url IS NOT NULL) + (SELECT COUNT(*) FROM earnings WHERE source_url IS NOT NULL) c"), of: n("SELECT (SELECT COUNT(*) FROM purses) + (SELECT COUNT(*) FROM event_financials) + (SELECT COUNT(*) FROM event_broadcasts) + (SELECT COUNT(*) FROM earnings) c"), note: msg("so a reader can check it") },
       ],
     },
   ];

@@ -1,6 +1,7 @@
 import type { Boxer } from "@/lib/types";
 import { hash, pickBy, frac } from "@/lib/hash";
 import { divisionInfo } from "@/lib/divisions";
+import { getT } from "@/lib/i18n/server";
 
 const SKIN = ["#f3cfae", "#e6b48a", "#cf9467", "#a8714a", "#80502f", "#5c3822"];
 const HAIR = ["#16110e", "#2b1d14", "#4a3020", "#0d0d0f", "#6b4a2b", "#a9a9a9"];
@@ -113,14 +114,15 @@ export function Portrait({ boxer, uid }: { boxer: P; uid: string }) {
   );
 }
 
-export function Headshot({ boxer, size = 64, className = "", rounded = true }: { boxer: P & { name: string; photoUrl?: string | null }; size?: number; className?: string; rounded?: boolean }) {
+export async function Headshot({ boxer, size = 64, className = "", rounded = true }: { boxer: P & { name: string; photoUrl?: string | null }; size?: number; className?: string; rounded?: boolean }) {
+  const t = await getT();
   const r = rounded ? "rounded-xl" : "";
   if (boxer.photoUrl) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={boxer.photoUrl} alt={boxer.name} width={size} height={size * 1.25} loading="lazy" referrerPolicy="no-referrer" className={`${r} object-cover object-top ${className}`} style={{ width: size, height: size * 1.25 }} />;
+    return <img src={boxer.photoUrl} alt={t.name(boxer.name)} width={size} height={size * 1.25} loading="lazy" referrerPolicy="no-referrer" className={`${r} object-cover object-top ${className}`} style={{ width: size, height: size * 1.25 }} />;
   }
   return (
-    <svg viewBox="0 0 120 150" width={size} height={size * 1.25} role="img" aria-label={`Portrait of ${boxer.name}`} className={`${r} ${className} shrink-0`} style={{ width: size, height: size * 1.25 }}>
+    <svg viewBox="0 0 120 150" width={size} height={size * 1.25} role="img" aria-label={t("Portrait of {name}", { name: t.name(boxer.name) })} className={`${r} ${className} shrink-0`} style={{ width: size, height: size * 1.25 }}>
       <Portrait boxer={boxer} uid={`h${boxer.id}`} />
     </svg>
   );
