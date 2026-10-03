@@ -49,7 +49,7 @@ async function Trainers({ sort, w }: { sort: string; w: W }) {
       <SectionTitle eyebrow={t("Head trainers with 4+ fights on record")} title={t("Trainer leaderboard")} href="/trainers" cta={t("Trainer impact: what the data can say")} />
       <div className="mb-3 flex flex-wrap gap-2 text-xs"><span className="text-muted">{t("Sort by")}</span>{[["elo", msg("Elo change")], ["win", msg("Win rate")], ["fighters", msg("Fighters")], ["titles", msg("Title wins")]].map(([k, l]) => <Link key={k} href={`/people?role=trainer&sort=${k}`} className={`chip ${sort === k ? "!border-gold/50 !text-gold" : ""}`}>{t(l)}</Link>)}</div>
       <div className="card overflow-x-auto p-4">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm" aria-label={t("Trainer leaderboard")}>
           <thead><tr><th className={th}>#</th><th className={th}>{t("Trainer")}</th><th className={th}>{t("Fighters now / ever")}</th><th className={th}>{t("Record together")}</th><th className={th}>{t("Win%")}</th><th className={th}>{t("Titles")}</th><th className={`${th} text-end`}>{t("Avg Elo change")}</th></tr></thead>
           <tbody>
             {rows.slice(0, 60).map((r, i) => (
@@ -78,7 +78,7 @@ async function Managers({ w }: { w: W }) {
     <section>
       <SectionTitle eyebrow={t("By number of fighters managed")} title={t("Managers")} />
       <div className="card overflow-x-auto p-4">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm" aria-label={t("Managers")}>
           <thead><tr><th className={th}>{t("Manager")}</th><th className={th}>{t("Clients now / ever")}</th><th className={th}>{t("Record")}</th><th className={th}>{t("Win%")}</th><th className={`${th} text-end`}>{t("Title wins")}</th></tr></thead>
           <tbody>{rows.slice(0, 50).map(({ p, s }) => (
             <tr key={p.id} className="border-t border-line/60"><td className="py-2.5"><Link href={`/people/${p.slug}`} className="hover:text-gold"><b>{t.name(p.name)}</b></Link></td><td className="tabular">{s.currentFighters} / {s.fighters}</td><td className="tabular">{s.record.wins}-{s.record.losses}-{s.record.draws}</td><td className="tabular">{Math.round(s.record.winRate * 100)}%</td><td className="text-end tabular">{s.titleWins}</td></tr>
@@ -98,7 +98,7 @@ async function Judges({ w }: { w: W }) {
       <section>
         <SectionTitle eyebrow={t("How often each judge sides with the majority")} title={t("Judges")} />
         <div className="card overflow-x-auto p-4">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm" aria-label={t("Judges")}>
             <thead><tr><th className={th}>{t("Judge")}</th><th className={th}>{t("Cards")}</th><th className={th}>{t("With majority")}</th><th className={th}>{t("Dissents")}</th><th className={th}>{t("Avg margin")}</th><th className={`${th} text-end`}>{t("Picks the home fighter")}</th></tr></thead>
             <tbody>{judges.slice(0, 50).map((j) => {
               const diff = j.homePickRate === null ? null : j.homePickRate - leagueHomePickRate;
@@ -137,7 +137,7 @@ async function Referees({ w }: { w: W }) {
     <section>
       <SectionTitle eyebrow={t("League average stoppage: round {n}", { n: leagueAvgStopRound.toFixed(1) })} title={t("Referees")} />
       <div className="card overflow-x-auto p-4">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm" aria-label={t("Referees")}>
           <thead><tr><th className={th}>{t("Referee")}</th><th className={th}>{t("Bouts")}</th><th className={th}>{t("Stoppages")}</th><th className={th}>{t("Stoppage rate")}</th><th className={th}>{t("Early (R1–3)")}</th><th className={`${th} text-end`}>{t("Avg stoppage round")}</th></tr></thead>
           <tbody>{referees.slice(0, 50).map((r) => (
             <tr key={r.person.id} className="border-t border-line/60"><td className="py-2.5"><Link href={`/people/${r.person.slug}`} className="hover:text-gold"><b>{t.name(r.person.name)}</b></Link></td><td className="tabular">{r.bouts}</td><td className="tabular">{r.stoppages}</td><td className="tabular">{Math.round(r.stopRate * 100)}%</td><td className="tabular">{Math.round(r.earlyStopRate * 100)}%</td>

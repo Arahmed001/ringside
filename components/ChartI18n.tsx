@@ -21,7 +21,7 @@ export function Svg({ label, descKey, descVars, desc, decorative, ...rest }: Omi
 export function HeatCell({ label, round, pct, bg }: { label: string; round: number; pct: number; bg: string }) {
   const t = useT();
   const text = t("{label} · R{round}: {pct}% of finishes", { label, round, pct });
-  return <td title={text} className="h-5 min-w-5 rounded-[4px]" style={{ background: bg }}><span className="sr-only">{pct}%</span></td>;
+  return <td title={text} className="relative h-5 min-w-5 rounded-[4px]" style={{ background: bg }}><span className="sr-only">{pct}%</span></td>;
 }
 
 export function ProbBar({ a, b, pA, pB, pDraw, colorA = "#e5322d", colorB = "#4a8cff" }: { a: string; b: string; pA: number; pB: number; pDraw: number; colorA?: string; colorB?: string }) {

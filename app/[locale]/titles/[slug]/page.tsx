@@ -50,7 +50,7 @@ export default async function BeltPage({ params }: { params: Promise<{ slug: str
     <div className="space-y-10">
       <JsonLd data={{ "@type": "Dataset", name: `${beltLabel(belt, t)} · ${divisionLabel(belt.division, belt.sex, t)}`, url: abs(localePath(t.locale, `/titles/${belt.slug}`)), inLanguage: t.locale, creator: { "@type": "Organization", name: "Ringside" } }} />
       <div>
-        <div className="eyebrow mb-2"><Link href="/titles" className="hover:text-ink">{t("Title lineages")}</Link> · {divisionLabel(belt.division, belt.sex, t)}</div>
+        <div className="eyebrow mb-2"><Link href="/titles" className="inline-block py-1 hover:text-ink">{t("Title lineages")}</Link> · {divisionLabel(belt.division, belt.sex, t)}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase leading-none">{beltLabel(belt, t)}</h1>
         <p className="mt-2 text-muted">{divisionLabel(belt.division, belt.sex, t)} · {t("{from} to {to}", { from: fmtDate(belt.firstDate, { month: "short", year: "numeric" }, t.locale), to: fmtDate(belt.lastDate, { month: "short", year: "numeric" }, t.locale) })} · <Link href={`/rankings/${slugifyDivision(belt.division)}${belt.sex === "female" ? "?sex=female" : ""}`} className="hover:text-ink">{t("Division rankings")}</Link></p>
       </div>
@@ -107,7 +107,7 @@ export default async function BeltPage({ params }: { params: Promise<{ slug: str
                 </div>
                 {r.defenses.length > 0 && (
                   <details className="mt-3 text-sm">
-                    <summary className="cursor-pointer text-muted hover:text-ink">{t.n(r.defenses.length, "{n} defence", "{n} defences")}</summary>
+                    <summary className="cursor-pointer py-1.5 text-muted hover:text-ink">{t.n(r.defenses.length, "{n} defence", "{n} defences")}</summary>
                     <ul className="mt-2 grid gap-1 sm:grid-cols-2">
                       {r.defenses.map((d) => (
                         <li key={d.boutId}><Link href={`/bouts/${d.boutId}`} className="hover:text-gold">{fmtDate(d.date, { month: "short", year: "numeric" }, t.locale)} · {t("beat {name}", { name: name(d.opponentId) })} · {methodLabel(d.method, d.endRound, t)}</Link></li>

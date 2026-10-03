@@ -430,7 +430,10 @@ The recap says what one fight changed; the night in review says what the whole c
 - **Wording:** names are used instead of pronouns and counts avoid number-noun agreement (Arabic "عدد النزالات المحسومة: 14") so no gendered or mis-agreed forms are possible.
 - **Not done:** the same summary on the home page for "last night", an optional AI rewrite of these facts into a paragraph, and the "fights decided" count excluding draws and no-contests by design (a draw is neither decided nor listed).
 
-## 31. The smoke check: every page, both languages, on a real server (round 11, 2026-10-03)
+## 31. Accessibility and design pass, round two (round 14, 2026-10-03)
+A second sweep of every route built since round 9 (36 routes, both languages, both rail states): axe 0 violations; reflow at five widths; text spacing at two. Found and fixed a regression I introduced in round 9 (the heatmap's hidden text widened `/analytics` to 423 px at 320 px), a long-Arabic-name overflow, 16 unnamed tables, two placeholder-only inputs, 6 px slider hit areas that read out bare numbers, silent odds changes in the what-if lab (now a live region), and several sub-24 px targets. `tests/a11y.test.ts` gained rules for table names, input labels, svg descriptions, the heatmap cell and the slider size. Not done: a real screen reader, the full visual design review, poster contrast. Details in `docs/accessibility.md` (round 14).
+
+## 32. The smoke check: every page, both languages, on a real server (round 11, 2026-10-03)
 
 CI proved the code compiles and the unit tests pass, but nothing ever rendered a page: a build succeeds even when a page throws at runtime, and a template can print "undefined" with every test green. `npm run build && npm run smoke` (run in CI after the build) closes that gap.
 
@@ -440,4 +443,3 @@ CI proved the code compiles and the unit tests pass, but nothing ever rendered a
 - **Proven, not assumed:** on the demo league all 114 checks pass. With two bugs injected on purpose (a fighter page printing "undefined", and a people page throwing) the check reported exactly those pages in both languages, with the offending text shown; reverting them returned it to 114 of 114.
 - **Finding, not fixed (framework behaviour):** for an unknown URL or a fighter, event or bout that does not exist, the server returns the correct **404 status and a `noindex` tag**, but the HTML body is empty; the not-found page ("Not on the card") reaches the visitor only through the streamed payload that the browser renders. A visitor with JavaScript sees the page in both languages (checked in Chromium); one without sees a blank page. Next's streaming documentation describes this class of behaviour. Impact is small (search engines get 404 and noindex; no-JavaScript visitors on a missing page), so it is recorded here and the smoke check asserts what is true: a 404, `noindex`, and the heading present in the response.
 - **Not done:** it samples one page per kind rather than every fighter (a data-dependent crash on a rare record would need a bigger sample or the real feed's edge cases); it does not run a browser, so client-only breakage is not seen; with a real data feed the sample should be re-checked against that feed's rarest records.
-

@@ -242,7 +242,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
       <section>
         <SectionTitle eyebrow={t("Fight record")} title={t.n(completed.length, "{n} bout", "{n} bouts")} />
         <div className="card overflow-x-auto p-4">
-          <table className="w-full"><tbody>{(upcoming ? [upcoming, ...done] : done).map((x) => <BoutLine key={x.id} bout={x} focusId={b.id} />)}</tbody></table>
+          <table className="w-full" aria-label={t("Fight record")}><tbody>{(upcoming ? [upcoming, ...done] : done).map((x) => <BoutLine key={x.id} bout={x} focusId={b.id} />)}</tbody></table>
         </div>
       </section>
     </div>

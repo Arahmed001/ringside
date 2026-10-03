@@ -39,7 +39,7 @@ export default async function FightOfTheYearPage({ params }: { params: Promise<{
         itemListElement: list.slice(0, 10).map((s, i) => ({ "@type": "ListItem", position: i + 1, url: abs(localePath(t.locale, `/bouts/${s.bout.id}`)), name: `${t.name(s.bout.redName)} vs ${t.name(s.bout.blueName)}` })),
       }} />
       <div>
-        <div className="eyebrow mb-2"><Link href="/fight-of-the-year" className="hover:text-ink">{t("Fight of the year")}</Link></div>
+        <div className="eyebrow mb-2"><Link href="/fight-of-the-year" className="inline-block py-1 hover:text-ink">{t("Fight of the year")}</Link></div>
         <h1 className="font-display text-5xl font-extrabold uppercase">{year}</h1>
         <p className="mt-2 max-w-3xl text-muted">{live ? t("The year so far: {n} fights of six rounds or more scored. This can still change.", { n: list.length }) : t("{n} fights of six rounds or more were scored.", { n: list.length })}</p>
         <nav className="mt-3 flex flex-wrap gap-2" aria-label={t("Other years")}>

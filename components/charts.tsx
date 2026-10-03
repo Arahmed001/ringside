@@ -84,11 +84,11 @@ export function ColumnChart({ data, h = 170 }: { data: { label: string; a: numbe
   );
 }
 
-export function Heatmap({ rows, cols }: { rows: { label: string; cells: number[]; total: number }[]; cols: string[] }) {
+export function Heatmap({ label, rows, cols }: { label: string; rows: { label: string; cells: number[]; total: number }[]; cols: string[] }) {
   const max = Math.max(...rows.flatMap((r) => r.cells), 0.01);
   return (
     <div className="overflow-x-auto">
-      <table className="ltr-fixed w-full border-separate border-spacing-[3px] text-xs">
+      <table className="ltr-fixed w-full border-separate border-spacing-[3px] text-xs" aria-label={label}>
         <thead><tr><td />{cols.map((c) => <th key={c} scope="col" className="font-normal text-muted">{c}</th>)}</tr></thead>
         <tbody>
           {rows.map((r) => (

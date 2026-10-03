@@ -51,7 +51,8 @@
  {
   "key": "{a} {pa}, {b} {pb}",
   "files": [
-   "components/ChartI18n.tsx"
+   "components/ChartI18n.tsx",
+   "components/MatchupLab.tsx"
   ]
  },
  {
@@ -3974,6 +3975,7 @@
    "app/[locale]/boxers/page.tsx",
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
+   "components/TenureTable.tsx",
    "lib/ask/tools.ts",
    "lib/coverage.ts",
    "lib/nav.ts",
@@ -7264,7 +7266,9 @@
  {
   "key": "Search fighters",
   "files": [
-   "app/[locale]/layout.tsx"
+   "app/[locale]/boxers/page.tsx",
+   "app/[locale]/layout.tsx",
+   "app/[locale]/page.tsx"
   ]
  },
  {
@@ -8990,6 +8994,12 @@
   "key": "What the data can and cannot say",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "What the data says each factor is worth",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
