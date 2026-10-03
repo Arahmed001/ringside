@@ -17,7 +17,7 @@ import * as B from "../lib/providers/boxing-data-api";
 import { sanitizeFeed } from "../lib/validate";
 import { emptyFeed } from "../lib/feed";
 
-const KEY = "sk-test-key-123";
+const KEY = "sk-test-key-0123456789abcdef0123456789";
 const notes = () => ({ ...B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: (async () => new Response("{}")) as typeof fetch }).notes() });
 
 // the Tyson Fury example from https://boxing-data.com/docs/endpoints/fighters
@@ -614,4 +614,16 @@ test("plan prices the backfill before it is spent: the list pages are fetched, t
   const fresh = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: mockFetch(standard).impl, cacheDir: dir, refresh: true, scheduleDays: 0 });
   assert.equal((await fresh.plan()).fighterRequests, 3, "with refresh nothing counts as cached");
   fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("a placeholder pasted instead of the key is refused at once with a plain message (not four retries and a cryptic one), and a real-looking bad key is never echoed", () => {
+  for (const bad of ["…", "...", "xxx", "your-key", "paste the real key here please", "kéy", "", "0123456789abcdef0123456789\n"]) {
+    assert.throws(() => B.boxingDataApiProvider({ key: bad, purpose: "evaluation" }), (e: Error) => /not a plausible API key/.test(e.message) && /read -s/.test(e.message), JSON.stringify(bad));
+  }
+  const secretish = "sécret-0123456789abcdefghij-value";
+  assert.throws(() => B.boxingDataApiProvider({ key: secretish, purpose: "evaluation" }), (e: Error) => /not a plausible API key/.test(e.message) && !e.message.includes("sécret") && !e.message.includes("0123456789abcdefghij"));
+  // a real key's shape (long, printable, no spaces) is accepted; a short key is fine when no real server will see it (tests, replay)
+  assert.doesNotThrow(() => B.boxingDataApiProvider({ key: "670ff79763msh4f16640bd83dd54p15aae0jsn46b3a23a82ed", purpose: "evaluation" }));
+  assert.doesNotThrow(() => B.boxingDataApiProvider({ key: "replay", purpose: "evaluation", fetchImpl: (async () => new Response("{}")) as typeof fetch }));
+  assert.throws(() => B.boxingDataApiProvider({ key: "replay", purpose: "evaluation" }), /not a plausible API key/, "but the same short key to the real server is refused");
 });

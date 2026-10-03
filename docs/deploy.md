@@ -81,24 +81,24 @@ What to do with it: give the container **at least 768 MB**, or cap the heap (`NO
 The maintenance scripts ship in the image (`tsx` is installed):
 
 ```bash
-docker exec ringside npm run model:fit                      # refit; picked up on the next request, no restart
+docker exec ringside npm run model:fit
 docker exec -e WIKIMEDIA_CONTACT=you@example.com ringside npm run wikidata:import
 docker exec -e WIKIMEDIA_CONTACT=you@example.com ringside npm run wikidata:import -- --enrich
 ```
 
-Run the long imports against a copy of the volume if you would rather not write to the live database while they run; SQLite takes a write lock per batch, so reads keep working either way.
+A refit (`model:fit`) is picked up on the next request, with no restart. Run the long imports against a copy of the volume if you would rather not write to the live database while they run; SQLite takes a write lock per batch, so reads keep working either way.
 
 ## Backups
 
 Two files cannot be re-derived: the live **ledger** inside `ringside.db` and everything in `accounts.db` (people, picks, edits). One command takes a consistent snapshot of both while the app keeps running (`VACUUM INTO`, not a file copy, which can tear):
 
 ```bash
-docker exec ringside npm run backup                 # -> /data/backups/2026-10-03T12-00-00Z/{ringside.db, accounts.db, model-fit.json}
-docker exec ringside npm run backup -- --keep 30    # how many snapshots to keep (default 14; only folders with that timestamp name are ever removed)
+docker exec ringside npm run backup
+docker exec ringside npm run backup -- --keep 30
 docker exec ringside npm run backup -- verify /data/backups/2026-10-03T12-00-00Z
 ```
 
-Every copy is opened and checked with `integrity_check` as it is written, and `verify` repeats that later and checks the important tables are there (the ledger table included); the command exits non-zero if anything is wrong, so a scheduler can alert on it. The accounts copy is personal data and is written readable by its owner only. **A backup on the volume that dies is not a backup:** copy the newest folder off the machine (an object store, another host) on a schedule, for example a daily `docker exec ringside npm run backup` followed by an upload of the newest `/data/backups/*` folder.
+Snapshots land in `/data/backups/<timestamp>/` (`ringside.db`, `accounts.db`, `model-fit.json`); `--keep` sets how many are kept (default 14; only folders with that timestamp name are ever removed). Every copy is opened and checked with `integrity_check` as it is written, and `verify` repeats that later and checks the important tables are there (the ledger table included); the command exits non-zero if anything is wrong, so a scheduler can alert on it. The accounts copy is personal data and is written readable by its owner only. **A backup on the volume that dies is not a backup:** copy the newest folder off the machine (an object store, another host) on a schedule, for example a daily `docker exec ringside npm run backup` followed by an upload of the newest `/data/backups/*` folder.
 
 **Restoring:** stop the container, replace `ringside.db` and/or `accounts.db` in `/data` with the files from a snapshot (delete the old `-wal` and `-shm` files beside them), start it again. Run `verify` on the snapshot first. Restoring `ringside.db` rolls the ledger back to that day, so predictions locked since then are gone; restoring `accounts.db` rolls back sign-ups and picks the same way. A restore has not been rehearsed on a real host: do it once, on a copy, before you need it.
 

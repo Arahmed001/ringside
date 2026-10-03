@@ -6,8 +6,9 @@ A boxing database with ratings, division rankings, fight predictions, plain-Engl
 ## Run it
 ```bash
 npm install
-npm run dev -- -p 3100      # http://localhost:3100  (Node 22.5+ required for node:sqlite)
+npm run dev -- -p 3100
 ```
+Open http://localhost:3100 (Node 22.5+ is required for `node:sqlite`).
 The first request creates `data/ringside.db` and seeds it with the demo roster (about 2 seconds).
 To regenerate the demo data, stop the server, delete `data/`, and start again.
 
