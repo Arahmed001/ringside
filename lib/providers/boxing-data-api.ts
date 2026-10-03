@@ -20,9 +20,15 @@ import { currentYear, nowMs, todayIso } from "../clock";
 // ---- the documented response shapes (only the fields used here) ----
 interface Envelope<T> { error?: Record<string, unknown> | null; pagination?: { page?: number; total_pages?: number; next_page?: unknown }; data: T }
 export interface ApiFighter {
-  id: string; name?: string | null; nickname?: string | null; alias?: string | null; age?: number | null; gender?: string | null;
-  nationality?: string | null; stance?: string | null; height_cm?: number | null; reach_cm?: number | null; debut?: string | null;
-  division?: { name?: string | null } | null;
+  id: string; name?: string | null; nickname?: string | null; alias?: string | null; gender?: string | null;
+  /** the docs' example has `age`; the real records have `birth_year` (seen on the first free-tier sample) */
+  age?: number | null; birth_year?: number | null;
+  nationality?: string | null; stance?: string | null; debut?: string | null;
+  /** the real records give height and reach in several forms, and often only one of them */
+  height_cm?: number | null; height_in?: number | null; height_ft?: string | null; height?: string | null;
+  reach_cm?: number | null; reach_in?: number | null; reach?: string | null;
+  stats?: { wins?: number | null; losses?: number | null; draws?: number | null; total_bouts?: number | null } | null;
+  division?: { id?: string | null; name?: string | null; weight_lb?: number | null } | null;
 }
 interface ApiSide { name?: string | null; full_name?: string | null; winner?: boolean | null; fighter_id?: string | null }
 export interface ApiEvent { id?: string | null; title?: string | null; date?: string | null; location?: string | null; venue?: string | null; broadcasters?: { [country: string]: string }[] | null; poster_image_url?: string | null }
@@ -36,12 +42,12 @@ export interface ApiFight {
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
   | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter"
-  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "birthYearFromAge" | "birthYearUnknown" | "turnedProFromFirstFight" | "physicalsImputed" | "stanceDefaulted" | "locationUnparsed" | "divisionUnknown",
+  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "divisionFromFight" | "birthYearFromAge" | "birthYearUnknown" | "physicalsConverted" | "turnedProFromFirstFight" | "physicalsImputed" | "stanceDefaulted" | "locationUnparsed" | "divisionUnknown",
   number
 >;
 const emptyNotes = (): Notes => ({
   ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
-  birthYearFromAge: 0, birthYearUnknown: 0, turnedProFromFirstFight: 0, physicalsImputed: 0, stanceDefaulted: 0, locationUnparsed: 0, divisionUnknown: 0,
+  birthYearFromAge: 0, birthYearUnknown: 0, physicalsConverted: 0, turnedProFromFirstFight: 0, physicalsImputed: 0, stanceDefaulted: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0,
 });
 
 export const fighterId = (id: string) => `bda-f-${id}`;
@@ -117,10 +123,27 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
 const STANCES: Record<string, Stance> = { orthodox: "Orthodox", southpaw: "Southpaw", switch: "Switch", ambidextrous: "Switch" };
 
 /** A fighter -> a boxer. Height and reach come back null for some fighters; `null` here means "fill it in later" (see `imputePhysicals`). */
+/** Centimetres from whichever form the feed gave: cm, inches, a feet-and-inches string like 6'1", or the docs' combined text like `6' 9" / 206 cm`. */
+export function lengthCm(cm: number | null | undefined, inches: number | null | undefined, text: string | null | undefined, notes: Notes): number | null {
+  if (typeof cm === "number" && cm > 0) return Math.round(cm);
+  if (typeof inches === "number" && inches > 0) { notes.physicalsConverted++; return Math.round(inches * 2.54); }
+  const t = text ?? "";
+  const metric = t.match(/(\d{2,3}(?:\.\d+)?)\s*cm/i);
+  if (metric) { notes.physicalsConverted++; return Math.round(Number(metric[1])); }
+  const ft = t.match(/(\d)\s*'\s*(\d{1,2})?/);
+  if (ft) { notes.physicalsConverted++; return Math.round((Number(ft[1]) * 12 + Number(ft[2] ?? 0)) * 2.54); }
+  const inch = t.match(/(\d{2,3}(?:\.\d+)?)\s*(?:"|in\b)/i);
+  if (inch) { notes.physicalsConverted++; return Math.round(Number(inch[1]) * 2.54); }
+  return null;
+}
+
+/** A fighter -> a boxer. Height and reach come back null for some fighters; `null` here means "fill it in later" (see `imputePhysicals`). */
 export function mapFighter(f: ApiFighter, notes: Notes): (Omit<ProviderBoxer, "heightCm" | "reachCm"> & { heightCm: number | null; reachCm: number | null }) | null {
   if (!f.id || !f.name) return null;
   let birthYear = 0;
-  if (typeof f.age === "number" && f.age > 0) { birthYear = currentYear() - f.age; notes.birthYearFromAge++; } else notes.birthYearUnknown++; // only an age is published, so this can be a year out
+  if (Number.isInteger(f.birth_year) && f.birth_year! >= 1900 && f.birth_year! <= currentYear() - 10) birthYear = f.birth_year!; // the feed's own birth year
+  else if (typeof f.age === "number" && f.age > 0) { birthYear = currentYear() - f.age; notes.birthYearFromAge++; } // only an age: can be a year out
+  else notes.birthYearUnknown++;
   const stance = STANCES[(f.stance ?? "").toLowerCase()];
   if (!stance) notes.stanceDefaulted++;
   const debut = parseInt(String(f.debut ?? ""), 10);
@@ -128,7 +151,8 @@ export function mapFighter(f: ApiFighter, notes: Notes): (Omit<ProviderBoxer, "h
   return {
     externalId: fighterId(f.id), name: f.name, ...(f.nickname || f.alias ? { nickname: (f.nickname ?? f.alias)! } : {}),
     country: f.nationality ?? "Unknown", birthYear, stance: stance ?? "Orthodox", sex: (f.gender ?? "").toLowerCase().startsWith("f") ? "female" : "male",
-    heightCm: f.height_cm ?? null, reachCm: f.reach_cm ?? null, weightClass: normalizeDivision(div) ?? (div || "Unknown"),
+    heightCm: lengthCm(f.height_cm, f.height_in, f.height_ft ?? f.height, notes), reachCm: lengthCm(f.reach_cm, f.reach_in, f.reach, notes),
+    weightClass: normalizeDivision(div) ?? (div || "Unknown"),
     turnedPro: Number.isFinite(debut) ? debut : 0, active: false, // both settled in `finishBoxers`, which can see the fights
   };
 }
@@ -156,15 +180,21 @@ export function imputePhysicals(rows: Loose[], notes: Notes): Loose[] {
 
 /** Settles `active` (fought in the last 30 months, or has a fight coming up) and a missing `turnedPro` (the first fight we saw), which need the fights. */
 export function finishBoxers(rows: Loose[], bouts: ProviderBout[], eventDates: Map<string, string>, notes: Notes): ProviderBoxer[] {
-  const first = new Map<string, string>(), last = new Map<string, string>();
+  const first = new Map<string, string>(), last = new Map<string, string>(), lastClass = new Map<string, string>();
   for (const b of bouts) {
     const d = eventDates.get(b.eventExternalId);
     if (!d) continue;
     for (const id of [b.redExternalId, b.blueExternalId]) {
       if (!first.has(id) || d < first.get(id)!) first.set(id, d);
-      if (!last.has(id) || d > last.get(id)!) last.set(id, d);
+      if (!last.has(id) || d > last.get(id)!) { last.set(id, d); if (normalizeDivision(b.weightClass)) lastClass.set(id, b.weightClass); }
     }
   }
+  // a fighter the feed gives no division for (the validator rejects "Unknown") fights at a known one: the division of their most recent fight
+  rows = rows.map((r) => {
+    if (normalizeDivision(r.weightClass) || !lastClass.has(r.externalId)) return r;
+    notes.divisionFromFight++;
+    return { ...r, weightClass: lastClass.get(r.externalId)! };
+  });
   const cutoff = new Date(nowMs() - 30 * 30.4 * 86400000).toISOString().slice(0, 10);
   return imputePhysicals(rows, notes).map((r) => {
     let turnedPro = r.turnedPro;
@@ -176,6 +206,25 @@ export function finishBoxers(rows: Loose[], bouts: ProviderBout[], eventDates: M
 // ---- the client ----
 const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * 86400000).toISOString().slice(0, 10);
 export class BudgetError extends Error {}
+
+/**
+ * A stand-in for `fetch` that answers from responses saved by `rawDir` (the files `001-v2_fights.json`, `002-v2_fighters_<id>.json`, ...),
+ * so a mapping can be changed and re-run over real responses without spending a single request. A request with no saved answer is a 404.
+ */
+export function replayFetch(dir: string): typeof fetch {
+  const queues = new Map<string, string[]>(), served = new Map<string, number>();
+  for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(".json")).sort()) {
+    const key = f.replace(/^\d+-/, "").replace(/\.json$/, "");
+    queues.set(key, [...(queues.get(key) ?? []), f]);
+  }
+  return (async (input: string | URL | Request) => {
+    const key = new URL(String(input)).pathname.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "");
+    const i = served.get(key) ?? 0, file = queues.get(key)?.[i];
+    if (!file) return new Response(JSON.stringify({ message: "not in the saved responses" }), { status: 404 });
+    served.set(key, i + 1);
+    return new Response(fs.readFileSync(path.join(dir, file), "utf8"), { status: 200 });
+  }) as typeof fetch;
+}
 /** An HTTP failure from the API, with the status so the caller can tell "not on your plan" from "broken". The message carries the vendor's own explanation. */
 export class HttpError extends Error { constructor(message: string, readonly status: number) { super(message); } }
 export interface BoxingDataApiOptions {
