@@ -86,6 +86,72 @@ test("a fighter whose birth year is unknown can still be linked by BoxRec ID, an
   assert.deepEqual({ ...got(rows[1].id) }, { q: "QU2", y: rows[1].birth_year }, "a known birth year is left as it was");
 });
 
+test("the extras query also asks for the Arabic label, the nickname and the English article title", () => {
+  const q = wd.extrasQuery(["Q1", "Q2"]);
+  assert.match(q, /LANG\(\?ar\) = "ar"/); assert.match(q, /wdt:P1449/); assert.match(q, /schema:isPartOf <https:\/\/en\.wikipedia\.org\/>/);
+  assert.match(q, /VALUES \?b \{ wd:Q1 wd:Q2 \}/);
+});
+
+test("an Arabic name is shown only if it is Arabic script and nothing else; a nickname only if there is exactly one that a person could set; an article title only if it is safe in a link", () => {
+  assert.equal(wd.cleanArabicName("محمد علي كلاي"), "محمد علي كلاي");
+  assert.equal(wd.cleanArabicName("  أونيل   بيل "), "أونيل بيل", "spacing is tidied");
+  assert.equal(wd.cleanArabicName("\u200fهنري ماسكه\u200e"), "هنري ماسكه", "direction marks are stripped");
+  assert.equal(wd.cleanArabicName("علي\nكلاي"), "علي كلاي", "a line break is tidied to a space: the result is always one clean line");
+  for (const bad of ["Muhammad Ali", "محمد Ali", "علي 2", "علي <b>", "", "   ", "ا".repeat(81), "- علي", "٣٠", undefined, null]) assert.equal(wd.cleanArabicName(bad as string | null | undefined), null, String(bad));
+  assert.equal(wd.cleanNickname("The Greatest"), "The Greatest"); assert.equal(wd.cleanNickname("Sugar Ray"), "Sugar Ray");
+  for (const bad of ["", "<script>", "x".repeat(41), "-dash first", "a\u0000b"]) assert.equal(wd.cleanNickname(bad), null, bad);
+  assert.equal(wd.cleanWikiTitle("Muhammad Ali"), "Muhammad Ali");
+  for (const bad of ["a|b", "[[x]]", "x{y}", "a<b", "a\nb", "", "x", "a#b", "a?b", "x".repeat(201)]) assert.equal(wd.cleanWikiTitle(bad), null, bad);
+});
+
+test("extras are read per boxer: the one Arabic label, the single nickname, the article title; several different nicknames, or an unsafe value, give none", () => {
+  const e = (b: string, extra: Record<string, { value: string }>) => ({ b: { value: `http://www.wikidata.org/entity/${b}` }, ...extra });
+  const m = wd.parseExtras([
+    e("Q1", { ar: lit("جو لويس"), nick: lit("The Brown Bomber"), enwiki: lit("Joe Louis") }),
+    e("Q1", { ar: lit("جو لويس"), nick: lit("The Brown Bomber"), award: lit("http://www.wikidata.org/entity/Q9"), awardLabel: lit("Fighter of the Year") }),
+    e("Q2", { nick: lit("Iron") }), e("Q2", { nick: lit("Mike") }),
+    e("Q3", { ar: lit("Latin Name"), enwiki: lit("bad|title"), nick: lit("<b>") }),
+  ]);
+  const q1 = m.get("Q1")!, q2 = m.get("Q2")!, q3 = m.get("Q3")!;
+  assert.deepEqual([q1.arabicName, q1.nickname, q1.enwiki], ["جو لويس", "The Brown Bomber", "Joe Louis"], "the same value on several rows is one value");
+  assert.equal(q1.awards.length, 1);
+  assert.equal(q2.nickname, null, "two different nicknames: no telling which he goes by");
+  assert.deepEqual([q3.arabicName, q3.nickname, q3.enwiki], [null, null, null]);
+});
+
+test("applying the labels fills blanks only: an Arabic name is added as unreviewed Wikidata unless one exists; a nickname and an article title only where there is none; nothing changes on a second run", () => {
+  const rows = db.prepare("SELECT id, name, nickname FROM boxers ORDER BY id LIMIT 4 OFFSET 40").all() as { id: number; name: string; nickname: string | null }[];
+  db.prepare("UPDATE boxers SET nickname = NULL, wikipedia_title = NULL WHERE id IN (?,?,?)").run(rows[0].id, rows[1].id, rows[2].id);
+  db.prepare("UPDATE boxers SET nickname = 'Own Nick', wikipedia_title = 'Own title' WHERE id = ?").run(rows[3].id);
+  db.prepare("DELETE FROM name_translations WHERE en IN (?,?,?,?)").run(...rows.map((r) => r.name));
+  db.prepare("INSERT INTO name_translations (en, locale, text, source, reviewed) VALUES (?, 'ar', 'ترجمة شخص', 'editor', 1)").run(rows[1].name);
+  const ins = db.prepare("INSERT INTO wikidata_boxers (qid, name, birth_year, ar_label, nickname, enwiki, matched_boxer_id) VALUES (?,?,?,?,?,?,?)");
+  ins.run("QL0", "x", 1970, "اسم عربي", "The Nick", "Article Zero", rows[0].id);
+  ins.run("QL1", "x", 1970, "اسم آخر", "Other Nick", "Article One", rows[1].id);
+  ins.run("QL2", "x", 1970, "Latin only", "<b>", "bad|title", rows[2].id);
+  ins.run("QL3", "x", 1970, "اسم رابع", "Wikidata Nick", "Article Three", rows[3].id);
+  const s = wd.enrichFromWikidata(db);
+  const tr = (n: string) => db.prepare("SELECT text, source, reviewed FROM name_translations WHERE en = ? AND locale = 'ar'").get(n) as { text: string; source: string; reviewed: number } | undefined;
+  const b = (id: number) => db.prepare("SELECT nickname n, wikipedia_title w FROM boxers WHERE id = ?").get(id) as { n: string | null; w: string | null };
+  assert.deepEqual({ ...tr(rows[0].name)! }, { text: "اسم عربي", source: "wikidata", reviewed: 0 }, "added, and not marked reviewed by a person");
+  assert.deepEqual({ ...tr(rows[1].name)! }, { text: "ترجمة شخص", source: "editor", reviewed: 1 }, "a person's translation is never replaced");
+  assert.equal(tr(rows[2].name), undefined, "a label with Latin letters is not stored");
+  assert.deepEqual({ ...b(rows[0].id) }, { n: "The Nick", w: "Article Zero" }); assert.deepEqual({ ...b(rows[1].id) }, { n: "Other Nick", w: "Article One" });
+  assert.deepEqual({ ...b(rows[2].id) }, { n: null, w: null }, "unsafe values are dropped");
+  assert.deepEqual({ ...b(rows[3].id) }, { n: "Own Nick", w: "Own title" }, "a nickname and a title already there are kept");
+  assert.ok(s.names.added >= 2 && s.names.kept >= 1 && s.filled.nickname >= 2 && s.filled.wikipedia >= 2);
+  const again = wd.enrichFromWikidata(db);
+  assert.deepEqual([again.names.added, again.filled.nickname, again.filled.wikipedia], [0, 0, 0], "a second run adds nothing");
+});
+
+test("a link to an article is built from its title: spaces become underscores, other characters are encoded", async () => {
+  const { wikipediaUrl } = await import("../lib/facts");
+  assert.equal(wikipediaUrl("Muhammad Ali"), "https://en.wikipedia.org/wiki/Muhammad_Ali");
+  assert.equal(wikipediaUrl("Sugar Ray Leonard (boxer)"), "https://en.wikipedia.org/wiki/Sugar_Ray_Leonard_(boxer)");
+  assert.match(wikipediaUrl('Weird "title" & more'), /^https:\/\/en\.wikipedia\.org\/wiki\/Weird_%22title%22_%26_more$/);
+  assert.doesNotMatch(wikipediaUrl("a b/c"), / /);
+});
+
 const ex = (b: string, extra: Record<string, { value: string }>) => ({ b: lit(`http://www.wikidata.org/entity/${b}`), ...extra });
 
 test("extras query asks for the Hall of Fame, Olympedia and award properties", () => {
@@ -131,4 +197,13 @@ test("enrichment copies IDs and honours to linked fighters, replaces Wikidata's 
   db.prepare("UPDATE boxers SET ibhof_id = 'feed/own' WHERE id = ?").run(f.id);
   wd.enrichFromWikidata(db);
   assert.equal((db.prepare("SELECT ibhof_id h FROM boxers WHERE id = ?").get(f.id) as { h: string }).h, "feed/own");
+});
+
+test("the world carries a fighter's article title, so the profile can link to it; a fighter without one has none", async () => {
+  const [a, b] = db.prepare("SELECT id FROM boxers ORDER BY id LIMIT 2 OFFSET 80").all() as { id: number }[];
+  db.prepare("UPDATE boxers SET wikipedia_title = 'Some Article' WHERE id = ?").run(a.id);
+  db.prepare("UPDATE boxers SET wikipedia_title = NULL WHERE id = ?").run(b.id);
+  const w = await (await import("../lib/world")).getWorld();
+  assert.equal(w.byId.get(a.id)!.wikipediaTitle, "Some Article");
+  assert.equal(w.byId.get(b.id)!.wikipediaTitle, null);
 });

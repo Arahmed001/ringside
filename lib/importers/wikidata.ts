@@ -56,13 +56,37 @@ export function batchQuery(qids: string[]): string {
  */
 export interface WikidataAward { qid: string; label: string; year: number | null; kind: HonourKind }
 export type HonourKind = "hall_of_fame" | "title" | "award";
-export interface WikidataExtras { qid: string; ibhofId: string | null; olympediaId: string | null; awards: WikidataAward[] }
+export interface WikidataExtras {
+  qid: string; ibhofId: string | null; olympediaId: string | null; awards: WikidataAward[];
+  /** The Arabic label, the nickname and the English Wikipedia article title, each only when it passes `cleanArabicName`, `cleanNickname` and `cleanWikiTitle`. */
+  arabicName: string | null; nickname: string | null; enwiki: string | null;
+}
+
+const ARABIC_NAME = /^[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF](?:[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\u200C\u200D .'’\-]{0,78}[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF])?$/u;
+/** An Arabic label we are willing to show as a person's name: Arabic script only (no Latin letters, no digits, no markup), 80 characters at most, spacing tidied. Anything else is left out. */
+export function cleanArabicName(v: string | undefined | null): string | null {
+  const s = (v ?? "").replace(/[\u0000-\u001f\u007f\u200e\u200f\u202a-\u202e]/g, " ").replace(/\s+/g, " ").trim();
+  return s.length <= 80 && ARABIC_NAME.test(s) && !/[\u0660-\u0669\u06F0-\u06F9]/.test(s) ? s : null; // no digits of either Arabic kind: the site uses 0-9 and a name has none
+}
+const NICK_OK = /^[\p{L}\p{M}0-9][\p{L}\p{M}0-9 .'’"\-]{0,39}$/u; // the same rule a person's own nickname correction must pass (lib/accounts/corrections.ts)
+export function cleanNickname(v: string | undefined | null): string | null {
+  const s = (v ?? "").replace(/\s+/g, " ").trim();
+  return NICK_OK.test(s) ? s : null;
+}
+/** An English Wikipedia article title: one line, no brackets, braces, pipes or angle brackets (it is only ever used inside a link, percent-encoded). */
+export function cleanWikiTitle(v: string | undefined | null): string | null {
+  const s = (v ?? "").trim();
+  return s.length >= 2 && s.length <= 200 && !/[\u0000-\u001f<>\[\]{}|#?]/.test(s) ? s : null;
+}
 
 export function extrasQuery(qids: string[]): string {
-  return `SELECT ?b ?hof ?oly ?award ?awardLabel ?awardYear WHERE {
+  return `SELECT ?b ?hof ?oly ?ar ?nick ?enwiki ?award ?awardLabel ?awardYear WHERE {
   VALUES ?b { ${qids.map((q) => `wd:${q}`).join(" ")} }
   OPTIONAL { ?b wdt:P4474 ?hof }
   OPTIONAL { ?b wdt:P8286 ?oly }
+  OPTIONAL { ?b rdfs:label ?ar . FILTER(LANG(?ar) = "ar") }
+  OPTIONAL { ?b wdt:P1449 ?nick . FILTER(LANG(?nick) = "en" || LANG(?nick) = "mul" || LANG(?nick) = "") }
+  OPTIONAL { ?page schema:about ?b ; schema:isPartOf <https://en.wikipedia.org/> ; schema:name ?enwiki }
   OPTIONAL { ?b p:P166 ?st . ?st ps:P166 ?award . OPTIONAL { ?st pq:P585 ?awardYear } }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }`;
@@ -77,11 +101,16 @@ export function honourKind(label: string): HonourKind {
 
 export function parseExtras(bindings: Binding[]): Map<string, WikidataExtras> {
   const out = new Map<string, WikidataExtras>();
+  const seenNicks = new Map<string, Set<string>>();
   for (const b of bindings) {
     const qid = b.b?.value.split("/").pop();
     if (!qid) continue;
-    const e = out.get(qid) ?? out.set(qid, { qid, ibhofId: null, olympediaId: null, awards: [] }).get(qid)!;
+    const e = out.get(qid) ?? out.set(qid, { qid, ibhofId: null, olympediaId: null, awards: [], arabicName: null, nickname: null, enwiki: null }).get(qid)!;
     const hof = b.hof?.value, oly = b.oly?.value;
+    if (!e.arabicName) e.arabicName = cleanArabicName(b.ar?.value);
+    if (!e.enwiki) e.enwiki = cleanWikiTitle(b.enwiki?.value);
+    const nick = cleanNickname(b.nick?.value);
+    if (nick) { seenNicks.get(qid)?.add(nick) ?? seenNicks.set(qid, new Set([nick])); }
     if (!e.ibhofId && hof && /^[\w-]+(\/[\w-]+)*$/.test(hof)) e.ibhofId = hof;
     if (!e.olympediaId && oly && /^\d+$/.test(oly)) e.olympediaId = oly;
     const aq = b.award?.value.split("/").pop(), al = label(b, "awardLabel");
@@ -92,6 +121,8 @@ export function parseExtras(bindings: Binding[]): Map<string, WikidataExtras> {
       if (!e.awards.some((a) => a.qid === aq && a.year === year)) e.awards.push({ qid: aq, label: al, year, kind: honourKind(al) });
     }
   }
+  // a nickname is kept only when Wikidata gives exactly one: with several there is no telling which one a fighter goes by
+  for (const [qid, nicks] of seenNicks) if (nicks.size === 1) out.get(qid)!.nickname = [...nicks][0];
   for (const e of out.values()) e.awards.sort((a, b) => (a.year ?? 9999) - (b.year ?? 9999) || a.label.localeCompare(b.label));
   return out;
 }
@@ -192,19 +223,21 @@ export interface ImportOptions {
  */
 export async function importWikidata(db: DatabaseSync, opts: ImportOptions = {}): Promise<ImportSummary> {
   const { limit = Infinity, batch = 120, extras = true, extrasOnly = false, maxAgeDays = 30, force = false, log = () => {} } = opts;
-  const setExtras = db.prepare("UPDATE wikidata_boxers SET ibhof_id = ?, olympedia_id = ?, awards = ?, extras_at = ? WHERE qid = ?");
-  const empty = (qid: string): WikidataExtras => ({ qid, ibhofId: null, olympediaId: null, awards: [] });
+  const setExtras = db.prepare("UPDATE wikidata_boxers SET ibhof_id = ?, olympedia_id = ?, awards = ?, ar_label = ?, nickname = ?, enwiki = ?, extras_at = ?, labels_at = ? WHERE qid = ?");
+  const empty = (qid: string): WikidataExtras => ({ qid, ibhofId: null, olympediaId: null, awards: [], arabicName: null, nickname: null, enwiki: null });
+  const store = (x: WikidataExtras, now: string) => setExtras.run(x.ibhofId, x.olympediaId, JSON.stringify(x.awards), x.arabicName, x.nickname, x.enwiki, now, now, x.qid);
 
   if (extrasOnly) {
-    const todo = (db.prepare("SELECT qid FROM wikidata_boxers WHERE extras_at IS NULL ORDER BY qid LIMIT ?").all(Number.isFinite(limit) ? limit : -1) as { qid: string }[]).map((r) => r.qid);
-    log(`${todo.length} staged boxers have no extras yet`);
+    // boxers staged before the extras existed, and boxers staged before the Arabic names, nicknames and article titles were read (labels_at)
+    const todo = (db.prepare("SELECT qid FROM wikidata_boxers WHERE extras_at IS NULL OR labels_at IS NULL ORDER BY qid LIMIT ?").all(Number.isFinite(limit) ? limit : -1) as { qid: string }[]).map((r) => r.qid);
+    log(`${todo.length} staged boxers need their extras (honours, Arabic names, nicknames, article titles)`);
     let stored = 0, batches = 0;
     for (let i = 0; i < todo.length; i += batch) {
       const chunk = todo.slice(i, i + batch);
       const more = parseExtras(await sparql(extrasQuery(chunk)));
       const now = new Date().toISOString();
       db.exec("BEGIN");
-      for (const q of chunk) { const x = more.get(q) ?? empty(q); setExtras.run(x.ibhofId, x.olympediaId, JSON.stringify(x.awards), now, q); stored++; }
+      for (const q of chunk) { store(more.get(q) ?? empty(q), now); stored++; }
       db.exec("COMMIT");
       batches++;
       log(`extras batch ${batches}: ${Math.min(i + batch, todo.length)}/${todo.length}`);
@@ -233,7 +266,7 @@ export async function importWikidata(db: DatabaseSync, opts: ImportOptions = {})
     for (const b of parsed.values()) {
       up.run(b.qid, b.name, b.birthDate, b.birthYear, b.birthPlace, b.country, b.heightCm, b.weightKg, b.imageFile, b.boxrecId, b.residence, b.deathDate, JSON.stringify(b.teachers), now);
       // a boxer with no row in the extras answer simply has none: that is a result, so it is recorded as checked
-      if (extras) { const x = more.get(b.qid) ?? empty(b.qid); setExtras.run(x.ibhofId, x.olympediaId, JSON.stringify(x.awards), now, b.qid); }
+      if (extras) store(more.get(b.qid) ?? empty(b.qid), now);
       stored++;
     }
     db.exec("COMMIT");
@@ -245,7 +278,7 @@ export async function importWikidata(db: DatabaseSync, opts: ImportOptions = {})
 
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
 
-export interface EnrichSummary { linked: number; byBoxrecId: number; byNameYear: number; ambiguous: number; filled: { birthYear: number; birthDate: number; birthPlace: number; residence: number; boxrecId: number }; honours: { boxers: number; rows: number; hallOfFame: number; olympedia: number } }
+export interface EnrichSummary { linked: number; byBoxrecId: number; byNameYear: number; ambiguous: number; names: { added: number; kept: number }; filled: { nickname: number; wikipedia: number; birthYear: number; birthDate: number; birthPlace: number; residence: number; boxrecId: number }; honours: { boxers: number; rows: number; hallOfFame: number; olympedia: number } }
 
 /**
  * Links our fighters to Wikidata entities and fills ONLY fields we don't already have (a licensed feed always wins).
@@ -264,7 +297,7 @@ export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
   const claimed = new Set<string>();
   const upd = db.prepare(`UPDATE boxers SET wikidata_id = ?, boxrec_id = COALESCE(boxrec_id, ?), birth_year = COALESCE(birth_year, ?), birth_date = COALESCE(birth_date, ?), birth_place = COALESCE(birth_place, ?), residence = COALESCE(residence, ?) WHERE id = ?`);
   const mark = db.prepare("UPDATE wikidata_boxers SET matched_boxer_id = ?, match_method = ? WHERE qid = ?");
-  const s: EnrichSummary = { linked: 0, byBoxrecId: 0, byNameYear: 0, ambiguous: 0, filled: { birthYear: 0, birthDate: 0, birthPlace: 0, residence: 0, boxrecId: 0 }, honours: { boxers: 0, rows: 0, hallOfFame: 0, olympedia: 0 } };
+  const s: EnrichSummary = { linked: 0, byBoxrecId: 0, byNameYear: 0, ambiguous: 0, names: { added: 0, kept: 0 }, filled: { nickname: 0, wikipedia: 0, birthYear: 0, birthDate: 0, birthPlace: 0, residence: 0, boxrecId: 0 }, honours: { boxers: 0, rows: 0, hallOfFame: 0, olympedia: 0 } };
   db.exec("BEGIN");
   for (const b of mine) {
     let hit: Record<string, unknown> | undefined, method = "";
@@ -289,7 +322,32 @@ export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
   }
   db.exec("COMMIT");
   applyHonours(db, s);
+  applyLabels(db, s);
   return s;
+}
+
+/**
+ * Arabic names, nicknames and article titles, for fighters already linked to a Wikidata entity (so only ever a verified match). Each fills a blank and nothing else:
+ *  - an Arabic name is stored as the translation of the fighter's name with source `wikidata` and not reviewed; a translation already there (a person's, a machine's) is kept;
+ *  - a nickname is set only where the fighter has none (a feed's or a person's nickname is never replaced);
+ *  - an article title is set only where there is none (the page links to it; no text is copied).
+ * Re-running changes nothing that is already filled.
+ */
+function applyLabels(db: DatabaseSync, s: EnrichSummary) {
+  const rows = db.prepare(`SELECT w.matched_boxer_id AS boxerId, b.name, w.ar_label, w.nickname, w.enwiki FROM wikidata_boxers w JOIN boxers b ON b.id = w.matched_boxer_id
+    WHERE w.matched_boxer_id IS NOT NULL AND (w.ar_label IS NOT NULL OR w.nickname IS NOT NULL OR w.enwiki IS NOT NULL)`).all() as { boxerId: number; name: string; ar_label: string | null; nickname: string | null; enwiki: string | null }[];
+  const has = db.prepare("SELECT 1 x FROM name_translations WHERE en = ? AND locale = 'ar'");
+  const put = db.prepare("INSERT INTO name_translations (en, locale, text, source, reviewed) VALUES (?, 'ar', ?, 'wikidata', 0)");
+  const nick = db.prepare("UPDATE boxers SET nickname = ? WHERE id = ? AND (nickname IS NULL OR nickname = '')");
+  const wiki = db.prepare("UPDATE boxers SET wikipedia_title = ? WHERE id = ? AND (wikipedia_title IS NULL OR wikipedia_title = '')");
+  db.exec("BEGIN");
+  for (const r of rows) {
+    const arabic = cleanArabicName(r.ar_label), nickname = cleanNickname(r.nickname), title = cleanWikiTitle(r.enwiki); // checked again: a staged cell is not trusted
+    if (arabic) { if (has.get(r.name)) s.names.kept++; else { put.run(r.name, arabic); s.names.added++; } }
+    if (nickname) s.filled.nickname += Number(nick.run(nickname, r.boxerId).changes);
+    if (title) s.filled.wikipedia += Number(wiki.run(title, r.boxerId).changes);
+  }
+  db.exec("COMMIT");
 }
 
 /**
