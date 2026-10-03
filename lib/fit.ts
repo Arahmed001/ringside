@@ -12,6 +12,8 @@
 import type { World } from "./world";
 import { msg } from "./i18n/t";
 import { countsInRecord, isStoppage } from "./methods";
+import { calls } from "./accountability";
+import { stoppageHeuristic } from "./model";
 
 export const FEATURES = [
   { key: "elo", label: msg("Elo rating gap"), unit: msg("per 100 pts"), scale: 1 },
@@ -165,6 +167,17 @@ export interface FitReport {
   test: { baseline: Metrics; eloOnly: Metrics; full: Metrics; selected: Metrics };
   recommended: "plain Elo" | "Elo refit" | "all features" | "selected features";
   calibration: { bucket: string; n: number; predicted: number; actual: number }[]; // for the recommended model
+  /** The early-finish estimate, fitted separately (absent when there are too few bouts). */
+  finish?: FinishFit;
+}
+
+export interface FinishMetrics { logLoss: number; brier: number; predicted: number; observed: number }
+export interface FinishFit {
+  rows: { train: number; test: number; splitDate: string };
+  observed: { train: number; test: number }; // share of fights that ended by stoppage
+  coef: { intercept: number; koRate: number; koLoss: number; se: { koRate: number; koLoss: number } };
+  test: { constant: FinishMetrics; heuristic: FinishMetrics; fitted: FinishMetrics };
+  recommended: "heuristic" | "fitted";
 }
 
 /** A candidate only displaces a simpler one if it improves held-out log-loss by at least this much; smaller gaps are noise. */
@@ -176,6 +189,38 @@ export function chooseModel(m: FitReport["test"]): FitReport["recommended"] {
   let [pick, best] = byComplexity[0];
   for (const [name, x] of byComplexity.slice(1)) if (x.logLoss < best.logLoss - MIN_GAIN) { pick = name; best = x; }
   return pick;
+}
+
+/**
+ * Fits the early-finish estimate: P(a fight ends by stoppage) from the two fighters' summed KO rates and KO-loss rates
+ * (known before the fight), on the first 75% of bouts, and tests it on the last 25% against the hand-set rule and against
+ * simply predicting the base rate. It is recommended only if it beats the hand-set rule by MIN_GAIN, the same parsimony
+ * rule as the win model. The first 75% / last 25% split is the same as the win model's, so the two reports are comparable.
+ */
+/** The fitted finish estimate replaces the hand-set rule only if it beats it on held-out fights by MIN_GAIN; smaller gaps are noise. */
+export const chooseFinish = (t: FinishFit["test"]): FinishFit["recommended"] => (t.fitted.logLoss < t.heuristic.logLoss - MIN_GAIN ? "fitted" : "heuristic");
+
+export function runFinishFit(w: World): FinishFit | null {
+  const cs = calls(w).filter((c) => c.koSum !== undefined && c.koLossSum !== undefined);
+  if (cs.length < 400) return null;
+  const rows: Row[] = cs.map((c) => ({ date: c.date, boutId: c.boutId, x: [c.koSum!, c.koLossSum!], y: c.finished ? 1 : 0 }));
+  const cut = Math.floor(rows.length * 0.75);
+  const train = rows.slice(0, cut), test = rows.slice(cut);
+  const fit = fitLogistic(train);
+  const base = train.reduce((s, r) => s + r.y, 0) / train.length;
+  const metrics = (p: (x: number[]) => number): FinishMetrics => {
+    let ll = 0, br = 0, pred = 0, obs = 0;
+    for (const r of test) { const q = Math.min(1 - 1e-6, Math.max(1e-6, p(r.x))); ll += -(r.y * Math.log(q) + (1 - r.y) * Math.log(1 - q)); br += (q - r.y) ** 2; pred += q; obs += r.y; }
+    return { logLoss: ll / test.length, brier: br / test.length, predicted: pred / test.length, observed: obs / test.length };
+  };
+  const fitted = (x: number[]) => Math.min(0.95, Math.max(0.03, sigmoid(fit.intercept + fit.weights[0] * x[0] + fit.weights[1] * x[1])));
+  const t = { constant: metrics(() => base), heuristic: metrics((x) => stoppageHeuristic(x[0], x[1])), fitted: metrics(fitted) };
+  return {
+    rows: { train: train.length, test: test.length, splitDate: test[0].date },
+    observed: { train: base, test: t.fitted.observed },
+    coef: { intercept: fit.intercept, koRate: fit.weights[0], koLoss: fit.weights[1], se: { koRate: fit.se[0], koLoss: fit.se[1] } },
+    test: t, recommended: chooseFinish(t),
+  };
 }
 
 export function runFit(w: World): FitReport {
@@ -211,6 +256,6 @@ export function runFit(w: World): FitReport {
     rows: { train: train.length, test: test.length, from: rows[0].date, to: rows[rows.length - 1].date, splitDate: test[0].date },
     features: FEATURES.map((f, j) => ({ key: f.key, label: f.label, unit: f.unit, weight: full.weights[j], se: full.se[j], z: full.z[j], effect: full.weights[j] * f.scale, effectSe: full.se[j] * f.scale, selected: keep[j] })),
     intercept: full.intercept, eloRefit: { perPoint: eloOnly.weights[0] / 100, intercept: eloOnly.intercept }, selectedWeights, selectedIntercept: sel.intercept,
-    test: metrics, recommended, calibration,
+    test: metrics, recommended, calibration, finish: runFinishFit(w) ?? undefined,
   };
 }

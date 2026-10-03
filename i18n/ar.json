@@ -983,6 +983,8 @@
  "The data cannot separate any trainer from average.": "لا تستطيع البيانات تمييز أي مدرب عن المتوسط.",
  "The difference ({d} Elo points) is within its margin of error: there is no clear sign that changing trainer moves results either way.": "الفارق ({d} نقطة إيلو) ضمن هامش خطئه: لا مؤشر واضحًا على أن تغيير المدرب يحرّك النتائج في أي اتجاه.",
  "The dot is the estimate and the line its 95% range; the centre mark is the average trainer. A line that crosses the centre cannot be told from average.": "النقطة هي التقدير والخط نطاقه 95%؛ وعلامة الوسط هي المدرب المتوسط. الخط الذي يعبر الوسط لا يمكن تمييزه عن المتوسط.",
+ "The early-finish estimate is fitted to results.": "تقدير الحسم المبكر مضبوط على النتائج.",
+ "The early-finish estimate is the hand-set rule, not yet fitted to results.": "تقدير الحسم المبكر هو القاعدة المحددة يدويًّا، ولم يُضبط على النتائج بعد.",
  "The fight calendar: upcoming cards with their main events and win probabilities, plus recent results and how each main event ended.": "رزنامة النزالات: البطاقات القادمة مع نزالاتها الرئيسية واحتمالات الفوز، إضافة إلى أحدث النتائج وكيف انتهى كل نزال رئيسي.",
  "The fighter the ratings did not favour won.": "فاز الملاكم الذي لم تكن التصنيفات في صالحه.",
  "The fights where the winner had the lowest chance in the model's eyes before the first bell.": "النزالات التي كان فيها للفائز أقل فرصة في نظر النموذج قبل الجرس الأول.",

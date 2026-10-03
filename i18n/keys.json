@@ -7854,6 +7854,18 @@
   ]
  },
  {
+  "key": "The early-finish estimate is fitted to results.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "The early-finish estimate is the hand-set rule, not yet fitted to results.",
+  "files": [
+   "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
   "key": "The fight calendar: upcoming cards with their main events and win probabilities, plus recent results and how each main event ended.",
   "files": [
    "app/[locale]/events/page.tsx"
