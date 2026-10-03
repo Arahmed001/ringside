@@ -27,7 +27,8 @@ before(async () => {
     makeBoxer("x4", "Lightweight", { name: "Zhang Wei" }), makeBoxer("x5", "Lightweight", { name: "Wei Zhang" }), makeBoxer("x6", "Lightweight", { name: "Yazan H. Al-Ghamdi", nickname: "The Hammer" }),
     makeBoxer("x7", "Lightweight", { name: "Bartholomew Featherstonehaugh" }), makeBoxer("x8", "Lightweight", { name: "José Mora" }),
   ];
-  feed.events = [{ externalId: "E1", name: "Night", date: "2025-01-10", venue: "Arena", city: "Reno", country: "United States" }];
+  feed.events = [{ externalId: "E1", name: "Night", date: "2025-01-10", venue: "Arena", city: "Reno", country: "United States" }, { externalId: "E2", name: "Called Off", date: "2025-02-10", venue: "Zephyr Hall", city: "Quito", country: "Ecuador", status: "cancelled" } as never];
+  feed.people = [...feed.people, { externalId: "Q1", name: "Marcos Quintero" }, { externalId: "Q2", name: "Marcus Quintero" }];
   feed.bouts = []; feed.weighIns = []; feed.scorecards = []; feed.officials = []; feed.corners = []; feed.punches = []; feed.stints = [];
   const file = path.join(dir, "feed.json");
   fs.writeFileSync(file, JSON.stringify(feed));
@@ -135,4 +136,33 @@ test("the palette (⌘K): near spellings of a fighter show up only when nothing 
   assert.ok(exactPage.some((h) => h.kind === "page") && !exactPage.some((h) => h.kind === "fighter"));
   const withPageAndFighter = globalSearch(w, "weigh", tEn, {});
   assert.ok(!withPageAndFighter.some((h) => h.kind === "fighter"), "a page matched, so no near-name guesses");
+});
+
+test("the palette guesses trainers, judges, gyms and venues too, when nothing else matched, and shows every kind of guess together", async () => {
+  const { globalSearch } = await import("../lib/search");
+  const { tEn } = await import("../lib/i18n/t");
+  const hits = (query: string, names: Record<string, string> = {}) => globalSearch(w, query, tEn, names).map((h) => `${h.kind}:${h.title}`);
+  assert.deepEqual(hits("jugde two"), ["person:Judge Two"], "two letters swapped in a person's name");
+  assert.deepEqual(hits("trainr one"), ["person:Trainer One"], "a letter missing");
+  assert.deepEqual(hits("tset gym"), ["org:Test Gym"], "a gym with two letters swapped");
+  assert.ok(hits("renoo").some((h) => h.startsWith("event:")), "a city with a letter added finds the events held there");
+  assert.ok(hits("arenna").some((h) => h.startsWith("event:")), "a venue");
+  // the nearest spelling comes first, not the first alphabetically: "Marcus" is 1 slip, "Marcos" 2, and "Marcos" sorts first
+  assert.deepEqual(hits("marcus quinterro"), ["person:Marcus Quintero", "person:Marcos Quintero"], "fewest slips first");
+  assert.deepEqual(hits("zephir hal"), [], "an event that was called off is not guessed");
+  assert.deepEqual(hits("quito"), [], "(nor found by its city: it never took place)");
+  // an exact match anywhere means no guessing at all
+  assert.deepEqual(hits("judge two").filter((h) => !h.startsWith("person:Judge Two")), [], "an exact name: only what matches exactly");
+  assert.ok(!hits("gym").some((h) => !/Test Gym|gym/i.test(h)), "'gym' matches the gym exactly, so nothing is guessed beside it");
+  // a typo in a page name is not turned into a list of people
+  assert.deepEqual(hits("rankigns"), [], "nothing is near enough to guess");
+  // Arabic names are searched and forgiven too
+  assert.deepEqual(hits("القاضي الثاني", { "Judge Two": "القاضي الثاني" }), ["person:Judge Two"]);
+  // the index behind the guesses is built once per world and table, and an empty table is one table (English callers each bring their own)
+  const { nearOf } = await import("../lib/search");
+  assert.equal(nearOf(w, {}), nearOf(w, {}));
+  const table = { "Judge Two": "القاضي الثاني" };
+  assert.equal(nearOf(w, table), nearOf(w, table));
+  assert.notEqual(nearOf(w, table), nearOf(w, {}), "a table with names is a different index");
+  assert.deepEqual(hits("القاضي الثني", { "Judge Two": "القاضي الثاني" }), ["person:Judge Two"], "a letter missing in the Arabic");
 });

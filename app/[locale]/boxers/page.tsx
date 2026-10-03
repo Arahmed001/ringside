@@ -8,6 +8,7 @@ import { BoxerCard, Pager } from "@/components/ui";
 import { paginate } from "@/lib/paging";
 import { getT } from "@/lib/i18n/server";
 import { getNames } from "@/lib/i18n/names";
+import { searchFighters } from "@/lib/fighter-search";
 import { metaFor } from "@/lib/seo-server";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) =>
@@ -24,11 +25,18 @@ export default async function Boxers({ searchParams }: { searchParams: Promise<{
   let results = w.boxers.filter((b) => b.bouts > 0);
   let chips: string[] = [];
   let source: "ai" | "rules" | null = null;
+  let closeTo: string | null = null; // the name typed, when nothing is spelt that way and these are the nearest spellings
   if (q.trim()) {
     const { filters, source: s } = await parseQuery(q, w, clientId(await headers()));
     source = s;
     chips = describeFilters(filters, t);
-    results = applyFilters(results, filters, w, await getNames(t.locale));
+    const names = await getNames(t.locale);
+    results = applyFilters(results, filters, w, names);
+    // a name and nothing else, spelt a little differently from any fighter's: offer the nearest spellings rather than an empty page
+    if (!results.length && filters.text && Object.keys(filters).length === 1) {
+      results = searchFighters(w, filters.text, { limit: PAGE, minBouts: 1, names });
+      if (results.length) closeTo = filters.text;
+    }
   } else {
     results = results.sort((a, b) => b.rating - a.rating);
   }
@@ -59,6 +67,7 @@ export default async function Boxers({ searchParams }: { searchParams: Promise<{
           <span className="chip">{source === "ai" ? "✦ Claude" : t("rule-based parser")}</span>
         </div>
       )}
+      {closeTo && <p className="mt-3 text-sm text-muted">{t("No fighter is spelt exactly “{text}”. These are the closest names.", { text: closeTo })}</p>}
       <div className="mt-2 text-sm text-muted">{results.length > shown.length ? t("{count} · showing {from}–{to}", { count: t.n(results.length, "{n} fighter", "{n} fighters"), from: first + 1, to: first + shown.length }) : t.n(results.length, "{n} fighter", "{n} fighters")}</div>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {shown.map((b) => <BoxerCard key={b.id} b={b} />)}

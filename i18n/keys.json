@@ -6798,6 +6798,12 @@
   ]
  },
  {
+  "key": "No fighter is spelt exactly “{text}”. These are the closest names.",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
   "key": "No fighter matches that.",
   "files": [
    "components/FighterPicker.tsx"

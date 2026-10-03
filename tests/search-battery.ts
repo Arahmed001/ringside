@@ -83,3 +83,40 @@ export function searchCases(w: World, names: Names, seed = 7): SearchCase[] {
   }
   return out;
 }
+
+/**
+ * The same kinds of slip for the other things the ⌘K palette finds: corner people (trainers, managers, judges, referees), gyms, promotions and sanctioning bodies,
+ * and events by venue or city. The thing meant is any hit whose address is in `hrefs` (a venue hosts many events: any of them is right).
+ */
+export interface EntityCase { q: string; hrefs: string[]; kind: string; entity: "person" | "org" | "venue" | "city"; group: "A" | "B" }
+
+export function entityCases(w: World, seed = 11): EntityCase[] {
+  const r = mulberry32(seed);
+  const pick = (n: number) => Math.floor(r() * n);
+  const out: EntityCase[] = [];
+  const word = (s: string) => strip(s).toLowerCase().split(/[\s\-]+/).filter((x) => x.length >= 4).sort((a, b) => b.length - a.length)[0];
+  const slips = (name: string, entity: EntityCase["entity"], hrefs: string[]) => {
+    const key = word(name);
+    if (!key) return;
+    const rest = strip(name).toLowerCase();
+    const sub = (f: (k: string) => string) => rest.replace(key, f(key));
+    const add = (q: string, kind: string, group: "A" | "B") => { if (q !== rest || kind.includes("control")) out.push({ q, hrefs, kind, entity, group }); };
+    add(rest, "as written (control)", "A");
+    { const i = 1 + pick(key.length - 2); add(sub((k) => k.slice(0, i) + k.slice(i + 1)), "a letter missing", "A"); }
+    { const i = 1 + pick(key.length - 2); const c = "bcdfghjklmnpqrstvwz".replace(key[i], "")[pick(18)]; add(sub((k) => k.slice(0, i) + c + k.slice(i + 1)), "a letter wrong", "A"); }
+    if (key.length >= 5) { const i = 1 + pick(key.length - 3); add(sub((k) => k.slice(0, i) + k[i + 1] + k[i] + k.slice(i + 2)), "two letters swapped", "A"); }
+    { const i = 1 + pick(key.length - 1); add(sub((k) => k.slice(0, i) + k[i] + k.slice(i)), "an extra (doubled) letter", "B"); }
+    { const vs = [...key].map((c, i) => [c, i] as const).filter(([c, i]) => "aeiou".includes(c) && i > 0); if (vs.length) { const [c, i] = vs[pick(vs.length)]; add(sub((k) => k.slice(0, i) + "aeiou".replace(c, "")[pick(4)] + k.slice(i + 1)), "a vowel confused", "B"); } }
+    if (/-/.test(name)) add(rest.replace(/-/g, ""), "a hyphen dropped", "A");
+  };
+  const roles = (id: number) => w.roles.get(id);
+  const people = [...w.people.values()].filter((p) => roles(p.id)?.size).sort((a, b) => a.id - b.id);
+  for (let i = 0; i < people.length && i < 400; i += Math.max(1, Math.floor(people.length / 90))) slips(people[i].name, "person", [`/people/${people[i].slug}`]);
+  const orgs = [...w.orgs.values()].sort((a, b) => a.id - b.id);
+  for (let i = 0; i < orgs.length; i += Math.max(1, Math.floor(orgs.length / 90))) slips(orgs[i].name, "org", [`/orgs/${orgs[i].slug}`]);
+  const venues = new Map<string, string[]>(), cities = new Map<string, string[]>();
+  for (const e of w.events) { if (e.status === "cancelled") continue; (venues.get(e.venue) ?? venues.set(e.venue, []).get(e.venue)!).push(`/events/${e.id}`); (cities.get(e.city) ?? cities.set(e.city, []).get(e.city)!).push(`/events/${e.id}`); }
+  for (const [v, hrefs] of [...venues].slice(0, 60)) slips(v, "venue", hrefs);
+  for (const [c, hrefs] of [...cities].slice(0, 40)) slips(c, "city", hrefs);
+  return out;
+}

@@ -13,7 +13,7 @@ import { belts } from "./lineage";
 import { fightYears } from "./fight-score";
 
 export type Locale = "en" | "ar";
-export interface SmokeRoute { path: string; kind: "page" | "api" | "svg" | "missing"; label: string }
+export interface SmokeRoute { path: string; kind: "page" | "api" | "svg" | "missing"; label: string; /** text the page must show (a search that has to find someone) */ mustShow?: string; /** not requested on the Arabic site: the path carries English the person typed, which the page rightly echoes */ englishOnly?: boolean }
 
 /** Directories under app/[locale] whose URL has a parameter: every one must have a sampler below, or a new page escapes the check. */
 export const DYNAMIC_PAGES = ["all-time/[list]", "bouts/[id]", "boxers/[slug]", "events/[id]", "fight-of-the-year/[year]", "orgs/[slug]", "people/[slug]", "previews/[id]", "rankings/[division]", "titles/[slug]"] as const;
@@ -35,6 +35,12 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   if (star && woman) page(`/compare?a=${star.slug}&b=${boxers[1].slug}`, "matchup");
   page(`/boxers?q=${q("southpaw welterweights with 10+ KOs")}`, "plain-English search");
   page("/boxers?sex=female", "women's fighter list");
+  // a name with a letter missing must still find the fighter (the nearest spellings are offered instead of an empty page): the best-rated fighter with a surname long enough to lose a letter
+  const longName = boxers.find((b) => b.name.split(" ").slice(-1)[0].length >= 6);
+  if (longName) {
+    const p = longName.name.split(" "), last = p[p.length - 1];
+    out.push({ path: `/boxers?q=${q(`${p.slice(0, -1).join(" ")} ${last.slice(0, 2)}${last.slice(3)}`)}`, kind: "page", label: "fighter search with a letter missing", mustShow: longName.name, englishOnly: true });
+  }
   page("/boxers?page=2", "second page of the fighter list");
   page("/boxers?page=9999", "page number beyond the end");
   const yr = [...new Set(w.events.filter((e) => !e.upcoming && e.status !== "cancelled").map((e) => e.date.slice(0, 4)))].sort()[0];
@@ -133,6 +139,7 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
     if (!new RegExp(`<form[^>]*\\saction="${locale === "ar" ? "/ar" : ""}/ask"`).test(body)) bad.push("the home page's question box does not go to /ask");
   }
   const text = visibleText(body);
+  if (route.mustShow && locale === "en" && !text.includes(route.mustShow)) bad.push(`the page does not show "${route.mustShow}"`);
   const slips: [RegExp, string][] = [
     [/\bundefined\b/, "the word 'undefined'"], [/\bNaN\b/, "NaN"], [/\[object Object\]/, "[object Object]"], [/(?<![A-Za-z])-?Infinity\b/, "Infinity"],
     [/\{[a-zA-Z]+\}/, "an unfilled {placeholder}"], [/Application error|Internal Server Error|This page couldn.t load|digest:/i, "an error page"],

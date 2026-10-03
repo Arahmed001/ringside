@@ -97,3 +97,19 @@ test("the route list covers every navigation entry and one page of every dynamic
   assert.ok(routes.some((r) => r.label === "bout: draw") && routes.some((r) => r.label === "bout: upcoming") && routes.some((r) => r.label === "bout: title fight"));
   assert.ok(paths.some((p) => p.includes("sex=female")), "women's pages are sampled");
 });
+
+test("a route can require text on the page: a search with a slip in the name must show the fighter, in English", () => {
+  const route: SmokeRoute = { path: "/boxers?q=x", kind: "page", label: "fighter search with a letter missing", mustShow: "Tomás Villalba" };
+  assert.deepEqual(bad(html("<p>Tomás Villalba</p>"), "en", 200, "text/html", route), []);
+  assert.ok(bad(html("<p>Nobody matches that.</p>"), "en", 200, "text/html", route).some((m) => /does not show "Tomás Villalba"/.test(m)));
+  assert.deepEqual(bad(html("<p>لا أحد</p>", "ar", "rtl"), "ar", 200, "text/html", route), [], "the name is in Arabic on the Arabic page, so the English text is not demanded there");
+});
+
+test("the search-with-a-slip route is in the list, English only (its query is English the page echoes), and asks for the fighter by name", () => {
+  const route = smokeRoutes(w).find((r) => r.label === "fighter search with a letter missing")!;
+  assert.ok(route, "the route exists");
+  assert.equal(route.englishOnly, true);
+  assert.ok(route.mustShow && route.path.startsWith("/boxers?q="));
+  assert.ok(decodeURIComponent(route.path).toLowerCase().includes(route.mustShow.split(" ")[0].toLowerCase()), "the query is built from the fighter's name");
+  assert.ok(!decodeURIComponent(route.path).toLowerCase().includes(route.mustShow.split(" ").slice(-1)[0].toLowerCase()), "but with a letter missing from the surname");
+});

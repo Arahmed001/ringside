@@ -817,6 +817,7 @@
  "No fight booked": "لا يوجد نزال محدد",
  "No fighter found by that name.": "لا ملاكم بهذا الاسم.",
  "No fighter has changed their own details yet.": "لم يغيّر أي ملاكم بياناته بنفسه بعد.",
+ "No fighter is spelt exactly “{text}”. These are the closest names.": "لا يوجد ملاكم يُكتب اسمه بالضبط «{text}». هذه أقرب الأسماء.",
  "No fighter matches that.": "لا يوجد ملاكم مطابق.",
  "No fighter with 4+ bouts matches that.": "لا يوجد ملاكم بـ4 نزالات أو أكثر يطابق ذلك.",
  "No fighter with {n}+ bouts matches that.": "لا يوجد ملاكم لديه {n} نزالات فأكثر يطابق ذلك.",

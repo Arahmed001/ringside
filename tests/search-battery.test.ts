@@ -1,7 +1,7 @@
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 import { tempDb } from "./helpers";
-import { searchCases, type SearchCase } from "./search-battery";
+import { entityCases, searchCases, type SearchCase } from "./search-battery";
 
 const cleanup = tempDb("search-battery");
 after(cleanup);
@@ -58,4 +58,17 @@ test("and usually first: group A and D one-slip kinds are the first result at le
 
 test("nothing is found for what is not a name: the far-off strings return no fighter", () => {
   for (const junk of ["qqqqqqqq", "zzzzzzzzz", "xqjvkw", "mmmmmmm", "qwertyuiop", "jjjjjjjjj"]) assert.deepEqual(find(w, junk, { limit: 8 }).map((b) => b.name), [], junk);
+});
+
+test("trainers, judges, gyms, promotions, venues and cities in the palette: a slip still finds them (about a thousand queries)", async () => {
+  const { globalSearch } = await import("../lib/search");
+  const { tEn } = await import("../lib/i18n/t");
+  const all = entityCases(w);
+  assert.ok(all.length >= 1000, `${all.length} queries`);
+  const rate = (sel: typeof all) => sel.filter((c) => globalSearch(w, c.q, tEn, {}).some((h) => c.hrefs.includes(h.href))).length / sel.length;
+  const control = all.filter((c) => c.kind.includes("control")), slips = all.filter((c) => c.group === "A" && !c.kind.includes("control")), related = all.filter((c) => c.group === "B");
+  assert.equal(rate(control), 1, "names as written");
+  assert.ok(rate(slips) >= 0.97, `slips the matcher was designed for: ${(100 * rate(slips)).toFixed(1)}%`);
+  assert.ok(rate(related) >= 0.97, `related slips: ${(100 * rate(related)).toFixed(1)}%`);
+  for (const entity of ["person", "org", "venue", "city"] as const) assert.ok(rate(all.filter((c) => c.entity === entity)) >= 0.95, `${entity}`);
 });

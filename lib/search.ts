@@ -1,7 +1,8 @@
 import type { World } from "./world";
-import type { BoxerFull } from "./types";
-import { searchFighters } from "./fighter-search";
+import type { BoxerFull, EventRow, Org, Person } from "./types";
+import { isEmptyTable, searchFighters } from "./fighter-search";
 import { normalize } from "./fighter-search";
+import { buildWordIndex, nearTexts, wordsOf } from "./fuzzy";
 import { divisionLabel } from "./divisions";
 import { countryName, fmtDate } from "./format";
 import { recordStr } from "./world";
@@ -42,6 +43,33 @@ const ROLE_NAME = { trainer: msg("Trainer"), manager: msg("Manager"), judge: msg
 const KIND_NAME: Record<string, string> = { gym: msg("Gym"), promotion: msg("Promotion"), sanctioning_body: msg("Sanctioning body"), broadcaster: msg("Broadcaster") };
 void ROLE_LABEL;
 
+/** The other things the palette finds, as lists with an index of their words, per world and per table of translated names, for the near-spelling guesses. */
+interface NearGroup<T> { items: T[]; vocab: Map<string, number[]> }
+interface Near { people: NearGroup<Person>; events: NearGroup<EventRow>; orgs: NearGroup<Org> }
+const nearCache = new WeakMap<World, WeakMap<Names, Near>>();
+const NO_TABLE: Names = {};
+/** Exported so a test can see that the index is built once per world and table, not once per keystroke. */
+export function nearOf(w: World, names: Names): Near {
+  if (isEmptyTable(names)) names = NO_TABLE;
+  let per = nearCache.get(w);
+  if (!per) { per = new WeakMap(); nearCache.set(w, per); }
+  let near = per.get(names);
+  if (!near) {
+    const group = <T,>(items: T[], parts: (x: T) => (string | undefined | null)[]): NearGroup<T> => ({ items, vocab: buildWordIndex(items.map((x) => normalize(parts(x).filter(Boolean).join(" ")))) });
+    near = {
+      people: group([...w.people.values()], (p) => [p.name, names[p.name]]),
+      events: group(w.events.filter((e) => e.status !== "cancelled"), (e) => [e.name, names[e.name], e.city, names[e.city], e.venue, names[e.venue]]),
+      orgs: group([...w.orgs.values()], (o) => [o.name, names[o.name]]),
+    };
+    per.set(names, near);
+  }
+  return near;
+}
+/** The items of a group with a word close to each word typed, fewest slips first, capped. */
+function nearItems<T>(g: NearGroup<T>, typed: string[], order: (a: T, b: T) => number, cap: number): T[] {
+  return [...nearTexts(g.vocab, typed)].map(([i, cost]) => ({ x: g.items[i], cost })).sort((a, b) => a.cost - b.cost || order(a.x, b.x)).slice(0, cap).map((r) => r.x);
+}
+
 /**
  * Everything ⌘K searches: fighters, trainers/managers/judges/referees, events (name, city, venue), gyms/promotions/bodies, and the
  * site's pages. Matches English and, when a name table is given, Arabic spellings; each group is capped so the list stays scannable.
@@ -63,10 +91,13 @@ export function globalSearch(w: World, query: string, t: T, names: Names, perGro
   for (const b of searchFighters(w, query, { limit: perGroup, names, forgiving: false })) out.push(fighterHit(b));
 
   const people = [...w.people.values()].map((p) => ({ p, r: match(p.name, names[p.name]) })).filter((x) => x.r >= 0).sort((a, b) => a.r - b.r || a.p.name.localeCompare(b.p.name)).slice(0, perGroup);
-  for (const { p } of people) {
+  const personHit = (p: Person): SearchHit => {
     const roles = ROLE_ORDER.filter((r) => w.roles.get(p.id)?.has(r)).map((r) => t(ROLE_NAME[r]));
-    out.push({ kind: "person", title: t.name(p.name), subtitle: roles.join(" · ") || undefined, href: `/people/${p.slug}` });
-  }
+    return { kind: "person", title: t.name(p.name), subtitle: roles.join(" · ") || undefined, href: `/people/${p.slug}` };
+  };
+  const eventHit = (e: EventRow): SearchHit => ({ kind: "event", title: t.name(e.name), subtitle: `${fmtDate(e.date, undefined, t.locale)} · ${t.name(e.city)}`, href: `/events/${e.id}` });
+  const orgHit = (o: Org): SearchHit => ({ kind: "org", title: t.name(o.name), subtitle: [t(KIND_NAME[o.kind] ?? "Organisation"), o.city ? t.name(o.city) : null].filter(Boolean).join(" · "), href: `/orgs/${o.slug}` });
+  for (const { p } of people) out.push(personHit(p));
 
   const events: { e: (typeof w.events)[number]; r: number }[] = [];
   for (let i = w.events.length - 1; i >= 0 && events.length < perGroup; i--) { // newest first, stop when full
@@ -74,11 +105,18 @@ export function globalSearch(w: World, query: string, t: T, names: Names, perGro
     const r = match(e.name, names[e.name], e.city, names[e.city], e.venue, names[e.venue]);
     if (r >= 0 && e.status !== "cancelled") events.push({ e, r });
   }
-  for (const { e } of events.sort((a, b) => a.r - b.r)) out.push({ kind: "event", title: t.name(e.name), subtitle: `${fmtDate(e.date, undefined, t.locale)} · ${t.name(e.city)}`, href: `/events/${e.id}` });
+  for (const { e } of events.sort((a, b) => a.r - b.r)) out.push(eventHit(e));
 
   const orgs = [...w.orgs.values()].map((o) => ({ o, r: match(o.name, names[o.name]) })).filter((x) => x.r >= 0).sort((a, b) => a.r - b.r || a.o.name.localeCompare(b.o.name)).slice(0, perGroup);
-  for (const { o } of orgs) out.push({ kind: "org", title: t.name(o.name), subtitle: [t(KIND_NAME[o.kind] ?? "Organisation"), o.city ? t.name(o.city) : null].filter(Boolean).join(" · "), href: `/orgs/${o.slug}` });
-  // a typo in a name is only worth a guess when nothing else matched: otherwise "rankigns" would show fighters beside the page it means
-  if (!out.length) for (const b of searchFighters(w, query, { limit: perGroup, names })) out.push(fighterHit(b));
+  for (const { o } of orgs) out.push(orgHit(o));
+  // A typo in a name is only worth a guess when nothing else matched: otherwise "rankigns" would show names beside the page it means.
+  // Then every kind of name gets one, close spellings first.
+  if (!out.length) {
+    const near = nearOf(w, names), typed = wordsOf(q);
+    for (const b of searchFighters(w, query, { limit: perGroup, names })) out.push(fighterHit(b));
+    for (const p of nearItems(near.people, typed, (a, b) => a.name.localeCompare(b.name), perGroup)) out.push(personHit(p));
+    for (const e of nearItems(near.events, typed, (a, b) => b.date.localeCompare(a.date) || b.id - a.id, perGroup)) out.push(eventHit(e));
+    for (const o of nearItems(near.orgs, typed, (a, b) => a.name.localeCompare(b.name), perGroup)) out.push(orgHit(o));
+  }
   return out;
 }

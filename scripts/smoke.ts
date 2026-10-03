@@ -96,7 +96,7 @@ async function main() {
   for (const r of routes) {
     if (r.kind === "page" || r.kind === "missing") {
       await run(r.path, r.label, r, "en");
-      await run(r.path === "/" ? "/ar" : `/ar${r.path}`, r.label, r, "ar");
+      if (!r.englishOnly) await run(r.path === "/" ? "/ar" : `/ar${r.path}`, r.label, r, "ar");
     } else await run(r.path, r.label, r, "en");
   }
   stop();

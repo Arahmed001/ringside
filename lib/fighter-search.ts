@@ -3,7 +3,7 @@ import { recordStr } from "./world";
 import { divisionLabel } from "./divisions";
 import { tEn, type Names, type T } from "./i18n/t";
 import type { BoxerFull } from "./types";
-import { allowedSlips, editDistance, prefixDistance } from "./fuzzy";
+import { buildWordIndex, nearTexts, wordsOf } from "./fuzzy";
 import { Lru } from "./lru";
 
 export interface FighterHit { slug: string; name: string; division: string; country: string; record: string }
@@ -20,12 +20,10 @@ export const normalize = (s: string) => s.normalize("NFD").replace(/[̀-ًͯ-ٟ�
 
 const NO_NAMES: Names = {};
 /** Callers that pass an empty table (a fresh `{}` each time) must not each get their own index: an empty table is one table. */
-const isEmpty = (names: Names) => { for (const _ in names) return false; return true; };
+export const isEmptyTable = (names: Names) => { for (const _ in names) return false; return true; };
 const indexes = new WeakMap<World, WeakMap<Names, Index>>();
-/** The words of a normalised name: split at spaces, hyphens and punctuation ("T. Al-Qahtani" is t, al, qahtani). */
-const wordsOf = (s: string) => s.split(/[\s\-.,;:!?؟،()"“”'’]+/).filter(Boolean);
 function indexOf(w: World, names: Names): Index {
-  if (isEmpty(names)) names = NO_NAMES;
+  if (isEmptyTable(names)) names = NO_NAMES;
   let per = indexes.get(w);
   if (!per) { per = new WeakMap(); indexes.set(w, per); }
   let idx = per.get(names);
@@ -34,14 +32,7 @@ function indexOf(w: World, names: Names): Index {
       const ar = names[b.name], arNick = b.nickname ? names[b.nickname] : undefined;
       return { b, name: normalize(ar ? `${b.name} ${ar}` : b.name), hay: normalize(`${b.name} ${ar ?? ""} ${b.nickname ?? ""} ${arNick ?? ""} ${b.aliases.join(" ")}`) };
     });
-    const words = new Map<string, number[]>();
-    const put = (word: string, i: number) => { const l = words.get(word); if (!l) words.set(word, [i]); else if (l[l.length - 1] !== i) l.push(i); };
-    entries.forEach((e, i) => {
-      const ws = wordsOf(e.hay);
-      for (const x of ws) put(x, i);
-      // "Al Qahtani", "Al-Qahtani" and "Alqahtani" are one name to the person typing it
-      for (let k = 0; k + 1 < ws.length; k++) put(ws[k] + ws[k + 1], i);
-    });
+    const words = buildWordIndex(entries.map((e) => e.hay));
     idx = { entries, words, recent: new Lru(500) };
     per.set(names, idx);
   }
@@ -89,25 +80,7 @@ function run(entries: Entry[], vocab: Map<string, number[]>, q: string, words: s
  * are an initial and must start a word. Every word typed has to find a word in the name; the name with the fewest slips in all comes first, then the more experienced fighter.
  */
 function forgiving(entries: Entry[], vocab: Map<string, number[]>, typed: string[], minBouts: number, limit: number): BoxerFull[] {
-  let candidates: Map<number, number> | null = null; // entry -> slips so far
-  for (const t of typed) {
-    const found = new Map<number, number>();
-    for (const [word, owners] of vocab) {
-      // Two ways to be close. As a whole word, forgiveness follows the longer of the two (two letters gone from a long name are two slips). As the start of a
-      // longer word, only what was typed counts: two slips in four letters is half the word, whatever the name's length. A typed word of 3 or fewer is exact or an initial.
-      const whole = t.length <= 3 ? 0 : allowedSlips(Math.max(t.length, word.length)), start = t.length <= 3 ? 0 : allowedSlips(t.length);
-      let cost = 9;
-      if (t.length <= 2) cost = word.startsWith(t) ? 0 : 9;
-      else if (word.startsWith(t)) cost = 0;
-      else if (whole > 0) { const e = editDistance(t, word, whole), p = prefixDistance(t, word, start); cost = Math.min(e <= whole ? e : 9, p <= start ? p : 9); }
-      if (cost > 8) continue;
-      for (const i of owners) if ((found.get(i) ?? 9) > cost) found.set(i, cost);
-    }
-    if (candidates === null) candidates = found;
-    else { const next = new Map<number, number>(); for (const [i, c] of candidates) { const f = found.get(i); if (f !== undefined) next.set(i, c + f); } candidates = next; }
-    if (!candidates.size) return [];
-  }
-  return [...(candidates ?? [])].map(([i, cost]) => ({ b: entries[i].b, cost })).filter((x) => x.b.bouts >= minBouts)
+  return [...nearTexts(vocab, typed)].map(([i, cost]) => ({ b: entries[i].b, cost })).filter((x) => x.b.bouts >= minBouts)
     .sort((x, y) => x.cost - y.cost || y.b.bouts - x.b.bouts || x.b.name.localeCompare(y.b.name)).slice(0, limit).map((x) => x.b);
 }
 
