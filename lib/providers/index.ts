@@ -15,13 +15,13 @@ export interface ProviderBoxer {
   name: string;
   nickname?: string;
   country: string;
-  birthYear: number;
-  stance: Stance;
+  birthYear: number | null; // null when the feed does not say: never a guess
+  stance: Stance | null;
   sex?: Sex; // defaults to male when a feed does not say
-  heightCm: number;
-  reachCm: number;
+  heightCm: number | null;
+  reachCm: number | null;
   weightClass: string;
-  turnedPro: number;
+  turnedPro: number | null;
   active: boolean;
   photoUrl?: string; // licensed headshot URL; generated portrait used when absent
   birthDate?: string; // ISO yyyy-mm-dd (only when day-precision is known)

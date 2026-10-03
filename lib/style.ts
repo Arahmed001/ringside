@@ -29,11 +29,11 @@ function vector(b: BoxerFull, w: World): number[] {
   const hist = w.history.get(b.id) ?? [];
   return [
     b.koRate, b.winRate,
-    (b.age - 30) / 8,
+    b.age === null ? 0 : (b.age - 30) / 8, // an unknown age counts as typical, so it pulls toward no style
     b.avgRounds / 12,
     b.losses ? b.koLosses / b.losses : 0,
     b.stance === "Southpaw" ? 1 : 0,
-    (b.reachCm - b.heightCm) / 10,
+    b.reachCm === null || b.heightCm === null ? 0 : (b.reachCm - b.heightCm) / 10,
     Math.min(1, b.bouts / 40),
     (b.rating - 1500) / 200,
     hist.length > 3 ? (hist[hist.length - 1].rating - hist[hist.length - 4].rating) / 60 : 0,

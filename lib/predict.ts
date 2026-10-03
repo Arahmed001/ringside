@@ -3,6 +3,7 @@ import { activeFinish, activeWeights, TERMS, TERM_KEYS, stoppageProbability, win
 import { nowMs } from "./clock";
 import { divisionInfo } from "./divisions";
 import { tEn, type T } from "./i18n/t";
+import { orDash } from "./facts";
 
 export interface Factor { label: string; shift: number; note: string }
 export interface Prediction {
@@ -23,8 +24,8 @@ export function featuresOf(b: BoxerFull, now = nowMs()): Features {
 
 const NOTES: Record<keyof typeof TERMS, (a: Features, b: Features, t: T) => string> = {
   rating: (a, b, t) => t("{a} vs {b} Elo", { a: Math.round(a.rating), b: Math.round(b.rating) }),
-  reach: (a, b, t) => t("{a}cm vs {b}cm", { a: a.reachCm, b: b.reachCm }),
-  age: (a, b, t) => t("{a} vs {b}", { a: a.age, b: b.age }),
+  reach: (a, b, t) => t("{a}cm vs {b}cm", { a: orDash(a.reachCm, (n) => n), b: orDash(b.reachCm, (n) => n) }),
+  age: (a, b, t) => t("{a} vs {b}", { a: orDash(a.age, (n) => n), b: orDash(b.age, (n) => n) }),
   idle: (a, b, t) => t("{a} vs {b} months since last fight", { a: Math.round(a.monthsIdle), b: Math.round(b.monthsIdle) }),
   power: (a, b, t) => t("{a}% vs {b}% KO rate", { a: Math.round(a.koRate * 100), b: Math.round(b.koRate * 100) }),
   chin: (a, b, t) => t("{a}% vs {b}% of fights lost by KO", { a: Math.round(a.koLossRate * 100), b: Math.round(b.koLossRate * 100) }),

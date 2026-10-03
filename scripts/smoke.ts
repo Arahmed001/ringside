@@ -1,5 +1,5 @@
 /**
- * npm run build && npm run smoke [-- --feed sparse|empty]      render every kind of page in English and Arabic on a real production server and inspect it
+ * npm run build && npm run smoke [-- --feed sparse|empty] [-- --facts unknown]      render every kind of page in English and Arabic on a real production server and inspect it
  *
  * Seeds a throwaway database with the demo league (clock pinned to 2026-10-03), starts `next start` on a free port, requests a
  * representative page of every kind plus the JSON and image endpoints, and checks each (status, language and direction, a heading,
@@ -49,6 +49,15 @@ async function main() {
   const { smokeRoutes, problemsIn, arabicLeaks } = await import("../lib/smoke");
   const { securityProblems, STATIC_HEADERS } = await import("../lib/security");
   const world = await getWorld();
+  // `--facts unknown` makes a real feed's gaps real: two fighters in three lose height, reach, birth year, stance and debut year, and a further third lose
+  // reach and birth year, so every page that shows or uses those facts is rendered with some of them missing (no page may fail, show "null" or a made-up value)
+  if (arg("facts") === "unknown") {
+    const { getDb } = await import("../lib/db");
+    const d = await getDb();
+    d.exec("UPDATE boxers SET height_cm = NULL, reach_cm = NULL, birth_year = NULL, stance = NULL, turned_pro = NULL, birth_date = NULL, debut_date = NULL WHERE id % 3 = 0");
+    d.exec("UPDATE boxers SET reach_cm = NULL, birth_year = NULL, birth_date = NULL WHERE id % 3 = 1");
+    console.log("facts: unknown for two fighters in three");
+  }
   const routes = smokeRoutes(world);
 
   const port = Number(arg("port")) || (await freePort());

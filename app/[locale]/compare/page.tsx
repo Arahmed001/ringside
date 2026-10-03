@@ -1,3 +1,4 @@
+import { DASH, isKnown, orDash } from "@/lib/facts";
 import Link from "@/components/L";
 import { getWorld, recordStr } from "@/lib/world";
 import { predict, featuresOf } from "@/lib/predict";
@@ -83,16 +84,17 @@ export default async function Compare({ searchParams }: { searchParams: Promise<
 async function Result({ A, B, w }: { A: BoxerFull; B: BoxerFull; w: Awaited<ReturnType<typeof getWorld>> }) {
   const t = await getT();
   const p = predict(A, B, t);
-  const cm = (n: number) => t("{n} cm", { n });
+  const cm = (n: number | null) => orDash(n, (x) => t("{n} cm", { n: x }));
+  const withReach = isKnown(A.reachCm) && isKnown(B.reachCm); // the chart compares like with like: a reach nobody knows is left off for both
   const h2h = (w.boutsByBoxer.get(A.id) ?? []).filter((x) => x.method && (x.redId === B.id || x.blueId === B.id));
   const rows: [string, string, string][] = [
     [t("Record"), recordStr(A), recordStr(B)], [t("KO rate"), pct(A.koRate), pct(B.koRate)], [t("Rating"), String(Math.round(A.rating)), String(Math.round(B.rating))],
-    [t("Age"), String(A.age), String(B.age)], [t("Height"), cm(A.heightCm), cm(B.heightCm)], [t("Reach"), cm(A.reachCm), cm(B.reachCm)],
-    [t("Stance"), t(A.stance), t(B.stance)], [t("Style"), t(archetype(A)), t(archetype(B))], [t("Division"), divisionLabel(A.weightClass, A.sex, t), divisionLabel(B.weightClass, B.sex, t)],
+    [t("Age"), orDash(A.age, String), orDash(B.age, String)], [t("Height"), cm(A.heightCm), cm(B.heightCm)], [t("Reach"), cm(A.reachCm), cm(B.reachCm)],
+    [t("Stance"), A.stance ? t(A.stance) : DASH, B.stance ? t(B.stance) : DASH], [t("Style"), t(archetype(A)), t(archetype(B))], [t("Division"), divisionLabel(A.weightClass, A.sex, t), divisionLabel(B.weightClass, B.sex, t)],
   ];
   const ax = (b: BoxerFull) => [
     { label: t("Power"), v: b.koRate }, { label: t("Winning"), v: b.winRate }, { label: t("Durability"), v: 1 - Math.min(1, (b.koLosses / Math.max(1, b.bouts)) * 4) },
-    { label: t("Reach"), v: Math.min(1, Math.max(0, (b.reachCm - 150) / 60)) }, { label: t("Experience"), v: Math.min(1, b.bouts / 40) }, { label: t("Rating"), v: Math.min(1, Math.max(0, (b.rating - 1350) / 400)) },
+    ...(withReach ? [{ label: t("Reach"), v: Math.min(1, Math.max(0, ((b.reachCm as number) - 150) / 60)) }] : []), { label: t("Experience"), v: Math.min(1, b.bouts / 40) }, { label: t("Rating"), v: Math.min(1, Math.max(0, (b.rating - 1350) / 400)) },
   ];
   return (
     <section className="space-y-6">

@@ -1,3 +1,4 @@
+import { DASH } from "./facts";
 import type { World } from "./world";
 import { recordStr } from "./world";
 import type { BoutRow, BoxerFull, EventRow } from "./types";
@@ -80,7 +81,8 @@ export function buildPreview(w: World, bout: BoutRow, t: T = tEn): Preview {
 
   // ---- tale of the tape ----
   const rankIn = (b: BoxerFull) => memo(w, `rankIndex:${b.sex}:${b.weightClass}`, () => new Map(rankDivision(w, b.weightClass, 200, b.sex).map((x) => [x.boxer.id, x.rank]))).get(b.id) ?? null;
-  const edge = (a: number, b: number, higherBetter = true): "red" | "blue" | null => (a === b ? null : (a > b) === higherBetter ? "red" : "blue");
+  const edge = (a: number | null, b: number | null, higherBetter = true): "red" | "blue" | null => (a === null || b === null || a === b ? null : (a > b) === higherBetter ? "red" : "blue"); // no edge is claimed from a fact that is unknown
+  const num = (n: number | null, f: (x: number) => string = String) => (n === null ? DASH : f(n));
   const ra = rankIn(red), rb = rankIn(blue);
   const mAgo = (b: BoxerFull) => months(w, b.lastFight);
   const tape: TapeRow[] = [
@@ -88,10 +90,10 @@ export function buildPreview(w: World, bout: BoutRow, t: T = tEn): Preview {
     { label: t("Knockouts"), red: `${red.kos} (${Math.round(red.koRate * 100)}%)`, blue: `${blue.kos} (${Math.round(blue.koRate * 100)}%)`, edge: edge(red.koRate, blue.koRate) },
     { label: t("Elo rating"), red: String(Math.round(red.rating)), blue: String(Math.round(blue.rating)), edge: edge(red.rating, blue.rating) },
     { label: t("Division rank"), red: ra ? `#${ra}` : "–", blue: rb ? `#${rb}` : "–", edge: ra && rb ? edge(ra, rb, false) : null },
-    { label: t("Age"), red: String(red.age), blue: String(blue.age), edge: edge(red.age, blue.age, false) },
-    { label: t("Height"), red: t("{n} cm", { n: red.heightCm }), blue: t("{n} cm", { n: blue.heightCm }), edge: edge(red.heightCm, blue.heightCm) },
-    { label: t("Reach"), red: t("{n} cm", { n: red.reachCm }), blue: t("{n} cm", { n: blue.reachCm }), edge: edge(red.reachCm, blue.reachCm) },
-    { label: t("Stance"), red: t(red.stance), blue: t(blue.stance), edge: null },
+    { label: t("Age"), red: num(red.age), blue: num(blue.age), edge: edge(red.age, blue.age, false) },
+    { label: t("Height"), red: num(red.heightCm, (n) => t("{n} cm", { n })), blue: num(blue.heightCm, (n) => t("{n} cm", { n })), edge: edge(red.heightCm, blue.heightCm) },
+    { label: t("Reach"), red: num(red.reachCm, (n) => t("{n} cm", { n })), blue: num(blue.reachCm, (n) => t("{n} cm", { n })), edge: edge(red.reachCm, blue.reachCm) },
+    { label: t("Stance"), red: red.stance ? t(red.stance) : DASH, blue: blue.stance ? t(blue.stance) : DASH, edge: null },
     { label: t("Style"), red: t(archetype(red)), blue: t(archetype(blue)), edge: null },
     { label: t("Last fought"), red: mAgo(red) === null ? "–" : t("{n} months ago", { n: mAgo(red)! }), blue: mAgo(blue) === null ? "–" : t("{n} months ago", { n: mAgo(blue)! }), edge: mAgo(red) !== null && mAgo(blue) !== null ? edge(mAgo(red)!, mAgo(blue)!, false) : null },
   ];
@@ -126,8 +128,8 @@ export function buildPreview(w: World, bout: BoutRow, t: T = tEn): Preview {
   // ---- style ----
   const sa = archetype(red), sb = archetype(blue);
   const styleParts = [t("{a} ({sa}) meets {b} ({sb}).", { a: name(red), sa: t(sa), b: name(blue), sb: t(sb) })];
-  if (red.stance !== blue.stance) styleParts.push(t("{a} fights {sa}, {b} fights {sb}: the angles will matter.", { a: name(red), sa: t(red.stance).toLowerCase(), b: name(blue), sb: t(blue.stance).toLowerCase() }));
-  const gap = red.reachCm - blue.reachCm;
+  if (red.stance && blue.stance && red.stance !== blue.stance) styleParts.push(t("{a} fights {sa}, {b} fights {sb}: the angles will matter.", { a: name(red), sa: t(red.stance).toLowerCase(), b: name(blue), sb: t(blue.stance).toLowerCase() }));
+  const gap = red.reachCm !== null && blue.reachCm !== null ? red.reachCm - blue.reachCm : 0;
   if (Math.abs(gap) >= 5) styleParts.push(t("{name} has a {n} cm reach advantage.", { name: name(gap > 0 ? red : blue), n: Math.abs(gap) }));
   const style = styleParts.join(" ");
 
@@ -160,7 +162,7 @@ export function buildPreview(w: World, bout: BoutRow, t: T = tEn): Preview {
   for (const b of [red, blue]) {
     const idle = months(w, b.lastFight);
     if (idle !== null && idle >= 12) watch.push(t("{name} has been out for {n} months: ring rust is the question.", { name: name(b), n: idle }));
-    if (b.age >= 36) watch.push(t("{name} is {age}: how much is left?", { name: name(b), age: b.age }));
+    if (b.age !== null && b.age >= 36) watch.push(t("{name} is {age}: how much is left?", { name: name(b), age: b.age }));
     if (b.bouts >= 6 && b.koLosses / Math.max(1, b.bouts) >= 0.2) watch.push(t("{name} has been stopped in {n} fights: the chin will be tested.", { name: name(b), n: b.koLosses }));
     const missed = missCount(w, b.id);
     if (missed > 0) watch.push(t.n(missed, "{name} has missed weight {n} time before: watch the scale.", "{name} has missed weight {n} times before: watch the scale.", { name: name(b) }));

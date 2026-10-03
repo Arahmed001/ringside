@@ -46,7 +46,7 @@ test("tape edges point at the better fighter, and the form line matches the reco
   const elo = pv.tape.find((r) => r.label === "Elo rating")!;
   assert.equal(elo.edge, pv.red.rating > pv.blue.rating ? "red" : "blue");
   const age = pv.tape.find((r) => r.label === "Age")!;
-  if (pv.red.age !== pv.blue.age) assert.equal(age.edge, pv.red.age < pv.blue.age ? "red" : "blue", "younger is the edge");
+  if (pv.red.age !== pv.blue.age) assert.equal(age.edge, pv.red.age! < pv.blue.age! ? "red" : "blue", "younger is the edge");
   for (const f of pv.form) {
     const last = (w.boutsByBoxer.get(f.boxer.id) ?? []).filter((x) => !x.upcoming && x.method && x.method !== "NC").slice(-5);
     assert.equal(f.results.length, last.length);

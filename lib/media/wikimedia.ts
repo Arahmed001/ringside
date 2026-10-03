@@ -37,7 +37,7 @@ export async function api<T>(base: string, params: Record<string, string>): Prom
   throw new Error("Wikimedia unavailable after retries");
 }
 
-export interface Subject { name: string; birthYear: number }
+export interface Subject { name: string; /** null when the data does not have it: then there is nothing to verify a name match against, and none is made */ birthYear: number | null }
 
 export interface MediaMatch {
   wikidataId: string;
@@ -98,6 +98,7 @@ async function imageFor(fileName: string): Promise<Omit<MediaMatch, "wikidataId"
 }
 
 export async function findHeadshot(s: Subject): Promise<Outcome> {
+  if (!s.birthYear) return { status: "no_match", reason: "no birth year to check a name match against" }; // asked before any request is made
   const found = await api<{ search?: { id: string }[] }>(WIKIDATA, {
     action: "wbsearchentities", search: s.name, language: "en", type: "item", limit: "8",
   });
@@ -110,7 +111,8 @@ export async function findHeadshot(s: Subject): Promise<Outcome> {
   const boxers = ids.map((id) => ents.entities?.[id]).filter((e): e is Entity => !!e && isBoxer(e));
   if (!boxers.length) return { status: "no_match", reason: "no boxer with that name" };
 
-  const matching = boxers.filter((e) => birthYears(e).includes(s.birthYear));
+  const birthYear = s.birthYear;
+  const matching = boxers.filter((e) => birthYears(e).includes(birthYear));
   if (matching.length !== 1) {
     return { status: "no_match", reason: matching.length ? "ambiguous: several boxers share name and birth year" : "no boxer with matching birth year" };
   }

@@ -19,7 +19,7 @@ export async function resolveMissingMedia(db: DatabaseSync, opts: { limit?: numb
     LEFT JOIN boxer_media m ON m.boxer_id = b.id
     WHERE (b.photo_url IS NULL OR m.status = 'matched')
       AND (m.boxer_id IS NULL OR (m.status = 'no_match' AND m.checked_at < ?))
-    ORDER BY b.rating DESC LIMIT ?`).all(cutoff, limit) as { id: number; name: string; birthYear: number; qid: string | null }[];
+    ORDER BY b.rating DESC LIMIT ?`).all(cutoff, limit) as { id: number; name: string; birthYear: number | null; qid: string | null }[];
 
   const save = db.prepare(`INSERT INTO boxer_media (boxer_id, status, reason, wikidata_id, file_title, thumb_url, page_url, license, license_url, credit, checked_at)
     VALUES (?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(boxer_id) DO UPDATE SET status=excluded.status, reason=excluded.reason, wikidata_id=excluded.wikidata_id,

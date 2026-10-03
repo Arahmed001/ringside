@@ -80,7 +80,7 @@ export const upsetWatch = (w: World, t: T): Watch[] => memo(w, `upsetWatch:${t.l
           : { kind: "lost-last", text: t("{name} lost last time out", { name: fname }), weight: 0.035 });
       }
     }
-    if (favourite.age >= SIGNS.age) signals.push({ kind: "age", text: t.n(favourite.age, "{name} is {n} year old", "{name} is {n} years old", { name: fname }), weight: 0.04 });
+    if (favourite.age !== null && favourite.age >= SIGNS.age) signals.push({ kind: "age", text: t.n(favourite.age, "{name} is {n} year old", "{name} is {n} years old", { name: fname }), weight: 0.04 });
     const ch = changes.get(favourite.id);
     if (ch) {
       const since = Math.max(0, Math.round(monthsBetween(ch.date, b.date)));
@@ -150,7 +150,7 @@ export const signalLift = (w: World): Lift[] => memo(w, "signalLift", () => {
   }
   const tests: { kind: SignalKind; has: (c: Call, fav: BoxerFull, favLast: BoutRow | null, ud: BoxerFull) => boolean }[] = [
     { kind: "layoff", has: (c, _f, l) => !!l && monthsBetween(l.date, c.date) >= SIGNS.layoffMonths },
-    { kind: "age", has: (c, f) => Number(c.date.slice(0, 4)) - f.birthYear >= SIGNS.age },
+    { kind: "age", has: (c, f) => f.birthYear !== null && Number(c.date.slice(0, 4)) - f.birthYear >= SIGNS.age },
     { kind: "ko-loss", has: (_c, f, l) => !!l && l.winnerId !== null && l.winnerId !== f.id && isStoppage(l.method) },
     { kind: "lost-last", has: (_c, f, l) => !!l && l.winnerId !== null && l.winnerId !== f.id && !isStoppage(l.method) },
     { kind: "streak", has: (c, _f, _l, u) => (streakBefore.get(`${u.id}:${c.boutId}`) ?? 0) >= SIGNS.streak },
