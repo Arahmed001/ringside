@@ -238,25 +238,46 @@ test("failures are loud and never leak the key: an API error, a rate limit, a se
   assert.ok(logs.some((l) => /fighter C1 skipped/.test(l)));
 });
 
-test("the database is not filled until the storage terms are confirmed; evaluating a sample is always allowed", () => {
-  delete process.env.BOXING_API_STORAGE_CONFIRMED;
-  assert.throws(() => B.boxingDataApiProvider({ key: KEY, purpose: "ingest" }), /storing data are unconfirmed/);
-  assert.doesNotThrow(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation" }));
-  process.env.BOXING_API_STORAGE_CONFIRMED = "1";
-  try { assert.doesNotThrow(() => B.boxingDataApiProvider({ key: KEY, purpose: "ingest" })); } finally { delete process.env.BOXING_API_STORAGE_CONFIRMED; }
+test("storing is on by default, provisionally and with a warning, until the vendor confirms; =1 silences the warning, =0 refuses", () => {
+  const logs: string[] = [];
+  try {
+    delete process.env.BOXING_API_STORAGE_CONFIRMED;
+    assert.equal(B.storageStatus(), "provisional");
+    assert.doesNotThrow(() => B.boxingDataApiProvider({ key: KEY, purpose: "ingest", log: (m) => logs.push(m) }));
+    assert.deepEqual(logs, [B.STORAGE_WARNING], "it says so, once");
+    assert.match(B.STORAGE_WARNING, /PROVISIONALLY/); assert.match(B.STORAGE_WARNING, /Undoing it/); assert.match(B.STORAGE_WARNING, /BOXING_API_STORAGE_CONFIRMED=1/);
+    logs.length = 0;
+    assert.doesNotThrow(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", log: (m) => logs.push(m) }));
+    assert.equal(logs.length, 0, "an evaluation stores nothing, so it says nothing");
+
+    process.env.BOXING_API_STORAGE_CONFIRMED = "1";
+    assert.equal(B.storageStatus(), "confirmed");
+    assert.doesNotThrow(() => B.boxingDataApiProvider({ key: KEY, purpose: "ingest", log: (m) => logs.push(m) }));
+    assert.equal(logs.length, 0, "confirmed: no warning");
+
+    process.env.BOXING_API_STORAGE_CONFIRMED = "0";
+    assert.throws(() => B.storageStatus(), /switched off/);
+    assert.throws(() => B.boxingDataApiProvider({ key: KEY, purpose: "ingest" }), /switched off/);
+    assert.doesNotThrow(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation" }), "a sample can still be evaluated");
+  } finally { delete process.env.BOXING_API_STORAGE_CONFIRMED; }
 });
 
-test("BOXING_PROVIDER=licensed needs a key, and without the storage confirmation it refuses to fill the database", async () => {
+test("BOXING_PROVIDER=licensed needs a key; storing is allowed by default and refused only when switched off", async () => {
   const { licensedProvider } = await import("../lib/providers/licensed");
   const saved = { ...process.env };
+  const log = console.log; const said: string[] = [];
+  console.log = (...a: unknown[]) => { said.push(a.join(" ")); };
   try {
     delete process.env.BOXING_API_KEY; delete process.env.BOXING_API_STORAGE_CONFIRMED;
     assert.throws(() => licensedProvider(), /BOXING_API_KEY/);
     process.env.BOXING_API_KEY = KEY;
-    assert.throws(() => licensedProvider(), /unconfirmed/);
+    assert.equal(licensedProvider().name, "boxing-data-api");
+    assert.ok(said.some((m) => /PROVISIONALLY/.test(m)), "and it says it is storing provisionally");
+    process.env.BOXING_API_STORAGE_CONFIRMED = "0";
+    assert.throws(() => licensedProvider(), /switched off/);
     process.env.BOXING_API_STORAGE_CONFIRMED = "1";
     assert.equal(licensedProvider().name, "boxing-data-api");
-  } finally { for (const k of ["BOXING_API_KEY", "BOXING_API_STORAGE_CONFIRMED"]) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; } }
+  } finally { console.log = log; for (const k of ["BOXING_API_KEY", "BOXING_API_STORAGE_CONFIRMED"]) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; } }
 });
 
 test("upcoming fights come from the schedule endpoint: asked for the coming days, no result carried, and a fight in both lists is taken once", async () => {
@@ -475,4 +496,122 @@ test("a fighter with no division in the feed takes the division of their most re
   assert.equal(n.divisionFromFight, 1);
   const { issues } = sanitizeFeed({ ...emptyFeed(), boxers: [out.A, out.D], events: [{ externalId: "e1", name: "x", date: "2025-01-01", venue: "v", city: "c", country: "k" }, { externalId: "e2", name: "y", date: "2026-05-01", venue: "v", city: "c", country: "k" }], bouts: bouts.slice(0, 2) }, { today: "2026-10-03" });
   assert.deepEqual(issues.filter((i) => i.code === "unknown_division"), [], "the validator no longer rejects the fighter");
+});
+
+// ---- the backfill: resumable, patient, and priced before it is spent ----
+const tmp = async (tag: string) => (await import("node:fs")).mkdtempSync((await import("node:path")).join((await import("node:os")).tmpdir(), `bda-${tag}-`));
+const countCalls = (calls: { url: string }[], part: string) => calls.filter((c) => c.url.includes(part)).length;
+
+test("a backfill resumes: a crashed run costs only the requests that never completed, a finished one costs none, and --refresh starts over", async () => {
+  const fs = await import("node:fs");
+  const dir = await tmp("resume");
+  let failC1 = true;
+  const handler: Handler = (path, q) => (failC1 && path === "/v2/fighters/C1" ? { status: 500, body: {} } : standard(path, q));
+  const run = async (opts: Partial<B.BoxingDataApiOptions> = {}) => {
+    const m = mockFetch(handler);
+    const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: m.impl, cacheDir: dir, scheduleDays: 0, ...opts });
+    const bouts = await p.fetchBouts();
+    return { p, bouts, calls: m.calls };
+  };
+
+  const first = await run();
+  assert.equal(first.p.requests(), 4, "the list and three fighters");
+  assert.equal(first.bouts.length, 1, "the fighter that failed took its fight with it");
+  assert.equal(first.p.notes().boutsDroppedUnknownFighter, 1);
+  assert.ok(fs.existsSync(`${dir}/v2-fighters-A1.json`) && fs.existsSync(`${dir}/v2-fighters-B1.json`), "what worked is kept, under a name you can read");
+  assert.ok(!fs.existsSync(`${dir}/v2-fighters-C1.json`), "what failed is not");
+
+  failC1 = false;
+  const second = await run();
+  assert.equal(second.p.requests(), 1, "only the fighter that never completed");
+  assert.equal(countCalls(second.calls, "/v2/fighters/C1"), 1); assert.equal(countCalls(second.calls, "/v2/fights"), 0, "the list pages came from the cache");
+  assert.equal(second.p.cacheHits(), 3); assert.equal(second.bouts.length, 2); assert.equal(second.p.notes().boutsDroppedUnknownFighter, 0);
+
+  const third = await run();
+  assert.equal(third.p.requests(), 0, "a finished backfill is free to run again (a mapping fix costs nothing)"); assert.equal(third.bouts.length, 2);
+
+  const refreshed = await run({ refresh: true });
+  assert.equal(refreshed.p.requests(), 4, "refresh fetches everything again");
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("only a good answer is kept as a checkpoint; a damaged cache file is fetched again, not trusted", async () => {
+  const fs = await import("node:fs");
+  const dir = await tmp("good");
+  const refuse = mockFetch(() => ({ status: 403, body: { message: "not on your plan" } }));
+  await assert.rejects(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: refuse.impl, cacheDir: dir, scheduleDays: 0 }).fetchBouts(), /403/);
+  assert.deepEqual(fs.existsSync(dir) ? fs.readdirSync(dir) : [], [], "a refusal leaves nothing behind");
+  const apiError = mockFetch(() => ({ body: env([], { error: { message: "quota" } }) }));
+  await assert.rejects(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: apiError.impl, cacheDir: dir, scheduleDays: 0 }).fetchBouts(), /quota/);
+  assert.deepEqual(fs.existsSync(dir) ? fs.readdirSync(dir) : [], [], "and so does an error body");
+
+  const ok = mockFetch(standard);
+  await B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: ok.impl, cacheDir: dir, scheduleDays: 0 }).fetchBouts();
+  const list = fs.readdirSync(dir).find((f) => f.startsWith("v2-fights"))!;
+  fs.writeFileSync(`${dir}/${list}`, '{"data": [ {"id": "cut off mid-wri');
+  const again = mockFetch(standard);
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: again.impl, cacheDir: dir, scheduleDays: 0 });
+  assert.equal((await p.fetchBouts()).length, 2);
+  assert.equal(countCalls(again.calls, "/v2/fights"), 1, "the damaged page was fetched again; the fighters still came from the cache");
+  assert.equal(p.requests(), 1);
+  assert.ok(fs.readdirSync(dir).every((f) => !f.endsWith(".tmp")), "no temporary files left");
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("retries wait out Retry-After or back off 1, 2, 4 ... seconds (capped at 30), count against the budget, and give up with the real reason", async () => {
+  const sleeps: number[] = [];
+  const sleep = async (ms: number) => { sleeps.push(ms); };
+  const flaky = (statuses: number[], headers: Record<string, string> = {}) => {
+    let i = 0;
+    return mockFetch((path, q) => { if (path !== "/v2/fights/") return standard(path, q); const s = statuses[Math.min(i++, statuses.length - 1)]; return s === 200 ? { body: env(FIGHTS) } : { status: s, body: { message: "slow down" }, headers }; });
+  };
+  const make = (m: ReturnType<typeof flaky>, opts: Partial<B.BoxingDataApiOptions> = {}) => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: m.impl, sleep, scheduleDays: 0, retries: 3, ...opts });
+
+  let m = flaky([429, 200], { "retry-after": "2" });
+  let p = make(m); await p.fetchBouts();
+  assert.deepEqual(sleeps.splice(0), [2000], "Retry-After is obeyed"); assert.equal(countCalls(m.calls, "/v2/fights"), 2);
+
+  m = flaky([503, 502, 200]); p = make(m); await p.fetchBouts();
+  assert.deepEqual(sleeps.splice(0), [1000, 2000], "no Retry-After: 1 s, then 2 s");
+
+  m = flaky([500]); p = make(m, { retries: 2 });
+  await assert.rejects(() => p.fetchBouts(), (e: Error) => /500 on \/v2\/fights\/: slow down/.test(e.message) && !e.message.includes(KEY));
+  assert.deepEqual(sleeps.splice(0), [1000, 2000]); assert.equal(countCalls(m.calls, "/v2/fights"), 3, "the first try and two retries");
+
+  m = flaky([403]); p = make(m);
+  await assert.rejects(() => p.fetchBouts(), /403/);
+  assert.deepEqual(sleeps.splice(0), [], "a refusal is not retried"); assert.equal(countCalls(m.calls, "/v2/fights"), 1);
+
+  m = flaky([500]); p = make(m, { retries: 8 });
+  await assert.rejects(() => p.fetchBouts(), /500/);
+  assert.deepEqual(sleeps.splice(0), [1000, 2000, 4000, 8000, 16000, 30000, 30000, 30000], "the wait is capped");
+
+  m = flaky([500]); p = make(m, { retries: 5, maxRequests: 2 });
+  await assert.rejects(() => p.fetchBouts(), (e: Error) => e instanceof B.BudgetError);
+  assert.equal(countCalls(m.calls, "/v2/fights"), 2, "a retry spends the budget like any request");
+  sleeps.length = 0;
+
+  let tries = 0;
+  const net = (async (url: string) => { if (String(url).includes("/v2/fights/") && tries++ < 1) throw new Error("socket hang up"); return mockFetch(standard).impl(url); }) as unknown as typeof fetch;
+  await B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: net, sleep, scheduleDays: 0, retries: 2 }).fetchBouts();
+  assert.deepEqual(sleeps.splice(0), [1000], "a dropped connection is retried");
+  const dead = (async () => { throw new Error("getaddrinfo ENOTFOUND"); }) as unknown as typeof fetch;
+  await assert.rejects(() => B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: dead, sleep, scheduleDays: 0, retries: 1 }).fetchBouts(), (e: Error) => /unreachable on \/v2\/fights\/: getaddrinfo ENOTFOUND/.test(e.message) && !e.message.includes(KEY));
+});
+
+test("plan prices the backfill before it is spent: the list pages are fetched, the fighters are counted and not fetched, and a cache makes them free", async () => {
+  const fs = await import("node:fs");
+  const dir = await tmp("plan");
+  const m = mockFetch(standard);
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: m.impl, cacheDir: dir, scheduleDays: 0 });
+  assert.deepEqual(await p.plan(), { fights: 2, events: 2, fighters: 3, fightersCached: 0, fighterRequests: 3, requestsMade: 1 });
+  assert.equal(countCalls(m.calls, "/v2/fighters/"), 0, "no fighter was fetched to find out");
+  await p.fetchBouts();
+  assert.equal(countCalls(m.calls, "/v2/fights"), 1, "the list pages were not fetched twice");
+
+  const later = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: mockFetch(standard).impl, cacheDir: dir, scheduleDays: 0 });
+  assert.deepEqual(await later.plan(), { fights: 2, events: 2, fighters: 3, fightersCached: 3, fighterRequests: 0, requestsMade: 0 }, "everything is already in the cache");
+  const fresh = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: mockFetch(standard).impl, cacheDir: dir, refresh: true, scheduleDays: 0 });
+  assert.equal((await fresh.plan()).fighterRequests, 3, "with refresh nothing counts as cached");
+  fs.rmSync(dir, { recursive: true, force: true });
 });
