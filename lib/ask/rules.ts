@@ -145,3 +145,13 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   if (filterKeys.some((k) => k !== "sort") || (f.sort && f.sort !== "rating") || (filterKeys.length && has(q, /\b(fighters?|boxers?|champs?|champions?|prospects?)\b|ملاكم/))) return [{ tool: "fighters", args: withLimit(Object.fromEntries(Object.entries(f).filter(([k]) => k !== "text"))) }];
   return [];
 }
+
+/**
+ * Why a question the planner could not answer got no answer, when there is a particular reason worth telling the person (otherwise the generic
+ * "I could not match that question"). Only one so far: a year was asked about a list that has no year, which is better refused than answered for all time.
+ */
+export function refusalReason(question: string): "year" | null {
+  const q = normalize(question).replace(/[?؟!.]+$/g, "");
+  const yearly = /\b20\d\d\b/.test(q) || has(q, /\bthis year\b|\blast year\b/);
+  return yearly && LISTS.some(([re]) => has(q, re)) ? "year" : null;
+}

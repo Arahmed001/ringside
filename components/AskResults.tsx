@@ -20,7 +20,7 @@ export async function AskResults({ a, compact }: { a: Answer; /** The home page'
           <span className={`chip ${a.source === "ai" ? "!border-gold/40 !text-gold" : ""}`}>{a.source === "ai" ? t("Written by AI from the results below") : t("Put together by rules from the results below")}</span>
         </div>
         {a.understood ? <p className="text-lg leading-relaxed" dir="auto">{a.answer}</p> : (
-          <p className="text-muted">{t("I could not match that question to anything in the data. Try one of the examples, or ask about fighters, fights, titles, records, upcoming cards or fight money.")}</p>
+          <p className="text-muted">{a.hint === "year" ? t("Those lists cover all of boxing history, not one year, so there is nothing to show for a single year. Try “best fight of 2025” or “knockouts in 2025” instead.") : t("I could not match that question to anything in the data. Try one of the examples, or ask about fighters, fights, titles, records, upcoming cards or fight money.")}</p>
         )}
         {a.limited && <p className="mt-3 text-sm text-muted">{a.limited === "budget" ? t("The AI budget for today is used up, so this answer comes from rules instead.") : t("You have asked a lot in a short time, so this answer comes from rules instead of AI.")}</p>}
       </section>

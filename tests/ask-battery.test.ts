@@ -81,3 +81,55 @@ test("a knockout rate named in words is read as a filter: 'knockout rate over 70
   assert.equal(heuristicParse("80% knockouts", []).minKoRate, 0.8, "the older form still works");
   assert.equal(heuristicParse("knockout rate", []).minKoRate, undefined, "no number, no filter");
 });
+
+test("a year asked of an all-time list is refused with the reason, in the answer and in the API; other refusals say nothing special", async () => {
+  delete process.env.ANTHROPIC_API_KEY;
+  const { askData } = await import("../lib/ask");
+  const { tEn } = await import("../lib/i18n/t");
+  const ask = (q: string) => askData(q, { w, t: tEn, names: {} });
+  for (const q of ["who has the most knockouts in 2024", "most wins this year", "longest win streak in 2023"]) {
+    const a = await ask(q);
+    assert.equal(a.understood, false, q);
+    assert.equal(a.hint, "year", q);
+  }
+  for (const q of ["hello", "what is the meaning of life", "who has the most knockouts"]) {
+    const a = await ask(q);
+    assert.equal(a.hint, undefined, `${q}: no special reason`);
+  }
+  assert.equal((await ask("knockouts in 2024")).understood, true, "a year the bouts tool can answer is answered");
+  // the API carries the same field
+  const { GET } = await import("../app/api/ask/route");
+  const res = await GET(new Request("http://localhost/api/ask?q=" + encodeURIComponent("most wins in 2024")));
+  const body = await res.json();
+  assert.equal(body.hint, "year");
+  assert.equal(body.understood, false);
+});
+
+test("refusalReason: a year plus a list is the 'year' reason; either alone, or neither, is not", async () => {
+  const { refusalReason } = await import("../lib/ask/rules");
+  assert.equal(refusalReason("who has the most knockouts in 2024"), "year");
+  assert.equal(refusalReason("longest reign this year"), "year");
+  assert.equal(refusalReason("most wins last year?"), "year");
+  assert.equal(refusalReason("who has the most knockouts"), null, "a list with no year");
+  assert.equal(refusalReason("what happened in 2024"), null, "a year with no list");
+  assert.equal(refusalReason("hello"), null);
+});
+
+test("a model that does answer a year question is not told it was refused: the hint is only for questions with no answer", async () => {
+  const { askData } = await import("../lib/ask");
+  const { tEn } = await import("../lib/i18n/t");
+  const G = await import("../lib/ai-guard");
+  const realFetch = globalThis.fetch;
+  G.resetAiGuard();
+  process.env.ANTHROPIC_API_KEY = "test-key";
+  globalThis.fetch = (async (_u: unknown, init: { body: string }) => {
+    const planning = JSON.parse(init.body).system.includes("choosing read-only tools");
+    return new Response(JSON.stringify({ content: [{ type: "text", text: planning ? JSON.stringify({ calls: [{ tool: "record_list", args: { list: "kos" } }] }) : "The leader has the most knockouts." }] }), { status: 200 });
+  }) as typeof fetch;
+  try {
+    const a = await askData("who has the most knockouts in 1999 and 2000", { w, t: tEn, names: {} });
+    assert.equal(a.planner, "ai");
+    assert.equal(a.understood, true);
+    assert.equal(a.hint, undefined, "it was answered, so there is nothing to explain");
+  } finally { globalThis.fetch = realFetch; delete process.env.ANTHROPIC_API_KEY; G.resetAiGuard(); }
+});

@@ -6,7 +6,7 @@ import { getTFor } from "@/lib/i18n/dicts";
 import { getNames } from "@/lib/i18n/names";
 import { clientId } from "@/lib/ai-guard";
 
-/** GET /api/ask?q=…&lang=ar → { answer, source, planner, understood, limited?, calls, tables } (see lib/ask/index.ts for how it is answered). */
+/** GET /api/ask?q=…&lang=ar → { answer, source, planner, understood, limited?, hint?, calls, tables } (see lib/ask/index.ts for how it is answered). */
 export async function GET(req: Request) {
   const sp = new URL(req.url).searchParams;
   const q = (sp.get("q") ?? "").slice(0, MAX_QUESTION).trim();
@@ -14,5 +14,5 @@ export async function GET(req: Request) {
   const lang = sp.get("lang");
   const t = await getTFor(isLocale(lang) ? lang : DEFAULT_LOCALE);
   const a = await askData(q, { w: await getWorld(), t, names: await getNames(t.locale) }, clientId(req.headers));
-  return NextResponse.json({ answer: a.answer, source: a.source, planner: a.planner, understood: a.understood, ...(a.limited ? { limited: a.limited } : {}), calls: a.calls, tables: a.results.flatMap((r) => r.tables) });
+  return NextResponse.json({ answer: a.answer, source: a.source, planner: a.planner, understood: a.understood, ...(a.limited ? { limited: a.limited } : {}), ...(a.hint ? { hint: a.hint } : {}), calls: a.calls, tables: a.results.flatMap((r) => r.tables) });
 }

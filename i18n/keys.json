@@ -97,7 +97,6 @@
    "app/[locale]/bouts/[id]/opengraph-image.tsx",
    "app/[locale]/bouts/[id]/page.tsx",
    "app/[locale]/boxers/[slug]/page.tsx",
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/events/[id]/opengraph-image.tsx",
    "app/[locale]/money/page.tsx",
    "app/[locale]/page.tsx",
@@ -376,8 +375,7 @@
   "plural": "{n} bout",
   "files": [
    "app/[locale]/analytics/page.tsx",
-   "app/[locale]/boxers/[slug]/page.tsx",
-   "app/[locale]/design/home/page.tsx"
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -2017,7 +2015,6 @@
  {
   "key": "All division rankings",
   "files": [
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -2259,7 +2256,6 @@
   "key": "Ask",
   "files": [
    "app/[locale]/ask/page.tsx",
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -2291,7 +2287,6 @@
   "key": "Ask the data",
   "files": [
    "app/[locale]/ask/page.tsx",
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx",
    "lib/nav.ts",
    "lib/search.ts"
@@ -3235,7 +3230,6 @@
  {
   "key": "Coming up",
   "files": [
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -4204,7 +4198,6 @@
  {
   "key": "Every fighter.",
   "files": [
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -4229,7 +4222,6 @@
  {
   "key": "Every number.",
   "files": [
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -4421,7 +4413,6 @@
  {
   "key": "Fight calendar",
   "files": [
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/events/page.tsx",
    "app/[locale]/page.tsx"
   ]
@@ -4673,7 +4664,6 @@
   "files": [
    "app/[locale]/analytics/page.tsx",
    "app/[locale]/boxers/page.tsx",
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "components/TenureTable.tsx",
@@ -5014,7 +5004,6 @@
  {
   "key": "Full matchup breakdown",
   "files": [
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/previews/[id]/page.tsx",
    "components/Matchmaking.tsx"
@@ -5510,7 +5499,6 @@
   "key": "In {n} days",
   "plural": "In {n} day",
   "files": [
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/previews/[id]/page.tsx"
@@ -6036,7 +6024,6 @@
  {
   "key": "Live underdogs",
   "files": [
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/upset-watch/page.tsx"
   ]
  },
@@ -6689,12 +6676,6 @@
   "key": "Next fights on file",
   "files": [
    "components/LiveLedger.tsx"
-  ]
- },
- {
-  "key": "Next main event",
-  "files": [
-   "app/[locale]/design/home/page.tsx"
   ]
  },
  {
@@ -7730,7 +7711,6 @@
  {
   "key": "Pound for pound",
   "files": [
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/rankings/page.tsx",
    "lib/ask/tools.ts"
@@ -8102,7 +8082,6 @@
  {
   "key": "Ratings, rankings, win-probabilities and AI scouting for the whole sport, in one place. Ask in plain English.",
   "files": [
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -8148,7 +8127,6 @@
   "key": "Read the preview",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/previews/page.tsx",
@@ -10410,6 +10388,12 @@
   ]
  },
  {
+  "key": "Those lists cover all of boxing history, not one year, so there is nothing to show for a single year. Try “best fight of 2025” or “knockouts in 2025” instead.",
+  "files": [
+   "components/AskResults.tsx"
+  ]
+ },
+ {
   "key": "Through time",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
@@ -10730,7 +10714,6 @@
   "key": "Try: {example}",
   "files": [
    "app/[locale]/ask/page.tsx",
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -10899,7 +10882,6 @@
  {
   "key": "Upcoming cards",
   "files": [
-   "app/[locale]/design/home/page.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -10942,7 +10924,6 @@
  {
   "key": "Upset watch",
   "files": [
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/previews/page.tsx",
    "app/[locale]/trainers/page.tsx",
@@ -11040,7 +11021,6 @@
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
    "app/[locale]/compare/page.tsx",
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
    "app/[locale]/page.tsx",
@@ -11388,7 +11368,6 @@
  {
   "key": "Who has the most knockouts among women?",
   "files": [
-   "app/[locale]/design/home/page.tsx",
    "app/[locale]/page.tsx",
    "lib/ask/examples.ts"
   ]

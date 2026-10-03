@@ -59,9 +59,8 @@ test("the phone drawer is a native modal dialog that closes on Esc, the backdrop
   assert.match(c, /min-width: 1024px/);
 });
 
-test("the design lab cannot be reached in a production build", () => {
-  const src = fs.readFileSync(path.join(root, "app/[locale]/design/home/page.tsx"), "utf8");
-  assert.match(src, /NODE_ENV === "production" && process\.env\.DESIGN_LAB !== "1"\) notFound\(\)/, "the lab must 404 in production unless DESIGN_LAB=1");
-  assert.match(src, /robots: \{ index: false/, "and stay out of search results when it is on");
-  assert.ok(!NAV_GROUPS.some((g) => g.items.some((i) => i.href.startsWith("/design"))), "it is not in the navigation");
+test("the home-page design lab is gone: no /design route and no setting that switched it on (the owner chose a direction in round 30 and approved it in round 34)", () => {
+  assert.ok(!fs.existsSync(path.join(root, "app/[locale]/design")), "app/[locale]/design was deleted; do not bring it back in the site, put experiments on a branch");
+  assert.ok(!NAV_GROUPS.some((g) => g.items.some((i) => i.href.startsWith("/design"))), "nothing in the navigation points at it");
+  for (const f of [".env.example", "lib/doctor.ts"]) assert.ok(!/DESIGN_LAB/.test(fs.readFileSync(path.join(root, f), "utf8")), `${f} still mentions DESIGN_LAB`);
 });
