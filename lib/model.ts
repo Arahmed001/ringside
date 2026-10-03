@@ -11,8 +11,9 @@
  */
 export interface Features {
   rating: number; // Elo
-  reachCm: number;
-  age: number;
+  /** Unknown (null) when the feed does not say. A term with an unknown value on either side contributes nothing: no advantage is assumed. */
+  reachCm: number | null;
+  age: number | null;
   monthsIdle: number; // months since last fight
   koRate: number; // KOs / wins
   koLossRate: number; // KO losses / bouts
@@ -24,8 +25,8 @@ export type Weights = Record<keyof typeof TERMS, number>;
 
 export const TERMS = {
   rating: { label: "Rating", unit: "Elo point", min: 0, max: 0.012, step: 0.0002, x: (f: Features) => f.rating },
-  reach: { label: "Reach", unit: "cm", min: 0, max: 0.08, step: 0.002, x: (f: Features) => f.reachCm },
-  age: { label: "Age (past 34)", unit: "year over 34", min: 0, max: 0.12, step: 0.002, x: (f: Features) => -Math.max(0, f.age - 34) },
+  reach: { label: "Reach", unit: "cm", min: 0, max: 0.08, step: 0.002, x: (f: Features): number | null => f.reachCm },
+  age: { label: "Age (past 34)", unit: "year over 34", min: 0, max: 0.12, step: 0.002, x: (f: Features): number | null => (f.age === null ? null : -Math.max(0, f.age - 34)) },
   idle: { label: "Ring rust (past 12 mo)", unit: "month idle", min: 0, max: 0.06, step: 0.001, x: (f: Features) => -Math.max(0, f.monthsIdle - 12) },
   power: { label: "Punching power", unit: "KO-rate point", min: 0, max: 1.2, step: 0.02, x: (f: Features) => f.koRate },
   chin: { label: "Chin", unit: "KO-loss-rate point", min: 0, max: 1.2, step: 0.02, x: (f: Features) => -f.koLossRate },
@@ -68,7 +69,8 @@ export const TERM_KEYS = Object.keys(TERMS) as TermKey[];
 export function contributions(a: Features, b: Features, w: Weights): Record<TermKey, number> {
   const out = {} as Record<TermKey, number>;
   for (const k of TERM_KEYS) {
-    let d = TERMS[k].x(a) - TERMS[k].x(b);
+    const xa = TERMS[k].x(a), xb = TERMS[k].x(b);
+    let d = xa === null || xb === null ? 0 : xa - xb; // an unknown on either side: no edge either way
     if (k === "reach") d = clamp(d, -12, 12);
     out[k] = w[k] * d;
   }

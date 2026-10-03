@@ -185,12 +185,6 @@
   ]
  },
  {
-  "key": "{country} · Age {age} · {stance} · Pro since {year}",
-  "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
-  ]
- },
- {
   "key": "{date} · {city}",
   "files": [
    "app/[locale]/page.tsx"
@@ -275,12 +269,6 @@
   "key": "{gate} gate · {ppv} PPV · {n} cards",
   "files": [
    "app/[locale]/money/page.tsx"
-  ]
- },
- {
-  "key": "{h} cm / {r} cm",
-  "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -393,6 +381,7 @@
  {
   "key": "{n} cm",
   "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/compare/page.tsx",
    "components/MatchupLab.tsx",
    "lib/correction-text.ts",
@@ -1044,6 +1033,12 @@
   ]
  },
  {
+  "key": "{name} is a {division} from {country}: {record}, rated {elo}{rank}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} is coming off a stoppage loss",
   "files": [
    "lib/upsets.ts"
@@ -1184,7 +1179,25 @@
   ]
  },
  {
+  "key": "{name}{nick} is a {age}-year-old {division} from {country}, {record} with {kos} knockouts ({pct}% of wins).",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "{name}{nick} is a {age}-year-old {stance} {division} from {country}, {record} with {kos} knockouts ({pct}% of wins).",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "{name}{nick} is a {division} from {country}, {record} with {kos} knockouts ({pct}% of wins).",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "{name}{nick} is a {stance} {division} from {country}, {record} with {kos} knockouts ({pct}% of wins).",
   "files": [
    "lib/ai.ts"
   ]
@@ -1973,6 +1986,12 @@
   "key": "Age (past 34)",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Age {age}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -7845,6 +7864,12 @@
   ]
  },
  {
+  "key": "Pro since {year}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Profile",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -10853,6 +10878,12 @@
   "key": "Unknown device",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Unknown: not counted",
+  "files": [
+   "components/MatchupLab.tsx"
   ]
  },
  {

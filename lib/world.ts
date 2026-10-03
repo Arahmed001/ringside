@@ -78,15 +78,18 @@ export async function getWorld(): Promise<World> {
   return built;
 }
 
+/** A stored number that is really there: NULL, and the 0 an older load wrote for "unknown", are both unknown. */
+const known = (v: unknown): number | null => (typeof v === "number" && v > 0 ? v : null);
+
 function buildWorld(db: DatabaseSync, key: string): World {
   const today = todayIso();
 
   const rawBoxers = db.prepare("SELECT * FROM boxers").all() as Record<string, unknown>[];
   const boxersBase: Boxer[] = rawBoxers.map((r) => ({
     id: r.id as number, slug: r.slug as string, name: r.name as string, nickname: (r.nickname as string) ?? null,
-    country: r.country as string, birthYear: r.birth_year as number, stance: r.stance as Boxer["stance"], sex: ((r.sex as string) === "female" ? "female" : "male"),
-    heightCm: r.height_cm as number, reachCm: r.reach_cm as number, weightClass: r.weight_class as string,
-    turnedPro: r.turned_pro as number, active: !!r.active, rating: r.rating as number,
+    country: r.country as string, birthYear: known(r.birth_year), stance: (r.stance as Boxer["stance"]) || null, sex: ((r.sex as string) === "female" ? "female" : "male"),
+    heightCm: known(r.height_cm), reachCm: known(r.reach_cm), weightClass: r.weight_class as string,
+    turnedPro: known(r.turned_pro), active: !!r.active, rating: r.rating as number,
     photoUrl: (r.photo_url as string) ?? null,
     photoCredit: r.photo_credit ? (JSON.parse(r.photo_credit as string) as Boxer["photoCredit"]) : null,
     birthDate: (r.birth_date as string) ?? null, birthPlace: (r.birth_place as string) ?? null, residence: (r.residence as string) ?? null,
@@ -252,7 +255,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
     return {
       ...b, wins, losses, draws, kos, koLosses, bouts: n, koRate: wins ? kos / wins : 0,
       winRate: n ? wins / n : 0, avgRounds: n ? rounds / n : 0, lastFight: n ? list[n - 1].date : null,
-      streak, age: year - b.birthYear,
+      streak, age: b.birthYear === null ? null : year - b.birthYear,
     };
   });
 

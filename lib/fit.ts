@@ -34,6 +34,7 @@ export interface Row { date: string; boutId: number; x: number[]; y: 0 | 1 }
 
 interface State { bouts: number; wins: number; kos: number; koLosses: number; last: string | null; rehydSum: number; rehydN: number }
 const blank = (): State => ({ bouts: 0, wins: 0, kos: 0, koLosses: 0, last: null, rehydSum: 0, rehydN: 0 });
+const diff = (a: number | null, b: number | null): number => (a === null || b === null ? 0 : a - b); // an unknown on either side: no difference
 const months = (a: string, b: string) => (Date.parse(b) - Date.parse(a)) / (30.4 * 86400000);
 
 /** Builds one row per decisive, completed bout from red's point of view (feature = red minus blue). */
@@ -56,7 +57,7 @@ export function buildDataset(w: World): Row[] {
     const wr = wi?.find((x) => x.boxerId === b.redId), wb = wi?.find((x) => x.boxerId === b.blueId);
     const hr = headAt(b.redId, b.date), hb = headAt(b.blueId, b.date);
     const side = (id: number, s: State, h: typeof hr, f: typeof red) => ({
-      reach: f.reachCm, age: Number(b.date.slice(0, 4)) - f.birthYear, idle: s.last ? Math.min(36, months(s.last, b.date)) : 12,
+      reach: f.reachCm, age: f.birthYear === null ? null : Number(b.date.slice(0, 4)) - f.birthYear, idle: s.last ? Math.min(36, months(s.last, b.date)) : 12,
       ko: s.wins ? s.kos / s.wins : 0, chin: s.bouts ? s.koLosses / s.bouts : 0, exp: Math.log1p(s.bouts),
       rehyd: s.rehydN ? s.rehydSum / s.rehydN : 0,
       newTrainer: h && months(h.start, b.date) < 6 ? 1 : 0,
@@ -65,7 +66,7 @@ export function buildDataset(w: World): Row[] {
     const r = side(b.redId, sr, hr, red), u = side(b.blueId, sb, hb, blue);
     if (b.winnerId && pre && sr.bouts >= 1 && sb.bouts >= 1) {
       const x = [
-        (pre.red - pre.blue) / 100, r.reach - u.reach, r.age - u.age, r.idle - u.idle, r.ko - u.ko, r.chin - u.chin, r.exp - u.exp, r.rehyd - u.rehyd,
+        (pre.red - pre.blue) / 100, diff(r.reach, u.reach), diff(r.age, u.age), r.idle - u.idle, r.ko - u.ko, r.chin - u.chin, r.exp - u.exp, r.rehyd - u.rehyd,
         wr?.fightNightLb && wb?.fightNightLb ? wr.fightNightLb - wb.fightNightLb : 0, r.newTrainer - u.newTrainer, r.trainerWins - u.trainerWins,
       ];
       rows.push({ date: b.date, boutId: b.id, x, y: b.winnerId === b.redId ? 1 : 0 });

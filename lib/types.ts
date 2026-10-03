@@ -14,13 +14,14 @@ export interface Boxer {
   name: string;
   nickname: string | null;
   country: string;
-  birthYear: number;
-  stance: Stance;
+  /** The facts below can be unknown (null): a real feed does not always have them, and none is ever invented to fill the gap. */
+  birthYear: number | null;
+  stance: Stance | null;
   sex: Sex;
-  heightCm: number;
-  reachCm: number;
+  heightCm: number | null;
+  reachCm: number | null;
   weightClass: string;
-  turnedPro: number;
+  turnedPro: number | null;
   active: boolean;
   rating: number;
   photoUrl: string | null;
@@ -60,7 +61,7 @@ export interface BoxerStats {
 }
 
 export interface BoxerFull extends Boxer, BoxerStats {
-  age: number;
+  age: number | null;
 }
 
 export interface BoutRow {

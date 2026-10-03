@@ -9,6 +9,7 @@ import { BoxerRecords } from "@/components/Awards";
 import { notFound } from "next/navigation";
 import { getWorld, recordStr } from "@/lib/world";
 import { getDb } from "@/lib/db";
+import { isKnown, orDash } from "@/lib/facts";
 import { boxerPageNotes } from "@/lib/accounts/corrections";
 import { CorrectionNotes, type NoteRow } from "@/components/CorrectionNotes";
 import { rankOf } from "@/lib/rankings";
@@ -60,12 +61,12 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const a = archetype(b);
   const similar = similarTo(b, w, 4);
   const divBoxers = w.boxers.filter((x) => x.sex === b.sex && x.weightClass === b.weightClass && x.bouts >= 5);
-  const norm = (v: number, arr: number[]) => { const mn = Math.min(...arr), mx = Math.max(...arr); return mx === mn ? 0.5 : (v - mn) / (mx - mn); };
+  const norm = (v: number, arr: number[]) => { if (!arr.length) return 0.5; const mn = Math.min(...arr), mx = Math.max(...arr); return mx === mn ? 0.5 : (v - mn) / (mx - mn); };
   const radar = [
     { label: t("Power"), v: norm(b.koRate, divBoxers.map((x) => x.koRate)) },
     { label: t("Winning"), v: norm(b.winRate, divBoxers.map((x) => x.winRate)) },
     { label: t("Durability"), v: 1 - norm(b.bouts ? b.koLosses / b.bouts : 0, divBoxers.map((x) => (x.bouts ? x.koLosses / x.bouts : 0))) },
-    { label: t("Reach"), v: norm(b.reachCm, divBoxers.map((x) => x.reachCm)) },
+    ...(isKnown(b.reachCm) ? [{ label: t("Reach"), v: norm(b.reachCm, divBoxers.map((x) => x.reachCm).filter(isKnown)) }] : []), // an unknown reach is left off the chart, not drawn as short
     { label: t("Experience"), v: norm(b.bouts, divBoxers.map((x) => x.bouts)) },
     { label: t("Rating"), v: norm(b.rating, divBoxers.map((x) => x.rating)) },
   ];
@@ -122,7 +123,7 @@ const HONOURS_SHOWN = 8;
       <JsonLd data={{
         "@type": "Person", name: t.name(b.name), ...(t.name(b.name) !== b.name ? { alternateName: [b.name] } : {}), jobTitle: "Professional boxer",
         nationality: { "@type": "Country", name: b.country }, ...(b.birthDate ? { birthDate: b.birthDate } : {}), ...(b.photoUrl ? { image: b.photoUrl } : {}),
-        height: { "@type": "QuantitativeValue", value: b.heightCm, unitCode: "CMT" }, url: abs(localePath(t.locale, `/boxers/${b.slug}`)), inLanguage: t.locale,
+        ...(isKnown(b.heightCm) ? { height: { "@type": "QuantitativeValue", value: b.heightCm, unitCode: "CMT" } } : {}), url: abs(localePath(t.locale, `/boxers/${b.slug}`)), inLanguage: t.locale,
         ...(b.wikidataId ? { sameAs: [`https://www.wikidata.org/wiki/${b.wikidataId}`] } : {}),
       }} />
       <section className="rise grid gap-8 md:grid-cols-[auto_1fr]">
@@ -145,12 +146,12 @@ const HONOURS_SHOWN = 8;
           </div>
           <h1 className="mt-3 font-display text-6xl font-extrabold uppercase leading-[.95] sm:text-7xl">{t.name(b.name)}</h1>
           {b.nickname && <div className="mt-1 font-serif text-3xl italic text-gold">“{t.name(b.nickname)}”</div>}
-          <div className="mt-2 text-muted">{flag(b.country)} {t("{country} · Age {age} · {stance} · Pro since {year}", { country: countryName(b.country, t.locale), age: b.age, stance: t(b.stance), year: b.turnedPro })}</div>
+          <div className="mt-2 text-muted">{flag(b.country)} {[countryName(b.country, t.locale), b.age !== null ? t("Age {age}", { age: b.age }) : null, b.stance ? t(b.stance) : null, b.turnedPro !== null ? t("Pro since {year}", { year: b.turnedPro }) : null].filter(Boolean).join(" · ")}</div>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Stat label={t("Record")} value={recordStr(b)} sub={t.n(b.bouts, "{n} fight", "{n} fights")} />
             <Stat label={t("Knockouts")} value={b.kos} sub={t("{p} of wins", { p: pct(b.koRate) })} />
             <Stat label={t("Rating")} value={Math.round(b.rating)} sub={t("Elo-style")} />
-            <Stat label={t("Reach")} value={t("{n}cm", { n: b.reachCm })} sub={t("{h}cm tall · {limit}", { h: b.heightCm, limit: limitLabel(div, t) })} />
+            <Stat label={t("Reach")} value={orDash(b.reachCm, (n) => t("{n}cm", { n }))} sub={isKnown(b.heightCm) ? t("{h}cm tall · {limit}", { h: b.heightCm, limit: limitLabel(div, t) }) : limitLabel(div, t)} />
           </div>
           {nextBlock}
         </div>
@@ -161,12 +162,12 @@ const HONOURS_SHOWN = 8;
           <div className="eyebrow mb-3">{t("Profile")}</div>
           <dl className="space-y-2.5 text-sm">
             {([
-              [t("Born"), b.birthDate ? `${fmtDate(b.birthDate, undefined, t.locale)}${bioAge !== null ? ` (${bioAge})` : ""}${b.birthPlace ? ` · ${t.name(b.birthPlace)}` : ""}` : String(b.birthYear)],
+              [t("Born"), b.birthDate ? `${fmtDate(b.birthDate, undefined, t.locale)}${bioAge !== null ? ` (${bioAge})` : ""}${b.birthPlace ? ` · ${t.name(b.birthPlace)}` : ""}` : b.birthYear !== null ? String(b.birthYear) : null],
               [t("Lives in"), b.residence ? t.name(b.residence) : null],
               [t("Also known as"), b.aliases.length ? b.aliases.map((x) => t.name(x)).join(", ") : null],
-              [t("Pro debut"), b.debutDate ? fmtDate(b.debutDate, undefined, t.locale) : String(b.turnedPro)],
+              [t("Pro debut"), b.debutDate ? fmtDate(b.debutDate, undefined, t.locale) : b.turnedPro !== null ? String(b.turnedPro) : null],
               [t("Retired"), b.retiredDate ? fmtDate(b.retiredDate, undefined, t.locale) : null],
-              [t("Height / reach"), t("{h} cm / {r} cm", { h: b.heightCm, r: b.reachCm })],
+              [t("Height / reach"), b.heightCm === null && b.reachCm === null ? null : `${orDash(b.heightCm, (n) => t("{n} cm", { n }))} / ${orDash(b.reachCm, (n) => t("{n} cm", { n }))}`],
             ] as [string, string | null][]).filter(([, v]) => v).map(([k, v]) => (
               <div key={k} className="flex justify-between gap-4"><dt className="text-muted">{k}</dt><dd className="text-end">{v}</dd></div>
             ))}

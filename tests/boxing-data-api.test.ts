@@ -94,47 +94,46 @@ test("locations: the first part is the city, the last the country; an unsplittab
   assert.equal(n.locationUnparsed, 2);
 });
 
-test("a fighter: the documented Fury example maps field for field; birth year comes from the age and is counted", () => {
+test("a fighter: the documented Fury example maps field for field; an age alone is not a birth year, so it is unknown and counted", () => {
   const n = notes();
   const m = B.mapFighter(fury, n)!;
   assert.equal(m.externalId, "bda-f-6715fc1faf69bb50508b7a83"); assert.equal(m.name, "Tyson Fury"); assert.equal(m.country, "United Kingdom");
   assert.equal(m.stance, "Orthodox"); assert.equal(m.sex, "male"); assert.equal(m.heightCm, 206); assert.equal(m.reachCm, 216);
   assert.equal(m.weightClass, "Heavyweight"); assert.equal(m.turnedPro, 2008);
-  assert.equal(m.birthYear, 2026 - 36, "today is pinned to 2026-10-03"); assert.equal(n.birthYearFromAge, 1);
+  assert.equal(m.birthYear, null, "the example gives an age (36), which can be a year out, so no birth year is made up from it"); assert.equal(n.birthYearUnknown, 1);
   assert.equal(B.mapFighter(fighter("g", "G G", { gender: "f", nickname: null, alias: "The Ace", stance: "Southpaw" }), n)!.sex, "female");
   assert.equal(B.mapFighter(fighter("g", "G G", { alias: "The Ace" }), n)!.nickname, "The Ace");
   assert.equal(B.mapFighter(fighter("g", "G G", { stance: "ambidextrous" }), n)!.stance, "Switch");
-  assert.equal(B.mapFighter(fighter("g", "G G", { stance: null }), n)!.stance, "Orthodox"); assert.equal(n.stanceDefaulted, 1);
-  assert.equal(B.mapFighter(fighter("g", "G G", { age: null }), n)!.birthYear, 0); assert.equal(n.birthYearUnknown, 1);
+  assert.equal(B.mapFighter(fighter("g", "G G", { stance: null }), n)!.stance, null, "an unknown stance stays unknown, it is not Orthodox"); assert.equal(n.stanceUnknown, 1);
+  assert.equal(B.mapFighter(fighter("g", "G G", { age: null }), n)!.birthYear, null);
+  assert.equal(n.birthYearUnknown, 6, "none of the six fighters mapped here has a birth_year: each is counted once");
   assert.equal(B.mapFighter({ id: "", name: "x" }, n), null);
 });
 
-test("missing height or reach is filled (from the other, then the division's median, then everyone's, then 175) and counted: no boxer is stored with a zero", () => {
+test("missing height or reach stays unknown and is counted: nothing is filled in from the other, a median or a neutral value", () => {
   const n = notes();
-  const rows = ([
-    fighter("a", "A", { height_cm: 180, reach_cm: 182 }), fighter("b", "B", { height_cm: 190, reach_cm: 195 }), fighter("c", "C", { height_cm: 170, reach_cm: 171 }),
+  const out = ([
+    fighter("a", "A", { height_cm: 180, reach_cm: 182 }), fighter("b", "B", { height_cm: 190, reach_cm: 195 }),
     fighter("d", "D", { height_cm: 185, reach_cm: null }), fighter("e", "E", { height_cm: null, reach_cm: 190 }),
-    fighter("f", "F", { height_cm: null, reach_cm: null }), fighter("g", "G", { height_cm: null, reach_cm: null, division: { name: "Flyweight" } }),
+    fighter("f", "F", { height_cm: null, reach_cm: null }),
   ].map((f) => B.mapFighter(f, n)!));
-  const out = B.imputePhysicals(rows, n);
   const by = Object.fromEntries(out.map((r) => [r.name, r]));
-  assert.equal(by.D.reachCm, 185, "reach from height"); assert.equal(by.E.heightCm, 190, "height from reach");
-  assert.equal(by.F.heightCm, 185, "the median height of the other heavyweights (185 is the middle of 170, 180, 185, 190, 190)");
-  assert.equal(by.G.heightCm, 185, "no other flyweight: everyone's median");
-  assert.equal(n.physicalsImputed, 4);
-  assert.ok(out.every((r) => r.heightCm! > 0 && r.reachCm! > 0));
-  const alone = B.imputePhysicals([B.mapFighter(fighter("z", "Z", { height_cm: null, reach_cm: null }), notes())!], notes());
-  assert.equal(alone[0].heightCm, 175, "with nothing to go on, a neutral value rather than zero");
+  assert.equal(by.D.heightCm, 185); assert.equal(by.D.reachCm, null, "a missing reach is not taken from the height");
+  assert.equal(by.E.reachCm, 190); assert.equal(by.E.heightCm, null, "a missing height is not taken from the reach");
+  assert.deepEqual([by.F.heightCm, by.F.reachCm], [null, null], "and not from a median, and not 175");
+  assert.equal(by.A.heightCm, 180);
+  assert.equal(n.physicalsUnknown, 3, "D, E and F are each counted once");
+  assert.equal((B as Record<string, unknown>).imputePhysicals, undefined, "the imputation is gone");
 });
 
-test("active means a fight in the last 30 months; a missing debut year is the first fight seen", () => {
+test("active means a fight in the last 30 months; a missing debut year stays unknown, it is not the first fight held", () => {
   const n = notes();
   const loose = [B.mapFighter(fighter("a", "A", { debut: null }), n)!, B.mapFighter(fighter("b", "B"), n)!, B.mapFighter(fighter("c", "C"), n)!];
   const mk = (id: string, red: string, blue: string, ev: string) => ({ externalId: id, eventExternalId: ev, redExternalId: `bda-f-${red}`, blueExternalId: `bda-f-${blue}`, weightClass: "Heavyweight", rounds: 12, winnerExternalId: null, method: null, endRound: null, title: null, position: 0 });
   const bouts = [mk("1", "a", "b", "e1"), mk("2", "a", "c", "e2")];
   const dates = new Map([["e1", "2019-05-01"], ["e2", "2026-05-01"]]);
   const out = Object.fromEntries(B.finishBoxers(loose, bouts, dates, n).map((r) => [r.name, r]));
-  assert.equal(out.A.turnedPro, 2019); assert.equal(n.turnedProFromFirstFight, 1);
+  assert.equal(out.A.turnedPro, null, "the feed gives no debut, and the first fight we hold (2019) may not be the first fight"); assert.equal(n.debutUnknown, 1);
   assert.equal(out.A.active, true, "fought in May 2026"); assert.equal(out.C.active, true);
   assert.equal(out.B.active, false, "last fought in 2019");
   assert.equal(out.B.turnedPro, 2008, "a debut the feed gives is kept");
@@ -175,8 +174,9 @@ test("a full load: fights first, then each fighter once; events come from the fi
   assert.equal(calls.length, 5);
   assert.equal(calls[0].headers["x-rapidapi-key"], KEY); assert.equal(calls[0].headers["x-rapidapi-host"], "boxing-data-api.p.rapidapi.com");
   assert.match(calls[0].url, /^https:\/\/boxing-data-api\.p\.rapidapi\.com\/v2\/fights\/\?/);
-  assert.ok(boxers.find((b) => b.name === "Charlie One")!.heightCm > 0, "a fighter with no physicals is filled, not zero");
-  assert.equal(p.notes().physicalsImputed, 1);
+  const charlie = boxers.find((b) => b.name === "Charlie One")!;
+  assert.deepEqual([charlie.heightCm, charlie.reachCm], [null, null], "a fighter with no physicals has none, not a made-up value");
+  assert.equal(p.notes().physicalsUnknown, 1);
   // the result is a feed the validator accepts without errors
   const { issues } = sanitizeFeed({ ...emptyFeed(), boxers, events, bouts }, { today: "2026-10-03" });
   assert.deepEqual(issues.filter((i) => i.severity === "error"), []);
@@ -428,26 +428,26 @@ const ZAREN: B.ApiFighter & Record<string, unknown> = {
   division: { id: "671513530ad13034eb882657", name: "Super Middleweight", weight_lb: 168 },
 };
 
-test("the real fighter record: birth_year is used as given, reach comes from inches, nothing is approximated", () => {
+test("the real fighter record: birth_year is used as given, reach comes from inches, nothing is unknown", () => {
   const n = notes();
   const m = B.mapFighter(ZAREN, n)!;
   assert.equal(m.birthYear, 1999, "the feed's own birth year, not derived from an age");
   assert.equal(m.heightCm, 187); assert.equal(m.reachCm, 178, "70 in = 177.8 cm");
   assert.equal(m.stance, "Southpaw"); assert.equal(m.nickname, "Great Dane"); assert.equal(m.country, "Denmark");
   assert.equal(m.weightClass, "Super Middleweight"); assert.equal(m.turnedPro, 2019);
-  assert.equal(n.birthYearUnknown, 0); assert.equal(n.birthYearFromAge, 0); assert.equal(n.stanceDefaulted, 0);
+  assert.equal(n.birthYearUnknown, 0); assert.equal(n.stanceUnknown, 0); assert.equal(n.debutUnknown, 0);
   assert.equal(n.physicalsConverted, 1, "the one inch-to-cm conversion is counted");
-  assert.equal(B.imputePhysicals([m], n)[0].reachCm, 178, "so nothing needs imputing");
-  assert.equal(n.physicalsImputed, 0);
+  assert.equal(n.physicalsUnknown, 0);
 });
 
-test("birth_year is only trusted when plausible; otherwise an age, then 'unknown'", () => {
+test("birth_year is only trusted when plausible; an age alone, an absurd year or nothing is unknown", () => {
   const n = notes();
-  assert.equal(B.mapFighter({ ...ZAREN, birth_year: 0, age: 30 }, n)!.birthYear, 2026 - 30); assert.equal(n.birthYearFromAge, 1);
-  assert.equal(B.mapFighter({ ...ZAREN, birth_year: 2025 }, n)!.birthYear, 0, "a 1-year-old boxer is not a birth year"); 
-  assert.equal(B.mapFighter({ ...ZAREN, birth_year: 1850 }, n)!.birthYear, 0);
-  assert.equal(B.mapFighter({ ...ZAREN, birth_year: null, age: null }, n)!.birthYear, 0);
-  assert.equal(n.birthYearUnknown, 3);
+  assert.equal(B.mapFighter({ ...ZAREN, birth_year: 0, age: 30 }, n)!.birthYear, null, "an age alone is not a birth year: it can be a year out"); assert.equal(n.birthYearUnknown, 1);
+  assert.equal(B.mapFighter({ ...ZAREN, birth_year: 2025 }, n)!.birthYear, null, "a 1-year-old boxer is not a birth year");
+  assert.equal(B.mapFighter({ ...ZAREN, birth_year: 1850 }, n)!.birthYear, null);
+  assert.equal(B.mapFighter({ ...ZAREN, birth_year: null, age: null }, n)!.birthYear, null);
+  assert.equal(n.birthYearUnknown, 4);
+  assert.equal(B.mapFighter({ ...ZAREN, debut: "1850" }, notes())!.turnedPro, null, "an absurd debut year is unknown too");
 });
 
 test("lengths come from whichever form the feed gives: cm, inches, 6'1\", or the docs' combined text; and null when none", () => {
