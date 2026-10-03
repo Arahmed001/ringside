@@ -6,6 +6,7 @@ import { EventMoney } from "@/components/Money";
 import { notFound } from "next/navigation";
 import { getWorld, recordStr } from "@/lib/world";
 import { eventWithMain } from "@/lib/events";
+import { buildNight, nightLines } from "@/lib/night";
 import { predict } from "@/lib/predict";
 import { Poster } from "@/components/Poster";
 import { Headshot } from "@/components/Portrait";
@@ -38,6 +39,8 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   if (!view) notFound();
   const { bouts, main, red, blue } = view;
   const venue = w.venueOf(e);
+  const night = buildNight(w, e.id);
+  const nightText = night ? nightLines(night, w, t) : [];
   return (
     <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
       <JsonLd data={{
@@ -61,6 +64,15 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             {venue.lat !== null && venue.lon !== null && <a href={`https://www.openstreetmap.org/?mlat=${venue.lat}&mlon=${venue.lon}#map=16/${venue.lat}/${venue.lon}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{t("Map")}</a>}
             {" · "}<a href={`https://www.wikidata.org/wiki/${venue.wikidataId}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{t("Venue data: Wikidata")}</a>
           </div>
+        )}
+        {nightText.length > 0 && (
+          <section className="card mt-6 p-5">
+            <div className="eyebrow mb-3">{t("Night in review")}</div>
+            <p className="font-display text-2xl font-bold leading-snug">{nightText[0]}</p>
+            <ul className="mt-3 list-disc space-y-1.5 ps-5 text-sm text-ink/90">
+              {nightText.slice(1).map((line, i) => <li key={i}>{line}</li>)}
+            </ul>
+          </section>
         )}
         <EventMoney w={w} event={e} />
         <div className="mt-8 space-y-3">
