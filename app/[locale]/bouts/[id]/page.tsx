@@ -39,7 +39,7 @@ async function Side({ f, color, win }: { f: Fighter; color: string; win: boolean
   return (
     <Link href={`/boxers/${f.slug}`} className="flex flex-col items-center gap-2 text-center">
       <div className="relative"><Headshot boxer={f} size={110} />{win && <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-win px-2 py-0.5 text-xs font-bold text-bg">{t("WINNER")}</span>}</div>
-      <div className="font-display text-3xl font-bold leading-tight" style={{ color }}>{t.name(f.name)}</div>
+      <div className="min-w-0 max-w-full break-words font-display text-2xl font-bold leading-tight sm:text-3xl" style={{ color }}>{t.name(f.name)}</div>
       <div className="text-xs text-muted">{flag(f.country)} {recordStr(f)} · {t(f.stance)}</div>
     </Link>
   );

@@ -81,14 +81,15 @@ body::before {
 
 ::selection { background: var(--red); color: #fff; }
 
-/* Range sliders: filled track in the fighter's corner colour, dark remainder, round thumb. */
-input[type="range"].rs { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 999px; cursor: pointer;
-  background: linear-gradient(to right, var(--c) var(--pct), var(--panel-2) var(--pct)); }
-input[type="range"].rs:focus-visible { outline: 2px solid var(--c); outline-offset: 4px; }
-input[type="range"].rs::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%;
-  background: var(--c); border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--c); transition: transform .15s; }
-input[type="range"].rs::-webkit-slider-thumb:hover { transform: scale(1.2); }
-input[type="range"].rs::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--c); border: 3px solid var(--bg); box-shadow: 0 0 0 1px var(--c); }
+/* Range sliders: filled track in the fighter's corner colour, dark remainder, round thumb. The control is 24 px tall and its thumb 24 px
+   (a touch target of at least 24 px, WCAG 2.2) while the visible track stays a 6 px band painted in the middle. */
+input[type="range"].rs { -webkit-appearance: none; appearance: none; height: 24px; background-color: transparent; cursor: pointer;
+  background-image: linear-gradient(to right, var(--c) var(--pct), var(--panel-2) var(--pct)); background-size: 100% 6px; background-position: center; background-repeat: no-repeat; }
+input[type="range"].rs:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; border-radius: 12px; }
+input[type="range"].rs::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--c); border: 6px solid var(--bg); box-shadow: 0 0 0 1px var(--c); transition: transform .15s; }
+input[type="range"].rs::-webkit-slider-thumb:hover { transform: scale(1.12); }
+input[type="range"].rs::-moz-range-thumb { width: 12px; height: 12px; border-radius: 50%; background: var(--c); border: 6px solid var(--bg); box-shadow: 0 0 0 1px var(--c); }
 input[type="range"].rs::-moz-range-track { background: transparent; }
 
 /* Arabic: letter-spacing breaks the joining between letters, and the tight display leading clips marks above and below the line. */

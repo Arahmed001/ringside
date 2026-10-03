@@ -11,7 +11,7 @@ export async function TenureTable({ tenures, limit = 40 }: { tenures: FighterTen
   if (!rows.length) return <p className="text-sm text-muted">{t("No fighters on record.")}</p>;
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full text-sm" aria-label={t("Fighters")}>
         <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th className="py-2">{t("Fighter")}</th><th>{t("Period")}</th><th>{t("Record together")}</th><th className="text-end">{t("Elo change")}</th></tr></thead>
         <tbody>
           {rows.map((x) => (

@@ -25,7 +25,7 @@ export async function AskResults({ a }: { a: Answer }) {
         <section key={tb.id} className="card p-5" aria-labelledby={`t-${tb.id}`}>
           <h3 id={`t-${tb.id}`} className="mb-3 font-display text-2xl font-bold uppercase leading-none">{tb.title}</h3>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm" aria-labelledby={`t-${tb.id}`}>
               <thead><tr className="text-start text-xs uppercase tracking-widest text-muted">{tb.columns.map((c, i) => c ? <th key={i} scope="col" className="py-2 pe-3 text-start font-normal">{c}</th> : <td key={i} />)}</tr></thead>
               <tbody>{tb.rows.map((r, i) => (
                 <tr key={i} className="border-t border-line/60 tabular">{r.map((c, j) => j === 0 && tb.columns[0] === "#" ? <td key={j} className="py-2 pe-3 text-muted">{cell(c, `${i}-${j}`)}</td> : <td key={j} className="py-2 pe-3">{cell(c, `${i}-${j}`)}</td>)}</tr>
@@ -36,7 +36,7 @@ export async function AskResults({ a }: { a: Answer }) {
         </section>
       ))}
       <details className="card p-5 text-sm">
-        <summary className="cursor-pointer font-semibold">{t("How this was answered")}</summary>
+        <summary className="cursor-pointer py-1.5 font-semibold">{t("How this was answered")}</summary>
         <p className="mt-3 text-muted">{a.planner === "ai" ? t("An AI model chose which of our fixed, read-only queries to run. It cannot run anything else, and every number comes from the queries below, not from the model.") : t("Patterns in the question chose which of our fixed, read-only queries to run. Every number comes from the queries below.")}</p>
         <ul className="mt-3 space-y-1 font-mono text-xs" dir="ltr">{a.calls.map((c, i) => <li key={i}>{c.tool}({Object.entries(c.args).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join(", ")})</li>)}</ul>
       </details>

@@ -1150,6 +1150,7 @@
  "What is at stake": "ما المعروض على المحك",
  "What is in the database, where each kind of fact comes from, how complete it is, and how well the prediction model does on fights it has never seen.": "ما الموجود في قاعدة البيانات، ومن أين يأتي كل نوع من المعلومات، ومدى اكتماله، ومدى جودة نموذج التوقع في نزالات لم يرها من قبل.",
  "What the data can and cannot say": "ما تستطيع البيانات قوله وما لا تستطيع",
+ "What the data says each factor is worth": "ما تقوله البيانات عن قيمة كل عامل",
  "What the data says each factor is worth ({n} fights, {from} to {to})": "ما تقوله البيانات عن قيمة كل عامل ({n} نزال، من {from} إلى {to})",
  "What the sport takes in and who gets paid. Every figure carries a badge saying how it is known (official record, press report or estimate) and a link to its source where one exists.": "ما تجنيه اللعبة ومن يتقاضى الأجور. يحمل كل رقم شارة توضح كيف عُرف (سجل رسمي أو تقرير صحفي أو تقدير) ورابطًا إلى مصدره حيثما وُجد.",
  "What this result changed": "ما الذي غيّرته هذه النتيجة",

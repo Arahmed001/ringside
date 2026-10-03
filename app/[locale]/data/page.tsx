@@ -100,7 +100,7 @@ export default async function DataPage() {
       <section>
         <SectionTitle eyebrow={t("Where facts come from")} title={t("Source registry")} />
         <div className="card overflow-x-auto p-2">
-          <table className="w-full text-sm">
+          <table className="w-full text-sm" aria-label={t("Source registry")}>
             <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th className="p-3">{t("Source")}</th><th>{t("Supplies")}</th><th>{t("Licence")}</th><th>{t("Status")}</th></tr></thead>
             <tbody>{SOURCES.map((s) => (
               <tr key={s.name} className="border-t border-line/60 align-top">
@@ -133,7 +133,7 @@ export default async function DataPage() {
             </div>
             <div className="card overflow-x-auto p-5">
               <div className="eyebrow mb-3">{t("What the data says each factor is worth ({n} fights, {from} to {to})", { n: fit.rows.train.toLocaleString("en-US"), from: fit.rows.from, to: fit.rows.splitDate })}</div>
-              <table className="w-full text-sm">
+              <table className="w-full text-sm" aria-label={t("What the data says each factor is worth")}>
                 <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th className="py-2">{t("Factor")}</th><th>{t("Effect on log-odds of winning")}</th><th>{t("± error")}</th><th>z</th><th className="text-end">{t("Clear signal?")}</th></tr></thead>
                 <tbody>{fit.features.map((f) => (
                   <tr key={f.key} className="border-t border-line/60">

@@ -408,3 +408,6 @@ Both: Arabic (128 strings, machine-translated; number-agreement strings use plur
 - Tests (`tests/ask.test.ts`, 17, mutation-checked): plan cleaning, every pattern and example in both languages, each tool against a raw count of the data, grounding, the AI path with a fake model, limits, caching, injection, API.
 
 **Scale (160,000 bouts):** the data work for a question is 7 to 200 ms (the cold all-time list is the slowest); a model call, when there is one, is far longer.
+
+## 29. Accessibility and design pass, round two (round 14, 2026-10-03)
+A second sweep of every route built since round 9 (36 routes, both languages, both rail states): axe 0 violations; reflow at five widths; text spacing at two. Found and fixed a regression I introduced in round 9 (the heatmap's hidden text widened `/analytics` to 423 px at 320 px), a long-Arabic-name overflow, 16 unnamed tables, two placeholder-only inputs, 6 px slider hit areas that read out bare numbers, silent odds changes in the what-if lab (now a live region), and several sub-24 px targets. `tests/a11y.test.ts` gained rules for table names, input labels, svg descriptions, the heatmap cell and the slider size. Not done: a real screen reader, the full visual design review, poster contrast. Details in `docs/accessibility.md` (round 14).

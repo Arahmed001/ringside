@@ -85,8 +85,8 @@ Every choice below serves that. The risk is turning drama into noise, so drama i
 - **Type:** IBM Plex Sans Arabic for text, Tajawal 500-800 for the poster voice (compact and heavy like Barlow Condensed), Amiri for nicknames (Arabic has no italics, so the gold serif accent becomes a calligraphic face). No letter-spacing and no uppercase in Arabic; heading leading is loosened to 1.3 so marks above and below the line are not clipped; poster surnames are set smaller because Arabic glyphs run wider.
 - **Numbers and dates:** Western digits (0-9) and the Gregorian calendar, as Saudi and Gulf sports media print them.
 
-## Still to do (needs a running browser)
-1. Look at every page at 375, 768 and 1280px and fix whatever is off.
+## Still to do
+1. ~~Look at every page at 375, 768 and 1280px and fix whatever is off.~~ Done by measurement for reflow and accessibility (docs/accessibility.md, rounds 9 and 14); the visual review of desktop layouts is still partial (the screenshot tool letterboxes wide viewports).
 2. Generate two or three alternative home-page directions with `/design-shotgun` and compare.
 3. Run `/design-review` and `/qa` and fix what they find.
 4. Check text contrast on generated posters over bright accent colours.

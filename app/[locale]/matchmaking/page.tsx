@@ -115,7 +115,7 @@ export default async function Matchmaking({ searchParams }: { searchParams: Prom
               <div className="card p-5">
                 <div className="eyebrow mb-3">{t("Common opponents")}</div>
                 {dream.common.length ? (
-                  <table className="w-full text-sm">
+                  <table className="w-full text-sm" aria-label={t("Common opponents")}>
                     <thead><tr className="text-xs font-normal uppercase tracking-widest text-muted"><th className="py-1 text-start font-normal">{t("Opponent")}</th><th className="text-start font-normal">{t.name(dream.p.a.name)}</th><th className="text-start font-normal">{t.name(dream.p.b.name)}</th></tr></thead>
                     <tbody>
                       {dream.common.map((c) => {

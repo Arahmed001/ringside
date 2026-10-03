@@ -63,7 +63,7 @@ export default async function Analytics() {
       <section className="card p-5">
         <div className="eyebrow mb-1">{t("When knockouts land")}</div>
         <p className="mb-4 text-sm text-muted">{t("Share of each division’s finishes by round. Brighter = more stoppages. Heavier divisions end early; lighter ones grind.")}</p>
-        <Heatmap rows={heat.map((h) => ({ label: t(h.weightClass), cells: h.cells, total: h.total }))} cols={Array.from({ length: 12 }, (_, i) => String(i + 1))} />
+        <Heatmap label={t("When knockouts land")} rows={heat.map((h) => ({ label: t(h.weightClass), cells: h.cells, total: h.total }))} cols={Array.from({ length: 12 }, (_, i) => String(i + 1))} />
         <div className="mt-4 text-xs text-muted">{t("Overall: round 1 accounts for {p} of all stoppages.", { p: pct(rounds[0] / Math.max(1, rounds.reduce((a, b) => a + b, 0))) })}</div>
       </section>
 
