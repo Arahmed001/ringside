@@ -18,7 +18,7 @@ export async function SectionTitle({ eyebrow, title, href, cta }: { eyebrow?: st
         {eyebrow && <div className="eyebrow mb-1">{eyebrow}</div>}
         <h2 className="font-display text-3xl font-bold uppercase leading-none">{title}</h2>
       </div>
-      {href && <Link href={href} className="text-sm text-muted transition hover:text-ink">{cta ?? t("View all")} <span className="inline-block rtl:rotate-180">→</span></Link>}
+      {href && <Link href={href} className="inline-block py-1 text-sm text-muted transition hover:text-ink">{cta ?? t("View all")} <span className="inline-block rtl:rotate-180">→</span></Link>}
     </div>
   );
 }
@@ -32,7 +32,7 @@ export async function ArchBadge({ b }: { b: BoxerFull }) {
 export async function Streak({ b }: { b: BoxerFull }) {
   if (b.streak.type === "-") return null;
   const t = await getT();
-  const c = b.streak.type === "W" ? "text-win" : b.streak.type === "L" ? "text-red" : "text-muted";
+  const c = b.streak.type === "W" ? "text-win" : b.streak.type === "L" ? "text-red-ink" : "text-muted";
   return <span className={`tabular text-xs font-semibold ${c}`}>{t(RES[b.streak.type])}{b.streak.count}</span>;
 }
 
@@ -59,7 +59,7 @@ export async function BoxerCard({ b, rank }: { b: BoxerFull; rank?: number }) {
 
 export async function ResultPill({ r }: { r: "W" | "L" | "D" | "NC" }) {
   const t = await getT();
-  const c = r === "W" ? "bg-win/15 text-win" : r === "L" ? "bg-red/15 text-red" : "bg-white/10 text-muted";
+  const c = r === "W" ? "bg-win/15 text-win" : r === "L" ? "bg-red/15 text-red-ink" : "bg-white/10 text-muted";
   return <span className={`grid h-6 min-w-6 place-items-center rounded-md px-1 text-xs font-bold ${c}`}>{t(RES[r])}</span>;
 }
 
@@ -70,7 +70,7 @@ export async function BoutLine({ bout, focusId }: { bout: BoutRow; focusId?: num
   return (
     <tr className="border-t border-line/60 text-sm">
       <td className="py-2.5 pe-3 tabular text-muted">{fmtDate(bout.date, { month: "short", year: "numeric", day: "numeric" }, t.locale)}</td>
-      <td className="pe-3">{bout.method ? <Link href={`/bouts/${bout.id}`} title={t("Full bout details")}><ResultPill r={r} /></Link> : <Link href={`/bouts/${bout.id}`} className={`chip ${bout.status === "cancelled" ? "!border-red/40 !text-red" : ""}`}>{bout.status === "cancelled" ? t("Cancelled") : t("TBA")}</Link>}</td>
+      <td className="pe-3">{bout.method ? <Link href={`/bouts/${bout.id}`} title={t("Full bout details")}><ResultPill r={r} /></Link> : <Link href={`/bouts/${bout.id}`} className={`chip ${bout.status === "cancelled" ? "!border-red/40 !text-red-ink" : ""}`}>{bout.status === "cancelled" ? t("Cancelled") : t("TBA")}</Link>}</td>
       <td className="pe-3"><Link href={`/boxers/${opp.s}`} className="hover:text-gold">{t.name(opp.n)}</Link></td>
       <td className="pe-3 tabular text-muted">{methodLabel(bout.method, bout.endRound, t)}</td>
       <td className="hidden pe-3 text-muted sm:table-cell"><Link href={`/events/${bout.eventId}`} className="hover:text-ink">{t.name(bout.eventName)}</Link></td>
@@ -82,7 +82,7 @@ export async function BoutLine({ bout, focusId }: { bout: BoutRow; focusId?: num
 export function Stat({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
     <div className="card p-4">
-      <div className="text-[11px] uppercase tracking-widest text-muted">{label}</div>
+      <div className="text-xs uppercase tracking-widest text-muted">{label}</div>
       <div className="font-display text-4xl font-bold leading-tight tabular">{value}</div>
       {sub && <div className="text-xs text-muted">{sub}</div>}
     </div>
@@ -93,5 +93,5 @@ export async function Delta({ d }: { d: number | null }) {
   const t = await getT();
   if (d === null) return <span className="chip !border-gold/40 !text-gold">{t("NEW")}</span>;
   if (d === 0) return <span className="text-muted">–</span>;
-  return <span className={`tabular text-xs font-semibold ${d > 0 ? "text-win" : "text-red"}`}>{d > 0 ? "▲" : "▼"}{Math.abs(d)}</span>;
+  return <span className={`tabular text-xs font-semibold ${d > 0 ? "text-win" : "text-red-ink"}`}>{d > 0 ? "▲" : "▼"}{Math.abs(d)}</span>;
 }

@@ -34,7 +34,7 @@ async function Side({ f, color, win }: { f: Fighter; color: string; win: boolean
   const t = await getT();
   return (
     <Link href={`/boxers/${f.slug}`} className="flex flex-col items-center gap-2 text-center">
-      <div className="relative"><Headshot boxer={f} size={110} />{win && <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-win px-2 py-0.5 text-[10px] font-bold text-bg">{t("WINNER")}</span>}</div>
+      <div className="relative"><Headshot boxer={f} size={110} />{win && <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-win px-2 py-0.5 text-xs font-bold text-bg">{t("WINNER")}</span>}</div>
       <div className="font-display text-3xl font-bold leading-tight" style={{ color }}>{t.name(f.name)}</div>
       <div className="text-xs text-muted">{flag(f.country)} {recordStr(f)} · {t(f.stance)}</div>
     </Link>
@@ -72,6 +72,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="space-y-10">
       <section className="rise">
+        <h1 className="sr-only">{t("{a} vs {b}", { a: t.name(red.name), b: t.name(blue.name) })}</h1>
         <div className="eyebrow mb-2">
           <Link href={`/events/${ev.id}`} className="hover:text-ink">{t.name(ev.name)}</Link> · {fmtDate(ev.date, undefined, t.locale)} · {t.name(ev.venue)}, {t.name(ev.city)}
         </div>
@@ -86,7 +87,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
 
         {b.upcoming && b.status !== "cancelled" && <p className="mt-4 text-sm"><Link href={`/previews/${b.id}`} className="chip !border-gold/40 hover:!text-gold">{t("Read the preview")}</Link></p>}
         <div className="card mt-5 p-6">
-          <div className="ltr-fixed grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+          <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4">
             <Side f={red} color="#e5322d" win={winner?.id === red.id} />
             <div className="text-center">
               <div className="font-display text-3xl font-extrabold text-gold">{t("VS")}</div>
@@ -102,7 +103,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
           </div>
           {(b.kdRed > 0 || b.kdBlue > 0) && (
             <div className="mt-5 flex justify-center gap-2 text-xs">
-              {b.kdRed > 0 && <span className="chip !border-red/50 !text-red">{t("{name} down {n}×", { name: surname(red.name), n: b.kdRed })}</span>}
+              {b.kdRed > 0 && <span className="chip !border-red/50 !text-red-ink">{t("{name} down {n}×", { name: surname(red.name), n: b.kdRed })}</span>}
               {b.kdBlue > 0 && <span className="chip !border-blue/50 !text-blue">{t("{name} down {n}×", { name: surname(blue.name), n: b.kdBlue })}</span>}
             </div>
           )}
@@ -123,7 +124,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
                 <div key={k} className="ltr-fixed grid grid-cols-3 items-center border-t border-line/60 px-4 py-2 first:border-0"><span className="tabular font-semibold">{x}</span><span className="text-center text-xs uppercase tracking-widest text-muted">{k}</span><span className="text-end tabular font-semibold">{y}</span></div>
               ))}
               {(wr.madeWeight === false || wb.madeWeight === false) && (
-                <div className="border-t border-line/60 bg-red/10 px-4 py-2 text-xs text-red">
+                <div className="border-t border-line/60 bg-red/10 px-4 py-2 text-xs text-red-ink">
                   {wr.madeWeight === false && wb.madeWeight === false
                     ? t("Missed weight: {a} and {b}", { a: missed(red.name, wr), b: missed(blue.name, wb) })
                     : t("Missed weight: {a}", { a: wr.madeWeight === false ? missed(red.name, wr) : missed(blue.name, wb) })}
@@ -165,7 +166,7 @@ function oddsBlock(t: T, oddsRed: number | null, oddsBlue: number | null, mkt: n
   if (!oddsRed || !oddsBlue) return null;
   return (
     <div className="mt-4 border-t border-line/60 pt-3 text-sm">
-      <div className="mb-1 flex justify-between"><span className="text-muted">{t("Closing odds")}</span><span className="tabular"><b className="text-red">{oddsRed.toFixed(2)}</b> / <b className="text-blue">{oddsBlue.toFixed(2)}</b></span></div>
+      <div className="mb-1 flex justify-between"><span className="text-muted">{t("Closing odds")}</span><span className="tabular"><b className="text-red-ink">{oddsRed.toFixed(2)}</b> / <b className="text-blue">{oddsBlue.toFixed(2)}</b></span></div>
       {mkt !== null && <div className="flex justify-between text-xs text-muted"><span>{t("Market implied (red)")}</span><span className="tabular">{Math.round(mkt * 100)}%{elo !== null ? ` · ${t("Elo says {n}%", { n: Math.round(elo * 100) })}` : ""}</span></div>}
     </div>
   );

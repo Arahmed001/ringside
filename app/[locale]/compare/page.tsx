@@ -58,7 +58,7 @@ export default async function Compare({ searchParams }: { searchParams: Promise<
           );
         })}
         <span className="hidden font-display text-xl font-bold text-gold sm:col-start-2 sm:row-start-1 sm:block">{t("VS")}</span>
-        <button className="rounded-xl bg-red px-6 py-2.5 font-display text-lg font-bold uppercase transition hover:brightness-110">{t("Predict")}</button>
+        <button className="rounded-xl bg-red-btn px-6 text-white py-2.5 font-display text-lg font-bold uppercase transition hover:brightness-90">{t("Predict")}</button>
       </form>
 
       {([["A", sa || aq, A], ["B", sb || bq, B]] as const).map(([k, asked, f]) => asked && !f && (
@@ -97,7 +97,7 @@ async function Result({ A, B, w }: { A: BoxerFull; B: BoxerFull; w: Awaited<Retu
   return (
     <section className="space-y-6">
       <div className="card p-6">
-        <div className="ltr-fixed grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+        <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4">
           {[A, B].map((f, i) => (
             <Link key={f.id} href={`/boxers/${f.slug}`} className={`flex flex-col items-center gap-2 text-center ${i === 1 ? "order-3" : ""}`}>
               <Headshot boxer={f} size={120} />
@@ -108,7 +108,7 @@ async function Result({ A, B, w }: { A: BoxerFull; B: BoxerFull; w: Awaited<Retu
           <div className="order-2 font-display text-4xl font-extrabold text-gold">{t("VS")}</div>
         </div>
         <div className="mt-6"><ProbBar a={t.name(A.name)} b={t.name(B.name)} pA={p.pA} pB={p.pB} pDraw={p.pDraw} /></div>
-        <div className="mt-4 flex flex-wrap gap-2 text-xs"><span className="chip !border-gold/40 !text-gold">✦ {t(p.confidence)}</span><span className="chip">{t("{n}% chance of KO/TKO", { n: Math.round(p.koProb * 100) })}</span>{A.weightClass !== B.weightClass && <span className="chip !border-red/50 !text-red">{t("Different divisions — treat with caution")}</span>}</div>
+        <div className="mt-4 flex flex-wrap gap-2 text-xs"><span className="chip !border-gold/40 !text-gold">✦ {t(p.confidence)}</span><span className="chip">{t("{n}% chance of KO/TKO", { n: Math.round(p.koProb * 100) })}</span>{A.weightClass !== B.weightClass && <span className="chip !border-red/50 !text-red-ink">{t("Different divisions — treat with caution")}</span>}</div>
       </div>
       <MatchupLab a={{ name: t.name(A.name), features: featuresOf(A) }} b={{ name: t.name(B.name), features: featuresOf(B) }} defaults={activeWeights()}
         modelNote={(() => { const f = loadFit(); return f && f.recommended !== "plain Elo" ? t("The rating weight is fitted on {n} past bouts (held-out log-loss {fit} vs {base} for plain Elo). Other weights are hand-set; see Data & model for how each compares.", { n: f.rows.train.toLocaleString("en-US"), fit: f.test[f.recommended === "Elo refit" ? "eloOnly" : f.recommended === "all features" ? "full" : "selected"].logLoss.toFixed(3), base: f.test.baseline.logLoss.toFixed(3) }) : t("Weights are hand-set until real results are available to fit the model."); })()} />

@@ -8,6 +8,7 @@ import { CommandPalette } from "@/components/CommandPalette";
 import { dirOf, isLocale, localePath } from "@/lib/i18n/config";
 import { clientDict, tFor } from "@/lib/i18n/dicts";
 import { abs, indexable, jsonLd, siteUrl } from "@/lib/seo";
+import { NavLink } from "@/components/NavLink";
 import "../globals.css";
 
 const body = Geist({ variable: "--font-body", subsets: ["latin"] });
@@ -55,30 +56,31 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
     <html lang={locale} dir={dirOf(locale)} className={ar ? `${bodyAr.variable} ${displayAr.variable} ${serifAr.variable}` : `${body.variable} ${display.variable} ${serif.variable}`}>
       <body className="min-h-screen">
         <I18nProvider locale={locale} dict={clientDict(locale)}>
+          <a href="#main" className="skip-link">{t("Skip to content")}</a>
           <header className="sticky top-0 z-40 border-b border-line/70 bg-bg/75 backdrop-blur-xl">
             <div className="mx-auto flex max-w-7xl items-center gap-4 px-5 py-3 xl:gap-6">
               <Link href="/" className="flex items-center gap-2" dir="ltr">
                 <span className="grid h-8 w-8 place-items-center rounded-lg bg-red font-display text-lg font-extrabold">R</span>
-                <span className="font-display text-2xl font-extrabold uppercase tracking-wide">Ring<span className="text-red">side</span></span>
+                <span className="font-display text-2xl font-extrabold uppercase tracking-wide">Ring<span className="text-red-ink">side</span></span>
               </Link>
               <nav className="hidden gap-1 xl:flex" aria-label={t("Main")}>
                 {NAV.map(([href, label]) => (
-                  <Link key={href} href={href} className="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm text-muted transition hover:bg-panel2 hover:text-ink">{label}</Link>
+                  <NavLink key={href} href={href} className="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm text-muted transition hover:bg-panel2 hover:text-ink">{label}</NavLink>
                 ))}
               </nav>
               <div className="ms-auto flex items-center gap-3">
                 <form action={localePath(locale, "/boxers")} className="hidden w-72 2xl:block" role="search">
-                  <input name="q" aria-label={t("Search fighters")} placeholder={t("Ask anything… “southpaw welterweights with 10+ KOs”")} className="w-full rounded-xl border border-line bg-panel px-4 py-2 text-sm outline-none transition placeholder:text-muted/70 focus:border-gold/60" />
+                  <input name="q" aria-label={t("Search fighters")} placeholder={t("Ask anything… “southpaw welterweights with 10+ KOs”")} className="w-full rounded-xl border border-line bg-panel px-4 py-2 text-sm outline-none transition placeholder:text-muted focus:border-gold/60" />
                 </form>
                 <CommandPalette />
                 <LanguageSwitch />
               </div>
             </div>
             <nav className="flex gap-1 overflow-x-auto px-4 pb-2 xl:hidden" aria-label={t("Main")}>
-              {NAV.map(([href, label]) => <Link key={href} href={href} className="chip whitespace-nowrap">{label}</Link>)}
+              {NAV.map(([href, label]) => <NavLink key={href} href={href} className="chip whitespace-nowrap">{label}</NavLink>)}
             </nav>
           </header>
-          <main className="mx-auto max-w-7xl px-5 py-8">{children}</main>
+          <main id="main" tabIndex={-1} className="mx-auto max-w-7xl px-5 py-8 outline-none">{children}</main>
           <footer className="mx-auto max-w-7xl px-5 pb-12 pt-6 text-xs text-muted">
             {t.rich("Ringside demo build · All fighters, fights and events shown are <b>fictional, simulated data</b>. Ratings are Elo-style and unofficial.", { b: (c) => <b className="text-ink/80">{c}</b> })}
           </footer>

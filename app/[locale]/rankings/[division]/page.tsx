@@ -58,7 +58,7 @@ export default async function DivisionRankings({ params, searchParams }: { param
 
       <div className="card mt-6 overflow-x-auto">
         <table className="w-full text-sm">
-          <thead><tr className="text-start text-[11px] uppercase tracking-widest text-muted">
+          <thead><tr className="text-start text-xs uppercase tracking-widest text-muted">
             <th className="p-3">#</th><th>{t("Fighter")}</th><th className="hidden sm:table-cell">{t("Style")}</th><th>{t("Record")}</th><th className="hidden md:table-cell">{t("KO%")}</th><th className="hidden md:table-cell">{t("Last fight")}</th><th className="text-end">{t("Rating")}</th><th className="p-3 text-end">{t("90d")}</th>
           </tr></thead>
           <tbody>
@@ -71,7 +71,7 @@ export default async function DivisionRankings({ params, searchParams }: { param
                 <td className="hidden tabular text-muted md:table-cell">{Math.round(r.boxer.koRate * 100)}%</td>
                 <td className="hidden text-muted md:table-cell">{r.boxer.lastFight ? fmtDate(r.boxer.lastFight, { month: "short", year: "numeric" }, t.locale) : "—"}</td>
                 <td className="text-end font-semibold tabular">{Math.round(r.boxer.rating)}</td>
-                <td className="p-3 text-end"><div className="flex items-center justify-end gap-2"><span className={`tabular text-xs ${r.ratingChange >= 0 ? "text-win" : "text-red"}`}>{r.ratingChange >= 0 ? "+" : ""}{Math.round(r.ratingChange)}</span><Delta d={r.delta} /></div></td>
+                <td className="p-3 text-end"><div className="flex items-center justify-end gap-2"><span className={`tabular text-xs ${r.ratingChange >= 0 ? "text-win" : "text-red-ink"}`}>{r.ratingChange >= 0 ? "+" : ""}{Math.round(r.ratingChange)}</span><Delta d={r.delta} /></div></td>
               </tr>
             ))}
           </tbody>

@@ -58,7 +58,7 @@ export default async function Matchmaking({ searchParams }: { searchParams: Prom
         <SectionTitle eyebrow={t("Pick a fighter")} title={t("Who should he fight next?")} />
         <form className="card grid gap-3 p-4 sm:grid-cols-[1fr_auto] sm:items-center">
           <FighterPicker key={`a:${subject?.slug ?? sp.aq ?? ""}`} name="a" label="" placeholder={t("Search for a fighter…")} minBouts={4} initial={init(subject, sp.aq)} />
-          <button className="rounded-xl bg-red px-6 py-2.5 font-display text-lg font-bold uppercase transition hover:brightness-110">{t("Suggest opponents")}</button>
+          <button className="rounded-xl bg-red-btn px-6 text-white py-2.5 font-display text-lg font-bold uppercase transition hover:brightness-90">{t("Suggest opponents")}</button>
         </form>
         {(sp.a || sp.aq) && !subject && <p className="mt-3 text-sm text-muted">{t("No fighter with 4+ bouts matches that.")}</p>}
         {subject && (
@@ -83,7 +83,7 @@ export default async function Matchmaking({ searchParams }: { searchParams: Prom
           <FighterPicker key={`x:${X?.slug ?? sp.xq ?? ""}`} name="x" label="" placeholder={t("Fighter in the red corner…")} minBouts={1} initial={init(X, sp.xq)} />
           <span className="hidden font-display text-xl font-bold text-gold sm:block">{t("VS")}</span>
           <FighterPicker key={`y:${Y?.slug ?? sp.yq ?? ""}`} name="y" label="" placeholder={t("Fighter in the blue corner…")} minBouts={1} initial={init(Y, sp.yq)} />
-          <button className="rounded-xl bg-red px-6 py-2.5 font-display text-lg font-bold uppercase transition hover:brightness-110">{t("Build it")}</button>
+          <button className="rounded-xl bg-red-btn px-6 text-white py-2.5 font-display text-lg font-bold uppercase transition hover:brightness-90">{t("Build it")}</button>
         </form>
         {dream && (
           <div className="mt-5 grid gap-5 lg:grid-cols-[1.2fr_1fr]">
@@ -93,7 +93,7 @@ export default async function Matchmaking({ searchParams }: { searchParams: Prom
                 <div className="eyebrow mb-3">{t("Why it might never happen")}</div>
                 {dream.flags.length || dream.catchweight ? (
                   <ul className="flex flex-wrap gap-2 text-xs">
-                    {dream.flags.map((f) => <li key={f} className="chip !border-red/40 !text-red">{f}</li>)}
+                    {dream.flags.map((f) => <li key={f} className="chip !border-red/40 !text-red-ink">{f}</li>)}
                     {dream.catchweight && <li className="chip !border-gold/40 !text-gold">{dream.catchweight}</li>}
                   </ul>
                 ) : <p className="text-sm text-muted">{t("Nothing stands in the way: same division, both active, free to be booked.")}</p>}
@@ -116,15 +116,15 @@ export default async function Matchmaking({ searchParams }: { searchParams: Prom
                 <div className="eyebrow mb-3">{t("Common opponents")}</div>
                 {dream.common.length ? (
                   <table className="w-full text-sm">
-                    <thead><tr className="text-[11px] font-normal uppercase tracking-widest text-muted"><th className="py-1 text-start font-normal">{t("Opponent")}</th><th className="text-start font-normal">{t.name(dream.p.a.name)}</th><th className="text-start font-normal">{t.name(dream.p.b.name)}</th></tr></thead>
+                    <thead><tr className="text-xs font-normal uppercase tracking-widest text-muted"><th className="py-1 text-start font-normal">{t("Opponent")}</th><th className="text-start font-normal">{t.name(dream.p.a.name)}</th><th className="text-start font-normal">{t.name(dream.p.b.name)}</th></tr></thead>
                     <tbody>
                       {dream.common.map((c) => {
                         const res = (f: BoxerFull, m: typeof c.a) => (m.winnerId === null ? t("Draw") : m.winnerId === f.id ? `${t("W")} ${methodLabel(m.method, m.endRound, t)}` : `${t("L")} ${methodLabel(m.method, m.endRound, t)}`);
                         return (
                           <tr key={c.opponent.id} className="border-t border-line/60">
                             <td className="py-2"><Link href={`/boxers/${c.opponent.slug}`} className="hover:text-gold">{t.name(c.opponent.name)}</Link></td>
-                            <td className={c.a.winnerId === dream.p.a.id ? "text-win" : c.a.winnerId === null ? "text-muted" : "text-red"}>{res(dream.p.a, c.a)}</td>
-                            <td className={c.b.winnerId === dream.p.b.id ? "text-win" : c.b.winnerId === null ? "text-muted" : "text-red"}>{res(dream.p.b, c.b)}</td>
+                            <td className={c.a.winnerId === dream.p.a.id ? "text-win" : c.a.winnerId === null ? "text-muted" : "text-red-ink"}>{res(dream.p.a, c.a)}</td>
+                            <td className={c.b.winnerId === dream.p.b.id ? "text-win" : c.b.winnerId === null ? "text-muted" : "text-red-ink"}>{res(dream.p.b, c.b)}</td>
                           </tr>
                         );
                       })}

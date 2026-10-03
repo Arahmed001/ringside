@@ -10,14 +10,18 @@ export function Tx({ k, vars }: { k: string; vars?: Vars }) {
 }
 
 /** An <svg role="img"> whose accessible name is translated. Pass label={msg("…")}. */
-export function Svg({ label, ...rest }: Omit<ComponentProps<"svg">, "aria-label"> & { label: string }) {
+export function Svg({ label, descKey, descVars, desc, decorative, ...rest }: Omit<ComponentProps<"svg">, "aria-label"> & { label: string; descKey?: string; descVars?: Vars; desc?: string; decorative?: boolean }) {
   const t = useT();
-  return <svg role="img" aria-label={t(label)} {...rest} />;
+  if (decorative) return <svg aria-hidden {...rest} />; // the same numbers are in text beside it
+  // a chart is a picture of numbers, so the numbers go in its name: "Rating over time. From 1500 to 1710, peak 1730"
+  const summary = descKey ? t(descKey, descVars) : desc;
+  return <svg role="img" aria-label={summary ? `${t(label)}. ${summary}` : t(label)} {...rest} />;
 }
 
 export function HeatCell({ label, round, pct, bg }: { label: string; round: number; pct: number; bg: string }) {
   const t = useT();
-  return <td title={t("{label} · R{round}: {pct}% of finishes", { label, round, pct })} className="h-5 min-w-5 rounded-[4px]" style={{ background: bg }} />;
+  const text = t("{label} · R{round}: {pct}% of finishes", { label, round, pct });
+  return <td title={text} className="h-5 min-w-5 rounded-[4px]" style={{ background: bg }}><span className="sr-only">{pct}%</span></td>;
 }
 
 export function ProbBar({ a, b, pA, pB, pDraw, colorA = "#e5322d", colorB = "#4a8cff" }: { a: string; b: string; pA: number; pB: number; pDraw: number; colorA?: string; colorB?: string }) {

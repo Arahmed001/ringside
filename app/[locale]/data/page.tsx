@@ -23,7 +23,7 @@ const SOURCES: Source[] = [
   { name: msg("CompuBox"), supplies: msg("Punch statistics"), licence: msg("Paid"), status: "planned", note: msg("The schema and charts are ready; needs a licence.") },
   { name: msg("Editors"), supplies: msg("Corrections and trainer/manager history with sources"), licence: msg("Contributor terms"), status: "planned", note: msg("Every row already carries a source field to make this auditable.") },
 ];
-const STATUS_STYLE: Record<Source["status"], string> = { built: "!border-win/40 !text-win", partly: "!border-gold/40 !text-gold", planned: "", blocked: "!border-red/40 !text-red" };
+const STATUS_STYLE: Record<Source["status"], string> = { built: "!border-win/40 !text-win", partly: "!border-gold/40 !text-gold", planned: "", blocked: "!border-red/40 !text-red-ink" };
 const SEVERITY: Record<string, string> = { error: msg("error"), warning: msg("warning"), info: msg("info") };
 const RECOMMENDED: Record<string, string> = { "plain Elo": msg("plain Elo"), "Elo refit": msg("Elo refit"), "all features": msg("all features"), "selected features": msg("selected features") };
 const STATUS_LABEL: Record<Source["status"], string> = { built: msg("Built"), partly: msg("Partly built"), planned: msg("Not yet"), blocked: msg("Not used") };
@@ -78,16 +78,16 @@ export default async function DataPage() {
             <div className="flex flex-wrap items-center gap-2 text-sm">
               <span className="chip">{cov.lastRun.provider}</span>
               <span className="text-muted">{new Date(cov.lastRun.at).toLocaleString(t.locale === "ar" ? "ar-u-nu-latn-ca-gregory" : "en-GB", { dateStyle: "medium", timeStyle: "short" })}</span>
-              <span className={`chip ${cov.lastRun.errors ? "!border-red/40 !text-red" : "!border-win/40 !text-win"}`}>{t.n(cov.lastRun.errors, "{n} error", "{n} errors")}</span>
+              <span className={`chip ${cov.lastRun.errors ? "!border-red/40 !text-red-ink" : "!border-win/40 !text-win"}`}>{t.n(cov.lastRun.errors, "{n} error", "{n} errors")}</span>
               <span className={`chip ${cov.lastRun.warnings ? "!border-gold/40 !text-gold" : ""}`}>{t.n(cov.lastRun.warnings, "{n} warning", "{n} warnings")}</span>
-              {Object.entries(cov.lastRun.dropped).map(([k, n]) => <span key={k} className="chip !border-red/40 !text-red">{t.n(n, "{n} {kind} row dropped", "{n} {kind} rows dropped", { kind: k.replace("_", " ") })}</span>)}
+              {Object.entries(cov.lastRun.dropped).map(([k, n]) => <span key={k} className="chip !border-red/40 !text-red-ink">{t.n(n, "{n} {kind} row dropped", "{n} {kind} rows dropped", { kind: k.replace("_", " ") })}</span>)}
             </div>
             <p className="mt-3 text-xs text-muted">{t("Loaded: {list}.", { list: Object.entries(cov.lastRun.counts).map(([k, n]) => `${n.toLocaleString("en-US")} ${k}`).join(" · ") })}</p>
             {cov.lastRun.issues.length ? (
               <ul className="mt-4 space-y-2 text-sm">
                 {cov.lastRun.issues.map((i) => (
                   <li key={`${i.severity}-${i.code}`} className="flex flex-wrap items-baseline gap-x-3 border-t border-line/60 pt-2">
-                    <span className={`chip ${i.severity === "error" ? "!border-red/40 !text-red" : i.severity === "warning" ? "!border-gold/40 !text-gold" : ""}`}>{SEVERITY[i.severity] ? t(SEVERITY[i.severity]) : i.severity}</span>
+                    <span className={`chip ${i.severity === "error" ? "!border-red/40 !text-red-ink" : i.severity === "warning" ? "!border-gold/40 !text-gold" : ""}`}>{SEVERITY[i.severity] ? t(SEVERITY[i.severity]) : i.severity}</span>
                     <b>{i.code}</b><span className="tabular text-muted">×{i.n}</span><span className="text-xs text-muted">{t("e.g. {example}", { example: i.example })}</span>
                   </li>
                 ))}
@@ -101,7 +101,7 @@ export default async function DataPage() {
         <SectionTitle eyebrow={t("Where facts come from")} title={t("Source registry")} />
         <div className="card overflow-x-auto p-2">
           <table className="w-full text-sm">
-            <thead><tr className="text-start text-[11px] uppercase tracking-widest text-muted"><th className="p-3">{t("Source")}</th><th>{t("Supplies")}</th><th>{t("Licence")}</th><th>{t("Status")}</th></tr></thead>
+            <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th className="p-3">{t("Source")}</th><th>{t("Supplies")}</th><th>{t("Licence")}</th><th>{t("Status")}</th></tr></thead>
             <tbody>{SOURCES.map((s) => (
               <tr key={s.name} className="border-t border-line/60 align-top">
                 <td className="p-3 font-semibold">{t(s.name)}<div className="mt-1 max-w-xs text-xs font-normal text-muted">{t(s.note)}</div></td>
@@ -124,7 +124,7 @@ export default async function DataPage() {
                 const best = name.toLowerCase() === fit.recommended.toLowerCase();
                 return (
                   <div key={name} className={`card p-4 ${best ? "!border-gold/50" : ""}`}>
-                    <div className="flex items-center justify-between text-[11px] uppercase tracking-widest text-muted"><span>{t(name)}</span>{best && <span className="text-gold">{t("best")}</span>}</div>
+                    <div className="flex items-center justify-between text-xs uppercase tracking-widest text-muted"><span>{t(name)}</span>{best && <span className="text-gold">{t("best")}</span>}</div>
                     <div className="font-display text-3xl font-bold tabular">{m.logLoss.toFixed(4)}</div>
                     <div className="text-xs text-muted">{t("log-loss · {acc} correct · Brier {brier}", { acc: pct(m.accuracy, 1), brier: m.brier.toFixed(3) })}</div>
                   </div>
@@ -134,7 +134,7 @@ export default async function DataPage() {
             <div className="card overflow-x-auto p-5">
               <div className="eyebrow mb-3">{t("What the data says each factor is worth ({n} fights, {from} to {to})", { n: fit.rows.train.toLocaleString("en-US"), from: fit.rows.from, to: fit.rows.splitDate })}</div>
               <table className="w-full text-sm">
-                <thead><tr className="text-start text-[11px] uppercase tracking-widest text-muted"><th className="py-2">{t("Factor")}</th><th>{t("Effect on log-odds of winning")}</th><th>{t("± error")}</th><th>z</th><th className="text-end">{t("Clear signal?")}</th></tr></thead>
+                <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th className="py-2">{t("Factor")}</th><th>{t("Effect on log-odds of winning")}</th><th>{t("± error")}</th><th>z</th><th className="text-end">{t("Clear signal?")}</th></tr></thead>
                 <tbody>{fit.features.map((f) => (
                   <tr key={f.key} className="border-t border-line/60">
                     <td className="py-2">{t(f.label)}</td><td className="tabular">{f.effect >= 0 ? "+" : ""}{f.effect.toFixed(3)} <span className="text-xs text-muted">{t(f.unit)}</span></td>

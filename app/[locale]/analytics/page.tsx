@@ -67,9 +67,9 @@ export default async function Analytics() {
       </section>
 
       <section className="grid gap-5 lg:grid-cols-2">
-        <div className="card p-5"><div className="eyebrow mb-3">{t("Bouts per year")} <span className="text-red">· {t("KO share")}</span></div>
+        <div className="card p-5"><div className="eyebrow mb-3">{t("Bouts per year")} <span className="text-red-ink">· {t("KO share")}</span></div>
           <ColumnChart data={years.map((y) => ({ label: y.year, a: y.total, b: y.ko }))} />
-          <div className="ltr-fixed mt-1 flex justify-between text-[11px] text-muted"><span>{years[0]?.year}</span><span>{years[years.length - 1]?.year}</span></div></div>
+          <div className="ltr-fixed mt-1 flex justify-between text-xs text-muted"><span>{years[0]?.year}</span><span>{years[years.length - 1]?.year}</span></div></div>
         <div className="card p-5"><div className="eyebrow mb-3">{t("Nations")}</div>
           <BarList rows={countries.map((c) => ({ label: `${flag(c.country)} ${countryName(c.country, t.locale)}`, value: c.wins, sub: t.n(c.boxers, "{n} fighter · {rate} win rate", "{n} fighters · {rate} win rate", { rate: pct(c.winRate) }) }))} color="var(--gold)" /></div>
       </section>
@@ -84,7 +84,7 @@ export default async function Analytics() {
               <Link key={u.bout.id} href={`/events/${u.bout.eventId}`} className="card card-hover flex items-center gap-3 p-4">
                 <Headshot boxer={win} size={48} />
                 <div className="min-w-0 flex-1 text-sm"><div>{t.rich("<b>{winner}</b> <m>beat</m> {loser}", { winner: t.name(win.name), loser: t.name(lose.name), b: (c) => <b>{c}</b>, m: (c) => <span className="text-muted">{c}</span> })}</div><div className="text-xs text-muted">{fmtDate(u.bout.date, undefined, t.locale)} · {u.bout.method ? t(u.bout.method) : ""}</div></div>
-                <div className="text-end"><div className="font-display text-2xl font-bold text-gold tabular">+{Math.round(u.gap)}</div><div className="text-[10px] uppercase tracking-widest text-muted">{t("Elo gap")}</div></div>
+                <div className="text-end"><div className="font-display text-2xl font-bold text-gold tabular">+{Math.round(u.gap)}</div><div className="text-xs uppercase tracking-widest text-muted">{t("Elo gap")}</div></div>
               </Link>
             );
           })}

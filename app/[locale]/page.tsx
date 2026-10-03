@@ -57,11 +57,11 @@ export default async function Home() {
       <section className="rise grid items-center gap-10 lg:grid-cols-[1.15fr_.85fr]">
         <div>
           <div className="eyebrow mb-3">{t("Boxing intelligence · {fighters} fighters · {bouts} bouts", { fighters: o.boxers, bouts: o.bouts.toLocaleString("en-US") })}</div>
-          <h1 className="font-display text-6xl font-extrabold uppercase leading-[.92] sm:text-8xl">{t("Every fighter.")}<br /><span className="text-red">{t("Every number.")}</span></h1>
+          <h1 className="font-display text-6xl font-extrabold uppercase leading-[.92] sm:text-8xl">{t("Every fighter.")}<br /><span className="text-red-ink">{t("Every number.")}</span></h1>
           <p className="mt-5 max-w-xl text-lg text-muted">{t("Ratings, rankings, win-probabilities and AI scouting for the whole sport, in one place. Ask in plain English.")}</p>
           <form action={localePath(t.locale, "/boxers")} className="mt-7 flex max-w-xl gap-2">
-            <input name="q" placeholder={t("Try: {example}", { example: t(EXAMPLES[0]) })} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-5 py-3.5 outline-none transition placeholder:text-muted/70 focus:border-gold/60" />
-            <button className="rounded-2xl bg-red px-6 font-display text-lg font-bold uppercase tracking-wide transition hover:brightness-110">{t("Ask")}</button>
+            <input name="q" placeholder={t("Try: {example}", { example: t(EXAMPLES[0]) })} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-5 py-3.5 outline-none transition placeholder:text-muted focus:border-gold/60" />
+            <button className="rounded-2xl bg-red-btn px-6 text-white font-display text-lg font-bold uppercase tracking-wide transition hover:brightness-90">{t("Ask")}</button>
           </form>
           <div className="mt-3 flex flex-wrap gap-2">
             {EXAMPLES.map((q) => <Link key={q} href={`/boxers?q=${encodeURIComponent(q)}`} className="chip transition hover:text-ink">{t(q)}</Link>)}
@@ -80,7 +80,7 @@ export default async function Home() {
         <SectionTitle eyebrow={t.n(daysUntil(next.event.date), "In {n} day", "In {n} days")} title={t("Next main event")} href={`/events/${next.event.id}`} cta={t("Full card")} />
         <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
           <div className="card p-6">
-            <div className="ltr-fixed grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+            <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4">
               {[next.red, next.blue].map((b, i) => (
                 <Link key={b.id} href={`/boxers/${b.slug}`} className={`flex flex-col items-center gap-2 text-center ${i === 1 ? "order-3" : ""}`}>
                   <Headshot boxer={b} size={104} />
@@ -95,7 +95,7 @@ export default async function Home() {
               <span className="chip !border-gold/40 !text-gold">✦ {t(p.confidence)}</span>
               <span className="chip">{p.koProb > 0.5 ? t("Stoppage likely · {pct}% KO/TKO", { pct: Math.round(p.koProb * 100) }) : t("Distance likely · {pct}% KO/TKO", { pct: Math.round(p.koProb * 100) })}</span>
               <Link href={`/previews/${next.main.id}`} className="chip !border-gold/40 hover:!text-gold">{t("Read the preview")}</Link>
-              <Link href={`/compare?a=${next.red.slug}&b=${next.blue.slug}`} className="ms-auto text-ink hover:text-gold">{t("Full matchup breakdown")} <span className="inline-block rtl:rotate-180">→</span></Link>
+              <Link href={`/compare?a=${next.red.slug}&b=${next.blue.slug}`} className="ms-auto inline-block py-1 text-ink hover:text-gold">{t("Full matchup breakdown")} <span className="inline-block rtl:rotate-180">→</span></Link>
             </div>
           </div>
           <PickEm bouts={pickBouts} />
@@ -119,7 +119,7 @@ export default async function Home() {
         <div>
           <SectionTitle eyebrow={t("All divisions")} title={t("Pound for pound")} href="/rankings" cta={t("All division rankings")} />
           <div className="grid gap-3 sm:grid-cols-2">{p4p.map((b, i) => <BoxerCard key={b.id} b={b} rank={i + 1} />)}</div>
-          <Link href="/rankings?sex=female" className="mt-3 inline-block text-sm text-muted transition hover:text-ink">{t("Women’s pound for pound")} <span className="inline-block rtl:rotate-180">→</span></Link>
+          <Link href="/rankings?sex=female" className="mt-3 inline-block py-1 text-sm text-muted transition hover:text-ink">{t("Women’s pound for pound")} <span className="inline-block rtl:rotate-180">→</span></Link>
         </div>
         <div>
           <SectionTitle eyebrow={t("Official names & limits")} title={t("Divisions")} />
@@ -127,7 +127,7 @@ export default async function Home() {
             {DIVISIONS.map((d) => (
               <Link key={d.name} href={`/rankings/${slugifyDivision(d.name)}`} className="card card-hover px-3 py-2.5">
                 <div className="text-sm font-semibold leading-tight">{t(d.name)}</div>
-                <div className="text-[11px] text-muted">{d.lb ? t("{lb} lb", { lb: d.lb }) : t("200+ lb")}</div>
+                <div className="text-xs text-muted">{d.lb ? t("{lb} lb", { lb: d.lb }) : t("200+ lb")}</div>
               </Link>
             ))}
           </div>

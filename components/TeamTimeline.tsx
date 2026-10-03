@@ -31,7 +31,7 @@ export async function TeamTimeline({ rows, today }: { rows: TimelineRow[]; today
     <div className="space-y-2">
       {rows.map((row) => (
         <div key={row.label} className="grid grid-cols-[86px_1fr] items-center gap-3 sm:grid-cols-[120px_1fr]">
-          <div className="truncate text-[11px] uppercase tracking-widest text-muted" title={row.label}>{row.label}</div>
+          <div className="truncate text-xs uppercase tracking-widest text-muted" title={row.label}>{row.label}</div>
           <div className="ltr-fixed relative h-10 rounded-lg bg-panel2/60">
             {row.segments.map((s, i) => {
               const left = pos(s.from, min) * 100, right = pos(s.to, ms(today)) * 100;
@@ -39,7 +39,7 @@ export async function TeamTimeline({ rows, today }: { rows: TimelineRow[]; today
               const inner = (
                 <div dir={t.locale === "ar" ? "rtl" : undefined} className="flex h-full flex-col justify-center overflow-hidden px-2 leading-tight">
                   <span className="truncate text-xs font-semibold">{s.label}</span>
-                  {s.sub && <span className="truncate text-[10px] opacity-75">{s.sub}</span>}
+                  {s.sub && <span className="truncate text-xs opacity-75">{s.sub}</span>}
                 </div>
               );
               const style = { left: `${left}%`, width: `${width}%`, background: row.color + (s.current ? "55" : "30"), borderLeft: `3px solid ${row.color}` };
@@ -52,7 +52,7 @@ export async function TeamTimeline({ rows, today }: { rows: TimelineRow[]; today
       ))}
       <div className="grid grid-cols-[86px_1fr] gap-3 sm:grid-cols-[120px_1fr]">
         <span />
-        <div className="ltr-fixed relative h-4 text-[10px] text-muted">
+        <div className="ltr-fixed relative h-4 text-xs text-muted">
           {years.filter((_, i) => i % step === 0).map((y) => (
             <span key={y} className="absolute -translate-x-1/2" style={{ left: `${((Date.UTC(y, 0, 1) - min) / span) * 100}%` }}>{y}</span>
           ))}

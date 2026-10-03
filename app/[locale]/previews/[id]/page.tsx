@@ -58,7 +58,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
       </header>
 
       <section className="card p-6">
-        <div className="ltr-fixed grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+        <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4">
           {[red, blue].map((f, i) => (
             <Link key={f.id} href={`/boxers/${f.slug}`} className={`flex min-w-0 flex-col items-center gap-2 text-center ${i === 1 ? "order-3" : ""}`}>
               <Headshot boxer={f} size={110} />
@@ -87,9 +87,9 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
               {pv.form.map((f, i) => (
                 <div key={f.boxer.id} className="card p-4">
                   <div className="mb-2 flex items-center gap-1.5" dir="ltr" aria-label={t("Last five results")}>
-                    {f.results.map((r, k) => <span key={k} className={`grid h-7 w-7 place-items-center rounded-md text-xs font-bold ${r === "W" ? "bg-win/20 text-win" : r === "L" ? "bg-red/20 text-red" : "bg-panel2 text-muted"}`}>{t(r)}</span>)}
+                    {f.results.map((r, k) => <span key={k} className={`grid h-7 w-7 place-items-center rounded-md text-xs font-bold ${r === "W" ? "bg-win/20 text-win" : r === "L" ? "bg-red/20 text-red-ink" : "bg-panel2 text-muted"}`}>{t(r)}</span>)}
                   </div>
-                  <div className="text-sm" style={{ color: i === 0 ? "#e5322d" : "#4a8cff" }}><b>{name(f.boxer)}</b></div>
+                  <div className="text-sm" style={{ color: i === 0 ? "#ff5a54" : "#4a8cff" }}><b>{name(f.boxer)}</b></div>
                   <p className="mt-1 text-sm text-muted">{f.line}</p>
                   {f.last && <p className="mt-1 text-xs text-muted">{f.last}</p>}
                 </div>
@@ -120,9 +120,9 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
             <div className="eyebrow mb-3">{t("Tale of the tape")}</div>
             <div className="ltr-fixed text-sm" dir="ltr">
               {pv.tape.map((r) => (
-                <div key={r.label} className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-t border-line/60 py-2 first:border-0">
-                  <span className={`tabular font-semibold ${r.edge === "red" ? "text-red" : ""}`}>{r.red}</span>
-                  <span className="text-center text-[11px] uppercase tracking-widest text-muted" dir="auto">{r.label}</span>
+                <div key={r.label} className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 border-t border-line/60 py-2 first:border-0">
+                  <span className={`tabular font-semibold ${r.edge === "red" ? "text-red-ink" : ""}`}>{r.red}</span>
+                  <span className="text-center text-xs uppercase tracking-widest text-muted" dir="auto">{r.label}</span>
                   <span className={`text-end tabular font-semibold ${r.edge === "blue" ? "text-blue" : ""}`}>{r.blue}</span>
                 </div>
               ))}
@@ -143,7 +143,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
           <div className="card p-5">
             <div className="eyebrow mb-2">{t("Head to head")}</div>
             <p className="text-sm">{pv.head2head}</p>
-            <Link href={`/matchmaking?x=${red.slug}&y=${blue.slug}#dream`} className="mt-2 inline-block text-sm text-muted hover:text-ink">{t("Common opponents and more")} <span className="inline-block rtl:rotate-180">→</span></Link>
+            <Link href={`/matchmaking?x=${red.slug}&y=${blue.slug}#dream`} className="mt-2 inline-block py-1 text-sm text-muted hover:text-ink">{t("Common opponents and more")} <span className="inline-block rtl:rotate-180">→</span></Link>
           </div>
           {pv.where.length > 0 && (
             <div className="card p-5">

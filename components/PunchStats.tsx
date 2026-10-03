@@ -21,12 +21,12 @@ export async function PunchStats({ lines, redId, blueId, redName, blueName }: { 
   ] : [];
   return (
     <div>
-      <div className="ltr-fixed mb-3 flex justify-between text-[11px] uppercase tracking-widest"><span className="text-red">{redName}</span><span className="text-muted">{t("punches landed per round")}</span><span className="text-blue">{blueName}</span></div>
+      <div className="ltr-fixed mb-3 flex justify-between text-xs uppercase tracking-widest"><span className="text-red-ink">{redName}</span><span className="text-muted">{t("punches landed per round")}</span><span className="text-blue">{blueName}</span></div>
       <ul className="ltr-fixed space-y-1">
         {Array.from({ length: maxRound }, (_, i) => i + 1).map((r) => {
           const a = by(redId, r), b = by(blueId, r);
           return (
-            <li key={r} className="grid grid-cols-[1fr_28px_1fr] items-center gap-1 text-[10px]">
+            <li key={r} className="grid grid-cols-[1fr_28px_1fr] items-center gap-1 text-xs">
               <div className="flex items-center justify-end gap-1.5"><span className="tabular text-muted">{a?.landed ?? 0}</span><div className="h-3 rounded-l-sm bg-red/80" style={{ width: `${((a?.landed ?? 0) / peak) * 85}%` }} /></div>
               <span className="text-center text-muted">{r}</span>
               <div className="flex items-center gap-1.5"><div className="h-3 rounded-r-sm bg-blue/80" style={{ width: `${((b?.landed ?? 0) / peak) * 85}%` }} /><span className="tabular text-muted">{b?.landed ?? 0}</span></div>
@@ -39,7 +39,7 @@ export async function PunchStats({ lines, redId, blueId, redName, blueName }: { 
           <div key={k} className="ltr-fixed grid grid-cols-3 items-center border-t border-line/60 px-4 py-2 text-xs first:border-0"><span className="tabular font-semibold">{x}</span><span className="text-center uppercase tracking-widest text-muted">{k}</span><span className="text-end tabular font-semibold">{y}</span></div>
         ))}
       </div>
-      <p className="mt-2 text-[11px] text-muted">{t("CompuBox-style statistics: only some bouts are covered.")}</p>
+      <p className="mt-2 text-xs text-muted">{t("CompuBox-style statistics: only some bouts are covered.")}</p>
     </div>
   );
 }

@@ -8,6 +8,8 @@
   --text: #ecebe6;
   --muted: #8d8d99;
   --red: #e5322d;
+  --red-ink: #ff5a54; /* red as small text: 6:1 on the panels (the brand red is 4.0:1) */
+  --red-btn: #c9261f; /* fill behind white text: 5.5:1 */
   --gold: #d9b25f;
   --blue: #4a8cff;
   --green: #3ecf8e;
@@ -21,6 +23,8 @@
   --color-ink: var(--text);
   --color-muted: var(--muted);
   --color-red: var(--red);
+  --color-red-ink: var(--red-ink);
+  --color-red-btn: var(--red-btn);
   --color-gold: var(--gold);
   --color-blue: var(--blue);
   --color-win: var(--green);
@@ -62,7 +66,18 @@ body::before {
 .growy { transform-origin: bottom; animation: growy .9s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes pulse-ring { 0%,100% { opacity: .5 } 50% { opacity: 1 } }
 .live { animation: pulse-ring 2s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { .rise, .draw, .growx, .growy, .live { animation: none; } }
+/* Reduced motion: no entrance or draw animations, no hover lift, no smooth scrolling, and the transitions on charts and bars are instant. */
+@media (prefers-reduced-motion: reduce) {
+  .rise, .draw, .growx, .growy, .live { animation: none; }
+  .card-hover:hover { transform: none; }
+  * { transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
+/* Keyboard focus: one visible ring everywhere (gold, 3:1 on every surface), only for keyboard users. */
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.skip-link { position: absolute; inset-inline-start: 12px; top: -64px; z-index: 100; background: var(--gold); color: #09090b; padding: .6rem 1rem; border-radius: 10px; font-weight: 700; transition: top .15s; }
+.skip-link:focus { top: 12px; }
+@media (forced-colors: active) { .chip, .card { border-color: CanvasText; } }
 
 ::selection { background: var(--red); color: #fff; }
 
@@ -83,3 +98,13 @@ input[type="range"].rs::-moz-range-track { background: transparent; }
 :lang(ar) .font-display { text-transform: none; font-weight: 800; }
 /* Charts, bars and posters keep red on the left and blue on the right in both languages (DESIGN.md: the corners are fixed). */
 .ltr-fixed { direction: ltr; }
+
+/* Small phones (320 px must not scroll sideways): a single-column grid may shrink below its widest word, and poster headings scale down. */
+@layer base {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  h1, h2 { overflow-wrap: break-word; }
+}
+@media (max-width: 479px) {
+  h1.text-5xl { font-size: 2.25rem; line-height: 1.05; }
+  h1.text-6xl, h1.text-7xl, h1.text-8xl { font-size: 2.5rem; line-height: 1; }
+}

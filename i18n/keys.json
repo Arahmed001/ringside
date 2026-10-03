@@ -52,6 +52,7 @@
   "key": "{a} vs {b}",
   "files": [
    "app/[locale]/bouts/[id]/opengraph-image.tsx",
+   "app/[locale]/bouts/[id]/page.tsx",
    "app/[locale]/events/[id]/opengraph-image.tsx",
    "app/[locale]/money/page.tsx",
    "app/[locale]/previews/[id]/opengraph-image.tsx",
@@ -2261,7 +2262,8 @@
  {
   "key": "Division",
   "files": [
-   "app/[locale]/compare/page.tsx"
+   "app/[locale]/compare/page.tsx",
+   "components/StyleMap.tsx"
   ]
  },
  {
@@ -2734,6 +2736,7 @@
    "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "app/[locale]/weights/page.tsx",
+   "components/StyleMap.tsx",
    "components/TenureTable.tsx"
   ]
  },
@@ -2788,6 +2791,12 @@
  },
  {
   "key": "Fighter style map",
+  "files": [
+   "components/StyleMap.tsx"
+  ]
+ },
+ {
+  "key": "Fighter style map. Use “Show as a list” for the same fighters as text.",
   "files": [
    "components/StyleMap.tsx"
   ]
@@ -2922,6 +2931,12 @@
   "key": "Freely licensed fighter photos with author and licence",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "From {first} to {last}, peak {peak}",
+  "files": [
+   "components/charts.tsx"
   ]
  },
  {
@@ -4880,6 +4895,7 @@
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
+   "components/StyleMap.tsx",
    "lib/preview.ts"
   ]
  },
@@ -5241,6 +5257,18 @@
   ]
  },
  {
+  "key": "Show as a list",
+  "files": [
+   "components/StyleMap.tsx"
+  ]
+ },
+ {
+  "key": "Show the map",
+  "files": [
+   "components/StyleMap.tsx"
+  ]
+ },
+ {
   "key": "Show the next {n}",
   "files": [
    "app/[locale]/events/page.tsx"
@@ -5275,6 +5303,12 @@
   "key": "Site fee",
   "files": [
    "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Skip to content",
+  "files": [
+   "app/[locale]/layout.tsx"
   ]
  },
  {
@@ -5434,6 +5468,7 @@
   "files": [
    "app/[locale]/compare/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
+   "components/StyleMap.tsx",
    "lib/preview.ts"
   ]
  },

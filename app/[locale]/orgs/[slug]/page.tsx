@@ -47,7 +47,7 @@ export default async function OrgPage({ params }: { params: Promise<{ locale: st
           <SectionTitle eyebrow={t("Winner of the most recent title fight")} title={t("Current titleholders")} />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[...latest.entries()].map(([division, b]) => {
             const champ = w.byId.get(b.winnerId!)!;
-            return <Link key={division} href={`/boxers/${champ.slug}`} className="card card-hover flex items-center gap-3 p-3"><Headshot boxer={champ} size={48} /><div><div className="text-[11px] uppercase tracking-widest text-gold">{t(division)}</div><div className="font-display text-xl font-bold leading-tight">{t.name(champ.name)}</div><div className="text-xs text-muted">{t("won {date}", { date: fmtDate(b.date, { month: "short", year: "numeric" }, t.locale) })}</div></div></Link>;
+            return <Link key={division} href={`/boxers/${champ.slug}`} className="card card-hover flex items-center gap-3 p-3"><Headshot boxer={champ} size={48} /><div><div className="text-xs uppercase tracking-widest text-gold">{t(division)}</div><div className="font-display text-xl font-bold leading-tight">{t.name(champ.name)}</div><div className="text-xs text-muted">{t("won {date}", { date: fmtDate(b.date, { month: "short", year: "numeric" }, t.locale) })}</div></div></Link>;
           })}</div>
         </section>
         <section>

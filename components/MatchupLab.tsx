@@ -8,7 +8,7 @@ import { msg } from "@/lib/i18n/t";
 
 interface Side { name: string; features: Features }
 
-const RED = "#e5322d", BLUE = "#4a8cff";
+const RED = "#ff5a54", BLUE = "#4a8cff";
 const PRESET_NAME: Record<string, string> = { Balanced: msg("Balanced"), "Pure Elo": msg("Pure Elo"), "Old school": msg("Old school"), "Father Time": msg("Father Time") };
 const PRESET_BLURB: Record<string, string> = {
   Balanced: msg("Elo plus small physical and form edges"), "Pure Elo": msg("Results only: ignore everything else"),
@@ -104,7 +104,7 @@ export function MatchupLab({ a, b, defaults, modelNote }: { a: Side; b: Side; de
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-[11px] text-muted">{t("Bars extend toward the fighter the factor favours: left for {a}, right for {b}.", { a: a.name, b: b.name })} {modelNote ?? t("Weights are hand-set until real results are available to fit the model.")}</p>
+        <p className="mt-3 text-xs text-muted">{t("Bars extend toward the fighter the factor favours: left for {a}, right for {b}.", { a: a.name, b: b.name })} {modelNote ?? t("Weights are hand-set until real results are available to fit the model.")}</p>
       </div>
     </section>
   );

@@ -26,6 +26,9 @@ See `PLAN.md` §8 for what data exists, the data model, and what each script doe
 ## Languages
 English at `/`, Arabic at `/ar`. UI text is keyed by its English sentence (`i18n/ar.json`); proper names have their own table. `npm run i18n:check` lists missing entries; `npm run i18n:translate` fills them with Claude (`ANTHROPIC_API_KEY` in `.env.local`); `npm run i18n:names -- auto` does the same for names. See `docs/i18n.md`. Set `SITE_URL` for canonical URLs and sitemaps; the demo league is `noindex` until a real provider is configured.
 
+## Accessibility
+WCAG 2.2 AA is the target in both languages: skip link, visible focus, text colours measured at 4.5:1 or better, no text under 12px, charts that state their numbers, and a list view of the style map. See `docs/accessibility.md` for what was tested and what was not.
+
 ## Fight previews
 `/previews` lists the next upcoming events; each bout has a data-built preview (stakes, tape, form, the model's pick and how it could end, factors, what to watch). With `ANTHROPIC_API_KEY` set, an AI-written article replaces the plain text, using only the facts on the page.
 

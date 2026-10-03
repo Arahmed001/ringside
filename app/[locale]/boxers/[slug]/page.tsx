@@ -111,7 +111,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
         <div className="mx-auto md:mx-0">
           <Headshot boxer={b} size={200} className="shadow-2xl shadow-black/60" />
           {b.photoCredit && (
-            <p className="mt-1.5 max-w-[200px] text-[10px] leading-snug text-muted">
+            <p className="mt-1.5 max-w-[200px] text-xs leading-snug text-muted">
               {t("Photo:")} <a href={b.photoCredit.pageUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{b.photoCredit.text}</a>
               {" · "}{b.photoCredit.source}
             </p>
@@ -172,18 +172,18 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
                 ))}
                 {honours.length > HONOURS_SHOWN && <li className="chip">{t("+{n} more", { n: honours.length - HONOURS_SHOWN })}</li>}
               </ul>
-              <p className="mt-2 text-[11px] text-muted">{t("From Wikidata (CC0).")}</p>
+              <p className="mt-2 text-xs text-muted">{t("From Wikidata (CC0).")}</p>
             </div>
           )}
         </div>
         <div className="card p-5">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div className="eyebrow">{t("Corner & camp")}</div>{monthsWithTrainer !== null && <span className={`chip ${monthsWithTrainer < 6 ? "!border-red/40 !text-red" : ""}`}>{monthsWithTrainer < 6 ? t.n(Math.round(monthsWithTrainer), "New trainer · {n} month with current trainer", "New trainer · {n} months with current trainer") : t.n(Math.round(monthsWithTrainer), "{n} month with current trainer", "{n} months with current trainer")}</span>}</div>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2"><div className="eyebrow">{t("Corner & camp")}</div>{monthsWithTrainer !== null && <span className={`chip ${monthsWithTrainer < 6 ? "!border-red/40 !text-red-ink" : ""}`}>{monthsWithTrainer < 6 ? t.n(Math.round(monthsWithTrainer), "New trainer · {n} month with current trainer", "New trainer · {n} months with current trainer") : t.n(Math.round(monthsWithTrainer), "{n} month with current trainer", "{n} months with current trainer")}</span>}</div>
           {teamNow.length > 0 && (
             <div className="mb-5 grid gap-2 sm:grid-cols-2">
               {teamNow.map(({ role, v }) => {
                 const name = t.name(v!.person?.name ?? v!.org?.name ?? "");
                 const href = v!.person ? `/people/${v!.person.slug}` : v!.org ? `/orgs/${v!.org.slug}` : "#";
-                return <Link key={role} href={href} className="rounded-xl bg-panel2 px-3 py-2 transition hover:bg-panel2/70"><div className="text-[10px] uppercase tracking-widest text-muted">{t(ROLE_LABEL[role])}</div><div className="text-sm font-semibold">{name}</div></Link>;
+                return <Link key={role} href={href} className="rounded-xl bg-panel2 px-3 py-2 transition hover:bg-panel2/70"><div className="text-xs uppercase tracking-widest text-muted">{t(ROLE_LABEL[role])}</div><div className="text-sm font-semibold">{name}</div></Link>;
               })}
             </div>
           )}
@@ -197,7 +197,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
             <div className="eyebrow">{t("Weigh-in history")}</div>
             <div className="flex gap-2 text-xs">
               {rehydration !== null && <span className="chip">{t("Rehydrates +{n} lb", { n: rehydration.toFixed(1) })}</span>}
-              <span className={`chip ${misses ? "!border-red/40 !text-red" : ""}`}>{misses ? t.n(misses, "{n} missed weight", "{n} missed weights") : t("Never missed weight")}</span>
+              <span className={`chip ${misses ? "!border-red/40 !text-red-ink" : ""}`}>{misses ? t.n(misses, "{n} missed weight", "{n} missed weights") : t("Never missed weight")}</span>
               <Link href="/weights" className="chip hover:text-ink">{t("League weigh-in stats")} <span className="inline-block rtl:rotate-180">→</span></Link>
             </div>
           </div>

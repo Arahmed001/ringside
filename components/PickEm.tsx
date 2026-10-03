@@ -24,21 +24,21 @@ export function PickEm({ bouts }: { bouts: PickBout[] }) {
       </div>
       <ul className="space-y-2">
         {bouts.map((b) => (
-          <li key={b.id} className="ltr-fixed grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+          <li key={b.id} className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
             {[{ id: b.redId, n: b.red, c: "#e5322d" }, null, { id: b.blueId, n: b.blue, c: "#4a8cff" }].map((s, i) => s === null ? (
-              <span key="vs" className="text-[10px] uppercase tracking-widest text-muted">{b.label}</span>
+              <span key="vs" className="text-xs uppercase tracking-widest text-muted">{b.label}</span>
             ) : (
               <button key={s.id} onClick={() => choose(b.id, s.id)} aria-pressed={picks[b.id] === s.id}
                 className="rounded-xl border px-3 py-2 text-start text-sm transition hover:border-white/30"
                 style={{ borderColor: picks[b.id] === s.id ? s.c : "var(--line)", background: picks[b.id] === s.id ? s.c + "22" : "var(--panel-2)", textAlign: i === 0 ? "left" : "right" }}>
                 <span className="font-semibold">{s.n}</span>
-                {b.modelPickId === s.id && <span className="ms-1.5 text-[10px] text-gold" title={t("Model: {pct}%", { pct: b.modelPct })}>✦ {b.modelPct}%</span>}
+                {b.modelPickId === s.id && <span className="ms-1.5 text-xs text-gold" title={t("Model: {pct}%", { pct: b.modelPct })}>✦ {b.modelPct}%</span>}
               </button>
             ))}
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-[11px] text-muted">{t("✦ marks the model’s pick. Picks are saved in this browser.")}</p>
+      <p className="mt-3 text-xs text-muted">{t("✦ marks the model’s pick. Picks are saved in this browser.")}</p>
     </div>
   );
 }

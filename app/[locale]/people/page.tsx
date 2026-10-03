@@ -37,7 +37,7 @@ export default async function People({ searchParams }: { searchParams: Promise<{
 }
 
 type W = Awaited<ReturnType<typeof getWorld>>;
-const th = "py-2 text-start text-[11px] font-normal uppercase tracking-widest text-muted";
+const th = "py-2 text-start text-xs font-normal uppercase tracking-widest text-muted";
 
 async function Trainers({ sort, w }: { sort: string; w: W }) {
   const t = await getT();
@@ -60,7 +60,7 @@ async function Trainers({ sort, w }: { sort: string; w: W }) {
                 <td className="tabular">{r.stable.record.wins}-{r.stable.record.losses}-{r.stable.record.draws}</td>
                 <td className="tabular">{Math.round(r.stable.record.winRate * 100)}%</td>
                 <td className="tabular">{r.stable.titleWins}</td>
-                <td className={`text-end tabular font-semibold ${(r.stable.avgRatingChange ?? 0) >= 0 ? "text-win" : "text-red"}`}>{r.stable.avgRatingChange === null ? "–" : `${r.stable.avgRatingChange >= 0 ? "+" : ""}${Math.round(r.stable.avgRatingChange)}`}</td>
+                <td className={`text-end tabular font-semibold ${(r.stable.avgRatingChange ?? 0) >= 0 ? "text-win" : "text-red-ink"}`}>{r.stable.avgRatingChange === null ? "–" : `${r.stable.avgRatingChange >= 0 ? "+" : ""}${Math.round(r.stable.avgRatingChange)}`}</td>
               </tr>
             ))}
           </tbody>
@@ -106,7 +106,7 @@ async function Judges({ w }: { w: W }) {
                 <tr key={j.person.id} className="border-t border-line/60">
                   <td className="py-2.5"><Link href={`/people/${j.person.slug}`} className="hover:text-gold"><b>{t.name(j.person.name)}</b></Link></td>
                   <td className="tabular">{j.cards}</td><td className="tabular">{Math.round(j.agreeWithMajority * 100)}%</td><td className="tabular">{j.dissents}</td><td className="tabular">{j.avgMargin.toFixed(1)}</td>
-                  <td className="text-end tabular">{j.homePickRate === null ? "–" : <><span className={Math.abs(diff!) >= 0.06 && j.homeSamples >= 40 ? (diff! > 0 ? "font-semibold text-gold" : "font-semibold text-blue") : ""}>{Math.round(j.homePickRate * 100)}%</span><span className="ms-1.5 text-[10px] text-muted">{t("n={n}", { n: j.homeSamples })}</span></>}</td>
+                  <td className="text-end tabular">{j.homePickRate === null ? "–" : <><span className={Math.abs(diff!) >= 0.06 && j.homeSamples >= 40 ? (diff! > 0 ? "font-semibold text-gold" : "font-semibold text-blue") : ""}>{Math.round(j.homePickRate * 100)}%</span><span className="ms-1.5 text-xs text-muted">{t("n={n}", { n: j.homeSamples })}</span></>}</td>
                 </tr>
               );
             })}</tbody>

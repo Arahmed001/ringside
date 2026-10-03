@@ -25,6 +25,7 @@ export default async function Events({ searchParams }: { searchParams: Promise<{
   const recent = eventViews(w, recentEvents(w, 24));
   return (
     <div className="space-y-12">
+      <h1 className="sr-only">{t("Events")}</h1>
       <section>
         <p className="mb-4 text-sm"><Link href="/previews" className="chip !border-gold/40 hover:!text-gold">{t("Fight previews")}: {t("what is at stake in each upcoming fight")}</Link></p>
         <SectionTitle eyebrow={t("Fight calendar")} title={t("Upcoming")} {...(capped ? { href: "/events?upcoming=all", cta: t("Show all {n}", { n: upcoming.length }) } : showAll && upcoming.length > UPCOMING_SHOWN ? { href: "/events", cta: t("Show the next {n}", { n: UPCOMING_SHOWN }) } : {})} />
