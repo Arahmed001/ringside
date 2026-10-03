@@ -5,6 +5,7 @@ import { tempDb } from "./helpers";
 import { hostOf, numberStated, numbersIn, squash } from "../lib/research/text";
 import { PoliteFetcher, parseRobots, robotsAllows, type FetchOutcome } from "../lib/research/fetcher";
 import { checkFacts, factId, nameKey, shapeProblems } from "../lib/research/check";
+import { decisionProblems, staleDecisions, type Decision } from "../lib/research/decisions";
 import { extractFromPage } from "../lib/research/extract";
 import { matchFacts, sameBoxer } from "../lib/research/match";
 import type { ResearchFact } from "../lib/research/types";
@@ -245,4 +246,109 @@ test("verified facts become money rows on the right bout; the rest are held or r
   const r = ingestMoney(db, m.rows, { label: "research-test" });
   assert.deepEqual(r.written, { financials: 1, purses: 1, broadcasts: 1, earnings: 1 });
   assert.deepEqual(r.dropped, {});
+});
+
+// ---------- settling conflicts: lists and recorded decisions ----------
+const DECISION: Decision = { action: "exclude", claims: ["x"], why: "outlier", reason: "One source against two independent ones, and the page itself says so.", evidence: ["https://example.com/evidence"], decidedBy: "tester", date: "2026-10-03" };
+const THREE = () => [
+  fact(), fact({ source: "Forbes", sourceUrl: "https://forbes.com/b", quote: "the live gate was $72.2 million" }),
+  fact({ source: "Other", sourceUrl: "https://other.com/d", quote: "Gate receipts of $60 million were reported", values: { gateUsd: 60_000_000 } }),
+];
+
+test("decisions must say why, with evidence, and name claims that exist", () => {
+  assert.deepEqual(decisionProblems(DECISION), []);
+  assert.ok(decisionProblems({ ...DECISION, reason: "bad" }).some((p) => /reason/.test(p)), "a reason of a word or two is not a reason");
+  assert.ok(decisionProblems({ ...DECISION, evidence: [] }).some((p) => /evidence/.test(p)));
+  assert.ok(decisionProblems({ ...DECISION, evidence: ["not a link"] }).some((p) => /evidence/.test(p)));
+  assert.ok(decisionProblems({ ...DECISION, why: "because" as never }).some((p) => /why/.test(p)));
+  assert.ok(decisionProblems({ ...DECISION, claims: [] }).some((p) => /claims/.test(p)));
+  assert.ok(decisionProblems({ ...DECISION, action: "set" as never }).some((p) => /action/.test(p)), "there is no way to put a number in by decision");
+  assert.ok(decisionProblems({ ...DECISION, date: "yesterday" }).some((p) => /date/.test(p)));
+  assert.deepEqual(staleDecisions([DECISION, { ...DECISION, claims: ["x", "gone"] }], [{ id: "x" }]).map((s) => s.missing), [["gone"]]);
+});
+
+test("an excluded outlier leaves the others to be judged as usual, and is never published", async () => {
+  const getPage = pages(PAGES);
+  const before = await checkFacts(THREE(), { getPage });
+  const outlier = before[2];
+  assert.equal(outlier.status, "conflict");
+  const after = await checkFacts(THREE(), { getPage, decisions: [{ ...DECISION, claims: [outlier.id] }] });
+  assert.deepEqual(after.map((c) => c.status), ["verified", "verified", "excluded"]);
+  assert.equal(after[2].decision?.why, "outlier");
+  assert.match(after[2].reasons[0], /excluded \(outlier\)/);
+  assert.deepEqual(after[2].fields, { gateUsd: "excluded" });
+
+  // excluding does not conjure agreement: with only one other source left, that one is merely a single source
+  const lone = await checkFacts(THREE().slice(0, 1).concat(THREE().slice(2)), { getPage, decisions: [{ ...DECISION, claims: [outlier.id] }] });
+  assert.deepEqual(lone.map((c) => c.status), ["single_source", "excluded"]);
+
+  // a decision about a claim that was edited no longer matches it
+  const edited = THREE(); edited[2] = { ...edited[2], values: { gateUsd: 61_000_000 }, quote: "Gate receipts of $60 million were reported" };
+  const stale = await checkFacts(edited, { getPage, decisions: [{ ...DECISION, claims: [outlier.id] }] });
+  assert.equal(stale[2].status === "excluded", false);
+  assert.equal(staleDecisions([{ ...DECISION, claims: [outlier.id] }], stale).length, 1);
+
+  const m = matchFacts(await (await import("../lib/db")).getDb(), after, { allowSingleSource: true });
+  assert.ok(m.held.some((h) => h.status === "excluded"), "excluded claims are held back even when single sources are allowed");
+});
+
+test("each value has its own status: a disputed value does not hold back the others on the same claim", async () => {
+  const both = (over: Partial<ResearchFact>) => fact({ values: { gateUsd: 72_198_500, ticketsSold: 16_219 }, quote: "live gate of $72,198,500 and attendance 16,219", ...over });
+  const pg2 = pages({ ...{ "https://a.com/1": "A: live gate of $72,198,500 and attendance 16,219.", "https://b.com/1": "B: live gate of $72,198,500 and attendance 16,219." }, "https://c.com/1": "C: live gate of $72,198,500 and attendance 9,000." });
+  const r2 = await checkFacts([
+    both({ source: "A", sourceUrl: "https://a.com/1" }), both({ source: "B", sourceUrl: "https://b.com/1" }),
+    both({ source: "C", sourceUrl: "https://c.com/1", values: { gateUsd: 72_198_500, ticketsSold: 9_000 }, quote: "live gate of $72,198,500 and attendance 9,000" }),
+  ], { getPage: pg2 });
+  assert.deepEqual(r2[2].fields, { gateUsd: "verified", ticketsSold: "conflict" });
+  assert.equal(r2[2].status, "conflict", "the claim as a whole is still flagged");
+  assert.deepEqual(r2[0].fields, { gateUsd: "verified", ticketsSold: "verified" });
+
+  // promotion: the verified value goes through, the other is dropped from the row, not the whole claim
+  const db = await (await import("../lib/db")).getDb();
+  const row = db.prepare(`SELECT e.name en, e.date date, r.name rn, u.name un FROM bouts b JOIN events e ON e.id=b.event_id JOIN boxers r ON r.id=b.red_id JOIN boxers u ON u.id=b.blue_id WHERE b.method IS NOT NULL LIMIT 1 OFFSET 41`).get() as { en: string; date: string; rn: string; un: string };
+  const ev = { name: row.en, date: row.date, fighters: [row.rn, row.un] };
+  const split = { ...fact({ event: ev, values: { gateUsd: 5_000_000, ticketsSold: 100 } }), id: "s", host: "espn.com", status: "conflict" as const, reasons: [], fields: { gateUsd: "verified" as const, ticketsSold: "conflict" as const } };
+  const m = matchFacts(db, [split], { today: "2026-10-03" });
+  assert.equal(m.rows.financials.length, 1);
+  assert.equal(m.rows.financials[0].gateUsd, 5_000_000);
+  assert.equal(m.rows.financials[0].ticketsSold, undefined, "the conflicting value is not published");
+  const allBad = matchFacts(db, [{ ...split, fields: { gateUsd: "conflict" as const, ticketsSold: "excluded" as const } }]);
+  assert.equal(allBad.rows.financials.length, 0); assert.equal(allBad.held.length, 1);
+});
+
+test("earnings are only compared within one list, and one list is one row however many outlets repeat it", async () => {
+  const E = (over: Partial<ResearchFact>): ResearchFact => ({ kind: "earning", fighter: "Test Boxer", year: 2024, list: "Forbes 2024 list", values: { totalUsd: 50_000_000 }, basis: "reported", source: "A", sourceUrl: "https://a.com/e", quote: "Test Boxer made $50 million", ...over });
+  const pg = pages({ "https://a.com/e": "Test Boxer made $50 million.", "https://b.com/e": "Test Boxer made $50 million this year.", "https://c.com/e": "Test Boxer made $147 million.", "https://d.com/e": "Test Boxer made $147 million in 2024." });
+  const facts = [
+    E({}), E({ source: "B", sourceUrl: "https://b.com/e", quote: "Test Boxer made $50 million" }),
+    E({ list: "Sportico 2024 list", source: "C", sourceUrl: "https://c.com/e", values: { totalUsd: 147_000_000 }, quote: "Test Boxer made $147 million" }),
+    E({ list: "Sportico 2024 list", source: "D", sourceUrl: "https://d.com/e", values: { totalUsd: 147_000_000 }, quote: "Test Boxer made $147 million" }),
+  ];
+  const r = await checkFacts(facts, { getPage: pg });
+  assert.deepEqual(r.map((c) => c.status), ["verified", "verified", "verified", "verified"], "two lists, two numbers, no conflict");
+  const noList = await checkFacts(facts.map((f) => ({ ...f, list: undefined })), { getPage: pg });
+  assert.ok(noList.some((c) => c.status === "conflict"), "without the list the same figures disagree (the old behaviour)");
+  assert.ok(shapeProblems({ ...fact(), list: "Forbes" }).some((p) => /list/.test(p)), "list is for earnings only");
+  assert.ok(shapeProblems(E({ list: " " })).some((p) => /list/.test(p)));
+
+  const db = await (await import("../lib/db")).getDb();
+  const who = db.prepare("SELECT name FROM boxers LIMIT 1").get() as { name: string };
+  const m = matchFacts(db, r.map((c) => ({ ...c, fighter: who.name })), { today: "2026-10-03" });
+  assert.equal(m.rows.earnings.length, 2, "one row per list");
+  assert.deepEqual(m.rows.earnings.map((e) => e.source).sort(), ["Forbes 2024 list", "Sportico 2024 list"]);
+  const { ingestMoney } = await import("../lib/ingest-money");
+  const ing = ingestMoney(db, m.rows, { label: "research-list-test" });
+  assert.deepEqual(ing.dropped, {}, "no duplicate-earning errors");
+});
+
+test("the committed research is settled: every decision is well formed and still matches a claim, and no conflict is left open", async () => {
+  const fs = await import("node:fs");
+  const lines = (f: string) => fs.readFileSync(f, "utf8").split("\n").filter((l) => l.trim()).map((l) => JSON.parse(l));
+  const decisions = lines("data/research/decisions.jsonl") as Decision[];
+  const checked = lines("data/research/checked.jsonl") as { id: string; status: string; decision?: unknown }[];
+  assert.ok(decisions.length > 0);
+  decisions.forEach((d, i) => assert.deepEqual(decisionProblems(d), [], `decision ${i + 1}`));
+  assert.deepEqual(staleDecisions(decisions, checked), [], "a decision names a claim that no longer exists (edited? run the check again)");
+  assert.deepEqual(checked.filter((c) => c.status === "conflict").map((c) => c.id), [], "a conflict is open: gather evidence and record a decision (docs/research.md)");
+  for (const c of checked.filter((x) => x.status === "excluded")) assert.ok(c.decision, "an excluded claim carries its decision");
 });

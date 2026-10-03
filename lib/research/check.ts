@@ -1,7 +1,8 @@
 import crypto from "node:crypto";
 import { hostOf, numberStated, squash } from "./text";
-import { VALUE_KEYS, type CheckedFact, type FactKind, type ResearchFact } from "./types";
+import { VALUE_KEYS, type CheckedFact, type FactKind, type FieldStatus, type ResearchFact } from "./types";
 import type { FetchOutcome } from "./fetcher";
+import type { Decision } from "./decisions";
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 const PLATFORMS = new Set(["ppv", "streaming", "subscription", "free-tv"]);
@@ -19,7 +20,7 @@ export const eventKey = (f: ResearchFact): string =>
   f.event ? `${f.event.date}|${[...f.event.fighters].map(surname).sort().join("+") || nameKey(f.event.name)}` : "";
 
 function subjectKey(f: ResearchFact): string {
-  if (f.kind === "earning") return `${nameKey(f.fighter ?? "")}|${f.year}`;
+  if (f.kind === "earning") return `${nameKey(f.fighter ?? "")}|${f.year}|${nameKey(f.list ?? "")}`;
   if (f.kind === "purse") return `${eventKey(f)}|${nameKey(f.fighter ?? "")}`;
   if (f.kind === "broadcast") return `${eventKey(f)}|${nameKey(String(f.values.broadcaster ?? ""))}|${nameKey(String(f.values.region ?? ""))}`;
   return eventKey(f);
@@ -37,6 +38,7 @@ export function shapeProblems(f: ResearchFact): string[] {
     if (!f.event?.name || !ISO.test(f.event.date ?? "") || !Array.isArray(f.event.fighters) || f.event.fighters.length < 2) p.push("event needs name, date (yyyy-mm-dd) and both main-event fighters");
   }
   if (f.kind === "purse" && !f.fighter) p.push("purse needs the fighter");
+  if (f.list !== undefined && (f.kind !== "earning" || typeof f.list !== "string" || !f.list.trim())) p.push("list is only for earnings and must name the ranking");
   if (f.kind === "earning" && (!f.fighter || !Number.isInteger(f.year) || (f.year as number) < 1900)) p.push("earning needs fighter and year");
   if (!f.values || typeof f.values !== "object" || !Object.keys(f.values).length) p.push("no values");
   for (const [k, v] of Object.entries(f.values ?? {})) {
@@ -55,14 +57,17 @@ export function shapeProblems(f: ResearchFact): string[] {
 
 export type PageGetter = (url: string) => Promise<FetchOutcome>;
 
-export interface CheckOptions { getPage: PageGetter; officialHosts?: string[]; tolerance?: number }
+export interface CheckOptions { getPage: PageGetter; officialHosts?: string[]; tolerance?: number; decisions?: Decision[] }
 
 /**
  * Checks every claim and decides what can be published.
  * 1. The claim must be well formed.
  * 2. The page is fetched again, here, by code: the quote must be on it, word for word, and every number claimed must be stated in the quote.
  * 3. Figures are grouped by what they describe. Two independent sites (at least one not Wikipedia) within 5% of each other, or one official
- *    (.gov) record, make it verified; a lone source is single_source; sites that disagree make a conflict.
+ *    (.gov) record, make it verified; a lone source is single_source; sites that disagree make a conflict. Earnings are only compared
+ *    within one published list (Forbes, Sportico ...), since lists cover different periods.
+ * 4. A recorded decision (decisions.ts) can take a claim, or some of its values, out of that comparison; the rest is judged as usual.
+ *    Each value has its own status, so one disputed value no longer holds back the others on the same claim.
  */
 export async function checkFacts(input: ResearchFact[], opts: CheckOptions): Promise<CheckedFact[]> {
   const tol = opts.tolerance ?? 0.05;
@@ -86,10 +91,17 @@ export async function checkFacts(input: ResearchFact[], opts: CheckOptions): Pro
 
   // cross-source agreement, field by field, among the claims whose quotes held up
   const live = out.filter((c) => c.status === "single_source");
+  // values taken out of the comparison by a recorded decision: claim id -> field -> the decision
+  const excluded = new Map<string, Map<string, Decision>>();
+  for (const d of opts.decisions ?? []) for (const id of d.claims) {
+    const c = live.find((x) => x.id === id);
+    if (!c) continue;
+    for (const k of d.fields ?? Object.keys(c.values)) if (typeof c.values[k] === "number") (excluded.get(id) ?? excluded.set(id, new Map()).get(id)!).set(k, d);
+  }
   const groups = new Map<string, CheckedFact[]>();
   for (const c of live) {
     for (const [k, v] of Object.entries(c.values)) {
-      if (typeof v !== "number") continue;
+      if (typeof v !== "number" || excluded.get(c.id)?.has(k)) continue;
       const key = `${c.kind}|${subjectKey(c)}|${k}`;
       (groups.get(key) ?? groups.set(key, []).get(key)!).push(c);
     }
@@ -123,6 +135,10 @@ export async function checkFacts(input: ResearchFact[], opts: CheckOptions): Pro
   for (const c of live) {
     const fs = [...(fieldStatus.get(c.id)?.entries() ?? [])];
     const all = fs.map(([, s]) => s);
+    const gone = excluded.get(c.id);
+    c.fields = Object.fromEntries([...fs, ...[...(gone?.keys() ?? [])].map((k): [string, FieldStatus] => [k, "excluded"])]);
+    if (gone) { const d = [...gone.values()][0]; c.decision = { reason: d.reason, why: d.why, decidedBy: d.decidedBy, date: d.date, ...(d.fields ? { fields: d.fields } : {}) }; }
+    if (!all.length && gone) { c.status = "excluded"; c.reasons = [`excluded (${c.decision!.why}): ${c.decision!.reason}`]; continue; }
     if (all.includes("conflict")) {
       c.status = "conflict";
       c.reasons = fs.filter(([, s]) => s === "conflict").map(([k]) => {
