@@ -8,6 +8,7 @@ import { PunchStats } from "@/components/PunchStats";
 import { SectionTitle } from "@/components/ui";
 import { flag, fmtDate, methodLabel, pct } from "@/lib/format";
 import { callOf } from "@/lib/accountability";
+import { buildRecap, recapLines } from "@/lib/recap";
 import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
 import type { T } from "@/lib/i18n/t";
@@ -65,6 +66,8 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
   const eloP = pre ? 1 / (1 + Math.pow(10, (pre.blue - pre.red) / 400)) : null;
   const mkt = implied(b.oddsRed, b.oddsBlue);
   const call = callOf(w, b.id);
+  const recap = buildRecap(w, b.id);
+  const recapText = recap ? recapLines(recap, w, t) : [];
   const db = await getDb();
   const punches = (db.prepare("SELECT bout_id AS boutId, boxer_id AS boxerId, round, thrown, landed, power_thrown AS powerThrown, power_landed AS powerLanded, jab_thrown AS jabThrown, jab_landed AS jabLanded FROM punch_stats WHERE bout_id = ? ORDER BY round").all(b.id)) as unknown as PunchLine[];
   const winner = b.winnerId ? (b.winnerId === red.id ? red : blue) : null;
@@ -113,6 +116,16 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
           )}
         </div>
       </section>
+
+      {recapText.length > 0 && (
+        <section className="card p-5">
+          <div className="eyebrow mb-3">{t("What this result changed")}</div>
+          <p className="font-display text-2xl font-bold leading-snug">{recapText[0]}</p>
+          <ul className="mt-3 list-disc space-y-1.5 ps-5 text-sm text-ink/90">
+            {recapText.slice(1).map((line, i) => <li key={i}>{line}</li>)}
+          </ul>
+        </section>
+      )}
 
       <section className="grid gap-5 lg:grid-cols-2">
         <div className="card p-5">
