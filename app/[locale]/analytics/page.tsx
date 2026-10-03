@@ -34,6 +34,7 @@ export default async function Analytics() {
         <div className="eyebrow mb-2">{t("Insights engine")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase">{t("Analytics")}</h1>
         <p className="mt-2 max-w-2xl text-muted">{t("What {n} professional bouts actually say about the sport.", { n: o.bouts.toLocaleString("en-US") })}</p>
+        <p className="mt-3"><Link href="/accountability" className="chip !border-gold/40 hover:!text-gold">{t("How good is the win model? See its track record")}</Link></p>
       </div>
 
       <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
