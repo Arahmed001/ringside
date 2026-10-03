@@ -1,3 +1,4 @@
+import { ScrollRegion } from "@/components/ScrollRegion";
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
 import { PARTS, PART_LABEL, WEIGHTS, MIN_ROUNDS, featuredYear, fightOfTheYear, fightsOfYear, resultLine } from "@/lib/fight-score";
@@ -40,7 +41,7 @@ export default async function FightOfTheYear() {
 
       <section>
         <SectionTitle eyebrow={t("Every year")} title={t("Winners")} />
-        <div className="card overflow-x-auto">
+        <ScrollRegion className="card" label={t("Fight of the year winners")}>
           <table className="w-full text-sm">
             <caption className="sr-only">{t("Fight of the year winners")}</caption>
             <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th scope="col" className="p-3 text-start font-normal">{t("Year")}</th><th scope="col" className="text-start font-normal">{t("Fight")}</th><th scope="col" className="hidden text-start font-normal md:table-cell">{t("Result")}</th><th scope="col" className="pe-3 text-end font-normal">{t("Score")}</th></tr></thead>
@@ -55,7 +56,7 @@ export default async function FightOfTheYear() {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
         <p className="mt-3 text-xs text-muted">{t("The current year can still change until its last fight. The numbers of fights considered: {counts}.", { counts: winners.slice(0, 3).map((x) => `${x.year}: ${fightsOfYear(w, x.year).length}`).join(", ") })}</p>
       </section>
 

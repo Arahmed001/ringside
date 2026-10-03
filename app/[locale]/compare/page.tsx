@@ -112,8 +112,8 @@ async function Result({ A, B, w }: { A: BoxerFull; B: BoxerFull; w: Awaited<Retu
       </div>
       <MatchupLab a={{ name: t.name(A.name), features: featuresOf(A) }} b={{ name: t.name(B.name), features: featuresOf(B) }} defaults={activeWeights()} finish={activeFinish()}
         modelNote={(() => { const f = loadFit(); return f && f.recommended !== "plain Elo" ? t("The rating weight is fitted on {n} past bouts (held-out log-loss {fit} vs {base} for plain Elo). Other weights are hand-set; see Data & model for how each compares.", { n: f.rows.train.toLocaleString("en-US"), fit: f.test[f.recommended === "Elo refit" ? "eloOnly" : f.recommended === "all features" ? "full" : "selected"].logLoss.toFixed(3), base: f.test.baseline.logLoss.toFixed(3) }) : t("Weights are hand-set until real results are available to fit the model."); })()} />
-      <div className="card ltr-fixed flex items-center justify-center gap-2 p-5">
-        <Radar axes={ax(A)} color="#e5322d" size={200} /><Radar axes={ax(B)} color="#4a8cff" size={200} />
+      <div className="card ltr-fixed flex flex-wrap items-center justify-center gap-2 p-5">
+        <Radar axes={ax(A)} color="#e5322d" /><Radar axes={ax(B)} color="#4a8cff" />
       </div>
       <div className="card overflow-hidden">
         {rows.map(([k, x, y]) => (

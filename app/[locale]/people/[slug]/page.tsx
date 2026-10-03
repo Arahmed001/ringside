@@ -1,3 +1,4 @@
+import { ScrollRegion } from "@/components/ScrollRegion";
 import Link from "@/components/L";
 import { localePath } from "@/lib/i18n/config";
 import { abs } from "@/lib/seo";
@@ -117,11 +118,11 @@ export default async function PersonPage({ params }: { params: Promise<{ locale:
             <Stat label={t("Avg margin")} value={myJudge.avgMargin.toFixed(1)} sub={t("points")} />
             <Stat label={t("Picks home fighter")} value={myJudge.homePickRate === null ? "–" : `${Math.round(myJudge.homePickRate * 100)}%`} sub={t("league {pct}% · n={n}", { pct: Math.round(judge.leagueHomePickRate * 100), n: myJudge.homeSamples })} />
           </div>
-          <div className="card overflow-x-auto p-5">
+          <ScrollRegion className="card p-5" label={t("Scoring record")}>
             <table className="w-full text-sm" aria-label={t("Scoring record")}><tbody>{recentBouts("judge").map((b) => (
               <tr key={b.id} className="border-t border-line/60 first:border-0"><td className="py-2 text-muted tabular">{fmtDate(b.date, { month: "short", day: "numeric", year: "numeric" }, t.locale)}</td><td><Link href={`/bouts/${b.id}`} className="hover:text-gold">{b.label}</Link></td><td className="tabular text-muted">{b.result}</td><td className="text-end tabular font-semibold">{b.detail}</td></tr>
             ))}</tbody></table>
-          </div>
+          </ScrollRegion>
         </section>
       )}
 
@@ -134,11 +135,11 @@ export default async function PersonPage({ params }: { params: Promise<{ locale:
             <Stat label={t("Avg stoppage round")} value={myRef.avgStopRound?.toFixed(2) ?? "–"} sub={t("league {n}", { n: ref.leagueAvgStopRound.toFixed(2) })} />
             <Stat label={t("Early stoppages")} value={`${Math.round(myRef.earlyStopRate * 100)}%`} sub={t("rounds 1–3")} />
           </div>
-          <div className="card overflow-x-auto p-5">
+          <ScrollRegion className="card p-5" label={t("Officiating record")}>
             <table className="w-full text-sm" aria-label={t("Officiating record")}><tbody>{recentBouts("referee").map((b) => (
               <tr key={b.id} className="border-t border-line/60 first:border-0"><td className="py-2 text-muted tabular">{fmtDate(b.date, { month: "short", day: "numeric", year: "numeric" }, t.locale)}</td><td><Link href={`/bouts/${b.id}`} className="hover:text-gold">{b.label}</Link></td><td className="text-end tabular text-muted">{b.result}</td></tr>
             ))}</tbody></table>
-          </div>
+          </ScrollRegion>
         </section>
       )}
     </div>

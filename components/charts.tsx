@@ -1,6 +1,7 @@
 import { ARCH_COLOR } from "@/lib/style";
 import { msg } from "@/lib/i18n/t";
 import { HeatCell, Svg, Tx } from "./ChartI18n";
+import { ScrollRegion } from "./ScrollRegion";
 
 export { ProbBar } from "./ChartI18n";
 
@@ -13,17 +14,23 @@ export function Sparkline({ data, w = 560, h = 160, color = "#e5322d", labels }:
   const area = `M${x(0)},${h - pad} L${pts.join(" L")} L${x(data.length - 1)},${h - pad}Z`;
   const id = `sp${Math.abs(Math.round(data[0] * 7 + data.length))}`;
   const peak = data.indexOf(Math.max(...data));
+  const peakX = x(peak) > w - 70 ? x(peak) - 8 : x(peak), atEnd = x(peak) > w - 70, peakY = y(data[peak]) - 9;
+  // The peak and the date labels are HTML, not SVG text: SVG text scales with the picture, and on a phone a 560-wide chart shrinks to about half, which put the labels at 5 px. HTML text stays 12 px.
   return (
-    <Svg viewBox={`0 0 ${w} ${h}`} className="ltr-fixed w-full" label={msg("Rating over time")} descKey={msg("From {first} to {last}, peak {peak}")} descVars={{ first: Math.round(data[0]), last: Math.round(data[data.length - 1]), peak: Math.round(data[peak]) }}>
-      <defs><linearGradient id={id} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={color} stopOpacity=".4" /><stop offset="1" stopColor={color} stopOpacity="0" /></linearGradient></defs>
-      <line x1={pad} x2={w - pad} y1={y(1500)} y2={y(1500)} stroke="#fff" strokeOpacity=".12" strokeDasharray="4 6" />
-      <path d={area} fill={`url(#${id})`} />
-      <polyline points={pts.join(" ")} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" className="draw" style={{ ["--len" as string]: 4000 }} />
-      <circle cx={x(peak)} cy={y(data[peak])} r="4.5" fill="#d9b25f" />
-      <text x={x(peak) > w - 70 ? x(peak) - 8 : x(peak)} y={y(data[peak]) - 9} textAnchor={x(peak) > w - 70 ? "end" : "middle"} fontSize="11" fill="#d9b25f"><Tx k={msg("peak {n}")} vars={{ n: Math.round(data[peak]) }} /></text>
-      <circle cx={x(data.length - 1)} cy={y(data[data.length - 1])} r="4" fill={color} />
-      {labels && <><text x={pad} y={h - 0} fontSize="10" fill="#8d8d99">{labels[0]}</text><text x={w - pad} y={h - 0} textAnchor="end" fontSize="10" fill="#8d8d99">{labels[1]}</text></>}
-    </Svg>
+    <div className="ltr-fixed w-full pt-4">
+      <div className="relative">
+      <Svg viewBox={`0 0 ${w} ${h}`} className="ltr-fixed w-full" label={msg("Rating over time")} descKey={msg("From {first} to {last}, peak {peak}")} descVars={{ first: Math.round(data[0]), last: Math.round(data[data.length - 1]), peak: Math.round(data[peak]) }}>
+        <defs><linearGradient id={id} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={color} stopOpacity=".4" /><stop offset="1" stopColor={color} stopOpacity="0" /></linearGradient></defs>
+        <line x1={pad} x2={w - pad} y1={y(1500)} y2={y(1500)} stroke="#fff" strokeOpacity=".12" strokeDasharray="4 6" />
+        <path d={area} fill={`url(#${id})`} />
+        <polyline points={pts.join(" ")} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" className="draw" style={{ ["--len" as string]: 4000 }} />
+        <circle cx={x(peak)} cy={y(data[peak])} r="4.5" fill="#d9b25f" />
+        <circle cx={x(data.length - 1)} cy={y(data[data.length - 1])} r="4" fill={color} />
+      </Svg>
+      <span aria-hidden className="absolute whitespace-nowrap text-xs text-gold" style={{ left: `${(peakX / w) * 100}%`, top: `${(peakY / h) * 100}%`, transform: atEnd ? "translate(-100%, -100%)" : "translate(-50%, -100%)" }}><Tx k={msg("peak {n}")} vars={{ n: Math.round(data[peak]) }} /></span>
+      </div>
+      {labels && <div aria-hidden className="mt-1 flex justify-between text-xs text-muted"><span>{labels[0]}</span><span>{labels[1]}</span></div>}
+    </div>
   );
 }
 
@@ -54,7 +61,7 @@ export function Donut({ parts, size = 170, center }: { parts: { label: string; v
           const off = offsets[i];
           return <circle key={p.label} cx="80" cy="80" r={r} fill="none" stroke={p.color} strokeWidth="20" strokeDasharray={`${Math.max(0, len - 1.5)} ${c}`} strokeDashoffset={-off} transform="rotate(-90 80 80)" />;
         })}
-        {center && <><text x="80" y="82" textAnchor="middle" fontSize="26" fontWeight="800" fill="#ecebe6" style={{ fontFamily: "var(--font-display)" }}>{center.big}</text><text x="80" y="98" textAnchor="middle" fontSize="9" fill="#8d8d99">{center.small}</text></>}
+        {center && <><text x="80" y="82" textAnchor="middle" fontSize="26" fontWeight="800" fill="#ecebe6" style={{ fontFamily: "var(--font-display)" }}>{center.big}</text><text x="80" y="98" textAnchor="middle" fontSize="12" fill="#8d8d99">{center.small}</text></>}
       </Svg>
       <ul className="space-y-1.5 text-sm">
         {parts.map((p) => (
@@ -87,7 +94,7 @@ export function ColumnChart({ data, h = 170 }: { data: { label: string; a: numbe
 export function Heatmap({ label, rows, cols }: { label: string; rows: { label: string; cells: number[]; total: number }[]; cols: string[] }) {
   const max = Math.max(...rows.flatMap((r) => r.cells), 0.01);
   return (
-    <div className="overflow-x-auto">
+    <ScrollRegion label={label}>
       <table className="ltr-fixed w-full border-separate border-spacing-[3px] text-xs" aria-label={label}>
         <thead><tr><td />{cols.map((c) => <th key={c} scope="col" className="font-normal text-muted">{c}</th>)}</tr></thead>
         <tbody>
@@ -99,20 +106,21 @@ export function Heatmap({ label, rows, cols }: { label: string; rows: { label: s
           ))}
         </tbody>
       </table>
-    </div>
+    </ScrollRegion>
   );
 }
 
-export function Radar({ axes, color = "#d9b25f", size = 220 }: { axes: { label: string; v: number }[]; color?: string; size?: number }) {
-  const n = axes.length, cx = 110, cy = 110, R = 76;
+/** Drawn at its own size (never scaled), so its 12 px labels stay 12 px; callers that put two side by side must let them wrap. */
+export function Radar({ axes, color = "#d9b25f" }: { axes: { label: string; v: number }[]; color?: string }) {
+  const W = 280, H = 232, n = axes.length, cx = W / 2, cy = H / 2, R = 76;
   const pt = (i: number, k: number) => [cx + Math.sin((i / n) * 2 * Math.PI) * R * k, cy - Math.cos((i / n) * 2 * Math.PI) * R * k];
   const poly = (k: (i: number) => number) => axes.map((_, i) => pt(i, k(i)).join(",")).join(" ");
   return (
-    <Svg viewBox="0 0 220 220" width={size} height={size} label={msg("Attribute radar")} desc={axes.map((a) => `${a.label} ${Math.round(a.v * 100)}`).join(", ")}>
+    <Svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} className="max-w-none shrink-0" label={msg("Attribute radar")} desc={axes.map((a) => `${a.label} ${Math.round(a.v * 100)}`).join(", ")}>
       {[0.25, 0.5, 0.75, 1].map((k) => <polygon key={k} points={poly(() => k)} fill="none" stroke="#fff" strokeOpacity=".09" />)}
       {axes.map((_, i) => <line key={i} x1={cx} y1={cy} x2={pt(i, 1)[0]} y2={pt(i, 1)[1]} stroke="#fff" strokeOpacity=".09" />)}
       <polygon points={poly((i) => Math.max(0.04, Math.min(1, axes[i].v)))} fill={color} fillOpacity=".25" stroke={color} strokeWidth="2" />
-      {axes.map((a, i) => { const [x, y] = pt(i, 1.2); return <text key={a.label} x={x} y={y + 3} textAnchor="middle" fontSize="9.5" fill="#8d8d99">{a.label}</text>; })}
+      {axes.map((a, i) => { const [x, y] = pt(i, 1.22); return <text key={a.label} x={x} y={y + 4} textAnchor="middle" fontSize="12" fill="#8d8d99">{a.label}</text>; })}
     </Svg>
   );
 }

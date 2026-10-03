@@ -1,3 +1,4 @@
+import { ScrollRegion } from "@/components/ScrollRegion";
 import Link from "@/components/L";
 import { localePath } from "@/lib/i18n/config";
 import { abs } from "@/lib/seo";
@@ -283,16 +284,16 @@ const HONOURS_SHOWN = 8;
         <SectionTitle eyebrow={t("Style similarity")} title={b.sex === "female" ? t("Fighters like her") : t("Fighters like him")} href="/map" cta={t("Style map")} />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {similar.map((s) => (
-            <div key={s.boxer.id} className="relative"><BoxerCard b={s.boxer} /><span className="chip absolute end-3 top-3 !border-gold/40 !text-gold">{t("{n}% match", { n: s.match })}</span></div>
+            <BoxerCard key={s.boxer.id} b={s.boxer} badge={t("{n}% match", { n: s.match })} />
           ))}
         </div>
       </section>
 
       <section>
         <SectionTitle eyebrow={t("Fight record")} title={t.n(completed.length, "{n} bout", "{n} bouts")} />
-        <div className="card overflow-x-auto p-4">
+        <ScrollRegion className="card p-4" label={t("Fight record")}>
           <table className="w-full" aria-label={t("Fight record")}><tbody>{(upcoming ? [upcoming, ...done] : done).map((x) => <BoutLine key={x.id} bout={x} focusId={b.id} />)}</tbody></table>
-        </div>
+        </ScrollRegion>
       </section>
     </div>
   );

@@ -36,7 +36,7 @@ export async function Streak({ b }: { b: BoxerFull }) {
   return <span className={`tabular text-xs font-semibold ${c}`}>{t(RES[b.streak.type])}{b.streak.count}</span>;
 }
 
-export async function BoxerCard({ b, rank }: { b: BoxerFull; rank?: number }) {
+export async function BoxerCard({ b, rank, badge }: { b: BoxerFull; rank?: number; /** A chip beside the name (the name gives way to it); not laid over the card, which covered the name. */ badge?: string }) {
   const t = await getT();
   return (
     <Link href={`/boxers/${b.slug}`} className="card card-hover group flex gap-3 p-3">
@@ -44,6 +44,7 @@ export async function BoxerCard({ b, rank }: { b: BoxerFull; rank?: number }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="truncate font-display text-xl font-bold leading-tight">{rank ? <span className="me-1.5 text-gold">{rank}</span> : null}{t.name(b.name)}</div>
+          {badge && <span className="chip shrink-0 whitespace-nowrap !border-gold/40 !text-gold">{badge}</span>}
         </div>
         <div className="truncate text-xs text-muted">{flag(b.country)} {countryName(b.country, t.locale)} · {divisionLabel(b.weightClass, b.sex, t)}</div>
         <div className="mt-1.5 flex items-center gap-2">

@@ -1,4 +1,5 @@
 import Link from "@/components/L";
+import { ScrollRegion } from "@/components/ScrollRegion";
 import { getWorld } from "@/lib/world";
 import { SIGNS, TIER_AT, TIER_LABEL, recentShocks, signalLift, upsetRecord, upsetWatch, type Tier, type SignalKind } from "@/lib/upsets";
 import { WatchCard } from "@/components/WatchCard";
@@ -65,7 +66,7 @@ export default async function UpsetWatch() {
       <section className="card p-6" aria-labelledby="record">
         <h2 id="record" className="font-display text-3xl font-bold uppercase">{t("How the same calls fared")}</h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">{t("For every past fight the model scored, using only what was known beforehand: how often the underdog won, against how often the model said they would. The recent column is the last quarter of fights, the stretch the model was not tuned on.")}</p>
-        <div className="mt-4 overflow-x-auto">
+        <ScrollRegion className="mt-4" label={t("Underdog win rate against the model, by tier")}>
           <table className="w-full text-sm">
             <caption className="sr-only">{t("Underdog win rate against the model, by tier")}</caption>
             <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th scope="col" className="py-2 text-start font-normal">{t("Underdog was")}</th><th scope="col" className="text-end font-normal">{t("Fights")}</th><th scope="col" className="text-end font-normal">{t("Model said")}</th><th scope="col" className="text-end font-normal">{t("Happened")}</th><th scope="col" className="text-end font-normal">{t("Recent: said")}</th><th scope="col" className="text-end font-normal">{t("Recent: happened")}</th></tr></thead>
@@ -79,14 +80,14 @@ export default async function UpsetWatch() {
               ))}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
         <p className="mt-3 text-xs text-muted">{t("Close agreement means the percentages can be taken at face value. Where underdogs win more often than the model says, its chances for them run a little low; where they win less often, a little high.")}</p>
       </section>
 
       <section className="card p-6" aria-labelledby="signs">
         <h2 id="signs" className="font-display text-3xl font-bold uppercase">{t("Do the warning signs matter?")}</h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">{t("The model does not use these signs, so they are tested: in past fights where the favourite had the sign (or, for the last one, the underdog had the run), did the underdog win more often than the model said?")}</p>
-        <div className="mt-4 overflow-x-auto">
+        <ScrollRegion className="mt-4" label={t("Underdog win rate when a warning sign was present")}>
           <table className="w-full text-sm">
             <caption className="sr-only">{t("Underdog win rate when a warning sign was present")}</caption>
             <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th scope="col" className="py-2 text-start font-normal">{t("Sign")}</th><th scope="col" className="text-end font-normal">{t("Fights")}</th><th scope="col" className="text-end font-normal">{t("Model said")}</th><th scope="col" className="text-end font-normal">{t("Happened")}</th><th scope="col" className="text-end font-normal">{t("Verdict")}</th></tr></thead>
@@ -105,7 +106,7 @@ export default async function UpsetWatch() {
               })}
             </tbody>
           </table>
-        </div>
+        </ScrollRegion>
         <p className="mt-3 text-xs text-muted">{t("A verdict needs the gap to be about twice its margin of error. Signs listed on the fights above but not in this table (a new head trainer, missed weights, a weak chin against a puncher) cannot be rebuilt as of fight night, so they are shown as context, not as proven edges. Thresholds used: {layoff} months idle, age {age}, a run of {streak}.", { layoff: SIGNS.layoffMonths, age: SIGNS.age, streak: SIGNS.streak })}</p>
       </section>
 

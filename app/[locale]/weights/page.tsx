@@ -1,3 +1,4 @@
+import { ScrollRegion } from "@/components/ScrollRegion";
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
 import { divisionWeights, fightNightEdge, missedWeights } from "@/lib/weights";
@@ -74,7 +75,7 @@ export default async function Weights() {
 
       <section>
         <SectionTitle eyebrow={t("{n} on record", { n: total })} title={t("Recent missed weights")} />
-        <div className="card overflow-x-auto p-4">
+        <ScrollRegion className="card p-4" label={t("Recent missed weights")}>
           <table className="w-full text-sm" aria-label={t("Recent missed weights")}>
             <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th className="py-2">{t("Fighter")}</th><th>{t("Date")}</th><th>{t("Over the limit")}</th><th>{t("Opponent")}</th><th className="text-end">{t("Result")}</th></tr></thead>
             <tbody>{misses.map((m) => (
@@ -87,7 +88,7 @@ export default async function Weights() {
               </tr>
             ))}</tbody>
           </table>
-        </div>
+        </ScrollRegion>
       </section>
     </div>
   );

@@ -26,7 +26,20 @@ Target: WCAG 2.2 AA, English and Arabic. This is what was measured, what changed
 - Colour contrast was measured on the dark theme only; there is no light theme.
 
 ## Re-running the sweep
-Serve `node_modules/axe-core/axe.min.js` with CORS on a local port, then in the browser console of any Ringside page: fetch it, `eval` it inside an iframe of each path, call `axe.run(iframe.contentDocument)`. Allow about 1 s per page after load. `axe-core` is already installed (a dependency of another package; add it as a devDependency before relying on it).
+The iframe method this section used to describe stopped working in round 22 (the security headers forbid framing the site), so pages are checked one at a time:
+
+```
+npm run build && npm start                      # a production server, with the demo league
+cd node_modules/axe-core && cp ../../scripts/a11y-sweep.js . && python3 -m http.server 8766
+```
+
+Then, for each page, in the Browser pane (or a browser console) on that page, with the window at the width you want (375 and 1280, both languages):
+
+```js
+await new Promise((res, rej) => { const s = document.createElement("script"); s.src = "http://localhost:8766/a11y-sweep.js"; s.nonce = document.querySelector("script[nonce]")?.nonce || ""; s.onload = res; s.onerror = () => rej(new Error("blocked")); document.head.appendChild(s); }); await __check()
+```
+
+The `nonce` is what lets the page's content security policy accept the script. The result is `ok /path w375` for a clean page, or the details (axe rules, overflow, clipped text, small chart text, overlapping text). The script waits 1.2 s first so entrance animations have finished: axe reads colours mid-fade otherwise and reports contrast failures that are not there. `axe-core` is installed (a dependency of the lint config); add it as a devDependency before relying on it.
 
 ---
 
@@ -76,4 +89,13 @@ Round 26: text that is English by nature on the Arabic site (a data source's nam
 
 ## Round 30: the combined home page
 `/` in both languages at 375 px: axe-core 4.13 reported 0 violations, nothing overflowed at 375 or 320 px, and there is exactly one `h1` (the matchup, or the brand line when no fight is booked). "Ask the data" is a labelled section (`aria-labelledby`) with the question box labelled by name; the hero's three-line `h1` ("Morishita / VS / Hartmann") reads as one heading. Not tested: a screen reader, text spacing (1.4.12) on the new layout, and the desktop Arabic layout beyond a look.
+
+## Round 32: a sweep of everything since round 20
+Every route in both languages at 1280 and 375 px (and the signed-in pages with a test account on a local server), with axe, forced text spacing, overflow, clipped text, rendered chart text size and overlapping text. What it found, all fixed:
+- **Chart text far below 12 px as rendered.** SVG text scales with its picture. Measured in the browser: the weigh-in chart's labels were **3 px** on a phone, the rating chart's 5 px, the matchup radar's 6-9 px, the calibration chart's 10 px, and the profile and analytics pages' donut caption 9.6 px. The sparkline's and weigh-in chart's labels are now HTML (real 12 px text); the radar is drawn at its own size (never scaled) with 12 px labels, and wraps instead of shrinking when two sit side by side; the calibration chart and donut text were enlarged. A new test forbids SVG `fontSize` under 12 (the poster is the exception).
+- **Scroll boxes a keyboard could not scroll.** Seven tables inside `overflow-x-auto` boxes (on six pages) had no focusable content, so a keyboard user could not scroll them (axe `scrollable-region-focusable`, seen only at 375 px, and on the leaderboard only once a player existed). `components/ScrollRegion.tsx` is a focusable, named group; every table wrapper that is not made of links uses it, and a test fails if a new `overflow-x-auto` appears outside the few files where every cell is a link. It is a *group*, not a region: a region named like its section failed `landmark-unique` on an Ask answer (found in the last pass), and a dozen region landmarks would clutter the landmark list.
+- **Text laid over text.** The "% match" chip covered the fighter's name on every "Fighters like him" card; now a badge inside the card (the name gives way). The team timeline's year axis ran together on a phone ("20132015201720192021"): every other year is dropped below 640 px. The belt timeline's first label sat on the second (a label for a year that began before the strip was clamped to the edge): `lib/timeline.ts` labels only years whose 1 January is inside the strip, with tests.
+- **A false alarm worth recording:** axe reported five colour-contrast failures on the new home page at 1280 px (colours like `#3e3421` on near-black). They were the entrance animation mid-fade; waiting for it to finish gives none. My round-30 check had been at 375 px only, which is why the 1280 result surprised me.
+- **Left as it is:** champion names inside the belt timeline's narrow bars are clipped by design (the bar is a link with the full name and dates in its tooltip, and every reign is listed under "Every reign"); the poster's own 11 px text is the round-19 decision.
+- **Not tested:** a screen reader; the signed-in graded-picks recap (picks only open on upcoming fights, so it cannot be reached in a live session; round 27's tests build it by hand); and the sweep covers a sample of dynamic pages (one fighter, event, bout, preview, belt), not every one.
 
