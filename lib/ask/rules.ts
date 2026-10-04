@@ -347,11 +347,24 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const { fighters, rest } = claim(w, names, question);
   // a region is not a country the data has: "the best welterweight from South America" answered with every welterweight would look right and be wrong
   if (!fighters.length && has(q, REGIONS)) return [];
+  // "how many fighters does X train": the same team filter, said the other way round
+  const doesTrain = q.match(/\bhow many (?:fighters|boxers) (?:does|did|has|have|do)\s+(.+?)\s+(train|coach|manage|promote)s?\b/);
+  if (doesTrain) {
+    const who = (doesTrain[2] === "manage" || doesTrain[2] === "promote" ? undefined : trainerNamed(w, question, rest)) ?? fighters[0]?.name;
+    if (!who) return []; // a name nobody has: no answer, not every fighter
+    return [{ tool: "fighters", args: withLimit({ [doesTrain[2] === "manage" ? "manager" : doesTrain[2] === "promote" ? "promoter" : "trainer"]: who }) }];
+  }
   // counts and facts of the coming cards that the events list does not give ("how many cards are scheduled this month", "how many fights does the next card have"), and a belt's history or kind: no answer, not the latest card, every champion or a fighter search
   if (!fighters.length && has(q, /\bhow many\b.*\b(cards?|events?|shows?)\b.*\b(scheduled|upcoming|coming|next|planned|this (week|month|year)|does the next|has the next)\b|\bhow many\b.*\b(does|has|will)\b.*\b(next|upcoming)\b.*\b(card|event)\b/)) return [];
   if (!fighters.length && has(q, /موقت|شاغر|تغير حامل|تغيير حامل|\b(interim|vacant|stripped|unified)\b|\bchanged hands\b|\bhow many times has\b.*\b(title|belt)\b|\bhow many (world )?(titles|belts)\b/)) return [];
   // groupings no tool makes: by venue, by country ("which country has the most champions"), by round ("fights that ended in the first round"): no answer, not a list of
   // fighters sorted by fights, the list of champions or every fight
+  // money by count or for one fighter, and who missed weight the most: the money lists are of the biggest, and the misses are not counted per fighter in any tool
+  if (has(q, /\bhow many\b.*\b(pay.?per.?view|ppv|gates?|purses?)\b|\bhow much\b.*\b(did|has|does|will)\b.*\b(earn|make|gross|get paid|make)\b|\b(earned|earnings|paid|made)\b.*\b(career|total|so far)\b/) && !has(q, SUPERLATIVE)) return [];
+  if (year && has(q, /\b(earners?|earned|earnings|purses?|gates?|ppv|pay.?per.?view)\b/)) return []; // the money lists are all-time: a year would be dropped
+  if (fighters.length && has(q, /\b(earn(ed|ings)?|paid|salary|purses?|money|worth)\b/) && !has(q, /\b(most|top|highest|biggest|best)\b/)) return [];
+  if (has(q, /\b(most|more|fewest|least|worst)\b/) && has(q, /\b(miss(ed)?|failed|came in over)\b.*\bweight\b|\bweight\b.*\bmiss/)) return [];
+  if (!fighters.length && has(q, /\btrain(ers|er)\b.*\b(have|has|who)\b.*\b(trained|train|coached)\b.*\b(champions?|belts?)\b/)) return [];
   if (!fighters.length && has(q, /\b(venues?|arenas?|stadiums?|cit(?:y|ies))\b/) && !has(q, /\b(gates?|tickets?|revenue|purses?|earn\w*|paid|attendance)\b/) && has(q, /\b(most|more|biggest|largest|best|top)\b/)) return [];
   if (!fighters.length && has(q, /\b(which|what)\s+(countr(?:y|ies)|nations?)\b/) && has(q, /\b(most|more|best|top|biggest)\b/)) return [];
   if (!fighters.length && has(q, /\b(?:in|by|during|within)\s+(?:the\s+)?(?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|\d+(?:st|nd|rd|th))\s+round\b|\bround\s+(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b/)) return [];
