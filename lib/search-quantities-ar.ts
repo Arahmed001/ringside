@@ -39,10 +39,12 @@ const WORDS: Record<string, number> = {
 };
 
 /** Arabic-Indic digits to 0-9, and a number word right before something that counts to its digits ("اكثر من عشر هزايم" is "اكثر من 10 هزايم"). */
+/** Spans of time that are not already an age's unit ("6 أشهر"); "سنة" and "عام" are in the age nouns. */
+const MORE_TIME = "(?:يوم|ايام|اسبوع|اسابيع|شهر|اشهر|شهور)";
 export function westernize(s: string): string {
   s = s.replace(/[٠-٩۰-۹]/g, (d) => WEST[d]);
   const words = Object.keys(WORDS).sort((a, b) => b.length - a.length).join("|");
-  return s.replace(new RegExp(`${START}(${words})(?=\\s+(?:${ANY_NOUN})${END})`, "g"), (_m, w: string) => String(WORDS[w]));
+  return s.replace(new RegExp(`${START}(${words})(?=\\s+(?:${ANY_NOUN}|${MORE_TIME})${END})`, "g"), (_m, w: string) => String(WORDS[w]));
 }
 
 /** Reads every quantity out of the (folded) question `q`, sets the filters, and returns what is left. */

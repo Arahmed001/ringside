@@ -382,9 +382,10 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   if (has(q, /fight of the year|(best|greatest) (fight|bout) of|(afdal|افضل|اعظم) نزال في|نزال العام/)) return [{ tool: "fight_of_the_year", args: withLimit(year ? { year: +year } : {}) }];
   // a question about a fighter's record or form ("who lost their last fight", "never been stopped", "fought in the last 6 months") is a fighter search: the events and fights lists have no such cut
   // how someone's last fights ended ("lost their last fight by knockout") is not a cut either tool has: no answer, not the events list and not everyone who lost
+  if (!fighters.length && has(q, /(?:خسر|فاز|انتصر|هزم)\S*\s+(?:في |ب)?نزاله[من]\S*\s+(?:الاخير|الاخيره)\s+(?:ب|عن طريق|امام|ضد)/)) return [];
   if (!fighters.length && has(q, /\b(lost|won|drew)\s+(their|his|her)\s+(last|most recent|previous)\b.*\b(by|via|in)\s+(a\s+)?(knockout|ko|tko|decision|stoppage|round|points|split|unanimous)/)) return [];
   // (with an events word in it ("upcoming fights of fighters on a streak") no tool has both: no answer, not the list of events with the cut left out)
-  if (!fighters.length && RECORD_KEYS.some((k) => k in f)) return has(q, /\b(upcoming|next|recent|latest|results?|cards?|events?|schedule|calendar)\b/) ? [] : [filters()];
+  if (!fighters.length && RECORD_KEYS.some((k) => k in f)) return has(q, /\b(upcoming|next|recent|latest|results?|cards?|events?|schedule|calendar)\b|قادم|نتايج|فعاليه|فعاليات|بطاقه|جدول/) ? [] : [filters()];
   if (has(q, /upcoming.*(upset|underdog)|underdogs?\b|upset watch|(could|might|may) (be )?upset|upsets? (are )?(coming|expected)|favou?rites? .*(lose|beaten|upset|vulnerable|shaky|wobbl\w*|at risk|in (danger|trouble))|(look|looks|looking) (shaky|vulnerable)|\bin (danger|trouble)\b|at risk of (losing|being)|مفاج\S*\s+(ال)?(محتمل|متوقع)\S*|(ال)?(محتمل|متوقع)\S*\s+(ال)?مفاج|(could|might|may|going to) (get |be |getting )?(upset|beaten)|(produce|cause|spring|pull off) an? (shock|upset)|could .*\b(shock|upset)\b|(most )?likely to (lose|be beaten|be upset)|shock results?|danger fights?|مفاجاه محتمله|الاقل ترجيحا/)) return [{ tool: "upset_watch", args: withLimit({}) }];
 
   // completed fights of a year or the title fights, by how they ended: "knockouts in 2025", "title fights this year", "fastest finishes of 2024"

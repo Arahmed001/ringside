@@ -19,6 +19,7 @@ import { peelQuantities } from "./search-quantities";
 import { peelRecord } from "./search-record";
 import { countsInRecord } from "./methods";
 import { peelQuantitiesAr } from "./search-quantities-ar";
+import { peelRecordAr } from "./search-record-ar";
 
 const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
 export const hasKey = () => !!process.env.ANTHROPIC_API_KEY;
@@ -134,10 +135,10 @@ const DIVISION_SAYINGS_AR: Record<string, string[]> = {
 };
 
 /** Arabic phrases the rule-based parser understands (with a key, Claude parses any wording; this is the no-key fallback). Compared after normalize(). */
-function arabicHints(q: string, f: Filters, countries: string[]) {
+function arabicHints(q: string, f: Filters, countries: string[], today?: string) {
   const folded = normalize(q);
   if (!/[\u0600-\u06ff]/.test(folded)) return;
-  const s = peelQuantitiesAr(folded, f); // the numbers first, so "أكثر من 20 فوزا" is not just "20 wins" and "10 هزائم" is not read for anything else
+  const s = peelQuantitiesAr(peelRecordAr(folded, f, today), f); // the numbers first, so "أكثر من 20 فوزا" is not just "20 wins" and "10 هزائم" is not read for anything else
   const ar = dictOf("ar");
   const tr = (en: string) => { const v = ar[en]; return typeof v === "string" ? normalize(v) : ""; };
   // the division by its name in the dictionary, or by the way people say it ("ثقيلو الوزن", "فوق المتوسط"); the longest phrase first, so "نصف الثقيل" is not "الثقيل"
@@ -212,7 +213,7 @@ export function heuristicParse(q: string, countries: string[], today?: string): 
   else if (/\bshortest\b/.test(s) && !/shortest (reach|arms)/.test(s)) f.sort = "shortest";
   if (/\byoungest\b/.test(s)) f.sort = "youngest";
   else if (/\boldest\b/.test(s)) f.sort = "age";
-  arabicHints(original, f, countries);
+  arabicHints(original, f, countries, today);
   if (!Object.keys(f).length && q.trim()) f.text = q.trim();
   return f;
 }
