@@ -98,9 +98,9 @@ export default async function Home() {
         <div className="eyebrow mb-2">{t("Boxing intelligence · {fighters} fighters · {bouts} bouts", { fighters: o.boxers, bouts: o.bouts.toLocaleString("en-US") })}</div>
         <h2 id="ask" className="font-display text-5xl font-extrabold uppercase leading-[.95] sm:text-6xl">{t("Ask the data")}<span className="text-red-ink">.</span></h2>
         <p className="mt-3 max-w-2xl text-lg text-muted">{t("Ratings, rankings, win-probabilities and AI scouting for the whole sport, in one place. Ask in plain English.")}</p>
-        <form action={localePath(t.locale, "/ask")} className="mt-6 flex gap-2">
-          <input name="q" aria-label={t("Ask the data")} placeholder={t("Who has the most knockouts among women?")} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-6 py-5 text-lg outline-none transition placeholder:text-muted focus:border-gold/60" />
-          <button className="rounded-2xl bg-red-btn px-9 font-display text-2xl font-bold uppercase tracking-wide text-white transition hover:brightness-90">{t("Ask")}</button>
+        <form action={localePath(t.locale, "/ask")} className="mt-6 flex flex-col gap-2 sm:flex-row">
+          <input name="q" aria-label={t("Ask the data")} placeholder={t("Who has the most knockouts among women?")} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-4 py-4 text-[15px] outline-none transition placeholder:text-muted focus:border-gold/60 sm:px-6 sm:py-5 sm:text-lg" />
+          <button className="rounded-2xl bg-red-btn px-9 py-3 font-display text-2xl font-bold uppercase tracking-wide text-white transition hover:brightness-90">{t("Ask")}</button>
         </form>
         <div className="mt-3 flex flex-wrap gap-2">
           {examples.slice(0, 5).map((e) => <Link key={e} href={`/ask?q=${encodeURIComponent(e)}`} className="chip transition hover:text-ink">{e}</Link>)}
