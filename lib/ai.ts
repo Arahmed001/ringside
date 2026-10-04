@@ -62,7 +62,7 @@ export interface Filters {
   missedWeight?: boolean; // has missed weight at least once
   newTrainer?: boolean; // changed head trainer in the last 9 months
   bornIn?: string; // birthplace fragment
-  sort?: "rating" | "wins" | "kos" | "koRate" | "age" | "reach" | "bouts";
+  sort?: "rating" | "wins" | "kos" | "koRate" | "age" | "youngest" | "reach" | "height" | "shortest" | "bouts";
 }
 
 const COUNTRY_ALIASES: Record<string, string> = {
@@ -159,13 +159,18 @@ export function heuristicParse(q: string, countries: string[]): Filters {
   const reach = s.match(/reach\s*(?:over|above|>|of)?\s*(\d{3})/); if (reach) f.minReach = +reach[1];
   const over = s.match(/(?:over|older than)\s*(\d{2})\b(?!\s*(?:wins|kos))/); if (over && +over[1] >= 25) f.minAge = +over[1] + 1; // "over 33" means 34+
   const under = s.match(/(?:under|younger than)\s*(\d{2})\b/); if (under) f.maxAge = +under[1];
-  if (/young|prospect/.test(s) && !f.maxAge) f.maxAge = 26;
-  if (/\bveterans?\b|\bold\b|\bolder\b|\boldest\b/.test(s) && !f.minAge) f.minAge = 35; // whole words: "holds" and "gold" are not an age
+  if (/\byoung\b|\bprospects?\b/.test(s) && !f.maxAge) f.maxAge = 26;
+  if (/\bveterans?\b|\bold\b|\bolder\b/.test(s) && !f.minAge) f.minAge = 35; // whole words: "holds" and "gold" are not an age
   if (/best|top|highest rated|greatest/.test(s)) f.sort = "rating";
   if (/most (?:ko|knockout)/.test(s)) f.sort = "kos";
   if (/most wins/.test(s)) f.sort = "wins";
   if (/most (?:fights|bouts)|most experienced|most active/.test(s)) f.sort = "bouts";
   if (/longest reach|biggest reach|longest arms|reach advantage/.test(s)) f.sort = "reach";
+  // a superlative of a measure is the order to sort in, after "best" and "top" have had their say
+  if (/\btallest\b/.test(s)) f.sort = "height";
+  else if (/\bshortest\b/.test(s) && !/shortest (reach|arms)/.test(s)) f.sort = "shortest";
+  if (/\byoungest\b/.test(s)) f.sort = "youngest";
+  else if (/\boldest\b/.test(s)) f.sort = "age";
   arabicHints(original, f, countries);
   if (!Object.keys(f).length && q.trim()) f.text = q.trim();
   return f;
@@ -225,7 +230,7 @@ export function sanitizeFilters(j: Record<string, unknown>, countries: string[])
   if (typeof j.text === "string") f.text = j.text.slice(0, 60);
   for (const k of ["trainer", "manager", "gym", "promoter", "bornIn"] as const) if (typeof j[k] === "string" && j[k]) f[k] = (j[k] as string).slice(0, 60);
   for (const k of ["trainerCurrent", "missedWeight", "newTrainer"] as const) if (typeof j[k] === "boolean") f[k] = j[k] as boolean;
-  if (typeof j.sort === "string" && ["rating", "wins", "kos", "koRate", "age", "reach", "bouts"].includes(j.sort)) f.sort = j.sort as Filters["sort"];
+  if (typeof j.sort === "string" && ["rating", "wins", "kos", "koRate", "age", "youngest", "reach", "height", "shortest", "bouts"].includes(j.sort)) f.sort = j.sort as Filters["sort"];
   return f;
 }
 
@@ -276,12 +281,12 @@ export function applyFilters(boxers: BoxerFull[], f: Filters, w?: World, names: 
     (!f.text || normalize(`${b.name} ${names[b.name] ?? ""} ${b.nickname ?? ""} ${b.nickname ? names[b.nickname] ?? "" : ""}`).includes(normalize(f.text))),
   );
   const key = f.sort ?? "rating";
-  const val = (b: BoxerFull): number | null => ({ rating: b.rating, wins: b.wins, kos: b.kos, koRate: b.koRate, age: b.age === null ? null : -b.age, reach: b.reachCm, bouts: b.bouts })[key];
+  const val = (b: BoxerFull): number | null => ({ rating: b.rating, wins: b.wins, kos: b.kos, koRate: b.koRate, age: b.age, youngest: b.age === null ? null : -b.age, reach: b.reachCm, height: b.heightCm, shortest: b.heightCm === null ? null : -b.heightCm, bouts: b.bouts })[key];
   // fighters with an unknown value for the sort key go last, whichever way it sorts
   return out.sort((a, b) => { const x = val(a), y = val(b); return x === null ? (y === null ? 0 : 1) : y === null ? -1 : y - x; });
 }
 
-const SORT_LABEL: Record<string, string> = { rating: "rating", wins: "wins", kos: "knockouts", koRate: "KO rate", age: "age", reach: "reach", bouts: "fights" };
+const SORT_LABEL: Record<string, string> = { rating: "rating", wins: "wins", kos: "knockouts", koRate: "KO rate", age: "age, oldest first", youngest: "age, youngest first", reach: "reach", height: "height", shortest: "height, shortest first", bouts: "fights" };
 
 /** The chips under a search box: what the parser understood. `t` localises the wording; names and numbers pass through. */
 export function describeFilters(f: Filters, t: T = tEn): string[] {

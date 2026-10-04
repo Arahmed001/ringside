@@ -6,10 +6,10 @@ import { pound4pound } from "../lib/rankings";
  * of what the rule-based planner (no API key) understands, not a list of what it was built to understand: add questions as people ask ones it gets wrong.
  * `tool: null` means no tool can answer it, and the right behaviour is to say so rather than to answer something else.
  */
-export interface Case { q: string; tool: string | string[] | null; args?: Record<string, unknown>; lang?: "en" | "ar"; note?: string; batch?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 }
+export interface Case { q: string; tool: string | string[] | null; args?: Record<string, unknown>; lang?: "en" | "ar"; note?: string; batch?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 }
 
 export function battery(w: World): Case[] {
-  return [...batch1(w).map((c) => ({ ...c, batch: 1 as const })), ...batch2(w).map((c) => ({ ...c, batch: 2 as const })), ...batch3(w).map((c) => ({ ...c, batch: 3 as const })), ...batch4(w).map((c) => ({ ...c, batch: 4 as const })), ...batch5(w).map((c) => ({ ...c, batch: 5 as const })), ...batch6(w).map((c) => ({ ...c, batch: 6 as const })), ...batch7().map((c) => ({ ...c, batch: 7 as const })), ...batch8().map((c) => ({ ...c, batch: 8 as const })), ...batch9(w).map((c) => ({ ...c, batch: 9 as const })), ...batch10(w).map((c) => ({ ...c, batch: 10 as const })), ...batch11(w).map((c) => ({ ...c, batch: 11 as const }))];
+  return [...batch1(w).map((c) => ({ ...c, batch: 1 as const })), ...batch2(w).map((c) => ({ ...c, batch: 2 as const })), ...batch3(w).map((c) => ({ ...c, batch: 3 as const })), ...batch4(w).map((c) => ({ ...c, batch: 4 as const })), ...batch5(w).map((c) => ({ ...c, batch: 5 as const })), ...batch6(w).map((c) => ({ ...c, batch: 6 as const })), ...batch7().map((c) => ({ ...c, batch: 7 as const })), ...batch8().map((c) => ({ ...c, batch: 8 as const })), ...batch9(w).map((c) => ({ ...c, batch: 9 as const })), ...batch10(w).map((c) => ({ ...c, batch: 10 as const })), ...batch11(w).map((c) => ({ ...c, batch: 11 as const })), ...batch12().map((c) => ({ ...c, batch: 12 as const })), ...batch13().map((c) => ({ ...c, batch: 13 as const }))];
 }
 
 function batch1(w: World): Case[] {
@@ -624,5 +624,92 @@ function batch11(w: World): Case[] {
     one("is NAME still boxing", "status"), one("has NAME retired", "status"), one("is NAME still active", "status", b), one("does NAME have any losses", "status"), one("is NAME perfect", "status"), one("has NAME lost a fight", "status", b),
     one("who is NAME's agent", "manager"), one("what manager does NAME have", "manager"),
     { q: `when does ${a} fight ${b}`, tool: "head_to_head" }, { q: `${a} against ${b}`, tool: "head_to_head" },
+  ];
+}
+
+/**
+ * Batch 12: a place in a list ("who is ranked number two at welterweight": the answer named number one), a measure to sort by ("the tallest heavyweight": the
+ * highest rated), and counts ("how many fighters are there"). Written to find answers that look right and are not, and measured once before anything was changed
+ * for it.
+ */
+function batch12(): Case[] {
+  return [
+    // a place in a ranking: the answer is the fighter in that place
+    { q: "who is ranked number two at welterweight", tool: "rankings", args: { division: "Welterweight", position: 2 } },
+    { q: "who is ranked third in the middleweight division", tool: "rankings", args: { division: "Middleweight", position: 3 } },
+    { q: "who is the second best lightweight", tool: "rankings", args: { division: "Lightweight", position: 2 } },
+    { q: "who is the 3rd best heavyweight", tool: "rankings", args: { division: "Heavyweight", position: 3 } },
+    { q: "who is number four at bantamweight", tool: "rankings", args: { division: "Bantamweight", position: 4 } },
+    { q: "who is number 5 at flyweight", tool: "rankings", args: { division: "Flyweight", position: 5 } },
+    { q: "who is second in the pound for pound rankings", tool: "rankings", args: { position: 2 } },
+    { q: "who is the fifth best fighter in the world", tool: "rankings", args: { position: 5 } },
+    { q: "who is the number one featherweight", tool: "rankings", args: { division: "Featherweight" } },
+    // a measure to sort by
+    { q: "who is the tallest heavyweight", tool: "fighters", args: { weightClass: "Heavyweight", sort: "height" } },
+    { q: "who is the shortest fighter", tool: "fighters", args: { sort: "shortest" } },
+    { q: "who is the youngest heavyweight", tool: "fighters", args: { weightClass: "Heavyweight", sort: "youngest" } },
+    { q: "who is the oldest active boxer", tool: "fighters", args: { active: true, sort: "age" } },
+    { q: "tallest women's fighter", tool: "fighters", args: { sex: "female", sort: "height" } },
+    { q: "who is the youngest fighter in the database", tool: "fighters", args: { sort: "youngest" } },
+    { q: "who is the youngest champion", tool: "champions", args: { by: "youngest" }, note: "was expected to be no answer; the champions can be put in order of age, so it is answered" },
+    { q: "who is the oldest champion", tool: "champions", args: { by: "oldest" } },
+    { q: "what is the average age of a champion", tool: null },
+    { q: "which gym has the most champions", tool: null },
+    { q: "who trains the most champions", tool: null },
+    // counts
+    { q: "how many fighters are there", tool: "fighters", args: {} },
+    { q: "how many fighters are in the database", tool: "fighters", args: {} },
+    { q: "how many welterweights are there", tool: "fighters", args: { weightClass: "Welterweight" } },
+    { q: "how many female boxers are there", tool: "fighters", args: { sex: "female" } },
+    { q: "how many southpaws are there", tool: "fighters", args: { stance: "Southpaw" } },
+    { q: "how many fights have there been", tool: "bouts", args: {} },
+    { q: "how many knockouts were there in total", tool: "bouts", args: { method: "stoppage" } },
+    { q: "how many title fights have there been", tool: "bouts", args: { title: true } },
+    { q: "how many fights ended in a draw", tool: "bouts", args: { method: "DRAW" } },
+    { q: "how many decisions were there", tool: "bouts", args: { method: "decision" } },
+    { q: "how many events in 2024", tool: "events", args: { year: 2024 } },
+    { q: "how many events have there been", tool: "events", args: { when: "all" } },
+    { q: "how many champions are there", tool: "champions" },
+    // controls
+    { q: "who is the best welterweight right now", tool: "rankings", args: { division: "Welterweight" } },
+    { q: "who has the most knockouts", tool: "record_list", args: { list: "kos" } },
+    { q: "oldest active boxers", tool: "fighters" },
+  ];
+}
+
+/**
+ * Batch 13: batch 12's kinds of question (a place in a ranking, a measure to sort by, a count) in other words, written after batch 12 had been fitted and measured
+ * once before anything was changed for it.
+ */
+function batch13(): Case[] {
+  return [
+    { q: "who's the number 3 middleweight", tool: "rankings", args: { division: "Middleweight", position: 3 } },
+    { q: "who is in second place at lightweight", tool: "rankings", args: { division: "Lightweight", position: 2 } },
+    { q: "the number two ranked heavyweight", tool: "rankings", args: { division: "Heavyweight", position: 2 } },
+    { q: "who is the 2nd ranked bantamweight", tool: "rankings", args: { division: "Bantamweight", position: 2 } },
+    { q: "which fighter is number 2 pound for pound", tool: "rankings", args: { position: 2 } },
+    { q: "who is third best in the world", tool: "rankings", args: { position: 3 } },
+    { q: "who is ranked sixth at super middleweight", tool: "rankings", args: { division: "Super Middleweight", position: 6 } },
+    { q: "who sits fifth at cruiserweight", tool: "rankings", args: { division: "Cruiserweight", position: 5 } },
+    { q: "who is the tallest middleweight", tool: "fighters", args: { weightClass: "Middleweight", sort: "height" } },
+    { q: "the shortest heavyweight", tool: "fighters", args: { weightClass: "Heavyweight", sort: "shortest" } },
+    { q: "youngest unbeaten fighter", tool: "fighters", args: { undefeated: true, sort: "youngest" } },
+    { q: "who is the tallest woman boxer", tool: "fighters", args: { sex: "female", sort: "height" } },
+    { q: "who is the oldest fighter still active", tool: "fighters", args: { active: true, sort: "age" } },
+    { q: "youngest welterweight with 10 wins", tool: "fighters", args: { weightClass: "Welterweight", minWins: 10, sort: "youngest" } },
+    { q: "how many boxers are in the database", tool: "fighters", args: {} },
+    { q: "how many female fighters are there", tool: "fighters", args: { sex: "female" } },
+    { q: "how many heavyweights are there", tool: "fighters", args: { weightClass: "Heavyweight" } },
+    { q: "how many fights were there in 2024", tool: "bouts", args: { year: 2024 } },
+    { q: "how many cards were held in 2023", tool: "events", args: { year: 2023 } },
+    { q: "how many shows have there been", tool: "events", args: { when: "all" } },
+    { q: "how many title bouts were there", tool: "bouts", args: { title: true } },
+    { q: "how many bouts ended by knockout", tool: "bouts", args: { method: "stoppage" } },
+    { q: "how many fights went to a decision", tool: "bouts", args: { method: "decision" } },
+    { q: "how many draws are there", tool: "bouts", args: { method: "DRAW" } },
+    { q: "who is the youngest champion", tool: "champions", args: { by: "youngest" } },
+    { q: "what's the average height of a heavyweight", tool: null },
+    { q: "how many fighters have a perfect record", tool: "fighters", args: { undefeated: true } },
+    { q: "how many active southpaws are there", tool: "fighters", args: { stance: "Southpaw", active: true } },
   ];
 }

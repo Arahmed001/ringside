@@ -299,6 +299,16 @@ const COMPARABLE = new Set<FighterFact>(FIGHTER_FACTS.filter((f) => f !== "next_
 const MEETING = /\bagainst\b|\bbeat(en|s)?\b|\bmet\b|\bwould win\b|\bwho wins\b|\beach other\b|\bever fought\b/;
 const SUPERLATIVE = /\b(most(?! recent)|highest|best|longest|top|worst|lowest|fewest|fastest|greatest)\b/;
 
+const CARDINALS: Record<string, number> = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
+const ORDINALS: Record<string, number> = { first: 1, second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6, seventh: 7, eighth: 8, ninth: 9, tenth: 10 };
+/** The place a question asks for in a ranking: "number two", "ranked third", "the 3rd best", "fifth best". Only where the question is about rankings at all. */
+function placeAsked(q: string): number | undefined {
+  if (!has(q, /\b(ranked|ranking|rankings|best|number|contender|pound.for.pound|p4p|in the world|rated|place|sits?|sitting|spot|position)\b/)) return undefined;
+  const word = q.match(/\b(?:number|no\.?|#|ranked|rated)\s+(one|two|three|four|five|six|seven|eight|nine|ten|\d{1,2})\b/)?.[1] ?? q.match(/\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|\d{1,2}(?:st|nd|rd|th))\b/)?.[1];
+  const n = word ? CARDINALS[word] ?? ORDINALS[word] ?? parseInt(word, 10) : undefined;
+  return n && n >= 1 && n <= 25 ? n : undefined;
+}
+
 export const ARABIC_FOLDED = /[؀-ۿ]/;
 
 /** The no-key planner: turns a question into tool calls with patterns. It will not understand everything, and an unrecognised question yields no calls. */
@@ -320,6 +330,21 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const { fighters, rest } = claim(w, names, question);
   // a region is not a country the data has: "the best welterweight from South America" answered with every welterweight would look right and be wrong
   if (!fighters.length && has(q, REGIONS)) return [];
+  // a place in a ranking ("who is ranked number two at welterweight", "the third best heavyweight"): the fighter in that place, not the number one
+  if (!fighters.length) {
+    const place = placeAsked(question.toLowerCase()); // (the raw question: "3rd" is folded to "iii" in the normalised one)
+    if (place && (scope.division || has(q, /pound.for.pound|\bp4p\b|in the world|in boxing|overall/))) return [{ tool: "rankings", args: { ...scope, ...(place > 1 ? { position: place } : {}) } }];
+  }
+  // the facts about champions and the people behind them that no tool aggregates: no answer, not the list of champions
+  const champ = has(q, /\b(champions?|champs?|title.?holders?|belt.?holders?)\b/);
+  if (!fighters.length && champ && has(q, /\b(youngest|oldest)\b/)) return [{ tool: "champions", args: { ...scope, by: has(q, /\byoungest\b/) ? "youngest" : "oldest" } }];
+  if (!fighters.length && champ && has(q, /\b(tallest|shortest|heaviest)\b/)) return [];
+  // an average of anything is not in the data's tools: no answer, not the list it is an average of
+  if (!fighters.length && has(q, /\b(average|mean|median)\b/) && has(q, /\b(height|age|reach|weight|rating|wins|knockouts|fights)\b/)) return [];
+  if (!fighters.length && has(q, /\b(gyms?|trainers?|trains?|coach(es)?|managers?|manages|promoters?)\b/) && has(q, /\b(most|more)\b/) && has(q, /\b(champions?|belts?|titles?)\b/)) return [];
+  // how many: a count of what is asked ("how many fighters are there", "how many southpaw heavyweights", "how many events in 2024")
+  if (!fighters.length && has(q, /\bhow many (fighters|boxers)\b/)) return [{ tool: "fighters", args: Object.fromEntries(Object.entries(f).filter(([k]) => k !== "text" && k !== "sort")) }];
+  if (!fighters.length && has(q, /\bhow many (events|cards|shows)\b/)) return [{ tool: "events", args: year ? { year: +year } : { when: "all" } }];
   let trainerFound: { name: string | undefined } | undefined;
   const trainer = () => (trainerFound ??= { name: trainerNamed(w, question, rest) }).name;
 
@@ -354,10 +379,10 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const boutYear = span ? undefined : year ? +year : has(q, /\bthis year\b/) ? thisYear : has(q, /\blast year\b/) ? thisYear - 1 : undefined;
   if (span && has(q, ABOUT_FIGHTS) && !has(q, ABOUT_FIGHTERS)) return [];
   const recently = has(q, /\b(recent|latest|newest)\b/) && has(q, /\b(knockouts?|kos?|stoppages?|decisions?)\b/);
-  if ((boutYear || recently || has(q, /title fights?/)) && has(q, /\b(fights?|bouts?|knockouts?|kos?|stoppages?|finishes|decisions?|draws?)\b|ضربات? (ال)?قاضيه|نزالات|تعادل/) && !has(q, /\b(most|highest|longest|biggest|greatest|upcoming|next|coming)\b|fight of the year|best fights?|اكثر|اعلي|اطول|اكبر|اعظم|اسرع|افضل|القادم/)) {
+  if ((boutYear || recently || has(q, /title (fights?|bouts?)/) || has(q, /\bhow many\b/)) && has(q, /\b(fights?|bouts?|knockouts?|kos?|stoppages?|finishes|decisions?|draws?)\b|ضربات? (ال)?قاضيه|نزالات|تعادل/) && !has(q, /\b(most|highest|longest|biggest|greatest|upcoming|next|coming)\b|fight of the year|best fights?|اكثر|اعلي|اطول|اكبر|اعظم|اسرع|افضل|القادم/)) {
     return [{ tool: "bouts", args: withLimit({
       ...(boutYear ? { year: boutYear } : {}), ...(scope.division ? { division: scope.division } : {}),
-      ...(has(q, /title fights?/) ? { title: true } : {}),
+      ...(has(q, /title (fights?|bouts?)/) ? { title: true } : {}),
       ...(has(q, /knockouts?|\bkos?\b|stoppages?|finishes|ضربات? (ال)?قاضيه/) ? { method: "stoppage" } : has(q, /decisions?/) ? { method: "decision" } : has(q, /draws?|تعادل/) ? { method: "DRAW" } : {}),
       ...(has(q, /fastest|quickest/) ? { sort: "fastest" } : has(q, /knockdowns?/) ? { sort: "knockdowns" } : {}),
     }) }];

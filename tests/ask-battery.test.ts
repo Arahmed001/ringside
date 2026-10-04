@@ -244,7 +244,9 @@ test("words that only contain a filter word do not set the filter: 'holds' and '
   const { heuristicParse } = await import("../lib/ai");
   assert.equal(heuristicParse("who holds the heavyweight belt", []).minAge, undefined);
   assert.equal(heuristicParse("gold medallists", []).minAge, undefined);
-  assert.equal(heuristicParse("the oldest boxers", []).minAge, 35);
+  assert.equal(heuristicParse("the oldest boxers", []).minAge, undefined, "oldest is the order to sort in (round 50), not a minimum age");
+  assert.equal(heuristicParse("the oldest boxers", []).sort, "age");
+  assert.equal(heuristicParse("old boxers", []).minAge, 35);
   assert.equal(heuristicParse("veterans with 30 wins", []).minAge, 35);
   assert.equal(heuristicParse("most technical knockouts", []).archetype, undefined);
   assert.equal(heuristicParse("technical boxers", []).archetype, "Technician");

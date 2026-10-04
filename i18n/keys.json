@@ -373,6 +373,12 @@
   ]
  },
  {
+  "key": "{n} champions are left out because the data gives no age for them.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{n} changed since",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -1516,6 +1522,12 @@
   ]
  },
  {
+  "key": "{title}: {name} is number {n} ({record}, rated {elo}).",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{title}: {name} is number one ({record}, rated {elo}).",
   "files": [
    "lib/ask/tools.ts"
@@ -2180,7 +2192,6 @@
  {
   "key": "age",
   "files": [
-   "lib/ask/tools.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -2222,6 +2233,18 @@
   "key": "Age and layoffs hurt more",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "age, oldest first",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "age, youngest first",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -5610,6 +5633,12 @@
   ]
  },
  {
+  "key": "height",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Height",
   "files": [
    "app/[locale]/compare/page.tsx",
@@ -5621,6 +5650,12 @@
   "key": "Height / reach",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "height, shortest first",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -7691,6 +7726,12 @@
   "key": "Old school",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Oldest champions",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -10379,6 +10420,12 @@
   ]
  },
  {
+  "key": "The data gives no champion's age.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "The data has no current gym for {name}.",
   "files": [
    "lib/ask/tools.ts"
@@ -10710,6 +10757,12 @@
   ]
  },
  {
+  "key": "The oldest champion is {name}, {age}, who holds {belt}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "The password must not contain your name.",
   "files": [
    "lib/account-text.ts"
@@ -10904,6 +10957,12 @@
   ]
  },
  {
+  "key": "The youngest champion is {name}, {age}, who holds {belt}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Their careers did not overlap",
   "files": [
    "lib/matchmaking.ts"
@@ -10922,6 +10981,13 @@
   ]
  },
  {
+  "key": "There have been {n} completed cards; the latest was {event} on {date}.",
+  "plural": "There has been {n} completed card; the latest was {event} on {date}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "There is no email on file to send a reset link to. Ask whoever runs this site for a one-time code, then enter it here with your name and a new password.",
   "files": [
    "components/AccountPanel.tsx"
@@ -10929,6 +10995,13 @@
  },
  {
   "key": "There is no money data of that kind.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "There were {n} completed cards in {year}; the latest was {event} on {date}.",
+  "plural": "There was {n} completed card in {year}; the latest was {event} on {date}.",
   "files": [
    "lib/ask/tools.ts"
   ]
@@ -12654,6 +12727,12 @@
   "files": [
    "components/MyPicks.tsx",
    "components/PickStanding.tsx"
+  ]
+ },
+ {
+  "key": "Youngest champions",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {

@@ -54,7 +54,7 @@ const fighters: Tool = {
     { name: "minKoRate", kind: "number", about: "knockouts as a share of wins, 0 to 1", min: 0, max: 1 }, { name: "minAge", kind: "number", about: "at least this age", min: 16, max: 60 }, { name: "maxAge", kind: "number", about: "at most this age", min: 16, max: 60 },
     { name: "archetype", kind: "string", about: "style: Knockout Artist, Volume Boxer, Technician, Iron-Chin Brawler, Counter-Puncher, Journeyman" },
     { name: "trainer", kind: "string", about: "head trainer name" }, { name: "gym", kind: "string", about: "gym name" },
-    { name: "sort", kind: "enum", about: "sort order (default rating)", values: ["rating", "wins", "kos", "koRate", "age", "reach", "bouts"] }, LIMIT,
+    { name: "sort", kind: "enum", about: "sort order (default rating)", values: ["rating", "wins", "kos", "koRate", "age", "youngest", "reach", "height", "shortest", "bouts"] }, LIMIT,
   ],
   run({ w, t, names }, args) {
     const countries = [...new Set(w.boxers.map((b) => b.country))];
@@ -76,7 +76,7 @@ const fighters: Tool = {
     };
   },
 };
-const SORT_NAME: Record<string, string> = { rating: msg("rating"), wins: msg("wins"), kos: msg("knockouts"), koRate: msg("KO rate"), age: msg("age"), reach: msg("reach"), bouts: msg("fights") };
+const SORT_NAME: Record<string, string> = { rating: msg("rating"), wins: msg("wins"), kos: msg("knockouts"), koRate: msg("KO rate"), age: msg("age, oldest first"), youngest: msg("age, youngest first"), reach: msg("reach"), height: msg("height"), shortest: msg("height, shortest first"), bouts: msg("fights") };
 
 const recordListTool: Tool = {
   name: "record_list",
@@ -229,18 +229,21 @@ const headToHead: Tool = {
 
 const rankings: Tool = {
   name: "rankings",
-  about: "Current rankings: one division, or pound for pound when no division is given.",
-  args: [DIVISION, SEX, LIMIT],
+  about: "Current rankings: one division, or pound for pound when no division is given. Give `position` for one place in it (2 is the number two fighter).",
+  args: [DIVISION, SEX, LIMIT, { name: "position", kind: "number", about: "one place in the ranking, 2 to 25, when the question asks who is number two, third best and so on", min: 2, max: 25 }],
   run({ w, t }, args) {
     const sex = args.sex === "female" ? "female" : "male";
     const division = (WEIGHT_CLASSES as readonly string[]).includes(String(args.division)) ? String(args.division) : undefined;
-    const n = take(args);
+    const position = typeof args.position === "number" && args.position >= 2 ? Math.min(25, Math.round(args.position)) : undefined;
+    const n = Math.max(take(args), position ?? 0);
     const rows = division ? rankDivision(w, division, n, sex).map((r) => r.boxer) : pound4pound(w, n, sex);
-    if (!rows.length) return empty("rankings", args, t, t("Nobody is ranked there."));
+    if (!rows.length || (position !== undefined && rows.length < position)) return empty("rankings", args, t, t("Nobody is ranked there."));
     const title = division ? t("{division} rankings", { division: divisionLabel(division, sex, t) }) : t("Pound for pound");
+    const at = rows[(position ?? 1) - 1];
     return {
       tool: "rankings", args,
-      summary: t("{title}: {name} is number one ({record}, rated {elo}).", { title, name: t.name(rows[0].name), record: recordStr(rows[0]), elo: Math.round(rows[0].rating) }),
+      summary: position ? t("{title}: {name} is number {n} ({record}, rated {elo}).", { title, name: t.name(at.name), n: position, record: recordStr(at), elo: Math.round(at.rating) })
+        : t("{title}: {name} is number one ({record}, rated {elo}).", { title, name: t.name(rows[0].name), record: recordStr(rows[0]), elo: Math.round(rows[0].rating) }),
       lines: [title, ...rows.map((b, i) => `${i + 1}. ${t.name(b.name)}: ${recordStr(b)}, rating ${Math.round(b.rating)}`)],
       tables: [{ id: "rankings", title, columns: ["#", t("Fighter"), t("Record"), t("Rating")], rows: rows.map((b, i) => [String(i + 1), boxerCell(b, t), recordStr(b), String(Math.round(b.rating))]), note: undefined }],
     };
@@ -249,14 +252,29 @@ const rankings: Tool = {
 
 const champions: Tool = {
   name: "champions",
-  about: "Who holds each belt right now (belts whose champion is active and defended in the last 18 months), optionally for one division.",
-  args: [DIVISION, SEX],
+  about: "Who holds each belt right now (belts whose champion is active and defended in the last 18 months), optionally for one division. `by` orders the champions by age: the youngest or the oldest first.",
+  args: [DIVISION, SEX, { name: "by", kind: "enum", about: "order the champions by age", values: ["youngest", "oldest"] }],
   run({ w, t }, args) {
     const sex = args.sex === "female" ? "female" : "male";
     const division = (WEIGHT_CLASSES as readonly string[]).includes(String(args.division)) ? String(args.division) : undefined;
     const rows = belts(w).filter((b) => b.sex === sex && b.current && !b.stale && (!division || b.division === division));
     if (!rows.length) return empty("champions", args, t, t("No live champions found there."));
     const line = (b: (typeof rows)[number]) => { const c = w.byId.get(b.current!.boxerId)!; return { c, b }; };
+    const by = args.by === "youngest" || args.by === "oldest" ? args.by : undefined;
+    if (by) {
+      // the champions whose age the data gives, in the order asked (a champion with no known age is left out, not placed)
+      const aged = rows.map((b) => ({ ...line(b) })).filter((x) => x.c.age !== null).sort((p, q) => (by === "youngest" ? p.c.age! - q.c.age! : q.c.age! - p.c.age!) || p.c.name.localeCompare(q.c.name));
+      if (!aged.length) return empty("champions", args, t, t("The data gives no champion's age."));
+      const top = aged[0];
+      return {
+        tool: "champions", args,
+        summary: by === "youngest" ? t("The youngest champion is {name}, {age}, who holds {belt}.", { name: t.name(top.c.name), age: top.c.age!, belt: beltLabel(top.b, t) }) : t("The oldest champion is {name}, {age}, who holds {belt}.", { name: t.name(top.c.name), age: top.c.age!, belt: beltLabel(top.b, t) }),
+        lines: aged.slice(0, 25).map(({ c, b }) => `${t.name(c.name)}, age ${c.age}: ${beltLabel(b, t)} (${b.division})`),
+        tables: [{ id: "champions", title: by === "youngest" ? t("Youngest champions") : t("Oldest champions"), columns: [t("Champion"), t("Age"), t("Belt"), t("Division")],
+          rows: aged.slice(0, 25).map(({ c, b }) => [boxerCell(c, t), String(c.age), { text: beltLabel(b, t), href: `/titles/${b.slug}` }, divisionLabel(b.division, b.sex, t)]),
+          note: rows.length > aged.length ? t("{n} champions are left out because the data gives no age for them.", { n: rows.length - aged.length }) : undefined }],
+      };
+    }
     return {
       tool: "champions", args,
       summary: t.n(rows.length, "{n} belt has a live champion. {first}", "{n} belts have live champions. {first}", { first: (() => { const { c, b } = line(rows[0]); return t("{belt}: {name}.", { belt: `${beltLabel(b, t)} (${divisionLabel(b.division, b.sex, t)})`, name: t.name(c.name) }); })() }),
@@ -310,11 +328,28 @@ const bouts: Tool = {
 
 const events: Tool = {
   name: "events",
-  about: "The fight calendar: upcoming cards, or the most recent completed ones, with each card's main event.",
-  args: [{ name: "when", kind: "enum", about: "upcoming or recent", values: ["upcoming", "recent"] }, LIMIT],
+  about: "The fight calendar: upcoming cards, or the most recent completed ones, with each card's main event. `when: all` or a `year` counts the completed cards (the latest are listed).",
+  args: [{ name: "when", kind: "enum", about: "upcoming, recent, or all completed cards", values: ["upcoming", "recent", "all"] }, { name: "year", kind: "number", about: "count the completed cards of one calendar year", min: 2000, max: 2100 }, LIMIT],
   run({ w, t }, args) {
-    const upcoming = args.when !== "recent";
     const n = take(args);
+    const year = typeof args.year === "number" ? Math.round(args.year) : undefined;
+    if (args.when === "all" || year !== undefined) {
+      const done = w.events.filter((e) => !e.upcoming && e.status !== "cancelled" && (year === undefined || e.date.startsWith(String(year)))).sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+      if (!done.length) return empty("events", args, t, t("No cards found."));
+      const views = eventViews(w, done.slice(0, n));
+      const label = (v: (typeof views)[number]) => `${t.name(v.red.name)} ${t("vs")} ${t.name(v.blue.name)}`;
+      const latest = { event: t.name(done[0].name), date: fmtDate(done[0].date, undefined, t.locale) };
+      return {
+        tool: "events", args,
+        summary: year !== undefined ? t.n(done.length, "There was {n} completed card in {year}; the latest was {event} on {date}.", "There were {n} completed cards in {year}; the latest was {event} on {date}.", { year, ...latest })
+          : t.n(done.length, "There has been {n} completed card; the latest was {event} on {date}.", "There have been {n} completed cards; the latest was {event} on {date}.", latest),
+        lines: [`${done.length} completed cards${year !== undefined ? ` in ${year}` : ""}.`, ...views.map((v) => `${v.event.date}: ${t.name(v.event.name)} in ${t.name(v.event.city)}; main event ${label(v)}`)],
+        tables: [{ id: "events", title: t("Recent cards"), columns: [t("Date"), t("Event"), t("Main event"), t("City")],
+          rows: views.map((v) => [fmtDate(v.event.date, { month: "short", day: "numeric", year: "numeric" }, t.locale), { text: t.name(v.event.name), href: `/events/${v.event.id}` }, label(v), t.name(v.event.city)]),
+          note: done.length > views.length ? t("Showing {n} of {total}.", { n: views.length, total: done.length }) : undefined }],
+      };
+    }
+    const upcoming = args.when !== "recent";
     const views = eventViews(w, upcoming ? upcomingEvents(w).slice(0, n) : recentEvents(w, n));
     if (!views.length) return empty("events", args, t, t("No cards found."));
     const label = (v: (typeof views)[number]) => `${t.name(v.red.name)} ${t("vs")} ${t.name(v.blue.name)}`;
