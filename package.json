@@ -36,6 +36,7 @@
     "coldcheck": "tsx scripts/coldcheck.ts",
     "ask:battery": "tsx scripts/ask-battery.ts",
     "ask:names": "tsx scripts/ask-names-battery.ts",
+    "search:nl": "tsx scripts/search-nl.ts",
     "search:battery": "tsx scripts/search-battery.ts"
   },
   "dependencies": {

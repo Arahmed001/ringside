@@ -1,6 +1,6 @@
 import type { World } from "../world";
 import type { BoxerFull } from "../types";
-import { heuristicParse } from "../ai";
+import { heuristicParse, type Filters } from "../ai";
 import { normalize } from "../fighter-search";
 import { allowedSlips, editDistance, wordsOf } from "../fuzzy";
 import type { Names } from "../i18n/t";
@@ -262,7 +262,12 @@ const SPAN = /\b(since|after|before|until)\s+(19|20)\d\d\b|\b(19|20)\d0'?s\b|\b(
 /** Places that are not countries: fighters are searched by country, not by region. */
 const REGIONS = /\b(europe|european|europeans|asia|asian|asians|africa|african|africans|latin america|latino|latinos|south america|north america|oceania|scandinavia|scandinavian|middle east|arab|arabs|caribbean|balkans)\b/;
 /** What a fighter search can be narrowed by that the record lists cannot (they take only a sex and a division). */
-const GROUP_KEYS = ["stance", "country", "active", "undefeated", "minAge", "maxAge"];
+const GROUP_KEYS = ["stance", "country", "active", "undefeated", "minAge", "maxAge", "maxWins", "maxKOs", "minLosses", "maxLosses", "minBouts", "maxBouts", "record", "champion", "minReach", "maxReach", "minHeight", "maxHeight"];
+/** The lists that are about champions already: "champion" in the question names them, it does not narrow them ("who has the most defences" is not "among champions"). */
+const CHAMPION_LISTS = ["reign-defenses", "defenses", "longest-reign", "title-wins"];
+/** Whether the question narrows a record list to a group the list cannot be cut to. */
+const narrowsList = (f: Filters, list: string | undefined) =>
+  GROUP_KEYS.some((k) => k in f && !(k === "undefeated" && list === "win-streak") && !(k === "champion" && f.champion === "current" && !!list && CHAMPION_LISTS.includes(list)));
 /** The lists a fighter search can stand in for when the question narrows them to a group: sorted by the same thing. */
 const LIST_AS_SORT: Record<string, string> = { wins: "wins", kos: "kos", "ko-rate": "koRate" };
 
@@ -401,7 +406,7 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
     // nor can they be cut to a group they do not know ("among southpaws", "in Japan", "among active fighters"): answered as asked they would be the list for everybody. A fighter
     // search can honour the group for the three lists it can sort by; for the rest there is no answer
     // ("unbeaten" in "longest unbeaten run" is the list, not a group of unbeaten fighters)
-    const group = GROUP_KEYS.some((k) => k in f && !(k === "undefeated" && list === "win-streak"));
+    const group = narrowsList(f, list);
     if (group) return LIST_AS_SORT[list] ? [{ tool: "fighters", args: withLimit({ ...Object.fromEntries(Object.entries(f).filter(([k]) => k !== "text")), sort: LIST_AS_SORT[list], ...(list === "ko-rate" && f.minWins === undefined ? { minWins: 15 } : {}) }) }] : [];
     return [{ tool: "record_list", args: withLimit({ list, ...scope }) }];
   }
@@ -411,7 +416,12 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   if (has(q, /(biggest|highest|largest) purses?|highest.paid|best.paid|paydays?|paychecks?|اعلي.*(اجر|مكافاه)/)) return [{ tool: "money", args: withLimit({ kind: "purses" }) }];
   if (has(q, /(highest|top|biggest) earners?|top.paid|who earns the most|earns? the most|how much (do|does|did) (boxers?|fighters?) (make|earn)|اعلي.*(دخل|رواتب|اجور|مكافات)|(رواتب|اجور|مكافات|دخل).*(اعلي|الاعلي|اكبر)/)) return [{ tool: "money", args: withLimit({ kind: "earners" }) }];
 
-  if (has(q, /champs?\b|champions?\b|title.?holders?|who holds|holds the|belt.?holders?|بطل|ابطال|حامل|يحمل|حزام|احزمه/) && !fighters.length) return [{ tool: "champions", args: scope }];
+  if (has(q, /champs?\b|champions?\b|title.?holders?|who holds|holds the|belt.?holders?|بطل|ابطال|حامل|يحمل|حزام|احزمه/) && !fighters.length) {
+    // champions who are also something else ("champions from Mexico", "champions over 35", "former champions", "retired champions") are a search: the list of live champions has no such cut, and
+    // answering with it would look right and be wrong (round 51)
+    const cut = Object.keys(f).some((k) => !["champion", "weightClass", "sex", "sort", "text"].includes(k)) || f.champion === "former" || f.champion === "ever";
+    return cut ? [filters()] : [{ tool: "champions", args: scope }];
+  }
   if (has(q, /trainer|coach|مدرب/) && (!fighters.length || trainer())) {
     const typed = question.match(/(?:trainer|coach|مدرب)\s+([\p{L}.'\- ]{4,40})/iu)?.[1]?.trim();
     const name = trainer() ?? (typed && !has(normalize(typed), /^(impact|effect|the|best)/) ? typed : undefined);
@@ -454,6 +464,6 @@ export function refusalReason(question: string): "year" | "span" | "group" | nul
   if (yearly && list) return "year";
   if (list && span) return "span";
   const listId = LISTS.find(([re]) => has(q, re))?.[1];
-  if (list && (has(q, REGIONS) || GROUP_KEYS.some((k) => k in heuristicParse(question, []) && !(k === "undefeated" && listId === "win-streak")))) return "group";
+  if (list && (has(q, REGIONS) || narrowsList(heuristicParse(question, []), listId))) return "group";
   return null;
 }

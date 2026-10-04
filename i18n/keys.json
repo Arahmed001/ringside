@@ -3779,6 +3779,7 @@
  {
   "key": "Current champions",
   "files": [
+   "lib/ai.ts",
    "lib/ask/tools.ts"
   ]
  },
@@ -5102,6 +5103,18 @@
   ]
  },
  {
+  "key": "Fights ≤ {n}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Fights ≥ {n}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "Fights modelled",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -5298,6 +5311,12 @@
   "key": "Form",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Former champions",
+  "files": [
+   "lib/ai.ts"
   ]
  },
  {
@@ -5534,6 +5553,12 @@
   ]
  },
  {
+  "key": "Has held a belt",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "Has missed weight",
   "files": [
    "lib/ai.ts"
@@ -5650,6 +5675,18 @@
   "key": "Height / reach",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Height ≤ {n}cm",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Height ≥ {n}cm",
+  "files": [
+   "lib/ai.ts"
   ]
  },
  {
@@ -6171,6 +6208,12 @@
   ]
  },
  {
+  "key": "KOs ≤ {n}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "L",
   "files": [
    "app/[locale]/matchmaking/page.tsx",
@@ -6560,6 +6603,18 @@
   "key": "Look again",
   "files": [
    "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Losing record",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Losses ≤ {n}",
+  "files": [
+   "lib/ai.ts"
   ]
  },
  {
@@ -8686,6 +8741,12 @@
    "lib/fit.ts",
    "lib/preview.ts",
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Reach ≤ {n}cm",
+  "files": [
+   "lib/ai.ts"
   ]
  },
  {
@@ -12429,6 +12490,12 @@
   ]
  },
  {
+  "key": "Winning record",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "wins",
   "files": [
    "lib/ask/tools.ts",
@@ -12445,6 +12512,12 @@
   "key": "WINS",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Wins ≤ {n}",
+  "files": [
+   "lib/ai.ts"
   ]
  },
  {

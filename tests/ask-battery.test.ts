@@ -204,7 +204,7 @@ test("a list asked about a group it cannot be cut to is a fighter search that ho
   assert.deepEqual(first("most wins among Mexican fighters"), { tool: "fighters", args: { country: "Mexico", sort: "wins" } });
   assert.deepEqual(first("most knockouts among southpaws"), { tool: "fighters", args: { stance: "Southpaw", sort: "kos" } });
   assert.deepEqual(first("highest ko rate among active fighters"), { tool: "fighters", args: { active: true, sort: "koRate", minWins: 15 } }, "a knockout rate needs a record to rest on, as the list's own 15 wins");
-  assert.equal(first("highest ko rate among Germans over 20 wins")?.args.minWins, 20, "and the reader's own minimum stands");
+  assert.equal(first("highest ko rate among Germans over 20 wins")?.args.minWins, 21, "and the reader's own minimum stands: over 20 is 21 and up (round 51)");
   // any other list: no answer
   for (const q of ["longest win streak among southpaws", "most title defenses among Mexican champions", "biggest upsets by southpaws", "most title wins among undefeated fighters"]) assert.deepEqual(plan(q), [], q);
   // what a list is scoped to is still a list
