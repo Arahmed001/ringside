@@ -321,7 +321,7 @@ export function flippedRecords(html: string): string[] {
   const out: string[] = [];
   for (const raw of blocks) {
     const text = decode(raw).replace(/\s+/g, " ").trim();
-    const m = text.match(/[\u0600-\u06ff][^\d]*?[\s·:(،,.]\(?(\d+(?:-\d+){2,})/); // a separator between them: with none the two are separate boxes of a flex row, not one run of text
+    const m = text.match(/[\u0600-\u06ff][^\d]*?[\s·:(،,.]\(?(\d+(?:-\d+){2,})/) ?? text.match(/[\u0600-\u06ff][^\d]*?[\s(]([+−]\d[\d.,]*)/); // (or a signed number, which the right-to-left order draws with the sign after the digits) // a separator between them: with none the two are separate boxes of a flex row, not one run of text
     if (m) out.push(`"${text.slice(0, 90)}" (${m[1]})`);
   }
   return [...new Set(out)];
