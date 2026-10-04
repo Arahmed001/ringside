@@ -6446,6 +6446,12 @@
   ]
  },
  {
+  "key": "Jump to a division",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
   "key": "Jump to a section",
   "files": [
    "app/[locale]/all-time/page.tsx",
