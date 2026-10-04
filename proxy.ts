@@ -27,6 +27,7 @@ export function proxy(req: NextRequest) {
   const csp = contentSecurityPolicy({ nonce, dev: process.env.NODE_ENV === "development", https });
   const headers = new Headers(req.headers);
   headers.set("x-nonce", nonce);
+  headers.set("x-pathname", pathname); // set here, never taken from the visitor: the not-found page reads it to offer the fighter they probably meant
   headers.set("Content-Security-Policy", csp);
 
   let res: NextResponse;
