@@ -20,7 +20,7 @@ const CMP = [
   `(?<eq>بالضبط|تماما|بالتحديد)`,
 ].join("|");
 const SUFFIX = `(?:(?<sge>او اكثر|او اعلي|او اكبر|فاكثر|فما فوق|وما فوق|او ازيد)|(?<sle>او اقل|او ادني|او اصغر|فاقل|فما دون|وما دون|وما تحت))`;
-const NOUN: Record<Exclude<Measure, "height" | "reach" | "stopped">, string> = {
+const NOUN: Record<Exclude<Measure, "height" | "reach" | "stopped" | "rating">, string> = {
   wins: "(?:فوز(?:ا|ان|ين)?|انتصار(?:ات|ا|ان|ين)?)",
   losses: "(?:هزيمه|هزيمتان|هزيمتين|هزايم|خساره|خسارتان|خسارتين|خساير|خسارات)",
   kos: "(?:ضربه قاضيه|ضربات قاضيه|ضربتان قاضيتان|ضربتين قاضيتين|ك ?او)",
@@ -67,6 +67,9 @@ export function peelQuantitiesAr(q: string, f: Filters): string {
   take(re(`${START}و?(?:بدون|بلا|دون|ليس (?:لديه|لديهم|له|لهم)|لا (?:يملك|يملكون)|صفر)\\s+(?:فوز|انتصارات|انتصار)${END}|${START}لم (?:يفز|ينتصر|يفوزوا|ينتصروا|يفوز)(?: ابدا| قط)?(?! بال)${END}`), () => put(f, "wins", undefined, 0));
   take(re(`${START}و?(?:بدون|بلا|دون|ليس (?:لديه|لديهم|له|لهم)|لا (?:يملك|يملكون)|صفر)\\s+(?:ضربات قاضيه|ضربه قاضيه|ك ?او)${END}|${START}لم (?:يفز|يفوزوا) بال(?:ضربه|ضربات) القاضيه${END}`), () => put(f, "kos", undefined, 0));
 
+  // rating, as shown: "تصنيفهم أكثر من 1600", "تصنيف 1500 فأكثر"
+  take(re(`${START}ب?تصنيف\\S*\\s*(?:بين\\s+)?(?<a>\\d{3,4})\\s*(?:و|الي|-|–)\\s*(?<b>\\d{3,4})(?!\\d)`), (g) => put(f, "rating", Math.min(+g.a!, +g.b!), Math.max(+g.a!, +g.b!)));
+  take(re(`${START}ب?تصنيف\\S*\\s*(?:(?:${CMP})\\s+)?(?<n>\\d{3,4})(?!\\d)(?:\\s*${SUFFIX})?`), (g) => one("rating", +g.n!, g, "ge"));
   // reach, with or without the word first
   const REACH = `(?:امتداد|مدي|طول)\\s*(?:ال)?(?:ذراعي\\S*|ذراع|اذرع)|امتداد|مدي`;
   take(re(`${START}(?:${REACH})\\s*(?:بين\\s+)?(?<a>\\d{2,3})\\s*(?:سم\\s*)?(?:و|الي|-|–)\\s*(?<b>\\d{2,3})(?!\\d)`), (g) => put(f, "reach", Math.min(+g.a!, +g.b!), Math.max(+g.a!, +g.b!)));
@@ -78,7 +81,7 @@ export function peelQuantitiesAr(q: string, f: Filters): string {
   take(re(`${START}(?:(?<gt>اطول)|(?<lt>اقصر)) من (?<n>\\d{3})(?!\\d)`), (g) => one("height", +g.n!, g, "gt"));
 
   // a range of a counted thing (an age too: "بين 25 و30 سنة"): "بين 15 و25 فوزا", "من 20 الى 30 فوزا"
-  for (const [m, noun] of Object.entries(NOUN) as [Exclude<Measure, "height" | "reach" | "stopped">, string][]) {
+  for (const [m, noun] of Object.entries(NOUN) as [Exclude<Measure, "height" | "reach" | "stopped" | "rating">, string][]) {
     take(re(`${START}بين\\s+(?<a>\\d+)\\s*(?:و|الي|-|–)\\s*(?<b>\\d+)\\s*${noun}${END}`), (g) => put(f, m, Math.min(+g.a!, +g.b!), Math.max(+g.a!, +g.b!)));
     take(re(`${START}(?:من\\s+)?(?<a>\\d+)\\s*(?:الي|-|–)\\s*(?<b>\\d+)\\s*${noun}${END}`), (g) => put(f, m, Math.min(+g.a!, +g.b!), Math.max(+g.a!, +g.b!)));
   }

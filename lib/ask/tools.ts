@@ -62,6 +62,7 @@ const fighters: Tool = {
     { name: "record", kind: "enum", about: "a winning record (more wins than losses) or a losing one", values: ["winning", "losing"] },
     { name: "champion", kind: "enum", about: "holds a belt now, held one and no longer does, or has ever held one", values: ["current", "former", "ever"] },
     { name: "minReach", kind: "number", about: "at least this reach, cm", min: 100, max: 250 }, { name: "maxReach", kind: "number", about: "at most this reach, cm", min: 100, max: 250 },
+    { name: "minRating", kind: "number", about: "rated at least this (the rating as shown)", min: 800, max: 2500 }, { name: "maxRating", kind: "number", about: "rated at most this", min: 800, max: 2500 },
     { name: "minHeight", kind: "number", about: "at least this tall, cm", min: 100, max: 250 }, { name: "maxHeight", kind: "number", about: "at most this tall, cm", min: 100, max: 250 },
     { name: "minKoRate", kind: "number", about: "knockouts as a share of wins, 0 to 1", min: 0, max: 1 }, { name: "minAge", kind: "number", about: "at least this age", min: 16, max: 60 }, { name: "maxAge", kind: "number", about: "at most this age", min: 16, max: 60 },
     { name: "archetype", kind: "string", about: "style: Knockout Artist, Volume Boxer, Technician, Iron-Chin Brawler, Counter-Puncher, Journeyman" },

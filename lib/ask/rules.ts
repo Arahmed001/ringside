@@ -263,7 +263,7 @@ const SPAN = /\b(since|after|before|until)\s+(19|20)\d\d\b|\b(19|20)\d0'?s\b|\b(
 /** Places that are not countries: fighters are searched by country, not by region. */
 const REGIONS = /\b(europe|european|europeans|asia|asian|asians|africa|african|africans|latin america|latino|latinos|south america|north america|oceania|scandinavia|scandinavian|middle east|arab|arabs|caribbean|balkans)\b/;
 /** What a fighter search can be narrowed by that the record lists cannot (they take only a sex and a division). */
-const GROUP_KEYS = ["stance", "country", "active", "undefeated", "minAge", "maxAge", "maxWins", "maxKOs", "minLosses", "maxLosses", "minBouts", "maxBouts", "minStopped", "maxStopped", "minDraws", "maxDraws", "minWinStreak", "minLossStreak", "unbeatenIn", "lastFightAfter", "lastFightBefore", "record", "champion", "minReach", "maxReach", "minHeight", "maxHeight"];
+const GROUP_KEYS = ["stance", "country", "active", "undefeated", "minAge", "maxAge", "maxWins", "maxKOs", "minLosses", "maxLosses", "minBouts", "maxBouts", "minStopped", "maxStopped", "minDraws", "maxDraws", "minWinStreak", "minLossStreak", "unbeatenIn", "lastFightAfter", "lastFightBefore", "record", "champion", "minReach", "maxReach", "minRating", "maxRating", "minHeight", "maxHeight"];
 /** The facts about a fighter's record and form the fighter search can cut by (round 53). */
 const RECORD_KEYS = ["minStopped", "maxStopped", "minDraws", "maxDraws", "minWinStreak", "minLossStreak", "unbeatenIn", "lastFightAfter", "lastFightBefore"];
 /** The lists that are about champions already: "champion" in the question names them, it does not narrow them ("who has the most defences" is not "among champions"). */
@@ -357,6 +357,9 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   // counts and facts of the coming cards that the events list does not give ("how many cards are scheduled this month", "how many fights does the next card have"), and a belt's history or kind: no answer, not the latest card, every champion or a fighter search
   if (!fighters.length && has(q, /\bhow many\b.*\b(cards?|events?|shows?)\b.*\b(scheduled|upcoming|coming|next|planned|this (week|month|year)|does the next|has the next)\b|\bhow many\b.*\b(does|has|will)\b.*\b(next|upcoming)\b.*\b(card|event)\b/)) return [];
   if (!fighters.length && has(q, /موقت|شاغر|تغير حامل|تغيير حامل|\b(interim|vacant|stripped|unified)\b|\bchanged hands\b|\bhow many times has\b.*\b(title|belt)\b|\bhow many (world )?(titles|belts)\b/)) return [];
+  // movement in the rankings, and the lowest or worst of the champions: no history of ranks is kept, and the champions list has no order
+  if (has(q, /\b(climbed|dropped|fell|rose|jumped|moved up|moved down|slid)\b.*\b(rankings?|ranked|top \d+|ranks?)\b|\b(rankings?|ranks?)\b.*\b(climbed|dropped|fell|rose|jumped|moved up|moved down)\b/)) return [];
+  if (has(q, /\b(lowest|worst|weakest|least|poorest)\b/) && has(q, /\bchampions?\b/) && !fighters.length) return [];
   // groupings no tool makes: by venue, by country ("which country has the most champions"), by round ("fights that ended in the first round"): no answer, not a list of
   // fighters sorted by fights, the list of champions or every fight
   // money by count or for one fighter, and who missed weight the most: the money lists are of the biggest, and the misses are not counted per fighter in any tool

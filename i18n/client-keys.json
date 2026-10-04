@@ -747,6 +747,8 @@
  "rated {winner} beat {loser}",
  "rating",
  "Rating",
+ "Rating ≤ {n}",
+ "Rating ≥ {n}",
  "Rating over time",
  "Ratings, rankings and predictions",
  "reach",

@@ -9,12 +9,12 @@ import type { Filters } from "./ai";
  * always was (the chip under the search says so), except an age ("30 years old", "aged 30"), which is exactly that age.
  */
 
-export type Measure = "wins" | "losses" | "kos" | "bouts" | "age" | "height" | "reach" | "stopped" | "draws";
+export type Measure = "wins" | "losses" | "kos" | "bouts" | "age" | "height" | "reach" | "stopped" | "draws" | "rating";
 export type Cmp = "ge" | "gt" | "le" | "lt" | "eq";
 
 const KEYS: Record<Measure, [keyof Filters, keyof Filters]> = {
   wins: ["minWins", "maxWins"], losses: ["minLosses", "maxLosses"], kos: ["minKOs", "maxKOs"], bouts: ["minBouts", "maxBouts"],
-  age: ["minAge", "maxAge"], height: ["minHeight", "maxHeight"], reach: ["minReach", "maxReach"], stopped: ["minStopped", "maxStopped"], draws: ["minDraws", "maxDraws"],
+  age: ["minAge", "maxAge"], height: ["minHeight", "maxHeight"], reach: ["minReach", "maxReach"], stopped: ["minStopped", "maxStopped"], draws: ["minDraws", "maxDraws"], rating: ["minRating", "maxRating"],
 };
 
 const CMP_WORDS = [
@@ -26,7 +26,7 @@ const CMP_WORDS = [
 ].join("|");
 const CMP = `(?:${CMP_WORDS})`;
 const SUFFIX = "(?:(?<sge>or more|or higher|or over|and over|and up|and above|plus|or older|or taller|or longer|or greater)|(?<sle>or fewer|or less|or lower|or under|and under|and below|or younger|or shorter))";
-const NOUN: Record<Exclude<Measure, "height" | "reach" | "stopped">, string> = {
+const NOUN: Record<Exclude<Measure, "height" | "reach" | "stopped" | "rating">, string> = {
   wins: "(?:wins?|victor(?:y|ies))",
   losses: "(?:loss(?:es)?|defeats?)",
   kos: "(?:kos?|knockouts?)",
@@ -84,6 +84,9 @@ export function peelQuantities(q: string, f: Filters): string {
   take(new RegExp(`\\b(?:lost|been (?:beaten|defeated))\\s+(?:${CMP}\\s+)?(?<n>\\d+)\\s*(?:\\+|${SUFFIX})?\\s*times\\b`, "i"), (g) => one("losses", +g.n!, g, "ge"));
   take(new RegExp(`\\bwon\\s+(?:${CMP}\\s+)?(?<n>\\d+)\\s*(?:\\+|${SUFFIX})?\\s*times\\b`, "i"), (g) => one("wins", +g.n!, g, "ge"));
 
+  // rating, as shown: "rated above 1600", "a rating of at least 1500", "Elo over 1600", "rated between 1400 and 1500"
+  take(new RegExp(`\\b(?:rated|rating|elo(?: rating)?)\\s*(?:of|is|at)?\\s*between\\s+(?<a>\\d{3,4})\\s*(?:and|to|-|–)\\s*(?<b>\\d{3,4})(?!\\d)`, "i"), (g) => put(f, "rating", Math.min(+g.a!, +g.b!), Math.max(+g.a!, +g.b!)));
+  take(new RegExp(`\\b(?:rated|rating|elo(?: rating)?)\\s*(?:of|is|at)?\\s*(?:${CMP}\\s+)?(?<n>\\d{3,4})(?!\\d)(?:\\s*${SUFFIX})?`, "i"), (g) => one("rating", +g.n!, g, "ge"));
   // reach, with or without the word "reach" first
   take(new RegExp(String.raw`\breach\s*(?:of|is|at)?\s*(?:between\s+)?(?<a>\d{2,3})\s*(?:cm)?\s*(?:and|to|-|–)\s*(?<b>\d{2,3})(?!\d)`, "i"), (g) => put(f, "reach", Math.min(+g.a!, +g.b!), Math.max(+g.a!, +g.b!)));
   take(new RegExp(`\\breach\\s*(?:of|is|at)?\\s*(?:${CMP}\\s+)?(?<n>\\d{2,3})(?!\\d)\\s*(?:${CM})?(?:\\s*${SUFFIX})?`, "i"), (g) => one("reach", +g.n!, g, "ge"));
@@ -97,7 +100,7 @@ export function peelQuantities(q: string, f: Filters): string {
   take(new RegExp(String.raw`\b(?:(?<gt>taller)|(?<lt>shorter)) than (?<n>\d{3})(?!\d)`, "i"), (g) => one("height", +g.n!, g, "gt"));
 
   // a range of a counted thing: "between 15 and 25 wins", "20 to 30 wins", "from 5-10 KOs"
-  for (const [m, noun] of Object.entries(NOUN) as [Exclude<Measure, "height" | "reach" | "stopped">, string][]) {
+  for (const [m, noun] of Object.entries(NOUN) as [Exclude<Measure, "height" | "reach" | "stopped" | "rating">, string][]) {
     take(new RegExp(`\\bbetween\\s+(?<a>\\d+)\\s*(?:and|to|-|–)\\s*(?<b>\\d+)\\s*${noun}\\b`, "i"), (g) => put(f, m, Math.min(+g.a!, +g.b!), Math.max(+g.a!, +g.b!)));
     take(new RegExp(`(?<![\\d.])(?:from\\s+)?(?<a>\\d+)\\s*(?:to|-|–)\\s*(?<b>\\d+)\\s*${noun}\\b`, "i"), (g) => put(f, m, Math.min(+g.a!, +g.b!), Math.max(+g.a!, +g.b!)));
   }
