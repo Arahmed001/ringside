@@ -8,6 +8,7 @@ import { TitlesCard, NextFightCard } from "@/components/TitlesCard";
 import { BoxerRecords } from "@/components/Awards";
 import { notFound } from "next/navigation";
 import { careerView, getWorld, recordStr } from "@/lib/world";
+import { countrySlug } from "@/lib/countries";
 import { getDb } from "@/lib/db";
 import { isKnown, orDash, wikipediaUrl } from "@/lib/facts";
 import { boxerPageNotes } from "@/lib/accounts/corrections";
@@ -163,7 +164,7 @@ const HONOURS_SHOWN = 8;
           </div>
           <h1 className="mt-3 font-display text-6xl font-extrabold uppercase leading-[.95] sm:text-7xl">{t.name(b.name)}</h1>
           {b.nickname && <div className="mt-1 font-serif text-3xl italic text-gold">“{t.name(b.nickname)}”</div>}
-          <div className="mt-2 text-muted">{flag(b.country)} {[countryName(b.country, t.locale), b.age !== null ? t("Age {age}", { age: b.age }) : null, b.stance ? t(b.stance) : null, b.turnedPro !== null ? t("Pro since {year}", { year: b.turnedPro }) : null].filter(Boolean).join(" · ")}</div>
+          <div className="mt-2 text-muted">{flag(b.country)} <Link href={`/countries/${countrySlug(b.country)}`} className="hover:text-ink">{countryName(b.country, t.locale)}</Link>{[b.age !== null ? t("Age {age}", { age: b.age }) : null, b.stance ? t(b.stance) : null, b.turnedPro !== null ? t("Pro since {year}", { year: b.turnedPro }) : null].filter(Boolean).map((x) => ` · ${x}`).join("")}</div>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Stat label={t("Record")} value={recordStr(b)} sub={career.source === "supplier" ? t.n(career.total, "{n} fight in all", "{n} fights in all") : t.n(b.bouts, "{n} fight", "{n} fights")} />
             <Stat label={t("Knockouts")} value={b.kos} sub={t("{p} of wins", { p: pct(b.koRate) })} />

@@ -206,7 +206,7 @@ export function heuristicParse(q: string, countries: string[], today?: string): 
   if (/\b(?:best|top|highest rated|greatest)\b/.test(s)) f.sort = "rating"; // whole words: "stopped" has a "top" in it
   if (/most (?:ko|knockout)/.test(s)) f.sort = "kos";
   if (/most wins/.test(s)) f.sort = "wins";
-  if (/most (?:fights|bouts)|most experienced|most active/.test(s)) f.sort = "bouts";
+  if (/most (?:fights|bouts)|fought the most|most experienced|most active/.test(s)) f.sort = "bouts";
   if (/longest reach|biggest reach|longest arms|reach advantage/.test(s)) f.sort = "reach";
   // a superlative of a measure is the order to sort in, after "best" and "top" have had their say
   if (/\btallest\b/.test(s)) f.sort = "height";

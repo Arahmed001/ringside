@@ -16,12 +16,13 @@ import { mulberry32 } from "./prng";
 import { orgsRanking, trainerLeaderboard } from "./team";
 import { judgeStats } from "./officials";
 import { ORGS_PAGE, PEOPLE_PAGE } from "./people-list";
+import { countryList } from "./countries";
 
 export type Locale = "en" | "ar";
 export interface SmokeRoute { path: string; kind: "page" | "api" | "svg" | "missing"; label: string; /** text the page must show (a search that has to find someone) */ mustShow?: string; /** not requested on the Arabic site: the path carries English the person typed, which the page rightly echoes */ englishOnly?: boolean }
 
 /** Directories under app/[locale] whose URL has a parameter: every one must have a sampler below, or a new page escapes the check. */
-export const DYNAMIC_PAGES = ["all-time/[list]", "bouts/[id]", "boxers/[slug]", "events/[id]", "fight-of-the-year/[year]", "orgs/[slug]", "people/[slug]", "previews/[id]", "rankings/[division]", "titles/[slug]"] as const;
+export const DYNAMIC_PAGES = ["all-time/[list]", "bouts/[id]", "boxers/[slug]", "countries/[slug]", "events/[id]", "fight-of-the-year/[year]", "orgs/[slug]", "people/[slug]", "previews/[id]", "rankings/[division]", "titles/[slug]"] as const;
 
 const first = <T,>(xs: T[]): T | undefined => xs[0];
 const q = (s: string) => encodeURIComponent(s);
@@ -46,6 +47,10 @@ export function smokeRoutes(w: World): SmokeRoute[] {
     const bare = DIVISIONS.find((d) => rankedBoxers(w, d.name, "male").length === 0);
     if (bare) out.push({ path: `/rankings/${slugifyDivision(bare.name)}`, kind: "page", label: "an empty division of a league loaded in part", mustShow: "has the five fights on record" });
   }
+  // country pages: the country with the most fighters, the one with the fewest, and one nobody is from (a 404)
+  const countries = countryList(w);
+  if (countries.length) { page(`/countries/${countries[0].slug}`, "country with the most fighters"); if (countries.length > 1) page(`/countries/${countries[countries.length - 1].slug}`, "country with the fewest fighters"); }
+  out.push({ path: "/countries/atlantis", kind: "missing", label: "a country nobody is from" });
   if (star && woman) page(`/compare?a=${star.slug}&b=${boxers[1].slug}`, "matchup");
   page(`/boxers?q=${q("southpaw welterweights with 10+ KOs")}`, "plain-English search");
   page("/boxers?sex=female", "women's fighter list");
@@ -145,6 +150,8 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   }
   if (up) out.push({ path: `/api/preview/${up.id}`, kind: "api", label: "api: preview article" });
   out.push({ path: "/this-page-does-not-exist", kind: "missing", label: "unknown page" });
+  // an old or mistyped fighter link: a real 404 that offers the fighter they meant (English only: the Arabic page offers the name in Arabic)
+  if (star) out.push({ path: `/boxers/${star.slug.slice(0, -1)}`, kind: "missing", label: "mistyped fighter link (offers the fighter they meant)", mustShow: star.name });
   // one request per path, but a later route's "must show" is not lost when an earlier one (the nav) took the path first
   const seen = new Map<string, SmokeRoute>();
   return out.filter((r) => { const first = seen.get(r.path); if (!first) { seen.set(r.path, r); return true; } if (r.mustShow && !first.mustShow) { first.mustShow = r.mustShow; first.label = `${first.label}; ${r.label}`; } return false; });
@@ -178,6 +185,7 @@ export function crawlRoutes(w: World, perKind: number, seed = 5): SmokeRoute[] {
   for (const e of sample(w.events, perKind, seed + 3)) page(`/events/${e.id}`, "crawl: event");
   for (const p of sample([...w.people.values()], perKind, seed + 4)) page(`/people/${p.slug}`, "crawl: person");
   for (const o of sample([...w.orgs.values()], perKind, seed + 5)) page(`/orgs/${o.slug}`, "crawl: organisation");
+  for (const c of sample(countryList(w), perKind, seed + 6)) page(`/countries/${c.slug}`, "crawl: country");
   for (const b of belts(w)) page(`/titles/${b.slug}`, "crawl: belt");
   for (const d of new Set(w.boxers.map((b) => `${b.sex}|${b.weightClass}`))) { const [sex, name] = d.split("|"); page(`/rankings/${slugifyDivision(name)}${sex === "female" ? "?sex=female" : ""}`, "crawl: division ranking"); }
   for (const l of LISTS) page(`/all-time/${l.id}`, "crawl: all-time list");
@@ -204,6 +212,7 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
     if (status !== 404) bad.push(`expected 404, got ${status}`);
     if (!/noindex/.test(body)) bad.push("the 404 page is not marked noindex");
     if (!/<h1|\\?"h1\\?"/i.test(body)) bad.push("the 404 page has no heading anywhere in its response");
+    if (route.mustShow && locale === "en" && !body.includes(route.mustShow)) bad.push(`the 404 page does not offer "${route.mustShow}"`);
     return bad;
   }
   if (status !== 200) return [`status ${status}`];
