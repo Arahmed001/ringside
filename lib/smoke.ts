@@ -144,8 +144,9 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   }
   if (up) out.push({ path: `/api/preview/${up.id}`, kind: "api", label: "api: preview article" });
   out.push({ path: "/this-page-does-not-exist", kind: "missing", label: "unknown page" });
-  const seen = new Set<string>();
-  return out.filter((r) => (seen.has(r.path) ? false : (seen.add(r.path), true)));
+  // one request per path, but a later route's "must show" is not lost when an earlier one (the nav) took the path first
+  const seen = new Map<string, SmokeRoute>();
+  return out.filter((r) => { const first = seen.get(r.path); if (!first) { seen.set(r.path, r); return true; } if (r.mustShow && !first.mustShow) { first.mustShow = r.mustShow; first.label = `${first.label}; ${r.label}`; } return false; });
 }
 
 /** `n` of the items, the same ones every time for a seed, in no particular order (all of them when `n` is as many as there are). */
