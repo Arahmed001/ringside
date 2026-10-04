@@ -2690,6 +2690,12 @@
   ]
  },
  {
+  "key": "As given by the data supplier, in its order. It does not say which judge gave which score, or which corner each number belongs to.",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "As head trainer",
   "files": [
    "app/[locale]/people/[slug]/page.tsx",
@@ -6483,6 +6489,12 @@
   "key": "Judges' scorecards",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Judges' scores",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
   ]
  },
  {
@@ -11599,6 +11611,12 @@
   ]
  },
  {
+  "key": "The record and the knockouts are the career totals from the data supplier. Ringside holds {held} of those {total} fights, so the fight list, rating and rates on this page are built from those {held} only.",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "The record is the career total from the data supplier. Ringside holds {held} of those {total} fights, so the fight list, knockouts, rating and rates on this page are built from those {held} only.",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -12011,6 +12029,12 @@
   "key": "Tickets sold",
   "files": [
    "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Times stopped",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {

@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Method, Stance } from "../types";
 import { normalizeDivision } from "../divisions";
+import { hasScorecards } from "../methods";
 import { currentYear, nowMs, todayIso } from "../clock";
 
 /**
@@ -30,7 +31,7 @@ export interface ApiFighter {
   /** the real records give height and reach in several forms, and often only one of them */
   height_cm?: number | null; height_in?: number | null; height_ft?: string | null; height?: string | null;
   reach_cm?: number | null; reach_in?: number | null; reach?: string | null;
-  stats?: { wins?: number | null; losses?: number | null; draws?: number | null; total_bouts?: number | null } | null;
+  stats?: { wins?: number | null; losses?: number | null; draws?: number | null; total_bouts?: number | null; ko_wins?: number | null; stopped?: number | null; total_rounds?: number | null } | null;
   division?: { id?: string | null; name?: string | null; weight_lb?: number | null } | null;
 }
 interface ApiSide { name?: string | null; full_name?: string | null; winner?: boolean | null; fighter_id?: string | null }
@@ -39,6 +40,8 @@ export interface ApiFight {
   id: string; title?: string | null; date?: string | null; location?: string | null; venue?: string | null; scheduled_rounds?: number | null;
   status?: string | null; fighters?: { fighter_1?: ApiSide | null; fighter_2?: ApiSide | null } | null;
   results?: { outcome?: string | null; round?: string | number | null } | null;
+  /** the judges' scores, one string a card ("116-109"), when the scorecards were used (the docs' Fights page) */
+  scores?: (string | null)[] | null;
   event?: ApiEvent | null; division?: { name?: string | null; id?: string | null } | null; titles?: { name?: string | null; id?: string | null }[] | null;
 }
 
@@ -124,6 +127,17 @@ export function parseLocation(raw: string | null | undefined, notes: Notes): { c
 
 const DECISIONS = new Set(["UD", "MD", "SD", "PTS"]);
 
+/** The judges' scores that are really scores: "116-109" (two whole numbers, a hyphen or a dash). Anything else is dropped; at most three cards. */
+export function cleanScores(raw: (string | null)[] | null | undefined): string[] {
+  return (raw ?? []).map((x) => (typeof x === "string" ? x.trim().replace(/[–—]/g, "-") : "")).filter((x) => /^\d{1,3}-\d{1,3}$/.test(x)).slice(0, 3);
+}
+
+/** Career knockouts and times stopped from a stats block, each only when it is a whole number no larger than the wins or losses it is part of (a total that contradicts its own record is not used). */
+export function careerTotals(s: NonNullable<ApiFighter["stats"]>): { koWins?: number; stopped?: number } {
+  const ok = (x: unknown, of: number | null | undefined): x is number => typeof x === "number" && Number.isInteger(x) && x >= 0 && typeof of === "number" && x <= of;
+  return { ...(ok(s.ko_wins, s.wins) ? { koWins: s.ko_wins } : {}), ...(ok(s.stopped, s.losses) ? { stopped: s.stopped } : {}) };
+}
+
 /** One fight -> a bout, the event it belongs to, and the two fighter ids to fetch. Null when it has no date or fewer than two fighters. */
 export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: ProviderBout; event: ProviderEvent; fighterIds: [string, string] } | null {
   const a = f.fighters?.fighter_1, b = f.fighters?.fighter_2;
@@ -162,6 +176,8 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
     weightClass, rounds, winnerExternalId: winner ? fighterId(winner.fighter_id!) : null, method, endRound,
     title: f.titles?.[0]?.name ?? null, position: index, // card order is not in the feed: the order the fights came back in
   };
+  const scores = finished && hasScorecards(method) ? cleanScores(f.scores) : []; // only a fight that went to the cards has scores: a stoppage with scores attached is a feed slip, not a result
+  if (scores.length) bout.scores = scores;
   return { bout, event, fighterIds: [a.fighter_id, b.fighter_id] };
 }
 
@@ -542,7 +558,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
         const m = mapFighter(raw, notes);
         if (m) {
           const s = raw.stats;
-          const career = s && [s.wins, s.losses, s.draws].every((x) => typeof x === "number" && x >= 0) ? { wins: s.wins!, losses: s.losses!, draws: s.draws! } : null;
+          const career = s && [s.wins, s.losses, s.draws].every((x) => typeof x === "number" && x >= 0) ? { wins: s.wins!, losses: s.losses!, draws: s.draws!, ...careerTotals(s) } : null;
           rows.push(career ? { ...m, careerRecord: career } : m);
           if (career) careers.set(m.externalId, career);
         }

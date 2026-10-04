@@ -4,7 +4,7 @@ import { Headshot } from "./Portrait";
 import { archetype, ARCH_COLOR } from "@/lib/style";
 import { countryName, flag, fmtDate, methodLabel } from "@/lib/format";
 import { divisionLabel } from "@/lib/divisions";
-import { recordStr } from "@/lib/world";
+import { koView, recordStr } from "@/lib/world";
 import { getT } from "@/lib/i18n/server";
 import { msg } from "@/lib/i18n/t";
 
@@ -49,7 +49,7 @@ export async function BoxerCard({ b, rank, badge }: { b: BoxerFull; rank?: numbe
         <div className="text-xs text-muted">{flag(b.country)} {countryName(b.country, t.locale)} · {divisionLabel(b.weightClass, b.sex, t)}</div>
         <div className="mt-1.5 flex items-center gap-2">
           <span className="tabular text-sm font-semibold">{recordStr(b)}</span>
-          <span className="tabular text-xs text-muted">{t("{n} KO", { n: b.kos })}</span>
+          <span className="tabular text-xs text-muted">{t("{n} KO", { n: koView(b).kos })}</span>
           <Streak b={b} />
           <span className="ms-auto tabular text-xs text-gold">{Math.round(b.rating)}</span>
         </div>
