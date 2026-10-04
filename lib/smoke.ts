@@ -163,6 +163,8 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   const [m1, m2] = boxers.filter((b) => b.bouts >= 5);
   if (m1 && m2) { png(`/api/og/compare?a=${m1.slug}&b=${m2.slug}&lang=en`, "matchup"); png(`/api/og/compare?a=${m1.slug}&b=${m2.slug}&lang=ar`, "matchup (Arabic)"); }
   out.push({ path: "/this-page-does-not-exist", kind: "missing", label: "unknown page" });
+  // an old or mistyped fighter link: a real 404 that offers the fighter they meant (English only: the Arabic page offers the name in Arabic)
+  if (star) out.push({ path: `/boxers/${star.slug.slice(0, -1)}`, kind: "missing", label: "mistyped fighter link (offers the fighter they meant)", mustShow: star.name });
   // one request per path, but a later route's "must show" is not lost when an earlier one (the nav) took the path first
   const seen = new Map<string, SmokeRoute>();
   return out.filter((r) => { const first = seen.get(r.path); if (!first) { seen.set(r.path, r); return true; } if (r.mustShow && !first.mustShow) { first.mustShow = r.mustShow; first.label = `${first.label}; ${r.label}`; } return false; });
@@ -223,6 +225,7 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
     if (status !== 404) bad.push(`expected 404, got ${status}`);
     if (!/noindex/.test(body)) bad.push("the 404 page is not marked noindex");
     if (!/<h1|\\?"h1\\?"/i.test(body)) bad.push("the 404 page has no heading anywhere in its response");
+    if (route.mustShow && locale === "en" && !body.includes(route.mustShow)) bad.push(`the 404 page does not offer "${route.mustShow}"`);
     return bad;
   }
   if (status !== 200) return [`status ${status}`];

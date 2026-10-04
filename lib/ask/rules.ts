@@ -340,6 +340,8 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const { fighters, rest } = claim(w, names, question);
   // a region is not a country the data has: "the best welterweight from South America" answered with every welterweight would look right and be wrong
   if (!fighters.length && has(q, REGIONS)) return [];
+  // who beat someone, or whom someone lost to: no tool lists a fighter's opponents by result, and the fighter's profile (what it had answered) is not the answer
+  if (!LISTS.some(([re]) => has(q, re)) && (has(q, /\bwho\s+(?:has\s+|have\s+|ever\s+|had\s+)?(?:beat|beaten|defeated|knocked out|ko'?d|stopped|lost to|drew with)\b/) || has(q, /\bwho\s+(?:did|has|have)\s+.{2,40}?\s+(?:beat|defeat|lose to|lost to|draw with|knock out|stop)\b/))) return [];
   // a place in a ranking ("who is ranked number two at welterweight", "the third best heavyweight"): the fighter in that place, not the number one
   if (!fighters.length) {
     const place = placeAsked(question.toLowerCase()); // (the raw question: "3rd" is folded to "iii" in the normalised one)
@@ -351,7 +353,7 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   if (!fighters.length && champ && has(q, /\b(tallest|shortest|heaviest)\b/)) return [];
   // an average of anything is not in the data's tools: no answer, not the list it is an average of
   if (!fighters.length && has(q, /\b(average|mean|median)\b/) && has(q, /\b(height|age|reach|weight|rating|wins|knockouts|fights)\b/)) return [];
-  if (!fighters.length && has(q, /\b(gyms?|trainers?|trains?|coach(es)?|managers?|manages|promoters?)\b/) && has(q, /\b(most|more)\b/) && has(q, /\b(champions?|belts?|titles?)\b/)) return [];
+  if (!fighters.length && has(q, /\b(gyms?|trainers?|trains?|trained|coach(es|ed)?|managers?|manages|managed|promoters?|promoted)\b/) && has(q, /\b(most|more)\b/) && has(q, /\b(champions?|belts?|titles?)\b/)) return [];
   // how many: a count of what is asked ("how many fighters are there", "how many southpaw heavyweights", "how many events in 2024")
   if (!fighters.length && has(q, /\bhow many (fighters|boxers)\b/)) return [{ tool: "fighters", args: Object.fromEntries(Object.entries(f).filter(([k]) => k !== "text" && k !== "sort")) }];
   if (!fighters.length && has(q, /\bhow many (events|cards|shows)\b/)) return [{ tool: "events", args: year ? { year: +year } : { when: "all" } }];
