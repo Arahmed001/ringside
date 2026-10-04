@@ -386,9 +386,9 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
       const raw = await res.text();
       downloaded += Buffer.byteLength(raw);
       let body: Envelope<T>;
-      try { body = JSON.parse(raw) as Envelope<T>; } catch { throw new Error(`Boxing Data API sent something that is not JSON on ${p}: ${raw.slice(0, 120)}`); }
+      try { body = JSON.parse(raw) as Envelope<T>; } catch { throw new Error(`Boxing Data API sent something that is not JSON on ${p}: ${raw.slice(0, 120).split(o.key).join("***")}`); }
       if (o.rawDir) { fs.mkdirSync(o.rawDir, { recursive: true }); fs.writeFileSync(path.join(o.rawDir, `${String(used).padStart(3, "0")}-${p.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "")}.json`), JSON.stringify(body, null, 2)); }
-      if (body.error && Object.keys(body.error).length) throw new Error(`Boxing Data API error on ${p}: ${JSON.stringify(body.error).slice(0, 200)}`);
+      if (body.error && Object.keys(body.error).length) throw new Error(`Boxing Data API error on ${p}: ${JSON.stringify(body.error).slice(0, 200).split(o.key).join("***")}`);
       if (file) toCache(file, body); // only a good answer is kept: an error body is never a checkpoint
       return body;
     }
