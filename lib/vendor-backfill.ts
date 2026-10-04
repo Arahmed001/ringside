@@ -1,3 +1,7 @@
+import crypto from "node:crypto";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import type { BackfillPlan } from "./providers/boxing-data-api";
 
@@ -46,4 +50,35 @@ export function describePlan(p: BackfillPlan, o: { gapMs: number; msPerRequest?:
     lines.push("  (A record is right only if every fight is loaded. 'every fight loaded' lets a fighter's opponents show a short record; 'groups chosen whole' is what --complete-only could keep at most, where nobody's record is short. A fighter's career in the list can also be shorter than the vendor's total, which only fetching shows: --check says.)");
   }
   return lines;
+}
+
+export interface LockInfo { pid: number; startedAt: string; command: string }
+export interface LockOptions { dir?: string; pid?: number; alive?: (pid: number) => boolean; now?: () => Date; command?: string }
+const processAlive = (pid: number) => { try { process.kill(pid, 0); return true; } catch (e) { return (e as NodeJS.ErrnoException).code === "EPERM"; } };
+
+/**
+ * One backfill at a time per API key on this machine. The plan's hourly allowance belongs to the key, not to a cache directory: a second run (an old one left
+ * in another terminal, a --check begun while a load runs) shares the allowance, and the first real run spent hours refused because of exactly that. The lock
+ * is a file named by a hash of the key (never the key itself), holding the process id; a lock whose process is gone is stale and is taken over.
+ * Returns the path to remove when the run ends; throws, saying which process holds it, when another live run does.
+ */
+export function acquireBackfillLock(key: string, o: LockOptions = {}): string {
+  const dir = o.dir ?? process.env.RINGSIDE_LOCK_DIR ?? os.tmpdir();
+  const file = path.join(dir, `ringside-backfill-${crypto.createHash("sha256").update(key).digest("hex").slice(0, 12)}.lock`);
+  const pid = o.pid ?? process.pid, alive = o.alive ?? processAlive;
+  fs.mkdirSync(dir, { recursive: true });
+  if (fs.existsSync(file)) {
+    let held: Partial<LockInfo> = {};
+    try { held = JSON.parse(fs.readFileSync(file, "utf8")) as Partial<LockInfo>; } catch { /* unreadable: treat as stale */ }
+    if (typeof held.pid === "number" && held.pid !== pid && alive(held.pid))
+      throw new Error(`Another backfill is already running with this API key (process ${held.pid}, started ${held.startedAt ?? "at an unknown time"}${held.command ? `: ${held.command}` : ""}). They share the plan's hourly allowance, so two runs make each other slow and a rate-limited one refuses most requests. Stop it first (Ctrl-C in its terminal; \`pgrep -fl vendor-backfill\` lists it). If it is not really running, delete ${file}.`);
+  }
+  const info: LockInfo = { pid, startedAt: (o.now?.() ?? new Date()).toISOString(), command: (o.command ?? "").slice(0, 200) };
+  fs.writeFileSync(file, JSON.stringify(info));
+  return file;
+}
+
+/** Gives the lock back, but only if it is still this process's. */
+export function releaseBackfillLock(file: string, pid = process.pid): void {
+  try { if ((JSON.parse(fs.readFileSync(file, "utf8")) as LockInfo).pid === pid) fs.rmSync(file, { force: true }); } catch { /* already gone */ }
 }
