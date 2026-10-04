@@ -23,7 +23,7 @@ export async function PairingCard({ p, rank, division }: { p: Pairing; rank?: nu
         {[a, b].map((f, i) => (
           <Link key={f.id} href={`/boxers/${f.slug}`} className={`flex min-w-0 flex-col items-center gap-1 text-center ${i === 1 ? "order-3" : ""}`}>
             <Headshot boxer={f} size={64} />
-            <div className="w-full truncate font-display text-lg font-bold leading-tight" dir="auto">{t.name(f.name)}</div>
+            <div className="w-full text-balance break-words font-display text-lg font-bold leading-tight" dir="auto">{t.name(f.name)}</div>
             <div className="text-xs text-muted"><span className="tabular">{recordStr(f)}</span> · Elo {Math.round(f.rating)}</div>
           </Link>
         ))}
