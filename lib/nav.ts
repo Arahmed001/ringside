@@ -1,7 +1,7 @@
 import { msg } from "./i18n/t";
 
 export type IconName =
-  | "ask" | "rankings" | "titles" | "all-time" | "fighters" | "countries" | "events" | "previews" | "fight-of-the-year" | "matchups" | "matchmaking" | "picks" | "leaderboard"
+  | "ask" | "rankings" | "titles" | "all-time" | "fighters" | "countries" | "learn" | "events" | "previews" | "fight-of-the-year" | "matchups" | "matchmaking" | "picks" | "leaderboard"
   | "on-this-day" | "upset-watch" | "trainers" | "corners" | "orgs" | "weigh-ins" | "money" | "accountability" | "analytics" | "style-map" | "data";
 
 export interface NavItem { href: string; label: string; icon: IconName }
@@ -15,6 +15,7 @@ export const NAV_GROUPS: NavGroup[] = [
     { href: "/titles", label: msg("Titles"), icon: "titles" },
     { href: "/all-time", label: msg("All-time"), icon: "all-time" },
     { href: "/boxers", label: msg("Fighters"), icon: "fighters" },
+    { href: "/learn", label: msg("Boxing explained"), icon: "learn" },
     { href: "/countries", label: msg("Countries"), icon: "countries" },
   ] },
   { id: "fights", title: msg("Fights"), items: [
