@@ -60,7 +60,7 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
   const { feed, issues, dropped } = sanitizeFeed(raw, { today: todayIso() });
   const sev = countBySeverity(issues);
   if (opts.strict && sev.errors > 0) throw new Error(`Feed has ${sev.errors} error(s); first: ${issues.find((i) => i.severity === "error")?.message}. Run \`npm run data:check\` for the full report.`);
-  const { boxers, events, bouts, people, orgs, stints, weighIns, officials, scorecards, corners, punches, financials, purses, broadcasts, earnings } = feed;
+  const { boxers, events, bouts, people, orgs, stints, weighIns, officials, scorecards, corners, punches, financials, purses, broadcasts, earnings, officialRankings } = feed;
   const src = (s?: string) => s ?? `provider:${provider.name}`;
 
   db.exec("BEGIN");
@@ -151,6 +151,19 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
       wipe("scorecards");
       const ins = db.prepare("INSERT INTO scorecards (bout_id, judge_id, seat, red_score, blue_score) VALUES (?,?,?,?,?)");
       for (const s of scorecards) ins.run(bo.get(s.boutExternalId)!, pe.get(s.judgeExternalId)!, s.seat, s.red, s.blue);
+    }
+    // the sanctioning bodies' lists: always a whole snapshot, so the old one goes (a provider with none leaves what is stored alone). A fighter on a list is linked when we hold them,
+    // from this batch or from an earlier load; otherwise the row keeps the name it came with
+    if (officialRankings.length) {
+      db.exec("DELETE FROM official_rankings");
+      const known = db.prepare("SELECT id FROM boxers WHERE external_id = ?");
+      const idOf = (ext: string | null) => (ext ? bx.get(ext) ?? (known.get(ext) as { id: number } | undefined)?.id ?? null : null);
+      const ins = db.prepare("INSERT INTO official_rankings (body, division, sex, kind, rank, boxer_id, name, title_type, vacant, updated_at, position) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+      for (const r of officialRankings) {
+        let pos = 0;
+        for (const c of r.champions) ins.run(r.body, r.division, r.sex, "champion", null, idOf(c.boxerExternalId), c.name, c.titleType, c.vacant ? 1 : 0, r.updatedAt, pos++);
+        for (const c of r.contenders) ins.run(r.body, r.division, r.sex, "contender", c.rank, idOf(c.boxerExternalId), c.name, null, c.vacant ? 1 : 0, r.updatedAt, pos++);
+      }
     }
     if (corners.length) {
       wipe("corners");

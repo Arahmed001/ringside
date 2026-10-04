@@ -164,6 +164,30 @@
   ]
  },
  {
+  "key": "{body} champion",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{body} contenders",
+  "files": [
+   "components/OfficialList.tsx"
+  ]
+ },
+ {
+  "key": "{body} interim champion",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{body} regular champion",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{city}, {country}",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
@@ -1651,6 +1675,12 @@
   "key": "{y} years, {d} days",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "#{rank} {body}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -3496,6 +3526,7 @@
  {
   "key": "Champion",
   "files": [
+   "components/OfficialList.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -4610,6 +4641,7 @@
    "app/[locale]/boxers/[slug]/opengraph-image.tsx",
    "app/[locale]/rankings/[division]/opengraph-image.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
+   "components/OfficialList.tsx",
    "lib/preview.ts"
   ]
  },
@@ -5237,6 +5269,7 @@
    "app/[locale]/rankings/[division]/page.tsx",
    "app/[locale]/weights/page.tsx",
    "components/ContributeForm.tsx",
+   "components/OfficialList.tsx",
    "components/ReportForm.tsx",
    "components/StyleMap.tsx",
    "components/TenureTable.tsx",
@@ -6355,7 +6388,14 @@
  {
   "key": "Interim champion",
   "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "components/OfficialList.tsx"
+  ]
+ },
+ {
+  "key": "International Boxing Federation",
+  "files": [
+   "components/OfficialList.tsx"
   ]
  },
  {
@@ -8241,6 +8281,12 @@
   ]
  },
  {
+  "key": "Official list",
+  "files": [
+   "components/OfficialList.tsx"
+  ]
+ },
+ {
   "key": "Official names & limits",
   "files": [
    "app/[locale]/page.tsx"
@@ -9396,6 +9442,7 @@
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
+   "components/OfficialList.tsx",
    "components/StyleMap.tsx",
    "lib/ask/tools.ts",
    "lib/preview.ts"
@@ -9453,7 +9500,8 @@
  {
   "key": "Regular champion",
   "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "components/OfficialList.tsx"
   ]
  },
  {
@@ -9693,6 +9741,12 @@
   "key": "Ringside demo build · All fighters, fights and events shown are <b>fictional, simulated data</b>. Ratings are Elo-style and unofficial.",
   "files": [
    "app/[locale]/layout.tsx"
+  ]
+ },
+ {
+  "key": "Ringside rating",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx"
   ]
  },
  {
@@ -11016,6 +11070,24 @@
   ]
  },
  {
+  "key": "The {body} list as it stood on {date}.",
+  "files": [
+   "components/OfficialList.tsx"
+  ]
+ },
+ {
+  "key": "The {body} list as relayed by Boxing Data API",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "The {body} list.",
+  "files": [
+   "components/OfficialList.tsx"
+  ]
+ },
+ {
   "key": "The AI budget for today is used up, so this answer comes from rules instead.",
   "files": [
    "components/AskResults.tsx"
@@ -11753,6 +11825,12 @@
   ]
  },
  {
+  "key": "These are the body's own standings, relayed by Boxing Data API from BoxingScene. They are not Ringside's ranking, and a fighter shown without a link or numbers is not in Ringside's data yet.",
+  "files": [
+   "components/OfficialList.tsx"
+  ]
+ },
+ {
   "key": "These are the calls the model would have made before each of the {n} completed fights in the database, rebuilt from what was known at the time: ratings, records and layoffs up to each fighter's previous bout. Its settings were chosen with these results in view, so the headline figures use the most recent quarter of fights ({from} to {to}), the period it was not fitted on.",
   "files": [
    "app/[locale]/accountability/page.tsx"
@@ -11867,6 +11945,12 @@
   "key": "This is already in the data.",
   "files": [
    "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "This list has no ranked contenders.",
+  "files": [
+   "components/OfficialList.tsx"
   ]
  },
  {
@@ -12535,7 +12619,8 @@
  {
   "key": "Vacant",
   "files": [
-   "app/[locale]/titles/page.tsx"
+   "app/[locale]/titles/page.tsx",
+   "components/OfficialList.tsx"
   ]
  },
  {
@@ -12972,6 +13057,12 @@
   "key": "whether the side menu is open or collapsed",
   "files": [
    "lib/privacy.ts"
+  ]
+ },
+ {
+  "key": "Which ranking",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx"
   ]
  },
  {
@@ -13418,6 +13509,24 @@
   "key": "Worked out from the {held} fights Ringside holds, not the whole career.",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "World Boxing Association",
+  "files": [
+   "components/OfficialList.tsx"
+  ]
+ },
+ {
+  "key": "World Boxing Council",
+  "files": [
+   "components/OfficialList.tsx"
+  ]
+ },
+ {
+  "key": "World Boxing Organization",
+  "files": [
+   "components/OfficialList.tsx"
   ]
  },
  {
