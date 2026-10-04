@@ -19,10 +19,22 @@ import { metaFor } from "@/lib/seo-server";
 import { upcomingEvents, liveBouts } from "@/lib/events";
 import type { BoxerFull } from "@/lib/types";
 
-export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({
-  path: "/compare", title: t("Matchups"),
-  description: t("Pick any two fighters and see win probability, how the fight likely ends and what drives the number, with an interactive model you can re-weight."),
-}));
+export const generateMetadata = ({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<{ a?: string; b?: string }> }) => metaFor(params, async (p, t) => {
+  const base = {
+    path: "/compare", title: t("Matchups"),
+    description: t("Pick any two fighters and see win probability, how the fight likely ends and what drives the number, with an interactive model you can re-weight."),
+  };
+  // a link to one matchup shares as that matchup: its names in the title and a card of its own (two fighters that exist, or the plain page)
+  const { a, b } = await searchParams;
+  const w = await getWorld();
+  const A = a ? w.bySlug.get(a) : undefined, B = b ? w.bySlug.get(b) : undefined;
+  if (!A || !B || A.id === B.id) return base;
+  return {
+    ...base, title: t("{a} vs {b}", { a: t.name(A.name), b: t.name(B.name) }),
+    description: t("Win probability, how the fight likely ends and what drives the number for {a} against {b}.", { a: t.name(A.name), b: t.name(B.name) }),
+    image: `/api/og/compare?a=${encodeURIComponent(A.slug)}&b=${encodeURIComponent(B.slug)}&lang=${p.locale}`,
+  };
+});
 
 /** Fighters need a few bouts before a prediction means anything; the type-ahead only offers those. */
 const MIN_BOUTS = 5;

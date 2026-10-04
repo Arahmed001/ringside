@@ -283,8 +283,8 @@ const ABOUT_FIGHTS = /\b(knockouts?|kos?|stoppages?|fights?|bouts?|decisions?|dr
  * The most specific wording first ("how many knockouts" is knockouts, not the record). Folded text, English and Arabic.
  */
 const FACT_ASKED: [RegExp, FighterFact][] = [
-  [/\bnext (fight|bout|opponent)\b|\bfights?\b.*\bnext\b|\bwhen (does|is|will)\b.*\bfight\b|\bupcoming (fight|bout)\b|\bfight(ing)? (again|soon)\b|\bfight soon\b|نزاله القادم|نزال القادم/, "next_fight"],
-  [/\blast (fight|bout|opponent)\b|\bmost recent (fight|bout)\b|\bwhen did\b.*\b(last )?(fight|box)\b|\b(fought|fight|box|boxed) last\b|\blast (fought|boxed)\b|اخر نزال/, "last_fight"],
+  [/\bnext (fight|bout|opponent)\b|\bfights?\b.*\bnext\b|\bwhen (does|is|will)\b.*\bfight\b|\bupcoming (fight|bout)\b|\bfight(ing)? (again|soon)\b|\bfight soon\b|نزاله القادم|نزال القادم|نزال\S*\s+(?:\S+\s+){0,3}القادم|متي (?:ينزل|يقاتل|سيقاتل|يلعب)/, "next_fight"],
+  [/\blast (fight|bout|opponent)\b|\bmost recent (fight|bout)\b|\bwhen did\b.*\b(last )?(fight|box)\b|\b(fought|fight|box|boxed) last\b|\blast (fought|boxed)\b|اخر نزال|قاتل\S*\s+(?:\S+\s+){0,3}اخر مره|اخر مره\s+(?:قاتل|لعب|نزل)/, "last_fight"],
   [/\bhow tall\b|\bheight\b|\btall is\b|\b(taller|shorter)\b|طول/, "height"],
   [/\breach\b|\barms?( span| length)?\b|امتداد|مدي الذراع/, "reach"],
   [/\bhow old\b|\b(older|younger)\b|\bages?\b|\bborn\b|\bbirth(day| year| date)?\b|كم عمر|عمر/, "age"],
@@ -340,6 +340,9 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const { fighters, rest } = claim(w, names, question);
   // a region is not a country the data has: "the best welterweight from South America" answered with every welterweight would look right and be wrong
   if (!fighters.length && has(q, REGIONS)) return [];
+  // the same in Arabic: who beat, stopped or knocked out someone; and who trains, manages or runs the most champions
+  if (!LISTS.some(([re]) => has(q, re)) && has(q, /(?:^|\s)من\s+(?:هزم|هزمه|فاز علي|تغلب علي|خسر امام|اسقط|اوقف|تفوق علي)/)) return [];
+  if (!fighters.length && has(q, /(?:مدرب|يدرب\S*|دربه|صاله|صالات|مدير اعمال|يدير|منظم|يروج)/) && has(q, /(?:اكثر|اغلب)/) && has(q, /(?:ابطال|بطل|احزمه|حزام|القاب)/)) return [];
   // who beat someone, or whom someone lost to: no tool lists a fighter's opponents by result, and the fighter's profile (what it had answered) is not the answer
   if (!LISTS.some(([re]) => has(q, re)) && (has(q, /\bwho\s+(?:has\s+|have\s+|ever\s+|had\s+)?(?:beat|beaten|defeated|knocked out|ko'?d|stopped|lost to|drew with)\b/) || has(q, /\bwho\s+(?:did|has|have)\s+.{2,40}?\s+(?:beat|defeat|lose to|lost to|draw with|knock out|stop)\b/))) return [];
   // a place in a ranking ("who is ranked number two at welterweight", "the third best heavyweight"): the fighter in that place, not the number one
