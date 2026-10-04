@@ -1,3 +1,4 @@
+import { ShareButton } from "@/components/ShareButton";
 import { DASH, isKnown, orDash } from "@/lib/facts";
 import Link from "@/components/L";
 import { getWorld, recordStr } from "@/lib/world";
@@ -122,7 +123,7 @@ async function Result({ A, B, w }: { A: BoxerFull; B: BoxerFull; w: Awaited<Retu
           <div className="order-2 font-display text-4xl font-extrabold text-gold">{t("VS")}</div>
         </div>
         <div className="mt-6"><ProbBar a={t.name(A.name)} b={t.name(B.name)} pA={p.pA} pB={p.pB} pDraw={p.pDraw} /></div>
-        <div className="mt-4 flex flex-wrap gap-2 text-xs"><span className="chip !border-gold/40 !text-gold">✦ {t(p.confidence)}</span><span className="chip">{t("{n}% chance of KO/TKO", { n: Math.round(p.koProb * 100) })}</span>{A.weightClass !== B.weightClass && <span className="chip !border-red/50 !text-red-ink">{t("Different divisions — treat with caution")}</span>}</div>
+        <div className="mt-4 flex flex-wrap gap-2 text-xs"><span className="chip !border-gold/40 !text-gold">✦ {t(p.confidence)}</span><span className="chip">{t("{n}% chance of KO/TKO", { n: Math.round(p.koProb * 100) })}</span>{A.weightClass !== B.weightClass && <span className="chip !border-red/50 !text-red-ink">{t("Different divisions — treat with caution")}</span>}<ShareButton title={t("{a} vs {b}", { a: t.name(A.name), b: t.name(B.name) })} /></div>
       </div>
       <MatchupLab a={{ name: t.name(A.name), features: featuresOf(A) }} b={{ name: t.name(B.name), features: featuresOf(B) }} defaults={activeWeights()} finish={activeFinish()}
         modelNote={(() => { const f = loadFit(); return f && f.recommended !== "plain Elo" ? t("The rating weight is fitted on {n} past bouts (held-out log-loss {fit} vs {base} for plain Elo). Other weights are hand-set; see Data & model for how each compares.", { n: f.rows.train.toLocaleString("en-US"), fit: f.test[f.recommended === "Elo refit" ? "eloOnly" : f.recommended === "all features" ? "full" : "selected"].logLoss.toFixed(3), base: f.test.baseline.logLoss.toFixed(3) }) : t("Weights are hand-set until real results are available to fit the model."); })()} />
