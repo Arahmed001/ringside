@@ -10,7 +10,7 @@ const cache = globalThis as unknown as { __names?: Record<string, { key: string;
  * re-ingest, and each row records who wrote it and whether a person has reviewed it.
  */
 /** English has no table of translated names, and callers key caches on the table they were handed (the fighter search keeps its index per table), so every call shares this one. */
-export const NO_NAMES: Names = Object.freeze({}) as Names;
+export const NO_NAMES: Names = ((globalThis as unknown as { __ringsideNoNames?: Names }).__ringsideNoNames ??= Object.freeze({}) as Names); // one object for every bundle: indexes are kept per table
 
 export async function getNames(locale: Locale): Promise<Names> {
   if (locale === "en") return NO_NAMES;

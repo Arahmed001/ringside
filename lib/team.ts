@@ -103,6 +103,24 @@ function buildStable(w: World, stints: TeamStint[], roleFilter?: TeamRole[]): St
   };
 }
 
+/**
+ * The three numbers an organisation's card shows (fighters ever and now, combined record), without the rating changes, title wins and best fighter that the
+ * full `orgStable` also works out. A promoter at real size has thousands of tenures, and the full stats cost about 60 ms each: twelve cards took 0.7 s on
+ * every visit. Kept per world and organisation, and equal to `orgStable`'s figures (tests/orgs-card.test.ts).
+ */
+export const orgCard = (w: World, orgId: number, roles: TeamRole[]): Pick<Stable, "record" | "fighters" | "currentFighters"> =>
+  memo(w, `orgCard:${orgId}:${roles.join(",")}`, () => {
+    let record = emptyRecord(), current = 0;
+    const fighters = new Set<number>();
+    for (const st of w.stintsByOrg.get(orgId) ?? []) {
+      if (!roles.includes(st.role) || !w.byId.has(st.boxerId)) continue;
+      fighters.add(st.boxerId);
+      if (st.end === null) current++;
+      record = addRecord(record, recordOf(st.boxerId, boutsInWindow(w, st.boxerId, st.start, st.end)));
+    }
+    return { record, fighters: fighters.size, currentFighters: current };
+  });
+
 export const personStable = (w: World, personId: number, roles?: TeamRole[]) => buildStable(w, w.stintsByPerson.get(personId) ?? [], roles);
 export const orgStable = (w: World, orgId: number, roles?: TeamRole[]) => buildStable(w, w.stintsByOrg.get(orgId) ?? [], roles);
 

@@ -14,6 +14,12 @@ import { dayOf, onThisDay } from "./on-this-day";
 import { coverage } from "./coverage";
 import { rankedBoxers } from "./rankings";
 import { DIVISIONS } from "./divisions";
+import { LOCALES } from "./i18n/config";
+import { getTFor } from "./i18n/dicts";
+import { getNames } from "./i18n/names";
+import { exampleQuestions } from "./ask/examples";
+import { planByRules } from "./ask/rules";
+import { toolByName } from "./ask/tools";
 
 const DAY = 86_400_000;
 /** Milliseconds from `now` to just after the next UTC midnight (the app's day is the UTC date; see clock.ts). */
@@ -43,6 +49,13 @@ export const WARM_STEPS: [string, (w: World) => unknown][] = [
   }],
   ["weigh-ins", (w) => { divisionWeights(w); fightNightEdge(w); missedWeights(w, 12); }],
   ["on this day", (w) => { const k = dayOf(w.today); if (k) onThisDay(w, k); }],
+  // the live answer under the home page's question box, in each language: the plan is the rule-based one (no model call), and the name table is the one the page is given, because the fighter-name index is kept per table
+  ["home answer", async (w) => {
+    for (const locale of LOCALES) {
+      const t = await getTFor(locale), names = await getNames(locale), ctx = { w, t, names };
+      for (const c of planByRules(exampleQuestions(w, t)[0], w, names)) toolByName(c.tool)?.run(ctx, c.args);
+    }
+  }],
   ["data coverage", () => coverage()],
 ];
 
