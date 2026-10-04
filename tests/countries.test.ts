@@ -1,62 +1,50 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { countryCode, countryName, flag } from "../lib/format";
+import { countryList, countryView, countrySlug } from "../lib/countries";
+import { sitemapPaths } from "../lib/sitemap";
 
-/**
- * Real fighters come from everywhere. The flag and the Arabic country name used to work for about 80 hand-listed countries
- * (and the flag for ten); they now work for any country by name, through the platform's own region names plus a short alias list.
- */
-const emoji = (code: string) => String.fromCodePoint(...[...code].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+/** Country pages are built from the fighters, belts, fights and events already held. A tiny hand-made world shows what each section counts and leaves out. */
+const boxer = (id: number, country: string, o: Record<string, unknown> = {}) => ({ id, slug: `f${id}`, name: `Fighter ${id}`, country, bouts: 5, active: true, rating: 1500 + id, ...o });
+const world = () => {
+  const boxers = [
+    boxer(1, "Mexico", { rating: 1700 }), boxer(2, "Mexico", { rating: 1600, active: false }), boxer(3, "Mexico", { rating: 1650 }), boxer(4, "Mexico", { bouts: 0 }),
+    boxer(5, "Japan"), boxer(6, "Côte d'Ivoire"), boxer(7, "Cote d'Ivoire"), boxer(8, "Cote d'Ivoire"), boxer(9, "", {}), boxer(10, "Mexico"),
+  ];
+  const bouts = [
+    { id: 100, upcoming: true, status: "scheduled", redId: 1, blueId: 5, date: "2026-12-01", eventName: "A", redName: "x", blueName: "y", eventId: 1 },
+    { id: 101, upcoming: true, status: "cancelled", redId: 3, blueId: 5, date: "2026-11-01", eventName: "B", redName: "x", blueName: "y", eventId: 2 },
+    { id: 102, upcoming: true, status: "scheduled", redId: 5, blueId: 6, date: "2026-11-15", eventName: "C", redName: "x", blueName: "y", eventId: 3 },
+    { id: 103, upcoming: false, status: "completed", redId: 1, blueId: 3, date: "2025-01-01", eventName: "D", redName: "x", blueName: "y", eventId: 4 },
+    { id: 104, upcoming: true, status: "scheduled", redId: 3, blueId: 5, date: "2026-10-20", eventName: "E", redName: "x", blueName: "y", eventId: 5 },
+  ];
+  const events = [
+    { id: 1, country: "Mexico", date: "2025-03-01", status: "completed", upcoming: false }, { id: 2, country: "Mexico", date: "2026-03-01", status: "completed", upcoming: false },
+    { id: 3, country: "Mexico", date: "2026-12-01", status: "scheduled", upcoming: true }, { id: 4, country: "Mexico", date: "2024-03-01", status: "cancelled", upcoming: false },
+    { id: 5, country: "Japan", date: "2025-03-01", status: "completed", upcoming: false },
+  ];
+  return { boxers, bouts, events, byId: new Map(boxers.map((b) => [b.id, b])), boutsByEvent: new Map(), orgs: new Map(), people: new Map(), reignsByBoxer: new Map(), today: "2026-10-03" } as never;
+};
 
-test("the flags that worked before still do, exactly", () => {
-  const before: Record<string, string> = { "United States": "🇺🇸", Mexico: "🇲🇽", "United Kingdom": "🇬🇧", Japan: "🇯🇵", Ukraine: "🇺🇦", Philippines: "🇵🇭", Nigeria: "🇳🇬", Argentina: "🇦🇷", "Saudi Arabia": "🇸🇦", Germany: "🇩🇪" };
-  for (const [name, f] of Object.entries(before)) assert.equal(flag(name), f, name);
+test("the list: countries with a fighter who has fought, most fighters first; one address, one country, under the commonest spelling", () => {
+  const list = countryList(world());
+  assert.deepEqual(list.map((c) => [c.slug, c.name, c.fighters]), [["mexico", "Mexico", 4], ["cote-d-ivoire", "Cote d'Ivoire", 3], ["japan", "Japan", 1]], "a fighter with no fights and one with no country are not counted; two spellings of one address are one country");
+  assert.equal(list[0].active, 3);
+  assert.equal(countrySlug("United States"), "united-states");
 });
 
-test("any country by name has a flag: the ones the feed sent on the first real sample, and the awkward spellings", () => {
-  assert.equal(flag("Denmark"), "🇩🇰");
-  for (const [name, code] of Object.entries({
-    Canada: "CA", Russia: "RU", Cuba: "CU", Kazakhstan: "KZ", "New Zealand": "NZ", Türkiye: "TR", Turkey: "TR", "Czech Republic": "CZ", Czechia: "CZ",
-    "Côte d’Ivoire": "CI", "Ivory Coast": "CI", USA: "US", "United States of America": "US", UK: "GB", "Great Britain": "GB", "Northern Ireland": "GB", "Republic of Ireland": "IE",
-    "South Korea": "KR", "North Korea": "KP", Vietnam: "VN", "Viet Nam": "VN", Myanmar: "MM", Burma: "MM", "Bosnia and Herzegovina": "BA", "Bosnia & Herzegovina": "BA",
-    "Trinidad and Tobago": "TT", "Trinidad & Tobago": "TT", "Cape Verde": "CV", "Hong Kong": "HK", "Puerto Rico": "PR", Kosovo: "XK", "The Netherlands": "NL", Holland: "NL",
-  })) assert.equal(flag(name), emoji(code), name);
-  assert.equal(countryCode("Congo"), "CG"); assert.equal(countryCode("DR Congo"), "CD"); assert.notEqual(countryCode("Congo"), countryCode("DR Congo"), "the two Congos stay apart");
+test("a country page: its fighters (active first, then by rating), its coming fights soonest first, only held and not cancelled events", () => {
+  const v = countryView(world(), "mexico")!;
+  assert.deepEqual(v.top.map((b) => b.id), [1, 3, 10, 2], "active first by rating, the retired one last, the unfought one not at all");
+  assert.deepEqual(v.next.map((b) => b.id), [104, 100], "soonest first; the cancelled fight and the one with nobody from here are left out");
+  assert.deepEqual(v.events.map((e) => e.id), [2, 1], "newest first; the upcoming and the cancelled card are not 'held here'");
+  assert.equal(v.eventCount, 2);
+  assert.equal(countryView(world(), "mexico", { top: 1, next: 1, events: 1 })!.top.length, 1, "the limits cut the lists, not the counts");
+  assert.equal(countryView(world(), "mexico", { top: 1, next: 1, events: 1 })!.fighters, 4);
+  assert.equal(countryView(world(), "atlantis"), null, "an unknown country is a 404, not an empty page");
 });
 
-test("case, accents, spacing and ISO codes do not matter", () => {
-  for (const v of ["denmark", "  DENMARK ", "dk", "DK"]) assert.equal(flag(v), "🇩🇰", JSON.stringify(v));
-  assert.equal(flag("Türkiye"), flag("Turkiye"), "accents");
-  assert.equal(flag("Côte d’Ivoire"), flag("Cote d'Ivoire"), "curly and straight apostrophes, and a missing accent");
-  assert.equal(flag("Côte d’Ivoire"), "🇨🇮");
-});
-
-test("England, Scotland and Wales have their own flag; Northern Ireland uses the UK's; names that are not countries get the white flag", () => {
-  const tag = (s: string) => String.fromCodePoint(0x1f3f4, ...[...s].map((c) => 0xe0000 + c.charCodeAt(0)), 0xe007f);
-  assert.equal(flag("England"), tag("gbeng")); assert.equal(flag("Scotland"), tag("gbsct")); assert.equal(flag("Wales"), tag("gbwls"));
-  assert.equal(flag("Northern Ireland"), "🇬🇧");
-  for (const v of ["Atlantis", "Unknown", "", "Quebec", "ZZ", "XX"]) assert.equal(flag(v), "🏳️", JSON.stringify(v));
-});
-
-test("round trip over every region the platform names: each name finds its own code (two names that normalise alike would collide here)", () => {
-  const dn = new Intl.DisplayNames(["en"], { type: "region" });
-  let checked = 0;
-  for (let a = 65; a <= 90; a++) for (let b = 65; b <= 90; b++) {
-    const code = String.fromCharCode(a, b), name = dn.of(code);
-    if (!name || name === code || name === "Unknown Region") continue;
-    const found = countryCode(name);
-    assert.ok(found, `${name} (${code}) should resolve`);
-    assert.equal(dn.of(found!), name, `${name} resolved to ${found}, which is a different country`); // a retired code that shares a name (AN and CW are both "Curaçao") may resolve to the current one
-    checked++;
-  }
-  assert.ok(checked > 240, `${checked} regions checked`);
-});
-
-test("Arabic country names work for any country, and unknown names still pass through", () => {
-  assert.equal(countryName("Saudi Arabia", "ar"), "المملكة العربية السعودية");
-  assert.equal(countryName("Denmark", "ar"), new Intl.DisplayNames(["ar"], { type: "region" }).of("DK"));
-  assert.notEqual(countryName("Denmark", "ar"), "Denmark");
-  assert.equal(countryName("Turkey", "ar"), new Intl.DisplayNames(["ar"], { type: "region" }).of("TR"));
-  assert.equal(countryName("Atlantis", "ar"), "Atlantis"); assert.equal(countryName("England", "ar"), "England", "no region code: unchanged");
-  assert.equal(countryName("Denmark", "en"), "Denmark", "English is the name as written");
+test("the sitemap lists the index and every country page", () => {
+  const paths = sitemapPaths(world()).map((p) => p.path);
+  assert.ok(paths.includes("/countries"));
+  for (const s of ["mexico", "japan", "cote-d-ivoire"]) assert.ok(paths.includes(`/countries/${s}`), s);
 });
