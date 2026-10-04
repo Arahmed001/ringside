@@ -41,14 +41,14 @@ export const allowedSlips = (len: number): number => (len <= 3 ? 0 : len <= 6 ? 
 /** The words of a normalised text: split at spaces, hyphens and punctuation ("T. Al-Qahtani" is t, al, qahtani). */
 export const wordsOf = (s: string) => s.split(/[\s\-.,;:!?؟،()"“”'’]+/).filter(Boolean);
 
-/** Every distinct word of a list of texts (each already normalised), with the positions of the texts that have it, and each pair of neighbouring words run together ("Al-Qahtani" is also "alqahtani"). */
+/** Every distinct word of a list of texts (each already normalised), with the positions of the texts that have it, and each two or three neighbouring words run together ("Al-Qahtani" is also "alqahtani", "van der Berg" also "vanderberg"). */
 export function buildWordIndex(texts: string[]): Map<string, number[]> {
   const words = new Map<string, number[]>();
   const put = (word: string, i: number) => { const l = words.get(word); if (!l) words.set(word, [i]); else if (l[l.length - 1] !== i) l.push(i); };
   texts.forEach((text, i) => {
     const ws = wordsOf(text);
     for (const x of ws) put(x, i);
-    for (let k = 0; k + 1 < ws.length; k++) put(ws[k] + ws[k + 1], i);
+    for (let k = 0; k + 1 < ws.length; k++) { put(ws[k] + ws[k + 1], i); if (k + 2 < ws.length) put(ws[k] + ws[k + 1] + ws[k + 2], i); }
   });
   return words;
 }

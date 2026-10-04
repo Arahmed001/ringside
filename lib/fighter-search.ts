@@ -16,7 +16,12 @@ interface Index { entries: Entry[]; /** every distinct word of every name (and e
  * people mix freely collapse (أ إ آ → ا, ى → ي, ة → ه, no vowel marks, no tatweel).
  */
 export const normalize = (s: string) => s.normalize("NFD").replace(/[̀-ًͯ-ٰٟـ]/g, "")
-  .replace(/[أإآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").toLowerCase().replace(/\s+/g, " ").trim();
+  .replace(/[أإآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").toLowerCase()
+  .replace(/[łđðøıæœßþ]/g, (c) => LATIN_FOLD[c]).replace(/\b(?:junior|senior|2nd|3rd|4th)\b/g, (x) => SUFFIX_FOLD[x]).replace(/\s+/g, " ").trim();
+/** Letters that do not come apart by accent (Ł, Đ, Ø, ı, ß, Æ), as the plain letters people type them with. */
+const LATIN_FOLD: Record<string, string> = { ł: "l", đ: "d", ð: "d", ø: "o", ı: "i", æ: "ae", œ: "oe", ß: "ss", þ: "th" };
+/** A name's suffix as it is written and as it is typed: "Jr." and "Junior", "III" and "3rd". */
+const SUFFIX_FOLD: Record<string, string> = { junior: "jr", senior: "sr", "2nd": "ii", "3rd": "iii", "4th": "iv" };
 
 const NO_NAMES: Names = {};
 /** Callers that pass an empty table (a fresh `{}` each time) must not each get their own index: an empty table is one table. */

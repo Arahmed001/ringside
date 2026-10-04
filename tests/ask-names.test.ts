@@ -59,7 +59,7 @@ test("two fighters, one or both with a slip, are a head to head", () => {
 
 test("a hyphen can be typed as a space, left out, or have the slip beside it", () => {
   for (const q of ["who is Rakan Al Qahtani", "who is Rakan Alqahtani", "who is Rakan Al-Qahtni", "who is Rakan A-lQahtani", "who is Rakan Alqahtni"]) assert.equal(one(q), "fighter:Rakan Al-Qahtani", q);
-  assert.equal(one("who is Yazan Al-Ghamdi"), "none", "a middle initial left out is a different name, and the planner does not guess at it");
+  assert.equal(one("who is Yazan Al-Ghamdi"), "fighter:Yazan H. Al-Ghamdi", "a middle initial left out is read, because only one fighter has the shorter name (round 46)");
 });
 
 test("a space typed inside a name is read as one word", () => {

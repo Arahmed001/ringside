@@ -9,6 +9,46 @@ import type { Call } from "./types";
 /** Folded text with the punctuation people type next to names taken out ("Villalba's record", "Al-Qahtani: who is better"), applied to the question and the names alike so "H." in a name still matches. */
 const plain = (s: string) => normalize(s).replace(/['’]s\b/g, " ").replace(/[:;,!?؟،()"“”.]/g, " ").replace(/\s+/g, " ").trim();
 
+/** Words that join a surname to what comes before it (van der Berg, De La Fuente, dos Santos, bin Hassan) and a name's suffix (Jr., III): fans leave them off or run them together. */
+const PARTICLES = new Set(["van", "der", "den", "de", "la", "le", "del", "della", "di", "da", "dos", "das", "do", "du", "von", "bin", "ibn", "al", "el"]);
+const SUFFIXES = new Set(["jr", "sr", "ii", "iii", "iv"]);
+
+/**
+ * The other ways a name is typed, from its folded form: without the suffix ("Roy Jones" for Roy Jones Jr.), with the middle names left out ("Maria Garcia" for
+ * Maria Elena Garcia), without the particles ("Sven Berg"), with the particles run onto the surname ("Sven vanderberg"), and any of these without the
+ * apostrophe ("Conor OBrien"). Each has at least two words; the full name itself is not one of them.
+ */
+export function nameVariants(name: string): string[] {
+  const out = new Set<string>();
+  const words = name.split(" ");
+  const bare = SUFFIXES.has(words[words.length - 1]) && words.length > 2 ? words.slice(0, -1) : words;
+  const add = (ws: string[]) => { if (ws.length >= 2) { out.add(ws.join(" ")); out.add(ws.join(" ").replace(/['’]/g, "")); } };
+  add(bare);
+  if (bare.length >= 3) add([bare[0], bare[bare.length - 1]]);
+  add(bare.filter((x, i) => i === 0 || !PARTICLES.has(x)));
+  const joined: string[] = [];
+  let carry = "";
+  for (const x of bare) { if (joined.length && PARTICLES.has(x)) carry += x; else { joined.push(carry + x); carry = ""; } }
+  add(joined);
+  out.delete(name);
+  return [...out];
+}
+
+/** Each fighter's variants that point to that fighter alone: a variant two fighters share, or one that is another fighter's full name, is dropped. */
+const variantCache = new WeakMap<World, Map<number, string[]>>();
+function variantsOf(w: World): Map<number, string[]> {
+  let m = variantCache.get(w);
+  if (!m) {
+    const full = new Set(w.boxers.map((b) => plain(b.name)));
+    const owners = new Map<string, number[]>();
+    const all = w.boxers.map((b) => ({ b, vs: nameVariants(plain(b.name)).filter((v) => v.length >= 5 && !full.has(v)) }));
+    for (const { b, vs } of all) for (const v of vs) { const l = owners.get(v); if (l) l.push(b.id); else owners.set(v, [b.id]); }
+    m = new Map(all.map(({ b, vs }) => [b.id, vs.filter((v) => owners.get(v)!.length === 1)]));
+    variantCache.set(w, m);
+  }
+  return m;
+}
+
 interface Entry { b: BoxerFull; n: string[] }
 const indexes = new WeakMap<World, WeakMap<Names, Entry[]>>();
 function index(w: World, names: Names): Entry[] {
@@ -16,7 +56,8 @@ function index(w: World, names: Names): Entry[] {
   if (!per) { per = new WeakMap(); indexes.set(w, per); }
   let idx = per.get(names);
   if (!idx) {
-    idx = w.boxers.map((b) => ({ b, n: [plain(b.name), ...(names[b.name] ? [plain(names[b.name])] : [])].filter((x) => x.length >= 5) }));
+    const variants = variantsOf(w);
+    idx = w.boxers.map((b) => ({ b, n: [plain(b.name), ...(names[b.name] ? [plain(names[b.name])] : []), ...(variants.get(b.id) ?? [])].filter((x) => x.length >= 5) }));
     per.set(names, idx);
   }
   return idx;
@@ -139,7 +180,7 @@ function nearFighters(w: World, names: Names): NearBoth<BoxerFull> {
   let per = nearIndexes.get(w);
   if (!per) { per = new WeakMap(); nearIndexes.set(w, per); }
   let idx = per.get(names);
-  if (!idx) { idx = both(w.boxers.map((b) => ({ owner: b, names: [plain(b.name), ...(names[b.name] ? [plain(names[b.name])] : [])] }))); per.set(names, idx); }
+  if (!idx) { const variants = variantsOf(w); idx = both(w.boxers.map((b) => ({ owner: b, names: [plain(b.name), ...(names[b.name] ? [plain(names[b.name])] : []), ...(variants.get(b.id) ?? [])] }))); per.set(names, idx); }
   return idx;
 }
 
