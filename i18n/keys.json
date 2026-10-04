@@ -6448,6 +6448,7 @@
  {
   "key": "Jump to a section",
   "files": [
+   "app/[locale]/all-time/page.tsx",
    "app/[locale]/upset-watch/page.tsx"
   ]
  },
