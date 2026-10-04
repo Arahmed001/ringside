@@ -1049,3 +1049,10 @@ Found by opening the new search in the browser in Arabic, not by reading code. T
 - A search keeps its own relevance order unless an order is asked for. Ties fall to the higher rating, then the id, so a page never reshuffles on reload.
 - Checked: unit tests with five mutations (drop the win minimum, the whole-career test, the supplier's wins, the never-fought-last rule, the unknown-sort fallback), each of which fails a test; four new smoke routes in both languages (demo league 185/185, partial league 138/138); the form submitted in a browser with scripts off; the page read in English at 1440 px and Arabic at 390 px.
 - Not done: the browser's empty `country=&stance=` pairs stay in the URL after Apply (harmless; the page treats an empty value as none).
+
+## 105. Share cards for division rankings and belts, and the smoke run checks every card (round 52, 2026-10-04)
+`app/[locale]/rankings/[division]/opengraph-image.tsx`, `app/[locale]/titles/[slug]/opengraph-image.tsx`, `lib/smoke.ts`
+- Only fighters, events, bouts and previews had a share image; a link to a division's ranking or a belt's lineage showed the plain site card. Each now has its own, in the site's look (§ DESIGN.md): the division's top-rated fighter with record and rating, and the belt with its division, current champion (not when dormant), reigns and title defences. No new sentences: the cards reuse existing Arabic.
+- The smoke run now requests one card of each kind (fighter, bout, event, division, belt) in English and Arabic and fails unless a real PNG comes back (`kind: "png"`); before this nothing checked that a card rendered at all.
+- **Not done:** a head-to-head card for `/compare?a=&b=` (the most shareable page) and a Share button. A card file cannot read query parameters, so it needs an image route of its own that the compare page's metadata points to; country cards follow when the country pages (#53) are in.
+- Checked: smoke 190/190 on the demo league; a division card in English and a belt card in Arabic read.

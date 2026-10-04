@@ -242,6 +242,7 @@
  {
   "key": "{division} rankings",
   "files": [
+   "app/[locale]/rankings/[division]/opengraph-image.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "lib/ask/tools.ts"
   ]
@@ -4331,6 +4332,7 @@
   "key": "Elo rating",
   "files": [
    "app/[locale]/boxers/[slug]/opengraph-image.tsx",
+   "app/[locale]/rankings/[division]/opengraph-image.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "lib/preview.ts"
   ]
@@ -8779,6 +8781,7 @@
  {
   "key": "Rankings",
   "files": [
+   "app/[locale]/rankings/[division]/opengraph-image.tsx",
    "app/[locale]/rankings/page.tsx",
    "app/[locale]/titles/page.tsx",
    "lib/nav.ts",
@@ -8958,7 +8961,8 @@
  {
   "key": "record",
   "files": [
-   "app/[locale]/boxers/[slug]/opengraph-image.tsx"
+   "app/[locale]/boxers/[slug]/opengraph-image.tsx",
+   "app/[locale]/rankings/[division]/opengraph-image.tsx"
   ]
  },
  {
@@ -9057,6 +9061,7 @@
  {
   "key": "Reigns",
   "files": [
+   "app/[locale]/titles/[slug]/opengraph-image.tsx",
    "app/[locale]/titles/page.tsx"
   ]
  },
@@ -11405,6 +11410,7 @@
  {
   "key": "Title defences",
   "files": [
+   "app/[locale]/titles/[slug]/opengraph-image.tsx",
    "app/[locale]/titles/page.tsx"
   ]
  },
@@ -11429,6 +11435,7 @@
  {
   "key": "Title lineage",
   "files": [
+   "app/[locale]/titles/[slug]/opengraph-image.tsx",
    "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
