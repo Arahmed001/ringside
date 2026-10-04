@@ -1,3 +1,4 @@
+import { sharedWeakMap } from "../memo";
 import type { World } from "../world";
 import type { BoxerFull } from "../types";
 import { heuristicParse, type Filters } from "../ai";
@@ -37,7 +38,7 @@ export function nameVariants(name: string): string[] {
 }
 
 /** Each fighter's variants that point to that fighter alone: a variant two fighters share, or one that is another fighter's full name, is dropped. */
-const variantCache = new WeakMap<World, Map<number, string[]>>();
+const variantCache = sharedWeakMap<World, Map<number, string[]>>("rules.ts:variantCache");
 function variantsOf(w: World): Map<number, string[]> {
   let m = variantCache.get(w);
   if (!m) {
@@ -52,7 +53,7 @@ function variantsOf(w: World): Map<number, string[]> {
 }
 
 interface Entry { b: BoxerFull; n: string[] }
-const indexes = new WeakMap<World, WeakMap<Names, Entry[]>>();
+const indexes = sharedWeakMap<World, WeakMap<Names, Entry[]>>("rules.ts:indexes");
 function index(w: World, names: Names): Entry[] {
   let per = indexes.get(w);
   if (!per) { per = new WeakMap(); indexes.set(w, per); }
@@ -177,7 +178,7 @@ function align<T>(idx: NearIndex<T>, toks: Tok[], anchors?: number[]): { owner: 
 
 const both = <T>(people: { owner: T; names: string[] }[]) => ({ split: buildNear(people), joined: buildNear(people, true) });
 type NearBoth<T> = ReturnType<typeof both<T>>;
-const nearIndexes = new WeakMap<World, WeakMap<Names, NearBoth<BoxerFull>>>();
+const nearIndexes = sharedWeakMap<World, WeakMap<Names, NearBoth<BoxerFull>>>("rules.ts:nearIndexes");
 function nearFighters(w: World, names: Names): NearBoth<BoxerFull> {
   let per = nearIndexes.get(w);
   if (!per) { per = new WeakMap(); nearIndexes.set(w, per); }
@@ -187,7 +188,7 @@ function nearFighters(w: World, names: Names): NearBoth<BoxerFull> {
 }
 
 /** Head trainers by name, for the exact match: a name written in full is a trainer's even where a fighter's name is a slip away from it. */
-const trainerIndex = new WeakMap<World, { name: string; n: string }[]>();
+const trainerIndex = sharedWeakMap<World, { name: string; n: string }[]>("rules.ts:trainerIndex");
 const trainersOf = (w: World) => {
   let idx = trainerIndex.get(w);
   if (!idx) { idx = [...w.people.values()].filter((p) => w.roles.get(p.id)?.has("trainer")).map((p) => ({ name: p.name, n: plain(p.name) })).filter((x) => x.n.length >= 5); trainerIndex.set(w, idx); }
@@ -222,7 +223,7 @@ function claim(w: World, names: Names, question: string): Claimed {
 export const namesIn = (w: World, names: Names, question: string): BoxerFull[] => claim(w, names, question).fighters;
 
 /** A trainer named in the question, if any (the trainers tool takes a name): in full, or with a slip or two in the spelling, in the words no fighter's full name has claimed. */
-const trainerNear = new WeakMap<World, NearBoth<string>>();
+const trainerNear = sharedWeakMap<World, NearBoth<string>>("rules.ts:trainerNear");
 function trainerNamed(w: World, question: string, rest: string): string | undefined {
   const idx = trainersOf(w);
   const q = ` ${plain(question)} `;
