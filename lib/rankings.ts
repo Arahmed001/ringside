@@ -2,6 +2,7 @@ import type { World } from "./world";
 import type { BoxerFull, Sex } from "./types";
 import { nowMs } from "./clock";
 import { memo } from "./memo";
+import { careerView } from "./career";
 
 export interface RankRow {
   rank: number;
@@ -67,4 +68,16 @@ export function pound4pound(w: World, limit = 10, sex: Sex = "male"): BoxerFull[
 /** Where a fighter stands in the division, or null if he is not ranked (inactive, too few fights, a losing record, or no fight in 24 months). Not capped: the 217th of 217 has a place. */
 export function rankOf(w: World, b: BoxerFull): number | null {
   return poolOf(w, b.weightClass, b.sex).rankById.get(b.id) ?? null;
+}
+
+/**
+ * How much of the league the rankings can see. The rankings count only fights Ringside holds, and a ranking needs five of them; a league loaded in stages holds
+ * only each fighter's most recent fights, so for a while few fighters qualify. `partialShare` is the share of fighters whose supplier career total is larger than
+ * the fights held: above a half, the pages say why a division can be empty instead of showing a blank card.
+ */
+export function rankingDepth(w: World): { partialShare: number } {
+  return memo(w, "rankingDepth", () => {
+    const withTotal = w.boxers.filter((b) => b.vendorRecord);
+    return { partialShare: withTotal.length ? withTotal.filter((b) => careerView(b).source === "supplier").length / withTotal.length : 0 };
+  });
 }

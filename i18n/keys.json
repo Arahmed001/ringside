@@ -7160,6 +7160,12 @@
   ]
  },
  {
+  "key": "No fighter in this division has the five fights on record that a ranking needs yet.",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
   "key": "No fighter is spelt exactly “{text}”. These are the closest names.",
   "files": [
    "app/[locale]/boxers/page.tsx"
@@ -10949,6 +10955,13 @@
   "key": "These lists can be narrowed to men or women and one weight division, but not to other groups of fighters or to a region. Try a search such as “southpaw welterweights with 10+ KOs” or “most knockouts among women”.",
   "files": [
    "components/AskResults.tsx"
+  ]
+ },
+ {
+  "key": "These rankings count only the fights Ringside holds. Most fighters here have only their most recent fights on record so far, so few reach the five fights a ranking needs; more qualify as the history is added.",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx",
+   "app/[locale]/rankings/page.tsx"
   ]
  },
  {

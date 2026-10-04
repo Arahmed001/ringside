@@ -2,7 +2,7 @@ import Link from "@/components/L";
 import { notFound } from "next/navigation";
 import { getWorld, recordStr } from "@/lib/world";
 import { DIVISIONS, divisionFromSlug, divisionLabel, limitLabel, slugifyDivision } from "@/lib/divisions";
-import { rankDivision, rankedBoxers, rankRow } from "@/lib/rankings";
+import { rankDivision, rankedBoxers, rankRow, rankingDepth } from "@/lib/rankings";
 import { pageRows } from "@/lib/people-list";
 import { ListFinder } from "@/components/ListFinder";
 import { getNames } from "@/lib/i18n/names";
@@ -71,6 +71,12 @@ export default async function DivisionRankings({ params, searchParams }: { param
       <div className="mt-6" />
       {(pg.of > RANK_PAGE || typed) && <ListFinder path={`/rankings/${slugifyDivision(d.name)}`} hidden={sex === "female" ? { sex } : {}} q={typed} label={t("Find a fighter in this division")} total={pg.total} of={pg.of} close={pg.close} />}
       <div className="card overflow-x-auto">
+        {rows.length === 0 && !typed && (
+          <div className="space-y-2 p-6 text-sm text-muted">
+            <p>{t("No fighter in this division has the five fights on record that a ranking needs yet.")}</p>
+            {rankingDepth(w).partialShare > 0.5 && <p>{t("These rankings count only the fights Ringside holds. Most fighters here have only their most recent fights on record so far, so few reach the five fights a ranking needs; more qualify as the history is added.")}</p>}
+          </div>
+        )}
         {rows.length > 0 && <table className="w-full text-sm" aria-label={t("{division} rankings", { division: divisionLabel(d.name, sex, t) })}>
           <thead><tr className="text-start text-xs uppercase tracking-widest text-muted">
             <th className="p-3">#</th><th>{t("Fighter")}</th><th className="hidden sm:table-cell">{t("Style")}</th><th>{t("Record")}</th><th className="hidden md:table-cell">{t("KO%")}</th><th className="hidden md:table-cell">{t("Last fight")}</th><th className="text-end">{t("Rating")}</th><th className="p-3 text-end">{t("90d")}</th>
