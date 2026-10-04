@@ -67,7 +67,7 @@ export default async function Home() {
         <section className="rise grid items-end gap-10 lg:grid-cols-[minmax(0,27rem)_1fr]">
           <div className="relative mx-auto w-full max-w-md">
             <div className="absolute -inset-8 -z-10 rounded-[2rem] bg-red/25 blur-3xl live" />
-            <Link href={`/events/${next.event.id}`} className="block transition hover:scale-[1.015]"><Poster event={next.event} main={next.main} red={next.red} blue={next.blue} /></Link>
+            <Link href={`/events/${next.event.id}`} className="block transition hover:scale-[1.015]"><Poster event={next.event} main={next.main} red={next.red} blue={next.blue} priority /></Link>
           </div>
           <div>
             <div className="eyebrow mb-3">{t.n(daysUntil(next.event.date), "In {n} day", "In {n} days")} · {fmtDate(next.event.date, undefined, t.locale)} · {t.name(next.event.venue)}</div>

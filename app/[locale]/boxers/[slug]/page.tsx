@@ -150,7 +150,7 @@ const HONOURS_SHOWN = 8;
       }} />
       <section className="rise grid gap-8 md:grid-cols-[auto_1fr]">
         <div className="mx-auto md:mx-0">
-          <Headshot boxer={b} size={200} className="shadow-2xl shadow-black/60" />
+          <Headshot boxer={b} size={200} priority className="shadow-2xl shadow-black/60" />
           {b.photoCredit && (
             <p className="mt-1.5 max-w-[200px] text-xs leading-snug text-muted">
               {t("Photo:")} <a href={b.photoCredit.pageUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{b.photoCredit.text}</a>
