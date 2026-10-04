@@ -55,8 +55,15 @@ export default async function UpsetWatch() {
       </section>
 
       {list.length === 0 && <p className="card p-6 text-muted">{t("No upcoming fights to watch right now.")}</p>}
+      {list.length > 0 && (
+        <nav aria-label={t("Jump to a section")} className="-mt-6 flex flex-wrap gap-1.5">
+          {TIERS.filter((tier) => by(tier).length > 0).map((tier) => <a key={tier} href={`#tier-${tier}`} className="chip hover:!text-ink">{t(TIER_LABEL[tier])} <span className="tabular">{by(tier).length}</span></a>)}
+          <a href="#record" className="chip hover:!text-ink">{t("How the same calls fared")}</a>
+          {shocks.length > 0 && <a href="#shocks" className="chip hover:!text-ink">{t("The biggest shocks")}</a>}
+        </nav>
+      )}
       {TIERS.map((tier) => by(tier).length > 0 && (
-        <section key={tier}>
+        <section key={tier} id={`tier-${tier}`} className="scroll-mt-20">
           <SectionTitle eyebrow={when(tier)} title={t(TIER_LABEL[tier])} />
           {tier === "toss-up" && <p className="-mt-2 mb-4 text-sm text-muted">{t("The model has no real favourite here: the “underdog” is the slightly less likely fighter, and a win for either would not be a surprise.")}</p>}
           <div className="grid gap-4 lg:grid-cols-2">{by(tier).map((x) => <WatchCard key={x.bout.id} x={x} />)}</div>
@@ -64,7 +71,7 @@ export default async function UpsetWatch() {
       ))}
 
       <section className="card p-6" aria-labelledby="record">
-        <h2 id="record" className="font-display text-3xl font-bold uppercase">{t("How the same calls fared")}</h2>
+        <h2 id="record" className="scroll-mt-24 font-display text-3xl font-bold uppercase">{t("How the same calls fared")}</h2>
         <p className="mt-2 max-w-3xl text-sm text-muted">{t("For every past fight the model scored, using only what was known beforehand: how often the underdog won, against how often the model said they would. The recent column is the last quarter of fights, the stretch the model was not tuned on.")}</p>
         <ScrollRegion className="mt-4" label={t("Underdog win rate against the model, by tier")}>
           <table className="w-full text-sm">
@@ -111,7 +118,7 @@ export default async function UpsetWatch() {
       </section>
 
       {shocks.length > 0 && (
-        <section>
+        <section id="shocks" className="scroll-mt-20">
           <SectionTitle eyebrow={t("Last 12 months")} title={t("The biggest shocks")} />
           <ul className="card divide-y divide-line/60 p-2">
             {shocks.map((c) => {

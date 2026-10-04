@@ -52,7 +52,7 @@ export default async function Events({ searchParams }: { searchParams: Promise<{
           <Link href="/events" aria-current={!year ? "page" : undefined} className={`chip ${!year ? "!border-gold/50 !text-gold" : ""}`}>{t("Recent events")}</Link>
           {years.map((y) => <Link key={y} href={`/events?year=${y}`} aria-current={y === year ? "page" : undefined} className={`chip tabular ${y === year ? "!border-gold/50 !text-gold" : ""}`}>{y}</Link>)}
         </nav>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
           {recent.map((e) => (
             <Link key={e.event.id} href={`/events/${e.event.id}`} className="card-hover">
               <Poster event={e.event} main={e.main} red={e.red} blue={e.blue} />

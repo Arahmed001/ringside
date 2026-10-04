@@ -25,10 +25,12 @@ export interface PageMeta {
   type?: "website" | "profile" | "article";
   /** Keep this one page out of search results even on a live site. */
   noindex?: boolean;
+  /** Locale-free-or-absolute path of the share image, when it is not the one the page's own `opengraph-image` file gives. */
+  image?: string;
 }
 
 /** Title, description, canonical, hreflang alternates, Open Graph and Twitter card for one page. */
-export function pageMetadata({ locale, path, title, description, type = "website", noindex }: PageMeta): Metadata {
+export function pageMetadata({ locale, path, title, description, type = "website", noindex, image }: PageMeta): Metadata {
   const languages: Record<string, string> = Object.fromEntries(LOCALES.map((l) => [l, abs(localePath(l, path))]));
   languages["x-default"] = abs(localePath("en", path));
   const url = abs(localePath(locale, path));
@@ -39,8 +41,9 @@ export function pageMetadata({ locale, path, title, description, type = "website
     openGraph: {
       title, description, url, type, siteName: "Ringside", locale: OG_LOCALE[locale],
       alternateLocale: LOCALES.filter((l) => l !== locale).map((l) => OG_LOCALE[l]),
+      ...(image ? { images: [{ url: abs(image), width: 1200, height: 630 }] } : {}),
     },
-    twitter: { card: "summary_large_image", title, description },
+    twitter: { card: "summary_large_image", title, description, ...(image ? { images: [abs(image)] } : {}) },
     robots: indexable() && !noindex ? { index: true, follow: true } : { index: false, follow: false },
   };
 }

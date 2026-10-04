@@ -8,6 +8,7 @@ import { TitlesCard, NextFightCard } from "@/components/TitlesCard";
 import { BoxerRecords } from "@/components/Awards";
 import { notFound } from "next/navigation";
 import { careerView, getWorld, recordStr } from "@/lib/world";
+import { countrySlug } from "@/lib/countries";
 import { getDb } from "@/lib/db";
 import { isKnown, orDash, wikipediaUrl } from "@/lib/facts";
 import { boxerPageNotes } from "@/lib/accounts/corrections";
@@ -21,8 +22,10 @@ import { Headshot } from "@/components/Portrait";
 import { Sparkline, Radar, Donut } from "@/components/charts";
 import { ScoutingReport } from "@/components/ScoutingReport";
 import { WatchButton } from "@/components/Watch";
+import { ShareButton } from "@/components/ShareButton";
 import { BoutLine, BoxerCard, ResultPill, SectionTitle, Stat } from "@/components/ui";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
+import { highlightsOf } from "@/lib/highlights";
 import { countryName, flag, fmtDate, fmtPartialDate, pct } from "@/lib/format";
 import { msg } from "@/lib/i18n/t";
 import { countsInRecord, isDecision, isStoppage } from "@/lib/methods";
@@ -62,6 +65,9 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const lastDone = [...bouts].reverse().find((x) => resultFor(x, b.id) !== null);
   const ago = lastDone ? since(w.today, lastDone.date) : null;
   const lastFought = (x: Since) => x.n === 0 && x.unit === "days" ? t("Last fought today") : x.unit === "days" ? t.n(x.n, "Last fought {n} day ago", "Last fought {n} days ago") : x.unit === "months" ? t.n(x.n, "Last fought {n} month ago", "Last fought {n} months ago") : t.n(x.n, "Last fought {n} year ago", "Last fought {n} years ago");
+  const highlights = highlightsOf(bouts, b.id, w.boutPre);
+  const hl = (id: number) => { const x = w.boutById.get(id); return x ? fmtDate(x.date, { month: "short", year: "numeric" }, t.locale) : ""; };
+  const hasHighlights = !!(highlights.bestWin || highlights.biggestUpset || highlights.longestStreak);
   const opponentThen = new Map<number, React.ReactNode>();
   for (const x of done) {
     if (resultFor(x, b.id) === null) continue;
@@ -145,7 +151,7 @@ const HONOURS_SHOWN = 8;
       }} />
       <section className="rise grid gap-8 md:grid-cols-[auto_1fr]">
         <div className="mx-auto md:mx-0">
-          <Headshot boxer={b} size={200} className="shadow-2xl shadow-black/60" />
+          <Headshot boxer={b} size={200} priority className="shadow-2xl shadow-black/60" />
           {b.photoCredit && (
             <p className="mt-1.5 max-w-[200px] text-xs leading-snug text-muted">
               {t("Photo:")} <a href={b.photoCredit.pageUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{b.photoCredit.text}</a>
@@ -159,11 +165,11 @@ const HONOURS_SHOWN = 8;
             {rank && <Link href={`/rankings/${slugifyDivision(b.weightClass)}${b.sex === "female" ? "?sex=female" : ""}`} className="chip !border-gold/50 !text-gold">{t("#{rank} {division}", { rank, division: divisionLabel(b.weightClass, b.sex, t) })}</Link>}
             <span className="chip" style={{ borderColor: ARCH_COLOR[a] + "55", color: ARCH_COLOR[a] }}>{t(a)}</span>
             {!b.active && <span className="chip">{t("Retired")}</span>}
-            <span className="ms-auto"><WatchButton slug={b.slug} /></span>
+            <span className="ms-auto flex gap-2"><ShareButton title={t.name(b.name)} /><WatchButton slug={b.slug} /></span>
           </div>
           <h1 className="mt-3 font-display text-6xl font-extrabold uppercase leading-[.95] sm:text-7xl">{t.name(b.name)}</h1>
           {b.nickname && <div className="mt-1 font-serif text-3xl italic text-gold">“{t.name(b.nickname)}”</div>}
-          <div className="mt-2 text-muted">{flag(b.country)} {[countryName(b.country, t.locale), b.age !== null ? t("Age {age}", { age: b.age }) : null, b.stance ? t(b.stance) : null, b.turnedPro !== null ? t("Pro since {year}", { year: b.turnedPro }) : null].filter(Boolean).join(" · ")}</div>
+          <div className="mt-2 text-muted">{flag(b.country)} <Link href={`/countries/${countrySlug(b.country)}`} className="hover:text-ink">{countryName(b.country, t.locale)}</Link>{[b.age !== null ? t("Age {age}", { age: b.age }) : null, b.stance ? t(b.stance) : null, b.turnedPro !== null ? t("Pro since {year}", { year: b.turnedPro }) : null].filter(Boolean).map((x) => ` · ${x}`).join("")}</div>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Stat label={t("Record")} value={recordStr(b)} sub={career.source === "supplier" ? t.n(career.total, "{n} fight in all", "{n} fights in all") : t.n(b.bouts, "{n} fight", "{n} fights")} />
             <Stat label={t("Knockouts")} value={b.kos} sub={t("{p} of wins", { p: pct(b.koRate) })} />
@@ -187,6 +193,34 @@ const HONOURS_SHOWN = 8;
           {nextBlock}
         </div>
       </section>
+
+      {hasHighlights && (
+        <section>
+          <SectionTitle eyebrow={t("Career highlights")} title={t("The best of the fights we hold")} />
+          <div className="grid gap-3 md:grid-cols-3">
+            {highlights.bestWin && (() => { const o = w.byId.get(highlights.bestWin!.opponentId); return o ? (
+              <Link href={`/bouts/${highlights.bestWin.boutId}`} className="card card-hover p-4">
+                <div className="eyebrow mb-1">{t("Best win")}</div>
+                <div className="font-display text-xl font-bold leading-tight">{t.name(o.name)}</div>
+                <div className="text-xs text-muted">{t("Rated {rating} going in", { rating: highlights.bestWin.opponentRating })} · {hl(highlights.bestWin.boutId)}</div>
+              </Link>) : null; })()}
+            {highlights.biggestUpset && (() => { const o = w.byId.get(highlights.biggestUpset!.opponentId); return o ? (
+              <Link href={`/bouts/${highlights.biggestUpset.boutId}`} className="card card-hover p-4">
+                <div className="eyebrow mb-1">{t("Biggest upset")}</div>
+                <div className="font-display text-xl font-bold leading-tight">{t.name(o.name)}</div>
+                <div className="text-xs text-muted">{t("Rated {n} points higher going in", { n: highlights.biggestUpset.gap })} · {hl(highlights.biggestUpset.boutId)}</div>
+              </Link>) : null; })()}
+            {highlights.longestStreak && (
+              <div className="card p-4">
+                <div className="eyebrow mb-1">{t("Longest winning run")}</div>
+                <div className="font-display text-xl font-bold leading-tight">{t.n(highlights.longestStreak.wins, "{n} straight win", "{n} straight wins")}</div>
+                <div className="text-xs text-muted">{highlights.longestStreak.endedBoutId ? t("Ended in {date}", { date: hl(highlights.longestStreak.endedBoutId) }) : t("Still going")}</div>
+              </div>
+            )}
+          </div>
+          {career.source === "supplier" && <p className="mt-2 text-xs text-muted">{t("Worked out from the {held} fights Ringside holds, not the whole career.", { held: career.held })}</p>}
+        </section>
+      )}
 
       <section className="grid gap-5 lg:grid-cols-[1fr_1.3fr]">
         <div className="card p-5">
