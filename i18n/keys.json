@@ -994,6 +994,13 @@
   ]
  },
  {
+  "key": "{name} has been stopped {n} times (losses in all: {losses}).",
+  "plural": "{name} has been stopped {n} time (losses in all: {losses}).",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} has been stopped in {n} fights: the chin will be tested.",
   "files": [
    "lib/preview.ts"
@@ -1026,6 +1033,12 @@
   ]
  },
  {
+  "key": "{name} has never been knocked out or stopped on record.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} has no completed fights on record.",
   "files": [
    "lib/ask/tools.ts"
@@ -1036,6 +1049,12 @@
   "plural": "{name} has not fought for {n} month",
   "files": [
    "lib/upsets.ts"
+  ]
+ },
+ {
+  "key": "{name} has not fought for a title on record.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -1054,6 +1073,13 @@
   "key": "{name} has won {w} of the last {n} fights.",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} has won {won} of {n} title fights.",
+  "plural": "{name} has won {won} of {n} title fight.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -1106,6 +1132,19 @@
   ]
  },
  {
+  "key": "{name} is active and has lost {n} times ({record}).",
+  "plural": "{name} is active and has lost {n} time ({record}).",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name} is active and unbeaten ({record}).",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} is coming off a stoppage loss",
   "files": [
    "lib/upsets.ts"
@@ -1137,9 +1176,21 @@
   ]
  },
  {
+  "key": "{name} is retired and unbeaten ({record}).",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} is retired or inactive",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "{name} is retired; the record is {record}.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -1259,6 +1310,12 @@
  },
  {
   "key": "{name}'s last fight was on {date}: {result} against {opponent} ({method}).",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name}'s manager is {manager}.",
   "files": [
    "lib/ask/tools.ts"
   ]
@@ -10329,6 +10386,12 @@
  },
  {
   "key": "The data has no current head trainer for {name}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "The data has no current manager for {name}.",
   "files": [
    "lib/ask/tools.ts"
   ]

@@ -14,16 +14,17 @@ const AR = JSON.parse(fs.readFileSync(path.join(process.cwd(), "i18n", "ar.json"
 
 test("where the data does not give the fact, the answer says so, in English and in Arabic", async () => {
   const feed = miniFeed();
-  feed.boxers = [makeBoxer("u1", "Lightweight", { name: "Pablo Quintana", heightCm: null, reachCm: null, birthYear: null, stance: null }), makeBoxer("u2", "Lightweight", { name: "Diego Ramos" }), makeBoxer("u3", "Lightweight", { name: "Mateo Vidal" })];
+  feed.boxers = [makeBoxer("u1", "Lightweight", { name: "Pablo Quintana", heightCm: null, reachCm: null, birthYear: null, stance: null }), makeBoxer("u2", "Lightweight", { name: "Diego Ramos" }), makeBoxer("u3", "Lightweight", { name: "Mateo Vidal" }), makeBoxer("u4", "Lightweight", { name: "Old Timer", active: false })];
   // Diego: a win by knockout, a loss and a draw against Mateo; three more cards ahead (one called off, listed after the earlier of the other two); a gym and a trainer who are gone and ones who are current
   const ev = (id: string, name: string, date: string, status?: string) => ({ externalId: id, name, date, venue: "Arena", city: "Reno", country: "United States", ...(status ? { status } : {}) }) as never;
   feed.events = [ev("Ea", "Old Night", "2025-03-01"), ev("Eb", "Second Night", "2025-06-01"), ev("Ec", "Third Night", "2025-09-01"), ev("Ed", "Called Off Night", "2026-10-20", "cancelled"), ev("Ee", "Winter Night", "2026-12-01"), ev("Ef", "Autumn Night", "2026-11-15")];
   const bout = (id: string, e: string, winner: string | null, method: "KO" | "UD" | "DRAW" | null) => ({ externalId: id, eventExternalId: e, redExternalId: "u2", blueExternalId: "u3", weightClass: "Lightweight", rounds: 12, winnerExternalId: winner, method, endRound: method ? (method === "KO" ? 3 : 12) : null, title: null, position: 0 });
-  feed.bouts = [bout("ba", "Ea", "u2", "KO"), bout("bb", "Eb", "u3", "UD"), bout("bc", "Ec", null, "DRAW"), bout("bd", "Ed", null, null), bout("be", "Ee", null, null), bout("bf", "Ef", null, null)];
+  feed.bouts = [bout("ba", "Ea", "u2", "KO"), bout("bb", "Eb", "u3", "UD"), bout("bc", "Ec", null, "DRAW"), bout("bd", "Ed", null, null), { ...bout("be", "Ee", null, null), title: "Test Title" }, bout("bf", "Ef", null, null)];
   feed.orgs = [...feed.orgs, { externalId: "G2", name: "Iron Works", kind: "gym" }];
   feed.stints = [
     { boxerExternalId: "u2", role: "gym", orgExternalId: "G1", start: "2020-01-01", end: "2024-12-31", source: "test" }, { boxerExternalId: "u2", role: "gym", orgExternalId: "G2", start: "2025-01-01", end: null, source: "test" },
     { boxerExternalId: "u2", role: "head_trainer", personExternalId: "T1", start: "2020-01-01", end: "2024-12-31", source: "test" }, { boxerExternalId: "u2", role: "head_trainer", personExternalId: "T2", start: "2025-01-01", end: null, source: "test" },
+    { boxerExternalId: "u2", role: "manager", personExternalId: "J1", start: "2021-01-01", end: "2023-12-31", source: "test" }, { boxerExternalId: "u2", role: "manager", personExternalId: "J2", start: "2024-01-01", end: null, source: "test" },
   ];
   feed.weighIns = []; feed.scorecards = []; feed.officials = []; feed.corners = []; feed.punches = [];
   const file = path.join(dir, "unknown.json");
@@ -49,6 +50,20 @@ test("where the data does not give the fact, the answer says so, in English and 
     assert.equal(await run("who trains Diego Ramos"), "Diego Ramos's head trainer is Trainer Two.");
     assert.equal(await run("when does Diego Ramos fight next"), "Diego Ramos's next fight is against Mateo Vidal on Nov 15, 2026.", "the earliest card that is on: not the called-off one, and not the later one listed first");
     assert.match(await run("when did Diego Ramos last fight"), /^Diego Ramos's last fight was on Sep 1, 2025: a draw against Mateo Vidal \(/);
+    // the other facts, from the same record: who has been stopped, whether still fighting or unbeaten, the manager now and not the one before, a title never fought for
+    assert.equal(await run("has Diego Ramos ever been knocked out"), "Diego Ramos has never been knocked out or stopped on record.");
+    assert.equal(await run("has Mateo Vidal ever been knocked out"), "Mateo Vidal has been stopped 1 time (losses in all: 1).");
+    assert.equal(await run("is Diego Ramos still fighting"), "Diego Ramos is active and has lost 1 time (1-1-1).");
+    assert.equal(await run("is Pablo Quintana undefeated"), "Pablo Quintana is active and unbeaten (0-0-0).");
+    assert.equal(await run("is Old Timer retired"), "Old Timer is retired and unbeaten (0-0-0).");
+    assert.equal(await run("who is Diego Ramos's manager"), "Diego Ramos's manager is Judge Two.");
+    assert.equal(await run("who manages Pablo Quintana"), "The data has no current manager for Pablo Quintana.");
+    assert.equal(await run("how many title fights has Diego Ramos won"), "Diego Ramos has not fought for a title on record.");
+    // two of them side by side, in the order asked (and a question about when one fights the other is about that bout)
+    assert.equal(await run("which gym, Diego Ramos or Mateo Vidal"), "Diego Ramos trains at Iron Works. The data has no current gym for Mateo Vidal.");
+    assert.equal((await ask("when does Diego Ramos fight Mateo Vidal", { w: wu, t: tEn, names: {} })).calls[0].tool, "head_to_head");
+    assert.equal(await run("who is taller, Mateo Vidal or Diego Ramos"), "Mateo Vidal is 175 cm tall. Diego Ramos is 175 cm tall.");
+    assert.equal(await run("who has more wins, Diego Ramos or Mateo Vidal"), "Diego Ramos has had 3 fights: 1-1-1. Mateo Vidal has had 3 fights: 1-1-1.");
     // in Arabic, with the name as the site writes it
     const table = { "Pablo Quintana": "بابلو كوينتانا" };
     assert.match(await run("كم عمر بابلو كوينتانا", "ar", table), /لا تتضمن البيانات العمر لـ/);
