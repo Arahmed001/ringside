@@ -133,7 +133,7 @@ const HONOURS_SHOWN = 8;
     nextBlock = (
       <Link href={`/compare?a=${b.slug}&b=${opp.slug}`} className="card card-hover mt-6 flex flex-wrap items-center gap-4 p-4">
         <span className="chip !border-gold/40 !text-gold live">{t("Next fight")}</span>
-        <span className="text-sm">{t.rich("{date} vs <b>{name}</b>", { date: fmtDate(upcoming.date, undefined, t.locale), name: t.name(opp.name), b: (c) => <b>{c}</b> })} <span className="text-muted">({recordStr(opp)})</span></span>
+        <span className="text-sm">{t.rich("{date} vs <b>{name}</b>", { date: fmtDate(upcoming.date, undefined, t.locale), name: t.name(opp.name), b: (c) => <b>{c}</b> })} <span className="text-muted">(<bdi dir="ltr">{recordStr(opp)}</bdi>)</span></span>
         <span className="ms-auto text-sm">{t.rich("Model: <b>{p}%</b> win", { p: Math.round(p.pA * 100), b: (c) => <b className="text-gold">{c}</b> })}</span>
       </Link>
     );

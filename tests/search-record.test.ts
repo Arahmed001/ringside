@@ -110,6 +110,8 @@ test("the planner sends a record question to the fighter search and keeps the li
   assert.deepEqual(rules.planByRules("upcoming fights for fighters on a winning streak", w, {}), [], "no tool has both the events and the cut");
   assert.deepEqual(first("most wins among fighters who have never been knocked out"), { tool: "fighters", args: { maxStopped: 0, sort: "wins" } }, "a list cannot be cut by it: a search sorted the same way");
   assert.deepEqual(rules.planByRules("upcoming fights of fighters who have not fought in over a year", w, {}), [], "an events word and a cut on when they last fought");
+  assert.deepEqual(rules.planByRules("who has the longest winning streak among welterweights who have never been stopped", w, {}), [], "a list that cannot be cut by the fact is no answer, not a search sorted by rating");
+  assert.deepEqual(rules.planByRules("longest unbeaten run among fighters who have never been knocked out", w, {}), []);
   assert.deepEqual(rules.planByRules("fighters with the most draws", w, {}), [], "no list of draws: no answer, not fighters with a draw");
   assert.deepEqual(rules.planByRules("who has drawn the most", w, {}), []);
   assert.equal(first("when did Marcus Larkin last fight")?.tool, "fighter", "a named fighter's last fight is still that fact");
@@ -120,7 +122,13 @@ test("the model's filters are checked, and the chips say what was understood in 
   assert.deepEqual((await ai.parseQuery("fighters who fought in the last 6 months", w)).filters, { lastFightAfter: "2026-04-03" }, "the search box counts back from the league's own date");
   assert.deepEqual(j, { maxStopped: 0, minDraws: 1, minWinStreak: 3, unbeatenIn: 5, lastFightAfter: "2026-01-01" }, "a date that is not a date is dropped");
   assert.deepEqual(ai.describeFilters({ maxStopped: 0, maxDraws: 0, minWinStreak: 3, minLossStreak: 2, unbeatenIn: 5, lastFightAfter: "2026-01-01", lastFightBefore: "2026-06-30" }),
-    ["Never stopped", "No draws", "Win streak ≥ 3", "Losing streak ≥ 2", "Unbeaten in last 5", "Last fought since 2026-01-01", "Last fought by 2026-06-30"]);
+    ["Never stopped", "No draws", "Win streak ≥ 3", "Losing streak ≥ 2", "Unbeaten in last 5", "Last fought since Jan 1, 2026", "Last fought by Jun 30, 2026"]);
+  // dates are written in the visitor's language, not as 2026-07-04 (which a right-to-left page shows as 04-07-2026, a different date to read)
+  const { makeT } = await import("../lib/i18n/t");
+  const { dictOf } = await import("../lib/i18n/dicts");
+  const arChips = ai.describeFilters({ lastFightAfter: "2026-07-04", lastFightBefore: "2025-01-31" }, makeT("ar", dictOf("ar")));
+  assert.equal(arChips.length, 2);
+  for (const c of arChips) assert.ok(!/\d{4}-\d{2}-\d{2}/.test(c) && /\d{4}/.test(c) && /[\u0600-\u06ff]{3,}\s*\d{1,2}\s|\d{1,2}\s+[\u0600-\u06ff]{3,}/.test(c), c);
   assert.deepEqual(ai.describeFilters({ minStopped: 3, maxStopped: 5, minDraws: 1, maxDraws: 2 }), ["Stopped ≥ 3 times", "Stopped ≤ 5 times", "Draws ≥ 1", "Draws ≤ 2"]);
   const ar = (await import("../lib/i18n/dicts")).dictOf("ar");
   for (const k of ["Never stopped", "No draws", "Stopped ≥ {n} times", "Stopped ≤ {n} times", "Draws ≥ {n}", "Draws ≤ {n}", "Win streak ≥ {n}", "Losing streak ≥ {n}", "Unbeaten in last {n}", "Last fought since {date}", "Last fought by {date}"]) assert.ok(typeof ar[k] === "string" && ar[k] !== k, k);

@@ -29,13 +29,20 @@ export interface T {
   locale: Locale;
 }
 
-const fill = (s: string, vars?: Vars) => (vars ? s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m)) : s);
+/**
+ * A record, a score or a date ("23-4-1", "2026-07-04") put into an Arabic sentence is shown backwards ("1-4-23"): after an Arabic letter the digits become Arabic numbers,
+ * and the hyphens between them no longer hold them together, so the right-to-left order flips them. Wrapped in a left-to-right isolate it reads as written. Only a value that
+ * is all digits and separators is wrapped (a name or a sentence is not), and only for Arabic.
+ */
+const NUMERIC_RUN = /^[\d\s\-–−/:.,%()+]+$/;
+export const isolateNumeric = (v: string, locale: Locale): string => (locale === "ar" && /\d\s?[-–−/:]\s?\d/.test(v) && NUMERIC_RUN.test(v) ? `\u2066${v}\u2069` : v);
+const fill = (s: string, vars?: Vars, locale: Locale = "en") => (vars ? s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? isolateNumeric(String(vars[k]), locale) : m)) : s);
 
 export type Names = Record<string, string>;
 
 export function makeT(locale: Locale, dict: Dict = {}, names: Names = {}): T {
   const lookup = (key: string): string => { const v = dict[key]; return typeof v === "string" && v ? v : key; };
-  const t = ((text: string, vars?: Vars) => fill(lookup(text), vars)) as T;
+  const t = ((text: string, vars?: Vars) => fill(lookup(text), vars, locale)) as T;
   t.locale = locale;
   // a function's own `name` is read-only, hence defineProperty (the API reads best as t.name(...))
   Object.defineProperty(t, "name", { value: (en: string) => names[en] ?? en });
@@ -44,9 +51,9 @@ export function makeT(locale: Locale, dict: Dict = {}, names: Names = {}): T {
     const entry = dict[other];
     if (entry && typeof entry === "object") {
       const form = entry[new Intl.PluralRules(locale).select(count)] ?? entry.other;
-      if (form) return fill(form, v);
-    } else if (typeof entry === "string" && entry) return fill(entry, v);
-    return fill(count === 1 ? one : other, v);
+      if (form) return fill(form, v, locale);
+    } else if (typeof entry === "string" && entry) return fill(entry, v, locale);
+    return fill(count === 1 ? one : other, v, locale);
   };
   t.rich = (text, vars = {}) => {
     const src = lookup(text);
@@ -57,7 +64,7 @@ export function makeT(locale: Locale, dict: Dict = {}, names: Names = {}): T {
     const plain = (s: string): ReactNode[] => s.split(/(\{\w+\})/).filter(Boolean).map((p) => {
       const k = p.match(/^\{(\w+)\}$/)?.[1];
       const v = k !== undefined ? vars[k] : undefined;
-      return createElement(Fragment, { key: `p${i++}` }, k !== undefined && v !== undefined && typeof v !== "function" ? v : p);
+      return createElement(Fragment, { key: `p${i++}` }, k !== undefined && v !== undefined && typeof v !== "function" ? (typeof v === "string" ? isolateNumeric(v, locale) : v) : p);
     });
     while ((m = re.exec(src))) {
       out.push(...plain(src.slice(last, m.index)));

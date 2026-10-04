@@ -62,7 +62,7 @@ export default async function DivisionRankings({ params, searchParams }: { param
           <div>
             <div className="eyebrow">{t("Top rated")}</div>
             <div className="font-display text-4xl font-extrabold uppercase leading-tight">{t.name(champ.boxer.name)}</div>
-            <div className="text-sm text-muted">{flag(champ.boxer.country)} {countryName(champ.boxer.country, t.locale)} · {recordStr(champ.boxer)} · {t("{n} KO", { n: champ.boxer.kos })}</div>
+            <div className="text-sm text-muted">{flag(champ.boxer.country)} {countryName(champ.boxer.country, t.locale)} · <bdi dir="ltr">{recordStr(champ.boxer)}</bdi> · {t("{n} KO", { n: champ.boxer.kos })}</div>
           </div>
           <div className="ms-auto text-end"><div className="font-display text-5xl font-bold text-gold tabular">{Math.round(champ.boxer.rating)}</div><div className="text-xs text-muted">{t("Elo rating")}</div></div>
         </Link>

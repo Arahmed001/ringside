@@ -96,7 +96,7 @@ export default async function OrgPage({ params, searchParams }: { params: Promis
         <section>
           <SectionTitle eyebrow={current.length > 12 ? t("Top 12 of {n} by rating; everyone is in the table below", { n: current.length }) : undefined} title={t("Current roster")} />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{current.sort((a, b) => b.boxer.rating - a.boxer.rating).slice(0, 12).map((x) => (
-            <Link key={x.stint.id} href={`/boxers/${x.boxer.slug}`} className="card card-hover flex items-center gap-3 p-3"><Headshot boxer={x.boxer} size={44} /><div className="min-w-0"><div className="truncate font-display text-lg font-bold">{t.name(x.boxer.name)}</div><div className="text-xs text-muted">{t(x.boxer.weightClass)} · {x.boxer.wins}-{x.boxer.losses}-{x.boxer.draws}</div></div></Link>
+            <Link key={x.stint.id} href={`/boxers/${x.boxer.slug}`} className="card card-hover flex items-center gap-3 p-3"><Headshot boxer={x.boxer} size={44} /><div className="min-w-0"><div className="truncate font-display text-lg font-bold">{t.name(x.boxer.name)}</div><div className="text-xs text-muted">{t(x.boxer.weightClass)} · <bdi dir="ltr">{x.boxer.wins}-{x.boxer.losses}-{x.boxer.draws}</bdi></div></div></Link>
           ))}</div>
         </section>
       )}
