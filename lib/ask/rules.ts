@@ -377,7 +377,8 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const filters = () => ({ tool: "fighters", args: withLimit(Object.fromEntries(Object.entries(f).filter(([k]) => k !== "text"))) });
   const numeric = f.minWins !== undefined || f.minKOs !== undefined || f.minKoRate !== undefined || f.minReach !== undefined || f.undefeated;
   // "fighters with more than 20 wins and a knockout rate over 70%" is a search, even though "knockout rate" is also the name of a list
-  if (!fighters.length && numeric && has(q, /\b(fighters?|boxers?) (with|who|that)\b/)) return [filters()];
+  // (but "unbeaten" in "the longest unbeaten run among fighters who …" is the streak list, which is answered or refused below)
+  if (!fighters.length && numeric && has(q, /\b(fighters?|boxers?) (with|who|that)\b/) && !has(q, /(longest|best|biggest) (winning |win |unbeaten |undefeated )?(streak|run)/)) return [filters()];
 
   if (has(q, /fight of the year|(best|greatest) (fight|bout) of|(afdal|افضل|اعظم) نزال في|نزال العام/)) return [{ tool: "fight_of_the_year", args: withLimit(year ? { year: +year } : {}) }];
   // a question about a fighter's record or form ("who lost their last fight", "never been stopped", "fought in the last 6 months") is a fighter search: the events and fights lists have no such cut
@@ -385,7 +386,8 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   if (!fighters.length && has(q, /(?:خسر|فاز|انتصر|هزم)\S*\s+(?:في |ب)?نزاله[من]\S*\s+(?:الاخير|الاخيره)\s+(?:ب|عن طريق|امام|ضد)/)) return [];
   if (!fighters.length && has(q, /\b(lost|won|drew)\s+(their|his|her)\s+(last|most recent|previous)\b.*\b(by|via|in)\s+(a\s+)?(knockout|ko|tko|decision|stoppage|round|points|split|unanimous)/)) return [];
   // (with an events word in it ("upcoming fights of fighters on a streak") no tool has both: no answer, not the list of events with the cut left out)
-  if (!fighters.length && RECORD_KEYS.some((k) => k in f)) return has(q, /\b(upcoming|next|recent|latest|results?|cards?|events?|schedule|calendar)\b|قادم|نتايج|فعاليه|فعاليات|بطاقه|جدول/) ? [] : [filters()];
+  // (a record list, "the longest winning streak among welterweights who have never been stopped", is the list's to answer or refuse: it cannot be cut by the fact, and a search sorted by rating would drop "longest")
+  if (!fighters.length && RECORD_KEYS.some((k) => k in f) && !LISTS.some(([re]) => has(q, re))) return has(q, /\b(upcoming|next|recent|latest|results?|cards?|events?|schedule|calendar)\b|قادم|نتايج|فعاليه|فعاليات|بطاقه|جدول/) ? [] : [filters()];
   if (has(q, /upcoming.*(upset|underdog)|underdogs?\b|upset watch|(could|might|may) (be )?upset|upsets? (are )?(coming|expected)|favou?rites? .*(lose|beaten|upset|vulnerable|shaky|wobbl\w*|at risk|in (danger|trouble))|(look|looks|looking) (shaky|vulnerable)|\bin (danger|trouble)\b|at risk of (losing|being)|مفاج\S*\s+(ال)?(محتمل|متوقع)\S*|(ال)?(محتمل|متوقع)\S*\s+(ال)?مفاج|(could|might|may|going to) (get |be |getting )?(upset|beaten)|(produce|cause|spring|pull off) an? (shock|upset)|could .*\b(shock|upset)\b|(most )?likely to (lose|be beaten|be upset)|shock results?|danger fights?|مفاجاه محتمله|الاقل ترجيحا/)) return [{ tool: "upset_watch", args: withLimit({}) }];
 
   // completed fights of a year or the title fights, by how they ended: "knockouts in 2025", "title fights this year", "fastest finishes of 2024"
