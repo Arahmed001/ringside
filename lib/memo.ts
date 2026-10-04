@@ -9,6 +9,18 @@ const g = globalThis as unknown as { __ringsideMemo?: WeakMap<World, Map<string,
 const cache = (g.__ringsideMemo ??= new WeakMap<World, Map<string, unknown>>());
 
 /**
+ * A per-key cache that every bundle shares, for the indexes built over a world (fighter names for search and Ask) that are kept in a WeakMap of their own
+ * rather than through `memo`. Same reason as above: a module-level WeakMap is a different one in the start-up hook and in the pages, so the warm-up built
+ * an index the first visitor's request could not see and built again (about 150 ms at 19,000 fighters).
+ */
+export function sharedWeakMap<K extends WeakKey, V>(name: string): WeakMap<K, V> {
+  const reg = ((globalThis as unknown as { __ringsideShared?: Map<string, WeakMap<WeakKey, unknown>> }).__ringsideShared ??= new Map());
+  let m = reg.get(name);
+  if (!m) { m = new WeakMap(); reg.set(name, m); }
+  return m as WeakMap<K, V>;
+}
+
+/**
  * Whole-league aggregates (analytics, judge and referee tables, trainer leaderboards) are pure functions of a World,
  * and a World is never modified after it is built, so each is computed once per world instead of once per page view.
  * A rebuilt world is a new object, so every result starts afresh with it and the old ones are garbage-collected.

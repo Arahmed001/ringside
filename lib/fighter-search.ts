@@ -1,3 +1,4 @@
+import { sharedWeakMap } from "./memo";
 import type { World } from "./world";
 import { recordStr } from "./world";
 import { divisionLabel } from "./divisions";
@@ -23,10 +24,10 @@ const LATIN_FOLD: Record<string, string> = { ł: "l", đ: "d", ð: "d", ø: "o",
 /** A name's suffix as it is written and as it is typed: "Jr." and "Junior", "III" and "3rd". */
 const SUFFIX_FOLD: Record<string, string> = { junior: "jr", senior: "sr", "2nd": "ii", "3rd": "iii", "4th": "iv" };
 
-const NO_NAMES: Names = {};
+const NO_NAMES: Names = ((globalThis as unknown as { __ringsideNoNames?: Names }).__ringsideNoNames ??= Object.freeze({}) as Names); // the same object lib/i18n/names.ts hands out
 /** Callers that pass an empty table (a fresh `{}` each time) must not each get their own index: an empty table is one table. */
 export const isEmptyTable = (names: Names) => { for (const _ in names) return false; return true; };
-const indexes = new WeakMap<World, WeakMap<Names, Index>>();
+const indexes = sharedWeakMap<World, WeakMap<Names, Index>>("fighter-search.ts:indexes");
 function indexOf(w: World, names: Names): Index {
   if (isEmptyTable(names)) names = NO_NAMES;
   let per = indexes.get(w);

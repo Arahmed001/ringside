@@ -1,6 +1,6 @@
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
-import { orgStable, orgsRanking } from "@/lib/team";
+import { orgCard, orgsRanking } from "@/lib/team";
 import { Pager, SectionTitle } from "@/components/ui";
 import { ListFinder } from "@/components/ListFinder";
 import { ORGS_PAGE, pageRows } from "@/lib/people-list";
@@ -42,10 +42,10 @@ export default async function Orgs({ searchParams }: { searchParams: Promise<{ k
         <SectionTitle eyebrow={kind === "promotion" ? t("By events promoted") : t("By current fighters")} title={kind === "promotion" ? t("Promotions") : t("Gyms")} />
         <ListFinder path="/orgs" hidden={{ kind }} q={q} label={kind === "promotion" ? t("Find a promotion by name") : t("Find a gym by name")} total={pg.total} of={pg.of} close={pg.close} />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {promos?.shown.map(({ row: { o, events } }) => { const s = orgStable(w, o.id, ["promoter"]); return (
+          {promos?.shown.map(({ row: { o, events } }) => { const s = orgCard(w, o.id, ["promoter"]); return (
             <Link key={o.id} href={`/orgs/${o.slug}`} className="card card-hover p-4"><div className="font-display text-xl font-bold">{t.name(o.name)}</div><div className="text-xs text-muted">{o.country && flag(o.country)} {t("{events} events · {fighters} fighters signed · {w}-{l} combined", { events, fighters: s.currentFighters, w: s.record.wins, l: s.record.losses })}</div></Link>
           ); })}
-          {gyms?.shown.map(({ row: { o } }) => { const s = orgStable(w, o.id, ["gym"]); return (
+          {gyms?.shown.map(({ row: { o } }) => { const s = orgCard(w, o.id, ["gym"]); return (
             <Link key={o.id} href={`/orgs/${o.slug}`} className="card card-hover p-4"><div className="font-display text-xl font-bold">{t.name(o.name)}</div><div className="text-xs text-muted">{o.country && flag(o.country)} {o.city ? t.name(o.city) : ""} · {t("{now} training now · {ever} ever · {pct}% wins", { now: s.currentFighters, ever: s.fighters, pct: Math.round(s.record.winRate * 100) })}</div></Link>
           ); })}
         </div>
