@@ -946,9 +946,27 @@
   ]
  },
  {
+  "key": "{name} fights at {division}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name} fights from a {stance} stance.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} fought {n} weeks ago, a quick turnaround",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "{name} has {kos} knockouts in {wins} wins ({pct}%).",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -982,6 +1000,12 @@
   ]
  },
  {
+  "key": "{name} has had {n} fights: {record}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} has lost the last {n} fights.",
   "files": [
    "lib/preview.ts"
@@ -999,6 +1023,12 @@
   "plural": "{name} has missed weight {n} time before: watch the scale.",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} has no completed fights on record.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -1027,9 +1057,33 @@
   ]
  },
  {
+  "key": "{name} holds {belts}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name} holds no current belt.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name} is {age} years old.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} is {age}: how much is left?",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "{name} is {cm} cm tall.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -1058,6 +1112,12 @@
   ]
  },
  {
+  "key": "{name} is from {country}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} is on a {n}-fight win streak.",
   "files": [
    "lib/preview.ts"
@@ -1068,6 +1128,12 @@
   "plural": "{name} is on a {n}-fight winning run",
   "files": [
    "lib/upsets.ts"
+  ]
+ },
+ {
+  "key": "{name} is rated {elo}{rank}.",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -1126,6 +1192,12 @@
   ]
  },
  {
+  "key": "{name} trains at {gym}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} weighed {n} lb more on fight night.",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -1175,6 +1247,30 @@
  },
  {
   "key": "{name}: estimated effect {effect} Elo against an average trainer ({verdict}); {fighters} fighters, {record} together.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name}'s head trainer is {trainer}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name}'s last fight was on {date}: {result} against {opponent} ({method}).",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name}'s next fight is against {opponent} on {date}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name}'s reach is {cm} cm.",
   "files": [
    "lib/ask/tools.ts"
   ]
@@ -1668,6 +1764,7 @@
  {
   "key": "a draw",
   "files": [
+   "lib/ask/tools.ts",
    "lib/preview.ts"
   ]
  },
@@ -1720,6 +1817,12 @@
   ]
  },
  {
+  "key": "a height",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "A legacy score from six things: the highest rating reached, wins over highly rated opponents, years as champion, title defences, the longest winning run, and honours. The weights are a judgment; each part is shown out of 100 on every row. Fighters with ten or more bouts.",
   "files": [
    "lib/records.ts"
@@ -1734,6 +1837,7 @@
  {
   "key": "a loss",
   "files": [
+   "lib/ask/tools.ts",
    "lib/preview.ts"
   ]
  },
@@ -1768,6 +1872,12 @@
   ]
  },
  {
+  "key": "a reach",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "A rematch of a draw",
   "files": [
    "lib/matchmaking.ts"
@@ -1789,6 +1899,12 @@
   "key": "A split decision: the judges scored it {cards}",
   "files": [
    "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "a stance",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -1848,6 +1964,7 @@
  {
   "key": "a win",
   "files": [
+   "lib/ask/tools.ts",
    "lib/preview.ts"
   ]
  },
@@ -2156,6 +2273,12 @@
   "key": "An administrator has confirmed that you are, or act for, these fighters. Your corrections to their own details (not to fights) are applied at once, without a source.",
   "files": [
    "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "an age",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -7130,6 +7253,12 @@
   ]
  },
  {
+  "key": "No upcoming fight is scheduled for {name}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "No upcoming fights are scheduled yet.",
   "files": [
    "app/[locale]/page.tsx"
@@ -10182,6 +10311,24 @@
  },
  {
   "key": "The data cannot separate any trainer from average.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "The data does not give {what} for {name}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "The data has no current gym for {name}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "The data has no current head trainer for {name}.",
   "files": [
    "lib/ask/tools.ts"
   ]

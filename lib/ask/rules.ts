@@ -5,6 +5,7 @@ import { normalize } from "../fighter-search";
 import { allowedSlips, editDistance, wordsOf } from "../fuzzy";
 import type { Names } from "../i18n/t";
 import type { Call } from "./types";
+import type { FighterFact } from "./tools";
 
 /** Folded text with the punctuation people type next to names taken out ("Villalba's record", "Al-Qahtani: who is better"), applied to the question and the names alike so "H." in a name still matches. */
 const plain = (s: string) => normalize(s).replace(/['’]s\b/g, " ").replace(/[:;,!?؟،()"“”.]/g, " ").replace(/\s+/g, " ").trim();
@@ -269,6 +270,28 @@ const LIST_AS_SORT: Record<string, string> = { wins: "wins", kos: "kos", "ko-rat
 const ABOUT_FIGHTERS = /\b(fighters?|boxers?|debut\w*|champions?|prospects?)\b/;
 const ABOUT_FIGHTS = /\b(knockouts?|kos?|stoppages?|fights?|bouts?|decisions?|draws?|finishes)\b/;
 
+/**
+ * The one fact a question about one fighter asks for, if it asks for one: "how tall is X", "who trains X", "when does X fight next", "what is X's knockout rate".
+ * The most specific wording first ("how many knockouts" is knockouts, not the record). Folded text, English and Arabic.
+ */
+const FACT_ASKED: [RegExp, FighterFact][] = [
+  [/\bnext (fight|bout|opponent)\b|\bfights?\b.*\bnext\b|\bwhen (does|is|will)\b.*\bfight\b|\bupcoming (fight|bout)\b|\bfight(ing)? (again|soon)\b|\bfight soon\b|نزاله القادم|نزال القادم/, "next_fight"],
+  [/\blast (fight|bout|opponent)\b|\bmost recent (fight|bout)\b|\bwhen did\b.*\b(last )?(fight|box)\b|\b(fought|fight|box|boxed) last\b|\blast (fought|boxed)\b|اخر نزال/, "last_fight"],
+  [/\bhow tall\b|\bheight\b|\btall is\b|طول/, "height"],
+  [/\breach\b|\barm span\b|امتداد|مدي الذراع/, "reach"],
+  [/\bhow old\b|\bage\b|\bborn\b|\bbirth(day| year| date)?\b|كم عمر|عمر/, "age"],
+  [/\bsouthpaw\b|\borthodox\b|\bstance\b|\bleft.?handed\b|\bright.?handed\b|\blefty\b|اعسر|وقفه/, "stance"],
+  [/\bwhere (is|was)\b.*\bfrom\b|\bnationality\b|\bwhich country\b|\bcountry\b|جنسيه|من اي بلد/, "country"],
+  [/\bgym\b|\bwhere does\b.*\btrain\b|\btrains? at\b|صاله/, "gym"],
+  [/\btrainer\b|\bcoach(es|ed)?\b|\bwho trains\b|\btrained by\b|مدرب/, "trainer"],
+  [/\bbelts?\b|\btitles?\b(?! (fights?|bouts?|wins?))|\bchampion\b|\bchamp\b|\bholds?\b|حزام|لقب/, "belts"],
+  [/\bknockouts?\b|\bkos?\b|\bko (rate|percentage)\b|ضربات (ال)?قاضيه/, "knockouts"],
+  [/\brating\b|\brated\b|\belo\b|\brank(ed|ing)?\b|\bhow good\b|تصنيف|ترتيب/, "rating"],
+  [/\bdivision\b|\bweight class\b|\bwhat weight\b|\bwhich weight\b|وزن/, "division"],
+  [/\brecord\b|\bhow many (fights?|bouts?|wins?|losses|times)\b|سجل|كم نزال|كم فوز/, "record"],
+];
+const SUPERLATIVE = /\b(most(?! recent)|highest|best|longest|top|worst|lowest|fewest|fastest|greatest)\b/;
+
 export const ARABIC_FOLDED = /[؀-ۿ]/;
 
 /** The no-key planner: turns a question into tool calls with patterns. It will not understand everything, and an unrecognised question yields no calls. */
@@ -294,6 +317,13 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const trainer = () => (trainerFound ??= { name: trainerNamed(w, question, rest) }).name;
 
   if (fighters.length >= 2 && !has(q, /\bmost\b|\bhighest\b/)) return [{ tool: "head_to_head", args: { a: fighters[0].name, b: fighters[1].name } }];
+
+  // one fighter named and one fact asked ("how tall is X", "what is X's knockout rate"): the answer is that fact, not the profile and not a list for everybody
+  if (fighters.length === 1 && !has(q, SUPERLATIVE)) {
+    const about = FACT_ASKED.find(([re]) => has(q, re))?.[1];
+    // (a trainer named in a question that says "trainer" is the trainers tool's question, even when a fighter has nearly the same name)
+    if (about && !(about === "trainer" && trainer())) return [{ tool: "fighter", args: { name: fighters[0].name, about } }];
+  }
 
   const filters = () => ({ tool: "fighters", args: withLimit(Object.fromEntries(Object.entries(f).filter(([k]) => k !== "text"))) });
   const numeric = f.minWins !== undefined || f.minKOs !== undefined || f.minKoRate !== undefined || f.minReach !== undefined || f.undefeated;

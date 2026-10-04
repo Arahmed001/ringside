@@ -100,10 +100,49 @@ const recordListTool: Tool = {
   },
 };
 
+/** The sentence that answers one question about one fighter, or says plainly that the data does not give the fact: an unknown is never filled in. */
+function factSentence(ctx: Ctx, b: BoxerFull, fact: FighterFact, more: { rank: number | null; held: ReturnType<typeof reignsOf>; trainer: { name: string } | undefined; recent: BoutRow[] }): string {
+  const { w, t } = ctx;
+  const name = t.name(b.name);
+  const gap = (what: string) => t("The data does not give {what} for {name}.", { what, name });
+  switch (fact) {
+    case "height": return b.heightCm !== null ? t("{name} is {cm} cm tall.", { name, cm: b.heightCm }) : gap(t("a height"));
+    case "reach": return b.reachCm !== null ? t("{name}'s reach is {cm} cm.", { name, cm: b.reachCm }) : gap(t("a reach"));
+    case "age": return b.age !== null ? t("{name} is {age} years old.", { name, age: b.age }) : gap(t("an age"));
+    case "stance": return b.stance ? t("{name} fights from a {stance} stance.", { name, stance: t(b.stance) }) : gap(t("a stance"));
+    case "country": return t("{name} is from {country}.", { name, country: countryName(b.country, t.locale) });
+    case "division": return t("{name} fights at {division}.", { name, division: divisionLabel(b.weightClass, b.sex, t) });
+    case "trainer": return more.trainer ? t("{name}'s head trainer is {trainer}.", { name, trainer: t.name(more.trainer.name) }) : t("The data has no current head trainer for {name}.", { name });
+    case "gym": {
+      const stint = (w.stintsByBoxer.get(b.id) ?? []).find((x) => x.role === "gym" && x.end === null);
+      const gym = stint?.orgId ? w.orgs.get(stint.orgId) : undefined;
+      return gym ? t("{name} trains at {gym}.", { name, gym: t.name(gym.name) }) : t("The data has no current gym for {name}.", { name });
+    }
+    case "last_fight": {
+      const x = more.recent[0];
+      if (!x) return t("{name} has no completed fights on record.", { name });
+      const result = x.winnerId === null ? t("a draw") : x.winnerId === b.id ? t("a win") : t("a loss");
+      return t("{name}'s last fight was on {date}: {result} against {opponent} ({method}).", { name, date: fmtDate(x.date, { month: "short", day: "numeric", year: "numeric" }, t.locale), result, opponent: t.name(x.redId === b.id ? x.blueName : x.redName), method: methodLabel(x.method, x.endRound, t) });
+    }
+    case "next_fight": {
+      const next = (w.boutsByBoxer.get(b.id) ?? []).filter((x) => x.upcoming).sort((p, q) => p.date.localeCompare(q.date))[0]; // (a bout that fell off the card, or on a called-off one, is not upcoming)
+      return next ? t("{name}'s next fight is against {opponent} on {date}.", { name, opponent: t.name(next.redId === b.id ? next.blueName : next.redName), date: fmtDate(next.date, { month: "short", day: "numeric", year: "numeric" }, t.locale) }) : t("No upcoming fight is scheduled for {name}.", { name });
+    }
+    case "record": return t("{name} has had {n} fights: {record}.", { name, n: b.wins + b.losses + b.draws, record: recordStr(b) });
+    case "knockouts": return t("{name} has {kos} knockouts in {wins} wins ({pct}%).", { name, kos: b.kos, wins: b.wins, pct: b.wins ? Math.round((100 * b.kos) / b.wins) : 0 });
+    case "rating": return t("{name} is rated {elo}{rank}.", { name, elo: Math.round(b.rating), rank: more.rank ? t(", number {n} in the division", { n: more.rank }) : "" });
+    case "belts": return more.held.length ? t("{name} holds {belts}.", { name, belts: more.held.map((h) => beltLabel(h.belt, t)).join("; ") }) : t("{name} holds no current belt.", { name });
+  }
+}
+
+/** What a question about one fighter can ask for, so the answer is that fact and not the whole profile. */
+export const FIGHTER_FACTS = ["height", "reach", "age", "stance", "country", "division", "trainer", "gym", "last_fight", "next_fight", "record", "knockouts", "rating", "belts"] as const;
+export type FighterFact = (typeof FIGHTER_FACTS)[number];
+
 const fighter: Tool = {
   name: "fighter",
-  about: "Everything about one fighter, by name: record, rating, rank, style, streak, belts, team and recent fights.",
-  args: [{ name: "name", kind: "string", about: "the fighter's name" }],
+  about: "Everything about one fighter, by name: record, rating, rank, style, streak, belts, team and recent fights. Give `about` when the question asks for one fact, such as a height or the next fight.",
+  args: [{ name: "name", kind: "string", about: "the fighter's name" }, { name: "about", kind: "enum", about: "the one fact asked for, if only one", values: FIGHTER_FACTS }],
   run(ctx, args) {
     const { w, t } = ctx;
     const b = findFighter(ctx, str(args, "name"));
@@ -114,9 +153,11 @@ const fighter: Tool = {
     const trainer = head?.personId ? w.people.get(head.personId) : undefined;
     const recent = (w.boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming && x.method).slice(-5).reverse();
     const res = (x: BoutRow) => (x.winnerId === null ? t("D") : x.winnerId === b.id ? t("W") : t("L"));
+    const fact = FIGHTER_FACTS.find((x) => x === str(args, "about"));
+    const direct = fact ? factSentence(ctx, b, fact, { rank, held, trainer, recent }) : null;
     return {
       tool: "fighter", args,
-      summary: (() => {
+      summary: direct ?? (() => {
         const v = { name: t.name(b.name), division: divisionLabel(b.weightClass, b.sex, t), country: countryName(b.country, t.locale), record: recordStr(b), elo: Math.round(b.rating), rank: rank ? t(", number {n} in the division", { n: rank }) : "" };
         return b.age !== null ? t("{name} is a {age}-year-old {division} from {country}: {record}, rated {elo}{rank}.", { ...v, age: b.age }) : t("{name} is a {division} from {country}: {record}, rated {elo}{rank}.", v); // an unknown age is left out, not guessed
       })(),

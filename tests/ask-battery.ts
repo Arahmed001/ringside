@@ -6,10 +6,10 @@ import { pound4pound } from "../lib/rankings";
  * of what the rule-based planner (no API key) understands, not a list of what it was built to understand: add questions as people ask ones it gets wrong.
  * `tool: null` means no tool can answer it, and the right behaviour is to say so rather than to answer something else.
  */
-export interface Case { q: string; tool: string | string[] | null; args?: Record<string, unknown>; lang?: "en" | "ar"; note?: string; batch?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 }
+export interface Case { q: string; tool: string | string[] | null; args?: Record<string, unknown>; lang?: "en" | "ar"; note?: string; batch?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 }
 
 export function battery(w: World): Case[] {
-  return [...batch1(w).map((c) => ({ ...c, batch: 1 as const })), ...batch2(w).map((c) => ({ ...c, batch: 2 as const })), ...batch3(w).map((c) => ({ ...c, batch: 3 as const })), ...batch4(w).map((c) => ({ ...c, batch: 4 as const })), ...batch5(w).map((c) => ({ ...c, batch: 5 as const })), ...batch6(w).map((c) => ({ ...c, batch: 6 as const })), ...batch7().map((c) => ({ ...c, batch: 7 as const })), ...batch8().map((c) => ({ ...c, batch: 8 as const }))];
+  return [...batch1(w).map((c) => ({ ...c, batch: 1 as const })), ...batch2(w).map((c) => ({ ...c, batch: 2 as const })), ...batch3(w).map((c) => ({ ...c, batch: 3 as const })), ...batch4(w).map((c) => ({ ...c, batch: 4 as const })), ...batch5(w).map((c) => ({ ...c, batch: 5 as const })), ...batch6(w).map((c) => ({ ...c, batch: 6 as const })), ...batch7().map((c) => ({ ...c, batch: 7 as const })), ...batch8().map((c) => ({ ...c, batch: 8 as const })), ...batch9(w).map((c) => ({ ...c, batch: 9 as const }))];
 }
 
 function batch1(w: World): Case[] {
@@ -547,5 +547,30 @@ function batch8(): Case[] {
     { q: "who holds the most belts", tool: ["record_list", "champions"] },
     { q: "who is the oldest champion", tool: ["champions", "fighters"] },
     { q: "most knockouts in 2023", tool: null },
+  ];
+}
+
+/**
+ * Batch 9: one fact about one fighter, in words other than the ones the fact patterns were written from. Written after the facts had been built and measured
+ * once before the patterns were touched again; the answer must be that fact (the call names it in `about`), not the profile and not a list.
+ */
+function batch9(w: World): Case[] {
+  const [A, B] = pound4pound(w, 2);
+  const a = A.name, b = B.name;
+  const f = (q: string, about: string, who = a): Case => ({ q: q.replace("NAME", who), tool: "fighter", args: { name: who, about } });
+  return [
+    f("what's NAME's height in cm", "height"), f("tell me NAME's height", "height"), f("how tall would you say NAME is", "height"),
+    f("what age is NAME", "age"), f("when was NAME born", "age"), f("NAME's age", "age"), f("how old is NAME these days", "age", b),
+    f("is NAME left-handed", "stance"), f("what's NAME's stance", "stance", b), f("is NAME an orthodox fighter", "stance"),
+    f("which country is NAME from", "country"), f("NAME nationality", "country"), f("what's NAME's home country", "country", b),
+    f("what division is NAME in", "division"), f("what weight does NAME fight at", "division"), f("which weight class is NAME", "division", b),
+    f("NAME coach", "trainer"), f("who's NAME's trainer", "trainer"), f("who coaches NAME", "trainer", b),
+    f("where does NAME train", "gym"), f("NAME's gym", "gym"), f("which gym is NAME with", "gym", b),
+    f("what's NAME's ko percentage", "knockouts"), f("how many KOs does NAME have", "knockouts"), f("NAME knockout power", "knockouts", b),
+    f("what's NAME rated", "rating"), f("NAME elo", "rating"), f("where does NAME rank", "rating", b), f("how good is NAME", "rating"),
+    f("is NAME a champion", "belts"), f("what belts does NAME hold", "belts"), f("does NAME hold any titles", "belts", b),
+    f("when is NAME's next fight", "next_fight"), f("who does NAME fight next", "next_fight"), f("is NAME fighting soon", "next_fight", b), f("NAME's upcoming bout", "next_fight"),
+    f("what was NAME's most recent fight", "last_fight"), f("who did NAME fight last", "last_fight"), f("NAME's last opponent", "last_fight", b), f("when did NAME last box", "last_fight"),
+    f("how many wins does NAME have", "record"), f("what's NAME's win loss record", "record"), f("how many losses has NAME had", "record", b), f("how many bouts has NAME fought", "record"),
   ];
 }
