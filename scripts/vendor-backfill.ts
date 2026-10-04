@@ -26,7 +26,7 @@ import { loadFeed } from "../lib/feed";
 import type { DataProvider } from "../lib/providers";
 import { countBySeverity, groupIssues, sanitizeFeed } from "../lib/validate";
 import { todayIso } from "../lib/clock";
-import { describePlan, foreignFighters, updateSince } from "../lib/vendor-backfill";
+import { acquireBackfillLock, describePlan, foreignFighters, releaseBackfillLock, updateSince } from "../lib/vendor-backfill";
 import { coherentCore, describeReconciliation, reconcileDb, reconcileFeed, recordGate, restrictFeed } from "../lib/vendor-verify";
 
 /** how many days the vendor's career totals may trail a result before a surplus counts as a contradiction (daily update audit only; a load is strict) */
@@ -42,6 +42,11 @@ async function main() {
   if (!key) throw new Error("Set BOXING_API_KEY (your RapidAPI key for the Boxing Data API).");
   const plan = flag("plan"), check = flag("check"), update = flag("update");
   const planCaches = plan && arg("cache-dir") !== undefined; // a plan told where to cache keeps the list pages: the 400-odd list requests are an hour of the plan's allowance
+  // one run at a time per key on this machine: they share the plan's hourly allowance (a plan that keeps nothing still spends it, so it is locked too)
+  const lock = acquireBackfillLock(key, { command: process.argv.slice(2).join(" ") });
+  const unlock = () => releaseBackfillLock(lock);
+  process.on("exit", unlock);
+  for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"] as const) process.on(sig, () => process.exit(130));
   if (!plan || planCaches) storageStatus(); // before anything is created: if storing is switched off (=0) the refusal leaves no cache and no empty database behind
   const gapMs = Number(arg("gap-ms") ?? 300);
   const perHourText = arg("per-hour") ?? process.env.BOXING_API_PER_HOUR; // the plan's own hourly limit: 500 on the Mega plan

@@ -16,6 +16,7 @@ import { DatabaseSync } from "node:sqlite";
 const KEY = "sk-cli-test-key-0123456789abcdef0123456789";
 const TODAY = "2026-10-03";
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "bda-cli-"));
+process.env.RINGSIDE_LOCK_DIR = path.join(root, "locks"); // the one-run-per-key lock lives with this test, not in the shared temp directory
 after(() => fs.rmSync(root, { recursive: true, force: true }));
 
 const fighter = (id: string, name: string, division: string) => ({
