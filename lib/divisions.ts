@@ -47,9 +47,13 @@ export function limitLabel(d: Division, t: T = tEn): string {
   return d.lb === null ? t("Over 200 lb") : t("{lb} lb · {kg} kg", { lb: d.lb, kg: d.kg ?? "" });
 }
 
-/** Maps vendor strings ("Jr. Welterweight", "Light-Middle", "154lbs", "Super-Middle") to a canonical name. */
+/**
+ * Maps vendor strings ("Jr. Welterweight", "Light-Middle", "154lbs", "Super-Middle", "Women's Featherweight", "Super Light (140)", "Over 200 lbs") to a canonical
+ * name. A "Women's" or "Female" prefix is dropped (the sex is its own field, and the divisions share names), and so is a limit in brackets ("(140)", "(126 lbs)").
+ */
 export function normalizeDivision(raw: string): string | null {
-  const s = raw.toLowerCase().replace(/[.\-_]/g, " ").replace(/\bjr\b/, "jr").replace(/\s+/g, " ").trim();
+  const s = raw.toLowerCase().replace(/[.\-_]/g, " ").replace(/\bjr\b/, "jr").replace(/^(women'?s|womens|female|ladies|men'?s|male)\s+/, "").replace(/\s*\(\s*\d{2,3}\s*\+?\s*(?:lbs?|pounds)?\s*\)/, "").replace(/\s+/g, " ").trim();
+  if (/^(?:over|above)\s*200\b|^200\s*\+/.test(s)) return "Heavyweight"; // the limit's own words: "over 200 lbs" is the heavyweight limit, not the cruiserweight one (the pound match below would read 200)
   const exact = byName.get(s) ?? byAlias.get(s);
   if (exact) return exact.name;
   const stripped = s.replace(/\s*weight$/, "");
