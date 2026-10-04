@@ -63,3 +63,13 @@ test("a signed number in Arabic text keeps its sign in front of the digits (roun
   const bad = Object.entries(ar).filter(([, v]) => typeof v === "string" && /[؀-ۿ][^\d]*?[\s(][+−]\d/.test(v)).map(([k]) => k.slice(0, 50));
   assert.deepEqual(bad, [], "no Arabic string has a bare sign in front of a number");
 });
+
+test("'20+' in Arabic text keeps its plus after the digits (round 71)", async () => {
+  assert.equal(flippedRecords(page("<p>أخف بـ 8+ رطل</p>")).length, 1, "after Arabic words a plus after the digits is drawn before them: '+8'");
+  assert.equal(flippedRecords(page("<p>أخف بـ ⁦8+⁩ رطل</p>")).length, 0, "an isolate is the cure");
+  assert.equal(flippedRecords(page('<p>أخف بـ <bdi dir="ltr">8+</bdi> رطل</p>')).length, 0);
+  assert.equal(flippedRecords(page("<p>سجل 8 فوز</p>")).length, 0, "a number with no plus is fine");
+  const ar = JSON.parse((await import("node:fs")).readFileSync("i18n/ar.json", "utf8")) as Record<string, string>;
+  const bad = Object.entries(ar).filter(([, v]) => typeof v === "string" && /[؀-ۿ][^\d⁦]*?[\s(](\d[\d.,]*|\{\w+\})\+(?=[\s)،.]|$)/.test(v)).map(([k]) => k.slice(0, 40));
+  assert.deepEqual(bad, [], "no Arabic string has '{n}+' or '8+' unisolated after Arabic words");
+});
