@@ -110,6 +110,8 @@ test("the planner sends a record question to the fighter search and keeps the li
   assert.deepEqual(rules.planByRules("upcoming fights for fighters on a winning streak", w, {}), [], "no tool has both the events and the cut");
   assert.deepEqual(first("most wins among fighters who have never been knocked out"), { tool: "fighters", args: { maxStopped: 0, sort: "wins" } }, "a list cannot be cut by it: a search sorted the same way");
   assert.deepEqual(rules.planByRules("upcoming fights of fighters who have not fought in over a year", w, {}), [], "an events word and a cut on when they last fought");
+  assert.deepEqual(rules.planByRules("who has the longest winning streak among welterweights who have never been stopped", w, {}), [], "a list that cannot be cut by the fact is no answer, not a search sorted by rating");
+  assert.deepEqual(rules.planByRules("longest unbeaten run among fighters who have never been knocked out", w, {}), []);
   assert.deepEqual(rules.planByRules("fighters with the most draws", w, {}), [], "no list of draws: no answer, not fighters with a draw");
   assert.deepEqual(rules.planByRules("who has drawn the most", w, {}), []);
   assert.equal(first("when did Marcus Larkin last fight")?.tool, "fighter", "a named fighter's last fight is still that fact");
