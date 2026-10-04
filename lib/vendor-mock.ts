@@ -84,15 +84,26 @@ function apiFight(w: MockWorld, f: MockFight) {
     id: f.id, title: `${A.name} vs ${B.name}`, date: `${f.date}T02:00:00`, venue: "Arena", location: city, scheduled_rounds: 12, status: f.status,
     fighters: { fighter_1: side(f.a, A.name, f.winner === "a"), fighter_2: side(f.b, B.name, f.winner === "b") },
     results: done ? { outcome: f.outcome, outcome_long: f.outcome, round: f.round } : null,
+    scores: done && f.outcome === "UD" ? ["116-112", "115-113", "117-111"] : null,
     event: { id: f.event, title: `Card ${f.event}`, date: `${f.date}T00:00:00`, location: city, venue: "Arena" },
     division: { name: f.division }, titles: [],
   };
+}
+/** A fighter's knockouts and times stopped, counted from the league's own fights (so they agree with the career record the mock states). */
+function knockouts(w: MockWorld, id: string) {
+  let koWins = 0, stopped = 0;
+  for (const f of w.fights) {
+    if (f.status !== "FINISHED" || (f.outcome !== "KO" && f.outcome !== "TKO") || (f.a !== id && f.b !== id)) continue;
+    const won = f.winner === "a" ? f.a : f.winner === "b" ? f.b : null;
+    if (won === id) koWins++; else if (won) stopped++;
+  }
+  return { ko_wins: koWins, stopped };
 }
 function apiFighter(w: MockWorld, id: string) {
   const p = w.fighters.get(id)!, c = w.careers.get(id) ?? { wins: 0, losses: 0, draws: 0 };
   return {
     id, name: p.name, alias: null, gender: "m", birth_year: p.birthYear, height: null, height_cm: 160 + (p.birthYear % 30), height_in: null, nationality: p.country, nationality_code: "XX", nickname: null,
-    reach: null, reach_cm: null, reach_in: 66 + (p.birthYear % 10), stance: p.birthYear % 3 ? "orthodox" : "southpaw", stats: { ...c, total_bouts: c.wins + c.losses + c.draws },
+    reach: null, reach_cm: null, reach_in: 66 + (p.birthYear % 10), stance: p.birthYear % 3 ? "orthodox" : "southpaw", stats: { ...c, total_bouts: c.wins + c.losses + c.draws, ...knockouts(w, id), total_rounds: 0 },
     debut: null, division: { id: "d", name: p.division, weight_lb: 147 }, titles: [], updated_at: "2026-09-29T18:04:12.400000",
   };
 }

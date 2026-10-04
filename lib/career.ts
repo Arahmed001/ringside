@@ -21,4 +21,20 @@ export function careerView(b: Rec & { vendorRecord?: Rec | null }): CareerView {
     return { wins: v.wins, losses: v.losses, draws: v.draws, source: "supplier", total: v.wins + v.losses + v.draws, held };
   return { wins: b.wins, losses: b.losses, draws: b.draws, source: "loaded", total: held, held };
 }
+
+export interface KoView {
+  /** career knockouts to show, knockouts as a share of wins, and times stopped */
+  kos: number; rate: number; stopped: number | null;
+  /** "supplier": the supplier's career totals, because Ringside holds only part of the career and the supplier states its knockouts; otherwise what the fights held add up to */
+  source: "loaded" | "supplier";
+}
+/**
+ * The knockout figures to show beside `careerView`'s record. When the record shown is the supplier's career total (a career held in part) and the supplier also states
+ * the career's knockouts, those are shown, so a 19-0-1 record does not sit beside "1 KO" counted from one fight held. Otherwise they are counted from the fights held.
+ */
+export function koView(b: Rec & { vendorRecord?: (Rec & { koWins?: number; stopped?: number }) | null; kos: number; koRate: number; koLosses: number }): KoView {
+  const c = careerView(b), v = b.vendorRecord;
+  if (c.source === "supplier" && v && typeof v.koWins === "number") return { kos: v.koWins, rate: c.wins ? v.koWins / c.wins : 0, stopped: typeof v.stopped === "number" ? v.stopped : null, source: "supplier" };
+  return { kos: b.kos, rate: b.koRate, stopped: b.koLosses, source: "loaded" };
+}
 export const recordStr = (b: Rec & { vendorRecord?: Rec | null }) => { const c = careerView(b); return `${c.wins}-${c.losses}-${c.draws}`; };

@@ -51,6 +51,9 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   const countries = countryList(w);
   if (countries.length) { page(`/countries/${countries[0].slug}`, "country with the most fighters"); if (countries.length > 1) page(`/countries/${countries[countries.length - 1].slug}`, "country with the fewest fighters"); }
   out.push({ path: "/countries/atlantis", kind: "missing", label: "a country nobody is from" });
+  // a decision whose scores the supplier gave without the judges: the bout page shows them as given, and says what they do not say
+  const scoredBout = w.bouts.find((b) => b.vendorScores?.length && !(w.scorecardsByBout.get(b.id)?.length));
+  if (scoredBout) page(`/bouts/${scoredBout.id}`, "bout with the supplier's scores (no judges named)");
   if (star && woman) page(`/compare?a=${star.slug}&b=${boxers[1].slug}`, "matchup");
   page(`/boxers?q=${q("southpaw welterweights with 10+ KOs")}`, "plain-English search");
   page("/boxers?sex=female", "women's fighter list");

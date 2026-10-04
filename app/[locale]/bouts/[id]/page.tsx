@@ -189,6 +189,16 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
         <section><SectionTitle eyebrow={t("Official result")} title={t("Scorecards")} /><div className="card p-5"><ScoreCards cards={cards} redName={t.name(red.name)} blueName={t.name(blue.name)} /></div></section>
       )}
 
+      {cards.length === 0 && b.vendorScores && b.vendorScores.length > 0 && (
+        <section>
+          <SectionTitle eyebrow={t("Official result")} title={t("Judges' scores")} />
+          <div className="card p-5">
+            <ul className="flex flex-wrap gap-2" dir="ltr">{b.vendorScores.map((x, i) => <li key={i} className="chip tabular text-base">{x}</li>)}</ul>
+            <p className="mt-3 text-xs text-muted">{t("As given by the data supplier, in its order. It does not say which judge gave which score, or which corner each number belongs to.")}</p>
+          </div>
+        </section>
+      )}
+
       {punches.length > 0 && (
         <section><SectionTitle eyebrow={t("Fight stats")} title={t("Punch statistics")} /><div className="card p-5"><PunchStats lines={punches} redId={red.id} blueId={blue.id} redName={t.name(red.name)} blueName={t.name(blue.name)} /></div></section>
       )}

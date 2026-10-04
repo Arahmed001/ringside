@@ -33,7 +33,7 @@ export interface ProviderBoxer {
   debutDate?: string;
   retiredDate?: string;
   /** The career record (wins, losses, draws) as the feed states it, when it states all three. Kept beside the record the loaded fights add up to, so a page can say which one it shows. */
-  careerRecord?: { wins: number; losses: number; draws: number };
+  careerRecord?: { wins: number; losses: number; draws: number; /** career knockouts and times stopped, when the feed gives them (never more than the wins and losses they are part of) */ koWins?: number; stopped?: number };
 }
 
 export interface ProviderEvent {
@@ -51,6 +51,8 @@ export interface ProviderEvent {
 }
 
 export interface ProviderBout {
+  /** the judges' scores as the feed gave them ("116-109"), in the feed's order, without judges or corners: shown as given and never assigned to a fighter */
+  scores?: string[];
   externalId: string;
   eventExternalId: string;
   redExternalId: string;
