@@ -14,11 +14,12 @@ export async function SectionTitle({ eyebrow, title, href, cta }: { eyebrow?: st
   const t = await getT();
   return (
     <div className="mb-4 flex items-end justify-between gap-4">
-      <div>
+      <div className="min-w-0">
         {eyebrow && <div className="eyebrow mb-1">{eyebrow}</div>}
         <h2 className="font-display text-3xl font-bold uppercase leading-none">{title}</h2>
       </div>
-      {href && <Link href={href} className="inline-block py-1 text-sm text-muted transition hover:text-ink">{cta ?? t("View all")} <span className="inline-block rtl:rotate-180">→</span></Link>}
+      {/* a short link ("View all", "Full card") stays on one line and the title wraps instead; a long one may wrap */}
+      {href && <Link href={href} className={`inline-block py-1 text-sm text-muted transition hover:text-ink ${(cta ?? t("View all")).length <= 18 ? "shrink-0 whitespace-nowrap" : ""}`}>{cta ?? t("View all")} <span className="inline-block rtl:rotate-180">→</span></Link>}
     </div>
   );
 }
