@@ -9,8 +9,8 @@ import type { Filters } from "./ai";
  * always was (the chip under the search says so), except an age ("30 years old", "aged 30"), which is exactly that age.
  */
 
-type Measure = "wins" | "losses" | "kos" | "bouts" | "age" | "height" | "reach";
-type Cmp = "ge" | "gt" | "le" | "lt" | "eq";
+export type Measure = "wins" | "losses" | "kos" | "bouts" | "age" | "height" | "reach";
+export type Cmp = "ge" | "gt" | "le" | "lt" | "eq";
 
 const KEYS: Record<Measure, [keyof Filters, keyof Filters]> = {
   wins: ["minWins", "maxWins"], losses: ["minLosses", "maxLosses"], kos: ["minKOs", "maxKOs"], bouts: ["minBouts", "maxBouts"],
@@ -40,7 +40,7 @@ const FEET = "(?<ft>\\d)(?:\\s*(?:feet|foot|ft)\\b\\s*(?<in1>\\d{1,2})?|'\\s*(?<
 const CM = "(?:cm|centimet(?:er|re)s?)";
 
 /** The bounds a comparison word and a number put on a measure; `n` may be fractional (feet), so each rounds the way the word says. */
-function bound(cmp: Cmp, n: number): [number | undefined, number | undefined] {
+export function bound(cmp: Cmp, n: number): [number | undefined, number | undefined] {
   switch (cmp) {
     case "ge": return [Math.ceil(n), undefined];
     case "gt": return [Math.floor(n) + 1, undefined];
@@ -50,14 +50,14 @@ function bound(cmp: Cmp, n: number): [number | undefined, number | undefined] {
   }
 }
 
-function put(f: Filters, m: Measure, lo: number | undefined, hi: number | undefined) {
+export function put(f: Filters, m: Measure, lo: number | undefined, hi: number | undefined) {
   const [a, b] = KEYS[m];
   const rec = f as Record<string, number | undefined>;
   if (lo !== undefined) rec[a as string] = Math.max(rec[a as string] ?? -Infinity, lo);
   if (hi !== undefined) rec[b as string] = Math.min(rec[b as string] ?? Infinity, hi);
 }
 
-const cmpOf = (g: Record<string, string | undefined> | undefined, fallback: Cmp): Cmp =>
+export const cmpOf = (g: Record<string, string | undefined> | undefined, fallback: Cmp): Cmp =>
   g?.ge ? "ge" : g?.gt ? "gt" : g?.le ? "le" : g?.lt ? "lt" : g?.eq ? "eq" : g?.sge ? "ge" : g?.sle ? "le" : fallback;
 
 /** Reads every quantity out of `q`, sets the filters, and returns the sentence with those words taken out so no later rule reads them again. */

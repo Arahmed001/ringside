@@ -16,6 +16,7 @@ import { dictOf } from "./i18n/dicts";
 import { AiLimited, reserveAiCall } from "./ai-guard";
 import { Lru } from "./lru";
 import { peelQuantities } from "./search-quantities";
+import { peelQuantitiesAr } from "./search-quantities-ar";
 
 const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-haiku-4-5-20251001";
 export const hasKey = () => !!process.env.ANTHROPIC_API_KEY;
@@ -112,13 +113,25 @@ function peelTeam(q: string, f: Filters): string {
   return q;
 }
 
+/** How a division is said in Arabic besides its name in the dictionary (compared after normalize()). */
+const DIVISION_SAYINGS_AR: Record<string, string[]> = {
+  Heavyweight: ["ثقيلو الوزن", "ثقيلي الوزن", "ثقيل الوزن", "وزن ثقيل", "الثقيل"], "Light Heavyweight": ["نصف الثقيل", "وزن نصف ثقيل", "نصف ثقيل"],
+  Middleweight: ["متوسطو الوزن", "متوسطي الوزن", "متوسط الوزن", "وزن متوسط"], "Super Middleweight": ["فوق المتوسط"],
+  Lightweight: ["خفيفو الوزن", "خفيفي الوزن", "خفيف الوزن", "وزن خفيف"], Welterweight: ["ويلتر"], "Super Welterweight": ["فوق الويلتر"], Cruiserweight: ["كروزر"],
+  Featherweight: ["ريشه"], "Super Featherweight": ["فوق الريشه"], Bantamweight: ["ديك"], "Super Bantamweight": ["فوق الديك"],
+  Flyweight: ["ذبابه"], "Super Flyweight": ["فوق الذبابه"], "Light Flyweight": ["الذبابه الخفيف"],
+};
+
 /** Arabic phrases the rule-based parser understands (with a key, Claude parses any wording; this is the no-key fallback). Compared after normalize(). */
 function arabicHints(q: string, f: Filters, countries: string[]) {
-  const s = normalize(q);
-  if (!/[\u0600-\u06ff]/.test(s)) return;
+  const folded = normalize(q);
+  if (!/[\u0600-\u06ff]/.test(folded)) return;
+  const s = peelQuantitiesAr(folded, f); // the numbers first, so "أكثر من 20 فوزا" is not just "20 wins" and "10 هزائم" is not read for anything else
   const ar = dictOf("ar");
   const tr = (en: string) => { const v = ar[en]; return typeof v === "string" ? normalize(v) : ""; };
-  for (const d of [...DIVISIONS].sort((a, b) => tr(b.name).length - tr(a.name).length)) { const x = tr(d.name); if (x && s.includes(x)) { f.weightClass ??= d.name; break; } }
+  // the division by its name in the dictionary, or by the way people say it ("ثقيلو الوزن", "فوق المتوسط"); the longest phrase first, so "نصف الثقيل" is not "الثقيل"
+  const phrases = [...DIVISIONS.map((d) => [tr(d.name), d.name] as const), ...Object.entries(DIVISION_SAYINGS_AR).flatMap(([name, said]) => said.map((x) => [x, name] as const))].filter(([x]) => x);
+  for (const [x, name] of phrases.sort((a, b) => b[0].length - a[0].length)) if (s.includes(x)) { f.weightClass ??= name; break; }
   for (const c of [...new Set([...countries, ...WORLD_COUNTRIES])]) { const x = normalize(countryName(c, "ar")); if (x !== normalize(c) && s.includes(x)) f.country ??= c; }
   const has = (re: RegExp) => re.test(s);
   if (has(/ساوثباو|اعسر|يسار/)) f.stance ??= "Southpaw";
@@ -126,15 +139,17 @@ function arabicHints(q: string, f: Filters, countries: string[]) {
   if (has(/نساء|سيدات|اناث|ملاكمات/)) f.sex ??= "female"; else if (has(/رجال|ذكور/)) f.sex ??= "male";
   if (has(/لم يهزم|لم يخسر|بدون هزيمه|بدون خساره|دون خساره|غير مهزوم|ارقام مثاليه/)) f.undefeated = true;
   if (has(/معتزل/)) f.active = false; else if (has(/نشط|حاليا/)) f.active ??= true;
-  const wins = s.match(/(\d+)\+?\s*(?:فوز|فوزا|انتصار|انتصارات)/); if (wins) f.minWins ??= +wins[1];
-  const kos = s.match(/(\d+)\+?\s*(?:ضربه قاضيه|ضربات قاضيه|ك او)/); if (kos) f.minKOs ??= +kos[1];
-  if (has(/ضربات قاضيه|قاتل|لكمه قويه|قوه ضرب/) && !kos) f.archetype ??= "Knockout Artist";
+  // champions: now (the live belts), formerly, or ever; a champion who is also something else is a search, not the champions list
+  const AR = "\\u0600-\\u06ff";
+  if (new RegExp(`(?<![${AR}])(?:ابطال|بطل|بطله)(?:ا|ان|ين)?\\s+سابق\\S*|(?<![${AR}])سابق\\S*\\s+(?:ابطال|بطل)`).test(s)) f.champion = "former";
+  else if (new RegExp(`كانوا ابطال|كان بطلا|كانت بطله|سبق\\S*\\s+(?:\\S+\\s+){0,3}(?:بطل|ابطال|حزام|احزمه|لقب)`).test(s) || (has(/معتزل/) && new RegExp(`(?<![${AR}])(?:ابطال|بطل)(?![${AR}])`).test(s))) f.champion = "ever";
+  else if (new RegExp(`(?<![${AR}])(?:ابطال|بطل)(?![${AR}])`).test(s)) f.champion = "current";
+  if (has(/ضربات قاضيه|قاتل|لكمه قويه|قوه ضرب/)) f.archetype ??= "Knockout Artist"; // (a count of them was taken out above)
   if (has(/تقني|فني/)) f.archetype ??= "Technician";
   if (has(/هجوم مضاد/)) f.archetype ??= "Counter-Puncher";
   if (has(/شاب|صاعد|واعد/)) f.maxAge ??= 26;
   if (has(/مخضرم|كبار السن/)) f.minAge ??= 35;
   if (has(/افضل|الاعلي تصنيفا|الاقوي/)) f.sort ??= "rating";
-  const reach = s.match(/(?:امتداد|مدي)\D{0,12}(\d{3})/); if (reach) f.minReach ??= +reach[1];
 }
 
 export function heuristicParse(q: string, countries: string[]): Filters {

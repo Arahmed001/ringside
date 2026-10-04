@@ -1,6 +1,7 @@
 import type { World } from "../world";
 import type { BoxerFull } from "../types";
 import { heuristicParse, type Filters } from "../ai";
+import { westernize } from "../search-quantities-ar";
 import { normalize } from "../fighter-search";
 import { allowedSlips, editDistance, wordsOf } from "../fuzzy";
 import type { Names } from "../i18n/t";
@@ -237,21 +238,21 @@ const has = (q: string, re: RegExp) => re.test(q);
 /** Question -> list id, most specific first. English and Arabic wording; q is already normalised (folded, lower-case). */
 const LISTS: [RegExp, string][] = [
   [/(fastest|quickest) (ever )?(knock ?outs?|kos?|finish(es)?|stoppages?)|اسرع.*(ضربه قاضيه|ايقاف|حسم)/, "fastest-kos"],
-  [/most knockdowns|اكثر.*اسقاط/, "knockdowns"],
-  [/most defen[cs]es in a (single )?reign|most dominant (title )?reigns?|اكثر.*(دفاع|دافع).*عهد/, "reign-defenses"],
-  [/most (successful |title )?defen[cs]es|defended .*\bthe most\b|اكثر.*(دفاع|دافع)/, "defenses"],
+  [/most knockdowns|اكثر(?! من \d).*اسقاط/, "knockdowns"],
+  [/most defen[cs]es in a (single )?reign|most dominant (title )?reigns?|اكثر(?! من \d).*(دفاع|دافع).*عهد/, "reign-defenses"],
+  [/most (successful |title )?defen[cs]es|defended .*\bthe most\b|اكثر(?! من \d).*(دفاع|دافع)/, "defenses"],
   [/longest (title )?reign|(longest|most).*\b(held|hold|holding)\b.*(title|belt)|held .*(title|belt).*longest|اطول.*(عه[دو]|حكم|فتره حمل)/, "longest-reign"],
-  [/most (world |major )?title (fight |bout )?wins|most title (fights?|bouts?) won|(won|win|winning) the most (world |major )?title (fights?|bouts?)|اكثر.*فوز.*(لقب|الالقاب)/, "title-wins"],
+  [/most (world |major )?title (fight |bout )?wins|most title (fights?|bouts?) won|(won|win|winning) the most (world |major )?title (fights?|bouts?)|اكثر(?! من \d).*فوز.*(لقب|الالقاب)/, "title-wins"],
   [/biggest upsets?|greatest upsets?|biggest shocks?|most (one.sided |shocking |stunning |surprising )?(upsets?|shocks?)\b|most (surprising|shocking|stunning|unexpected) (results?|outcomes?|wins?|fights?)|اكبر.*مفاج/, "upsets"],
   [/(longest|best|biggest) (winning |win |unbeaten |undefeated )?(streak|run)|consecutive wins|اطول.*(سلسله|انتصارات متتاليه)/, "win-streak"],
   [/(highest|best) (ko|knockout) (rate|percentage|ratio)|knockout (rate|percentage|ratio)|(punches|hits) the hardest|hardest (puncher|hitter)s?|biggest punchers?|اعلي نسبه.*قاضيه/, "ko-rate"],
-  [/most (technical )?(ko|knockout|stoppage)s?( wins| victories)?\b|(ko|knockout) leaders?|اكثر.*(ضربات? قاضيه|ك ?او)/, "kos"],
+  [/most (technical )?(ko|knockout|stoppage)s?( wins| victories)?\b|(ko|knockout) leaders?|اكثر(?! من \d).*(ضربات? قاضيه|ك ?او)/, "kos"],
   [/most wins over (top|good|quality)|quality wins|(beaten|beat|defeated) the most (top|best|highly|quality|good)|(top|highly)[ -]rated (opponents|opposition)|(beaten|beat|defeated) the (best|highest|top)( rated)?|best (opposition|opponents)|(top|strongest|toughest) (opposition|opponents)/, "quality-wins"],
   [/multi.?division|champions? in (the )?most divisions|in (two|three|four) divisions|most (weight )?(classes|divisions)/, "divisions"],
   [/greatest (fights?|bouts?) (ever|of all time)|best fights? (ever|of all time)|اعظم النزالات/, "fights"],
   [/greatest (female |male |women.?s |men.?s )?(boxers?|fighters?)( of all time| ever)?|best (boxers?|fighters?) (of all time|ever)|goat\b|greatest of all time|اعظم (ملاكم|مقاتل)|افضل ملاكم في التاريخ/, "greatest"],
   [/(highest|best|top) (peak )?rating|(highest|best)[ -]rated (boxers?|fighters?) (ever|of all time|in history)|peak rating|highest rated ever|اعلي تصنيف/, "peak"],
-  [/most wins\b|(won|win|winning) (the )?most(?! recent)|winningest|اكثر.*(انتصارات|فوز)/, "wins"],
+  [/most wins\b|(won|win|winning) (the )?most(?! recent)|winningest|اكثر(?! من \d).*(انتصارات|فوز)/, "wins"],
 ];
 
 /** Words that put a question outside boxing unless it also says something boxing-like. */
@@ -318,7 +319,7 @@ export const ARABIC_FOLDED = /[؀-ۿ]/;
 
 /** The no-key planner: turns a question into tool calls with patterns. It will not understand everything, and an unrecognised question yields no calls. */
 export function planByRules(question: string, w: World, names: Names): Call[] {
-  const q = normalize(question).replace(/[?؟!.]+$/g, "");
+  const q = westernize(normalize(question)).replace(/[?؟!.]+$/g, "");
   // another sport, or a game: "who won the game last night" is not a question for the recent-events list
   if (has(q, OTHER_SPORTS) && !has(q, /box|fight|bout|ملاكم|نزال/)) return [];
   const countries = [...new Set(w.boxers.map((b) => b.country))];
@@ -331,6 +332,8 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const arLimit = q.match(/(?:افضل|اقوي|اعلي)\s+(\d{1,2}|اثنين|ثلاثه|اربعه|خمسه|سته|سبعه|ثمانيه|تسعه|عشره)\s/)?.[1];
   const limit = limitMatch ? Math.min(25, WORD_NUMBERS[limitMatch[1]] ?? +limitMatch[1]) : arLimit ? Math.min(25, AR_NUMBERS[arLimit] ?? +arLimit) : undefined;
   const scope = { ...(f.sex ? { sex: f.sex } : {}), ...(f.weightClass ? { division: f.weightClass } : {}) };
+  // a cut beyond division and sex ("top 5 welterweights with more than 10 wins"): the rankings have none, so the answer is a fighter search, not the ranking with the cut left out
+  const cut = Object.keys(f).some((k) => !["weightClass", "sex", "sort", "text"].includes(k) && !(k === "champion" && f.champion === "current"));
   const withLimit = (a: Record<string, unknown>) => (limit ? { ...a, limit } : a);
   const { fighters, rest } = claim(w, names, question);
   // a region is not a country the data has: "the best welterweight from South America" answered with every welterweight would look right and be wrong
@@ -338,7 +341,7 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   // a place in a ranking ("who is ranked number two at welterweight", "the third best heavyweight"): the fighter in that place, not the number one
   if (!fighters.length) {
     const place = placeAsked(question.toLowerCase()); // (the raw question: "3rd" is folded to "iii" in the normalised one)
-    if (place && (scope.division || has(q, /pound.for.pound|\bp4p\b|in the world|in boxing|overall/))) return [{ tool: "rankings", args: { ...scope, ...(place > 1 ? { position: place } : {}) } }];
+    if (place && !cut && (scope.division || has(q, /pound.for.pound|\bp4p\b|in the world|in boxing|overall/))) return [{ tool: "rankings", args: { ...scope, ...(place > 1 ? { position: place } : {}) } }];
   }
   // the facts about champions and the people behind them that no tool aggregates: no answer, not the list of champions
   const champ = has(q, /\b(champions?|champs?|title.?holders?|belt.?holders?)\b/);
@@ -395,7 +398,7 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
 
   // a division plus "of all time" is that division's greatest list; a division plus "right now" is its ranking
   if (scope.division && has(q, /\b(best|greatest|goat)\b/) && has(q, /of all time|\bever\b|in history|all.time/)) return [{ tool: "record_list", args: withLimit({ list: "greatest", ...scope }) }];
-  if (scope.division && has(q, /\b(best|top|number one|champion)\b/) && has(q, /right now|currently|today|at the moment|\balive\b|these days/)) return [{ tool: "rankings", args: withLimit(scope) }];
+  if (!cut && scope.division && has(q, /\b(best|top|number one|champion)\b/) && has(q, /right now|currently|today|at the moment|\balive\b|these days/)) return [{ tool: "rankings", args: withLimit(scope) }];
 
   for (const [re, list] of LISTS) {
     if (!has(q, re)) continue;
@@ -432,12 +435,12 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   if (fighters.length === 1) return [{ tool: "fighter", args: { name: fighters[0].name } }];
 
   // "the best three middleweights", in Arabic: the ranking of the division
-  if (scope.division && has(q, /(افضل|اقوي)\s*(\d+|\S+)?\s*(ملاكم|ملاكمين|ملاكمون|ملاكمات)/)) return [{ tool: "rankings", args: withLimit(scope) }];
+  if (!cut && scope.division && has(q, /(افضل|اقوي)\s*(\d+|\S+)?\s*(ملاكم|ملاكمين|ملاكمون|ملاكمات)/)) return [{ tool: "rankings", args: withLimit(scope) }];
   if (f.archetype && !has(q, /rank|pound.for.pound|p4p/)) return [filters()];
   if (has(q, /new to boxing|who should i (know|watch|follow)|where (do|should) i (start|begin)/)) return [{ tool: "rankings", args: withLimit({}) }];
   // "top 5 southpaws": a ranking is by division; a group of fighters from anywhere is a search
   if (GROUP_KEYS.some((k) => k in f) && has(q, /\btop \d+\b|\bbest\b|\bhighest rated\b/) && !has(q, /pound.for.pound|\bp4p\b/)) return [filters()];
-  if (has(q, /rankings?\b|ranked\b|top \d+|pound.for.pound|\bp4p\b|تصنيف|ترتيب/)) return [{ tool: "rankings", args: withLimit(scope) }];
+  if (!cut && has(q, /rankings?\b|ranked\b|top \d+|pound.for.pound|\bp4p\b|تصنيف|ترتيب/)) return [{ tool: "rankings", args: withLimit(scope) }];
   if (has(q, /(upcoming|next|coming up|future) (fights?|events?|cards?|shows?)|fight calendar|schedule|(what|which) (fights?|cards?|boxing|events?|bouts?) (is |are )?(on|coming|scheduled|happening|next)|who.?s (fighting|boxing)( next| tonight| this)?|who headlines|headliners?|next (big |major |title )?(fight|bout|card)|coming up|boxing is on|on this (week|month|weekend)|this weekend|tonight|next (week|month)|القادمه|القادم|جدول/)) return [{ tool: "events", args: withLimit({ when: "upcoming" }) }];
   if (has(q, /(recent|latest|last|most recent) (boxing |fight )?(fights?|events?|cards?|results?)|results? of the (most )?(recent|latest|last)|last (night|weekend)|yesterday|who won the most recent|اخر (نزالات|النزالات|الفعاليات|فعاليه|فعاليات|نتايج|نتيجه)|نتايج (اخر|الفعاليات)|(النزالات|الفعاليات|النتايج) الاخيره/)) return [{ tool: "events", args: withLimit({ when: "recent" }) }];
 
@@ -456,7 +459,7 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
  * retired) asked of a list that cannot be cut to one. Each is better refused than answered for everybody and all of history.
  */
 export function refusalReason(question: string): "year" | "span" | "group" | null {
-  const q = normalize(question).replace(/[?؟!.]+$/g, "");
+  const q = westernize(normalize(question)).replace(/[?؟!.]+$/g, "");
   const list = LISTS.some(([re]) => has(q, re));
   const span = has(q, SPAN);
   if (span && ABOUT_FIGHTS.test(q) && !ABOUT_FIGHTERS.test(q)) return "span";
