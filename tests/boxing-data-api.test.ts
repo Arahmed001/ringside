@@ -569,7 +569,7 @@ test("retries wait out Retry-After or back off 1, 2, 4 ... seconds (capped at 30
 
   let m = flaky([429, 200], { "retry-after": "2" });
   let p = make(m); await p.fetchBouts();
-  assert.deepEqual(sleeps.splice(0), [2000], "Retry-After is obeyed"); assert.equal(countCalls(m.calls, "/v2/fights"), 2);
+  assert.equal(sleeps.splice(0)[0], 2000, "Retry-After is obeyed (the requests after a refusal are then paced: round 75)"); assert.equal(countCalls(m.calls, "/v2/fights"), 2);
 
   m = flaky([503, 502, 200]); p = make(m); await p.fetchBouts();
   assert.deepEqual(sleeps.splice(0), [1000, 2000], "no Retry-After: 1 s, then 2 s");
@@ -668,4 +668,45 @@ test("through a real load: a decision with no winner is a draw only if the vendo
   const by = Object.fromEntries(bouts.map((b) => [b.externalId, b.method]));
   assert.deepEqual([by["bda-b-1"], by["bda-b-2"]], [null, "DRAW"], "Alpha has no draws (his fight with Bravo is not a draw); Bravo and Charlie each have one");
   assert.equal(p.notes().drawDemoted, 1); assert.equal(p.notes().drawInferred, 2);
+});
+
+test("a run given no --per-hour slows itself after the first rate-limit refusal; one given --per-hour is paced from the start; the run says so (round 75)", async () => {
+  const fighters = ["A1", "B1", "C1", "D1"];
+  const run = async (extra: Partial<Parameters<typeof B.boxingDataApiProvider>[0]>) => {
+    let refused = false;
+    const sleeps: number[] = [], lines: string[] = [];
+    const { impl } = mockFetch((path) => {
+      if (path === "/v2/fights/") return { body: env(fighters.slice(1).map((f, i) => fight(`f${i}`, fighters[i], f))) };
+      if (path === "/v2/fights/schedule") return { body: env([]) };
+      if (path === "/v2/fighters/C1" && !refused) { refused = true; return { status: 429, body: { message: "You have exceeded the rate limit per hour for your plan, MEGA, by the API provider" } }; }
+      return { body: env(fighter(path.split("/").pop()!, `F ${path.split("/").pop()}`)) };
+    });
+    const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0, sleep: async (ms) => { sleeps.push(ms); }, log: (m) => lines.push(m), patienceMs: 3_600_000, ...extra });
+    await p.fetchBoxers();
+    return { sleeps, lines };
+  };
+  const auto = await run({});
+  assert.ok(auto.lines.some((l) => /no --per-hour was given, so from now on .* 400 requests an hour/.test(l)), auto.lines.join("\n"));
+  assert.ok(auto.sleeps.filter((ms) => ms === 9000).length >= 1, `after the refusal each request waits 9 s (400 an hour): ${auto.sleeps}`);
+  const given = await run({ perHour: 450 });
+  assert.ok(!given.lines.some((l) => /no --per-hour was given, so from now on/.test(l)), "a run with its own pace keeps it");
+  assert.ok(given.sleeps.includes(8000), `450 an hour is 8 s apart: ${given.sleeps}`);
+});
+
+test("before fetching, the run says how many fighters are not cached, and warns when that is a burst with no --per-hour (round 75)", async () => {
+  const many = Array.from({ length: 320 }, (_, i) => `X${i}`);
+  const lines: string[] = [];
+  const dir = await tmp("burst");
+  const { impl } = mockFetch((path) => {
+    if (path === "/v2/fights/") return { body: env(many.slice(1).map((f, i) => fight(`g${i}`, many[i], f))) };
+    if (path === "/v2/fights/schedule") return { body: env([]) };
+    return { body: env(fighter(path.split("/").pop()!, "F")) };
+  });
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0, cacheDir: dir, log: (m) => lines.push(m), maxFights: 400, maxRequests: 10_000 });
+  await p.fetchBoxers();
+  assert.ok(lines.some((l) => /^320 fighters are not in the cache and no --per-hour was given/.test(l)), lines.join("\n"));
+  lines.length = 0;
+  const q = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0, cacheDir: dir, log: (m) => lines.push(m), maxFights: 400, maxRequests: 10_000, perHour: 450 });
+  await q.fetchBoxers();
+  assert.ok(!lines.some((l) => /not in the cache/.test(l)) && !lines.some((l) => /^\d+ fighters to fetch/.test(l)), lines.join("\n"));
 });

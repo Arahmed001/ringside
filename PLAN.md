@@ -1238,3 +1238,13 @@ The first real load was refused for 219 conflicts ("loaded 0-0-1, vendor 18-0-0"
 - Not shown: whether the draw guess accounts for most of the user's 219; that needs their `--check --explain-conflicts` on their cache. Conflicts that are not draws (e.g. a loaded win the vendor lacks) are not fixed, only explained.
 - Tests: `tests/vendor-verify.test.ts` (causes, report), `tests/boxing-data-api.test.ts` (unit and through a real load); six mutations killed.
 
+## 126. Fetch pacing when no --per-hour is given (round 75, 2026-10-04)
+
+The user's full fetch (30,000 fighters uncached) ran without `--per-hour`, sent about 200 fighters in two minutes and was refused by the Mega plan's hourly limit; the progress line then promised "4110 min to go".
+
+- A run that was given no `--per-hour` adopts 400 an hour after the first rate-limit refusal (`autoPerHour`, `pacing()`), and says so. A run with `--per-hour` keeps its own.
+- Before the fighters are fetched the run counts those not in the cache and says so, with a warning when there are more than 300 and no `--per-hour`.
+- The progress line says how many are left to fetch, and estimates from the last 100 (waits included, never faster than the pace set) instead of from the whole run.
+- One existing test asserted that the only sleep after a 429 was the Retry-After; the requests after a refusal are now paced, so it asserts the first sleep.
+- Tests: two in `tests/boxing-data-api.test.ts`; three mutations killed (a fourth did not apply and was redone: killed).
+

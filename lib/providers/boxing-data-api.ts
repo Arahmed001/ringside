@@ -362,6 +362,8 @@ export interface BoxingDataApiProvider extends DataProvider {
   plan(): Promise<BackfillPlan>;
 }
 
+/** the pace a run adopts after a rate-limit refusal when it was given no `perHour`: under the Mega plan's 500 an hour, with room for what else was asked in the same hour */
+const AUTO_PER_HOUR = 400;
 const backoff = (attempt: number) => Math.min(30_000, 1000 * 2 ** attempt);
 /** how long to wait after the 1st, 2nd, 3rd ... rate-limit refusal of one request when the gateway names no time (the last step repeats) */
 const RATE_STEPS_MS = [60_000, 120_000, 300_000, 600_000];
@@ -404,6 +406,8 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
   let used = 0, hits = 0, downloaded = 0, notes = emptyNotes(), cache: Promise<{ boxers: ProviderBoxer[]; events: ProviderEvent[]; bouts: ProviderBout[] }> | null = null;
   let listed: Promise<{ events: Map<string, ProviderEvent>; bouts: ProviderBout[]; ids: Set<string> }> | null = null;
   const careers = new Map<string, CareerRecord>();
+  /** set by the first rate-limit refusal of a run that was given no `perHour`: the run paces itself from then on (see AUTO_PER_HOUR) */
+  let autoPerHour: number | undefined;
 
   /** The vendor's own reason for a refusal ("not subscribed", "invalid key", "endpoint not on your plan"), with the key scrubbed out. */
   async function explain(res: Response): Promise<string> {
@@ -427,14 +431,17 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     fs.renameSync(tmp, file); // a crash mid-write leaves no half file for the next run to trust
   };
 
+  /** the gap between requests: the larger of `gapMs` and what `perHour` (or the pace a rate-limit refusal made the run adopt) asks for */
+  const pacing = () => { const per = o.perHour && o.perHour > 0 ? o.perHour : autoPerHour; return Math.max(o.gapMs ?? 0, per ? Math.ceil(3_600_000 / per) : 0); };
+
   async function get<T>(p: string, params: Record<string, string | number | undefined> = {}): Promise<Envelope<T>> {
     const file = o.cacheDir ? cacheFile(p, params) : undefined;
     if (file && !o.refresh && !(o.refreshLists && p.startsWith("/v2/fights"))) { const hit = fromCache<T>(file); if (hit) { hits++; return hit; } }
     const qs = Object.entries(params).filter(([, v]) => v !== undefined).map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
     const attempts = 1 + (o.retries ?? 0);
-    const spacing = Math.max(o.gapMs ?? 0, o.perHour && o.perHour > 0 ? Math.ceil(3_600_000 / o.perHour) : 0);
     let rateWaits = 0, waited = 0;
     for (let attempt = 0; ; attempt++) {
+      const spacing = pacing();
       if (used >= max) throw new BudgetError(`Stopped after ${used} requests (limit ${max}; raise BOXING_API_MAX_REQUESTS only if your plan allows it).`);
       used++;
       if (used > 1 && spacing) await sleep(spacing);
@@ -449,6 +456,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
         const after = Number(res.headers.get("retry-after"));
         // an allowance that is used up (monthly, daily): no wait helps, so say so now, in the vendor's words
         if (QUOTA_USED.test(said)) throw new HttpError(`Boxing Data API quota used up on ${p}: ${said}. Waiting will not help: check the plan and the key's app in the RapidAPI dashboard.`, 429);
+        if (!(o.perHour && o.perHour > 0) && !autoPerHour) { autoPerHour = AUTO_PER_HOUR; log(`the plan refused: no --per-hour was given, so from now on this run sends at most ${AUTO_PER_HOUR} requests an hour (one every ${Math.ceil(3_600_000 / AUTO_PER_HOUR / 1000)} s). Give --per-hour N yourself to choose the pace from the start.`); }
         if ((o.patienceMs ?? 0) > 0) {
           const wait = Number.isFinite(after) && after > 0 ? Math.min(after, 3600) * 1000 : RATE_STEPS_MS[Math.min(rateWaits, RATE_STEPS_MS.length - 1)];
           if (waited + wait > o.patienceMs!) throw new HttpError(`Boxing Data API rate limit on ${p} still in force after waiting ${Math.round(waited / 60000)} minute(s): ${said}. Run the same command again later: everything fetched so far is cached. (--per-hour spaces the requests under the limit instead.)`, 429);
@@ -583,6 +591,11 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     const rows: Loose[] = [];
     let n = 0, cachedFighters = 0;
     const started = Date.now();
+    // what is not in the cache yet is what costs requests: say so before spending them, and what pace they will be sent at
+    const toFetch = o.cacheDir && !o.refresh ? chosen.filter((id) => !fs.existsSync(cacheFile(`/v2/fighters/${id}`, {}))).length : chosen.length;
+    if (toFetch > 300 && !(o.perHour && o.perHour > 0)) log(`${toFetch} fighters are not in the cache and no --per-hour was given: a plan with an hourly limit (Mega: 500) refuses a burst. Use --per-hour 400 to pace the run from the start; without it the first refusal makes the run slow itself to 400 an hour.`);
+    else if (toFetch > 0) log(`${toFetch} fighters to fetch${o.perHour ? `, about ${Math.ceil((toFetch * 3600) / o.perHour)} minute(s) at ${o.perHour} an hour` : ""}`);
+    let windowAt = started, windowFetched = 0;
     for (const id of chosen) {
       const before = hits;
       try {
@@ -597,8 +610,11 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
       } catch (e) { if (e instanceof BudgetError || (e instanceof HttpError && e.status === 429)) throw e; /* a plan that refuses (a limit, a quota) refuses the next fighter too: stop, do not skip a thousand */ log(`fighter ${id} skipped: ${e instanceof Error ? e.message : e}`); }
       if (hits > before) cachedFighters++;
       if (++n % 100 === 0) {
-        const perRequest = (Date.now() - started) / Math.max(1, n - cachedFighters); // cached fighters cost nothing, so time per fighter actually fetched
-        log(`fighters: ${n} of ${chosen.length}${cachedFighters ? ` (${cachedFighters} from the cache)` : ""}, at most ${Math.ceil(((chosen.length - n) * perRequest) / 60000)} min to go`);
+        const fetched = n - cachedFighters, now = Date.now();
+        const perRequest = Math.max(pacing(), (now - windowAt) / Math.max(1, fetched - windowFetched)); // the rate of the last 100, waits included, never faster than the pace set
+        windowAt = now; windowFetched = fetched;
+        const left = Math.max(0, toFetch - fetched);
+        log(`fighters: ${n} of ${chosen.length}${cachedFighters ? ` (${cachedFighters} from the cache)` : ""}${left ? `, ${left} to fetch, at most ${Math.ceil((left * perRequest) / 60000)} min to go` : ""}`);
       }
     }
     const have = new Set(rows.map((r) => r.externalId));
