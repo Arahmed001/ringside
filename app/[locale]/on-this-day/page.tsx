@@ -93,7 +93,7 @@ export default async function OnThisDay({ searchParams }: { searchParams: Promis
                 <div className="min-w-0">
                   <Link href={`/bouts/${b.id}`} className="font-semibold hover:text-gold">{t.name(b.redName)} <span className="text-muted">{t("vs")}</span> {t.name(b.blueName)}</Link>
                   <div className="text-sm text-muted">{resultLine(w, b, t)}{hasWinner(b.method) && ` · ${methodLabel(b.method, b.endRound, t)}`}</div>
-                  <div className="text-xs text-muted"><Link href={`/events/${b.eventId}`} className="hover:text-ink">{t.name(b.eventName)}</Link>{b.title && <> · <span className="text-gold">{t.name(b.title)}</span></>}</div>
+                  <div className="text-xs text-muted"><Link href={`/events/${b.eventId}`} className="inline-block py-1 hover:text-ink">{t.name(b.eventName)}</Link>{b.title && <> · <span className="text-gold">{t.name(b.title)}</span></>}</div>
                 </div>
                 {score !== null && <div className="col-start-2 sm:col-start-3"><ScoreBadge score={score} /></div>}
               </li>
