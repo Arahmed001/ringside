@@ -340,6 +340,11 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const { fighters, rest } = claim(w, names, question);
   // a region is not a country the data has: "the best welterweight from South America" answered with every welterweight would look right and be wrong
   if (!fighters.length && has(q, REGIONS)) return [];
+  // groupings no tool makes: by venue, by country ("which country has the most champions"), by round ("fights that ended in the first round"): no answer, not a list of
+  // fighters sorted by fights, the list of champions or every fight
+  if (!fighters.length && has(q, /\b(venues?|arenas?|stadiums?|cit(?:y|ies))\b/) && !has(q, /\b(gates?|tickets?|revenue|purses?|earn\w*|paid|attendance)\b/) && has(q, /\b(most|more|biggest|largest|best|top)\b/)) return [];
+  if (!fighters.length && has(q, /\b(which|what)\s+(countr(?:y|ies)|nations?)\b/) && has(q, /\b(most|more|best|top|biggest)\b/)) return [];
+  if (!fighters.length && has(q, /\b(?:in|by|during|within)\s+(?:the\s+)?(?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|\d+(?:st|nd|rd|th))\s+round\b|\bround\s+(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b/)) return [];
   // the same in Arabic: who beat, stopped or knocked out someone; and who trains, manages or runs the most champions
   if (!LISTS.some(([re]) => has(q, re)) && has(q, /(?:^|\s)من\s+(?:هزم|هزمه|فاز علي|تغلب علي|خسر امام|اسقط|اوقف|تفوق علي)/)) return [];
   if (!fighters.length && has(q, /(?:مدرب|يدرب\S*|دربه|صاله|صالات|مدير اعمال|يدير|منظم|يروج)/) && has(q, /(?:اكثر|اغلب)/) && has(q, /(?:ابطال|بطل|احزمه|حزام|القاب)/)) return [];
@@ -362,6 +367,8 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   if (!fighters.length && has(q, /\bhow many (events|cards|shows)\b/)) return [{ tool: "events", args: year ? { year: +year } : { when: "all" } }];
   let trainerFound: { name: string | undefined } | undefined;
   const trainer = () => (trainerFound ??= { name: trainerNamed(w, question, rest) }).name;
+  // "how many fighters are trained by X", "managed by X": the team filter, even when X is also a fighter in the data
+  if ((f.trainer || f.manager || f.promoter || f.gym) && has(q, /\b(trained|coached|managed|promoted|signed) by\b|\bout of the\b/)) return [{ tool: "fighters", args: withLimit(Object.fromEntries(Object.entries(f).filter(([k]) => k !== "text"))) }];
 
   // two fighters and one fact between them ("who is taller, A or B", "A vs B reach"): their two answers side by side, not a prediction of who would win
   if (fighters.length === 2 && !has(q, MEETING)) {
@@ -401,11 +408,16 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const span = has(q, SPAN);
   const boutYear = span ? undefined : year ? +year : has(q, /\bthis year\b/) ? thisYear : has(q, /\blast year\b/) ? thisYear - 1 : undefined;
   if (span && has(q, ABOUT_FIGHTS) && !has(q, ABOUT_FIGHTERS)) return [];
+  // scheduled rounds: "at least 10 rounds", "10 or more rounds" and the 12-round maximum are the tool's minimum; any other count (exactly 8 rounds) it cannot say, so no answer
+  const roundsAsked = q.match(/(?:at least |minimum of )?(\d{1,2})[- ](?:or more[- ])?rounds?\b/);
+  const minRounds = roundsAsked && (has(q, /at least|or more|minimum/) || +roundsAsked[1] === 12) ? +roundsAsked[1] : undefined;
+  if (roundsAsked && minRounds === undefined && has(q, /\b(fights?|bouts?)\b/)) return [];
   const recently = has(q, /\b(recent|latest|newest)\b/) && has(q, /\b(knockouts?|kos?|stoppages?|decisions?)\b/);
   if ((boutYear || recently || has(q, /title (fights?|bouts?)/) || has(q, /\bhow many\b/)) && has(q, /\b(fights?|bouts?|knockouts?|kos?|stoppages?|finishes|decisions?|draws?)\b|ضربات? (ال)?قاضيه|نزالات|تعادل/) && !has(q, /\b(most|highest|longest|biggest|greatest|upcoming|next|coming)\b|fight of the year|best fights?|اكثر|اعلي|اطول|اكبر|اعظم|اسرع|افضل|القادم/)) {
     return [{ tool: "bouts", args: withLimit({
       ...(boutYear ? { year: boutYear } : {}), ...(scope.division ? { division: scope.division } : {}),
       ...(has(q, /title (fights?|bouts?)/) ? { title: true } : {}),
+      ...(minRounds ? { minRounds } : {}),
       ...(has(q, /knockouts?|\bkos?\b|stoppages?|finishes|ضربات? (ال)?قاضيه/) ? { method: "stoppage" } : has(q, /decisions?/) ? { method: "decision" } : has(q, /draws?|تعادل/) ? { method: "DRAW" } : {}),
       ...(has(q, /fastest|quickest/) ? { sort: "fastest" } : has(q, /knockdowns?/) ? { sort: "knockdowns" } : {}),
     }) }];
@@ -442,7 +454,7 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   }
   if (has(q, /trainer|coach|مدرب/) && (!fighters.length || trainer())) {
     const typed = question.match(/(?:trainer|coach|مدرب)\s+([\p{L}.'\- ]{4,40})/iu)?.[1]?.trim();
-    const name = trainer() ?? (typed && !has(normalize(typed), /^(impact|effect|the|best)/) ? typed : undefined);
+    const name = trainer() ?? (typed && !has(normalize(typed), /^(impact|effect|the|best|has|have|had|with|who|that|is|are|does|did|get|gets|add|adds|win|wins)\b/) ? typed : undefined);
     return [{ tool: "trainers", args: withLimit(name ? { name } : {}) }];
   }
   if (!fighters.length && trainer()) return [{ tool: "trainers", args: withLimit({ name: trainer() }) }];
