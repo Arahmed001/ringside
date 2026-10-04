@@ -68,6 +68,8 @@ export function peelRecord(q: string, f: Filters, today?: string): string {
   take(re(`\\b(?<kind>won|lost)\\s+(?:their |his |her )?(?:last|past|previous|most recent)(?!(?:\\s+(?:\\d+|one|two|three|four|five|six|seven|eight|nine|ten))?(?:\\s+(?:fights?|bouts?))?\\s+(?:by|via|in|to|against|at|with)\\b)\\s+${N}?\\s*(?:fights?|bouts?)?\\b`), (g) => { const n = g.n ? num(g) : 1; streak(g.kind!.toLowerCase() === "lost" ? "minLossStreak" : "minWinStreak", n); });
 
   if (today) {
+    // when they turned pro, as "this year" or "last year" ("debuted this year")
+    take(re("\\b(?:debuted|turned pro|went pro|made (?:his|her|their) (?:pro )?debut)\\s+(?<when>this year|last year)\\b"), (g) => { const y = +today.slice(0, 4) - (g.when === "last year" ? 1 : 0); f.debutAfter = y; f.debutBefore = y; });
     const spans = "(?:days?|weeks?|months?|years?)";
     // when they last fought
     take(re(`\\b(?:haven['’]?t|hasn['’]?t|have not|has not|didn['’]?t|did not|not) (?:fought|boxed|been in (?:a )?(?:fight|bout)|had (?:a )?(?:fight|bout)) (?:in|for)\\s+(?:(?<gt>over|more than)|(?<ge>at least))?\\s*(?:the (?:last|past)\\s+)?(?<n>\\d+|a|one|two|three|four|five|six)\\s+(?<unit>${spans})\\b`), (g) => {
