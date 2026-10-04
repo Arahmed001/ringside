@@ -73,6 +73,8 @@ export interface Filters {
   debutBefore?: number;
   minReach?: number;
   maxReach?: number;
+  minRating?: number; // as shown (rounded)
+  maxRating?: number;
   minHeight?: number; // cm
   maxHeight?: number;
   minAge?: number;
@@ -208,7 +210,7 @@ export function heuristicParse(q: string, countries: string[], today?: string): 
   else if (/\bactive\b|currently/.test(s)) f.active = true;
   const korMax = s.match(/(?:ko|knockout) (?:rate|percentage|ratio)\s*(?:of|is)?\s*(?:under|below|less than|at most|no more than|up to)\s*(\d+)\s*%/); if (korMax) f.maxKoRate = +korMax[1] / 100;
   const kor = s.match(/(\d+)\s*%\s*(?:ko|knockout)/) ?? s.match(/(?:ko|knockout) (?:rate|percentage|ratio)\s*(?:of|over|above|at least|>)?\s*(\d+)\s*%/); if (kor) f.minKoRate = +kor[1] / 100;
-  if (/big puncher|heavy hand|power puncher|knockout artist|devastating/.test(s)) f.archetype = "Knockout Artist";
+  if (/big puncher|heavy hand|power puncher|knockout artist|\bko artists?\b|devastating/.test(s)) f.archetype = "Knockout Artist";
   if (/technician|technical(?! knock)|skilled boxer/.test(s)) f.archetype = "Technician";
   if (/counter/.test(s)) f.archetype = "Counter-Puncher";
   if (/brawler/.test(s)) f.archetype = "Iron-Chin Brawler";
@@ -220,7 +222,10 @@ export function heuristicParse(q: string, countries: string[], today?: string): 
   const before = s.match(/before\s+(20\d\d)/); if (before) f.debutBefore ??= +before[1] - 1;
   if (/\byoung\b|\bprospects?\b/.test(s) && !f.maxAge) f.maxAge = 26;
   if (/\bveterans?\b|\bold\b|\bolder\b/.test(s) && !f.minAge) f.minAge = 35; // whole words: "holds" and "gold" are not an age
-  if (/\b(?:best|top|highest rated|greatest)\b/.test(s)) f.sort = "rating"; // whole words: "stopped" has a "top" in it
+  if (/\b(?:best|top|highest rated|rated highest|greatest)\b/.test(s)) f.sort = "rating";
+  // "rank / sort / order the welterweights by knockouts": the order asked for
+  const by = s.match(/\b(?:rank|ranked|sort|sorted|order|ordered|list)\b.*?\bby\s+(?:their\s+)?(rating|wins|knockouts?|kos?|ko rate|age|height|reach|fights|bouts)\b/);
+  if (by) f.sort = ({ rating: "rating", wins: "wins", knockout: "kos", knockouts: "kos", ko: "kos", kos: "kos", "ko rate": "koRate", age: "age", height: "height", reach: "reach", fights: "bouts", bouts: "bouts" } as const)[by[1] as "rating"]; // whole words: "stopped" has a "top" in it
   if (/most (?:ko|knockout)/.test(s)) f.sort = "kos";
   if (/most wins/.test(s)) f.sort = "wins";
   if (/most (?:fights|bouts)|fought the most|most experienced|most active/.test(s)) f.sort = "bouts";
@@ -231,6 +236,8 @@ export function heuristicParse(q: string, countries: string[], today?: string): 
   if (/\byoungest\b/.test(s)) f.sort = "youngest";
   else if (/\boldest\b/.test(s)) f.sort = "age";
   arabicHints(original, f, countries, today);
+  // "undefeated in 2025" is not a filter we have (no loss within a year): no result, not all the undefeated
+  if (/\b(?:undefeated|unbeaten)\s+in\s+(?:19|20)\d\d\b/.test(s)) { delete f.undefeated; f.text = original.trim(); }
   if (!Object.keys(f).length && q.trim()) f.text = q.trim();
   return f;
 }
@@ -258,7 +265,7 @@ export async function parseQuery(q: string, w: World, client?: string): Promise<
     let out: { filters: Filters; source: "ai" | "rules" };
     try {
       const sys = `You turn boxing database search requests into JSON filters. The request may be in English or Arabic. Respond with ONLY a JSON object, no prose.
-Allowed keys: weightClass (one of ${WEIGHT_CLASSES.join(", ")}), stance (Orthodox|Southpaw|Switch), sex (male|female), country (one of ${countries.join(", ")}), active (bool), undefeated (bool), minWins, maxWins, minKOs, maxKOs, minLosses, maxLosses, minStopped, maxStopped (times lost by knockout; "never been knocked out" is maxStopped 0), minDraws, maxDraws, minWinStreak, minLossStreak (current run), unbeatenIn (no loss in the last N fights), lastFightAfter, lastFightBefore (YYYY-MM-DD, when they last fought), minBouts, maxBouts (ints; "no losses" is maxLosses 0; "over 10" means minimum 11, "under 10" means maximum 9), minKoRate, maxKoRate (0-1), record (winning|losing: more wins than losses, or the reverse), champion (current|former|ever: holds a belt now, held one and no longer does, has ever held one), debutAfter, debutBefore (years), minReach, maxReach, minHeight, maxHeight (cm), minAge, maxAge, archetype (Knockout Artist|Volume Boxer|Technician|Iron-Chin Brawler|Counter-Puncher|Journeyman|Prospect), text (name fragment), trainer, manager, gym, promoter, bornIn (name fragments), trainerCurrent, missedWeight, newTrainer (bools), sort (rating|wins|kos|koRate|age|reach). Omit keys that do not apply.`;
+Allowed keys: weightClass (one of ${WEIGHT_CLASSES.join(", ")}), stance (Orthodox|Southpaw|Switch), sex (male|female), country (one of ${countries.join(", ")}), active (bool), undefeated (bool), minWins, maxWins, minKOs, maxKOs, minLosses, maxLosses, minStopped, maxStopped (times lost by knockout; "never been knocked out" is maxStopped 0), minDraws, maxDraws, minWinStreak, minLossStreak (current run), unbeatenIn (no loss in the last N fights), lastFightAfter, lastFightBefore (YYYY-MM-DD, when they last fought), minBouts, maxBouts (ints; "no losses" is maxLosses 0; "over 10" means minimum 11, "under 10" means maximum 9), minKoRate, maxKoRate (0-1), record (winning|losing: more wins than losses, or the reverse), champion (current|former|ever: holds a belt now, held one and no longer does, has ever held one), debutAfter, debutBefore (years), minReach, maxReach (cm), minRating, maxRating (the rating as shown, a whole number such as 1600), minHeight, maxHeight (cm), minAge, maxAge, archetype (Knockout Artist|Volume Boxer|Technician|Iron-Chin Brawler|Counter-Puncher|Journeyman|Prospect), text (name fragment), trainer, manager, gym, promoter, bornIn (name fragments), trainerCurrent, missedWeight, newTrainer (bools), sort (rating|wins|kos|koRate|age|reach). Omit keys that do not apply.`;
       const reply = await claude(sys, q, 300, client);
       const json = JSON.parse(reply.slice(reply.indexOf("{"), reply.lastIndexOf("}") + 1));
       out = { filters: sanitizeFilters(json, countries), source: "ai" };
@@ -282,7 +289,7 @@ export function sanitizeFilters(j: Record<string, unknown>, countries: string[])
   if (typeof j.country === "string" && countries.includes(j.country)) f.country = j.country;
   if (typeof j.active === "boolean") f.active = j.active;
   if (typeof j.undefeated === "boolean") f.undefeated = j.undefeated;
-  for (const k of ["minWins", "maxWins", "minKOs", "maxKOs", "minKoRate", "maxKoRate", "minLosses", "maxLosses", "minStopped", "maxStopped", "minDraws", "maxDraws", "minWinStreak", "minLossStreak", "unbeatenIn", "minBouts", "maxBouts", "debutAfter", "debutBefore", "minReach", "maxReach", "minHeight", "maxHeight", "minAge", "maxAge"] as const) {
+  for (const k of ["minWins", "maxWins", "minKOs", "maxKOs", "minKoRate", "maxKoRate", "minLosses", "maxLosses", "minStopped", "maxStopped", "minDraws", "maxDraws", "minWinStreak", "minLossStreak", "unbeatenIn", "minBouts", "maxBouts", "debutAfter", "debutBefore", "minReach", "maxReach", "minRating", "maxRating", "minHeight", "maxHeight", "minAge", "maxAge"] as const) {
     const v = num(j[k]); if (v !== undefined) f[k] = v;
   }
   for (const k of ["lastFightAfter", "lastFightBefore"] as const) if (typeof j[k] === "string" && /^\d{4}-\d{2}-\d{2}$/.test(j[k] as string)) f[k] = j[k] as string;
@@ -366,6 +373,8 @@ export function applyFilters(boxers: BoxerFull[], f: Filters, w?: World, names: 
     (f.debutBefore === undefined || (b.turnedPro !== null && b.turnedPro <= f.debutBefore)) &&
     (f.minReach === undefined || (b.reachCm !== null && b.reachCm >= f.minReach)) &&
     (f.maxReach === undefined || (b.reachCm !== null && b.reachCm <= f.maxReach)) &&
+    (f.minRating === undefined || Math.round(b.rating) >= f.minRating) &&
+    (f.maxRating === undefined || Math.round(b.rating) <= f.maxRating) &&
     (f.minHeight === undefined || (b.heightCm !== null && b.heightCm >= f.minHeight)) &&
     (f.maxHeight === undefined || (b.heightCm !== null && b.heightCm <= f.maxHeight)) &&
     (f.minAge === undefined || (b.age !== null && b.age >= f.minAge)) &&
@@ -415,6 +424,8 @@ export function describeFilters(f: Filters, t: T = tEn): string[] {
   if (f.debutBefore !== undefined) c.push(t("Pro debut ≤ {year}", { year: f.debutBefore }));
   if (f.minReach !== undefined) c.push(t("Reach ≥ {n}cm", { n: f.minReach }));
   if (f.maxReach !== undefined) c.push(t("Reach ≤ {n}cm", { n: f.maxReach }));
+  if (f.minRating !== undefined) c.push(t("Rating ≥ {n}", { n: f.minRating }));
+  if (f.maxRating !== undefined) c.push(t("Rating ≤ {n}", { n: f.maxRating }));
   if (f.minHeight !== undefined) c.push(t("Height ≥ {n}cm", { n: f.minHeight }));
   if (f.maxHeight !== undefined) c.push(t("Height ≤ {n}cm", { n: f.maxHeight }));
   if (f.minAge !== undefined) c.push(t("Age ≥ {n}", { n: f.minAge }));

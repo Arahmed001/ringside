@@ -9289,6 +9289,18 @@
   ]
  },
  {
+  "key": "Rating ≤ {n}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Rating ≥ {n}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "Rating history",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"

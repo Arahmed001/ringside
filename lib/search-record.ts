@@ -54,11 +54,11 @@ export function peelRecord(q: string, f: Filters, today?: string): string {
 
   // draws: none, at least one, how many ("N draws" is read with the other counts)
   take(re("\\bnever (?:been )?(?:drawn|fought (?:to )?a draw|had a draw|drew)\\b|\\b(?:no|zero) draws\\b|\\bwithout a draw\\b|\\bnever drawn\\b"), () => put(f, "draws", undefined, 0));
-  take(re("\\b(?:with|have|has|had|having) (?:a|at least one|one) draws?(?: on (?:their|his|her) record)?\\b|\\b(?:who|that) (?:have|has|had) drawn(?! (?:the )?most| more)\\b|\\bdrawn at least once\\b"), () => put(f, "draws", 1, undefined));
+  take(re("\\b(?:with|have|has|had|having) (?:a|at least one|one) draws?(?: on (?:their|his|her) record)?\\b|\\b(?:who|that) (?:have|has|had) drawn(?! (?:the )?most| more)\\b|\\bdrawn at least once\\b|\\b(?:have|has|had) (?:ever )?(?:fought|boxed) (?:to )?a draw\\b|\\bfought (?:to )?a draw\\b"), () => put(f, "draws", 1, undefined));
 
   // form: an unbeaten run, a streak, and the last results ("lost their last fight by knockout" is left as it is: how the last fight ended is not a filter, and answering with everyone who lost would look right and be wrong)
   take(re(`\\b(?:(?:haven['’]?t|hasn['’]?t|have not|has not) (?:ever )?lost|(?:no|zero) losses)\\s+(?:in|over|across|during)\\s+(?:their |his |her |the )?(?:last |past |previous |most recent )${N}\\s*(?:fights?|bouts?)?\\b`), (g) => { const n = num(g); if (!(n >= 1)) return false; f.unbeatenIn = Math.max(f.unbeatenIn ?? 0, n); });
-  take(re(`\\b(?:unbeaten|undefeated|without a loss)\\s+(?:in|over|across|during)\\s+(?:their |his |her |the )?(?:last |past |previous |most recent )?${N}\\s*(?:fights?|bouts?)?\\b`), (g) => { const n = num(g); if (!(n >= 1)) return false; f.unbeatenIn = Math.max(f.unbeatenIn ?? 0, n); });
+  take(re(`\\b(?:unbeaten|undefeated|without a loss)\\s+(?:in|over|across|during)\\s+(?:their |his |her |the )?(?:last |past |previous |most recent )?${N}\\s*(?:fights?|bouts?)?\\b`), (g) => { const n = num(g); if (!(n >= 1 && n <= 200)) return false; f.unbeatenIn = Math.max(f.unbeatenIn ?? 0, n); }); // (a year, "undefeated in 2025", is not a number of fights)
   take(re(`\\b(?:on )?(?:a |an )?(?:(?:${CMP})\\s+)?${N}[- ](?:fight|bout)[- ](?<kind>winning|win|losing|loss)(?: streak| run)?\\b`), (g) => { const [lo] = bound(cmpOf(g, "ge"), num(g)); streak(/^los/.test(g.kind!) ? "minLossStreak" : "minWinStreak", lo ?? num(g)); });
   take(re(`(?<!\\b(?:longest|best|biggest|current|most) )\\b(?:on )?(?:a |an )?(?<kind>winning|losing)\\s+(?:streak|run)(?:\\s+of\\s+(?:(?:${CMP})\\s+)?${N}(?:\\s*(?:fights?|bouts?))?)?\\b`), (g) => {
     const n = g.n ? num(g) : 2; // "on a winning streak": a streak is two or more
@@ -70,7 +70,7 @@ export function peelRecord(q: string, f: Filters, today?: string): string {
   if (today) {
     const spans = "(?:days?|weeks?|months?|years?)";
     // when they last fought
-    take(re(`\\b(?:haven['’]?t|hasn['’]?t|have not|has not|didn['’]?t|did not|not) (?:fought|boxed|been in (?:a )?(?:fight|bout)|had (?:a )?(?:fight|bout)) (?:in|for)\\s+(?:(?<gt>over|more than)|(?<ge>at least))\\s+(?:the (?:last|past)\\s+)?(?<n>\\d+|a|one|two|three|four|five|six)\\s+(?<unit>${spans})\\b`), (g) => {
+    take(re(`\\b(?:haven['’]?t|hasn['’]?t|have not|has not|didn['’]?t|did not|not) (?:fought|boxed|been in (?:a )?(?:fight|bout)|had (?:a )?(?:fight|bout)) (?:in|for)\\s+(?:(?<gt>over|more than)|(?<ge>at least))?\\s*(?:the (?:last|past)\\s+)?(?<n>\\d+|a|one|two|three|four|five|six)\\s+(?<unit>${spans})\\b`), (g) => {
       const n = /^\d+$/.test(g.n!) ? +g.n! : g.n === "a" ? 1 : NUMBER_WORDS[g.n!];
       const cutoff = shift(today, n, g.unit!, -1);
       f.lastFightBefore = g.gt ? dayBefore(cutoff) : cutoff;
