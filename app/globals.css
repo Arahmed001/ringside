@@ -104,6 +104,9 @@ input[type="range"].rs::-moz-range-track { background: transparent; }
 @layer base {
   .grid { grid-template-columns: minmax(0, 1fr); }
   h1, h2 { overflow-wrap: break-word; }
+  /* A little room between the columns of every table, so headers and figures do not run together ("RECORDRATING") when a table is squeezed on a phone.
+     It is a base rule, so a cell that sets its own padding (px-3, pe-2 ...) wins. */
+  table :is(th, td):not(:last-child) { padding-inline-end: 0.75rem; }
 }
 @media (max-width: 479px) {
   h1.text-5xl { font-size: 2.25rem; line-height: 1.05; }
