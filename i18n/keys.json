@@ -2132,7 +2132,14 @@
  {
   "key": "Active",
   "files": [
+   "app/[locale]/boxers/page.tsx",
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Active and retired",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
   ]
  },
  {
@@ -2264,6 +2271,12 @@
   "key": "All corner people",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "All countries",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
   ]
  },
  {
@@ -2420,6 +2433,12 @@
   ]
  },
  {
+  "key": "Any stance",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
   "key": "Any two fighters, any era",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
@@ -2441,6 +2460,7 @@
  {
   "key": "Apply",
   "files": [
+   "app/[locale]/boxers/page.tsx",
    "components/RecordsFilter.tsx"
   ]
  },
@@ -3408,6 +3428,12 @@
   ]
  },
  {
+  "key": "Clear filters",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
   "key": "Clear my picks",
   "files": [
    "components/MyPicks.tsx"
@@ -3700,6 +3726,7 @@
  {
   "key": "Country",
   "files": [
+   "app/[locale]/boxers/page.tsx",
    "lib/correction-text.ts"
   ]
  },
@@ -6108,6 +6135,7 @@
  {
   "key": "Knockout rate",
   "files": [
+   "app/[locale]/boxers/page.tsx",
    "lib/fit.ts"
   ]
  },
@@ -6291,6 +6319,12 @@
   "key": "Latest completed year",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
+  "key": "Latest fight",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
   ]
  },
  {
@@ -7013,6 +7047,7 @@
  {
   "key": "Most wins",
   "files": [
+   "app/[locale]/boxers/page.tsx",
    "lib/records.ts"
   ]
  },
@@ -7902,6 +7937,12 @@
   ]
  },
  {
+  "key": "Ordered by knockouts as a share of wins. Fighters with fewer than {min} wins, or whose career is held only in part, come last.",
+  "files": [
+   "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
   "key": "Organisation logo (free-licensed)",
   "files": [
    "lib/coverage.ts"
@@ -8691,6 +8732,7 @@
   "key": "Rating",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/boxers/page.tsx",
    "app/[locale]/compare/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "components/MatchupLab.tsx",
@@ -9081,6 +9123,7 @@
   "key": "Retired",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/boxers/page.tsx",
    "lib/ai.ts"
   ]
  },
@@ -9822,6 +9865,7 @@
  {
   "key": "Sort by",
   "files": [
+   "app/[locale]/boxers/page.tsx",
    "app/[locale]/people/page.tsx"
   ]
  },
@@ -9927,6 +9971,7 @@
  {
   "key": "Stance",
   "files": [
+   "app/[locale]/boxers/page.tsx",
    "app/[locale]/compare/page.tsx",
    "lib/correction-text.ts",
    "lib/preview.ts"
@@ -9953,6 +9998,7 @@
  {
   "key": "Status",
   "files": [
+   "app/[locale]/boxers/page.tsx",
    "app/[locale]/data/page.tsx"
   ]
  },

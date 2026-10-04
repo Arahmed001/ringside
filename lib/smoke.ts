@@ -56,6 +56,7 @@ export function smokeRoutes(w: World): SmokeRoute[] {
     out.push({ path: `/boxers?q=${q(`${p.slice(0, -1).join(" ")} ${last.slice(0, 2)}${last.slice(3)}`)}`, kind: "page", label: "fighter search with a letter missing", mustShow: longName.name, englishOnly: true });
   }
   page("/boxers?page=2", "second page of the fighter list");
+  for (const [qs, label] of [["sort=ko", "fighters ordered by knockout rate"], ["sort=recent&status=active", "active fighters, latest fight first"], ["sort=wins&stance=Southpaw&status=retired", "retired southpaws by wins"], ["sort=nonsense&status=both&country=Atlantis", "unknown control values and a country nobody is from"]] as const) page(`/boxers?${qs}`, label);
   page("/boxers?page=9999", "page number beyond the end");
   const yr = [...new Set(w.events.filter((e) => !e.upcoming && e.status !== "cancelled").map((e) => e.date.slice(0, 4)))].sort()[0];
   if (yr) { page(`/events?year=${yr}`, "events of one year"); page(`/events?year=${yr}&page=2`, "second page of a year's events"); }
