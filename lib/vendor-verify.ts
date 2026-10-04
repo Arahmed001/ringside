@@ -13,7 +13,7 @@ export type RecordStatus = "complete" | "partial" | "conflict";
 /**
  * - complete: the fights we hold give exactly the vendor's wins, losses and draws.
  * - partial: they give fewer of at least one, and no more of any: fights are missing (the plan's window is shorter than the career, or a
- *   fighter could not be fetched). Expected on a limited window; the page would show a SHORTER record than the fighter really has.
+ *   fighter could not be fetched). Expected on a limited window; the page then shows the vendor's career total, labelled, and builds the fight list, rating and rates from the fights held.
  * - conflict: they give MORE of something than the vendor's own career total: the feed contradicts itself (a duplicated fight, a wrong
  *   winner, a stale career record).
  */
@@ -146,14 +146,14 @@ export function recordGate(r: Reconciliation, o: GateOptions): { ok: boolean; re
   const reasons: string[] = [];
   if (r.conflict > 0 && !o.allowConflicts) reasons.push(`${r.conflict} fighter(s) have MORE wins, losses or draws in the loaded fights than the vendor's own career total, so the feed contradicts itself (${r.conflicts.slice(0, 3).map((m) => `${m.name}: loaded ${m.loaded}, vendor ${m.vendor}`).join("; ")}). --allow-conflicts loads anyway.`);
   if (r.checked === 0 && !o.allowPartial) reasons.push("the feed gave no career records, so nothing can be checked. --allow-partial loads anyway.");
-  else if (r.checked > 0 && r.share < o.minComplete && !o.allowPartial) reasons.push(`only ${(r.share * 100).toFixed(1)}% of fighters (${r.complete} of ${r.checked}) have loaded fights that add up to the vendor's career record; ${(o.minComplete * 100).toFixed(0)}% is required. The rest would show a SHORTER record than they have (${r.partials.slice(0, 3).map((m) => `${m.name}: loaded ${m.loaded}, vendor ${m.vendor}`).join("; ")}). This is what a plan whose history is shorter than the careers does. --allow-partial loads anyway; --min-complete changes the bar.`);
+  else if (r.checked > 0 && r.share < o.minComplete && !o.allowPartial) reasons.push(`only ${(r.share * 100).toFixed(1)}% of fighters (${r.complete} of ${r.checked}) have loaded fights that add up to the vendor's career record; ${(o.minComplete * 100).toFixed(0)}% is required. The rest hold fewer fights than the vendor's career total (${r.partials.slice(0, 3).map((m) => `${m.name}: loaded ${m.loaded}, vendor ${m.vendor}`).join("; ")}). Their pages show the vendor's total, labelled, but their fight lists, ratings and rates come from the fights held. --allow-partial loads anyway; --min-complete changes the bar.`);
   return { ok: reasons.length === 0, reasons };
 }
 
 export function describeReconciliation(r: Reconciliation): string[] {
   const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
   const lines = [`records: ${r.complete} of ${r.checked} fighters (${pct(r.share)}) have loaded fights that add up exactly to the vendor's career record`];
-  if (r.partial) lines.push(`  ${r.partial} partial: fights are missing, so the page would show a shorter record than the fighter has${r.partials.length ? ` (e.g. ${r.partials.slice(0, 3).map((m) => `${m.name} loaded ${m.loaded} vs vendor ${m.vendor}`).join("; ")})` : ""}`);
+  if (r.partial) lines.push(`  ${r.partial} partial: fights are missing, so the page shows the vendor's career total with a note that fewer fights are held${r.partials.length ? ` (e.g. ${r.partials.slice(0, 3).map((m) => `${m.name} loaded ${m.loaded} vs vendor ${m.vendor}`).join("; ")})` : ""}`);
   if (r.conflict) lines.push(`  ${r.conflict} CONFLICT: more than the vendor's own career total, so the feed contradicts itself (e.g. ${r.conflicts.slice(0, 3).map((m) => `${m.name} loaded ${m.loaded} vs vendor ${m.vendor}`).join("; ")})`);
   if (r.lagging) lines.push(`  ${r.lagging} career total(s) probably lagging: the loaded fights exceed the vendor's total only because of a fight in the last few days, and the vendor's totals trail its results (e.g. ${r.laggards.slice(0, 3).map((m) => `${m.name} loaded ${m.loaded} vs vendor ${m.vendor}`).join("; ")}). Not a contradiction yet: the next day's update will show whether the total caught up.`);
   if (r.noVendorRecord) lines.push(`  ${r.noVendorRecord} fighter(s) came with no career record, so nothing can be checked for them`);

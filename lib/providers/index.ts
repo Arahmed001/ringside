@@ -32,6 +32,8 @@ export interface ProviderBoxer {
   aliases?: string[];
   debutDate?: string;
   retiredDate?: string;
+  /** The career record (wins, losses, draws) as the feed states it, when it states all three. Kept beside the record the loaded fights add up to, so a page can say which one it shows. */
+  careerRecord?: { wins: number; losses: number; draws: number };
 }
 
 export interface ProviderEvent {
