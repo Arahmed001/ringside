@@ -3958,6 +3958,12 @@
   ]
  },
  {
+  "key": "Did you mean one of these fighters?",
+  "files": [
+   "app/[locale]/not-found.tsx"
+  ]
+ },
+ {
   "key": "Difference",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -9390,6 +9396,7 @@
   "key": "Search",
   "files": [
    "app/[locale]/boxers/page.tsx",
+   "app/[locale]/not-found.tsx",
    "components/CommandPalette.tsx"
   ]
  },
@@ -9415,7 +9422,8 @@
   "key": "Search fighters",
   "files": [
    "app/[locale]/boxers/page.tsx",
-   "app/[locale]/layout.tsx"
+   "app/[locale]/layout.tsx",
+   "app/[locale]/not-found.tsx"
   ]
  },
  {
