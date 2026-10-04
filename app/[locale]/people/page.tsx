@@ -10,9 +10,9 @@ import { getNames } from "@/lib/i18n/names";
 import { flag } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
 import { msg } from "@/lib/i18n/t";
-import { metaFor } from "@/lib/seo-server";
+import { metaFor, pagedTitle, tabbedTitle, type SearchParams } from "@/lib/seo-server";
 
-export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({ path: "/people", title: t("Corners & officials"), description: t("Leaderboards for trainers, managers, judges and referees: who trains, manages, scores and officiates, with dated team histories and results.") }));
+export const generateMetadata = ({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<SearchParams> }) => metaFor(params, (p, t, sp) => ({ path: "/people", title: pagedTitle(t, tabbedTitle(t, t("Corners & officials"), TABS, sp.role), sp.page), description: t("Leaderboards for trainers, managers, judges and referees: who trains, manages, scores and officiates, with dated team histories and results.") }), searchParams);
 
 const TABS = [["trainer", msg("Trainers")], ["manager", msg("Managers")], ["judge", msg("Judges")], ["referee", msg("Referees")]] as const;
 
