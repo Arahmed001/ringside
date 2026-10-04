@@ -87,7 +87,7 @@ export default async function DataPage() {
           <SectionTitle eyebrow={t("Checked before anything is written")} title={t("Last data load")} />
           <div className="card p-5">
             <div className="flex flex-wrap items-center gap-2 text-sm">
-              <span className="chip">{cov.lastRun.provider}</span>
+              <span className="chip" lang="en" dir="ltr">{cov.lastRun.provider}</span>
               <span className="text-muted">{new Date(cov.lastRun.at).toLocaleString(t.locale === "ar" ? "ar-u-nu-latn-ca-gregory" : "en-GB", { dateStyle: "medium", timeStyle: "short" })}</span>
               <span className={`chip ${cov.lastRun.errors ? "!border-red/40 !text-red-ink" : "!border-win/40 !text-win"}`}>{t.n(cov.lastRun.errors, "{n} error", "{n} errors")}</span>
               <span className={`chip ${cov.lastRun.warnings ? "!border-gold/40 !text-gold" : ""}`}>{t.n(cov.lastRun.warnings, "{n} warning", "{n} warnings")}</span>
@@ -103,7 +103,7 @@ export default async function DataPage() {
                   </li>
                 ))}
               </ul>
-            ) : <p className="mt-4 text-sm text-muted">{t.rich("No issues found. Rows that fail a check are dropped and listed here; suspicious ones are kept and flagged. Run <c>{cmd}</c> to test a vendor sample first.", { cmd: "npm run data:check -- --file sample.json", c: (c) => <code className="ltr-fixed rounded bg-panel2 px-1.5 py-0.5 text-ink">{c}</code> })}</p>}
+            ) : <p className="mt-4 text-sm text-muted">{t.rich("No issues found. Rows that fail a check are dropped and listed here; suspicious ones are kept and flagged. Run <c>{cmd}</c> to test a vendor sample first.", { cmd: "npm run data:check -- --file sample.json", c: (c) => <code lang="en" dir="ltr" className="ltr-fixed rounded bg-panel2 px-1.5 py-0.5 text-ink">{c}</code> })}</p>}
           </div>
         </section>
       )}

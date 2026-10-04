@@ -11,6 +11,7 @@ import { slugifyDivision } from "./divisions";
 import { LISTS } from "./records";
 import { belts } from "./lineage";
 import { fightYears } from "./fight-score";
+import { mulberry32 } from "./prng";
 import { orgsRanking, trainerLeaderboard } from "./team";
 import { judgeStats } from "./officials";
 import { ORGS_PAGE, PEOPLE_PAGE } from "./people-list";
@@ -115,6 +116,42 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   }
   if (up) out.push({ path: `/api/preview/${up.id}`, kind: "api", label: "api: preview article" });
   out.push({ path: "/this-page-does-not-exist", kind: "missing", label: "unknown page" });
+  const seen = new Set<string>();
+  return out.filter((r) => (seen.has(r.path) ? false : (seen.add(r.path), true)));
+}
+
+/** `n` of the items, the same ones every time for a seed, in no particular order (all of them when `n` is as many as there are). */
+function sample<T>(items: T[], n: number, seed: number): T[] {
+  if (n >= items.length) return items;
+  const r = mulberry32(seed);
+  return items.map((x) => ({ x, k: r() })).sort((a, b) => a.k - b.k).slice(0, n).map((e) => e.x);
+}
+
+/**
+ * Many more pages than `smokeRoutes`, for hunting what only some records trip: up to `perKind` of every kind of page with a parameter (fighters, bouts, events,
+ * people, organisations, previews, belts), plus every division's ranking for both sexes, every all-time list, every fight-of-the-year and a head to head for the
+ * fighters of each sampled bout. Fighters are chosen to include the extremes (the most and the fewest fights, the oldest and youngest, no facts at all) before
+ * the random ones. The same league and seed always give the same pages.
+ */
+export function crawlRoutes(w: World, perKind: number, seed = 5): SmokeRoute[] {
+  const out: SmokeRoute[] = [];
+  const page = (path: string, label: string) => out.push({ path, kind: "page", label });
+  const byBouts = [...w.boxers].sort((a, b) => b.bouts - a.bouts || a.id - b.id);
+  const unknown = w.boxers.filter((b) => b.reachCm === null || b.heightCm === null || b.birthYear === null || b.stance === null);
+  const extremes = [...byBouts.slice(0, 5), ...byBouts.slice(-5), ...unknown.slice(0, 5), ...[...w.boxers].filter((b) => b.age !== null).sort((a, b) => (b.age ?? 0) - (a.age ?? 0)).slice(0, 3)];
+  const fighters = [...new Map([...extremes, ...sample(w.boxers, perKind, seed)].map((b) => [b.id, b])).values()];
+  for (const b of fighters) page(`/boxers/${b.slug}`, "crawl: fighter");
+  const bouts = sample(w.bouts, perKind, seed + 1);
+  for (const b of bouts) page(`/bouts/${b.id}`, "crawl: bout");
+  for (const b of bouts.slice(0, Math.ceil(perKind / 2))) { const red = w.byId.get(b.redId), blue = w.byId.get(b.blueId); if (red && blue) page(`/compare?a=${red.slug}&b=${blue.slug}`, "crawl: head to head"); }
+  for (const b of sample(w.bouts.filter((x) => x.upcoming && x.status !== "cancelled"), perKind, seed + 2)) page(`/previews/${b.id}`, "crawl: preview");
+  for (const e of sample(w.events, perKind, seed + 3)) page(`/events/${e.id}`, "crawl: event");
+  for (const p of sample([...w.people.values()], perKind, seed + 4)) page(`/people/${p.slug}`, "crawl: person");
+  for (const o of sample([...w.orgs.values()], perKind, seed + 5)) page(`/orgs/${o.slug}`, "crawl: organisation");
+  for (const b of belts(w)) page(`/titles/${b.slug}`, "crawl: belt");
+  for (const d of new Set(w.boxers.map((b) => `${b.sex}|${b.weightClass}`))) { const [sex, name] = d.split("|"); page(`/rankings/${slugifyDivision(name)}${sex === "female" ? "?sex=female" : ""}`, "crawl: division ranking"); }
+  for (const l of LISTS) page(`/all-time/${l.id}`, "crawl: all-time list");
+  for (const y of fightYears(w)) page(`/fight-of-the-year/${y}`, "crawl: fight of the year");
   const seen = new Set<string>();
   return out.filter((r) => (seen.has(r.path) ? false : (seen.add(r.path), true)));
 }

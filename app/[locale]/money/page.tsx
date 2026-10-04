@@ -36,7 +36,7 @@ export default async function Money() {
     return (
       <div className="space-y-6">
         <div><div className="eyebrow mb-2">{t("Gates, pay-per-view and purses")}</div><h1 className="font-display text-5xl font-extrabold uppercase">{t("Fight money")}</h1></div>
-        <p className="card p-6 text-muted">{t("No financial figures are loaded yet. They arrive with a data feed that carries them, or from the research pipeline (see docs/research.md).")}</p>
+        <p className="card p-6 text-muted">{t.rich("No financial figures are loaded yet. They arrive with a data feed that carries them, or from the research pipeline (see <c>docs/research.md</c>).", { c: (x) => <code lang="en" dir="ltr" className="rounded bg-panel2 px-1.5 py-0.5 text-sm">{x}</code> })}</p>
       </div>
     );
   }

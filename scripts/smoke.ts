@@ -1,5 +1,5 @@
 /**
- * npm run build && npm run smoke [-- --feed sparse|empty] [-- --facts unknown]      render every kind of page in English and Arabic on a real production server and inspect it
+ * npm run build && npm run smoke [-- --feed sparse|empty] [-- --facts unknown] [-- --scale 20] [-- --crawl 200] [-- --database FILE]      render every kind of page in English and Arabic on a real production server and inspect it
  *
  * Seeds a throwaway database with the demo league (clock pinned to 2026-10-03), starts `next start` on a free port, requests a
  * representative page of every kind plus the JSON and image endpoints, and checks each (status, language and direction, a heading,
@@ -25,6 +25,15 @@ async function main() {
   const db = path.join(os.tmpdir(), `ringside-smoke-${process.pid}.db`);
   for (const ext of ["", "-wal", "-shm"]) fs.rmSync(db + ext, { force: true });
   process.env.DATABASE_PATH = db;
+  // `--database FILE` checks a league you already have (the real one) instead of the demo: a COPY of the file is used and deleted afterwards, so the original is never opened for writing
+  const existing = arg("database");
+  if (existing) {
+    if (!fs.existsSync(existing)) { console.error(`--database: no file at ${existing}`); process.exit(2); }
+    if (arg("scale") !== undefined || arg("feed") !== undefined || arg("facts") !== undefined) { console.error("--database is a league of its own: not with --scale, --feed or --facts"); process.exit(2); }
+    for (const ext of ["", "-wal", "-shm"]) if (fs.existsSync(existing + ext)) fs.copyFileSync(existing + ext, db + ext);
+    process.env.RINGSIDE_NO_SEED = "1";
+    console.log(`league: a copy of ${existing}`);
+  }
   const accounts = db.replace(/\.db$/, "-accounts.db"); // never touch a real accounts file
   process.env.ACCOUNTS_DB_PATH = accounts;
   process.env.RINGSIDE_NOW = "2026-10-03";
@@ -44,9 +53,26 @@ async function main() {
     console.log(`feed: ${feedName}`);
   }
 
+  // `--scale N` makes the league N times the demo's size (20 is about 19,000 fighters and 160,000 bouts, the size a licensed feed can be): every page kind is rendered and
+  // inspected on it, and each page that takes over a second is listed at the end. The names are generated, so the Arabic pages are not checked for English words.
+  const scale = Math.max(1, Math.floor(Number(arg("scale") ?? 1)));
+  if (scale > 1) {
+    if (feedName) { console.error("--scale and --feed are different leagues: use one"); process.exit(2); }
+    process.env.RINGSIDE_NO_SEED = "1"; // the server must open the league written here, not seed the demo over it
+    const { demoProvider } = await import("../lib/providers/demo");
+    const { loadFeed } = await import("../lib/feed");
+    const { ingest } = await import("../lib/ingest");
+    const { getDb } = await import("../lib/db");
+    const { providerOf } = await import("../tests/helpers");
+    const t0 = performance.now();
+    const feed = await loadFeed(demoProvider(new Date("2026-10-03"), { scale }));
+    await ingest(await getDb(), providerOf(feed, "smoke-scale"));
+    console.log(`scale ${scale}: ${feed.boxers.length.toLocaleString()} fighters, ${feed.bouts.length.toLocaleString()} bouts, loaded in ${Math.round((performance.now() - t0) / 1000)} s`);
+  }
+
   // seed and read the league in this process, then let the server open the same file
   const { getWorld } = await import("../lib/world");
-  const { smokeRoutes, problemsIn, arabicLeaks } = await import("../lib/smoke");
+  const { smokeRoutes, crawlRoutes, problemsIn, arabicLeaks } = await import("../lib/smoke");
   const { securityProblems, STATIC_HEADERS } = await import("../lib/security");
   const world = await getWorld();
   // `--facts unknown` makes a real feed's gaps real: two fighters in three lose height, reach, birth year, stance and debut year, and a further third lose
@@ -58,7 +84,10 @@ async function main() {
     d.exec("UPDATE boxers SET reach_cm = NULL, birth_year = NULL, birth_date = NULL WHERE id % 3 = 1");
     console.log("facts: unknown for two fighters in three");
   }
-  const routes = smokeRoutes(world);
+  // `--crawl N` adds up to N of every kind of page with a parameter (and every division, list and year), the extremes first: what only some records trip
+  const crawl = arg("crawl") === undefined ? 0 : Math.max(1, Math.floor(Number(arg("crawl"))));
+  const routes = [...smokeRoutes(world), ...(crawl ? crawlRoutes(world, crawl) : [])];
+  if (crawl) console.log(`crawl: ${routes.length} pages in all, each in English and Arabic`);
 
   const port = Number(arg("port")) || (await freePort());
   const base = `http://127.0.0.1:${port}`;
@@ -78,6 +107,7 @@ async function main() {
   if (!ready) { console.error("The server did not start:\n" + log.join("").slice(-2000)); stop(); process.exit(2); }
 
   let failures = 0, checked = 0;
+  const slow: string[] = [];
   const run = async (url: string, label: string, route: (typeof routes)[number], locale: "en" | "ar") => {
     const t0 = performance.now();
     try {
@@ -86,10 +116,11 @@ async function main() {
       const bad = problemsIn(route, locale, res.status, res.headers.get("content-type") ?? "", body);
       // the browser-side contract: the policy and nonce on every page, the standing headers on everything (see lib/security.ts)
       if (/text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...securityProblems(res.headers, body));
-      if (locale === "ar" && !feedName && /text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...arabicLeaks(body).map((l) => `English on the Arabic page: ${l}`));
+      if (locale === "ar" && feedName !== "sparse" && scale === 1 && /text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...arabicLeaks(body).map((l) => `English on the Arabic page: ${l}`));
       else for (const h of STATIC_HEADERS) if (res.headers.get(h.key) !== h.value) bad.push(`header ${h.key} is ${res.headers.get(h.key) ?? "missing"}`);
       checked++;
       const ms = Math.round(performance.now() - t0);
+      if (ms >= 1000) slow.push(`${ms} ms  ${locale} ${url}`);
       if (bad.length) { failures++; console.log(`✗ ${locale} ${url}  (${label}, ${ms} ms)`); for (const b of bad) console.log(`    - ${b}`); } else console.log(`✓ ${locale} ${url}  (${label}, ${ms} ms)`);
     } catch (e) { failures++; checked++; console.log(`✗ ${locale} ${url}  (${label})\n    - ${(e as Error).message}`); }
   };
@@ -100,6 +131,7 @@ async function main() {
     } else await run(r.path, r.label, r, "en");
   }
   stop();
+  if (slow.length) console.log(`\n${slow.length} page${slow.length === 1 ? "" : "s"} took a second or more:\n${slow.sort((a, b) => parseInt(b) - parseInt(a)).slice(0, 25).map((x) => "  " + x).join("\n")}`);
   console.log(`\n${checked - failures}/${checked} ok${failures ? ` · ${failures} with problems` : ""}`);
   if (failures) console.log("\nserver log (tail):\n" + log.join("").split("\n").slice(-25).join("\n"));
   process.exit(failures ? 1 : 0);

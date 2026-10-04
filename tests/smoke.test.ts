@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { tempDb } from "./helpers";
 import { NAV_GROUPS } from "../lib/nav";
-import { DYNAMIC_PAGES, problemsIn, smokeRoutes, visibleText, type SmokeRoute } from "../lib/smoke";
+import { DYNAMIC_PAGES, crawlRoutes, problemsIn, smokeRoutes, visibleText, type SmokeRoute } from "../lib/smoke";
 
 /**
  * The smoke check (npm run smoke, run in CI against a production server) is only as good as what it inspects and what
@@ -112,4 +112,23 @@ test("the search-with-a-slip route is in the list, English only (its query is En
   assert.ok(route.mustShow && route.path.startsWith("/boxers?q="));
   assert.ok(decodeURIComponent(route.path).toLowerCase().includes(route.mustShow.split(" ")[0].toLowerCase()), "the query is built from the fighter's name");
   assert.ok(!decodeURIComponent(route.path).toLowerCase().includes(route.mustShow.split(" ").slice(-1)[0].toLowerCase()), "but with a letter missing from the surname");
+});
+
+test("the crawl samples every kind of page with a parameter, the same pages every time, with the extreme fighters first and none twice", () => {
+  const a = crawlRoutes(w, 20), b = crawlRoutes(w, 20);
+  assert.deepEqual(a.map((r) => r.path), b.map((r) => r.path), "the same league and seed give the same pages");
+  assert.notDeepEqual(crawlRoutes(w, 20, 6).map((r) => r.path), a.map((r) => r.path), "another seed gives other pages");
+  const paths = a.map((r) => r.path);
+  assert.equal(new Set(paths).size, paths.length, "no page twice");
+  assert.ok(a.every((r) => r.kind === "page"));
+  for (const kind of ["/boxers/", "/bouts/", "/compare?", "/previews/", "/events/", "/people/", "/orgs/", "/titles/", "/rankings/", "/all-time/", "/fight-of-the-year/"]) assert.ok(paths.some((p) => p.startsWith(kind)), `no crawl of ${kind}`);
+  // each directory with a parameter is crawled (the list in lib/smoke.ts says which exist)
+  for (const dir of DYNAMIC_PAGES) { const head = dir.split("/")[0]; assert.ok(paths.some((p) => p.startsWith(`/${head}/`) || p.startsWith(`/${head}?`)), `${dir} is not crawled`); }
+  const most = [...w.boxers].sort((x, y) => y.bouts - x.bouts || x.id - y.id)[0], fewest = [...w.boxers].sort((x, y) => x.bouts - y.bouts || y.id - x.id)[0];
+  assert.ok(paths.includes(`/boxers/${most.slug}`) && paths.includes(`/boxers/${fewest.slug}`), "the fighters with the most and the fewest fights are always crawled");
+  const everyone = crawlRoutes(w, 1e9).map((r) => r.path);
+  for (const bx of w.boxers) assert.ok(everyone.includes(`/boxers/${bx.slug}`), `${bx.name} is crawled when everyone is asked for`);
+  assert.ok(everyone.length > a.length, "asking for more gives more");
+  assert.equal(new Set(everyone).size, everyone.length, "no page twice even when every bout is crawled (two bouts between the same pair give one head to head)");
+  assert.ok(everyone.some((p) => p.includes("sex=female")), "women's divisions");
 });

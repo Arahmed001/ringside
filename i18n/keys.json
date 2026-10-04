@@ -7015,7 +7015,7 @@
   ]
  },
  {
-  "key": "No financial figures are loaded yet. They arrive with a data feed that carries them, or from the research pipeline (see docs/research.md).",
+  "key": "No financial figures are loaded yet. They arrive with a data feed that carries them, or from the research pipeline (see <c>docs/research.md</c>).",
   "files": [
    "app/[locale]/money/page.tsx"
   ]

@@ -849,7 +849,7 @@
  "No fighters on record.": "لا يوجد ملاكمون مسجلون.",
  "No fights were scored for that year.": "لم يُقيَّم أي نزال في تلك السنة.",
  "No fights were scored.": "لم يُقيَّم أي نزال.",
- "No financial figures are loaded yet. They arrive with a data feed that carries them, or from the research pipeline (see docs/research.md).": "لم تُحمَّل أرقام مالية بعد. تصل مع مصدر بيانات يتضمنها، أو من خط البحث (انظر docs/research.md).",
+ "No financial figures are loaded yet. They arrive with a data feed that carries them, or from the research pipeline (see <c>docs/research.md</c>).": "لم تُحمَّل أرقام مالية بعد. تصل مع مصدر بيانات يتضمنها، أو من خط البحث (انظر <c>docs/research.md</c>).",
  "No fit yet. Run <c>{cmd}</c> to learn weights from the bouts in the database.": "لا يوجد ضبط بعد. شغّل <c>{cmd}</c> لتعلّم الأوزان من النزالات في قاعدة البيانات.",
  "No head trainer found by that name.": "لا مدرب رئيسي بهذا الاسم.",
  "No issues found. Rows that fail a check are dropped and listed here; suspicious ones are kept and flagged. Run <c>{cmd}</c> to test a vendor sample first.": "لم يُعثر على أي مشكلات. الصفوف التي تفشل في أحد الفحوص تُحذف وتُدرج هنا، أما المشبوهة فتُبقى وتُعلَّم. شغّل <c>{cmd}</c> لاختبار عينة من المزوّد أولًا.",
