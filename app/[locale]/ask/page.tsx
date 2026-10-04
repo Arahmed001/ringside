@@ -33,10 +33,10 @@ export default async function Ask({ searchParams }: { searchParams: Promise<{ q?
         <div className="eyebrow mb-2">{t("Questions and answers")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase">{t("Ask the data")}</h1>
         <p className="mt-2 max-w-3xl text-muted">{t("Ask about fighters, fights, titles, all-time records, upcoming cards, upsets, trainers or fight money. Answers are worked out from the database and shown with the tables they came from, never from memory.")}</p>
-        <form method="get" className="mt-5 flex max-w-3xl gap-3" role="search" aria-label={t("Ask the data")}>
+        <form method="get" className="mt-5 flex max-w-3xl flex-col gap-2 sm:flex-row sm:gap-3" role="search" aria-label={t("Ask the data")}>
           <label className="sr-only" htmlFor="q">{t("Your question")}</label>
-          <input id="q" name="q" defaultValue={q} maxLength={MAX_QUESTION} autoComplete="off" placeholder={t("Try: {example}", { example: examples[0] })} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-5 py-3.5 text-base outline-none transition placeholder:text-muted focus:border-gold/60" />
-          <button className="rounded-2xl bg-red-btn px-6 font-display text-lg font-bold uppercase text-white transition hover:brightness-90">{t("Ask")}</button>
+          <input id="q" name="q" defaultValue={q} maxLength={MAX_QUESTION} autoComplete="off" placeholder={t("Try: {example}", { example: examples[0] })} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-4 py-3.5 text-[15px] outline-none transition placeholder:text-muted focus:border-gold/60 sm:px-5 sm:text-base" />
+          <button className="rounded-2xl bg-red-btn px-6 py-3 font-display text-lg font-bold uppercase text-white transition hover:brightness-90 sm:py-0">{t("Ask")}</button>
         </form>
         {!hasKey() && <p className="mt-3 max-w-3xl text-xs text-muted">{t("No AI key is set on this site, so answers are put together by rules rather than written by a model. They still come entirely from the data.")}</p>}
       </div>
