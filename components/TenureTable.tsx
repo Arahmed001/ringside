@@ -3,11 +3,17 @@ import type { FighterTenure } from "@/lib/team";
 import { Headshot } from "./Portrait";
 import { fmtDate } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
+import { Pager } from "@/components/ui";
+import { paginate } from "@/lib/paging";
 
-/** One row per fighter-tenure with the record and Elo change accumulated during it. */
-export async function TenureTable({ tenures, limit = 40 }: { tenures: FighterTenure[]; limit?: number }) {
+/**
+ * One row per fighter-tenure with the record and Elo change accumulated during it, newest first. Given a `pager` (the page asked for and the address of any
+ * page) it shows `limit` rows a page and every row is reachable; without one it shows the first `limit` and says how many there are.
+ */
+export async function TenureTable({ tenures, limit = 40, pager }: { tenures: FighterTenure[]; limit?: number; pager?: { page: string | undefined; href: (n: number) => string; label?: string } }) {
   const t = await getT();
-  const rows = tenures.slice(0, limit);
+  const pg = pager ? paginate(tenures.length, pager.page, limit) : null;
+  const rows = pg ? tenures.slice(pg.first, pg.first + limit) : tenures.slice(0, limit);
   if (!rows.length) return <p className="text-sm text-muted">{t("No fighters on record.")}</p>;
   return (
     <div className="overflow-x-auto">
@@ -24,7 +30,7 @@ export async function TenureTable({ tenures, limit = 40 }: { tenures: FighterTen
           ))}
         </tbody>
       </table>
-      {tenures.length > limit && <p className="mt-2 text-xs text-muted">{t("Showing the {limit} most recent of {total}.", { limit, total: tenures.length })}</p>}
+      {pg && pager ? <Pager page={pg.page} pages={pg.pages} href={pager.href} label={pager.label} /> : tenures.length > limit && <p className="mt-2 text-xs text-muted">{t("Showing the {limit} most recent of {total}.", { limit, total: tenures.length })}</p>}
     </div>
   );
 }

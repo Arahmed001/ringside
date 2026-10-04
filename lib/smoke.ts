@@ -89,6 +89,24 @@ export function smokeRoutes(w: World): SmokeRoute[] {
     out.push({ path: `/orgs?kind=promotion&q=${q(`${p.slice(0, -1).join(" ")} ${last.slice(0, 2)}${last.slice(3)}`.trim())}`, kind: "page", label: "promotion search with a letter missing", mustShow: promo.o.name, englishOnly: true });
   }
   page("/orgs?kind=gym&page=9999", "gym list page beyond the end");
+  // the long lists on an organisation's or a person's page are paged, each with its own key: page 2 of the mostBy promotion's events must show the 13th event
+  const mostBy = <T,>(items: T[], n: (x: T) => number) => items.reduce<T | undefined>((m, x) => (m === undefined || n(x) > n(m) ? x : m), undefined);
+  const eventsOf = (id: number) => w.events.filter((e) => e.promoterOrgId === id).sort((x, y) => y.date.localeCompare(x.date));
+  const promoter = mostBy([...w.orgs.values()].filter((o) => o.kind === "promotion"), (o) => eventsOf(o.id).length);
+  if (promoter && eventsOf(promoter.id).length > 12) {
+    const evs = eventsOf(promoter.id), firstPage = new Set(evs.slice(0, 12).map((e) => e.name));
+    const next = evs.slice(12).find((e) => !firstPage.has(e.name));
+    out.push({ path: `/orgs/${promoter.slug}?events=2`, kind: "page", label: "second page of a promotion's events", ...(next ? { mustShow: next.name } : {}) });
+    page(`/orgs/${promoter.slug}?events=9999`, "a promotion's events beyond the end");
+  }
+  const body = mostBy([...w.orgs.values()].filter((o) => o.kind === "sanctioning_body"), (o) => w.bouts.filter((b) => b.titleOrgId === o.id && !b.upcoming && b.method).length);
+  if (body && w.bouts.filter((b) => b.titleOrgId === body.id && !b.upcoming && b.method).length > 15) page(`/orgs/${body.slug}?fights=2`, "second page of a sanctioning body's title fights");
+  for (const role of ["judge", "referee"] as const) {
+    const who = mostBy([...w.people.values()].filter((p) => w.roles.get(p.id)?.has(role)), (p) => (w.officialsByPerson.get(p.id) ?? []).filter((o) => o.role === role).length);
+    if (who && (w.officialsByPerson.get(who.id) ?? []).filter((o) => o.role === role).length > 12) page(`/people/${who.slug}?${role === "judge" ? "judged" : "refereed"}=2`, `second page of the bouts a ${role} officiated`);
+  }
+  const stabler = mostBy([...w.people.values()].filter((p) => w.roles.get(p.id)?.has("trainer")), (p) => (w.stintsByPerson.get(p.id) ?? []).length);
+  if (stabler) page(`/people/${stabler.slug}?stable=2`, "a trainer's stable, page 2 (the last page when it has just one)");
   page("/rankings/welterweight?page=9999", "division ranking page beyond the end");
   page("/rankings/welterweight?q=zzzq", "division ranking filter that finds no one");
   const org = (kind: string) => [...w.orgs.values()].find((o) => o.kind === kind);

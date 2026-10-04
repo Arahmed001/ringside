@@ -7699,6 +7699,43 @@
   ]
  },
  {
+  "key": "Pages of bouts refereed",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Pages of bouts scored",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Pages of clients",
+  "files": [
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Pages of events",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Pages of fighters",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx",
+   "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Pages of title fights",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Paid",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -11003,6 +11040,12 @@
   "key": "Took the belt when the holder was not in the fight",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Top 12 of {n} by rating; everyone is in the table below",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
   ]
  },
  {

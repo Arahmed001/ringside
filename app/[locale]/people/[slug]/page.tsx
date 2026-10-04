@@ -10,11 +10,13 @@ import { judgeStats, refereeStats } from "@/lib/officials";
 import { TenureTable } from "@/components/TenureTable";
 import { TeamTimeline } from "@/components/TeamTimeline";
 import { TrainerImpactCard } from "@/components/TrainerImpactCard";
-import { SectionTitle, Stat } from "@/components/ui";
+import { Pager, SectionTitle, Stat } from "@/components/ui";
 import { countryName, flag, fmtDate, methodLabel } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
 import { msg } from "@/lib/i18n/t";
 import { metaFor } from "@/lib/seo-server";
+import { paginate } from "@/lib/paging";
+import { first, sectionHref, type Query } from "@/lib/section-page";
 
 const ROLE_NAME: Record<string, string> = { trainer: msg("Trainer"), manager: msg("Manager"), judge: msg("Judge"), referee: msg("Referee") };
 
@@ -34,9 +36,15 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string;
   return { path: `/people/${q.slug}`, title: name, description };
 });
 
-export default async function PersonPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+/** Rows per page of the long lists on a person's page: a trainer's stable, a manager's clients, the bouts a judge scored or a referee officiated. */
+const TENURES_PAGE = 40, BOUTS_PAGE = 12;
+
+export default async function PersonPage({ params, searchParams }: { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<Query> }) {
   const t = await getT();
   const { slug } = await params;
+  const query = await searchParams;
+  const here = `/people/${slug}`;
+  const at = (key: string, label: string) => ({ page: first(query[key]), href: (n: number) => sectionHref(here, query, key, n), label });
   const w = await getWorld();
   const p = w.peopleBySlug.get(slug);
   if (!p) notFound();
@@ -58,18 +66,23 @@ export default async function PersonPage({ params }: { params: Promise<{ locale:
     : [];
 
   // recent bouts for officials
-  const recentBouts = (kind: "judge" | "referee") => {
+  const officiated = (kind: "judge" | "referee") =>
     // this person's own assignments, newest first: no need to walk every bout in the league
-    return (w.officialsByPerson.get(p.id) ?? [])
+    (w.officialsByPerson.get(p.id) ?? [])
       .filter((o) => o.role === kind)
       .flatMap((o) => { const b = w.boutById.get(o.boutId); return b && !b.upcoming ? [b] : []; })
-      .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id)
-      .slice(0, 12)
+      .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+  /** One page of them, newest first; `key` is the page's address for it. */
+  const recentBouts = (kind: "judge" | "referee", key: string) => {
+    const all = officiated(kind), pg = paginate(all.length, first(query[key]), BOUTS_PAGE);
+    return { pg, key, rows: all.slice(pg.first, pg.first + BOUTS_PAGE)
       .map((b) => {
         const card = kind === "judge" ? (w.scorecardsByBout.get(b.id) ?? []).find((c) => c.judgeId === p.id) : null;
         return { id: b.id, label: t("{red} vs {blue}", { red: t.name(b.redName), blue: t.name(b.blueName) }), date: b.date, result: methodLabel(b.method, b.endRound, t), detail: card ? `${card.red}–${card.blue}` : "" };
-      });
+      }) };
   };
+  // the bouts they scored or officiated, a page of each (only for the roles this person has)
+  const judged = recentBouts("judge", "judged"), refereed = recentBouts("referee", "refereed");
 
   return (
     <div className="space-y-10">
@@ -90,7 +103,7 @@ export default async function PersonPage({ params }: { params: Promise<{ locale:
             <Stat label={t("Avg Elo change")} value={head.avgRatingChange === null ? "–" : `${head.avgRatingChange >= 0 ? "+" : ""}${Math.round(head.avgRatingChange)}`} sub={t("per tenure")} />
           </div>
           {timelineRows.length > 0 && <div className="card p-5"><div className="eyebrow mb-3">{head.tenures.length > 16 ? t("Fighters over time (latest 16 of {n})", { n: head.tenures.length }) : t("Fighters over time")}</div><TeamTimeline rows={timelineRows} today={w.today} /></div>}
-          <div className="card p-5"><TenureTable tenures={head.tenures} /></div>
+          <div className="card p-5"><TenureTable tenures={head.tenures} limit={TENURES_PAGE} pager={at("stable", t("Pages of fighters"))} /></div>
           {trainer && trainer.tenures.length > head.tenures.length && <p className="text-xs text-muted">{t("Also worked in other corner roles (assistant, strength and conditioning) with {n} further fighters.", { n: trainer.fighters - head.fighters })}</p>}
         </section>
       )}
@@ -105,7 +118,7 @@ export default async function PersonPage({ params }: { params: Promise<{ locale:
             <Stat label={t("Record")} value={`${manager.record.wins}-${manager.record.losses}-${manager.record.draws}`} sub={t("{n}% wins", { n: Math.round(manager.record.winRate * 100) })} />
             <Stat label={t("Title wins")} value={manager.titleWins} />
           </div>
-          <div className="card p-5"><TenureTable tenures={manager.tenures} /></div>
+          <div className="card p-5"><TenureTable tenures={manager.tenures} limit={TENURES_PAGE} pager={at("clients", t("Pages of clients"))} /></div>
         </section>
       )}
 
@@ -119,10 +132,11 @@ export default async function PersonPage({ params }: { params: Promise<{ locale:
             <Stat label={t("Picks home fighter")} value={myJudge.homePickRate === null ? "–" : `${Math.round(myJudge.homePickRate * 100)}%`} sub={t("league {pct}% · n={n}", { pct: Math.round(judge.leagueHomePickRate * 100), n: myJudge.homeSamples })} />
           </div>
           <ScrollRegion className="card p-5" label={t("Scoring record")}>
-            <table className="w-full text-sm" aria-label={t("Scoring record")}><tbody>{recentBouts("judge").map((b) => (
+            <table className="w-full text-sm" aria-label={t("Scoring record")}><tbody>{judged.rows.map((b) => (
               <tr key={b.id} className="border-t border-line/60 first:border-0"><td className="py-2 text-muted tabular">{fmtDate(b.date, { month: "short", day: "numeric", year: "numeric" }, t.locale)}</td><td><Link href={`/bouts/${b.id}`} className="hover:text-gold">{b.label}</Link></td><td className="tabular text-muted">{b.result}</td><td className="text-end tabular font-semibold">{b.detail}</td></tr>
             ))}</tbody></table>
           </ScrollRegion>
+          <Pager page={judged.pg.page} pages={judged.pg.pages} href={(n) => sectionHref(here, query, judged.key, n)} label={t("Pages of bouts scored")} />
         </section>
       )}
 
@@ -136,10 +150,11 @@ export default async function PersonPage({ params }: { params: Promise<{ locale:
             <Stat label={t("Early stoppages")} value={`${Math.round(myRef.earlyStopRate * 100)}%`} sub={t("rounds 1–3")} />
           </div>
           <ScrollRegion className="card p-5" label={t("Officiating record")}>
-            <table className="w-full text-sm" aria-label={t("Officiating record")}><tbody>{recentBouts("referee").map((b) => (
+            <table className="w-full text-sm" aria-label={t("Officiating record")}><tbody>{refereed.rows.map((b) => (
               <tr key={b.id} className="border-t border-line/60 first:border-0"><td className="py-2 text-muted tabular">{fmtDate(b.date, { month: "short", day: "numeric", year: "numeric" }, t.locale)}</td><td><Link href={`/bouts/${b.id}`} className="hover:text-gold">{b.label}</Link></td><td className="text-end tabular text-muted">{b.result}</td></tr>
             ))}</tbody></table>
           </ScrollRegion>
+          <Pager page={refereed.pg.page} pages={refereed.pg.pages} href={(n) => sectionHref(here, query, refereed.key, n)} label={t("Pages of bouts refereed")} />
         </section>
       )}
     </div>
