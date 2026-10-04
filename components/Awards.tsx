@@ -58,7 +58,7 @@ export async function FightHero({ w, s, label }: { w: World; s: FightScore; labe
         {[red, blue].map((f, i) => (
           <Link key={f.id} href={`/boxers/${f.slug}`} className={`flex min-w-0 flex-col items-center gap-2 text-center ${i === 1 ? "order-3" : ""}`}>
             <Headshot boxer={f} size={96} />
-            <div className="w-full truncate font-display text-2xl font-bold leading-tight sm:text-3xl" dir="auto" style={{ color: i === 0 ? "#e5322d" : "#4a8cff" }}>{winner === f.id && <span aria-label={t("Winner")}>✓ </span>}{t.name(f.name)}</div>
+            <div className="w-full text-balance break-words font-display text-xl font-bold leading-tight sm:text-3xl" dir="auto" style={{ color: i === 0 ? "#e5322d" : "#4a8cff" }}>{winner === f.id && <span aria-label={t("Winner")}>✓ </span>}{t.name(f.name)}</div>
           </Link>
         ))}
         <div className="order-2 text-center">
