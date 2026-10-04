@@ -6109,6 +6109,12 @@
   ]
  },
  {
+  "key": "Jump to a section",
+  "files": [
+   "app/[locale]/all-time/page.tsx"
+  ]
+ },
+ {
   "key": "Keep going",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
