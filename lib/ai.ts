@@ -141,7 +141,7 @@ export function heuristicParse(q: string, countries: string[]): Filters {
   else if (/\bmen['’]?s?\b|\bmale\b|\bguys\b/.test(s)) f.sex = "male";
   for (const c of countries) if (s.includes(c.toLowerCase())) f.country = c;
   for (const c of WORLD_COUNTRIES) if (new RegExp(`\\b${c.toLowerCase()}\\b`).test(s) && (!f.country || c.length > f.country.length)) f.country = c;
-  for (const [k, v] of Object.entries(COUNTRY_ALIASES)) if (new RegExp(`\\b${k}\\b`).test(s)) f.country = v;
+  for (const [k, v] of Object.entries(COUNTRY_ALIASES)) if (new RegExp(`\\b${k}s?\\b`).test(s)) f.country = v; // "Mexican" and "Mexicans"
   if (/undefeated|unbeaten|perfect record|0 losses/.test(s)) f.undefeated = true;
   if (/\bretired\b/.test(s)) f.active = false;
   else if (/\bactive\b|currently/.test(s)) f.active = true;
@@ -149,7 +149,7 @@ export function heuristicParse(q: string, countries: string[]): Filters {
   const kos = s.match(/(\d+)\+?\s*(?:or more |plus |and (?:over|up) )?(?:kos?|knockouts?)/); if (kos) f.minKOs = +kos[1];
   const kor = s.match(/(\d+)\s*%\s*(?:ko|knockout)/) ?? s.match(/(?:ko|knockout) (?:rate|percentage|ratio)\s*(?:of|over|above|at least|>)?\s*(\d+)\s*%/); if (kor) f.minKoRate = +kor[1] / 100;
   if (/big puncher|heavy hand|power puncher|knockout artist|devastating/.test(s)) f.archetype = "Knockout Artist";
-  if (/technician|technical|skilled boxer/.test(s)) f.archetype = "Technician";
+  if (/technician|technical(?! knock)|skilled boxer/.test(s)) f.archetype = "Technician";
   if (/counter/.test(s)) f.archetype = "Counter-Puncher";
   if (/brawler/.test(s)) f.archetype = "Iron-Chin Brawler";
   if (/volume|workrate|work rate/.test(s)) f.archetype = "Volume Boxer";
@@ -160,7 +160,7 @@ export function heuristicParse(q: string, countries: string[]): Filters {
   const over = s.match(/(?:over|older than)\s*(\d{2})\b(?!\s*(?:wins|kos))/); if (over && +over[1] >= 25) f.minAge = +over[1] + 1; // "over 33" means 34+
   const under = s.match(/(?:under|younger than)\s*(\d{2})\b/); if (under) f.maxAge = +under[1];
   if (/young|prospect/.test(s) && !f.maxAge) f.maxAge = 26;
-  if (/veteran|old/.test(s) && !f.minAge) f.minAge = 35;
+  if (/\bveterans?\b|\bold\b|\bolder\b|\boldest\b/.test(s) && !f.minAge) f.minAge = 35; // whole words: "holds" and "gold" are not an age
   if (/best|top|highest rated|greatest/.test(s)) f.sort = "rating";
   if (/most (?:ko|knockout)/.test(s)) f.sort = "kos";
   if (/most wins/.test(s)) f.sort = "wins";

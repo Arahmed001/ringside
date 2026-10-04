@@ -197,3 +197,57 @@ test("a country nobody in the data is from is answered 'no fighters', in both la
   // a country the league has still lists its fighters
   assert.ok((await askData("Mexican boxers", { w, t: tEn, names: {} })).results[0].tables.length > 0);
 });
+
+test("a list asked about a group it cannot be cut to is a fighter search that honours the group, or no answer: never the list for everybody", () => {
+  const first = (q: string) => plan(q)[0];
+  // the three lists a fighter search can stand in for: same sort, plus the group
+  assert.deepEqual(first("most wins among Mexican fighters"), { tool: "fighters", args: { country: "Mexico", sort: "wins" } });
+  assert.deepEqual(first("most knockouts among southpaws"), { tool: "fighters", args: { stance: "Southpaw", sort: "kos" } });
+  assert.deepEqual(first("highest ko rate among active fighters"), { tool: "fighters", args: { active: true, sort: "koRate", minWins: 15 } }, "a knockout rate needs a record to rest on, as the list's own 15 wins");
+  assert.equal(first("highest ko rate among Germans over 20 wins")?.args.minWins, 20, "and the reader's own minimum stands");
+  // any other list: no answer
+  for (const q of ["longest win streak among southpaws", "most title defenses among Mexican champions", "biggest upsets by southpaws", "most title wins among undefeated fighters"]) assert.deepEqual(plan(q), [], q);
+  // what a list is scoped to is still a list
+  assert.deepEqual(first("most knockouts among women"), { tool: "record_list", args: { list: "kos", sex: "female" } });
+  assert.equal(first("longest unbeaten run among heavyweights")?.args.list, "win-streak", "'unbeaten' in a streak is the list, not a group of unbeaten fighters");
+  // a group of fighters is not a ranking by division
+  assert.deepEqual(first("top 5 southpaws"), { tool: "fighters", args: { stance: "Southpaw", sort: "rating", limit: 5 } });
+});
+
+test("a stretch of time, or a region, is no answer: 'since 2018' is not the year 2018, and 'Europe' is not a country", () => {
+  for (const q of ["most knockouts in the 2010s", "greatest fighters of the 80s", "biggest upsets in the nineties", "longest win streak in the last five years", "most title defenses this decade", "fastest knockout before 2015", "most wins since 2020", "most knockouts after 2019", "knockouts since 2020", "most knockouts in recent years", "who has the most wins over the last decade"]) assert.deepEqual(plan(q), [], q);
+  for (const q of ["who has the most knockouts in Europe", "best welterweight from South America", "most wins by an African fighter", "most title defenses in Asia"]) assert.deepEqual(plan(q), [], q);
+  // one year is still one year, and a search that is about debuts keeps its year
+  assert.equal(plan("knockouts in 2024")[0].tool, "bouts");
+  assert.equal(plan("best fight of 2023")[0].tool, "fight_of_the_year");
+  assert.equal(plan("fighters who debuted since 2020")[0].tool, "fighters");
+});
+
+test("the reason an unanswered question gets: a year, a stretch of years, or a group", async () => {
+  const { refusalReason } = await import("../lib/ask/rules");
+  assert.equal(refusalReason("who has the most knockouts in 2024"), "year");
+  for (const q of ["most knockouts in the 2010s", "biggest upsets since 2018", "longest win streak in the last five years", "knockouts since 2020"]) assert.equal(refusalReason(q), "span", q);
+  for (const q of ["longest win streak among southpaws", "most title defenses among Mexican champions", "who has the most knockouts in Europe", "biggest upsets by southpaws"]) assert.equal(refusalReason(q), "group", q);
+  assert.equal(refusalReason("longest unbeaten run among heavyweights"), null, "that one has an answer");
+  assert.equal(refusalReason("most knockouts among women"), null);
+  assert.equal(refusalReason("hello"), null);
+  const { askData } = await import("../lib/ask");
+  const { tEn } = await import("../lib/i18n/t");
+  assert.equal((await askData("most knockouts in the 2010s", { w, t: tEn, names: {} })).hint, "span");
+  assert.equal((await askData("longest win streak among southpaws", { w, t: tEn, names: {} })).hint, "group");
+  const ok = await askData("most knockouts among southpaws", { w, t: tEn, names: {} });
+  assert.equal(ok.understood, true);
+  assert.equal(ok.hint, undefined);
+});
+
+test("words that only contain a filter word do not set the filter: 'holds' and 'gold' are not an age, 'technical knockouts' are not a style, 'Mexicans' are Mexican", async () => {
+  const { heuristicParse } = await import("../lib/ai");
+  assert.equal(heuristicParse("who holds the heavyweight belt", []).minAge, undefined);
+  assert.equal(heuristicParse("gold medallists", []).minAge, undefined);
+  assert.equal(heuristicParse("the oldest boxers", []).minAge, 35);
+  assert.equal(heuristicParse("veterans with 30 wins", []).minAge, 35);
+  assert.equal(heuristicParse("most technical knockouts", []).archetype, undefined);
+  assert.equal(heuristicParse("technical boxers", []).archetype, "Technician");
+  assert.equal(heuristicParse("Mexicans with 10 knockouts", []).country, "Mexico");
+  assert.equal(heuristicParse("Germans", []).country, "Germany");
+});

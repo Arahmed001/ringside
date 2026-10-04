@@ -38,7 +38,7 @@ export interface Answer {
   /** An AI call was refused by a limit, so the rule-based path answered. */
   limited?: "client" | "budget";
   /** Why there is no answer, when there is a reason worth saying: the question named a year and the list it asks about has none. */
-  hint?: "year";
+  hint?: "year" | "span" | "group";
 }
 
 export type Plan = Call[];
@@ -135,7 +135,7 @@ export function askData(rawQuestion: string, ctx: Ctx, client?: string): Promise
         if (text && text.length <= 1200 && ungroundedFigures(text, blob, question).length === 0) { answer = text; source = "ai"; }
       } catch (e) { refused(e); }
     }
-    const out: Answer = { question, answer, source, planner, calls: plan, results, understood: results.length > 0, ...(limited ? { limited } : {}), ...(results.length === 0 && refusalReason(question) ? { hint: "year" as const } : {}) };
+    const out: Answer = { question, answer, source, planner, calls: plan, results, understood: results.length > 0, ...(limited ? { limited } : {}), ...(results.length === 0 && refusalReason(question) ? { hint: refusalReason(question)! } : {}) };
     if (cacheable) cache.set(key, out);
     return out;
   })().finally(() => inflight.delete(key));

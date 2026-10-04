@@ -6,10 +6,10 @@ import { pound4pound } from "../lib/rankings";
  * of what the rule-based planner (no API key) understands, not a list of what it was built to understand: add questions as people ask ones it gets wrong.
  * `tool: null` means no tool can answer it, and the right behaviour is to say so rather than to answer something else.
  */
-export interface Case { q: string; tool: string | string[] | null; args?: Record<string, unknown>; lang?: "en" | "ar"; note?: string; batch?: 1 | 2 | 3 | 4 | 5 | 6 }
+export interface Case { q: string; tool: string | string[] | null; args?: Record<string, unknown>; lang?: "en" | "ar"; note?: string; batch?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 }
 
 export function battery(w: World): Case[] {
-  return [...batch1(w).map((c) => ({ ...c, batch: 1 as const })), ...batch2(w).map((c) => ({ ...c, batch: 2 as const })), ...batch3(w).map((c) => ({ ...c, batch: 3 as const })), ...batch4(w).map((c) => ({ ...c, batch: 4 as const })), ...batch5(w).map((c) => ({ ...c, batch: 5 as const })), ...batch6(w).map((c) => ({ ...c, batch: 6 as const }))];
+  return [...batch1(w).map((c) => ({ ...c, batch: 1 as const })), ...batch2(w).map((c) => ({ ...c, batch: 2 as const })), ...batch3(w).map((c) => ({ ...c, batch: 3 as const })), ...batch4(w).map((c) => ({ ...c, batch: 4 as const })), ...batch5(w).map((c) => ({ ...c, batch: 5 as const })), ...batch6(w).map((c) => ({ ...c, batch: 6 as const })), ...batch7().map((c) => ({ ...c, batch: 7 as const })), ...batch8().map((c) => ({ ...c, batch: 8 as const }))];
 }
 
 function batch1(w: World): Case[] {
@@ -454,5 +454,98 @@ function batch6(w: World): Case[] {
     { q: "ملاكمون لم يخسروا", tool: "fighters", lang: "ar" },
     { q: "المفاجآت المتوقعة في الفعاليات القادمة", tool: "upset_watch", lang: "ar" },
     { q: "كم يبلغ سعر تذكرة الطائرة", tool: null, lang: "ar" },
+  ];
+}
+
+/**
+ * Batch 7: questions about a GROUP ("among southpaws", "in Japan", "since 2020", "in the 2010s"), written to find answers that look right and are wrong: a list
+ * that cannot be narrowed to the group answers for everybody, as "most knockouts in 2024" once did. Each is either a fighter search that honours the group, or
+ * `tool: null` (no answer, with a reason) because no tool can: the right behaviour is never an all-time list with the group quietly dropped. Written after batch 6
+ * had been fitted, and measured once before anything was changed for it.
+ */
+function batch7(): Case[] {
+  return [
+    // a group a fighter search can honour: sorted by what the list would have counted
+    { q: "most wins among Mexican fighters", tool: "fighters", args: { country: "Mexico", sort: "wins" } },
+    { q: "most knockouts among southpaws", tool: "fighters", args: { stance: "Southpaw", sort: "kos" } },
+    { q: "highest ko rate among active fighters", tool: "fighters", args: { active: true, sort: "koRate" } },
+    { q: "most wins among retired fighters", tool: "fighters", args: { active: false, sort: "wins" } },
+    { q: "knockout leaders in Japan", tool: "fighters", args: { country: "Japan", sort: "kos" } },
+    { q: "most knockouts among undefeated fighters", tool: "fighters", args: { undefeated: true, sort: "kos" } },
+    { q: "most wins among heavyweights over 30", tool: "fighters", args: { weightClass: "Heavyweight", minAge: 31, sort: "wins" } },
+    { q: "top 5 southpaws", tool: "fighters", args: { stance: "Southpaw", limit: 5 } },
+    { q: "top 10 Nigerian fighters", tool: "fighters", args: { country: "Nigeria", limit: 10 } },
+    { q: "most knockouts among female southpaws", tool: "fighters", args: { sex: "female", stance: "Southpaw", sort: "kos" } },
+    { q: "most wins among active lightweights", tool: "fighters", args: { weightClass: "Lightweight", active: true, sort: "wins" } },
+    { q: "highest knockout rate among Germans", tool: "fighters", args: { country: "Germany", sort: "koRate" } },
+    { q: "most wins among orthodox boxers", tool: "fighters", args: { stance: "Orthodox", sort: "wins" } },
+    { q: "who has the most knockouts among the Americans", tool: "fighters", args: { country: "United States", sort: "kos" } },
+    // a list no fighter sort can reproduce, asked about a group: no answer, never the list for everybody
+    { q: "longest win streak among southpaws", tool: null },
+    { q: "most title defenses among Mexican champions", tool: null },
+    { q: "most title wins among undefeated fighters", tool: null },
+    { q: "longest reign among women since 2015", tool: null },
+    { q: "biggest upsets by southpaws", tool: null },
+    // a stretch of time the lists have no way to cut
+    { q: "most knockouts in the 2010s", tool: null },
+    { q: "longest win streak in the last five years", tool: null },
+    { q: "most title defenses this decade", tool: null },
+    { q: "fastest knockout before 2015", tool: null },
+    { q: "biggest upsets since 2018", tool: null },
+    { q: "most wins since 2020", tool: null },
+    { q: "most knockouts in recent years", tool: null },
+    { q: "who has the most wins over the last decade", tool: null },
+    { q: "most knockouts after 2019", tool: null },
+    // a place that is not a country the data has
+    { q: "who has the most knockouts in Europe", tool: null },
+    // controls: the same lists asked plainly, or about what a list can be scoped to, still answer; words that contain "old" or "technical" are not an age or a style
+    { q: "who has the most knockouts", tool: "record_list", args: { list: "kos" } },
+    { q: "most knockouts among women", tool: "record_list", args: { list: "kos", sex: "female" } },
+    { q: "most wins among heavyweights", tool: "record_list", args: { list: "wins", division: "Heavyweight" } },
+    { q: "who holds the heavyweight belt", tool: "champions", args: { division: "Heavyweight" } },
+    { q: "who holds the most title defenses", tool: "record_list", args: { list: "defenses" } },
+    { q: "most technical knockouts", tool: ["record_list", "fighters"] },
+    { q: "oldest active boxers", tool: "fighters" },
+    { q: "who has the longest win streak", tool: "record_list", args: { list: "win-streak" } },
+  ];
+}
+
+/**
+ * Batch 8: the same kinds of question as batch 7 in other words (so it says whether batch 7's fixes are rules or just those sentences): groups by nationality
+ * and age, more ways to say a stretch of time, a region. Written after batch 7 had been fitted and measured once before anything was changed for it.
+ */
+function batch8(): Case[] {
+  return [
+    { q: "who has won the most fights among lefties", tool: "fighters", args: { stance: "Southpaw", sort: "wins" } },
+    { q: "which Ukrainians have the most KOs", tool: "fighters", args: { country: "Ukraine", sort: "kos" } },
+    { q: "top ten British boxers", tool: "fighters", args: { country: "United Kingdom", limit: 10 } },
+    { q: "highest knockout percentage among unbeaten boxers", tool: "fighters", args: { undefeated: true, sort: "koRate" } },
+    { q: "who has the most knockouts among fighters over 35", tool: "fighters", args: { minAge: 36, sort: "kos" } },
+    { q: "most wins among fighters under 25", tool: "fighters", args: { maxAge: 25, sort: "wins" } },
+    { q: "top 3 active southpaw heavyweights", tool: "fighters", args: { stance: "Southpaw", active: true, weightClass: "Heavyweight", limit: 3 } },
+    { q: "which Argentinians have the best knockout rate", tool: "fighters", args: { country: "Argentina", sort: "koRate" } },
+    { q: "most knockouts for a Filipino fighter", tool: "fighters", args: { country: "Philippines", sort: "kos" } },
+    { q: "who has the most wins of any retired boxer", tool: "fighters", args: { active: false, sort: "wins" } },
+    { q: "longest unbeaten streak among Mexicans", tool: null },
+    { q: "most title defences among British champions", tool: null },
+    { q: "biggest upsets in the nineties", tool: null },
+    { q: "most knockouts in the last decade", tool: null },
+    { q: "most wins in the past ten years", tool: null },
+    { q: "longest win streak in the 1990s", tool: null },
+    { q: "most knockouts in the 2000s", tool: null },
+    { q: "greatest fighters of the 80s", tool: null },
+    { q: "most knockouts so far this decade", tool: null },
+    { q: "most title defenses in Asia", tool: null },
+    { q: "fastest knockout in the UK", tool: null },
+    { q: "best welterweight from South America", tool: null },
+    { q: "most knockouts among women since 2015", tool: null },
+    { q: "who has the highest peak rating among southpaws", tool: null },
+    { q: "most wins by an African fighter", tool: null },
+    { q: "who has the most knockouts overall", tool: "record_list", args: { list: "kos" } },
+    { q: "most knockouts among men", tool: "record_list", args: { list: "kos", sex: "male" } },
+    { q: "most title defenses in the middleweight division", tool: "record_list", args: { list: "defenses", division: "Middleweight" } },
+    { q: "who holds the most belts", tool: ["record_list", "champions"] },
+    { q: "who is the oldest champion", tool: ["champions", "fighters"] },
+    { q: "most knockouts in 2023", tool: null },
   ];
 }

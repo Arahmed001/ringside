@@ -10730,6 +10730,18 @@
   ]
  },
  {
+  "key": "These lists and counts cover all of boxing history and cannot be cut to a stretch of years such as “since 2018” or “this decade”. Try one year, such as “best fight of 2025” or “knockouts in 2025”.",
+  "files": [
+   "components/AskResults.tsx"
+  ]
+ },
+ {
+  "key": "These lists can be narrowed to men or women and one weight division, but not to other groups of fighters or to a region. Try a search such as “southpaw welterweights with 10+ KOs” or “most knockouts among women”.",
+  "files": [
+   "components/AskResults.tsx"
+  ]
+ },
+ {
   "key": "They have already fought {n} times",
   "plural": "They have already fought {n} time",
   "files": [
