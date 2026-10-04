@@ -68,7 +68,7 @@ async function Trainers({ sort, w, list }: { sort: string; w: W; list: List }) {
       <div className="mb-3 flex flex-wrap gap-2 text-xs"><span className="text-muted">{t("Sort by")}</span>{[["elo", msg("Elo change")], ["win", msg("Win rate")], ["fighters", msg("Fighters")], ["titles", msg("Title wins")]].map(([k, l]) => <Link key={k} href={`/people?role=trainer&sort=${k}`} className={`chip ${sort === k ? "!border-gold/50 !text-gold" : ""}`}>{t(l)}</Link>)}</div>
       <ListFinder path="/people" hidden={hiddenOf(list)} q={list.q} label={t("Find a trainer by name")} total={pg.total} of={pg.of} close={pg.close} />
       <ScrollRegion className="card p-4" label={t("Trainer leaderboard")}>
-        <table className="w-full text-sm [&_td:not(:last-child)]:pe-3 [&_th:not(:last-child)]:pe-3" aria-label={t("Trainer leaderboard")}>
+        <table className="w-full text-sm" aria-label={t("Trainer leaderboard")}>
           <thead><tr><th className={th}>#</th><th className={th}>{t("Trainer")}</th><th className={th}>{t("Fighters now / ever")}</th><th className={th}>{t("Record together")}</th><th className={th}>{t("Win%")}</th><th className={th}>{t("Titles")}</th><th className={`${th} text-end`}>{t("Avg Elo change")}</th></tr></thead>
           <tbody>
             {pg.shown.map(({ row: r, rank }) => (
@@ -100,7 +100,7 @@ async function Managers({ w, list }: { w: W; list: List }) {
       <SectionTitle eyebrow={t("By number of fighters managed")} title={t("Managers")} />
       <ListFinder path="/people" hidden={hiddenOf(list)} q={list.q} label={t("Find a manager by name")} total={pg.total} of={pg.of} close={pg.close} />
       <ScrollRegion className="card p-4" label={t("Managers")}>
-        <table className="w-full text-sm [&_td:not(:last-child)]:pe-3 [&_th:not(:last-child)]:pe-3" aria-label={t("Managers")}>
+        <table className="w-full text-sm" aria-label={t("Managers")}>
           <thead><tr><th className={th}>{t("Manager")}</th><th className={th}>{t("Clients now / ever")}</th><th className={th}>{t("Record")}</th><th className={th}>{t("Win%")}</th><th className={`${th} text-end`}>{t("Title wins")}</th></tr></thead>
           <tbody>{pg.shown.map(({ row: { p, s } }) => (
             <tr key={p.id} className="border-t border-line/60"><td className="py-2.5"><Link href={`/people/${p.slug}`} className="hover:text-gold"><b>{t.name(p.name)}</b></Link></td><td className="tabular">{s.currentFighters} / {s.fighters}</td><td className="tabular">{s.record.wins}-{s.record.losses}-{s.record.draws}</td><td className="tabular">{Math.round(s.record.winRate * 100)}%</td><td className="text-end tabular">{s.titleWins}</td></tr>
@@ -123,7 +123,7 @@ async function Judges({ w, list }: { w: W; list: List }) {
         <SectionTitle eyebrow={t("How often each judge sides with the majority")} title={t("Judges")} />
         <ListFinder path="/people" hidden={hiddenOf(list)} q={list.q} label={t("Find a judge by name")} total={pg.total} of={pg.of} close={pg.close} />
         <ScrollRegion className="card p-4" label={t("Judges")}>
-          <table className="w-full text-sm [&_td:not(:last-child)]:pe-3 [&_th:not(:last-child)]:pe-3" aria-label={t("Judges")}>
+          <table className="w-full text-sm" aria-label={t("Judges")}>
             <thead><tr><th className={th}>{t("Judge")}</th><th className={th}>{t("Cards")}</th><th className={th}>{t("With majority")}</th><th className={th}>{t("Dissents")}</th><th className={th}>{t("Avg margin")}</th><th className={`${th} text-end`}>{t("Picks the home fighter")}</th></tr></thead>
             <tbody>{pg.shown.map(({ row: j }) => {
               const diff = j.homePickRate === null ? null : j.homePickRate - leagueHomePickRate;
@@ -165,7 +165,7 @@ async function Referees({ w, list }: { w: W; list: List }) {
       <SectionTitle eyebrow={t("League average stoppage: round {n}", { n: leagueAvgStopRound.toFixed(1) })} title={t("Referees")} />
       <ListFinder path="/people" hidden={hiddenOf(list)} q={list.q} label={t("Find a referee by name")} total={pg.total} of={pg.of} close={pg.close} />
       <ScrollRegion className="card p-4" label={t("Referees")}>
-        <table className="w-full text-sm [&_td:not(:last-child)]:pe-3 [&_th:not(:last-child)]:pe-3" aria-label={t("Referees")}>
+        <table className="w-full text-sm" aria-label={t("Referees")}>
           <thead><tr><th className={th}>{t("Referee")}</th><th className={th}>{t("Bouts")}</th><th className={th}>{t("Stoppages")}</th><th className={th}>{t("Stoppage rate")}</th><th className={th}>{t("Early (R1–3)")}</th><th className={`${th} text-end`}>{t("Avg stoppage round")}</th></tr></thead>
           <tbody>{pg.shown.map(({ row: r }) => (
             <tr key={r.person.id} className="border-t border-line/60"><td className="py-2.5"><Link href={`/people/${r.person.slug}`} className="hover:text-gold"><b>{t.name(r.person.name)}</b></Link></td><td className="tabular">{r.bouts}</td><td className="tabular">{r.stoppages}</td><td className="tabular">{Math.round(r.stopRate * 100)}%</td><td className="tabular">{Math.round(r.earlyStopRate * 100)}%</td>
