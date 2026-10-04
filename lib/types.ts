@@ -24,6 +24,8 @@ export interface Boxer {
   turnedPro: number | null;
   active: boolean;
   rating: number;
+  /** The career record as the data supplier states it (null when it gave none); see `careerRecord` in lib/world.ts for when a page shows it. */
+  vendorRecord: { wins: number; losses: number; draws: number } | null;
   photoUrl: string | null;
   photoCredit: PhotoCredit | null;
   birthDate: string | null;

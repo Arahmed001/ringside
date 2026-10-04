@@ -302,7 +302,7 @@ test("a pasted placeholder instead of the key (an ellipsis, a space) stops the r
   }
 });
 
-test("a career the loaded fights do not add up to is refused: a short record is a false statement, so it needs a deliberate override or a lower bar", async () => {
+test("a career the loaded fights do not add up to is refused: a partial history is not a clean one, so it needs a deliberate override or a lower bar", async () => {
   state.g3Finished = false;
   state.skew = { f1: { wins: 5 } }; // the vendor says Ace One has five more wins than the fights we can see
   const cache4 = path.join(root, "cache4"), db4 = path.join(root, "fourth.db");
@@ -310,13 +310,13 @@ test("a career the loaded fights do not add up to is refused: a short record is 
   try {
     const check = await run(["--check", "--cache-dir", cache4], env);
     assert.equal(check.code, 1, "--check reports it as a failure too");
-    assert.match(check.out, /records: 5 of 6 fighters \(83\.3%\)/); assert.match(check.out, /1 partial: fights are missing, so the page would show a shorter record than the fighter has \(e\.g\. Ace One loaded 1-0-0 vs vendor 6-0-0\)/);
+    assert.match(check.out, /records: 5 of 6 fighters \(83\.3%\)/); assert.match(check.out, /1 partial: fights are missing, so the page shows the vendor's career total with a note that fewer fights are held \(e\.g\. Ace One loaded 1-0-0 vs vendor 6-0-0\)/);
     assert.match(check.out, /a load would be refused/);
 
     const refused = await run(["--cache-dir", cache4], env);
     assert.equal(refused.code, 1);
     assert.match(refused.out, /Nothing was loaded, because only 83\.3% of fighters \(5 of 6\) have loaded fights that add up to the vendor's career record; 90% is required/);
-    assert.match(refused.out, /SHORTER record than they have/); assert.match(refused.out, /--allow-partial loads anyway; --min-complete changes the bar/);
+    assert.match(refused.out, /hold fewer fights than the vendor's career total/); assert.match(refused.out, /--allow-partial loads anyway; --min-complete changes the bar/);
     const empty = new DatabaseSync(db4, { readOnly: true });
     assert.equal(count(empty, "SELECT COUNT(*) c FROM boxers"), 0, "nothing was written");
     empty.close();

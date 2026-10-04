@@ -34,8 +34,8 @@ jobs:
         run: npm run build
       - name: Smoke test (every kind of page, both languages, on a production server)
         run: npm run smoke
-      - name: Smoke test on a league with nothing upcoming, one with no data at all, and one with many facts unknown
-        run: npm run smoke -- --feed sparse && npm run smoke -- --feed empty && npm run smoke -- --facts unknown
+      - name: Smoke test on a league with nothing upcoming, one with no data at all, one with many facts unknown, and a partial first load (supplier totals shown)
+        run: npm run smoke -- --feed sparse && npm run smoke -- --feed empty && npm run smoke -- --facts unknown && npm run smoke -- --feed partial
 
   docker:
     runs-on: ubuntu-24.04

@@ -499,9 +499,10 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
         const raw = (await get<ApiFighter>(`/v2/fighters/${id}`)).data;
         const m = mapFighter(raw, notes);
         if (m) {
-          rows.push(m);
           const s = raw.stats;
-          if (s && [s.wins, s.losses, s.draws].every((x) => typeof x === "number" && x >= 0)) careers.set(m.externalId, { wins: s.wins!, losses: s.losses!, draws: s.draws! });
+          const career = s && [s.wins, s.losses, s.draws].every((x) => typeof x === "number" && x >= 0) ? { wins: s.wins!, losses: s.losses!, draws: s.draws! } : null;
+          rows.push(career ? { ...m, careerRecord: career } : m);
+          if (career) careers.set(m.externalId, career);
         }
       } catch (e) { if (e instanceof BudgetError || (e instanceof HttpError && e.status === 429)) throw e; /* a plan that refuses (a limit, a quota) refuses the next fighter too: stop, do not skip a thousand */ log(`fighter ${id} skipped: ${e instanceof Error ? e.message : e}`); }
       if (hits > before) cachedFighters++;

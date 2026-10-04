@@ -5,7 +5,7 @@
  * (route list, page inspection) so they are tested without a server; scripts/smoke.ts drives the server.
  */
 import { countOn, shiftDay } from "./on-this-day";
-import type { World } from "./world";
+import { careerView, recordStr, type World } from "./world";
 import { NAV_GROUPS, OFF_NAV } from "./nav";
 import { slugifyDivision } from "./divisions";
 import { LISTS } from "./records";
@@ -35,6 +35,9 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   const boxers = [...w.boxers].sort((a, b) => b.rating - a.rating);
   const star = boxers[0], retired = boxers.find((b) => !b.active && b.bouts > 5 && b !== star), woman = boxers.find((b) => b.sex === "female"), debut = w.boxers.find((b) => b.bouts <= 1);
   for (const [b, label] of [[star, "top-rated fighter"], [retired, "retired fighter"], [woman, "women's fighter"], [debut, "fighter with almost no fights"]] as const) if (b) page(`/boxers/${b.slug}`, label);
+  // a fighter whose history Ringside holds only in part: the page shows the supplier's career total, and says so (a partial load; none in the demo league)
+  const partial = boxers.find((b) => careerView(b).source === "supplier");
+  if (partial) out.push({ path: `/boxers/${partial.slug}`, kind: "page", label: "fighter with a partial history (the supplier's career total shown)", mustShow: recordStr(partial) });
   if (star && woman) page(`/compare?a=${star.slug}&b=${boxers[1].slug}`, "matchup");
   page(`/boxers?q=${q("southpaw welterweights with 10+ KOs")}`, "plain-English search");
   page("/boxers?sex=female", "women's fighter list");
