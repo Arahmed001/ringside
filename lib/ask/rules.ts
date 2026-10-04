@@ -5,7 +5,7 @@ import { normalize } from "../fighter-search";
 import { allowedSlips, editDistance, wordsOf } from "../fuzzy";
 import type { Names } from "../i18n/t";
 import type { Call } from "./types";
-import type { FighterFact } from "./tools";
+import { FIGHTER_FACTS, type FighterFact } from "./tools";
 
 /** Folded text with the punctuation people type next to names taken out ("Villalba's record", "Al-Qahtani: who is better"), applied to the question and the names alike so "H." in a name still matches. */
 const plain = (s: string) => normalize(s).replace(/['’]s\b/g, " ").replace(/[:;,!?؟،()"“”.]/g, " ").replace(/\s+/g, " ").trim();
@@ -241,7 +241,7 @@ const LISTS: [RegExp, string][] = [
   [/most defen[cs]es in a (single )?reign|most dominant (title )?reigns?|اكثر.*(دفاع|دافع).*عهد/, "reign-defenses"],
   [/most (successful |title )?defen[cs]es|defended .*\bthe most\b|اكثر.*(دفاع|دافع)/, "defenses"],
   [/longest (title )?reign|(longest|most).*\b(held|hold|holding)\b.*(title|belt)|held .*(title|belt).*longest|اطول.*(عه[دو]|حكم|فتره حمل)/, "longest-reign"],
-  [/most (world |major )?title (fight |bout )?wins|(won|win|winning) the most (world |major )?title (fights?|bouts?)|اكثر.*فوز.*(لقب|الالقاب)/, "title-wins"],
+  [/most (world |major )?title (fight |bout )?wins|most title (fights?|bouts?) won|(won|win|winning) the most (world |major )?title (fights?|bouts?)|اكثر.*فوز.*(لقب|الالقاب)/, "title-wins"],
   [/biggest upsets?|greatest upsets?|biggest shocks?|most (one.sided |shocking |stunning |surprising )?(upsets?|shocks?)\b|most (surprising|shocking|stunning|unexpected) (results?|outcomes?|wins?|fights?)|اكبر.*مفاج/, "upsets"],
   [/(longest|best|biggest) (winning |win |unbeaten |undefeated )?(streak|run)|consecutive wins|اطول.*(سلسله|انتصارات متتاليه)/, "win-streak"],
   [/(highest|best) (ko|knockout) (rate|percentage|ratio)|knockout (rate|percentage|ratio)|(punches|hits) the hardest|hardest (puncher|hitter)s?|biggest punchers?|اعلي نسبه.*قاضيه/, "ko-rate"],
@@ -277,19 +277,26 @@ const ABOUT_FIGHTS = /\b(knockouts?|kos?|stoppages?|fights?|bouts?|decisions?|dr
 const FACT_ASKED: [RegExp, FighterFact][] = [
   [/\bnext (fight|bout|opponent)\b|\bfights?\b.*\bnext\b|\bwhen (does|is|will)\b.*\bfight\b|\bupcoming (fight|bout)\b|\bfight(ing)? (again|soon)\b|\bfight soon\b|نزاله القادم|نزال القادم/, "next_fight"],
   [/\blast (fight|bout|opponent)\b|\bmost recent (fight|bout)\b|\bwhen did\b.*\b(last )?(fight|box)\b|\b(fought|fight|box|boxed) last\b|\blast (fought|boxed)\b|اخر نزال/, "last_fight"],
-  [/\bhow tall\b|\bheight\b|\btall is\b|طول/, "height"],
-  [/\breach\b|\barm span\b|امتداد|مدي الذراع/, "reach"],
-  [/\bhow old\b|\bage\b|\bborn\b|\bbirth(day| year| date)?\b|كم عمر|عمر/, "age"],
+  [/\bhow tall\b|\bheight\b|\btall is\b|\b(taller|shorter)\b|طول/, "height"],
+  [/\breach\b|\barms?( span| length)?\b|امتداد|مدي الذراع/, "reach"],
+  [/\bhow old\b|\b(older|younger)\b|\bages?\b|\bborn\b|\bbirth(day| year| date)?\b|كم عمر|عمر/, "age"],
   [/\bsouthpaw\b|\borthodox\b|\bstance\b|\bleft.?handed\b|\bright.?handed\b|\blefty\b|اعسر|وقفه/, "stance"],
   [/\bwhere (is|was)\b.*\bfrom\b|\bnationality\b|\bwhich country\b|\bcountry\b|جنسيه|من اي بلد/, "country"],
   [/\bgym\b|\bwhere does\b.*\btrain\b|\btrains? at\b|صاله/, "gym"],
   [/\btrainer\b|\bcoach(es|ed)?\b|\bwho trains\b|\btrained by\b|مدرب/, "trainer"],
+  [/\btitle (fights?|bouts?)\b|\btitle (record|wins)\b|\bfor a (world )?title\b|\bwon (a|the) (world )?title\b/, "title_fights"],
+  [/\bmanager\b|\bagent\b|\bwho manages\b|\bmanaged by\b/, "manager"],
   [/\bbelts?\b|\btitles?\b(?! (fights?|bouts?|wins?))|\bchampion\b|\bchamp\b|\bholds?\b|حزام|لقب/, "belts"],
+  [/\bknocked out\b|\bko'?d\b|\bstopped\b|\blost by (a )?(ko|knockout|stoppage)\b|\bever been (ko|knocked)/, "stopped"],
   [/\bknockouts?\b|\bkos?\b|\bko (rate|percentage)\b|ضربات (ال)?قاضيه/, "knockouts"],
   [/\brating\b|\brated\b|\belo\b|\brank(ed|ing)?\b|\bhow good\b|تصنيف|ترتيب/, "rating"],
   [/\bdivision\b|\bweight class\b|\bwhat weight\b|\bwhich weight\b|وزن/, "division"],
-  [/\brecord\b|\bhow many (fights?|bouts?|wins?|losses|times)\b|سجل|كم نزال|كم فوز/, "record"],
+  [/\bretired\b|\bstill (fighting|boxing|active)\b|\bactive\b|\bundefeated\b|\bunbeaten\b|\bever lost\b|\bever been beaten\b|\bany losses\b|\bperfect\b|\blost a (fight|bout)\b|\bever (been )?defeated\b/, "status"],
+  [/\brecord\b|\bhow many (fights?|bouts?|wins?|losses|times)\b|\b(more|fewer) (wins|losses|fights|bouts)\b|\b(fought|won|lost) more\b|\bexperience[d]?\b|سجل|كم نزال|كم فوز/, "record"],
 ];
+/** The facts two fighters can be asked about together (every one but the next and last fight), and the wording that makes a question about how they met (a head to head) and not about the facts. */
+const COMPARABLE = new Set<FighterFact>(FIGHTER_FACTS.filter((f) => f !== "next_fight" && f !== "last_fight")); // (two names and "when does A fight B" is about a bout between them)
+const MEETING = /\bagainst\b|\bbeat(en|s)?\b|\bmet\b|\bwould win\b|\bwho wins\b|\beach other\b|\bever fought\b/;
 const SUPERLATIVE = /\b(most(?! recent)|highest|best|longest|top|worst|lowest|fewest|fastest|greatest)\b/;
 
 export const ARABIC_FOLDED = /[؀-ۿ]/;
@@ -316,8 +323,15 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   let trainerFound: { name: string | undefined } | undefined;
   const trainer = () => (trainerFound ??= { name: trainerNamed(w, question, rest) }).name;
 
+  // two fighters and one fact between them ("who is taller, A or B", "A vs B reach"): their two answers side by side, not a prediction of who would win
+  if (fighters.length === 2 && !has(q, MEETING)) {
+    const about = FACT_ASKED.find(([re, fact]) => COMPARABLE.has(fact) && has(q, re))?.[1];
+    if (about) return fighters.map((b) => ({ tool: "fighter", args: { name: b.name, about } }));
+  }
   if (fighters.length >= 2 && !has(q, /\bmost\b|\bhighest\b/)) return [{ tool: "head_to_head", args: { a: fighters[0].name, b: fighters[1].name } }];
 
+  // a fighter's knockdowns are not in the data (only a fight's): "how many times has X been knocked down" is no answer, not the record
+  if (fighters.length === 1 && has(q, /\bknocked down\b|\bknockdowns? (suffered|taken|scored)\b/)) return [];
   // one fighter named and one fact asked ("how tall is X", "what is X's knockout rate"): the answer is that fact, not the profile and not a list for everybody
   if (fighters.length === 1 && !has(q, SUPERLATIVE)) {
     const about = FACT_ASKED.find(([re]) => has(q, re))?.[1];

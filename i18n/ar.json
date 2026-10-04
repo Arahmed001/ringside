@@ -1304,6 +1304,7 @@
  "The data does not give {what} for {name}.": "لا تتضمن البيانات {what} لـ{name}.",
  "The data has no current gym for {name}.": "لا تتضمن البيانات صالة تدريب حالية لـ{name}.",
  "The data has no current head trainer for {name}.": "لا تتضمن البيانات مدربًا رئيسيًا حاليًا لـ{name}.",
+ "The data has no current manager for {name}.": "لا تتضمن البيانات مديرًا حاليًا لـ{name}.",
  "The difference ({d} Elo points) is within its margin of error: there is no clear sign that changing trainer moves results either way.": "الفارق ({d} نقطة إيلو) ضمن هامش خطئه: لا مؤشر واضحًا على أن تغيير المدرب يحرّك النتائج في أي اتجاه.",
  "The dot is the estimate and the line its 95% range; the centre mark is the average trainer. A line that crosses the centre cannot be told from average.": "النقطة هي التقدير والخط نطاقه 95%؛ وعلامة الوسط هي المدرب المتوسط. الخط الذي يعبر الوسط لا يمكن تمييزه عن المتوسط.",
  "The early-finish estimate is fitted to results.": "تقدير الحسم المبكر مضبوط على النتائج.",
@@ -1950,6 +1951,14 @@
  "{name} has been out for {n} months": "{name} غائب منذ {n} أشهر",
  "{name} has been out for {n} months: ring rust is the question.": "غياب {name} عن الحلبة منذ {n} أشهر: السؤال هو صدأ الحلبة.",
  "{name} has been stopped in {n} fights: the chin will be tested.": "هزائم {name} بالتوقف: {n}. ستُختبر صلابة الفك.",
+ "{name} has been stopped {n} times (losses in all: {losses}).": {
+  "zero": "لم يتعرض {name} للإيقاف (عدد الهزائم: {losses}).",
+  "one": "تعرض {name} للإيقاف مرة واحدة (عدد الهزائم: {losses}).",
+  "two": "تعرض {name} للإيقاف مرتين (عدد الهزائم: {losses}).",
+  "few": "تعرض {name} للإيقاف {n} مرات (عدد الهزائم: {losses}).",
+  "many": "تعرض {name} للإيقاف {n} مرة (عدد الهزائم: {losses}).",
+  "other": "تعرض {name} للإيقاف {n} مرة (عدد الهزائم: {losses})."
+ },
  "{name} has had {n} fights: {record}.": "خاض {name} {n} نزالًا: {record}.",
  "{name} has lost the last {n} fights.": "{name}: خسارة آخر {n} نزالات.",
  "{name} has missed weight {n} times": {
@@ -1968,7 +1977,9 @@
   "many": "سبق أن سُجّل على {name} تجاوز الوزن {n} مرة: راقب الميزان.",
   "other": "سبق أن سُجّل على {name} تجاوز الوزن {n} مرة: راقب الميزان."
  },
+ "{name} has never been knocked out or stopped on record.": "لم يتعرض {name} للإقصاء أو الإيقاف في سجله.",
  "{name} has no completed fights on record.": "لا توجد نزالات منتهية مسجّلة لـ{name}.",
+ "{name} has not fought for a title on record.": "لم يخض {name} نزال لقب في سجله.",
  "{name} has not fought for {n} months": {
   "zero": "{name}: لا غياب",
   "one": "{name}: غياب شهر عن الحلبة",
@@ -1979,12 +1990,29 @@
  },
  "{name} has now lost {n} in a row.": "سلسلة خسائر {name} بلغت {n} على التوالي.",
  "{name} has now won {n} in a row.": "سلسلة انتصارات {name} بلغت {n} على التوالي.",
+ "{name} has won {won} of {n} title fights.": {
+  "zero": "لم يخض {name} أي نزال لقب.",
+  "one": "فاز {name} في {won} من أصل نزال لقب واحد.",
+  "two": "فاز {name} في {won} من أصل نزالَي لقب.",
+  "few": "فاز {name} في {won} من أصل {n} نزالات لقب.",
+  "many": "فاز {name} في {won} من أصل {n} نزال لقب.",
+  "other": "فاز {name} في {won} من أصل {n} نزال لقب."
+ },
  "{name} has won {w} of the last {n} fights.": "{name}: فوز في {w} من آخر {n} نزالات.",
  "{name} has {kos} knockouts in {wins} wins ({pct}%).": "لدى {name} {kos} ضربة قاضية في {wins} انتصارًا ({pct}%).",
  "{name} holds no current belt.": "لا يحمل {name} أي حزام حاليًا.",
  "{name} holds {belts}.": "يحمل {name} {belts}.",
  "{name} is a {age}-year-old {division} from {country}: {record}, rated {elo}{rank}.": "{name}: {division} من {country} بعمر {age} عامًا، السجل {record}، والتصنيف {elo}{rank}.",
  "{name} is a {division} from {country}: {record}, rated {elo}{rank}.": "{name}: {division} من {country}، السجل {record}، والتصنيف {elo}{rank}.",
+ "{name} is active and has lost {n} times ({record}).": {
+  "zero": "{name} نشط ولم يخسر ({record}).",
+  "one": "{name} نشط وخسر مرة واحدة ({record}).",
+  "two": "{name} نشط وخسر مرتين ({record}).",
+  "few": "{name} نشط وخسر {n} مرات ({record}).",
+  "many": "{name} نشط وخسر {n} مرة ({record}).",
+  "other": "{name} نشط وخسر {n} مرة ({record})."
+ },
+ "{name} is active and unbeaten ({record}).": "{name} نشط وغير مهزوم ({record}).",
  "{name} is coming off a stoppage loss": "{name}: خسارة بالإيقاف في النزال الأخير",
  "{name} is from {country}.": "{name} من {country}.",
  "{name} is on a {n}-fight win streak.": "{name} في سلسلة من {n} انتصارات متتالية.",
@@ -1997,7 +2025,9 @@
   "other": "{name}: سلسلة من {n} انتصار متتالٍ"
  },
  "{name} is rated {elo}{rank}.": "تصنيف {name} هو {elo}{rank}.",
+ "{name} is retired and unbeaten ({record}).": "{name} معتزل وغير مهزوم ({record}).",
  "{name} is retired or inactive": "{name} معتزل أو غير نشط",
+ "{name} is retired; the record is {record}.": "{name} معتزل؛ وسجله {record}.",
  "{name} is working with a new trainer ({n} months).": "{name}: مدرب جديد منذ {n} أشهر.",
  "{name} is {age} years old.": "عمر {name} {age} سنة.",
  "{name} is {age}: how much is left?": "{name} بعمر {age} عامًا: ما الذي تبقّى في الرصيد؟",
@@ -2034,6 +2064,7 @@
  "{name} won: {how}": "فاز {name}: {how}",
  "{name}'s head trainer is {trainer}.": "المدرب الرئيسي لـ{name} هو {trainer}.",
  "{name}'s last fight was on {date}: {result} against {opponent} ({method}).": "كان آخر نزال لـ{name} بتاريخ {date}: {result} ضد {opponent} ({method}).",
+ "{name}'s manager is {manager}.": "مدير أعمال {name} هو {manager}.",
  "{name}'s next fight is against {opponent} on {date}.": "نزال {name} القادم ضد {opponent} بتاريخ {date}.",
  "{name}'s reach is {cm} cm.": "امتداد ذراعَي {name} {cm} سم.",
  "{name}'s unbeaten run of {n} fights ended.": "انتهت سلسلة {name} بلا هزيمة التي بلغت {n} من النزالات.",

@@ -76,7 +76,7 @@ test("each fact asked is the fact answered, with the tool and the fact named in 
   assert.deepEqual(bad, []);
 });
 
-test("a fighter's knockout rate is his own, not the league's list; a superlative about a fighter is still a list; no fact is the profile", async () => {
+test("a fighter's knockout rate is that fighter's own, not the league's list; a superlative about a fighter is still a list; no fact is the profile", async () => {
   const star = pick((b) => unique(b) && b.bouts > 8);
   const own = await asked(`what is ${star.name}'s knockout rate`);
   assert.equal(own.call.tool, "fighter");
@@ -102,8 +102,61 @@ test("the same facts in Arabic, with the fighter's Arabic name", async () => {
 
 test("the `about` argument is declared for the model's plan too, and a value that is not a fact is dropped", () => {
   const tool = T.toolByName("fighter")!;
-  assert.deepEqual(T.FIGHTER_FACTS.length, 14);
+  assert.deepEqual(T.FIGHTER_FACTS.length, 18);
   assert.equal(T.sanitizeArgs(tool, { name: "X", about: "height" }).about, "height");
   assert.equal(T.sanitizeArgs(tool, { name: "X", about: "shoe size" }).about, undefined);
   assert.ok(tool.about.includes("about"));
+});
+
+const titleBouts = (b: Boxer) => (w.boutsByBoxer.get(b.id) ?? []).filter((x) => x.title && !x.upcoming && x.method);
+const lostBouts = (b: Boxer) => (w.boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming && x.method && x.winnerId !== null && x.winnerId !== b.id);
+
+test("title fights, being stopped, and whether a fighter is active or unbeaten are answered from the fighter's own bouts", async () => {
+  const { isStoppage } = await import("../lib/methods");
+  const champ = pick((b) => unique(b) && titleBouts(b).length >= 2);
+  const won = titleBouts(champ).filter((x) => x.winnerId === champ.id).length, n = titleBouts(champ).length;
+  for (const q of ["how many title fights has NAME won", "how many title fights has NAME had", "NAME's title fight record", "has NAME ever won a title fight"]) {
+    const { call, text } = await asked(q.replace("NAME", champ.name));
+    assert.equal(call.args.about, "title_fights", q);
+    assert.equal(text, `${champ.name} has won ${won} of ${n} title fights.`, q);
+  }
+  const noTitle = pick((b) => unique(b) && titleBouts(b).length === 0 && b.bouts > 3);
+  assert.equal((await asked(`how many title fights has ${noTitle.name} won`)).text, `${noTitle.name} has not fought for a title on record.`);
+  const stopped = pick((b) => unique(b) && lostBouts(b).filter((x) => isStoppage(x.method)).length >= 1), nStopped = lostBouts(stopped).filter((x) => isStoppage(x.method)).length;
+  for (const q of ["has NAME ever been knocked out", "how many times has NAME been stopped", "was NAME ever knocked out", "has NAME lost by knockout"]) {
+    const { call, text } = await asked(q.replace("NAME", stopped.name));
+    assert.equal(call.args.about, "stopped", q);
+    assert.match(text, new RegExp(`has been stopped ${nStopped} times? \\(losses in all: ${lostBouts(stopped).length}\\)\\.$`), q);
+  }
+  const never = pick((b) => unique(b) && b.bouts > 3 && lostBouts(b).every((x) => !isStoppage(x.method)));
+  assert.equal((await asked(`has ${never.name} ever been knocked out`)).text, `${never.name} has never been knocked out or stopped on record.`);
+  const unbeaten = pick((b) => unique(b) && b.losses === 0 && b.active && b.bouts > 3), beaten = pick((b) => unique(b) && b.losses > 0 && b.active), retired = pick((b) => unique(b) && !b.active && b.losses === 0 && b.bouts > 0);
+  const { recordStr } = await import("../lib/world");
+  assert.equal((await asked(`is ${unbeaten.name} undefeated`)).text, `${unbeaten.name} is active and unbeaten (${recordStr(unbeaten)}).`);
+  assert.match((await asked(`has ${beaten.name} ever lost`)).text, new RegExp(`${beaten.name} is active and has lost ${beaten.losses} times? \\(${recordStr(beaten)}\\)\\.$`));
+  if (retired) assert.equal((await asked(`is ${retired.name} retired`)).text, `${retired.name} is retired and unbeaten (${recordStr(retired)}).`);
+  assert.equal((await asked(`is ${beaten.name} still fighting`)).call.args.about, "status");
+});
+
+test("two fighters and one fact between them are two answers side by side, in the order asked, and not a prediction", async () => {
+  const [a, b] = [...w.boxers].filter((x) => unique(x) && x.heightCm !== null && x.reachCm !== null && x.age !== null && x.bouts > 8).sort((p, q) => q.rating - p.rating);
+  const both = async (q: string) => { const r = await ask(q, { w, t: tEn, names: {} }); return { calls: r.calls, text: r.answer }; };
+  const cases: [string, string, string[]][] = [
+    [`who is taller, ${a.name} or ${b.name}`, "height", [`${a.name} is ${a.heightCm} cm tall.`, `${b.name} is ${b.heightCm} cm tall.`]],
+    [`which is shorter, ${b.name} or ${a.name}`, "height", [`${b.name} is ${b.heightCm} cm tall.`, `${a.name} is ${a.heightCm} cm tall.`]],
+    [`who has the longer reach, ${a.name} or ${b.name}`, "reach", [`${a.name}'s reach is ${a.reachCm} cm.`, `${b.name}'s reach is ${b.reachCm} cm.`]],
+    [`is ${a.name} older than ${b.name}`, "age", [`${a.name} is ${a.age} years old.`, `${b.name} is ${b.age} years old.`]],
+    [`${a.name} vs ${b.name} height`, "height", [`${a.name} is ${a.heightCm} cm tall.`, `${b.name} is ${b.heightCm} cm tall.`]],
+    [`who has more knockouts, ${a.name} or ${b.name}`, "knockouts", [`${a.name} has ${a.kos} knockouts`, `${b.name} has ${b.kos} knockouts`]],
+    [`who is rated higher, ${a.name} or ${b.name}`, "rating", [`${a.name} is rated ${Math.round(a.rating)}`, `${b.name} is rated ${Math.round(b.rating)}`]],
+  ];
+  for (const [q, fact, has] of cases) {
+    const { calls, text } = await both(q);
+    assert.deepEqual(calls.map((c) => c.tool), ["fighter", "fighter"], q);
+    assert.deepEqual(calls.map((c) => c.args.about), [fact, fact], q);
+    for (const h of has) assert.ok(text.includes(h), `${q}: "${text}" lacks "${h}"`);
+    assert.ok(text.indexOf(has[0]) < text.indexOf(has[1]), `${q}: in the order the fighters were named`);
+  }
+  // how they met, or who would win, is still a head to head
+  for (const q of [`${a.name} vs ${b.name}`, `who would win between ${a.name} and ${b.name}`, `has ${a.name} beaten ${b.name}`, `what is ${a.name}'s record against ${b.name}`, `compare ${a.name} and ${b.name}`]) assert.equal((await both(q)).calls[0].tool, "head_to_head", q);
 });

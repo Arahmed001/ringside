@@ -118,6 +118,26 @@ function factSentence(ctx: Ctx, b: BoxerFull, fact: FighterFact, more: { rank: n
       const gym = stint?.orgId ? w.orgs.get(stint.orgId) : undefined;
       return gym ? t("{name} trains at {gym}.", { name, gym: t.name(gym.name) }) : t("The data has no current gym for {name}.", { name });
     }
+    case "manager": {
+      const stint = (w.stintsByBoxer.get(b.id) ?? []).find((x) => x.role === "manager" && x.end === null && x.personId);
+      const person = stint?.personId ? w.people.get(stint.personId) : undefined;
+      return person ? t("{name}'s manager is {manager}.", { name, manager: t.name(person.name) }) : t("The data has no current manager for {name}.", { name });
+    }
+    case "title_fights": {
+      const title = (w.boutsByBoxer.get(b.id) ?? []).filter((x) => x.title && !x.upcoming && x.method);
+      const won = title.filter((x) => x.winnerId === b.id).length;
+      return title.length ? t.n(title.length, "{name} has won {won} of {n} title fight.", "{name} has won {won} of {n} title fights.", { name, won }) : t("{name} has not fought for a title on record.", { name });
+    }
+    case "stopped": {
+      const lost = (w.boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming && x.method && x.winnerId !== null && x.winnerId !== b.id);
+      const stopped = lost.filter((x) => isStoppage(x.method)).length;
+      return stopped ? t.n(stopped, "{name} has been stopped {n} time (losses in all: {losses}).", "{name} has been stopped {n} times (losses in all: {losses}).", { name, losses: lost.length }) : t("{name} has never been knocked out or stopped on record.", { name });
+    }
+    case "status": {
+      const record = recordStr(b);
+      if (b.losses === 0) return b.active ? t("{name} is active and unbeaten ({record}).", { name, record }) : t("{name} is retired and unbeaten ({record}).", { name, record });
+      return b.active ? t.n(b.losses, "{name} is active and has lost {n} time ({record}).", "{name} is active and has lost {n} times ({record}).", { name, record }) : t("{name} is retired; the record is {record}.", { name, record });
+    }
     case "last_fight": {
       const x = more.recent[0];
       if (!x) return t("{name} has no completed fights on record.", { name });
@@ -136,7 +156,7 @@ function factSentence(ctx: Ctx, b: BoxerFull, fact: FighterFact, more: { rank: n
 }
 
 /** What a question about one fighter can ask for, so the answer is that fact and not the whole profile. */
-export const FIGHTER_FACTS = ["height", "reach", "age", "stance", "country", "division", "trainer", "gym", "last_fight", "next_fight", "record", "knockouts", "rating", "belts"] as const;
+export const FIGHTER_FACTS = ["height", "reach", "age", "stance", "country", "division", "trainer", "gym", "manager", "last_fight", "next_fight", "record", "knockouts", "stopped", "title_fights", "status", "rating", "belts"] as const;
 export type FighterFact = (typeof FIGHTER_FACTS)[number];
 
 const fighter: Tool = {

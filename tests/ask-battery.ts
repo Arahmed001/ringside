@@ -6,10 +6,10 @@ import { pound4pound } from "../lib/rankings";
  * of what the rule-based planner (no API key) understands, not a list of what it was built to understand: add questions as people ask ones it gets wrong.
  * `tool: null` means no tool can answer it, and the right behaviour is to say so rather than to answer something else.
  */
-export interface Case { q: string; tool: string | string[] | null; args?: Record<string, unknown>; lang?: "en" | "ar"; note?: string; batch?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 }
+export interface Case { q: string; tool: string | string[] | null; args?: Record<string, unknown>; lang?: "en" | "ar"; note?: string; batch?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 }
 
 export function battery(w: World): Case[] {
-  return [...batch1(w).map((c) => ({ ...c, batch: 1 as const })), ...batch2(w).map((c) => ({ ...c, batch: 2 as const })), ...batch3(w).map((c) => ({ ...c, batch: 3 as const })), ...batch4(w).map((c) => ({ ...c, batch: 4 as const })), ...batch5(w).map((c) => ({ ...c, batch: 5 as const })), ...batch6(w).map((c) => ({ ...c, batch: 6 as const })), ...batch7().map((c) => ({ ...c, batch: 7 as const })), ...batch8().map((c) => ({ ...c, batch: 8 as const })), ...batch9(w).map((c) => ({ ...c, batch: 9 as const }))];
+  return [...batch1(w).map((c) => ({ ...c, batch: 1 as const })), ...batch2(w).map((c) => ({ ...c, batch: 2 as const })), ...batch3(w).map((c) => ({ ...c, batch: 3 as const })), ...batch4(w).map((c) => ({ ...c, batch: 4 as const })), ...batch5(w).map((c) => ({ ...c, batch: 5 as const })), ...batch6(w).map((c) => ({ ...c, batch: 6 as const })), ...batch7().map((c) => ({ ...c, batch: 7 as const })), ...batch8().map((c) => ({ ...c, batch: 8 as const })), ...batch9(w).map((c) => ({ ...c, batch: 9 as const })), ...batch10(w).map((c) => ({ ...c, batch: 10 as const })), ...batch11(w).map((c) => ({ ...c, batch: 11 as const }))];
 }
 
 function batch1(w: World): Case[] {
@@ -572,5 +572,57 @@ function batch9(w: World): Case[] {
     f("when is NAME's next fight", "next_fight"), f("who does NAME fight next", "next_fight"), f("is NAME fighting soon", "next_fight", b), f("NAME's upcoming bout", "next_fight"),
     f("what was NAME's most recent fight", "last_fight"), f("who did NAME fight last", "last_fight"), f("NAME's last opponent", "last_fight", b), f("when did NAME last box", "last_fight"),
     f("how many wins does NAME have", "record"), f("what's NAME's win loss record", "record"), f("how many losses has NAME had", "record", b), f("how many bouts has NAME fought", "record"),
+  ];
+}
+
+/**
+ * Batch 10: two fighters and one fact between them ("who is taller, A or B": the answer is their two heights, not who would win), and more facts about one fighter
+ * (title fights won, ever stopped, retired or unbeaten, manager). Written to find answers that look right and are not: a head-to-head prediction for "who is taller",
+ * and the league's title fights for "how many title fights has A won". Measured once before anything was changed for it.
+ */
+function batch10(w: World): Case[] {
+  const [A, B] = pound4pound(w, 2);
+  const a = A.name, b = B.name;
+  const two = (q: string, about: string, first = a): Case => ({ q: q.split("A").join(a).split("B").join(b), tool: "fighter", args: { name: first, about } });
+  const one = (q: string, about: string, who = a): Case => ({ q: q.replace("NAME", who), tool: "fighter", args: { name: who, about } });
+  return [
+    two("who is taller, A or B", "height"), two("which is taller, B or A", "height", b), two("who is shorter, A or B", "height"),
+    two("who has the longer reach, A or B", "reach"), two("who has a longer reach than B, A", "reach", b), two("compare A and B reach", "reach"),
+    two("who is older, A or B", "age"), two("who is younger, A or B", "age"), two("is A older than B", "age"),
+    two("who has more knockouts, A or B", "knockouts"), two("who has more KOs, B or A", "knockouts", b),
+    two("who has more wins, A or B", "record"), two("who has fought more, A or B", "record"),
+    two("who is rated higher, A or B", "rating"), two("who is ranked higher, A or B", "rating"), two("A or B, who has the better rating", "rating"),
+    two("A vs B height", "height"),
+    { q: `${a} vs ${b}`, tool: "head_to_head" }, { q: `who would win between ${a} and ${b}`, tool: "head_to_head" }, { q: `has ${a} beaten ${b}`, tool: "head_to_head" },
+    one("how many title fights has NAME won", "title_fights"), one("how many title fights has NAME had", "title_fights"), one("NAME's title fight record", "title_fights", b), one("has NAME ever won a title fight", "title_fights"),
+    one("has NAME ever been knocked out", "stopped"), one("how many times has NAME been stopped", "stopped"), one("was NAME ever knocked out", "stopped", b), one("has NAME lost by knockout", "stopped"),
+    one("is NAME retired", "status"), one("is NAME still fighting", "status"), one("is NAME undefeated", "status", b), one("has NAME ever lost", "status"), one("is NAME unbeaten", "status"), one("is NAME active", "status", b),
+    one("who is NAME's manager", "manager"), one("NAME's manager", "manager", b), one("who manages NAME", "manager"),
+    { q: `how many times has ${a} been knocked down`, tool: null, note: "knockdowns are counted per fight, not per fighter: no answer, not the record" },
+    { q: "most title fights won", tool: "record_list", args: { list: "title-wins" } },
+    { q: "title fights in 2024", tool: "bouts", args: { year: 2024, title: true } },
+    { q: "who has the most knockouts", tool: "record_list", args: { list: "kos" } },
+  ];
+}
+
+/**
+ * Batch 11: batch 10's kinds of question in other words (two fighters and a fact between them, the newer facts about one fighter), written after batch 10 had
+ * been fitted and measured once before anything was changed for it.
+ */
+function batch11(w: World): Case[] {
+  const [A, B] = pound4pound(w, 2);
+  const a = A.name, b = B.name;
+  const two = (q: string, about: string, first = a): Case => ({ q: q.split("A").join(a).split("B").join(b), tool: "fighter", args: { name: first, about } });
+  const one = (q: string, about: string, who = a): Case => ({ q: q.replace("NAME", who), tool: "fighter", args: { name: who, about } });
+  return [
+    two("A or B, who is the taller one", "height"), two("which of A and B is older", "age"), two("how do A and B compare in height", "height"), two("how do A and B compare on reach", "reach"),
+    two("compare the ages of A and B", "age"), two("who has the better record, A or B", "record"), two("who has more title fights, A or B", "title_fights"),
+    two("which fighter has been stopped more, A or B", "stopped"), two("A versus B: who has the higher rating", "rating"), two("who has the better knockout rate, A or B", "knockouts"),
+    two("who is more experienced, A or B", "record"), two("whose reach is longer, A or B", "reach"), two("who has the longer arms, B or A", "reach", b), two("who is the older fighter, B or A", "age", b),
+    one("has NAME ever won a world title", "title_fights"), one("what's NAME's title record", "title_fights"), one("how many times has NAME fought for a title", "title_fights", b),
+    one("has NAME ever been KO'd", "stopped"), one("has NAME ever been stopped", "stopped", b), one("how often has NAME been knocked out", "stopped"),
+    one("is NAME still boxing", "status"), one("has NAME retired", "status"), one("is NAME still active", "status", b), one("does NAME have any losses", "status"), one("is NAME perfect", "status"), one("has NAME lost a fight", "status", b),
+    one("who is NAME's agent", "manager"), one("what manager does NAME have", "manager"),
+    { q: `when does ${a} fight ${b}`, tool: "head_to_head" }, { q: `${a} against ${b}`, tool: "head_to_head" },
   ];
 }
