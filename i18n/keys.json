@@ -662,6 +662,13 @@
   ]
  },
  {
+  "key": "{n} more opponents in common",
+  "plural": "{n} more opponent in common",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
   "key": "{n} more players have fewer than {min} graded picks and are not ranked yet.",
   "plural": "{n} more player has fewer than {min} graded picks and is not ranked yet.",
   "files": [
@@ -3811,6 +3818,7 @@
  {
   "key": "Common opponents",
   "files": [
+   "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx"
   ]
  },
@@ -4444,6 +4452,7 @@
   "key": "Draw",
   "files": [
    "app/[locale]/analytics/page.tsx",
+   "app/[locale]/compare/page.tsx",
    "app/[locale]/learn/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
    "app/[locale]/orgs/[slug]/page.tsx",
@@ -6087,6 +6096,12 @@
   ]
  },
  {
+  "key": "Held in part: an opponent missing here may be a fight Ringside does not hold.",
+  "files": [
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
   "key": "Higher-rated fighter won {p} · a coin flip is 50%",
   "files": [
    "app/[locale]/accountability/page.tsx"
@@ -6676,6 +6691,7 @@
  {
   "key": "L",
   "files": [
+   "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
    "components/ui.tsx",
    "lib/ask/tools.ts"
@@ -12778,6 +12794,7 @@
  {
   "key": "W",
   "files": [
+   "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
    "components/ui.tsx",
    "lib/ask/tools.ts"

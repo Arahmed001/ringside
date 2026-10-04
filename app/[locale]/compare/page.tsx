@@ -5,6 +5,7 @@ import { getWorld, recordStr } from "@/lib/world";
 import { predict, featuresOf } from "@/lib/predict";
 import { MatchupLab } from "@/components/MatchupLab";
 import { FighterPicker } from "@/components/FighterPicker";
+import { commonOpponents } from "@/lib/common-opponents";
 import { resolveFighter } from "@/lib/fighter-search";
 import { getNames } from "@/lib/i18n/names";
 import { activeFinish, activeWeights } from "@/lib/model";
@@ -99,6 +100,7 @@ async function Result({ A, B, w }: { A: BoxerFull; B: BoxerFull; w: Awaited<Retu
   const p = predict(A, B, t);
   const cm = (n: number | null) => orDash(n, (x) => t("{n} cm", { n: x }));
   const withReach = isKnown(A.reachCm) && isKnown(B.reachCm); // the chart compares like with like: a reach nobody knows is left off for both
+  const co = commonOpponents(w, A, B);
   const h2h = (w.boutsByBoxer.get(A.id) ?? []).filter((x) => x.method && (x.redId === B.id || x.blueId === B.id));
   const rows: [string, string, string][] = [
     [t("Record"), recordStr(A), recordStr(B)], [t("KO rate"), pct(A.koRate), pct(B.koRate)], [t("Rating"), String(Math.round(A.rating)), String(Math.round(B.rating))],
@@ -136,6 +138,32 @@ async function Result({ A, B, w }: { A: BoxerFull; B: BoxerFull; w: Awaited<Retu
         ))}
       </div>
       {h2h.length > 0 && <div className="card p-5 text-sm"><div className="eyebrow mb-2">{t("Head to head")}</div>{h2h.map((x) => <div key={x.id}>{x.winnerId ? t("{date}: {winner} by {method}", { date: fmtDate(x.date, undefined, t.locale), winner: t.name(w.byId.get(x.winnerId)!.name), method: t(x.method!) }) : t("{date}: {result}", { date: fmtDate(x.date, undefined, t.locale), result: methodLabel(x.method, x.endRound, t) })}</div>)}</div>}
+      {co.rows.length > 0 && (
+        <div className="card p-5 text-sm">
+          <div className="eyebrow mb-2">{t("Common opponents")}</div>
+          <div>
+            {co.rows.map((c) => (
+              <div key={c.opponent.id} className="border-t border-line/60 py-2 first:border-0">
+                <Link href={`/boxers/${c.opponent.slug}`} className="inline-block py-0.5 font-semibold hover:text-gold">{t.name(c.opponent.name)}</Link>
+                <div className="mt-1 grid grid-cols-2 gap-3 text-xs">
+                  {([[A, c.a], [B, c.b]] as const).map(([f, fights]) => (
+                    <div key={f.id} className="min-w-0">
+                      <div className="truncate text-muted">{t.name(f.name).split(" ").slice(-1)[0]}</div>
+                      {fights.map((x) => (
+                        <div key={x.id} className={x.winnerId === f.id ? "text-win" : x.winnerId === null ? "text-muted" : "text-red-ink"}>
+                          {x.winnerId === null ? t("Draw") : `${x.winnerId === f.id ? t("W") : t("L")} ${methodLabel(x.method, x.endRound, t)}`}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          {co.total > co.rows.length && <p className="mt-2 text-xs text-muted">{t.n(co.total - co.rows.length, "{n} more opponent in common", "{n} more opponents in common")}</p>}
+          {co.partial && <p className="mt-2 text-xs text-muted">{t("Held in part: an opponent missing here may be a fight Ringside does not hold.")}</p>}
+        </div>
+      )}
     </section>
   );
 }
