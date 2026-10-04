@@ -66,6 +66,27 @@ export function nearOf(w: World, names: Names): Near {
   }
   return near;
 }
+/** What the exact match reads, folded once per world and table of translated names instead of once per keystroke: each person, event and organisation's searchable text. */
+interface Exact { people: { p: Person; hay: string }[]; orgs: { o: Org; hay: string }[]; /** newest first, called-off events left out */ events: { e: EventRow; hay: string }[] }
+const exactCache = new WeakMap<World, WeakMap<Names, Exact>>();
+/** Exported so a test can see that the index is built once per world and table, not once per keystroke. */
+export function exactOf(w: World, names: Names): Exact {
+  if (isEmptyTable(names)) names = NO_TABLE;
+  let per = exactCache.get(w);
+  if (!per) { per = new WeakMap(); exactCache.set(w, per); }
+  let ex = per.get(names);
+  if (!ex) {
+    const fold = (...parts: (string | undefined | null)[]) => normalize(parts.filter(Boolean).join(" "));
+    ex = {
+      people: [...w.people.values()].map((p) => ({ p, hay: fold(p.name, names[p.name]) })),
+      orgs: [...w.orgs.values()].map((o) => ({ o, hay: fold(o.name, names[o.name]) })),
+      events: w.events.filter((e) => e.status !== "cancelled").reverse().map((e) => ({ e, hay: fold(e.name, names[e.name], e.city, names[e.city], e.venue, names[e.venue]) })),
+    };
+    per.set(names, ex);
+  }
+  return ex;
+}
+
 /** The items of a group with a word close to each word typed, fewest slips first, capped. */
 function nearItems<T>(g: NearGroup<T>, typed: string[], order: (a: T, b: T) => number, cap: number): T[] {
   return [...nearTexts(g.vocab, typed)].map(([i, cost]) => ({ x: g.items[i], cost })).sort((a, b) => a.cost - b.cost || order(a.x, b.x)).slice(0, cap).map((r) => r.x);
@@ -79,10 +100,8 @@ export function globalSearch(w: World, query: string, t: T, names: Names, perGro
   const q = normalize(query);
   if (q.length < 2) return [];
   const words = q.split(" ");
-  const match = (...parts: (string | undefined | null)[]) => {
-    const hay = normalize(parts.filter(Boolean).join(" "));
-    return words.every((x) => hay.includes(x)) ? (hay.startsWith(q) ? 0 : 1) : -1;
-  };
+  const matchHay = (hay: string) => (words.every((x) => hay.includes(x)) ? (hay.startsWith(q) ? 0 : 1) : -1);
+  const match = (...parts: (string | undefined | null)[]) => matchHay(normalize(parts.filter(Boolean).join(" ")));
   const out: SearchHit[] = [];
 
   const pages = PAGES.map((p) => ({ p, r: match(t(p.label), p.label, p.words) })).filter((x) => x.r >= 0).sort((a, b) => a.r - b.r).slice(0, 3);
@@ -91,7 +110,8 @@ export function globalSearch(w: World, query: string, t: T, names: Names, perGro
   const fighterHit = (b: BoxerFull): SearchHit => ({ kind: "fighter", title: t.name(b.name), subtitle: `${recordStr(b)} · ${divisionLabel(b.weightClass, b.sex, t)} · ${countryName(b.country, t.locale)}`, href: `/boxers/${b.slug}` });
   for (const b of searchFighters(w, query, { limit: perGroup, names, forgiving: false })) out.push(fighterHit(b));
 
-  const people = [...w.people.values()].map((p) => ({ p, r: match(p.name, names[p.name]) })).filter((x) => x.r >= 0).sort((a, b) => a.r - b.r || a.p.name.localeCompare(b.p.name)).slice(0, perGroup);
+  const exact = exactOf(w, names);
+  const people = exact.people.map(({ p, hay }) => ({ p, r: matchHay(hay) })).filter((x) => x.r >= 0).sort((a, b) => a.r - b.r || a.p.name.localeCompare(b.p.name)).slice(0, perGroup);
   const personHit = (p: Person): SearchHit => {
     const roles = ROLE_ORDER.filter((r) => w.roles.get(p.id)?.has(r)).map((r) => t(ROLE_NAME[r]));
     return { kind: "person", title: t.name(p.name), subtitle: roles.join(" · ") || undefined, href: `/people/${p.slug}` };
@@ -101,14 +121,14 @@ export function globalSearch(w: World, query: string, t: T, names: Names, perGro
   for (const { p } of people) out.push(personHit(p));
 
   const events: { e: (typeof w.events)[number]; r: number }[] = [];
-  for (let i = w.events.length - 1; i >= 0 && events.length < perGroup; i--) { // newest first, stop when full
-    const e = w.events[i];
-    const r = match(e.name, names[e.name], e.city, names[e.city], e.venue, names[e.venue]);
-    if (r >= 0 && e.status !== "cancelled") events.push({ e, r });
+  for (const { e, hay } of exact.events) { // newest first, stop when full
+    if (events.length >= perGroup) break;
+    const r = matchHay(hay);
+    if (r >= 0) events.push({ e, r });
   }
   for (const { e } of events.sort((a, b) => a.r - b.r)) out.push(eventHit(e));
 
-  const orgs = [...w.orgs.values()].map((o) => ({ o, r: match(o.name, names[o.name]) })).filter((x) => x.r >= 0).sort((a, b) => a.r - b.r || a.o.name.localeCompare(b.o.name)).slice(0, perGroup);
+  const orgs = exact.orgs.map(({ o, hay }) => ({ o, r: matchHay(hay) })).filter((x) => x.r >= 0).sort((a, b) => a.r - b.r || a.o.name.localeCompare(b.o.name)).slice(0, perGroup);
   for (const { o } of orgs) out.push(orgHit(o));
   // A typo in a name is only worth a guess when nothing else matched: otherwise "rankigns" would show names beside the page it means.
   // Then every kind of name gets one, close spellings first.

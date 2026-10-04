@@ -91,6 +91,14 @@ async function main() {
   }, (n) => `radar pool ${n}`);
   await time("bout page: look up a bout and its event (maps)", () => { w2.boutById.get(someBout.id); w2.eventById.get(someBout.eventId); });
   await time("compare: one type-ahead keystroke (search API)", () => payload("/api/fighters (8 hits)", searchFighters(w2, "mar", { limit: 8, minBouts: 5 }).map((b) => toHit(b))), (n) => `${kb(n)} per request`);
+  await time("palette (⌘K): ten keystrokes, names that exist", async () => {
+    const { globalSearch } = await import("../lib/search");
+    const { tEn } = await import("../lib/i18n/t");
+    const person = [...w2.people.values()][100].name, ev = w2.events[500].name, org = [...w2.orgs.values()][50].name;
+    const none = {};
+    globalSearch(w2, "xx", tEn, none); // the first call builds the index, once per world: not a keystroke
+    for (const q of [person.split(" ")[0], person, ev.split(" ")[0], ev, org.slice(0, 4), org, "rank", "las vegas", mid.name.slice(0, 5), mid.name]) globalSearch(w2, q, tEn, none);
+  });
   await time("compare: head-to-head lookup", () => { const l = w2.boutsByBoxer.get(mid.id) ?? []; return l.length ? l.filter((x) => x.method && (x.redId === l[0].blueId || x.blueId === l[0].blueId)).length : 0; });
   await time("people: trainer leaderboard (all trainers)", () => tm.trainerLeaderboard(w2, 4), (r) => `${r.length} trainers`);
   await time("people: judges and referees", () => { of.judgeStats(w2); of.refereeStats(w2); of.scoringDisputes(w2, 6); });
