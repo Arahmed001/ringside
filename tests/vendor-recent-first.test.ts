@@ -80,6 +80,7 @@ test("--plan with a limit prices the chosen fighters only, and shows what each s
 
 // ---- the real command ----
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "bda-recent-cli-"));
+process.env.RINGSIDE_LOCK_DIR = path.join(root, "locks");
 function run(url: string, args: string[], env: Record<string, string> = {}): Promise<{ code: number | null; out: string }> {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, ["--import", "tsx", "scripts/vendor-backfill.ts", "--gap-ms", "0", ...args], {

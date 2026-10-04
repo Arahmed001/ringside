@@ -52,6 +52,14 @@ npm run vendor:backfill -- --plan --per-hour 450 --cache-dir $HOME/ringside-real
 
 the list pages are kept there (that is storing, so it says "provisional" until `BOXING_API_STORAGE_CONFIRMED=1`, and `=0` refuses it before anything is created), Ctrl-C is safe, and the `--check` or load that follows, with the same `--cache-dir`, asks for no list page at all. Still no database is touched.
 
+### One run at a time, and what the first real run taught
+
+- **The allowance belongs to the key.** Two runs with the same key, even with different cache folders, share the 500 an hour. The command now refuses to start a second one on the same machine ("Another backfill is already running with this API key (process N …)"). The lock is a small file in the temp folder named by a hash of the key (the key is never written); a lock whose process is gone is taken over by the next run. It cannot see another machine, so do not run it on two computers at once. `pgrep -fl vendor-backfill` lists the runs.
+- **The first real run, as it happened:** `--plan` reads about 450 pages of fight list (12 date windows, 44,265 fights, 11,024 events, 35,235 fighters). It took hours longer than the 8 seconds a page it should take, because an older copy of the command (from before the rate-limit fix, which retries a refusal in seconds and skips the fighter) was still running in another terminal and spending the same allowance. Once that was stopped the plan ran at the designed pace and finished in under an hour.
+- **Starting it:** the key has to be in the shell that runs it (`echo ${#BOXING_API_KEY}` prints about 50 when it is). On a Mac, `export BOXING_API_KEY="$(pbpaste)"` after copying it avoids pasting into the terminal. An `export` lasts for that terminal window only. Run commands one at a time: a pasted block with a `read -s` in it swallows the next line as the answer.
+- **Two checkouts of one repository** (a git worktree) cannot both have `main`; `git switch --detach origin/main` works in the second. A folder on an old branch has no `vendor:backfill` script ("Missing script").
+- **Run the plan with `--cache-dir`:** the fight list is kept, so a stop, a second `--plan` or the `--check` that follows does not pay for it again.
+
 ## 2. Fetch and inspect: `--check`
 
 ```bash
