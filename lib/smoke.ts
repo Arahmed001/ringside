@@ -160,6 +160,8 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   png(`/rankings/${slugifyDivision(anyDivision.name)}/opengraph-image`, "division ranking");
   const anyBelt = belts(w)[0];
   if (anyBelt) png(`/titles/${anyBelt.slug}/opengraph-image`, "belt");
+  const topCountry = countryList(w)[0];
+  if (topCountry) png(`/countries/${topCountry.slug}/opengraph-image`, "country");
   const [m1, m2] = boxers.filter((b) => b.bouts >= 5);
   if (m1 && m2) { png(`/api/og/compare?a=${m1.slug}&b=${m2.slug}&lang=en`, "matchup"); png(`/api/og/compare?a=${m1.slug}&b=${m2.slug}&lang=ar`, "matchup (Arabic)"); }
   out.push({ path: "/this-page-does-not-exist", kind: "missing", label: "unknown page" });
