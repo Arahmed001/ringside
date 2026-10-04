@@ -3,7 +3,7 @@ import type { DataProvider, ProviderBoxer, ProviderBout, ProviderEvent, Provider
 import fs from "node:fs";
 import path from "node:path";
 import type { Method, Stance } from "../types";
-import { normalizeDivision } from "../divisions";
+import { DIVISIONS, normalizeDivision } from "../divisions";
 import { hasScorecards } from "../methods";
 import { currentYear, nowMs, todayIso } from "../clock";
 
@@ -87,15 +87,22 @@ export function mapRanking(raw: ApiRanking, notes: Notes): ProviderOfficialRanki
   return { body, division, sex: "male", updatedAt: raw.updated_at ?? null, champions, contenders };
 }
 
+/**
+ * A division as the feed names it, or null. The champions importer must keep Bridgerweight (200 to 224 lb) apart from Heavyweight, because the title lineages are
+ * separate; a fighter or a fight is not a title, and "over 200 lb" is the heavyweight limit, so here Bridgerweight and Super Heavyweight are Heavyweight rather than
+ * a division the site does not list (which would drop the fighter, and every fight of his).
+ */
+export const divisionOf = (raw: string): string | null => normalizeDivision(raw) ?? (/^(?:bridger|super ?heavy)/.test(raw.toLowerCase().replace(/[\s.\-_]/g, "")) ? "Heavyweight" : null);
+
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
   | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "stoppageWithoutWinner" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
-  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
+  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
   ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, stoppageWithoutWinner: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
-  birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, windowTooBig: 0,
+  birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, windowTooBig: 0,
 });
 
 export const fighterId = (id: string) => `bda-f-${id}`;
@@ -174,8 +181,8 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
   // a fight that ended after its scheduled rounds ("round 12 of 10") had more rounds scheduled than the feed says
   if (endRound !== null && endRound > rounds) { rounds = endRound; notes.roundsRaisedToEnd++; }
   const divName = f.division?.name ?? "";
-  const weightClass = normalizeDivision(divName) ?? (divName || "Unknown");
-  if (!normalizeDivision(divName)) notes.divisionUnknown++;
+  const weightClass = divisionOf(divName) ?? (divName || "Unknown");
+  if (!divisionOf(divName)) notes.divisionUnknown++;
   const bout: ProviderBout = {
     externalId: boutId(f.id), eventExternalId: eId, redExternalId: fighterId(a.fighter_id), blueExternalId: fighterId(b.fighter_id), // no corner colours in the feed: fighter_1 is "red"
     weightClass, rounds, winnerExternalId: winner ? fighterId(winner.fighter_id!) : null, method, endRound,
@@ -222,12 +229,29 @@ export function mapFighter(f: ApiFighter, notes: Notes): ProviderBoxer | null {
   return {
     externalId: fighterId(f.id), name: f.name, ...(f.nickname || f.alias ? { nickname: (f.nickname ?? f.alias)! } : {}),
     country: f.nationality ?? "Unknown", birthYear, stance, sex: (f.gender ?? "").toLowerCase().startsWith("f") ? "female" : "male",
-    heightCm, reachCm, weightClass: normalizeDivision(div) ?? (div || "Unknown"),
+    heightCm, reachCm, weightClass: divisionOf(div) ?? (div || "Unknown"),
     turnedPro, active: false, // settled in `finishBoxers`, which can see the fights
   };
 }
 
 type Loose = ProviderBoxer;
+
+/**
+ * A fight whose division the feed does not give, or gives as something Ringside has no division for ("Catchweight", "Open weight"), takes the division of its
+ * fighters (the heavier, when the two are in different ones: a catchweight fight is usually made between two divisions). Without this the validator rejects the
+ * fight, and both fighters lose a real result from their record, their form and their rating. Only a fight where neither fighter has a division stays unplaced.
+ */
+export function placeBouts(bouts: ProviderBout[], boxers: ProviderBoxer[], notes: Notes): ProviderBout[] {
+  const index = new Map(DIVISIONS.map((d, i) => [d.name, i] as const));
+  const classOf = new Map(boxers.map((r) => [r.externalId, normalizeDivision(r.weightClass)] as const));
+  return bouts.map((b) => {
+    if (normalizeDivision(b.weightClass)) return b;
+    const known = [classOf.get(b.redExternalId), classOf.get(b.blueExternalId)].filter((x): x is string => !!x);
+    if (!known.length) return b;
+    notes.boutDivisionFromFighters++;
+    return { ...b, weightClass: known.sort((x, y) => (index.get(y) ?? 0) - (index.get(x) ?? 0))[0] };
+  });
+}
 
 /** Settles `active` (fought in the last 30 months, or has a fight coming up) and a missing division (taken from the fighter's latest fight), which need the fights. */
 export function finishBoxers(rows: Loose[], bouts: ProviderBout[], eventDates: Map<string, string>, notes: Notes): ProviderBoxer[] {
@@ -592,7 +616,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     const placed = finished.filter((r) => normalizeDivision(r.weightClass));
     notes.fightersDroppedNoDivision += finished.length - placed.length;
     const placedIds = new Set(placed.map((r) => r.externalId));
-    const kept = keep.filter((b) => { const ok = placedIds.has(b.redExternalId) && placedIds.has(b.blueExternalId); if (!ok) notes.boutsDroppedNoDivision++; return ok; });
+    const kept = placeBouts(keep.filter((b) => { const ok = placedIds.has(b.redExternalId) && placedIds.has(b.blueExternalId); if (!ok) notes.boutsDroppedNoDivision++; return ok; }), placed, notes);
     return { boxers: placed, events: [...events.values()], bouts: kept };
   }
   const once = () => (cache ??= load());
