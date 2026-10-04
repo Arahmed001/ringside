@@ -80,9 +80,10 @@ export function CommandPalette() {
             else if (e.key === "Tab") e.preventDefault(); // the box is the only control in the dialog, so keep focus in it
           }}
           className="w-full border-b border-line bg-transparent px-5 py-4 text-base outline-none placeholder:text-muted" />
+        {/* outside the listbox: only options may be its children (the polite status below announces the same words) */}
+        {term.length >= 2 && answered && hits.length === 0 && <p className="px-3 pb-6 pt-8 text-center text-sm text-muted">{t("Nothing matches that.")}</p>}
+        {term.length >= 2 && !answered && <p className="px-3 pb-6 pt-8 text-center text-sm text-muted">{t("Searching…")}</p>}
         <ul id={`${id}-list`} role="listbox" className="max-h-[50vh] overflow-auto p-2">
-          {term.length >= 2 && answered && hits.length === 0 && <li className="px-3 py-6 text-center text-sm text-muted">{t("Nothing matches that.")}</li>}
-          {term.length >= 2 && !answered && <li className="px-3 py-6 text-center text-sm text-muted">{t("Searching…")}</li>}
           {GROUPS.map((g) => {
             const items = hits.map((h, i) => ({ h, i })).filter((x) => x.h.kind === g.kind);
             if (!items.length) return null;

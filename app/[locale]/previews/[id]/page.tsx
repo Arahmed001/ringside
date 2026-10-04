@@ -86,9 +86,9 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
             <div className="grid gap-4 sm:grid-cols-2">
               {pv.form.map((f, i) => (
                 <div key={f.boxer.id} className="card p-4">
-                  <div className="mb-2 flex items-center gap-1.5" dir="ltr" aria-label={t("Last five results")}>
+                  {f.results.length > 0 && <div className="mb-2 flex items-center gap-1.5" dir="ltr" role="group" aria-label={t("Last five results")}>
                     {f.results.map((r, k) => <span key={k} className={`grid h-7 w-7 place-items-center rounded-md text-xs font-bold ${r === "W" ? "bg-win/20 text-win" : r === "L" ? "bg-red/20 text-red-ink" : "bg-panel2 text-muted"}`}>{t(r)}</span>)}
-                  </div>
+                  </div>}
                   <div className="text-sm" style={{ color: i === 0 ? "#ff5a54" : "#4a8cff" }}><b>{name(f.boxer)}</b></div>
                   <p className="mt-1 text-sm text-muted">{f.line}</p>
                   {f.last && <p className="mt-1 text-xs text-muted">{f.last}</p>}
