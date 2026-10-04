@@ -67,7 +67,7 @@ export default async function Home() {
         <section className="rise grid items-end gap-10 lg:grid-cols-[minmax(0,27rem)_1fr]">
           <div className="relative mx-auto w-full max-w-md">
             <div className="absolute -inset-8 -z-10 rounded-[2rem] bg-red/25 blur-3xl live" />
-            <Link href={`/events/${next.event.id}`} className="block transition hover:scale-[1.015]"><Poster event={next.event} main={next.main} red={next.red} blue={next.blue} /></Link>
+            <Link href={`/events/${next.event.id}`} className="block transition hover:scale-[1.015]"><Poster event={next.event} main={next.main} red={next.red} blue={next.blue} priority /></Link>
           </div>
           <div>
             <div className="eyebrow mb-3">{t.n(daysUntil(next.event.date), "In {n} day", "In {n} days")} · {fmtDate(next.event.date, undefined, t.locale)} · {t.name(next.event.venue)}</div>
@@ -98,9 +98,9 @@ export default async function Home() {
         <div className="eyebrow mb-2">{t("Boxing intelligence · {fighters} fighters · {bouts} bouts", { fighters: o.boxers, bouts: o.bouts.toLocaleString("en-US") })}</div>
         <h2 id="ask" className="font-display text-5xl font-extrabold uppercase leading-[.95] sm:text-6xl">{t("Ask the data")}<span className="text-red-ink">.</span></h2>
         <p className="mt-3 max-w-2xl text-lg text-muted">{t("Ratings, rankings, win-probabilities and AI scouting for the whole sport, in one place. Ask in plain English.")}</p>
-        <form action={localePath(t.locale, "/ask")} className="mt-6 flex gap-2">
-          <input name="q" aria-label={t("Ask the data")} placeholder={t("Who has the most knockouts among women?")} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-6 py-5 text-lg outline-none transition placeholder:text-muted focus:border-gold/60" />
-          <button className="rounded-2xl bg-red-btn px-9 font-display text-2xl font-bold uppercase tracking-wide text-white transition hover:brightness-90">{t("Ask")}</button>
+        <form action={localePath(t.locale, "/ask")} className="mt-6 flex flex-col gap-2 sm:flex-row">
+          <input name="q" aria-label={t("Ask the data")} placeholder={t("Who has the most knockouts among women?")} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-4 py-4 text-[15px] outline-none transition placeholder:text-muted focus:border-gold/60 sm:px-6 sm:py-5 sm:text-lg" />
+          <button className="rounded-2xl bg-red-btn px-9 py-3 font-display text-2xl font-bold uppercase tracking-wide text-white transition hover:brightness-90">{t("Ask")}</button>
         </form>
         <div className="mt-3 flex flex-wrap gap-2">
           {examples.slice(0, 5).map((e) => <Link key={e} href={`/ask?q=${encodeURIComponent(e)}`} className="chip transition hover:text-ink">{e}</Link>)}

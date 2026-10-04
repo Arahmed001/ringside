@@ -283,8 +283,14 @@ const ABOUT_FIGHTS = /\b(knockouts?|kos?|stoppages?|fights?|bouts?|decisions?|dr
  * The most specific wording first ("how many knockouts" is knockouts, not the record). Folded text, English and Arabic.
  */
 const FACT_ASKED: [RegExp, FighterFact][] = [
-  [/\bnext (fight|bout|opponent)\b|\bfights?\b.*\bnext\b|\bwhen (does|is|will)\b.*\bfight\b|\bupcoming (fight|bout)\b|\bfight(ing)? (again|soon)\b|\bfight soon\b|نزاله القادم|نزال القادم/, "next_fight"],
-  [/\blast (fight|bout|opponent)\b|\bmost recent (fight|bout)\b|\bwhen did\b.*\b(last )?(fight|box)\b|\b(fought|fight|box|boxed) last\b|\blast (fought|boxed)\b|اخر نزال/, "last_fight"],
+  [/\bnext (fight|bout|opponent)\b|\bfights?\b.*\bnext\b|\bwhen (does|is|will)\b.*\bfight\b|\bupcoming (fight|bout)\b|\bfight(ing)? (again|soon)\b|\bfight soon\b|نزاله القادم|نزال القادم|نزال\S*\s+(?:\S+\s+){0,3}القادم|متي (?:ينزل|يقاتل|سيقاتل|يلعب)/, "next_fight"],
+  [/\blast (fight|bout|opponent)\b|\bmost recent (fight|bout)\b|\bwhen did\b.*\b(last )?(fight|box)\b|\b(fought|fight|box|boxed) last\b|\blast (fought|boxed)\b|اخر نزال|قاتل\S*\s+(?:\S+\s+){0,3}اخر مره|اخر مره\s+(?:قاتل|لعب|نزل)/, "last_fight"],
+  [/\bwhen did\b.*\b(turn|go|went) pro\b|\b(turned|went) pro\b|\bpro(fessional)? debut\b|\bdebut(ed)?\b|\bfirst pro(fessional)? fight\b|\bhow long\b.*\bpro\b/, "debut"],
+  [/\bnicknames?\b|\bnicknamed\b|\bknown as\b|\bgoes by\b|\bcalled\b/, "nickname"],
+  [/\b(fighting |boxing )?style\b|\bwhat kind of (fighter|boxer)\b|\barchetype\b/, "style"],
+  [/\bpromoter\b|\bpromoted by\b|\bwho promotes\b|\bpromotion (company|firm)\b/, "promoter"],
+  [/\bstreaks?\b|\bwinning run\b|\bwin run\b|\bon a roll\b|\bhow many (in a row|straight)\b/, "streak"],
+  [/\bdecisions?\b|\bgone the distance\b|\bgo the distance\b|\bon (the )?scorecards?\b/, "decisions"],
   [/\bhow tall\b|\bheight\b|\btall is\b|\b(taller|shorter)\b|طول/, "height"],
   [/\breach\b|\barms?( span| length)?\b|امتداد|مدي الذراع/, "reach"],
   [/\bhow old\b|\b(older|younger)\b|\bages?\b|\bborn\b|\bbirth(day| year| date)?\b|كم عمر|عمر/, "age"],
@@ -340,6 +346,19 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const { fighters, rest } = claim(w, names, question);
   // a region is not a country the data has: "the best welterweight from South America" answered with every welterweight would look right and be wrong
   if (!fighters.length && has(q, REGIONS)) return [];
+  // counts and facts of the coming cards that the events list does not give ("how many cards are scheduled this month", "how many fights does the next card have"), and a belt's history or kind: no answer, not the latest card, every champion or a fighter search
+  if (!fighters.length && has(q, /\bhow many\b.*\b(cards?|events?|shows?)\b.*\b(scheduled|upcoming|coming|next|planned|this (week|month|year)|does the next|has the next)\b|\bhow many\b.*\b(does|has|will)\b.*\b(next|upcoming)\b.*\b(card|event)\b/)) return [];
+  if (!fighters.length && has(q, /\b(interim|vacant|stripped|unified)\b|\bchanged hands\b|\bhow many times has\b.*\b(title|belt)\b|\bhow many (world )?(titles|belts)\b/)) return [];
+  // groupings no tool makes: by venue, by country ("which country has the most champions"), by round ("fights that ended in the first round"): no answer, not a list of
+  // fighters sorted by fights, the list of champions or every fight
+  if (!fighters.length && has(q, /\b(venues?|arenas?|stadiums?|cit(?:y|ies))\b/) && !has(q, /\b(gates?|tickets?|revenue|purses?|earn\w*|paid|attendance)\b/) && has(q, /\b(most|more|biggest|largest|best|top)\b/)) return [];
+  if (!fighters.length && has(q, /\b(which|what)\s+(countr(?:y|ies)|nations?)\b/) && has(q, /\b(most|more|best|top|biggest)\b/)) return [];
+  if (!fighters.length && has(q, /\b(?:in|by|during|within)\s+(?:the\s+)?(?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|\d+(?:st|nd|rd|th))\s+round\b|\bround\s+(?:one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b/)) return [];
+  // the same in Arabic: who beat, stopped or knocked out someone; and who trains, manages or runs the most champions
+  if (!LISTS.some(([re]) => has(q, re)) && has(q, /(?:^|\s)من\s+(?:هزم|هزمه|فاز علي|تغلب علي|خسر امام|اسقط|اوقف|تفوق علي)/)) return [];
+  if (!fighters.length && has(q, /(?:مدرب|يدرب\S*|دربه|صاله|صالات|مدير اعمال|يدير|منظم|يروج)/) && has(q, /(?:اكثر|اغلب)/) && has(q, /(?:ابطال|بطل|احزمه|حزام|القاب)/)) return [];
+  // who beat someone, or whom someone lost to: no tool lists a fighter's opponents by result, and the fighter's profile (what it had answered) is not the answer
+  if (!LISTS.some(([re]) => has(q, re)) && (has(q, /\bwho\s+(?:has\s+|have\s+|ever\s+|had\s+)?(?:beat|beaten|defeated|knocked out|ko'?d|stopped|lost to|drew with)\b/) || has(q, /\bwho\s+(?:did|has|have)\s+.{2,40}?\s+(?:beat|defeat|lose to|lost to|draw with|knock out|stop)\b/))) return [];
   // a place in a ranking ("who is ranked number two at welterweight", "the third best heavyweight"): the fighter in that place, not the number one
   if (!fighters.length) {
     const place = placeAsked(question.toLowerCase()); // (the raw question: "3rd" is folded to "iii" in the normalised one)
@@ -351,12 +370,14 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   if (!fighters.length && champ && has(q, /\b(tallest|shortest|heaviest)\b/)) return [];
   // an average of anything is not in the data's tools: no answer, not the list it is an average of
   if (!fighters.length && has(q, /\b(average|mean|median)\b/) && has(q, /\b(height|age|reach|weight|rating|wins|knockouts|fights)\b/)) return [];
-  if (!fighters.length && has(q, /\b(gyms?|trainers?|trains?|coach(es)?|managers?|manages|promoters?)\b/) && has(q, /\b(most|more)\b/) && has(q, /\b(champions?|belts?|titles?)\b/)) return [];
+  if (!fighters.length && has(q, /\b(gyms?|trainers?|trains?|trained|coach(es|ed)?|managers?|manages|managed|promoters?|promoted)\b/) && has(q, /\b(most|more)\b/) && has(q, /\b(champions?|belts?|titles?)\b/)) return [];
   // how many: a count of what is asked ("how many fighters are there", "how many southpaw heavyweights", "how many events in 2024")
   if (!fighters.length && has(q, /\bhow many (fighters|boxers)\b/)) return [{ tool: "fighters", args: Object.fromEntries(Object.entries(f).filter(([k]) => k !== "text" && k !== "sort")) }];
   if (!fighters.length && has(q, /\bhow many (events|cards|shows)\b/)) return [{ tool: "events", args: year ? { year: +year } : { when: "all" } }];
   let trainerFound: { name: string | undefined } | undefined;
   const trainer = () => (trainerFound ??= { name: trainerNamed(w, question, rest) }).name;
+  // "how many fighters are trained by X", "managed by X": the team filter, even when X is also a fighter in the data
+  if ((f.trainer || f.manager || f.promoter || f.gym) && has(q, /\b(trained|coached|managed|promoted|signed) by\b|\bout of the\b/)) return [{ tool: "fighters", args: withLimit(Object.fromEntries(Object.entries(f).filter(([k]) => k !== "text"))) }];
 
   // two fighters and one fact between them ("who is taller, A or B", "A vs B reach"): their two answers side by side, not a prediction of who would win
   if (fighters.length === 2 && !has(q, MEETING)) {
@@ -368,7 +389,7 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   // a fighter's knockdowns are not in the data (only a fight's): "how many times has X been knocked down" is no answer, not the record
   if (fighters.length === 1 && has(q, /\bknocked down\b|\bknockdowns? (suffered|taken|scored)\b/)) return [];
   // one fighter named and one fact asked ("how tall is X", "what is X's knockout rate"): the answer is that fact, not the profile and not a list for everybody
-  if (fighters.length === 1 && !has(q, SUPERLATIVE)) {
+  if (fighters.length === 1 && (!has(q, SUPERLATIVE) || has(q, /\bstreaks?\b|\bwinning run\b|\bwin run\b/))) {
     const about = FACT_ASKED.find(([re]) => has(q, re))?.[1];
     // (a trainer named in a question that says "trainer" is the trainers tool's question, even when a fighter has nearly the same name)
     if (about && !(about === "trainer" && trainer())) return [{ tool: "fighter", args: { name: fighters[0].name, about } }];
@@ -377,7 +398,8 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const filters = () => ({ tool: "fighters", args: withLimit(Object.fromEntries(Object.entries(f).filter(([k]) => k !== "text"))) });
   const numeric = f.minWins !== undefined || f.minKOs !== undefined || f.minKoRate !== undefined || f.minReach !== undefined || f.undefeated;
   // "fighters with more than 20 wins and a knockout rate over 70%" is a search, even though "knockout rate" is also the name of a list
-  if (!fighters.length && numeric && has(q, /\b(fighters?|boxers?) (with|who|that)\b/)) return [filters()];
+  // (but "unbeaten" in "the longest unbeaten run among fighters who …" is the streak list, which is answered or refused below)
+  if (!fighters.length && numeric && has(q, /\b(fighters?|boxers?) (with|who|that)\b/) && !has(q, /(longest|best|biggest) (winning |win |unbeaten |undefeated )?(streak|run)/)) return [filters()];
 
   if (has(q, /fight of the year|(best|greatest) (fight|bout) of|(afdal|افضل|اعظم) نزال في|نزال العام/)) return [{ tool: "fight_of_the_year", args: withLimit(year ? { year: +year } : {}) }];
   // a question about a fighter's record or form ("who lost their last fight", "never been stopped", "fought in the last 6 months") is a fighter search: the events and fights lists have no such cut
@@ -385,7 +407,8 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   if (!fighters.length && has(q, /(?:خسر|فاز|انتصر|هزم)\S*\s+(?:في |ب)?نزاله[من]\S*\s+(?:الاخير|الاخيره)\s+(?:ب|عن طريق|امام|ضد)/)) return [];
   if (!fighters.length && has(q, /\b(lost|won|drew)\s+(their|his|her)\s+(last|most recent|previous)\b.*\b(by|via|in)\s+(a\s+)?(knockout|ko|tko|decision|stoppage|round|points|split|unanimous)/)) return [];
   // (with an events word in it ("upcoming fights of fighters on a streak") no tool has both: no answer, not the list of events with the cut left out)
-  if (!fighters.length && RECORD_KEYS.some((k) => k in f)) return has(q, /\b(upcoming|next|recent|latest|results?|cards?|events?|schedule|calendar)\b|قادم|نتايج|فعاليه|فعاليات|بطاقه|جدول/) ? [] : [filters()];
+  // (a record list, "the longest winning streak among welterweights who have never been stopped", is the list's to answer or refuse: it cannot be cut by the fact, and a search sorted by rating would drop "longest")
+  if (!fighters.length && RECORD_KEYS.some((k) => k in f) && !LISTS.some(([re]) => has(q, re))) return has(q, /\b(upcoming|next|recent|latest|results?|cards?|events?|schedule|calendar)\b|قادم|نتايج|فعاليه|فعاليات|بطاقه|جدول/) ? [] : [filters()];
   if (has(q, /upcoming.*(upset|underdog)|underdogs?\b|upset watch|(could|might|may) (be )?upset|upsets? (are )?(coming|expected)|favou?rites? .*(lose|beaten|upset|vulnerable|shaky|wobbl\w*|at risk|in (danger|trouble))|(look|looks|looking) (shaky|vulnerable)|\bin (danger|trouble)\b|at risk of (losing|being)|مفاج\S*\s+(ال)?(محتمل|متوقع)\S*|(ال)?(محتمل|متوقع)\S*\s+(ال)?مفاج|(could|might|may|going to) (get |be |getting )?(upset|beaten)|(produce|cause|spring|pull off) an? (shock|upset)|could .*\b(shock|upset)\b|(most )?likely to (lose|be beaten|be upset)|shock results?|danger fights?|مفاجاه محتمله|الاقل ترجيحا/)) return [{ tool: "upset_watch", args: withLimit({}) }];
 
   // completed fights of a year or the title fights, by how they ended: "knockouts in 2025", "title fights this year", "fastest finishes of 2024"
@@ -394,11 +417,16 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const span = has(q, SPAN);
   const boutYear = span ? undefined : year ? +year : has(q, /\bthis year\b/) ? thisYear : has(q, /\blast year\b/) ? thisYear - 1 : undefined;
   if (span && has(q, ABOUT_FIGHTS) && !has(q, ABOUT_FIGHTERS)) return [];
+  // scheduled rounds: "at least 10 rounds", "10 or more rounds" and the 12-round maximum are the tool's minimum; any other count (exactly 8 rounds) it cannot say, so no answer
+  const roundsAsked = q.match(/(?:at least |minimum of )?(\d{1,2})[- ](?:or more[- ])?rounds?\b/);
+  const minRounds = roundsAsked && (has(q, /at least|or more|minimum/) || +roundsAsked[1] === 12) ? +roundsAsked[1] : undefined;
+  if (roundsAsked && minRounds === undefined && has(q, /\b(fights?|bouts?)\b/)) return [];
   const recently = has(q, /\b(recent|latest|newest)\b/) && has(q, /\b(knockouts?|kos?|stoppages?|decisions?)\b/);
   if ((boutYear || recently || has(q, /title (fights?|bouts?)/) || has(q, /\bhow many\b/)) && has(q, /\b(fights?|bouts?|knockouts?|kos?|stoppages?|finishes|decisions?|draws?)\b|ضربات? (ال)?قاضيه|نزالات|تعادل/) && !has(q, /\b(most|highest|longest|biggest|greatest|upcoming|next|coming)\b|fight of the year|best fights?|اكثر|اعلي|اطول|اكبر|اعظم|اسرع|افضل|القادم/)) {
     return [{ tool: "bouts", args: withLimit({
       ...(boutYear ? { year: boutYear } : {}), ...(scope.division ? { division: scope.division } : {}),
       ...(has(q, /title (fights?|bouts?)/) ? { title: true } : {}),
+      ...(minRounds ? { minRounds } : {}),
       ...(has(q, /knockouts?|\bkos?\b|stoppages?|finishes|ضربات? (ال)?قاضيه/) ? { method: "stoppage" } : has(q, /decisions?/) ? { method: "decision" } : has(q, /draws?|تعادل/) ? { method: "DRAW" } : {}),
       ...(has(q, /fastest|quickest/) ? { sort: "fastest" } : has(q, /knockdowns?/) ? { sort: "knockdowns" } : {}),
     }) }];
@@ -435,7 +463,7 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   }
   if (has(q, /trainer|coach|مدرب/) && (!fighters.length || trainer())) {
     const typed = question.match(/(?:trainer|coach|مدرب)\s+([\p{L}.'\- ]{4,40})/iu)?.[1]?.trim();
-    const name = trainer() ?? (typed && !has(normalize(typed), /^(impact|effect|the|best)/) ? typed : undefined);
+    const name = trainer() ?? (typed && !has(normalize(typed), /^(impact|effect|the|best|has|have|had|with|who|that|is|are|does|did|get|gets|add|adds|win|wins)\b/) ? typed : undefined);
     return [{ tool: "trainers", args: withLimit(name ? { name } : {}) }];
   }
   if (!fighters.length && trainer()) return [{ tool: "trainers", args: withLimit({ name: trainer() }) }];
@@ -449,7 +477,7 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   // "top 5 southpaws": a ranking is by division; a group of fighters from anywhere is a search
   if (GROUP_KEYS.some((k) => k in f) && has(q, /\btop \d+\b|\bbest\b|\bhighest rated\b/) && !has(q, /pound.for.pound|\bp4p\b/)) return [filters()];
   if (!cut && has(q, /rankings?\b|ranked\b|top \d+|pound.for.pound|\bp4p\b|تصنيف|ترتيب/)) return [{ tool: "rankings", args: withLimit(scope) }];
-  if (has(q, /(upcoming|next|coming up|future) (fights?|events?|cards?|shows?)|fight calendar|schedule|(what|which) (fights?|cards?|boxing|events?|bouts?) (is |are )?(on|coming|scheduled|happening|next)|who.?s (fighting|boxing)( next| tonight| this)?|who headlines|headliners?|next (big |major |title )?(fight|bout|card)|coming up|boxing is on|on this (week|month|weekend)|this weekend|tonight|next (week|month)|القادمه|القادم|جدول/)) return [{ tool: "events", args: withLimit({ when: "upcoming" }) }];
+  if (has(q, /(upcoming|next|coming up|future) (fights?|events?|cards?|shows?)|fight calendar|schedule|(what|which) (fights?|cards?|boxing|events?|bouts?) (is |are )?(on|coming|scheduled|happening|next)|who.?s (fighting|boxing)( next| tonight| this)?|who headlines|headliners?|next (big |major |title )?(fight|bout|card)|(next|upcoming|coming) (main event|headline|headliner|big fight)|coming up|boxing is on|on this (week|month|weekend)|this weekend|tonight|next (week|month)|القادمه|القادم|جدول/)) return [{ tool: "events", args: withLimit({ when: "upcoming" }) }];
   if (has(q, /(recent|latest|last|most recent) (boxing |fight )?(fights?|events?|cards?|results?)|results? of the (most )?(recent|latest|last)|last (night|weekend)|yesterday|who won the most recent|اخر (نزالات|النزالات|الفعاليات|فعاليه|فعاليات|نتايج|نتيجه)|نتايج (اخر|الفعاليات)|(النزالات|الفعاليات|النتايج) الاخيره/)) return [{ tool: "events", args: withLimit({ when: "recent" }) }];
 
   const filterKeys = Object.keys(f).filter((k) => k !== "text");

@@ -139,6 +139,9 @@ async function main() {
     if (r.kind === "page" || r.kind === "missing") {
       await run(r.path, r.label, r, "en");
       if (!r.englishOnly) await run(r.path === "/" ? "/ar" : `/ar${r.path}`, r.label, r, "ar");
+    } else if (r.kind === "png" && !r.path.startsWith("/api/")) { // a share card is served in both languages
+      await run(r.path, r.label, r, "en");
+      await run(`/ar${r.path}`, r.label, r, "ar");
     } else await run(r.path, r.label, r, "en");
   }
   stop();

@@ -97,10 +97,13 @@
    "app/[locale]/bouts/[id]/opengraph-image.tsx",
    "app/[locale]/bouts/[id]/page.tsx",
    "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/compare/page.tsx",
+   "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/events/[id]/opengraph-image.tsx",
    "app/[locale]/money/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/previews/[id]/opengraph-image.tsx",
+   "app/api/og/compare/route.tsx",
    "components/LiveLedger.tsx",
    "components/MyPicks.tsx",
    "lib/predict.ts"
@@ -242,6 +245,7 @@
  {
   "key": "{division} rankings",
   "files": [
+   "app/[locale]/rankings/[division]/opengraph-image.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "lib/ask/tools.ts"
   ]
@@ -250,6 +254,12 @@
   "key": "{events} events · {fighters} fighters signed · {w}-{l} combined",
   "files": [
    "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "{fighters} · {active} active",
+  "files": [
+   "app/[locale]/countries/page.tsx"
   ]
  },
  {
@@ -402,6 +412,12 @@
   ]
  },
  {
+  "key": "{n} countries, the one with the most fighters first. Open one for its best fighters, its champions and its coming fights.",
+  "files": [
+   "app/[locale]/countries/page.tsx"
+  ]
+ },
+ {
   "key": "{n} current",
   "files": [
    "app/[locale]/people/[slug]/page.tsx"
@@ -474,6 +490,7 @@
   "plural": "{n} fighter",
   "files": [
    "app/[locale]/boxers/page.tsx",
+   "app/[locale]/countries/page.tsx",
    "app/[locale]/trainers/page.tsx"
   ]
  },
@@ -735,6 +752,13 @@
   ]
  },
  {
+  "key": "{n} straight wins",
+  "plural": "{n} straight win",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{n} stretches, Elo over six fights",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -958,12 +982,6 @@
   ]
  },
  {
-  "key": "{name} fights from a {stance} stance.",
-  "files": [
-   "lib/ask/tools.ts"
-  ]
- },
- {
   "key": "{name} fought {n} weeks ago, a quick turnaround",
   "files": [
    "lib/matchmaking.ts"
@@ -1046,6 +1064,12 @@
  },
  {
   "key": "{name} has no completed fights on record.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name} has no nickname on record.",
   "files": [
    "lib/ask/tools.ts"
   ]
@@ -1163,6 +1187,18 @@
   ]
  },
  {
+  "key": "{name} is known as “{nickname}”.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name} is not on a streak (the longest winning run: {longest}).",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} is on a {n}-fight win streak.",
   "files": [
    "lib/preview.ts"
@@ -1173,6 +1209,18 @@
   "plural": "{name} is on a {n}-fight winning run",
   "files": [
    "lib/upsets.ts"
+  ]
+ },
+ {
+  "key": "{name} is on a losing streak of {n} (the longest winning run: {longest}).",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name} is on a winning streak of {n} (the longest winning run: {longest}).",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -1255,6 +1303,12 @@
   ]
  },
  {
+  "key": "{name} turned pro in {year}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} weighed {n} lb more on fight night.",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -1303,6 +1357,12 @@
   ]
  },
  {
+  "key": "{name}: {won} wins and {lost} losses by decision.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name}: estimated effect {effect} Elo against an average trainer ({verdict}); {fighters} fighters, {record} together.",
   "files": [
    "lib/ask/tools.ts"
@@ -1333,7 +1393,25 @@
   ]
  },
  {
+  "key": "{name}'s promoter is {promoter}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name}'s reach is {cm} cm.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name}'s stance is {stance}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name}'s style is {style}.",
   "files": [
    "lib/ask/tools.ts"
   ]
@@ -1862,6 +1940,12 @@
   ]
  },
  {
+  "key": "A fight stopped early by an accident, usually a cut from a clash of heads, goes to the scorecards once enough rounds have been fought (usually four, depending on the commission). A technical draw is the same with level cards.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "A fight’s result can only be corrected from a page its commission or sanctioning body published; a fighter’s details from the fighter’s own page or their confirmed account. Anything else can be noted, and the data feed’s value stands. You cannot decide your own report.",
   "files": [
    "app/[locale]/review/reports/page.tsx"
@@ -1877,6 +1961,30 @@
   "key": "a fighter an administrator linked to your account as yours, after checking out of band",
   "files": [
    "lib/privacy.ts"
+  ]
+ },
+ {
+  "key": "A fighter breaks the rules badly or repeatedly, for example with low blows, and loses on the spot.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
+  "key": "A fighter is knocked down and cannot get up before the referee counts ten.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
+  "key": "A fighter needs five fights on record to be ranked. The win probabilities on fight previews come from these ratings, and the track record page shows how they have done.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
+  "key": "A fighter's corner pulls them out between rounds. Ringside counts it as a knockout, as most record keepers do.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -1941,9 +2049,21 @@
   ]
  },
  {
+  "key": "a pro debut year",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "a reach",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "A record is wins, losses and draws, in that order: {example} is 25 wins, 3 losses and 1 draw. Knockouts are the wins that ended early; Ringside shows them as a count and as a share of wins. A no contest is not in the record.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -2133,6 +2253,8 @@
   "key": "Active",
   "files": [
    "app/[locale]/boxers/page.tsx",
+   "app/[locale]/countries/[slug]/opengraph-image.tsx",
+   "app/[locale]/countries/[slug]/page.tsx",
    "lib/ai.ts"
   ]
  },
@@ -2261,10 +2383,22 @@
   ]
  },
  {
+  "key": "All {n} fighters",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "All {n} upcoming cards",
   "plural": "All {n} upcoming card",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "All belts",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
   ]
  },
  {
@@ -2294,6 +2428,12 @@
   ]
  },
  {
+  "key": "All events",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "all features",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -2315,6 +2455,12 @@
   "key": "All pictures on this site come from this site itself.",
   "files": [
    "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "All three judges pick the same fighter.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -2390,6 +2536,12 @@
   "key": "An estimate, not a verdict: fighters do not change trainer at random, and most trainers cannot be told from average. See how it is worked out.",
   "files": [
    "components/TrainerImpactCard.tsx"
+  ]
+ },
+ {
+  "key": "An organisation may also name an interim champion while the champion is out, or a super champion for its best fighter. Ringside rebuilds each belt's line of champions from the title fights in the data.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -2811,6 +2963,24 @@
   ]
  },
  {
+  "key": "Belts and champions",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
+  "key": "Belts held by a fighter from {country}",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "belts held now",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "best",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -2829,9 +2999,21 @@
   ]
  },
  {
+  "key": "Best rated",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Best streak",
   "files": [
    "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
+  "key": "Best win",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -2880,6 +3062,12 @@
   "key": "Biggest surprises, by the model's own numbers",
   "files": [
    "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "Biggest upset",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -3021,6 +3209,32 @@
   ]
  },
  {
+  "key": "Boxers fight in {n} divisions, from minimumweight (105 lb) to heavyweight (over 200 lb). Fighters step on the scale the day before the fight, and coming in over the limit is called missing weight.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
+  "key": "Boxers from {country}",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Boxing by country",
+  "files": [
+   "app/[locale]/countries/[slug]/opengraph-image.tsx",
+   "app/[locale]/countries/[slug]/page.tsx",
+   "app/[locale]/countries/page.tsx"
+  ]
+ },
+ {
+  "key": "Boxing explained",
+  "files": [
+   "lib/nav.ts"
+  ]
+ },
+ {
   "key": "Boxing gyms, promotions and sanctioning bodies: who trains and signs the fighters, how many events each promotes and which belts they sanction.",
   "files": [
    "app/[locale]/orgs/page.tsx"
@@ -3048,6 +3262,12 @@
   "key": "Boxing ratings, rankings and predictions",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Boxing, explained",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -3238,6 +3458,12 @@
   ]
  },
  {
+  "key": "Career highlights",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Career pay from purses",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -3276,6 +3502,8 @@
  {
   "key": "Champions",
   "files": [
+   "app/[locale]/countries/[slug]/opengraph-image.tsx",
+   "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
@@ -3532,6 +3760,12 @@
   ]
  },
  {
+  "key": "Coming fights",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Coming up",
   "files": [
    "app/[locale]/page.tsx"
@@ -3648,6 +3882,12 @@
   ]
  },
  {
+  "key": "Corner retirement (RTD)",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "Corner trainers",
   "files": [
    "lib/coverage.ts"
@@ -3706,6 +3946,12 @@
   ]
  },
  {
+  "key": "Couldn’t copy the link",
+  "files": [
+   "components/ShareButton.tsx"
+  ]
+ },
+ {
   "key": "Couldn’t load your picks. Try again in a moment.",
   "files": [
    "components/MyPicks.tsx"
@@ -3721,6 +3967,12 @@
   "key": "Counter-Puncher",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Countries",
+  "files": [
+   "lib/nav.ts"
   ]
  },
  {
@@ -3931,6 +4183,12 @@
   ]
  },
  {
+  "key": "Decision",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "Decisions",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -3985,6 +4243,12 @@
   ]
  },
  {
+  "key": "Did you mean one of these fighters?",
+  "files": [
+   "app/[locale]/not-found.tsx"
+  ]
+ },
+ {
   "key": "Difference",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -4026,6 +4290,12 @@
    "app/[locale]/analytics/page.tsx",
    "app/[locale]/boxers/[slug]/page.tsx",
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Disqualification (DQ)",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -4137,6 +4407,7 @@
   "key": "Draw",
   "files": [
    "app/[locale]/analytics/page.tsx",
+   "app/[locale]/learn/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
    "app/[locale]/orgs/[slug]/page.tsx",
    "app/[locale]/page.tsx",
@@ -4213,6 +4484,12 @@
   "key": "Each fight is scored with the same model and settings as the predictor page, using ratings, records, age and layoff as they stood before the fight.",
   "files": [
    "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "Each judge scores every round with the 10-point must system: the fighter who won the round gets 10 points and the other gets 9 or fewer. A knockdown usually costs the fighter who went down an extra point, and the referee can take a point for a foul. A round that is exactly level is scored {level}, which is rare.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -4331,6 +4608,7 @@
   "key": "Elo rating",
   "files": [
    "app/[locale]/boxers/[slug]/opengraph-image.tsx",
+   "app/[locale]/rankings/[division]/opengraph-image.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "lib/preview.ts"
   ]
@@ -4355,6 +4633,12 @@
  },
  {
   "key": "Elo-style",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Ended in {date}",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
   ]
@@ -4472,6 +4756,12 @@
   ]
  },
  {
+  "key": "Events held here",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Events in {year}",
   "files": [
    "app/[locale]/events/page.tsx"
@@ -4493,6 +4783,13 @@
   "key": "Every belt, every champion",
   "files": [
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Every country with a boxer in the Ringside database: its best fighters, current champions, coming fights and the events held there.",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx",
+   "app/[locale]/countries/page.tsx"
   ]
  },
  {
@@ -4762,6 +5059,7 @@
  {
   "key": "Fight calendar",
   "files": [
+   "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/events/page.tsx",
    "app/[locale]/page.tsx"
   ]
@@ -5019,6 +5317,8 @@
   "files": [
    "app/[locale]/analytics/page.tsx",
    "app/[locale]/boxers/page.tsx",
+   "app/[locale]/countries/[slug]/opengraph-image.tsx",
+   "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "components/TenureTable.tsx",
@@ -5359,6 +5659,12 @@
   ]
  },
  {
+  "key": "Four organisations, the WBA, WBC, IBF and WBO, each name a world champion in every division, so one division can have four champions at once. A fighter who holds more than one of those belts is a unified champion, and one who holds all four is called undisputed.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "free TV",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -5643,7 +5949,8 @@
   "key": "Head to head",
   "files": [
    "app/[locale]/compare/page.tsx",
-   "app/[locale]/previews/[id]/page.tsx"
+   "app/[locale]/previews/[id]/page.tsx",
+   "app/api/og/compare/route.tsx"
   ]
  },
  {
@@ -5808,6 +6115,18 @@
   ]
  },
  {
+  "key": "How a fight is won",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
+  "key": "How a fight is won and scored, how to read a record, what the weight classes and belts mean, and where Ringside's ratings come from, in plain words.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "How fights end",
   "files": [
    "app/[locale]/analytics/page.tsx"
@@ -5887,6 +6206,12 @@
   ]
  },
  {
+  "key": "How the judges score",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "How the same calls fared",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
@@ -5917,6 +6242,12 @@
   ]
  },
  {
+  "key": "How to read a record",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "How your data is handled",
   "files": [
    "components/AccountPanel.tsx"
@@ -5944,6 +6275,12 @@
   "key": "Identifiers",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "If nobody is stopped, three judges score every round and the fight is decided on their cards.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -6111,7 +6448,8 @@
  {
   "key": "Jump to a section",
   "files": [
-   "app/[locale]/all-time/page.tsx"
+   "app/[locale]/all-time/page.tsx",
+   "app/[locale]/upset-watch/page.tsx"
   ]
  },
  {
@@ -6142,6 +6480,12 @@
   "key": "Knockout",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Knockout (KO)",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -6550,6 +6894,12 @@
   ]
  },
  {
+  "key": "Link copied",
+  "files": [
+   "components/ShareButton.tsx"
+  ]
+ },
+ {
   "key": "Live from the database",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -6682,6 +7032,7 @@
  {
   "key": "Longest winning run",
   "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
    "lib/records.ts"
   ]
  },
@@ -6770,6 +7121,12 @@
   "key": "Majority decision",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Majority decision (MD)",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -6979,6 +7336,12 @@
   "key": "Model weights",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Model win probability: {a}% to {b}%",
+  "files": [
+   "app/api/og/compare/route.tsx"
   ]
  },
  {
@@ -7225,6 +7588,12 @@
   ]
  },
  {
+  "key": "New to boxing?",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "New trainer · {n} months with current trainer",
   "plural": "New trainer · {n} month with current trainer",
   "files": [
@@ -7330,6 +7699,7 @@
  {
   "key": "No contest",
   "files": [
+   "app/[locale]/learn/page.tsx",
    "components/ReportForm.tsx",
    "lib/correction-text.ts",
    "lib/format.ts",
@@ -7418,6 +7788,12 @@
   "key": "No fighters on record.",
   "files": [
    "components/TenureTable.tsx"
+  ]
+ },
+ {
+  "key": "No fighters yet.",
+  "files": [
+   "app/[locale]/countries/page.tsx"
   ]
  },
  {
@@ -7925,6 +8301,12 @@
   ]
  },
  {
+  "key": "on record",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "On the {n} fights you both called: you were right and the model wrong on {a}, the model was right and you wrong on {b}, you were both right on {c} and both wrong on {d}.",
   "files": [
    "components/MyPicks.tsx"
@@ -7936,6 +8318,12 @@
    "app/[locale]/on-this-day/page.tsx",
    "lib/nav.ts",
    "lib/search.ts"
+  ]
+ },
+ {
+  "key": "On this page",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -8785,6 +9173,7 @@
  {
   "key": "Rankings",
   "files": [
+   "app/[locale]/rankings/[division]/opengraph-image.tsx",
    "app/[locale]/rankings/page.tsx",
    "app/[locale]/titles/page.tsx",
    "lib/nav.ts",
@@ -8795,6 +9184,18 @@
   "key": "Rated {elo} Elo, currently #{rank} among all {division} fighters in the database.{streak}",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Rated {n} points higher going in",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Rated {rating} going in",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -8833,6 +9234,12 @@
   "key": "Rating over time",
   "files": [
    "components/charts.tsx"
+  ]
+ },
+ {
+  "key": "Ratings are Elo-style: Ringside's own calculation from results, not an official ranking. Everyone starts at 1,500 and gains or loses points after each fight, more for beating a higher-rated opponent, and a stoppage counts for a little more than a decision.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -8920,6 +9327,12 @@
   ]
  },
  {
+  "key": "Recent cards in {country}",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Recent events",
   "files": [
    "app/[locale]/events/page.tsx"
@@ -8964,7 +9377,8 @@
  {
   "key": "record",
   "files": [
-   "app/[locale]/boxers/[slug]/opengraph-image.tsx"
+   "app/[locale]/boxers/[slug]/opengraph-image.tsx",
+   "app/[locale]/rankings/[division]/opengraph-image.tsx"
   ]
  },
  {
@@ -9063,6 +9477,7 @@
  {
   "key": "Reigns",
   "files": [
+   "app/[locale]/titles/[slug]/opengraph-image.tsx",
    "app/[locale]/titles/page.tsx"
   ]
  },
@@ -9473,6 +9888,7 @@
   "key": "Search",
   "files": [
    "app/[locale]/boxers/page.tsx",
+   "app/[locale]/not-found.tsx",
    "components/CommandPalette.tsx"
   ]
  },
@@ -9498,7 +9914,8 @@
   "key": "Search fighters",
   "files": [
    "app/[locale]/boxers/page.tsx",
-   "app/[locale]/layout.tsx"
+   "app/[locale]/layout.tsx",
+   "app/[locale]/not-found.tsx"
   ]
  },
  {
@@ -9528,6 +9945,12 @@
   ]
  },
  {
+  "key": "See every belt and its champions",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "See how your picks did",
   "files": [
    "components/PickEm.tsx"
@@ -9544,6 +9967,18 @@
   "files": [
    "components/MyPicks.tsx",
    "components/PickStanding.tsx"
+  ]
+ },
+ {
+  "key": "See the rankings in every division",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
+  "key": "See the track record",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -9587,6 +10022,12 @@
   "key": "SFLY",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Share",
+  "files": [
+   "components/ShareButton.tsx"
   ]
  },
  {
@@ -9838,6 +10279,7 @@
  {
   "key": "since {date}",
   "files": [
+   "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/titles/[slug]/page.tsx",
    "app/[locale]/titles/page.tsx"
   ]
@@ -10021,6 +10463,12 @@
   ]
  },
  {
+  "key": "Split decision (SD)",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "Sponsorship",
   "files": [
    "components/Money.tsx"
@@ -10094,6 +10542,18 @@
   "key": "Stays, without you: proposals and reports you sent (they are an editorial record about fighters, not about you), and edits that were already published. Do not put personal details in their notes.",
   "files": [
    "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "still fighting",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Still going",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -10383,6 +10843,7 @@
   "key": "Technical decision",
   "files": [
    "app/[locale]/analytics/page.tsx",
+   "app/[locale]/learn/page.tsx",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -10396,6 +10857,12 @@
   "key": "Technical knockout",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Technical knockout (TKO)",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -10567,9 +11034,21 @@
   ]
  },
  {
+  "key": "The best of the fights we hold",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "The best rating anyone reached, after any fight. Ratings are Elo-style and unofficial.",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "The best-rated boxers from {country}: current champions, coming fights and events held there. {n} fighters in the Ringside database.",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
   ]
  },
  {
@@ -10588,6 +11067,12 @@
   "key": "The blue corner",
   "files": [
    "lib/correction-text.ts"
+  ]
+ },
+ {
+  "key": "The cards do not give either fighter a majority.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -10651,6 +11136,12 @@
   ]
  },
  {
+  "key": "The data has no current promoter for {name}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "The difference ({d} Elo points) is within its margin of error: there is no clear sign that changing trainer moves results either way.",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -10699,9 +11190,21 @@
   ]
  },
  {
+  "key": "The few things this site's numbers take for granted: how a fight is won, how to read a record and what a belt means.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "The fight calendar: upcoming cards with their main events and win probabilities, plus recent results and how each main event ended.",
   "files": [
    "app/[locale]/events/page.tsx"
+  ]
+ },
+ {
+  "key": "The fight is declared void, for example after an accidental foul early on. It is in neither fighter's record.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -11030,6 +11533,12 @@
   ]
  },
  {
+  "key": "The referee, or the ringside doctor, stops the fight because a fighter can no longer defend themselves or is too badly hurt to go on.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "The Ringside model",
   "files": [
    "app/[locale]/leaderboard/page.tsx"
@@ -11112,6 +11621,12 @@
   "key": "The source is published by the owner of this fact.",
   "files": [
    "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "The three cards are added up, and how they agree gives the result:",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -11411,6 +11926,7 @@
  {
   "key": "Title defences",
   "files": [
+   "app/[locale]/titles/[slug]/opengraph-image.tsx",
    "app/[locale]/titles/page.tsx"
   ]
  },
@@ -11435,6 +11951,7 @@
  {
   "key": "Title lineage",
   "files": [
+   "app/[locale]/titles/[slug]/opengraph-image.tsx",
    "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
@@ -11600,6 +12117,12 @@
   ]
  },
  {
+  "key": "Top fighters",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Top rated",
   "files": [
    "app/[locale]/rankings/[division]/page.tsx"
@@ -11739,6 +12262,18 @@
   ]
  },
  {
+  "key": "Two judges pick one fighter and the third picks the other.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
+  "key": "Two judges pick one fighter and the third scores it a draw.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "Type",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -11760,6 +12295,12 @@
   "key": "Unanimous decision",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Unanimous decision (UD)",
+  "files": [
+   "app/[locale]/learn/page.tsx"
   ]
  },
  {
@@ -12162,6 +12703,12 @@
   ]
  },
  {
+  "key": "Weight classes",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "Weights are hand-set until real results are available to fit the model.",
   "files": [
    "app/[locale]/compare/page.tsx",
@@ -12350,6 +12897,12 @@
   ]
  },
  {
+  "key": "When Ringside does not hold a fighter's early fights, the record on the page is the career total from the data supplier and the page says so; the fight list and the rates are then built only from the fights we hold.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "When the model says 70%, is it right 70% of the time?",
   "files": [
    "app/[locale]/accountability/page.tsx"
@@ -12377,6 +12930,18 @@
   "key": "Where it aired",
   "files": [
    "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "Where Ringside's ratings come from",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
+  "key": "Where the fighters are from",
+  "files": [
+   "app/[locale]/countries/page.tsx"
   ]
  },
  {
@@ -12463,6 +13028,12 @@
   "files": [
    "app/[locale]/page.tsx",
    "lib/ask/examples.ts"
+  ]
+ },
+ {
+  "key": "who have fought",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
   ]
  },
  {
@@ -12590,6 +13161,12 @@
   "key": "Win chance",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Win probability, how the fight likely ends and what drives the number for {a} against {b}.",
+  "files": [
+   "app/[locale]/compare/page.tsx"
   ]
  },
  {
@@ -12829,6 +13406,12 @@
   "key": "Won the vacant belt",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Worked out from the {held} fights Ringside holds, not the whole career.",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {

@@ -125,6 +125,16 @@ function peelTeam(q: string, f: Filters): string {
   return q;
 }
 
+/** The stems of a country's nationality adjective in Arabic (folded letters): stem + ي / يه / يين / يون / يات ("سعودي", "سعوديين"). */
+const DEMONYM_STEMS_AR: Record<string, string[]> = {
+  Argentina: ["ارجنتين"], Mexico: ["مكسيك"], Ukraine: ["اوكران"], Japan: ["يابان"], Philippines: ["فلبين"], Nigeria: ["نيجير"], Germany: ["المان"], "United Kingdom": ["بريطان", "انجليز"],
+  "United States": ["امريك"], "Saudi Arabia": ["سعود"], Egypt: ["مصر"], Cuba: ["كوب"], Brazil: ["برازيل"], Russia: ["روس"], China: ["صين"], France: ["فرنس"], Spain: ["اسبان"], Italy: ["ايطال"],
+  Ghana: ["غان"], Turkey: ["ترك"], Ireland: ["ايرلند"], Canada: ["كند"], Australia: ["استرال"], "South Africa": ["جنوب افريق"], Morocco: ["مغرب"], Iraq: ["عراق"], Jordan: ["اردن"], Kazakhstan: ["كازاخستان"],
+};
+
+/** Nationalities with their own plural ("ألمان", "أتراك", "أمريكان"). */
+const DEMONYM_BARE_AR: Record<string, string[]> = { Germany: ["المان"], Turkey: ["اتراك"], "United States": ["امريكان"], Spain: ["اسبان"] };
+
 /** How a division is said in Arabic besides its name in the dictionary (compared after normalize()). */
 const DIVISION_SAYINGS_AR: Record<string, string[]> = {
   Heavyweight: ["ثقيلو الوزن", "ثقيلي الوزن", "ثقيل الوزن", "وزن ثقيل", "الثقيل"], "Light Heavyweight": ["نصف الثقيل", "وزن نصف ثقيل", "نصف ثقيل"],
@@ -145,9 +155,15 @@ function arabicHints(q: string, f: Filters, countries: string[], today?: string)
   const phrases = [...DIVISIONS.map((d) => [tr(d.name), d.name] as const), ...Object.entries(DIVISION_SAYINGS_AR).flatMap(([name, said]) => said.map((x) => [x, name] as const))].filter(([x]) => x);
   for (const [x, name] of phrases.sort((a, b) => b[0].length - a[0].length)) if (s.includes(x)) { f.weightClass ??= name; break; }
   for (const c of [...new Set([...countries, ...WORLD_COUNTRIES])]) { const x = normalize(countryName(c, "ar")); if (x !== normalize(c) && s.includes(x)) f.country ??= c; }
+  // a country said as a nationality ("سعوديين", "مكسيكيون", "يابانية"): the name's stem and an adjective ending
+  for (const [c, bare] of Object.entries(DEMONYM_BARE_AR)) if (new RegExp(`(?<![\\u0600-\\u06ff])(?:${bare.join("|")})(?![\\u0600-\\u06ff])`).test(s)) f.country ??= c;
+  for (const [c, stems] of Object.entries(DEMONYM_STEMS_AR)) if (new RegExp(`(?<![\\u0600-\\u06ff])(?:ال)?(?:${stems.join("|")})(?:ي|يه|يين|يون|يات)(?![\\u0600-\\u06ff])`).test(s)) f.country ??= c;
   const has = (re: RegExp) => re.test(s);
+  // the youngest and the oldest are an order to sort in ("أصغر ملاكم", "الأكبر سنا"), not a filter
+  if (has(/اصغر (?:ملاكم|ملاكمين|ملاكمه|بطل)|الاصغر سنا|اصغرهم|اصغر سنا/)) f.sort = "youngest";
+  else if (has(/اكبر (?:ملاكم|ملاكمين|ملاكمه|بطل)(?: \S+)? سنا|الاكبر سنا|اكبرهم سنا|اكبر سنا/)) f.sort = "age";
   if (has(/ساوثباو|اعسر|يسار/)) f.stance ??= "Southpaw";
-  if (has(/ارثوذكس|ستاندرد|يمني/)) f.stance ??= "Orthodox"; // the question is folded (ى is ي) before it is read
+  if (has(/ارثوذكس|ستاندرد|يمني|يمين(?:ي|يه|يون|يين)/)) f.stance ??= "Orthodox"; // the question is folded (ى is ي) before it is read
   if (has(/نساء|سيدات|اناث|ملاكمات/)) f.sex ??= "female"; else if (has(/رجال|ذكور/)) f.sex ??= "male";
   if (has(/لم يهزم|لم يخسر|بدون هزيمه|بدون خساره|دون خساره|غير مهزوم|ارقام مثاليه/)) f.undefeated = true;
   if (has(/معتزل/)) f.active = false; else if (has(/نشط|حاليا/)) f.active ??= true;
@@ -156,7 +172,7 @@ function arabicHints(q: string, f: Filters, countries: string[], today?: string)
   if (new RegExp(`(?<![${AR}])(?:ابطال|بطل|بطله)(?:ا|ان|ين)?\\s+سابق\\S*|(?<![${AR}])سابق\\S*\\s+(?:ابطال|بطل)`).test(s)) f.champion = "former";
   else if (new RegExp(`كانوا ابطال|كان بطلا|كانت بطله|سبق\\S*\\s+(?:\\S+\\s+){0,3}(?:بطل|ابطال|حزام|احزمه|لقب)`).test(s) || (has(/معتزل/) && new RegExp(`(?<![${AR}])(?:ابطال|بطل)(?![${AR}])`).test(s))) f.champion = "ever";
   else if (new RegExp(`(?<![${AR}])(?:ابطال|بطل)(?![${AR}])`).test(s)) f.champion = "current";
-  if (has(/ضربات قاضيه|قاتل|لكمه قويه|قوه ضرب/)) f.archetype ??= "Knockout Artist"; // (a count of them was taken out above)
+  if (has(/ضربات قاضيه|(?:ضربه|لكمه|لكمات) قاتل|لكمه قويه|قوه ضرب/)) f.archetype ??= "Knockout Artist"; // (a count of them was taken out above)
   if (has(/تقني|فني/)) f.archetype ??= "Technician";
   if (has(/هجوم مضاد/)) f.archetype ??= "Counter-Puncher";
   if (has(/شاب|صاعد|واعد/)) f.maxAge ??= 26;
@@ -206,7 +222,7 @@ export function heuristicParse(q: string, countries: string[], today?: string): 
   if (/\b(?:best|top|highest rated|greatest)\b/.test(s)) f.sort = "rating"; // whole words: "stopped" has a "top" in it
   if (/most (?:ko|knockout)/.test(s)) f.sort = "kos";
   if (/most wins/.test(s)) f.sort = "wins";
-  if (/most (?:fights|bouts)|most experienced|most active/.test(s)) f.sort = "bouts";
+  if (/most (?:fights|bouts)|fought the most|most experienced|most active/.test(s)) f.sort = "bouts";
   if (/longest reach|biggest reach|longest arms|reach advantage/.test(s)) f.sort = "reach";
   // a superlative of a measure is the order to sort in, after "best" and "top" have had their say
   if (/\btallest\b/.test(s)) f.sort = "height";
