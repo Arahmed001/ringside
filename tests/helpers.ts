@@ -47,7 +47,7 @@ export function miniFeed(): FeedData {
     officials: [{ boutExternalId: "E1-1", role: "referee", personExternalId: "R1" }, ...["J1", "J2", "J3"].map((j, i) => ({ boutExternalId: "E1-1", role: "judge" as const, personExternalId: j, seat: i + 1 }))],
     scorecards: [["J1", 116, 112], ["J2", 117, 111], ["J3", 115, 113]].map(([j, r, b], i) => ({ boutExternalId: "E1-1", judgeExternalId: j as string, seat: i + 1, red: r as number, blue: b as number })),
     corners: [{ boutExternalId: "E1-1", boxerExternalId: "A", role: "head_trainer", personExternalId: "T1" }],
-    financials: [], purses: [], broadcasts: [], earnings: [],
+    financials: [], purses: [], broadcasts: [], earnings: [], officialRankings: [],
     punches: [{ boutExternalId: "E1-1", boxerExternalId: "A", round: 0, thrown: 500, landed: 150, powerThrown: 200, powerLanded: 70 }],
   };
 }

@@ -1,5 +1,5 @@
 import { previewSelection, rankByRecency, selectionSizes, type SelectionPreview } from "../vendor-selection";
-import type { DataProvider, ProviderBoxer, ProviderBout, ProviderEvent } from "./index";
+import type { DataProvider, ProviderBoxer, ProviderBout, ProviderEvent, ProviderOfficialRanking, RankingBody } from "./index";
 import fs from "node:fs";
 import path from "node:path";
 import type { Method, Stance } from "../types";
@@ -42,14 +42,56 @@ export interface ApiFight {
   event?: ApiEvent | null; division?: { name?: string | null; id?: string | null } | null; titles?: { name?: string | null; id?: string | null }[] | null;
 }
 
+/** One page of `/v2/rankings/`: one division, one entry per sanctioning body (see the docs' Rankings page). */
+export interface ApiRanking {
+  organization?: { id?: string | null; name?: string | null; slug?: string | null } | null;
+  division?: { id?: string | null; name?: string | null } | null;
+  gender?: string | null; updated_at?: string | null;
+  champions?: { fighter_id?: string | null; fighter_name?: string | null; title_type?: string | null; is_vacant?: boolean | null }[] | null;
+  rankings?: { rank?: number | null; fighter_id?: string | null; fighter_name?: string | null; is_vacant?: boolean | null }[] | null;
+}
+
+/** Which of the four bodies a supplier's organisation is, by name or slug; `null` for anything else (a list we do not know is not shown). */
+export function rankingBody(org: ApiRanking["organization"]): RankingBody | null {
+  const t = `${org?.name ?? ""} ${org?.slug ?? ""}`.toLowerCase();
+  if (/\bibf\b|international boxing federation/.test(t)) return "IBF";
+  if (/\bwba\b|world boxing association/.test(t)) return "WBA";
+  if (/\bwbc\b|world boxing council/.test(t)) return "WBC";
+  if (/\bwbo\b|world boxing organi[sz]ation/.test(t)) return "WBO";
+  return null;
+}
+
+/**
+ * One page of rankings to our shape. A list is kept only for a body and a division we recognise, men's only (the supplier has no women's lists); a belt or place
+ * with no holder is kept as vacant. Ranks that are not whole positive numbers are dropped, and a contender who appears twice keeps the better place.
+ */
+export function mapRanking(raw: ApiRanking, notes: Notes): ProviderOfficialRanking | null {
+  const body = rankingBody(raw.organization);
+  let division: string | null = null;
+  try { division = raw.division?.name ? normalizeDivision(raw.division.name) : null; } catch { division = null; }
+  if (!body || !division || (raw.gender && raw.gender.toLowerCase() !== "male")) { notes.rankingsSkipped++; return null; }
+  const id = (x?: string | null) => (x ? fighterId(x) : null);
+  const kind = (t?: string | null): "full" | "regular" | "interim" | null => (t === "full" || t === "regular" || t === "interim" ? t : null);
+  const champions = (raw.champions ?? []).map((c) => ({
+    boxerExternalId: c.is_vacant ? null : id(c.fighter_id), name: c.is_vacant ? null : c.fighter_name ?? null, titleType: kind(c.title_type), vacant: !!c.is_vacant || !c.fighter_id,
+  }));
+  const seen = new Set<string>();
+  const contenders = (raw.rankings ?? [])
+    .filter((c) => Number.isInteger(c.rank) && (c.rank as number) > 0)
+    .sort((a, b) => (a.rank as number) - (b.rank as number))
+    .map((c) => ({ rank: c.rank as number, boxerExternalId: c.is_vacant ? null : id(c.fighter_id), name: c.is_vacant ? null : c.fighter_name ?? null, vacant: !!c.is_vacant || !c.fighter_id }))
+    .filter((c) => { if (!c.boxerExternalId) return true; if (seen.has(c.boxerExternalId)) return false; seen.add(c.boxerExternalId); return true; });
+  return { body, division, sex: "male", updatedAt: raw.updated_at ?? null, champions, contenders };
+}
+
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
   | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection"
-  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "divisionFromFight" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
+  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
+  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, windowTooBig: 0,
 });
 
@@ -521,8 +563,29 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     return { boxers: finishBoxers(rows, keep, eventDates, notes), events: [...events.values()], bouts: keep };
   }
   const once = () => (cache ??= load());
+  /** The official lists: 17 requests (one page per division, the pages being the same four bodies each), cached like every other page (so a stopped load resumes, and a reload asks for nothing; the daily `--update` refreshes everything), and never fatal: a plan without them just has none. */
+  let rankingsCache: Promise<ProviderOfficialRanking[]> | undefined; // asked for once per run, like the fighters and fights: the feed is read for the check and again for the load
+  async function loadRankings(): Promise<ProviderOfficialRanking[]> {
+    const out: ProviderOfficialRanking[] = [];
+    try {
+      const first = await get<ApiRanking[]>("/v2/rankings/", { page_num: 1 });
+      const pages = Math.min(first.pagination?.total_pages ?? 1, 30);
+      const take = (rows: ApiRanking[] | undefined) => { for (const r of rows ?? []) { const m = mapRanking(r, notes); if (m) out.push(m); } };
+      take(first.data as ApiRanking[]);
+      for (let page = 2; page <= pages; page++) take((await get<ApiRanking[]>("/v2/rankings/", { page_num: page })).data as ApiRanking[]);
+      log(`official rankings: ${out.length} lists over ${pages} pages`);
+    } catch (e) {
+      // a plan that does not include rankings (403/404) has none: say so and carry on; anything else (a limit, a quota, a network failure) is the run's problem as everywhere else
+      if (!(e instanceof HttpError) || ![400, 403, 404].includes(e.status)) throw e;
+      notes.rankingsUnavailable++;
+      log(`rankings refused (${e.message}); the official lists are left as they were`);
+      return [];
+    }
+    return out;
+  }
   return {
     name: "boxing-data-api",
+    fetchOfficialRankings: () => (rankingsCache ??= loadRankings()),
     fetchBoxers: async () => (await once()).boxers, fetchEvents: async () => (await once()).events, fetchBouts: async () => (await once()).bouts,
     notes: () => ({ ...notes }), requests: () => used, cacheHits: () => hits, bytes: () => downloaded, vendorRecords: () => new Map(careers),
     async plan() {

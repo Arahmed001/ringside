@@ -71,6 +71,7 @@ before(async () => {
       return send(200, env(fights().filter((f) => (!from || f.event.date.slice(0, 10) >= from) && (!to || f.event.date.slice(0, 10) <= to))));
     }
     if (p === "/v2/fights/schedule") return send(200, env(upcoming()));
+    if (p === "/v2/rankings/") return send(200, env([])); // the official lists: this little league has none (the adapter's own tests cover them), but asking costs a request like any other
     const m = p.match(/^\/v2\/fighters\/(.+)$/);
     if (m && state.failing.has(m[1])) return send(500, { message: "upstream hiccup" });
     if (m && FIGHTERS[m[1]]) return send(200, env({ ...FIGHTERS[m[1]], stats: careerOf(m[1]) }));
@@ -153,13 +154,13 @@ test("--check fetches into the cache and reports the validator, and never opens 
   const m = mark();
   const r = await run(["--check", "--cache-dir", cache], live);
   assert.equal(r.code, 0, r.out);
-  assert.match(r.out, /fetched: 6 fighters, 4 events, 4 bouts; 8 request\(s\) made, 0 answered from the cache, \d+\.\d MB downloaded/); // the list, the schedule (the list had no coming fight) and six fighters
+  assert.match(r.out, /fetched: 6 fighters, 4 events, 4 bouts; 9 request\(s\) made, 0 answered from the cache, \d+\.\d MB downloaded/); // the list, the schedule (the list had no coming fight) and six fighters
   assert.match(r.out, /validator: 0 error\(s\)/); assert.match(r.out, /--check: the database was not touched/);
   assert.match(r.out, /records: 6 of 6 fighters \(100\.0%\) have loaded fights that add up exactly to the vendor's career record/);
   assert.doesNotMatch(r.out, /a load would be refused/);
   assert.ok(!fs.existsSync(dbFile), "no database file");
-  assert.equal(fs.readdirSync(cache).length, 8, "every answer is kept");
-  assert.equal(since(m).length, 8);
+  assert.equal(fs.readdirSync(cache).length, 9, "every answer is kept (the list, the schedule, six fighters and the official lists)");
+  assert.equal(since(m).length, 9);
 });
 
 test("the load itself: it needs no new requests (everything was cached), writes the league with ratings, and leaves a late result as 'no result yet'", async () => {
@@ -251,7 +252,7 @@ test("--update is the daily job: it sees today's result and fresh career records
   const r = await run(["--update", "--cache-dir", cache], live);
   assert.equal(r.code, 0, r.out);
   assert.match(r.out, /updating from 2026-09-18/, "the latest card in the database (2026-10-02) less 14 days");
-  assert.deepEqual(since(m), ["/v2/fights/", "/v2/fights/schedule", "/v2/fighters/f5", "/v2/fighters/f6", "/v2/fighters/f3", "/v2/fighters/f1"], "the list, the coming weeks, and every fighter in the window fetched fresh, the most recently active first (the coming fight's two, then the latest result's): a cached record predates the result");
+  assert.deepEqual(since(m), ["/v2/fights/", "/v2/fights/schedule", "/v2/fighters/f5", "/v2/fighters/f6", "/v2/fighters/f3", "/v2/fighters/f1", "/v2/rankings/"], "the list, the coming weeks, every fighter in the window fetched fresh, the most recently active first (the coming fight's two, then the latest result's), then the official lists: a cached record predates the result and a cached list the body's latest change");
   assert.match(r.out, /after the update:\nrecords: 4 of 4 fighters \(100\.0%\)/, `the careers as the database now has them, checked against the vendor's totals: ${r.out.slice(r.out.indexOf("after the update"))}`);
   const db = new DatabaseSync(dbFile, { readOnly: true });
   assert.equal(count(db, "SELECT COUNT(*) c FROM bouts WHERE external_id = 'bda-b-g3' AND method = 'UD' AND winner_id = (SELECT id FROM boxers WHERE external_id = 'bda-f-f3')"), 1, "the late result is in");
@@ -260,7 +261,7 @@ test("--update is the daily job: it sees today's result and fresh career records
   const m2 = mark();
   const again = await run(["--update", "--cache-dir", cache], live);
   assert.equal(again.code, 0, again.out);
-  assert.equal(since(m2).length, 6, "a second update asks again for everything in the window: yesterday's cached answers would hide today's results");
+  assert.equal(since(m2).length, 7, "a second update asks again for everything in the window, and for the official lists: yesterday's cached answers would hide today's results");
 });
 
 test("--update's audit tells a total that trails yesterday's result (lagging) from a contradiction about an old fight (still a conflict); neither changes the data or the exit code", async () => {

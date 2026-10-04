@@ -19,7 +19,7 @@ export interface Sanitized { feed: FeedData; issues: Issue[]; dropped: Record<st
 const PERSON_ROLES = new Set(["head_trainer", "assistant_trainer", "strength_coach", "cutman", "manager"]);
 const ORG_ROLES = new Set(["gym", "promoter"]);
 
-export function sanitizeFeed(input: FeedData, opts: { today?: string } = {}): Sanitized {
+export function sanitizeFeed(input: Omit<FeedData, "officialRankings"> & Partial<Pick<FeedData, "officialRankings">>, opts: { today?: string } = {}): Sanitized {
   const today = opts.today ?? new Date().toISOString().slice(0, 10);
   const issues: Issue[] = [];
   const dropped: Record<string, number> = {};
@@ -207,7 +207,7 @@ export function sanitizeFeed(input: FeedData, opts: { today?: string } = {}): Sa
   if (orphanP) add("info", "orphan_people", "person", "*", `${orphanP} people are not linked to any fighter, bout or card`);
   if (orphanO) add("info", "orphan_orgs", "org", "*", `${orphanO} organisations are not linked to anything`);
 
-  return { feed: { boxers, events, bouts, people, orgs, stints, weighIns, officials, scorecards, corners, punches, financials, purses, broadcasts, earnings }, issues, dropped };
+  return { feed: { boxers, events, bouts, people, orgs, stints, weighIns, officials, scorecards, corners, punches, financials, purses, broadcasts, earnings, officialRankings: input.officialRankings ?? [] }, issues, dropped };
 }
 
 export interface IssueGroup { severity: Severity; code: string; count: number; examples: Issue[] }
