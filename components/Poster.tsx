@@ -14,11 +14,11 @@ function Fighter({ boxer, x }: { boxer: BoxerFull; x: number }) {
 }
 
 /** Generated promo art for the main event. Replaced by `event.posterUrl` when a licensed feed supplies one. */
-export async function Poster({ event, main, red, blue, className = "" }: { event: EventRow; main: BoutRow; red: BoxerFull; blue: BoxerFull; className?: string }) {
+export async function Poster({ event, main, red, blue, className = "", priority = false }: { event: EventRow; main: BoutRow; red: BoxerFull; blue: BoxerFull; className?: string; /** the poster the page is waiting to paint (the home page's next fight): fetched first; every other poster loads lazily */ priority?: boolean }) {
   const t = await getT();
   if (event.posterUrl) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={event.posterUrl} alt={t.name(event.name)} className={`aspect-[5/7] w-full rounded-2xl object-cover ${className}`} />;
+    return <img src={event.posterUrl} alt={t.name(event.name)} {...(priority ? { loading: "eager", fetchPriority: "high" } as const : { loading: "lazy" } as const)} decoding="async" className={`aspect-[5/7] w-full rounded-2xl object-cover ${className}`} />;
   }
   const h = hash(event.name + event.date);
   const [c0, c1, accent] = pickBy(h, 1, POSTER_HUES);
