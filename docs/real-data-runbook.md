@@ -104,6 +104,12 @@ Then:
 - Neither flag is for `--update`; the daily update fetches the fighters of the recent fights, all of them. Do the staged loads first, finish with a run with no `--fighters` (everything), and only then switch to the daily update.
 
 
+### The sanctioning bodies' official lists (17 requests)
+Besides the fights and fighters, every fetch (`--check`, the load, `--update`) asks the supplier for the **official IBF, WBA, WBC and WBO lists**: `GET /v2/rankings/`, one page per division (17 pages, four bodies each). That is **17 requests**, asked once per run and cached like every other page (so the load after a `--check` asks for nothing, and `--update` refreshes them). The lists are men's only and current only, and are stored whole in the `official_rankings` table, replacing the previous snapshot; they appear on each division's ranking page as the WBA / WBC / IBF / WBO tabs and as a badge ("#3 WBC", "WBC champion") on a fighter's page. They are the bodies' own standings, **not Ringside's ranking**, and a fighter we do not hold is shown by name only.
+- A plan without the rankings endpoint (403/404) just has none: the run says so (`rankingsUnavailable` in the approximated-or-skipped list), the lists already stored stay as they were, and nothing fails.
+- The supplier's docs say the lists are "sourced from BoxingScene". **Before the site is public, get the supplier's written answer on storing and showing them and on the credit** (`docs/boxing-data-api-rankings-enquiry.md`); the page credits "Boxing Data API from BoxingScene" meanwhile.
+- A list the adapter cannot place (a body or a division it does not recognise) is skipped and counted (`rankingsSkipped`); read that count after the first real run: the real response is the test of the mapping, which was written from the docs.
+
 ## 3. Load: no flags
 
 ```bash

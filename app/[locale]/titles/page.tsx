@@ -44,11 +44,15 @@ export default async function Titles({ searchParams }: { searchParams: Promise<{
         <Stat label={t("Multi-belt champions")} value={multi.length} sub={t("hold two or more live belts")} />
       </section>
 
+      <nav aria-label={t("Jump to a division")} className="-mt-6 flex flex-wrap gap-1.5">
+        {DIVISIONS.filter((d) => mine.some((b) => b.division === d.name)).map((d) => <a key={d.name} href={`#div-${slugifyDivision(d.name)}`} className="chip hover:!text-ink">{divisionLabel(d.name, sex, t)}</a>)}
+      </nav>
+
       {DIVISIONS.map((d) => {
         const list = mine.filter((b) => b.division === d.name);
         if (!list.length) return null;
         return (
-          <section key={d.name}>
+          <section key={d.name} id={`div-${slugifyDivision(d.name)}`} className="scroll-mt-20">
             <SectionTitle eyebrow={`${list.length} ${list.length === 1 ? t("belt") : t("belts")}`} title={divisionLabel(d.name, sex, t)} href={`/rankings/${slugifyDivision(d.name)}${q}`} cta={t("Rankings")} />
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {list.map((b) => {
@@ -56,7 +60,7 @@ export default async function Titles({ searchParams }: { searchParams: Promise<{
                 return (
                   <Link key={b.slug} href={`/titles/${b.slug}`} className="card card-hover min-w-0 p-4">
                     <div className="mb-2 flex items-center justify-between gap-2">
-                      <div className="truncate text-xs uppercase tracking-widest text-gold">{beltLabel(b, t)}</div>
+                      <div className="min-w-0 text-xs uppercase leading-snug tracking-widest text-gold">{beltLabel(b, t)}</div>
                       {b.stale && <span className="chip !px-2 !py-0 text-xs">{t("dormant")}</span>}
                     </div>
                     {champ && b.current ? (

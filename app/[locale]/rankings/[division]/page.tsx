@@ -11,6 +11,9 @@ import { Headshot } from "@/components/Portrait";
 import { Delta, ArchBadge, Pager } from "@/components/ui";
 import { countryName, flag, fmtDate } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
+import { OfficialListView } from "@/components/OfficialList";
+import { officialKey } from "@/lib/official";
+import { RANKING_BODIES } from "@/lib/providers";
 import { metaFor } from "@/lib/seo-server";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; division: string }> }) => metaFor(params, async (p, t) => {
@@ -29,7 +32,7 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string;
 /** Fighters per page of a division's ranking. */
 const RANK_PAGE = 25;
 
-export default async function DivisionRankings({ params, searchParams }: { params: Promise<{ locale: string; division: string }>; searchParams: Promise<{ sex?: string; q?: string; page?: string }> }) {
+export default async function DivisionRankings({ params, searchParams }: { params: Promise<{ locale: string; division: string }>; searchParams: Promise<{ sex?: string; q?: string; page?: string; list?: string }> }) {
   const t = await getT();
   const { division } = await params;
   const sp = await searchParams;
@@ -39,6 +42,9 @@ export default async function DivisionRankings({ params, searchParams }: { param
   const d = divisionFromSlug(division);
   if (!d) notFound();
   const w = await getWorld();
+  // the sanctioning bodies' official lists for this division (men's only: the supplier has no women's lists), chosen by ?list=wbc; anything else is our own ranking
+  const lists = sex === "male" ? w.official.byDivision.get(officialKey("male", d.name)) ?? [] : [];
+  const official = lists.find((l) => l.body.toLowerCase() === (sp.list ?? "").toLowerCase());
   const names = await getNames(t.locale);
   // every ranked fighter is reachable: a name filter and pages of 25, each fighter keeping the place held in the whole division
   const pg = pageRows(rankedBoxers(w, d.name, sex), (b) => b.name, { q: typed, page: sp.page, names, size: RANK_PAGE });
@@ -55,8 +61,15 @@ export default async function DivisionRankings({ params, searchParams }: { param
       <div className="eyebrow mb-2 mt-8">{limitLabel(d, t)}</div>
       <h1 className="font-display text-6xl font-extrabold uppercase leading-none">{divisionLabel(d.name, sex, t)}</h1>
       <div className="mt-4 flex gap-2"><Link href={`/rankings/${slugifyDivision(d.name)}`} className={`chip ${sex === "male" ? "!border-gold/50 !text-gold" : ""}`}>{t("Men")}</Link><Link href={`/rankings/${slugifyDivision(d.name)}?sex=female`} className={`chip ${sex === "female" ? "!border-gold/50 !text-gold" : ""}`}>{t("Women")}</Link></div>
+      {lists.length > 0 && (
+        <nav aria-label={t("Which ranking")} className="mt-3 flex flex-wrap items-center gap-2">
+          <Link href={`/rankings/${slugifyDivision(d.name)}`} aria-current={!official ? "page" : undefined} className={`chip ${!official ? "!border-gold/50 !text-gold" : ""}`}>{t("Ringside rating")}</Link>
+          {RANKING_BODIES.map((b) => lists.some((l) => l.body === b) ? <Link key={b} href={`/rankings/${slugifyDivision(d.name)}?list=${b.toLowerCase()}`} aria-current={official?.body === b ? "page" : undefined} className={`chip ${official?.body === b ? "!border-gold/50 !text-gold" : ""}`}>{b}</Link> : null)}
+        </nav>
+      )}
 
-      {champ && (
+      {official && <OfficialListView list={official} w={w} />}
+      {!official && champ && (
         <Link href={`/boxers/${champ.boxer.slug}`} className="card card-hover mt-6 flex flex-wrap items-center gap-6 p-5">
           <Headshot boxer={champ.boxer} size={110} />
           <div>
@@ -68,6 +81,7 @@ export default async function DivisionRankings({ params, searchParams }: { param
         </Link>
       )}
 
+      {!official && <>
       <div className="mt-6" />
       {(pg.of > RANK_PAGE || typed) && <ListFinder path={`/rankings/${slugifyDivision(d.name)}`} hidden={sex === "female" ? { sex } : {}} q={typed} label={t("Find a fighter in this division")} total={pg.total} of={pg.of} close={pg.close} />}
       <div className="card overflow-x-auto">
@@ -99,6 +113,7 @@ export default async function DivisionRankings({ params, searchParams }: { param
         {!pg.of && <div className="p-8 text-center text-muted">{t("No qualifying fighters in this division yet.")}</div>}
       </div>
       <Pager page={pg.page} pages={pg.pages} href={href} />
+      </>}
     </div>
   );
 }
