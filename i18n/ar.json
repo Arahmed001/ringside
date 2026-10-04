@@ -648,6 +648,7 @@
  "Height / reach": "الطول / امتداد الذراعين",
  "Height ≤ {n}cm": "الطول: {n} سم فأقل",
  "Height ≥ {n}cm": "الطول: {n} سم فأكثر",
+ "Held in part: an opponent missing here may be a fight Ringside does not hold.": "المسيرة محفوظة جزئيًا: قد يكون الخصم الغائب هنا نزالًا لا يملكه رينغسايد.",
  "Higher-rated fighter won {p} · a coin flip is 50%": "فاز الأعلى تصنيفًا في {p} · ورمي العملة 50%",
  "Highest earners": "أعلى الدخول",
  "Highest gates": "أعلى إيرادات البوابة",
@@ -2498,6 +2499,14 @@
   "few": "{n} اختيارات مصحَّحة أخرى ويُدرج اسمك في الترتيب",
   "many": "{n} اختيارًا مصحَّحًا آخر ويُدرج اسمك في الترتيب",
   "other": "{n} اختيار مصحَّح آخر ويُدرج اسمك في الترتيب"
+ },
+ "{n} more opponents in common": {
+  "zero": "لا خصوم مشتركون آخرون",
+  "one": "خصم مشترك آخر واحد",
+  "two": "خصمان مشتركان آخران",
+  "few": "{n} خصوم مشتركين آخرين",
+  "many": "{n} خصمًا مشتركًا آخر",
+  "other": "{n} خصم مشترك آخر"
  },
  "{n} more players have fewer than {min} graded picks and are not ranked yet.": {
   "zero": "{n} لاعب آخر لديهم أقل من {min} اختيارات مصحَّحة ولم يُرتّبوا بعد.",
