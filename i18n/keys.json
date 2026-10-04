@@ -2193,6 +2193,7 @@
   "key": "Active",
   "files": [
    "app/[locale]/boxers/page.tsx",
+   "app/[locale]/countries/[slug]/opengraph-image.tsx",
    "app/[locale]/countries/[slug]/page.tsx",
    "lib/ai.ts"
   ]
@@ -3162,6 +3163,7 @@
  {
   "key": "Boxing by country",
   "files": [
+   "app/[locale]/countries/[slug]/opengraph-image.tsx",
    "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/countries/page.tsx"
   ]
@@ -3440,6 +3442,7 @@
  {
   "key": "Champions",
   "files": [
+   "app/[locale]/countries/[slug]/opengraph-image.tsx",
    "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/titles/[slug]/page.tsx"
   ]
@@ -3880,6 +3883,12 @@
   "key": "Could not reach the server. Check your connection and try again.",
   "files": [
    "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "Couldn’t copy the link",
+  "files": [
+   "components/ShareButton.tsx"
   ]
  },
  {
@@ -5248,6 +5257,7 @@
   "files": [
    "app/[locale]/analytics/page.tsx",
    "app/[locale]/boxers/page.tsx",
+   "app/[locale]/countries/[slug]/opengraph-image.tsx",
    "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
@@ -6814,6 +6824,12 @@
   "key": "limit {n} lb",
   "files": [
    "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Link copied",
+  "files": [
+   "components/ShareButton.tsx"
   ]
  },
  {
@@ -9939,6 +9955,12 @@
   "key": "SFLY",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Share",
+  "files": [
+   "components/ShareButton.tsx"
   ]
  },
  {

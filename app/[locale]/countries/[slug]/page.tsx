@@ -7,6 +7,7 @@ import { Headshot } from "@/components/Portrait";
 import { BoxerCard, SectionTitle, Stat } from "@/components/ui";
 import { countryName, flag, fmtDate } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
+import { ShareButton } from "@/components/ShareButton";
 import { metaFor } from "@/lib/seo-server";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; slug: string }> }) =>
@@ -32,6 +33,7 @@ export default async function Country({ params }: { params: Promise<{ slug: stri
       <div className="rise">
         <div className="eyebrow mb-2"><Link href="/countries" className="hover:text-ink">{t("Boxing by country")}</Link></div>
         <h1 className="font-display text-6xl font-extrabold uppercase leading-[.95] sm:text-7xl">{flag(v.name)} {name}</h1>
+        <div className="mt-3"><ShareButton title={t("Boxers from {country}", { country: name })} /></div>
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Stat label={t("Fighters")} value={v.fighters.toLocaleString("en-US")} sub={t("who have fought")} />
           <Stat label={t("Active")} value={v.active.toLocaleString("en-US")} sub={t("still fighting")} />
