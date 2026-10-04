@@ -1052,3 +1052,10 @@ Found in the browser at 390 px on the Arabic search: the chip "سلسلة انت
 - A search keeps its own relevance order unless an order is asked for. Ties fall to the higher rating, then the id, so a page never reshuffles on reload.
 - Checked: unit tests with five mutations (drop the win minimum, the whole-career test, the supplier's wins, the never-fought-last rule, the unknown-sort fallback), each of which fails a test; four new smoke routes in both languages (demo league 185/185, partial league 138/138); the form submitted in a browser with scripts off; the page read in English at 1440 px and Arabic at 390 px.
 - Not done: the browser's empty `country=&stance=` pairs stay in the URL after Apply (harmless; the page treats an empty value as none).
+
+## 107. "Boxing, explained" for newcomers (round 53, 2026-10-04)
+`app/[locale]/learn/page.tsx`
+- A page for the person who does not yet know what a split decision or a unified champion is, in the words the site itself uses: how a fight is won (KO, TKO, corner retirement, disqualification, decision, technical decision, no contest), how the judges score (the 10-point must system, then unanimous, split, majority, draw), how to read a record (and what it means when Ringside shows the supplier's career total), the weight classes, belts and champions (four bodies, unified, undisputed, interim, super), and where Ringside's Elo-style ratings come from. Each section links to the page where the thing can be seen. In the navigation (Discover, "Boxing explained"), the sitemap and the smoke run; a table of contents of anchors at the top.
+- Numbers inside the prose (`25-3-1`, `10–10`) go through placeholders so the Arabic page isolates them left to right (the smoke run's backwards-record check caught the first version).
+- Arabic written for all of it, using the site's fixed boxing terms (`i18n/glossary.json`) and the existing division names; not yet read by a native speaker, and a reviewer should read this page first because it is prose, not labels.
+- Checked: smoke on the demo (187/187) and empty (100/100) leagues in both languages; the page read in English at 1440 px.
