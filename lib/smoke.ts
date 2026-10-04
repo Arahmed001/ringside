@@ -19,7 +19,7 @@ import { ORGS_PAGE, PEOPLE_PAGE } from "./people-list";
 import { countryList } from "./countries";
 
 export type Locale = "en" | "ar";
-export interface SmokeRoute { path: string; kind: "page" | "api" | "svg" | "missing"; label: string; /** text the page must show (a search that has to find someone) */ mustShow?: string; /** not requested on the Arabic site: the path carries English the person typed, which the page rightly echoes */ englishOnly?: boolean }
+export interface SmokeRoute { path: string; kind: "page" | "api" | "svg" | "png" | "missing"; label: string; /** text the page must show (a search that has to find someone) */ mustShow?: string; /** not requested on the Arabic site: the path carries English the person typed, which the page rightly echoes */ englishOnly?: boolean }
 
 /** Directories under app/[locale] whose URL has a parameter: every one must have a sampler below, or a new page escapes the check. */
 export const DYNAMIC_PAGES = ["all-time/[list]", "bouts/[id]", "boxers/[slug]", "countries/[slug]", "events/[id]", "fight-of-the-year/[year]", "orgs/[slug]", "people/[slug]", "previews/[id]", "rankings/[division]", "titles/[slug]"] as const;
@@ -149,6 +149,19 @@ export function smokeRoutes(w: World): SmokeRoute[] {
     out.push({ path: `/api/art/portrait/${star.slug}.svg`, kind: "svg", label: "portrait image" });
   }
   if (up) out.push({ path: `/api/preview/${up.id}`, kind: "api", label: "api: preview article" });
+  // share cards: a real PNG for each kind of page that has one, in both languages (the Arabic card loads its own font)
+  const png = (path: string, label: string) => out.push({ path, kind: "png", label: `share card: ${label}` });
+  if (star) png(`/boxers/${star.slug}/opengraph-image`, "fighter");
+  const anyBout = w.bouts.find((b) => !b.upcoming && b.status !== "cancelled");
+  if (anyBout) png(`/bouts/${anyBout.id}/opengraph-image`, "bout");
+  const anyEvent = w.events[0];
+  if (anyEvent) png(`/events/${anyEvent.id}/opengraph-image`, "event");
+  const anyDivision = DIVISIONS.find((d) => rankedBoxers(w, d.name, "male").length > 0) ?? DIVISIONS[0];
+  png(`/rankings/${slugifyDivision(anyDivision.name)}/opengraph-image`, "division ranking");
+  const anyBelt = belts(w)[0];
+  if (anyBelt) png(`/titles/${anyBelt.slug}/opengraph-image`, "belt");
+  const [m1, m2] = boxers.filter((b) => b.bouts >= 5);
+  if (m1 && m2) { png(`/api/og/compare?a=${m1.slug}&b=${m2.slug}&lang=en`, "matchup"); png(`/api/og/compare?a=${m1.slug}&b=${m2.slug}&lang=ar`, "matchup (Arabic)"); }
   out.push({ path: "/this-page-does-not-exist", kind: "missing", label: "unknown page" });
   // one request per path, but a later route's "must show" is not lost when an earlier one (the nav) took the path first
   const seen = new Map<string, SmokeRoute>();
@@ -216,6 +229,10 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
   if (route.kind === "api") {
     if (!/json/.test(contentType)) bad.push(`not JSON (${contentType})`);
     else { try { JSON.parse(body); } catch { bad.push("invalid JSON"); } }
+    return bad;
+  }
+  if (route.kind === "png") { // a share card: a real image, not an error page that happens to be 200
+    if (!/image\/png/.test(contentType)) bad.push(`not a PNG (${contentType})`);
     return bad;
   }
   if (route.kind === "svg") {
