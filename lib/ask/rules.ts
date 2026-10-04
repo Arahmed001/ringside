@@ -263,7 +263,9 @@ const SPAN = /\b(since|after|before|until)\s+(19|20)\d\d\b|\b(19|20)\d0'?s\b|\b(
 /** Places that are not countries: fighters are searched by country, not by region. */
 const REGIONS = /\b(europe|european|europeans|asia|asian|asians|africa|african|africans|latin america|latino|latinos|south america|north america|oceania|scandinavia|scandinavian|middle east|arab|arabs|caribbean|balkans)\b/;
 /** What a fighter search can be narrowed by that the record lists cannot (they take only a sex and a division). */
-const GROUP_KEYS = ["stance", "country", "active", "undefeated", "minAge", "maxAge", "maxWins", "maxKOs", "minLosses", "maxLosses", "minBouts", "maxBouts", "record", "champion", "minReach", "maxReach", "minHeight", "maxHeight"];
+const GROUP_KEYS = ["stance", "country", "active", "undefeated", "minAge", "maxAge", "maxWins", "maxKOs", "minLosses", "maxLosses", "minBouts", "maxBouts", "minStopped", "maxStopped", "minDraws", "maxDraws", "minWinStreak", "minLossStreak", "unbeatenIn", "lastFightAfter", "lastFightBefore", "record", "champion", "minReach", "maxReach", "minHeight", "maxHeight"];
+/** The facts about a fighter's record and form the fighter search can cut by (round 53). */
+const RECORD_KEYS = ["minStopped", "maxStopped", "minDraws", "maxDraws", "minWinStreak", "minLossStreak", "unbeatenIn", "lastFightAfter", "lastFightBefore"];
 /** The lists that are about champions already: "champion" in the question names them, it does not narrow them ("who has the most defences" is not "among champions"). */
 const CHAMPION_LISTS = ["reign-defenses", "defenses", "longest-reign", "title-wins"];
 /** Whether the question narrows a record list to a group the list cannot be cut to. */
@@ -323,7 +325,7 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   // another sport, or a game: "who won the game last night" is not a question for the recent-events list
   if (has(q, OTHER_SPORTS) && !has(q, /box|fight|bout|ملاكم|نزال/)) return [];
   const countries = [...new Set(w.boxers.map((b) => b.country))];
-  const f = heuristicParse(question, countries);
+  const f = heuristicParse(question, countries, w.today);
   const year = q.match(/\b(20\d\d)\b/)?.[1];
   const WORD_NUMBERS: Record<string, number> = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, fifteen: 15, twenty: 20 };
   const limitMatch = q.match(/\b(?:top|first|best)\s+(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|fifteen|twenty)\b/);
@@ -378,6 +380,12 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   if (!fighters.length && numeric && has(q, /\b(fighters?|boxers?) (with|who|that)\b/)) return [filters()];
 
   if (has(q, /fight of the year|(best|greatest) (fight|bout) of|(afdal|افضل|اعظم) نزال في|نزال العام/)) return [{ tool: "fight_of_the_year", args: withLimit(year ? { year: +year } : {}) }];
+  // a question about a fighter's record or form ("who lost their last fight", "never been stopped", "fought in the last 6 months") is a fighter search: the events and fights lists have no such cut
+  // how someone's last fights ended ("lost their last fight by knockout") is not a cut either tool has: no answer, not the events list and not everyone who lost
+  if (!fighters.length && has(q, /(?:خسر|فاز|انتصر|هزم)\S*\s+(?:في |ب)?نزاله[من]\S*\s+(?:الاخير|الاخيره)\s+(?:ب|عن طريق|امام|ضد)/)) return [];
+  if (!fighters.length && has(q, /\b(lost|won|drew)\s+(their|his|her)\s+(last|most recent|previous)\b.*\b(by|via|in)\s+(a\s+)?(knockout|ko|tko|decision|stoppage|round|points|split|unanimous)/)) return [];
+  // (with an events word in it ("upcoming fights of fighters on a streak") no tool has both: no answer, not the list of events with the cut left out)
+  if (!fighters.length && RECORD_KEYS.some((k) => k in f)) return has(q, /\b(upcoming|next|recent|latest|results?|cards?|events?|schedule|calendar)\b|قادم|نتايج|فعاليه|فعاليات|بطاقه|جدول/) ? [] : [filters()];
   if (has(q, /upcoming.*(upset|underdog)|underdogs?\b|upset watch|(could|might|may) (be )?upset|upsets? (are )?(coming|expected)|favou?rites? .*(lose|beaten|upset|vulnerable|shaky|wobbl\w*|at risk|in (danger|trouble))|(look|looks|looking) (shaky|vulnerable)|\bin (danger|trouble)\b|at risk of (losing|being)|مفاج\S*\s+(ال)?(محتمل|متوقع)\S*|(ال)?(محتمل|متوقع)\S*\s+(ال)?مفاج|(could|might|may|going to) (get |be |getting )?(upset|beaten)|(produce|cause|spring|pull off) an? (shock|upset)|could .*\b(shock|upset)\b|(most )?likely to (lose|be beaten|be upset)|shock results?|danger fights?|مفاجاه محتمله|الاقل ترجيحا/)) return [{ tool: "upset_watch", args: withLimit({}) }];
 
   // completed fights of a year or the title fights, by how they ended: "knockouts in 2025", "title fights this year", "fastest finishes of 2024"
