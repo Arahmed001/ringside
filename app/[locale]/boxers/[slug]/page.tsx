@@ -26,6 +26,7 @@ import { ShareButton } from "@/components/ShareButton";
 import { BoutLine, BoxerCard, ResultPill, SectionTitle, Stat } from "@/components/ui";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
+import { numbersOf } from "@/lib/by-the-numbers";
 import { countryName, flag, fmtDate, fmtPartialDate, pct } from "@/lib/format";
 import { msg } from "@/lib/i18n/t";
 import { countsInRecord, isDecision, isStoppage } from "@/lib/methods";
@@ -67,6 +68,9 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const ago = lastDone ? since(w.today, lastDone.date) : null;
   const lastFought = (x: Since) => x.n === 0 && x.unit === "days" ? t("Last fought today") : x.unit === "days" ? t.n(x.n, "Last fought {n} day ago", "Last fought {n} days ago") : x.unit === "months" ? t.n(x.n, "Last fought {n} month ago", "Last fought {n} months ago") : t.n(x.n, "Last fought {n} year ago", "Last fought {n} years ago");
   const highlights = highlightsOf(bouts, b.id, w.boutPre);
+  // counted from every fight, so only for a career held whole (from part of one these would be wrong in a way that reads as right)
+  const numbers = career.source === "loaded" ? numbersOf(bouts, b.id, (id) => w.eventById.get(id)) : null;
+  const duration = (days: number) => (days >= 730 ? t("{n} years", { n: (days / 365.25).toFixed(1) }) : days >= 60 ? t("{n} months", { n: Math.round(days / 30.4) }) : t.n(days, "{n} day", "{n} days"));
   const hl = (id: number) => { const x = w.boutById.get(id); return x ? fmtDate(x.date, { month: "short", year: "numeric" }, t.locale) : ""; };
   const hasHighlights = !!(highlights.bestWin || highlights.biggestUpset || highlights.longestStreak);
   const opponentThen = new Map<number, React.ReactNode>();
@@ -201,6 +205,21 @@ const HONOURS_SHOWN = 8;
           {nextBlock}
         </div>
       </section>
+
+      {numbers && numbers.fights >= 5 && (
+        <section>
+          <SectionTitle eyebrow={t("By the numbers")} title={t("Counted from every fight we hold")} />
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {numbers.rounds !== null && <Stat label={t("Rounds boxed")} value={numbers.rounds} sub={t.n(numbers.fights, "{n} fight", "{n} fights")} />}
+            <Stat label={t("Went the distance")} value={pct(numbers.distance.n / numbers.distance.of)} sub={t("{n} of {of} fights", { n: numbers.distance.n, of: numbers.distance.of })} />
+            {numbers.quick !== null && numbers.quick > 0 && <Stat label={t("Quick wins")} value={numbers.quick} sub={t("Stopped an opponent in three rounds or fewer")} />}
+            {numbers.countries.length > 0 && <Stat label={t("Fought in")} value={t.n(numbers.countries.length, "{n} country", "{n} countries")} sub={numbers.countries.slice(0, 3).map((c) => countryName(c.name, t.locale)).join(", ")} />}
+            {numbers.venue && <Stat label={t("Most-fought venue")} value={t.n(numbers.venue.n, "{n} fight", "{n} fights")} sub={`${t.name(numbers.venue.name)}${numbers.venue.city ? `, ${t.name(numbers.venue.city)}` : ""}`} />}
+            {numbers.busiestYear && <Stat label={t("Busiest year")} value={numbers.busiestYear.year} sub={t.n(numbers.busiestYear.n, "{n} fight", "{n} fights")} />}
+            {numbers.layoff && <Stat label={t("Longest layoff")} value={duration(numbers.layoff.days)} sub={t("{from} to {to}", { from: fmtDate(numbers.layoff.from, { month: "short", year: "numeric" }, t.locale), to: fmtDate(numbers.layoff.to, { month: "short", year: "numeric" }, t.locale) })} />}
+          </div>
+        </section>
+      )}
 
       {hasHighlights && (
         <section>

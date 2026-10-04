@@ -296,6 +296,7 @@
   "key": "{from} to {to}",
   "files": [
    "app/[locale]/accountability/page.tsx",
+   "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
@@ -432,7 +433,8 @@
   "key": "{n} countries",
   "plural": "{n} country",
   "files": [
-   "app/[locale]/analytics/page.tsx"
+   "app/[locale]/analytics/page.tsx",
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -451,6 +453,7 @@
   "key": "{n} days",
   "plural": "{n} day",
   "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/titles/[slug]/page.tsx",
    "lib/records.ts"
   ]
@@ -638,6 +641,7 @@
  {
   "key": "{n} months",
   "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
@@ -679,6 +683,12 @@
   "key": "{n} moves, Elo over six fights",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} of {of} fights",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -844,6 +854,7 @@
  {
   "key": "{n} years",
   "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
@@ -3382,6 +3393,12 @@
   ]
  },
  {
+  "key": "Busiest year",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "By current fighters",
   "files": [
    "app/[locale]/orgs/page.tsx"
@@ -3415,6 +3432,12 @@
   "key": "by the model, across live and longshot fights",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "By the numbers",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -4006,6 +4029,12 @@
   "key": "Couldn’t load your watchlist. Try again in a moment.",
   "files": [
    "components/Watch.tsx"
+  ]
+ },
+ {
+  "key": "Counted from every fight we hold",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -5713,6 +5742,12 @@
   ]
  },
  {
+  "key": "Fought in",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Four organisations, the WBA, WBC, IBF and WBO, each name a world champion in every division, so one division can have four champions at once. A fighter who holds more than one of those belts is a unified champion, and one who holds all four is called undisputed.",
   "files": [
    "app/[locale]/learn/page.tsx"
@@ -7086,6 +7121,12 @@
   ]
  },
  {
+  "key": "Longest layoff",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Longest reign",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
@@ -7580,6 +7621,12 @@
   "key": "Most wins over top opposition",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "Most-fought venue",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -9257,6 +9304,12 @@
   ]
  },
  {
+  "key": "Quick wins",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Quote the words from the page that say it (at least a short sentence).",
   "files": [
    "lib/account-text.ts"
@@ -9854,6 +9907,12 @@
   "key": "rounds 1–3",
   "files": [
    "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Rounds boxed",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -10721,6 +10780,12 @@
   "key": "Stopped ≥ {n} times",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Stopped an opponent in three rounds or fewer",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -12918,6 +12983,12 @@
   "files": [
    "lib/ask/examples.ts",
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Went the distance",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
