@@ -132,6 +132,24 @@ export interface ProviderScorecard {
   blue: number;
 }
 
+/** The four sanctioning bodies whose official lists a feed may carry. */
+export const RANKING_BODIES = ["WBA", "WBC", "IBF", "WBO"] as const;
+export type RankingBody = (typeof RANKING_BODIES)[number];
+
+/**
+ * One body's official list for one division, as published (not our Elo ranking): the champions (a belt each: full, regular or interim, or a vacant one) and the
+ * ranked contenders. A fighter the feed names but we do not hold has no `boxerExternalId` we can link, and keeps the name it was given.
+ */
+export interface ProviderOfficialRanking {
+  body: RankingBody;
+  division: string;
+  sex: "male" | "female";
+  /** when the body last changed its list (the supplier's own date, not when we fetched it) */
+  updatedAt: string | null;
+  champions: { boxerExternalId: string | null; name: string | null; titleType: "full" | "regular" | "interim" | null; vacant: boolean }[];
+  contenders: { rank: number; boxerExternalId: string | null; name: string | null; vacant: boolean }[];
+}
+
 /** Who was in the corner for a specific bout (can differ from the fighter's usual team). */
 export interface ProviderCorner {
   boutExternalId: string;
@@ -235,4 +253,6 @@ export interface DataProvider {
   fetchPurses?(): Promise<ProviderPurse[]>;
   fetchBroadcasts?(): Promise<ProviderBroadcast[]>;
   fetchEarnings?(): Promise<ProviderEarning[]>;
+  /** the sanctioning bodies' official lists, a whole fresh snapshot each time (never a delta) */
+  fetchOfficialRankings?(): Promise<ProviderOfficialRanking[]>;
 }

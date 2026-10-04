@@ -4,6 +4,7 @@ import { applyFittedWeights } from "./model-fit";
 import { snapshotUpcomingSafe } from "./ledger";
 import { currentYear, todayIso } from "./clock";
 import { countsInRecord, isStoppage } from "./methods";
+import { buildOfficial, type OfficialIndex, type OfficialRow } from "./official";
 import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, Honour, TitleReign, Venue, EventFinancials, EventRow, Purse, Method, Official, Org, Person, Picture, Scorecard, Status, TeamStint, WeighIn } from "./types";
 
 /** Punches over a whole bout, one entry per fighter (in the order the rows were stored; match by `boxers`). */
@@ -61,6 +62,8 @@ export interface World {
   /** every picture of those three kinds, for the list of outside hosts the privacy page declares */
   pictureList: Picture[];
   reignsByBoxer: Map<number, TitleReign[]>; // linked reigns only, by start
+  /** the sanctioning bodies' official lists (lib/official.ts), apart from our own rankings */
+  official: OfficialIndex;
   honoursByBoxer: Map<number, Honour[]>; // hall of fame first, then awards, then titles; each by year
   /** Whole-bout punch totals, read from punch_stats the first time something asks (about 1 s at 160k bouts, so not part of the build). */
   punchTotals: () => Map<number, PunchTotals>;
@@ -224,6 +227,8 @@ function buildWorld(db: DatabaseSync, key: string): World {
   for (const r of db.prepare("SELECT * FROM title_reigns WHERE boxer_id IS NOT NULL ORDER BY start_date, org, division").all() as Record<string, unknown>[])
     push(reignsByBoxer, r.boxer_id as number, { boxerId: r.boxer_id as number, org: r.org as string, division: r.division as string, category: r.category as string, status: (r.status as string | null) ?? null, start: (r.start_date as string | null) ?? null, end: (r.end_date as string | null) ?? null, current: r.current === 1, defences: n0(r.defences), endNote: (r.end_note as string | null) ?? null, source: r.source as string });
 
+  const official = buildOfficial(db.prepare("SELECT * FROM official_rankings").all() as unknown as OfficialRow[]);
+
   // pictures of things that are not fighters: only the ones that passed the licence rules, with the credit each carries
   const pictures = { org_logo: new Map<string, Picture>(), belt: new Map<string, Picture>(), venue: new Map<string, Picture>() };
   for (const r of db.prepare("SELECT * FROM entity_media WHERE status = 'matched' AND thumb_url IS NOT NULL").all() as Record<string, unknown>[]) {
@@ -292,7 +297,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
     people, peopleBySlug: new Map([...people.values()].map((p) => [p.slug, p])), roles,
     orgs, orgsBySlug: new Map([...orgs.values()].map((o) => [o.slug, o])),
     stints, stintsByBoxer, stintsByPerson, stintsByOrg, weighInsByBout, weighInsByBoxer, officialsByBout, officialsByPerson, scorecardsByBout, cornersByBout,
-    financialsByEvent, pursesByBout, pursesByBoxer, broadcastsByEvent, earningsByBoxer, honoursByBoxer, reignsByBoxer, venueOf,
+    financialsByEvent, pursesByBout, pursesByBoxer, broadcastsByEvent, earningsByBoxer, honoursByBoxer, reignsByBoxer, official, venueOf,
     beltPicture: (code) => pictures.belt.get(code.toUpperCase()) ?? null, orgLogo: (id) => pictures.org_logo.get(String(id)) ?? null, pictureList: [...pictures.org_logo.values(), ...pictures.belt.values(), ...pictures.venue.values()],
     punchTotals: () => {
       if (punchTotals) return punchTotals;

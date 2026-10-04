@@ -165,6 +165,11 @@ const HONOURS_SHOWN = 8;
             <Link href={`/rankings/${slugifyDivision(b.weightClass)}${b.sex === "female" ? "?sex=female" : ""}`} className="chip transition hover:text-ink">{divisionLabel(b.weightClass, b.sex, t)}</Link>
             {rank && <Link href={`/rankings/${slugifyDivision(b.weightClass)}${b.sex === "female" ? "?sex=female" : ""}`} className="chip !border-gold/50 !text-gold">{t("#{rank} {division}", { rank, division: divisionLabel(b.weightClass, b.sex, t) })}</Link>}
             <span className="chip" style={{ borderColor: ARCH_COLOR[a] + "55", color: ARCH_COLOR[a] }}>{t(a)}</span>
+            {(w.official.byBoxer.get(b.id) ?? []).filter((p) => p.sex === "male").map((p) => (
+              <Link key={`${p.body}${p.division}`} href={`/rankings/${slugifyDivision(p.division)}?list=${p.body.toLowerCase()}`} className="chip !border-gold/50 !text-gold" title={t("The {body} list as relayed by Boxing Data API", { body: p.body })}>
+                {p.place === "champion" ? (p.titleType === "interim" ? t("{body} interim champion", { body: p.body }) : p.titleType === "regular" ? t("{body} regular champion", { body: p.body }) : t("{body} champion", { body: p.body })) : t("#{rank} {body}", { rank: p.place, body: p.body })}
+              </Link>
+            ))}
             {!b.active && <span className="chip">{t("Retired")}</span>}
             <span className="ms-auto flex gap-2"><ShareButton title={t.name(b.name)} /><WatchButton slug={b.slug} /></span>
           </div>

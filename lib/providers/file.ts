@@ -35,5 +35,6 @@ export function fileProvider(path: string): DataProvider {
     fetchPurses: async () => load().purses,
     fetchBroadcasts: async () => load().broadcasts,
     fetchEarnings: async () => load().earnings,
+    fetchOfficialRankings: async () => load().officialRankings,
   };
 }

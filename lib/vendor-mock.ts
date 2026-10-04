@@ -26,6 +26,8 @@ export interface MockOptions {
    */
   hourlyLimit?: number;
   monthlyQuota?: number;
+  /** the rankings endpoint: `"refused"` answers 403 (a plan without it); omit for the real behaviour */
+  rankings?: "refused";
   now?: () => number;
 }
 
@@ -99,6 +101,29 @@ function knockouts(w: MockWorld, id: string) {
   }
   return { ko_wins: koWins, stopped };
 }
+const BODIES = [
+  { id: "o1", name: "International Boxing Federation", slug: "ibf" }, { id: "o2", name: "World Boxing Association", slug: "wba" },
+  { id: "o3", name: "World Boxing Council", slug: "wbc" }, { id: "o4", name: "World Boxing Organization (WBO)", slug: "world-boxing-organization" },
+];
+/** One page of `/v2/rankings/` as the docs show it: a division (heavyweight first), one entry per body, champions apart from the ranked contenders, and the odd gap: a fighter nobody else knows and a vacant place. */
+function apiRankings(w: MockWorld, page: number) {
+  const name = DIVISIONS[page - 1];
+  const here = [...w.fighters.values()].filter((f) => f.division === name).sort((x, y) => (w.careers.get(y.id)?.wins ?? 0) - (w.careers.get(x.id)?.wins ?? 0) || (x.id < y.id ? -1 : 1));
+  return BODIES.map((org, k) => {
+    const pool = here.slice(k % Math.max(1, here.length)).concat(here.slice(0, k % Math.max(1, here.length)));
+    const champ = pool[0];
+    const rest = pool.slice(1, 9);
+    const rankings: { rank: number; fighter_id: string | null; fighter_name: string | null; is_vacant: boolean }[] = rest.map((f, i) => ({ rank: i + 1, fighter_id: f.id, fighter_name: f.name, is_vacant: false }));
+    rankings.push({ rank: rest.length + 1, fighter_id: `unseen-${org.slug}-${page}`, fighter_name: `Unlisted Fighter ${page}`, is_vacant: false });
+    rankings.push({ rank: rest.length + 2, fighter_id: null, fighter_name: null, is_vacant: true });
+    return {
+      id: `r${page}-${k}`, organization: org, division: { id: `div${page}`, name, weight_lb: null, weight_kg: null }, gender: "male",
+      title_ids: { full: `t${page}-${k}`, regular: null, interim: null }, updated_at: `${w.today}T00:00:00.000000`,
+      champions: champ ? [{ fighter_id: champ.id, fighter_name: champ.name, title_type: "full", is_vacant: false }] : [{ fighter_id: null, fighter_name: null, title_type: "full", is_vacant: true }],
+      rankings,
+    };
+  });
+}
 function apiFighter(w: MockWorld, id: string) {
   const p = w.fighters.get(id)!, c = w.careers.get(id) ?? { wins: 0, losses: 0, draws: 0 };
   return {
@@ -146,6 +171,12 @@ export function mockVendor(w: MockWorld, o: MockOptions = {}) {
       const slice = rows.slice((page - 1) * size, page * size);
       const tp = o.totalPages === "capped" ? Math.min(truePages, reachable) : truePages;
       return { status: 200, body: env(slice.map((f) => apiFight(w, f)), { pagination: { page, total_pages: tp, next_page: page < tp ? page + 1 : null } }) };
+    }
+    if (p === "/v2/rankings/") {
+      if (o.rankings === "refused") return { status: 403, body: { message: "this plan does not include rankings" } };
+      const page = Number(q.get("page_num") ?? 1);
+      if (!(page >= 1 && page <= DIVISIONS.length)) return { status: 200, body: env([], { pagination: { page, items: 0, total_pages: DIVISIONS.length, total_items: DIVISIONS.length * 4 } }) };
+      return { status: 200, body: env(apiRankings(w, page), { pagination: { page, items: 4, total_pages: DIVISIONS.length, total_items: DIVISIONS.length * 4 } }) };
     }
     if (p === "/v2/fights/schedule") return { status: 200, body: env(w.fights.filter((f) => f.status === "NOT_STARTED").map((f) => apiFight(w, f))) };
     const m = p.match(/^\/v2\/fighters\/(.+)$/);

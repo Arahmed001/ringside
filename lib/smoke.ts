@@ -54,6 +54,11 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   // a decision whose scores the supplier gave without the judges: the bout page shows them as given, and says what they do not say
   const scoredBout = w.bouts.find((b) => b.vendorScores?.length && !(w.scorecardsByBout.get(b.id)?.length));
   if (scoredBout) page(`/bouts/${scoredBout.id}`, "bout with the supplier's scores (no judges named)");
+  // the sanctioning bodies' official lists, when the league has them: a division's list for a body, and a fighter who is on one (badge on the fighter page)
+  const firstList = [...w.official.byDivision.values()].flat()[0];
+  if (firstList) page(`/rankings/${slugifyDivision(firstList.division)}?list=${firstList.body.toLowerCase()}`, `official ${firstList.body} list`);
+  const listed = boxers.find((b) => w.official.byBoxer.has(b.id));
+  if (listed) page(`/boxers/${listed.slug}`, "fighter on an official list (badge)");
   if (star && woman) page(`/compare?a=${star.slug}&b=${boxers[1].slug}`, "matchup");
   page(`/boxers?q=${q("southpaw welterweights with 10+ KOs")}`, "plain-English search");
   page("/boxers?sex=female", "women's fighter list");

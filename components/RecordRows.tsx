@@ -30,7 +30,7 @@ export async function RecordRows({ w, id, rows, compact = false }: { w: World; i
                 {!compact && <Headshot boxer={b} size={40} />}
                 <div className="min-w-0">
                   <Link href={`/boxers/${b.slug}`} className="block truncate font-semibold hover:text-gold">{t.name(b.name)}</Link>
-                  <div className="truncate text-xs text-muted">
+                  <div className="text-xs text-muted">
                     {r.belt && r.reign ? <><Link href={`/titles/${r.belt.slug}`} className="hover:text-ink">{beltLabel(r.belt, t)}</Link> · {divisionLabel(r.belt.division, r.belt.sex, t)}</>
                       : <>{flag(b.country)} {countryName(b.country, t.locale)} · {divisionLabel(b.weightClass, b.sex, t)}{!b.active && ` · ${t("retired")}`}</>}
                   </div>

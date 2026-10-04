@@ -27,6 +27,14 @@ CREATE TABLE IF NOT EXISTS entity_media (
   kind TEXT NOT NULL, ref TEXT NOT NULL, status TEXT, reason TEXT, wikidata_id TEXT, file_title TEXT,
   thumb_url TEXT, page_url TEXT, license TEXT, license_url TEXT, credit TEXT, checked_at TEXT, PRIMARY KEY (kind, ref)
 );
+-- The sanctioning bodies' official lists, one whole snapshot at a time (replaced on every ingest that carries one). kind: 'champion' or 'contender'. boxer_id is null for a
+-- fighter we do not hold (the name the supplier gave is kept); a vacant belt or place has neither. updated_at is the body's own date, as the supplier reports it.
+CREATE TABLE IF NOT EXISTS official_rankings (
+  body TEXT NOT NULL, division TEXT NOT NULL, sex TEXT NOT NULL, kind TEXT NOT NULL, rank INTEGER, boxer_id INTEGER, name TEXT, title_type TEXT, vacant INTEGER NOT NULL DEFAULT 0,
+  updated_at TEXT, position INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS idx_official_rankings_division ON official_rankings (division, sex, body);
+CREATE INDEX IF NOT EXISTS idx_official_rankings_boxer ON official_rankings (boxer_id);
 CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY, external_id TEXT UNIQUE, name TEXT, date TEXT, venue TEXT, city TEXT, country TEXT, poster_url TEXT,
   promoter_org_id INTEGER, broadcaster TEXT, attendance INTEGER, status TEXT

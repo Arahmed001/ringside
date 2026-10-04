@@ -38,8 +38,12 @@ export default async function AllTime({ searchParams }: { searchParams: Promise<
         </p>
       </div>
 
+      <nav aria-label={t("Jump to a section")} className="-mt-6 flex flex-wrap gap-1.5">
+        {GROUPS.map((g) => <a key={g} href={`#group-${g}`} className="chip hover:!text-ink">{t(GROUP_TITLE[g])}</a>)}
+      </nav>
+
       {GROUPS.map((g) => (
-        <section key={g}>
+        <section key={g} id={`group-${g}`} className="scroll-mt-20">
           <SectionTitle eyebrow={t("Top 5 of each")} title={t(GROUP_TITLE[g])} />
           <div className="grid gap-4 lg:grid-cols-2">
             {LISTS.filter((l) => l.group === g).map((l) => {

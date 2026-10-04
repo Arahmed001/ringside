@@ -138,7 +138,7 @@ test("ingestMoney adds figures to an existing database, replaces per source, and
     financials: [{ eventExternalId: row.event, gateUsd: 1_234_000, basis: "disclosed" as const, source: "Research Test", sourceUrl: "https://example.com/gate" }],
     purses: [{ boutExternalId: row.bout, boxerExternalId: row.red, totalUsd: 9_999_000, basis: "disclosed" as const, source: "Research Test", sourceUrl: "https://example.com/purse", retrievedAt: "2026-10-01" },
              { boutExternalId: "no-such-bout", boxerExternalId: row.red, totalUsd: 1, basis: "reported" as const, source: "Research Test" }],
-    broadcasts: [], earnings: [],
+    broadcasts: [], earnings: [], officialRankings: [],
   };
   const r1 = ingestMoney(db, rows, { label: "research-test" });
   assert.deepEqual(r1.written, { financials: 1, purses: 1, broadcasts: 0, earnings: 0 });
