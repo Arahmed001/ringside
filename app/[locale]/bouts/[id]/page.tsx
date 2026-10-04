@@ -119,7 +119,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
             </div>
           )}
           <CorrectionNotes rows={boutPageNotes(db, b.id).map((n) => ({ ...n, names: [t.name(red.name), t.name(blue.name)] as [string, string] }))} />
-          {b.method && <p className="mt-3 text-center text-xs text-muted"><Link href={`/report?bout=${b.id}`} className="underline decoration-dotted hover:text-ink">{t("Report a mistake in this result")}</Link></p>}
+          {b.method && <p className="mt-2 text-center text-xs text-muted"><Link href={`/report?bout=${b.id}`} className="inline-block py-1 underline decoration-dotted hover:text-ink">{t("Report a mistake in this result")}</Link></p>}
         </div>
       </section>
 
@@ -165,9 +165,9 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
           <dl className="space-y-2 text-sm">
             {[[red, "#e5322d"], [blue, "#4a8cff"]].map(([f, c]) => {
               const fr = f as typeof red; const tr = trainerOf(fr.id);
-              return <div key={fr.id} className="flex justify-between gap-3"><dt className="text-muted">{t.rich("<c>{name}</c> head trainer", { name: t.name(fr.name), c: (ch) => <span style={{ color: c as string }}>{ch}</span> })}</dt><dd>{tr ? <Link href={`/people/${tr.slug}`} className="hover:text-gold">{t.name(tr.name)}</Link> : "–"}</dd></div>;
+              return <div key={fr.id} className="flex justify-between gap-3"><dt className="text-muted">{t.rich("<c>{name}</c> head trainer", { name: t.name(fr.name), c: (ch) => <span style={{ color: c as string }}>{ch}</span> })}</dt><dd>{tr ? <Link href={`/people/${tr.slug}`} className="inline-block py-1 hover:text-gold">{t.name(tr.name)}</Link> : "–"}</dd></div>;
             })}
-            <div className="flex justify-between gap-3 border-t border-line/60 pt-2"><dt className="text-muted">{t("Referee")}</dt><dd>{ref ? <Link href={`/people/${w.people.get(ref.personId)?.slug}`} className="hover:text-gold">{t.name(w.people.get(ref.personId)?.name ?? "")}</Link> : "–"}</dd></div>
+            <div className="flex justify-between gap-3 border-t border-line/60 pt-2"><dt className="text-muted">{t("Referee")}</dt><dd>{ref ? <Link href={`/people/${w.people.get(ref.personId)?.slug}`} className="inline-block py-1 hover:text-gold">{t.name(w.people.get(ref.personId)?.name ?? "")}</Link> : "–"}</dd></div>
             {cards.length === 0 && offs.filter((o) => o.role === "judge").map((o) => <div key={o.personId} className="flex justify-between gap-3"><dt className="text-muted">{t("Judge {n}", { n: o.seat ?? "" })}</dt><dd>{t.name(w.people.get(o.personId)?.name ?? "")}</dd></div>)}
           </dl>
           {oddsBlock(t, b.oddsRed, b.oddsBlue, mkt, eloP)}
