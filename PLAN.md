@@ -1043,9 +1043,10 @@ Found by opening the new search in the browser in Arabic, not by reading code. T
 - Arabic written for the new sentences, with the plural forms Arabic needs (zero, one, two, few, many, other); not yet read by a native speaker (see docs/arabic-review.md). Every sentence is one key, not pieces ("Last fought {n} months ago", not "Last fought" + a duration).
 - Checked: the unit tests (the record gate, a debut, a cancelled and a no-contest fight, the unit of "ago" at its boundaries, a future date), `npm run smoke` on the demo league (177/177) and on a partial real-shaped league (130/130), and the page read in English at 1440 px and in Arabic at 390 px.
 
+## 101. Arabic limits are written in words, not with ≥ and ≤ (round 56, 2026-10-04)
+Found in the browser at 390 px on the Arabic search: the chip "سلسلة انتصارات ≥ 2" is drawn with the sign mirrored, because in a right-to-left line `≥` and `≤` are mirrored characters, so it shows the arrow of "at most" beside the number and reads either way to someone reading right to left. Twenty-one Arabic chip strings (age, reach, height, fights, draws, losses, wins, knockouts, KO rate, stopped, streaks, debut) said their limit that way. They now say it in words ("العمر: 36 فأكثر", "امتداد الذراعين: 191 سم فأكثر", "الانتصارات: 5 فأقل", "الظهور الاحترافي الأول: 2015 فما بعد"); the English chips keep the signs. Only `i18n/ar.json` changed; a test (`tests/ar-no-inequality-signs.test.ts`) fails if any Arabic string contains `≥` or `≤` again (it fails on the file as it was). Checked in the browser on the rebuilt page, types, lint, 763 tests (762 pass, 1 skipped as before), build, smoke 177/177. The round-55 checks at 390 px found no overflow and records and dates in the right order. Not done: the Arabic wording has had no native review; "حتى {year}" for the upper debut limit was already in words.
+
 ## 104. The fighters list can be sorted and filtered (round 48, 2026-10-04)
-
-
 `lib/fighter-list.ts`, `app/[locale]/boxers/page.tsx`, `tests/fighter-list.test.ts`
 - **Four controls under the division chips:** country, stance, active or retired, and the order (rating, latest fight, most wins, knockout rate). It is a plain GET form (works without a script, `Apply` and `Clear filters`), so every view is a link that can be shared, and it carries the search, division and sex already chosen. The country and stance lists offer only values that exist in the league.
 - **A value the page does not know is ignored**, not turned into an empty page (`?sort=nonsense`); a country nobody is from is an honest empty list.
@@ -1055,7 +1056,7 @@ Found by opening the new search in the browser in Arabic, not by reading code. T
 - Not done: the browser's empty `country=&stance=` pairs stay in the URL after Apply (harmless; the page treats an empty value as none).
 
 
-## 101. A page for every country (round 49, 2026-10-04)
+## 106. A page for every country (round 49, 2026-10-04)
 `lib/countries.ts`, `app/[locale]/countries/page.tsx`, `app/[locale]/countries/[slug]/page.tsx`, `tests/countries.test.ts`
 - **`/countries`** lists every country with a fighter who has fought, the one with the most fighters first; **`/countries/mexico`** shows its fighters, active and retired, its champions, its coming fights and the events held there. The fighter's page links to its country, the page links to the fighters list filtered to the country (§104), and every country is in the sitemap and the navigation (Discover, "Countries").
 - **Champions** are the live belts (`belts(w)`, current and not dormant) whose holder is from the country, so the section agrees with the Titles page. **Coming fights** are fights not yet fought, not cancelled, with a fighter from the country on either side, soonest first. **Events held here** are held (not upcoming, not cancelled) cards whose country is the country.
