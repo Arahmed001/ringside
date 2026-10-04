@@ -735,6 +735,13 @@
   ]
  },
  {
+  "key": "{n} straight wins",
+  "plural": "{n} straight win",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{n} stretches, Elo over six fights",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -2815,6 +2822,12 @@
   ]
  },
  {
+  "key": "Best win",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Biggest climb: {name}, from #{a} to #{b} at {division}.",
   "files": [
    "lib/night.ts"
@@ -2860,6 +2873,12 @@
   "key": "Biggest surprises, by the model's own numbers",
   "files": [
    "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "Biggest upset",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -3215,6 +3234,12 @@
   "key": "Cards scored",
   "files": [
    "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Career highlights",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -4328,6 +4353,12 @@
  },
  {
   "key": "Elo-style",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Ended in {date}",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
   ]
@@ -6642,6 +6673,7 @@
  {
   "key": "Longest winning run",
   "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
    "lib/records.ts"
   ]
  },
@@ -8751,6 +8783,18 @@
   ]
  },
  {
+  "key": "Rated {n} points higher going in",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Rated {rating} going in",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "rated {winner} beat {loser}",
   "files": [
    "lib/records.ts"
@@ -10045,6 +10089,12 @@
   ]
  },
  {
+  "key": "Still going",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Still to come",
   "files": [
    "components/MyPicks.tsx"
@@ -10512,6 +10562,12 @@
   "key": "The best fight of every year, picked by a published score: knockdowns, a close or late finish, action, evenly matched fighters, upsets, stakes and comebacks. See why each fight won.",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
+  "key": "The best of the fights we hold",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -12777,6 +12833,12 @@
   "key": "Won the vacant belt",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Worked out from the {held} fights Ringside holds, not the whole career.",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {

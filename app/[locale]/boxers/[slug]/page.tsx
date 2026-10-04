@@ -23,6 +23,7 @@ import { ScoutingReport } from "@/components/ScoutingReport";
 import { WatchButton } from "@/components/Watch";
 import { BoutLine, BoxerCard, ResultPill, SectionTitle, Stat } from "@/components/ui";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
+import { highlightsOf } from "@/lib/highlights";
 import { countryName, flag, fmtDate, fmtPartialDate, pct } from "@/lib/format";
 import { msg } from "@/lib/i18n/t";
 import { countsInRecord, isDecision, isStoppage } from "@/lib/methods";
@@ -62,6 +63,9 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const lastDone = [...bouts].reverse().find((x) => resultFor(x, b.id) !== null);
   const ago = lastDone ? since(w.today, lastDone.date) : null;
   const lastFought = (x: Since) => x.n === 0 && x.unit === "days" ? t("Last fought today") : x.unit === "days" ? t.n(x.n, "Last fought {n} day ago", "Last fought {n} days ago") : x.unit === "months" ? t.n(x.n, "Last fought {n} month ago", "Last fought {n} months ago") : t.n(x.n, "Last fought {n} year ago", "Last fought {n} years ago");
+  const highlights = highlightsOf(bouts, b.id, w.boutPre);
+  const hl = (id: number) => { const x = w.boutById.get(id); return x ? fmtDate(x.date, { month: "short", year: "numeric" }, t.locale) : ""; };
+  const hasHighlights = !!(highlights.bestWin || highlights.biggestUpset || highlights.longestStreak);
   const opponentThen = new Map<number, React.ReactNode>();
   for (const x of done) {
     if (resultFor(x, b.id) === null) continue;
@@ -187,6 +191,34 @@ const HONOURS_SHOWN = 8;
           {nextBlock}
         </div>
       </section>
+
+      {hasHighlights && (
+        <section>
+          <SectionTitle eyebrow={t("Career highlights")} title={t("The best of the fights we hold")} />
+          <div className="grid gap-3 md:grid-cols-3">
+            {highlights.bestWin && (() => { const o = w.byId.get(highlights.bestWin!.opponentId); return o ? (
+              <Link href={`/bouts/${highlights.bestWin.boutId}`} className="card card-hover p-4">
+                <div className="eyebrow mb-1">{t("Best win")}</div>
+                <div className="font-display text-xl font-bold leading-tight">{t.name(o.name)}</div>
+                <div className="text-xs text-muted">{t("Rated {rating} going in", { rating: highlights.bestWin.opponentRating })} · {hl(highlights.bestWin.boutId)}</div>
+              </Link>) : null; })()}
+            {highlights.biggestUpset && (() => { const o = w.byId.get(highlights.biggestUpset!.opponentId); return o ? (
+              <Link href={`/bouts/${highlights.biggestUpset.boutId}`} className="card card-hover p-4">
+                <div className="eyebrow mb-1">{t("Biggest upset")}</div>
+                <div className="font-display text-xl font-bold leading-tight">{t.name(o.name)}</div>
+                <div className="text-xs text-muted">{t("Rated {n} points higher going in", { n: highlights.biggestUpset.gap })} · {hl(highlights.biggestUpset.boutId)}</div>
+              </Link>) : null; })()}
+            {highlights.longestStreak && (
+              <div className="card p-4">
+                <div className="eyebrow mb-1">{t("Longest winning run")}</div>
+                <div className="font-display text-xl font-bold leading-tight">{t.n(highlights.longestStreak.wins, "{n} straight win", "{n} straight wins")}</div>
+                <div className="text-xs text-muted">{highlights.longestStreak.endedBoutId ? t("Ended in {date}", { date: hl(highlights.longestStreak.endedBoutId) }) : t("Still going")}</div>
+              </div>
+            )}
+          </div>
+          {career.source === "supplier" && <p className="mt-2 text-xs text-muted">{t("Worked out from the {held} fights Ringside holds, not the whole career.", { held: career.held })}</p>}
+        </section>
+      )}
 
       <section className="grid gap-5 lg:grid-cols-[1fr_1.3fr]">
         <div className="card p-5">
