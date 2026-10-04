@@ -360,6 +360,10 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   // movement in the rankings, and the lowest or worst of the champions: no history of ranks is kept, and the champions list has no order
   if (has(q, /\b(climbed|dropped|fell|rose|jumped|moved up|moved down|slid)\b.*\b(rankings?|ranked|top \d+|ranks?)\b|\b(rankings?|ranks?)\b.*\b(climbed|dropped|fell|rose|jumped|moved up|moved down)\b/)) return [];
   if (has(q, /\b(lowest|worst|weakest|least|poorest)\b/) && has(q, /\bchampions?\b/) && !fighters.length) return [];
+  // "is larkin retired": a question about one person whose name was not recognised (a surname alone, a slip too big) is no answer, not the list of retired fighters
+  if (!fighters.length && has(q, /^(?:is|was|has|does|did)\s+(?!the\b|there\b|any\b|a\b|an\b|it\b|everyone\b|anyone\b|anybody\b)\S+\s+(?:retired|still active|active|undefeated|unbeaten|a southpaw|southpaw|orthodox|champion|a champion)$/)) return [];
+  // a quality the data does not hold ("the best defensive fighter"): no answer, not the best-rated fighter
+  if (!fighters.length && has(q, /\b(best|top|most|greatest)\b/) && has(q, /\b(defen[cs]e|defensive|footwork|hand speed|stamina|cardio|conditioning|heart|toughest|tough|fastest hands|chin)\b/) && !has(q, /\bfastest (ko|knock)/)) return [];
   // groupings no tool makes: by venue, by country ("which country has the most champions"), by round ("fights that ended in the first round"): no answer, not a list of
   // fighters sorted by fights, the list of champions or every fight
   // money by count or for one fighter, and who missed weight the most: the money lists are of the biggest, and the misses are not counted per fighter in any tool

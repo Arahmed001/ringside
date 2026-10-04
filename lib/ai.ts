@@ -210,7 +210,7 @@ export function heuristicParse(q: string, countries: string[], today?: string): 
   else if (/\bactive\b|currently/.test(s)) f.active = true;
   const korMax = s.match(/(?:ko|knockout) (?:rate|percentage|ratio)\s*(?:of|is)?\s*(?:under|below|less than|at most|no more than|up to)\s*(\d+)\s*%/); if (korMax) f.maxKoRate = +korMax[1] / 100;
   const kor = s.match(/(\d+)\s*%\s*(?:ko|knockout)/) ?? s.match(/(?:ko|knockout) (?:rate|percentage|ratio)\s*(?:of|over|above|at least|>)?\s*(\d+)\s*%/); if (kor) f.minKoRate = +kor[1] / 100;
-  if (/big puncher|heavy hand|power puncher|knockout artist|devastating/.test(s)) f.archetype = "Knockout Artist";
+  if (/big puncher|heavy hand|power puncher|knockout artist|\bko artists?\b|devastating/.test(s)) f.archetype = "Knockout Artist";
   if (/technician|technical(?! knock)|skilled boxer/.test(s)) f.archetype = "Technician";
   if (/counter/.test(s)) f.archetype = "Counter-Puncher";
   if (/brawler/.test(s)) f.archetype = "Iron-Chin Brawler";
