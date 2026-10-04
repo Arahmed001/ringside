@@ -250,9 +250,8 @@ export const LATIN_OK = [/\bRingside\b/g, /\bElo\b/g, /\bPCA\b/g, /\bClaude\b/g,
   /\b(?:Olympedia|BoxRec|CompuBox|Wikidata|Wikimedia|Commons|Forbes|Sportico|ESPN)\b/g /* other organisations' names */, /\blib\/providers\b/g, /\bPLAN\.md\b/g, /\bdemo\b/g /* the demo provider's name, shown as a data source */,
   /\blog-loss\b/g, /\bBrier\b/g /* statistics terms the Data page keeps in Latin until a native reviewer decides on an Arabic wording */];
 const decode = (s: string) => s.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
-/** Removes every element marked lang="en", with whatever is inside it (nested elements of the same name included). */
-export function withoutEnglishIslands(html: string): string {
-  const open = /<([a-z][a-z0-9]*)\b[^>]*\slang="en"[^>]*>/i;
+/** Removes every element that matches `open` (an opening tag, tag name in group 1), with whatever is inside it (nested elements of the same name included). */
+function withoutElements(html: string, open: RegExp): string {
   let out = html;
   for (let guard = 0; guard < 5000; guard++) {
     const m = open.exec(out);
@@ -264,6 +263,29 @@ export function withoutEnglishIslands(html: string): string {
     out = out.slice(0, m.index) + " " + (end < 0 ? "" : out.slice(end));
   }
   return out;
+}
+/** Removes every element marked lang="en": words that are English by nature, which are not part of the Arabic text around them. */
+export const withoutEnglishIslands = (html: string): string => withoutElements(html, /<([a-z][a-z0-9]*)\b[^>]*\slang="en"[^>]*>/i);
+/** Removes every element that keeps its own left-to-right order: `<bdi>`, `dir="ltr"`, the `ltr-fixed` class. */
+const withoutIsolates = (html: string): string => withoutElements(withoutElements(html, /<(bdi)\b[^>]*>/i), /<([a-z][a-z0-9]*)\b[^>]*(?:\sdir="ltr"|\sclass="[^"]*\bltr-fixed\b[^"]*")[^>]*>/i);
+
+/**
+ * A record ("23-4-1") that an Arabic sentence would show backwards. After an Arabic letter the digits count as Arabic numbers and the hyphens between them no longer
+ * hold them together, so the right-to-left order flips the record to "1-4-23": a fighter with 23 wins is shown with 1. The browser does this to any run of text in one
+ * block; the cure is to isolate the record (`<bdi dir="ltr">`, or `isolateNumeric` for a value put into a translated sentence). Looked for in the page's HTML, one block of
+ * text at a time (an element that starts a new line ends a block; an inline one does not): an Arabic letter, a space or a symbol, then a record, with nothing isolating the record.
+ * A record on its own in a cell, or after only digits and symbols, reads correctly and is not flagged.
+ */
+export function flippedRecords(html: string): string[] {
+  const body = withoutIsolates(withoutEnglishIslands(html.replace(/<head[\s\S]*?<\/head>/i, "").replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " "))).replace(/\u2066[^\u2069]*\u2069/g, " ");
+  const blocks = body.replace(/<\/?(?:div|p|li|ul|ol|td|th|tr|table|thead|tbody|section|article|header|footer|main|nav|h[1-6]|details|summary|form|label|br|option|select|figure|figcaption|dl|dt|dd|svg)\b[^>]*>/gi, "\n").replace(/<[^>]+>/g, "").split("\n");
+  const out: string[] = [];
+  for (const raw of blocks) {
+    const text = decode(raw).replace(/\s+/g, " ").trim();
+    const m = text.match(/[\u0600-\u06ff][^\d]*?[\s·:(،,.]\(?(\d+(?:-\d+){2,})/); // a separator between them: with none the two are separate boxes of a flex row, not one run of text
+    if (m) out.push(`"${text.slice(0, 90)}" (${m[1]})`);
+  }
+  return [...new Set(out)];
 }
 
 export function arabicLeaks(html: string): string[] {
