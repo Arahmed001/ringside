@@ -841,6 +841,7 @@
  "No fight booked": "لا يوجد نزال محدد",
  "No fighter found by that name.": "لا ملاكم بهذا الاسم.",
  "No fighter has changed their own details yet.": "لم يغيّر أي ملاكم بياناته بنفسه بعد.",
+ "No fighter in this division has the five fights on record that a ranking needs yet.": "لا يملك أي ملاكم في هذه الفئة النزالات الخمسة المسجّلة التي يتطلبها التصنيف حتى الآن.",
  "No fighter is spelt exactly “{text}”. These are the closest names.": "لا يوجد ملاكم يُكتب اسمه بالضبط «{text}». هذه أقرب الأسماء.",
  "No fighter matches that.": "لا يوجد ملاكم مطابق.",
  "No fighter with 4+ bouts matches that.": "لا يوجد ملاكم بـ4 نزالات أو أكثر يطابق ذلك.",
@@ -1391,6 +1392,7 @@
  "These are the calls the model would have made before each of the {n} completed fights in the database, rebuilt from what was known at the time: ratings, records and layoffs up to each fighter's previous bout. Its settings were chosen with these results in view, so the headline figures use the most recent quarter of fights ({from} to {to}), the period it was not fitted on.": "هذه هي التوقعات التي كان النموذج سيقدّمها قبل كل نزال من النزالات المكتملة وعددها {n} في قاعدة البيانات، أُعيد بناؤها مما كان معروفًا حينها: التصنيفات والسجلات وفترات الغياب حتى نزال كل ملاكم السابق. اختيرت إعداداته والنتائج هذه أمام العين، لذا تعتمد الأرقام الرئيسية على أحدث ربع من النزالات ({from} إلى {to})، وهي الفترة التي لم يُضبط عليها.",
  "These lists and counts cover all of boxing history and cannot be cut to a stretch of years such as “since 2018” or “this decade”. Try one year, such as “best fight of 2025” or “knockouts in 2025”.": "هذه القوائم والأعداد تغطي تاريخ الملاكمة كله ولا يمكن تقييدها بفترة من السنوات مثل «منذ 2018» أو «هذا العقد». جرّب سنة واحدة، مثل «أفضل نزال في عام 2025».",
  "These lists can be narrowed to men or women and one weight division, but not to other groups of fighters or to a region. Try a search such as “southpaw welterweights with 10+ KOs” or “most knockouts among women”.": "يمكن تضييق هذه القوائم إلى الرجال أو النساء ووزن واحد، لكن ليس إلى فئات أخرى من الملاكمين أو إلى منطقة. جرّب بحثًا مثل «ملاكمون من اليابان» أو «أكثر ضربات قاضية بين النساء».",
+ "These rankings count only the fights Ringside holds. Most fighters here have only their most recent fights on record so far, so few reach the five fights a ranking needs; more qualify as the history is added.": "تعتمد هذه التصنيفات على النزالات التي يملكها رينغسايد فقط. لا يتوفر لمعظم الملاكمين هنا حتى الآن سوى أحدث نزالاتهم، لذا يبلغ القليلون منهم النزالات الخمسة التي يتطلبها التصنيف؛ ويزداد عدد المؤهلين كلما أُضيف المزيد من التاريخ.",
  "They have already fought {n} times": {
   "zero": "لم يتواجها من قبل",
   "one": "تواجها مرة واحدة من قبل",

@@ -1,7 +1,7 @@
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
 import { DIVISIONS, slugifyDivision, limitLabel } from "@/lib/divisions";
-import { rankDivision, pound4pound } from "@/lib/rankings";
+import { rankDivision, pound4pound, rankingDepth } from "@/lib/rankings";
 import { Headshot } from "@/components/Portrait";
 import { BoxerCard, SectionTitle } from "@/components/ui";
 import { recordStr } from "@/lib/world";
@@ -16,6 +16,7 @@ export default async function Rankings({ searchParams }: { searchParams: Promise
   const sex: Sex = (await searchParams).sex === "female" ? "female" : "male";
   const w = await getWorld();
   const p4p = pound4pound(w, 10, sex);
+  const thin = rankingDepth(w).partialShare > 0.5;
   const divisions = DIVISIONS.map((d) => ({ d, top: rankDivision(w, d.name, 5, sex) })).filter((x) => sex === "male" || x.top.length > 0);
   return (
     <div className="space-y-12">
@@ -23,6 +24,7 @@ export default async function Rankings({ searchParams }: { searchParams: Promise
         <div className="eyebrow mb-2">{t("Updated after every fight")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase">{sex === "female" ? t("Women’s rankings") : t("Current rankings")}</h1>
         <p className="mt-2 max-w-2xl text-muted">{t("Every division ranked by Elo-style rating. Active fighters with five or more bouts, a winning record and a fight in the last 24 months qualify. Arrows show movement over the last 90 days.")}</p>
+        {thin && <p className="mt-3 max-w-2xl text-sm text-gold">{t("These rankings count only the fights Ringside holds. Most fighters here have only their most recent fights on record so far, so few reach the five fights a ranking needs; more qualify as the history is added.")}</p>}
         <div className="mt-4 flex gap-2">
           <Link href="/rankings" className={`chip ${sex === "male" ? "!border-gold/50 !text-gold" : ""}`}>{t("Men")}</Link>
           <Link href="/rankings?sex=female" className={`chip ${sex === "female" ? "!border-gold/50 !text-gold" : ""}`}>{t("Women")}</Link>

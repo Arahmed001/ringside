@@ -127,3 +127,43 @@ test("a scroll box is focusable and named, and is a group rather than a region (
   assert.match(html, /class="overflow-x-auto card"/);
   assert.ok(!/role="region"/.test(html));
 });
+
+// ---- regressions for what the axe-core sweep of 2026-10-04 found (34 nodes on four rules, all fixed). Source-level, like the checks above: a rendered check needs
+// a browser, and `npm run smoke` renders every kind of page but does not run axe. If these ever start to fail, run axe over the pages again before changing them.
+
+test("the search palette's listbox holds only options: its messages sit outside it as paragraphs (axe: aria-required-children, listitem)", () => {
+  const src = read("components/CommandPalette.tsx");
+  const list = src.slice(src.indexOf('role="listbox"'));
+  const block = list.slice(0, list.indexOf("</ul>"));
+  const items = block.match(/<li\b[^>]*>/g) ?? [];
+  assert.ok(items.length > 0, "the listbox still has its results");
+  for (const li of items) assert.match(li, /role="(option|presentation)"/, `a list item in the listbox is neither an option nor a presentational group heading: ${li}`);
+  assert.match(src, /<p className="[^"]*">\{t\("Nothing matches that\."\)\}<\/p>/, "the empty message is a paragraph");
+  assert.match(src, /<p className="[^"]*">\{t\("Searching…"\)\}<\/p>/, "so is the searching message");
+  assert.match(src, /role="status" aria-live="polite"/, "and a polite status still announces them");
+});
+
+test("a bare div is not given an aria-label: it needs a role first (axe: aria-prohibited-attr); the last-five-results row is a group, and is not drawn when empty", () => {
+  for (const f of sources) {
+    for (const [i, line] of read(f).split("\n").entries()) {
+      const tag = line.match(/<div\b[^>]*\baria-label=[^>]*>/)?.[0];
+      if (tag && !/\brole=/.test(tag)) assert.fail(`${f}:${i + 1} has a <div> with aria-label and no role: ${tag.slice(0, 120)}`);
+    }
+  }
+  const prev = read("app/[locale]/previews/[id]/page.tsx");
+  assert.match(prev, /f\.results\.length > 0 && <div[^>]*role="group"[^>]*aria-label=\{t\("Last five results"\)\}/);
+});
+
+test("a cancelled bout dims the headshots only: the card's text keeps full contrast, and the word Cancelled is still written (axe: color-contrast on the red chip)", () => {
+  const src = read("app/[locale]/events/[id]/page.tsx");
+  assert.doesNotMatch(src, /className=\{`card[^`]*\$\{cancelled \? "opacity/, "the whole card is not dimmed");
+  assert.match(src, /<Headshot[^>]*className=\{cancelled \? "opacity-60" : ""\}/, "the headshots are");
+  assert.match(src, /t\("Cancelled"\)/);
+});
+
+test("a division with nobody ranked draws no empty table, and says why (axe: empty table headers; a blank card is no answer)", () => {
+  const src = read("app/[locale]/rankings/[division]/page.tsx");
+  assert.match(src, /rows\.length > 0 && <table/);
+  assert.match(src, /rows\.length === 0 && !typed/);
+  assert.match(src, /has the five fights on record that a ranking needs yet/);
+});
