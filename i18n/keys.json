@@ -97,6 +97,7 @@
    "app/[locale]/bouts/[id]/opengraph-image.tsx",
    "app/[locale]/bouts/[id]/page.tsx",
    "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/events/[id]/opengraph-image.tsx",
    "app/[locale]/money/page.tsx",
    "app/[locale]/page.tsx",
@@ -253,6 +254,12 @@
   ]
  },
  {
+  "key": "{fighters} · {active} active",
+  "files": [
+   "app/[locale]/countries/page.tsx"
+  ]
+ },
+ {
   "key": "{from} → {to}",
   "files": [
    "components/TeamTimeline.tsx"
@@ -402,6 +409,12 @@
   ]
  },
  {
+  "key": "{n} countries, the one with the most fighters first. Open one for its best fighters, its champions and its coming fights.",
+  "files": [
+   "app/[locale]/countries/page.tsx"
+  ]
+ },
+ {
   "key": "{n} current",
   "files": [
    "app/[locale]/people/[slug]/page.tsx"
@@ -474,6 +487,7 @@
   "plural": "{n} fighter",
   "files": [
    "app/[locale]/boxers/page.tsx",
+   "app/[locale]/countries/page.tsx",
    "app/[locale]/trainers/page.tsx"
   ]
  },
@@ -2140,6 +2154,7 @@
   "key": "Active",
   "files": [
    "app/[locale]/boxers/page.tsx",
+   "app/[locale]/countries/[slug]/page.tsx",
    "lib/ai.ts"
   ]
  },
@@ -2268,10 +2283,22 @@
   ]
  },
  {
+  "key": "All {n} fighters",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "All {n} upcoming cards",
   "plural": "All {n} upcoming card",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "All belts",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
   ]
  },
  {
@@ -2298,6 +2325,12 @@
    "app/[locale]/boxers/page.tsx",
    "app/[locale]/page.tsx",
    "components/RecordsFilter.tsx"
+  ]
+ },
+ {
+  "key": "All events",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
   ]
  },
  {
@@ -2818,6 +2851,18 @@
   ]
  },
  {
+  "key": "Belts held by a fighter from {country}",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "belts held now",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "best",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -2833,6 +2878,12 @@
   "key": "Best fight of {year}",
   "files": [
    "lib/ask/examples.ts"
+  ]
+ },
+ {
+  "key": "Best rated",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
   ]
  },
  {
@@ -3037,6 +3088,19 @@
   "key": "Bouts per year",
   "files": [
    "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Boxers from {country}",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Boxing by country",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx",
+   "app/[locale]/countries/page.tsx"
   ]
  },
  {
@@ -3301,6 +3365,7 @@
  {
   "key": "Champions",
   "files": [
+   "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/titles/[slug]/page.tsx"
   ]
  },
@@ -3557,6 +3622,12 @@
   ]
  },
  {
+  "key": "Coming fights",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Coming up",
   "files": [
    "app/[locale]/page.tsx"
@@ -3746,6 +3817,12 @@
   "key": "Counter-Puncher",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Countries",
+  "files": [
+   "lib/nav.ts"
   ]
  },
  {
@@ -4007,6 +4084,12 @@
   "key": "Development data only. It carries every field the real contract supports.",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Did you mean one of these fighters?",
+  "files": [
+   "app/[locale]/not-found.tsx"
   ]
  },
  {
@@ -4503,6 +4586,12 @@
   ]
  },
  {
+  "key": "Events held here",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Events in {year}",
   "files": [
    "app/[locale]/events/page.tsx"
@@ -4524,6 +4613,13 @@
   "key": "Every belt, every champion",
   "files": [
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Every country with a boxer in the Ringside database: its best fighters, current champions, coming fights and the events held there.",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx",
+   "app/[locale]/countries/page.tsx"
   ]
  },
  {
@@ -4793,6 +4889,7 @@
  {
   "key": "Fight calendar",
   "files": [
+   "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/events/page.tsx",
    "app/[locale]/page.tsx"
   ]
@@ -5050,6 +5147,7 @@
   "files": [
    "app/[locale]/analytics/page.tsx",
    "app/[locale]/boxers/page.tsx",
+   "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "components/TenureTable.tsx",
@@ -7447,6 +7545,12 @@
   ]
  },
  {
+  "key": "No fighters yet.",
+  "files": [
+   "app/[locale]/countries/page.tsx"
+  ]
+ },
+ {
   "key": "No fights were scored for that year.",
   "files": [
    "lib/ask/tools.ts"
@@ -7948,6 +8052,12 @@
   "key": "Olympedia ID (Wikidata)",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "on record",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
   ]
  },
  {
@@ -8958,6 +9068,12 @@
   ]
  },
  {
+  "key": "Recent cards in {country}",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Recent events",
   "files": [
    "app/[locale]/events/page.tsx"
@@ -9511,6 +9627,7 @@
   "key": "Search",
   "files": [
    "app/[locale]/boxers/page.tsx",
+   "app/[locale]/not-found.tsx",
    "components/CommandPalette.tsx"
   ]
  },
@@ -9536,7 +9653,8 @@
   "key": "Search fighters",
   "files": [
    "app/[locale]/boxers/page.tsx",
-   "app/[locale]/layout.tsx"
+   "app/[locale]/layout.tsx",
+   "app/[locale]/not-found.tsx"
   ]
  },
  {
@@ -9876,6 +9994,7 @@
  {
   "key": "since {date}",
   "files": [
+   "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/titles/[slug]/page.tsx",
    "app/[locale]/titles/page.tsx"
   ]
@@ -10132,6 +10251,12 @@
   "key": "Stays, without you: proposals and reports you sent (they are an editorial record about fighters, not about you), and edits that were already published. Do not put personal details in their notes.",
   "files": [
    "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "still fighting",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
   ]
  },
  {
@@ -10620,6 +10745,12 @@
   "key": "The best rating anyone reached, after any fight. Ratings are Elo-style and unofficial.",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "The best-rated boxers from {country}: current champions, coming fights and events held there. {n} fighters in the Ringside database.",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
   ]
  },
  {
@@ -11650,6 +11781,12 @@
   ]
  },
  {
+  "key": "Top fighters",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Top rated",
   "files": [
    "app/[locale]/rankings/[division]/page.tsx"
@@ -12430,6 +12567,12 @@
   ]
  },
  {
+  "key": "Where the fighters are from",
+  "files": [
+   "app/[locale]/countries/page.tsx"
+  ]
+ },
+ {
   "key": "Where to watch",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
@@ -12513,6 +12656,12 @@
   "files": [
    "app/[locale]/page.tsx",
    "lib/ask/examples.ts"
+  ]
+ },
+ {
+  "key": "who have fought",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
   ]
  },
  {
