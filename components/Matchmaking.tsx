@@ -35,7 +35,7 @@ export async function PairingCard({ p, rank, division }: { p: Pairing; rank?: nu
       </ul>
       <div className="mt-4 flex flex-wrap gap-4 text-sm">
         <Link href={`/compare?a=${a.slug}&b=${b.slug}`} className="inline-block py-1 text-ink hover:text-gold">{t("Full matchup breakdown")} <span className="inline-block rtl:rotate-180">→</span></Link>
-        <Link href={`/matchmaking?x=${a.slug}&y=${b.slug}#dream`} className="text-muted hover:text-ink">{t("Open in the dream-fight builder")}</Link>
+        <Link href={`/matchmaking?x=${a.slug}&y=${b.slug}#dream`} className="inline-block py-1 text-muted hover:text-ink">{t("Open in the dream-fight builder")} <span className="inline-block rtl:rotate-180">→</span></Link>
       </div>
     </article>
   );
