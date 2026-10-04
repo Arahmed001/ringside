@@ -107,3 +107,15 @@ test("asked twice in one run (the check, then the load) the lists cost 17 reques
   assert.equal(a, b);
   assert.equal(v.stats.byPath["/v2/rankings/"], 17);
 });
+
+test("a feed file carries the lists too (that is how the smoke run's partial league gets them)", async () => {
+  const fs = await import("node:fs"), os = await import("node:os"), path = await import("node:path");
+  const { fileProvider } = await import("../lib/providers/file");
+  const { loadFeed } = await import("../lib/feed");
+  const lists = await providerOf(mockVendor(league)).fetchOfficialRankings!();
+  const file = path.join(os.tmpdir(), `ringside-rankings-feed-${process.pid}.json`);
+  fs.writeFileSync(file, JSON.stringify({ officialRankings: lists }));
+  try { assert.equal((await loadFeed(fileProvider(file))).officialRankings.length, 68); } finally { fs.rmSync(file, { force: true }); }
+  fs.writeFileSync(file, JSON.stringify({}));
+  try { assert.deepEqual((await loadFeed(fileProvider(file))).officialRankings, [], "a file without them has none"); } finally { fs.rmSync(file, { force: true }); }
+});
