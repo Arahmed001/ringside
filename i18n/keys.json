@@ -6109,6 +6109,12 @@
   ]
  },
  {
+  "key": "Jump to a division",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
   "key": "Keep going",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
