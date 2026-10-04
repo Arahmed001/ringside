@@ -97,11 +97,13 @@
    "app/[locale]/bouts/[id]/opengraph-image.tsx",
    "app/[locale]/bouts/[id]/page.tsx",
    "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/compare/page.tsx",
    "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/events/[id]/opengraph-image.tsx",
    "app/[locale]/money/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/previews/[id]/opengraph-image.tsx",
+   "app/api/og/compare/route.tsx",
    "components/LiveLedger.tsx",
    "components/MyPicks.tsx",
    "lib/predict.ts"
@@ -5735,7 +5737,8 @@
   "key": "Head to head",
   "files": [
    "app/[locale]/compare/page.tsx",
-   "app/[locale]/previews/[id]/page.tsx"
+   "app/[locale]/previews/[id]/page.tsx",
+   "app/api/og/compare/route.tsx"
   ]
  },
  {
@@ -7065,6 +7068,12 @@
   "key": "Model weights",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Model win probability: {a}% to {b}%",
+  "files": [
+   "app/api/og/compare/route.tsx"
   ]
  },
  {
@@ -12725,6 +12734,12 @@
   "key": "Win chance",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Win probability, how the fight likely ends and what drives the number for {a} against {b}.",
+  "files": [
+   "app/[locale]/compare/page.tsx"
   ]
  },
  {

@@ -717,6 +717,8 @@
  "Last fight: {result} against {opp}, {n} months ago.": "آخر نزال: {result} أمام {opp} قبل {n} أشهر.",
  "Last five results": "نتائج آخر خمسة نزالات",
  "Last fought": "آخر نزال",
+ "Last fought by {date}": "آخر نزال حتى {date}",
+ "Last fought since {date}": "آخر نزال منذ {date}",
  "Last fought today": "آخر نزال اليوم",
  "Last fought {n} days ago": {
   "zero": "آخر نزال قبل {n} يوم",
@@ -742,8 +744,6 @@
   "many": "آخر نزال قبل {n} سنة",
   "other": "آخر نزال قبل {n} سنة"
  },
- "Last fought by {date}": "آخر نزال حتى {date}",
- "Last fought since {date}": "آخر نزال منذ {date}",
  "Last nine months": "آخر تسعة أشهر",
  "Last {n} fights": {
   "zero": "آخر {n} نزال",
@@ -839,6 +839,7 @@
  "Model estimates; the split between stoppage and points follows each fighter’s finishing record.": "تقديرات النموذج؛ ويتبع التقسيم بين التوقف والنقاط سجل الحسم لدى كل ملاكم.",
  "Model said": "قال النموذج",
  "Model weights": "أوزان النموذج",
+ "Model win probability: {a}% to {b}%": "احتمال الفوز بحسب النموذج: {a}% مقابل {b}%",
  "Model's confidence": "ثقة النموذج",
  "Model's confidence in its pick (%)": "ثقة النموذج في اختياره (%)",
  "Model: <b>{p}%</b> win": "النموذج: فوز بنسبة <b>{p}%</b>",
@@ -1697,6 +1698,7 @@
  "Wikimedia Commons": "Wikimedia Commons",
  "Wikipedia": "ويكيبيديا",
  "Win chance": "فرصة الفوز",
+ "Win probability, how the fight likely ends and what drives the number for {a} against {b}.": "احتمال الفوز وكيف يُرجَّح أن ينتهي النزال وما الذي يحرّك الرقم بين {a} و{b}.",
  "Win rate": "نسبة الفوز",
  "Win rate by how much heavier (or lighter) a fighter was than his opponent at the pre-fight check. The dashed line is 50%.": "نسبة الفوز بحسب مقدار ثِقل الملاكم (أو خفّته) عن خصمه عند الفحص قبل النزال. الخط المتقطع يمثل 50%.",
  "Win streak ≥ {n}": "سلسلة انتصارات: {n} فأكثر",
