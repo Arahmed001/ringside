@@ -69,7 +69,7 @@ export default async function Money() {
             {gates.map((g, i) => (
               <li key={g.event.id} className="flex items-center gap-3 text-sm">
                 <span className="w-5 text-center font-display text-lg font-bold text-gold">{i + 1}</span>
-                <div className="min-w-0 flex-1"><Link href={`/events/${g.event.id}`} className="block truncate font-semibold hover:text-gold">{title(g.event.id, g.event.name)}</Link>
+                <div className="min-w-0 flex-1"><Link href={`/events/${g.event.id}`} className="line-clamp-2 font-semibold hover:text-gold">{title(g.event.id, g.event.name)}</Link>
                   <div className="text-xs text-muted">{fmtDate(g.event.date, { month: "short", year: "numeric" }, t.locale)} · {t.name(g.event.venue)}{g.money.ticketsSold ? ` · ${t("{n} tickets", { n: g.money.ticketsSold.value.toLocaleString("en-US") })}` : ""}</div></div>
                 <b className="tabular">{usd(g.value)}</b><BasisChip p={g.prov} />
               </li>
@@ -82,7 +82,7 @@ export default async function Money() {
             {ppv.map((g, i) => (
               <li key={g.event.id} className="flex items-center gap-3 text-sm">
                 <span className="w-5 text-center font-display text-lg font-bold text-gold">{i + 1}</span>
-                <div className="min-w-0 flex-1"><Link href={`/events/${g.event.id}`} className="block truncate font-semibold hover:text-gold">{title(g.event.id, g.event.name)}</Link>
+                <div className="min-w-0 flex-1"><Link href={`/events/${g.event.id}`} className="line-clamp-2 font-semibold hover:text-gold">{title(g.event.id, g.event.name)}</Link>
                   <div className="text-xs text-muted">{fmtDate(g.event.date, { month: "short", year: "numeric" }, t.locale)}{g.money.ppvRevenueUsd ? ` · ${t("{amount} revenue", { amount: usd(g.money.ppvRevenueUsd.value) })}` : ""}</div></div>
                 <b className="tabular">{t("{n} buys", { n: compact(g.value) })}</b><BasisChip p={g.prov} />
               </li>
@@ -99,8 +99,8 @@ export default async function Money() {
               <li key={`${p.bout.id}-${p.boxer.id}`} className="flex items-center gap-3 text-sm">
                 <span className="w-5 text-center font-display text-lg font-bold text-gold">{i + 1}</span>
                 <Headshot boxer={p.boxer} size={32} rounded={false} className="rounded-full object-cover" />
-                <div className="min-w-0 flex-1"><Link href={`/boxers/${p.boxer.slug}`} className="block truncate font-semibold hover:text-gold">{t.name(p.boxer.name)}</Link>
-                  <Link href={`/bouts/${p.bout.id}`} className="block truncate text-xs text-muted hover:text-ink">{t("vs {name}, {date}", { name: t.name(p.bout.redId === p.boxer.id ? p.bout.blueName : p.bout.redName), date: fmtDate(p.event.date, { month: "short", year: "numeric" }, t.locale) })}</Link></div>
+                <div className="min-w-0 flex-1"><Link href={`/boxers/${p.boxer.slug}`} className="line-clamp-2 font-semibold hover:text-gold">{t.name(p.boxer.name)}</Link>
+                  <Link href={`/bouts/${p.bout.id}`} className="block text-xs text-muted hover:text-ink">{t("vs {name}, {date}", { name: t.name(p.bout.redId === p.boxer.id ? p.bout.blueName : p.bout.redName), date: fmtDate(p.event.date, { month: "short", year: "numeric" }, t.locale) })}</Link></div>
                 <b className="tabular">{usd(p.purse.totalUsd)}</b><BasisChip p={p.purse} />
               </li>
             ))}
@@ -113,7 +113,7 @@ export default async function Money() {
               <li key={e.boxer.id} className="flex items-center gap-3 text-sm">
                 <span className="w-5 text-center font-display text-lg font-bold text-gold">{i + 1}</span>
                 <Headshot boxer={e.boxer} size={32} rounded={false} className="rounded-full object-cover" />
-                <div className="min-w-0 flex-1"><Link href={`/boxers/${e.boxer.slug}`} className="block truncate font-semibold hover:text-gold">{t.name(e.boxer.name)}</Link>
+                <div className="min-w-0 flex-1"><Link href={`/boxers/${e.boxer.slug}`} className="line-clamp-2 font-semibold hover:text-gold">{t.name(e.boxer.name)}</Link>
                   <div className="text-xs text-muted">{t.n(e.fights, "{n} purse", "{n} purses")} · {t("{pct}% official", { pct: Math.round(e.disclosedShare * 100) })}</div></div>
                 <b className="tabular">{usd(e.total)}</b>
               </li>
