@@ -31,7 +31,7 @@ export function ProbBar({ a, b, pA, pB, pDraw, colorA = "#e5322d", colorB = "#4a
     <div>
       <div className="ltr-fixed mb-1.5 flex items-end justify-between font-display text-2xl font-bold">
         <span style={{ color: colorA }}>{f(pA)}</span>
-        <span className="text-xs font-medium text-muted">{t("draw {pct}", { pct: f(pDraw) })}</span>
+        <span dir="auto" className="text-xs font-medium text-muted">{t("draw {pct}", { pct: f(pDraw) })}</span>
         <span style={{ color: colorB }}>{f(pB)}</span>
       </div>
       <div className="ltr-fixed flex h-3 overflow-hidden rounded-full bg-panel2" role="img" aria-label={t("{a} {pa}, {b} {pb}", { a, pa: f(pA), b, pb: f(pB) })}>
