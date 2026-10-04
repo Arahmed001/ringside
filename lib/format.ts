@@ -50,6 +50,23 @@ export function countryCode(c: string): string | undefined {
   if (/^[a-z]{2}$/.test(key) && [...names.values()].includes(key.toUpperCase())) return key.toUpperCase();
   return names.get(key);
 }
+/** Places inside a country that a boxing fan counts as their own nation: never folded into the sovereign state's page. */
+const NATIONS_WITHIN = new Set(["northern ireland"]);
+let nameOf: Map<string, string> | null = null;
+/**
+ * The one English spelling for a country however the feed wrote it ("USA", "U.S.", "United States of America" are all "United States"), so two spellings are
+ * one country page. A name that is not a country we can identify (England, Scotland, a typo) is kept exactly as given: nothing is guessed.
+ */
+export function canonicalCountry(c: string): string {
+  const code = countryCode(c);
+  if (!code || NATIONS_WITHIN.has(norm(c))) return c.trim();
+  if (!nameOf) {
+    nameOf = new Map(Object.entries(COUNTRY_CODE).map(([n, k]) => [k, n]));
+    const dn = new Intl.DisplayNames(["en"], { type: "region" });
+    for (let a = 65; a <= 90; a++) for (let b = 65; b <= 90; b++) { const k = String.fromCharCode(a, b); if (!nameOf.has(k)) { const n = dn.of(k); if (n && n !== k) nameOf.set(k, n); } }
+  }
+  return nameOf.get(code) ?? c.trim();
+}
 export function countryName(c: string, locale: Locale = "en"): string {
   const code = countryCode(c);
   if (!code || locale === "en") return c;
