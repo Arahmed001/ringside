@@ -1,5 +1,5 @@
 /**
- * npm run build && npm run smoke [-- --feed sparse|empty|partial] [-- --facts unknown] [-- --scale 20] [-- --crawl 200] [-- --database FILE]      render every kind of page in English and Arabic on a real production server and inspect it
+ * npm run build && npm run smoke [-- --feed sparse|empty|partial|hostile] [-- --facts unknown] [-- --scale 20] [-- --crawl 200] [-- --database FILE]      render every kind of page in English and Arabic on a real production server and inspect it
  *
  * Seeds a throwaway database with the demo league (clock pinned to 2026-10-03), starts `next start` on a free port, requests a
  * representative page of every kind plus the JSON and image endpoints, and checks each (status, language and direction, a heading,
@@ -11,6 +11,7 @@ import os from "node:os";
 import path from "node:path";
 import net from "node:net";
 import { spawn } from "node:child_process";
+import { HOSTILE_MARKUP } from "../lib/hostile-feed";
 
 const arg = (k: string) => { const i = process.argv.indexOf(`--${k}`); return i > -1 ? process.argv[i + 1] : undefined; };
 
@@ -42,7 +43,7 @@ async function main() {
   // world can be in (the first load, or the gap between seasons): no page may fail because something it expects is not there yet
   const feedName = arg("feed");
   if (feedName) {
-    if (feedName !== "sparse" && feedName !== "empty" && feedName !== "partial") { console.error('--feed is "sparse", "empty" or "partial"'); process.exit(2); }
+    if (feedName !== "sparse" && feedName !== "empty" && feedName !== "partial" && feedName !== "hostile") { console.error('--feed is "sparse", "empty", "partial" or "hostile"'); process.exit(2); }
     const { miniFeed } = await import("../tests/helpers");
     let f = miniFeed();
     // `--feed partial`: the shape a real first load has. A league from the stand-in vendor, read through the real adapter with only the most recently active fighters
@@ -54,6 +55,18 @@ async function main() {
       const league = makeWorld({ fighters: 260, fights: 520, upcoming: 6, seed: 5, today: "2026-10-03" });
       const provider = boxingDataApiProvider({ key: "k".repeat(40), purpose: "evaluation", fetchImpl: mockVendor(league).fetchImpl, scheduleDays: 0, maxRequests: 1e6, retries: 0, gapMs: 0, maxFighters: 100, log: () => {}, sleep: async () => {} });
       f = await loadFeed(provider);
+    }
+    // `--feed hostile`: awkward values (markup and SQL in names, absurd heights, contradictory results, impossible dates; lib/hostile-feed.ts) read through the real adapter.
+    // Every page must still render, and the markup must be on no page as markup
+    if (feedName === "hostile") {
+      const { hostileFetch } = await import("../lib/hostile-feed");
+      const { boxingDataApiProvider } = await import("../lib/providers/boxing-data-api");
+      const { loadFeed } = await import("../lib/feed");
+      const { sanitizeFeed } = await import("../lib/validate");
+      const provider = boxingDataApiProvider({ key: "k".repeat(40), purpose: "evaluation", fetchImpl: hostileFetch(), scheduleDays: 0, maxRequests: 1e6, retries: 0, gapMs: 0, log: () => {}, sleep: async () => {} });
+      f = await loadFeed(provider);
+      const kept = sanitizeFeed(f, { today: "2026-10-03" });
+      console.log(`hostile: ${f.boxers.length} fighters and ${f.bouts.length} fights read; the validator set aside ${kept.dropped.bout ?? 0} fights, ${kept.dropped.boxer ?? 0} fighters and ${kept.dropped.event ?? 0} events (counted)`);
     }
     const feed = feedName === "empty" ? { ...f, boxers: [], events: [], bouts: [], people: [], orgs: [], stints: [], weighIns: [], officials: [], scorecards: [], corners: [], punches: [] } : f;
     const file = path.join(os.tmpdir(), `ringside-smoke-feed-${process.pid}.json`);
@@ -126,6 +139,7 @@ async function main() {
       const bad = problemsIn(route, locale, res.status, res.headers.get("content-type") ?? "", body);
       // the browser-side contract: the policy and nonce on every page, the standing headers on everything (see lib/security.ts)
       if (/text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...securityProblems(res.headers, body));
+      if (feedName === "hostile" && /text\/html/.test(res.headers.get("content-type") ?? "") && body.includes(HOSTILE_MARKUP)) bad.push("hostile markup from a fighter's name is on the page as markup, not escaped");
       if (locale === "ar" && /text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...flippedRecords(body).map((l) => `a record shown backwards on the Arabic page: ${l}`));
       if (locale === "ar" && (feedName === undefined || feedName === "empty") && scale === 1 && /text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...arabicLeaks(body).map((l) => `English on the Arabic page: ${l}`));
       else for (const h of STATIC_HEADERS) if (res.headers.get(h.key) !== h.value) bad.push(`header ${h.key} is ${res.headers.get(h.key) ?? "missing"}`);
