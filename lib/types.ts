@@ -25,7 +25,7 @@ export interface Boxer {
   active: boolean;
   rating: number;
   /** The career record as the data supplier states it (null when it gave none); see `careerRecord` in lib/world.ts for when a page shows it. */
-  vendorRecord: { wins: number; losses: number; draws: number } | null;
+  vendorRecord: { wins: number; losses: number; draws: number; /** career knockouts and times stopped as the supplier states them, when it does */ koWins?: number; stopped?: number } | null;
   photoUrl: string | null;
   photoCredit: PhotoCredit | null;
   birthDate: string | null;
@@ -69,6 +69,8 @@ export interface BoxerFull extends Boxer, BoxerStats {
 }
 
 export interface BoutRow {
+  /** the judges' scores as the supplier gave them ("116-109"), when it gave them: no judges, no corners */
+  vendorScores?: string[] | null;
   id: number;
   eventId: number;
   eventName: string;

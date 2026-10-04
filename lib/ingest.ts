@@ -82,8 +82,8 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
     const boxerSlug = slugger(db, "boxers");
     const bx = new Map<string, number>();
     const insB = db.prepare(`INSERT INTO boxers (external_id, slug, name, nickname, country, birth_year, stance, height_cm, reach_cm, weight_class, turned_pro, active, photo_url,
-        birth_date, birth_place, residence, wikidata_id, boxrec_id, aliases, debut_date, retired_date, sex, vendor_wins, vendor_losses, vendor_draws)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        birth_date, birth_place, residence, wikidata_id, boxrec_id, aliases, debut_date, retired_date, sex, vendor_wins, vendor_losses, vendor_draws, vendor_ko_wins, vendor_stopped)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
       ON CONFLICT(external_id) DO UPDATE SET name=excluded.name, active=excluded.active, reach_cm=excluded.reach_cm, height_cm=excluded.height_cm,
         stance=excluded.stance, sex=excluded.sex,
         photo_credit = CASE WHEN excluded.photo_url IS NOT NULL THEN NULL ELSE boxers.photo_credit END,
@@ -92,13 +92,14 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
         residence = COALESCE(excluded.residence, boxers.residence), wikidata_id = COALESCE(excluded.wikidata_id, boxers.wikidata_id),
         boxrec_id = COALESCE(excluded.boxrec_id, boxers.boxrec_id), aliases = COALESCE(excluded.aliases, boxers.aliases),
         debut_date = COALESCE(excluded.debut_date, boxers.debut_date), retired_date = excluded.retired_date,
-        vendor_wins = COALESCE(excluded.vendor_wins, boxers.vendor_wins), vendor_losses = COALESCE(excluded.vendor_losses, boxers.vendor_losses), vendor_draws = COALESCE(excluded.vendor_draws, boxers.vendor_draws)
+        vendor_wins = COALESCE(excluded.vendor_wins, boxers.vendor_wins), vendor_losses = COALESCE(excluded.vendor_losses, boxers.vendor_losses), vendor_draws = COALESCE(excluded.vendor_draws, boxers.vendor_draws),
+        vendor_ko_wins = COALESCE(excluded.vendor_ko_wins, boxers.vendor_ko_wins), vendor_stopped = COALESCE(excluded.vendor_stopped, boxers.vendor_stopped)
       RETURNING id`);
     for (const b of boxers) {
       const row = insB.get(b.externalId, boxerSlug(b.name), b.name, b.nickname ?? null, b.country, b.birthYear, b.stance, b.heightCm, b.reachCm,
         division(b.weightClass), b.turnedPro, b.active ? 1 : 0, b.photoUrl ?? null, b.birthDate ?? null, b.birthPlace ?? null, b.residence ?? null,
         b.wikidataId ?? null, b.boxrecId ?? null, b.aliases?.length ? JSON.stringify(b.aliases) : null, b.debutDate ?? null, b.retiredDate ?? null,
-        b.sex === "female" ? "female" : "male", b.careerRecord?.wins ?? null, b.careerRecord?.losses ?? null, b.careerRecord?.draws ?? null) as { id: number };
+        b.sex === "female" ? "female" : "male", b.careerRecord?.wins ?? null, b.careerRecord?.losses ?? null, b.careerRecord?.draws ?? null, b.careerRecord?.koWins ?? null, b.careerRecord?.stopped ?? null) as { id: number };
       bx.set(b.externalId, row.id);
     }
 
@@ -114,16 +115,16 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
     }
     const bo = new Map<string, number>();
     const insBo = db.prepare(`INSERT INTO bouts (external_id, event_id, red_id, blue_id, weight_class, rounds, winner_id, method, end_round, title, position,
-        round_time, kd_red, kd_blue, odds_red, odds_blue, contract_lb, title_org_id, title_vacant, status)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        round_time, kd_red, kd_blue, odds_red, odds_blue, contract_lb, title_org_id, title_vacant, status, vendor_scores)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
       ON CONFLICT(external_id) DO UPDATE SET title=excluded.title, winner_id=excluded.winner_id, method=excluded.method, end_round=excluded.end_round,
         round_time=excluded.round_time, kd_red=excluded.kd_red, kd_blue=excluded.kd_blue, odds_red=excluded.odds_red, odds_blue=excluded.odds_blue,
-        contract_lb=excluded.contract_lb, title_org_id=excluded.title_org_id, title_vacant=excluded.title_vacant, status=excluded.status RETURNING id`);
+        contract_lb=excluded.contract_lb, title_org_id=excluded.title_org_id, title_vacant=excluded.title_vacant, status=excluded.status, vendor_scores=COALESCE(excluded.vendor_scores, bouts.vendor_scores) RETURNING id`);
     for (const b of bouts) {
       bo.set(b.externalId, (insBo.get(b.externalId, ev.get(b.eventExternalId)!, bx.get(b.redExternalId)!, bx.get(b.blueExternalId)!, division(b.weightClass), b.rounds,
         b.winnerExternalId ? bx.get(b.winnerExternalId)! : null, b.method, b.endRound, b.title, b.position,
         b.roundTime ?? null, num(b.kdRed), num(b.kdBlue), num(b.oddsRed), num(b.oddsBlue), num(b.contractLb),
-        b.titleOrgExternalId ? og.get(b.titleOrgExternalId) ?? null : null, b.titleVacant === undefined ? null : b.titleVacant ? 1 : 0, b.status ?? null) as { id: number }).id);
+        b.titleOrgExternalId ? og.get(b.titleOrgExternalId) ?? null : null, b.titleVacant === undefined ? null : b.titleVacant ? 1 : 0, b.status ?? null, b.scores?.length ? JSON.stringify(b.scores) : null) as { id: number }).id);
     }
 
     // ----- detail rows: replaced per source / per bout so a re-ingest never duplicates, and other sources' rows survive -----

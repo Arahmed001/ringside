@@ -10,6 +10,18 @@ import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, Honour, Tit
 /** Punches over a whole bout, one entry per fighter (in the order the rows were stored; match by `boxers`). */
 export interface PunchTotals { boxers: number[]; landed: number[]; thrown: number[]; /** rounds with their own rows; 0 when the feed only has a whole-fight total */ rounds: number }
 
+/** The supplier's career knockouts and times stopped, when stored and no larger than the wins or losses they are part of. */
+function supplierTotals(r: Record<string, unknown>): { koWins?: number; stopped?: number } {
+  const ok = (x: unknown, of: unknown): x is number => typeof x === "number" && Number.isInteger(x) && x >= 0 && typeof of === "number" && x <= of;
+  return { ...(ok(r.vendor_ko_wins, r.vendor_wins) ? { koWins: r.vendor_ko_wins as number } : {}), ...(ok(r.vendor_stopped, r.vendor_losses) ? { stopped: r.vendor_stopped as number } : {}) };
+}
+
+/** The stored scores (a JSON list of "116-109" strings) back to a list; anything that is not that is none. */
+function parseScores(v: unknown): string[] | null {
+  if (typeof v !== "string") return null;
+  try { const a = JSON.parse(v); return Array.isArray(a) && a.every((x) => typeof x === "string") && a.length ? a : null; } catch { return null; }
+}
+
 export interface World {
   today: string;
   boxers: BoxerFull[];
@@ -98,7 +110,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
     country: r.country as string, birthYear: known(r.birth_year), stance: (r.stance as Boxer["stance"]) || null, sex: ((r.sex as string) === "female" ? "female" : "male"),
     heightCm: known(r.height_cm), reachCm: known(r.reach_cm), weightClass: r.weight_class as string,
     turnedPro: known(r.turned_pro), active: !!r.active, rating: r.rating as number,
-    vendorRecord: [r.vendor_wins, r.vendor_losses, r.vendor_draws].every((x) => typeof x === "number" && x >= 0) ? { wins: r.vendor_wins as number, losses: r.vendor_losses as number, draws: r.vendor_draws as number } : null,
+    vendorRecord: [r.vendor_wins, r.vendor_losses, r.vendor_draws].every((x) => typeof x === "number" && x >= 0) ? { wins: r.vendor_wins as number, losses: r.vendor_losses as number, draws: r.vendor_draws as number, ...supplierTotals(r) } : null,
     photoUrl: (r.photo_url as string) ?? null,
     photoCredit: r.photo_credit ? (JSON.parse(r.photo_credit as string) as Boxer["photoCredit"]) : null,
     birthDate: (r.birth_date as string) ?? null, birthPlace: (r.birth_place as string) ?? null, residence: (r.residence as string) ?? null,
@@ -132,7 +144,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
         weightClass: b.weight_class as string, rounds: b.rounds as number, winnerId: (b.winner_id as number) ?? null,
         method: (b.method as Method) ?? null, endRound: (b.end_round as number) ?? null,
         title: (b.title as string) ?? null, position: b.position as number,
-        roundTime: (b.round_time as string) ?? null, kdRed: (b.kd_red as number) ?? 0, kdBlue: (b.kd_blue as number) ?? 0,
+        vendorScores: parseScores(b.vendor_scores), roundTime: (b.round_time as string) ?? null, kdRed: (b.kd_red as number) ?? 0, kdBlue: (b.kd_blue as number) ?? 0,
         oddsRed: (b.odds_red as number) ?? null, oddsBlue: (b.odds_blue as number) ?? null, contractLb: (b.contract_lb as number) ?? null,
         titleOrgId: (b.title_org_id as number) ?? null, titleVacant: !!b.title_vacant,
       };
@@ -306,4 +318,4 @@ function buildWorld(db: DatabaseSync, key: string): World {
   return g.__world;
 }
 
-export { careerView, recordStr, type CareerView } from "./career";
+export { careerView, koView, recordStr, type CareerView, type KoView } from "./career";

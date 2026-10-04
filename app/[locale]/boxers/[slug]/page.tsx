@@ -7,7 +7,7 @@ import { CareerMoneyCard } from "@/components/Money";
 import { TitlesCard, NextFightCard } from "@/components/TitlesCard";
 import { BoxerRecords } from "@/components/Awards";
 import { notFound } from "next/navigation";
-import { careerView, getWorld, recordStr } from "@/lib/world";
+import { careerView, getWorld, koView, recordStr } from "@/lib/world";
 import { countrySlug } from "@/lib/countries";
 import { getDb } from "@/lib/db";
 import { isKnown, orDash, wikipediaUrl } from "@/lib/facts";
@@ -56,6 +56,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const b = w.bySlug.get(slug);
   if (!b) notFound();
   const career = careerView(b);
+  const ko = koView(b);
   const bouts = w.boutsByBoxer.get(b.id) ?? [];
   const done = bouts.filter((x) => !x.upcoming).slice().reverse(); // includes cancelled bouts, shown with a chip
   const completed = done.filter((x) => countsInRecord(x.method));
@@ -177,7 +178,7 @@ const HONOURS_SHOWN = 8;
           <div className="mt-2 text-muted">{flag(b.country)} <Link href={`/countries/${countrySlug(b.country)}`} className="hover:text-ink">{countryName(b.country, t.locale)}</Link>{[b.age !== null ? t("Age {age}", { age: b.age }) : null, b.stance ? t(b.stance) : null, b.turnedPro !== null ? t("Pro since {year}", { year: b.turnedPro }) : null].filter(Boolean).map((x) => ` · ${x}`).join("")}</div>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Stat label={t("Record")} value={recordStr(b)} sub={career.source === "supplier" ? t.n(career.total, "{n} fight in all", "{n} fights in all") : t.n(b.bouts, "{n} fight", "{n} fights")} />
-            <Stat label={t("Knockouts")} value={b.kos} sub={t("{p} of wins", { p: pct(b.koRate) })} />
+            <Stat label={t("Knockouts")} value={ko.kos} sub={t("{p} of wins", { p: pct(ko.rate) })} />
             <Stat label={t("Rating")} value={Math.round(b.rating)} sub={t("Elo-style")} />
             <Stat label={t("Reach")} value={orDash(b.reachCm, (n) => t("{n}cm", { n }))} sub={isKnown(b.heightCm) ? t("{h}cm tall · {limit}", { h: b.heightCm, limit: limitLabel(div, t) }) : limitLabel(div, t)} />
           </div>
@@ -192,7 +193,9 @@ const HONOURS_SHOWN = 8;
           )}
           {career.source === "supplier" && (
             <p className="mt-3 max-w-2xl text-xs leading-snug text-muted">
-              {t("The record is the career total from the data supplier. Ringside holds {held} of those {total} fights, so the fight list, knockouts, rating and rates on this page are built from those {held} only.", { held: career.held, total: career.total })}
+              {ko.source === "supplier"
+                ? t("The record and the knockouts are the career totals from the data supplier. Ringside holds {held} of those {total} fights, so the fight list, rating and rates on this page are built from those {held} only.", { held: career.held, total: career.total })
+                : t("The record is the career total from the data supplier. Ringside holds {held} of those {total} fights, so the fight list, knockouts, rating and rates on this page are built from those {held} only.", { held: career.held, total: career.total })}
             </p>
           )}
           {nextBlock}
@@ -237,6 +240,7 @@ const HONOURS_SHOWN = 8;
               [t("Also known as"), b.aliases.length ? b.aliases.map((x) => t.name(x)).join(", ") : null],
               [t("Pro debut"), b.debutDate ? fmtDate(b.debutDate, undefined, t.locale) : b.turnedPro !== null ? String(b.turnedPro) : null],
               [t("Retired"), b.retiredDate ? fmtDate(b.retiredDate, undefined, t.locale) : null],
+              [t("Times stopped"), ko.stopped !== null && (career.source === "loaded" || ko.source === "supplier") ? String(ko.stopped) : null], // a career held in part counts a stoppage only from the supplier's own total
               [t("Height / reach"), b.heightCm === null && b.reachCm === null ? null : `${orDash(b.heightCm, (n) => t("{n} cm", { n }))} / ${orDash(b.reachCm, (n) => t("{n} cm", { n }))}`],
             ] as [string, string | null][]).filter(([, v]) => v).map(([k, v]) => (
               <div key={k} className="flex justify-between gap-4"><dt className="text-muted">{k}</dt><dd className="text-end">{v}</dd></div>
