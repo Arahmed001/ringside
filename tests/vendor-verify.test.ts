@@ -1,7 +1,7 @@
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { miniFeed, providerOf, tempDb } from "./helpers";
-import { classifyRecord, describeReconciliation, reconcileDb, reconcileFeed, recordGate } from "../lib/vendor-verify";
+import { classifyRecord, describeConflictReport, describeReconciliation, explainConflicts, reconcileDb, reconcileFeed, recordGate } from "../lib/vendor-verify";
 import type { FeedData } from "../lib/feed";
 
 /**
@@ -111,4 +111,36 @@ test("the gate: a conflict always needs a deliberate override; too few complete 
   assert.equal(none.ok, false); assert.match(none.reasons[0], /no career records/);
   assert.equal(recordGate(bad(0, 0, 0, 0), { ...open, allowPartial: true }).ok, true);
   assert.equal(recordGate(bad(100, 50, 40, 10), open).reasons.length, 2, "both problems are reported");
+});
+
+// round 74: why a record is a conflict
+const ev = (id: string, date: string) => ({ externalId: id, date }) as unknown as FeedData["events"][number];
+const conflictFeed = (): FeedData => ({ ...miniFeed(), boxers: ["A", "B", "C", "D", "E", "F"].map(boxer),
+  events: [ev("E1", "2020-01-01"), ev("E2", "2020-01-20"), ev("E3", "2020-06-01"), ev("E4", "2026-09-30"), ev("E5", "2026-09-30")],
+  bouts: [
+    bout("d1", "A", "B", { eventExternalId: "E1", winnerExternalId: null, method: "DRAW" }),   // A and B draw: the vendor says A has no draws
+    bout("r1", "C", "D", { eventExternalId: "E1" }), bout("r2", "C", "D", { eventExternalId: "E2" }), // C beats D twice within 30 days
+    bout("s1", "E", "D", { eventExternalId: "E4" }), bout("s2", "E", "F", { eventExternalId: "E5" }),   // E fights twice on one day
+  ] });
+const vendorOf = new Map([["A", rec(18, 0, 0)], ["B", rec(0, 0, 1)], ["C", rec(1, 0, 0)], ["D", rec(5, 1, 0)], ["E", rec(1, 0, 0)], ["F", rec(0, 1, 0)]]);
+
+test("a conflict is explained from the fights: a draw the vendor lacks, a fight listed twice, two fights on one day, a total that trails the last days", () => {
+  const r = explainConflicts(conflictFeed(), vendorOf, "2026-10-04");
+  const by = (id: string) => r.fighters.find((f) => f.externalId === id)!;
+  assert.deepEqual(by("A").causes, ["draw"], "0-0-1 against 18-0-0");
+  assert.ok(!r.fighters.some((f) => f.externalId === "B"), "B's draw is the vendor's own");
+  assert.ok(by("C").causes.includes("repeat")); assert.ok(!by("C").causes.includes("wins"), "a repeat is the reason, not a wrong winner");
+  assert.ok(by("D").causes.includes("repeat"), "and so is the other side of the same repeated fight");
+  assert.deepEqual(by("E").causes.sort(), ["recent", "same-day"].sort(), "two wins on 2026-09-30 against a total of one: the last days explain it, and so does the same date");
+  assert.equal(r.tally.draw, 1); assert.equal(r.tally.unexplained, 0);
+  const wrong = explainConflicts({ ...conflictFeed(), bouts: [bout("w1", "C", "D", { eventExternalId: "E1" }), bout("w2", "C", "F", { eventExternalId: "E3" })] }, new Map([["C", rec(1, 0, 0)], ["D", rec(0, 1, 0)], ["F", rec(0, 1, 0)]]), "2026-10-04");
+  assert.deepEqual(wrong.fighters.map((f) => [f.name, f.causes]), [["Fighter C", ["wins"]]], "an extra win with nothing to blame is named as such");
+});
+
+test("the report prints the tally, and the fights behind the first N conflicts only when asked", () => {
+  const r = explainConflicts(conflictFeed(), vendorOf, "2026-10-04");
+  const tally = describeConflictReport(r).join("\n");
+  assert.match(tally, /why the \d+ conflict/); assert.match(tally, /more draws loaded than the vendor counts/); assert.doesNotMatch(tally, /d1\)/);
+  assert.match(describeConflictReport(r, 1).join("\n"), /Fighter A: loaded 0-0-1, vendor 18-0-0: draw\n\s+2020-01-01  D  DRAW\s+vs Fighter B  \(d1\)/);
+  assert.deepEqual(describeConflictReport(explainConflicts({ ...miniFeed(), boxers: [boxer("A")], bouts: [] }, new Map(), "2026-10-04")), [], "nothing to say when there is no conflict");
 });

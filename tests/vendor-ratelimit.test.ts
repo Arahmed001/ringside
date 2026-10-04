@@ -28,6 +28,8 @@ function rig(o: MockOptions, extra: Record<string, unknown> = {}) {
   });
   return { v, make, waits, logs, clock: () => now };
 }
+/** the pauses that are waits for a refusal, without the 9 s spacing a run adopts after its first refusal when it was given no --per-hour (round 75) */
+const refusalWaits = (waits: number[]) => waits.filter((w) => w !== HOUR / 400);
 const loadAll = async (p: ReturnType<ReturnType<typeof rig>["make"]>) => { const [boxers, events, bouts] = await Promise.all([p.fetchBoxers(), p.fetchEvents(), p.fetchBouts()]); return { boxers, events, bouts }; };
 const unlimited = async () => { const r = rig({}); const out = await loadAll(r.make()); return { out, requests: r.v.stats.requests }; };
 
@@ -48,7 +50,7 @@ test("with patience the run waits the limit out and finishes: every fight and fi
   assert.deepEqual(got.bouts.map((b) => b.externalId).sort(), base.out.bouts.map((b) => b.externalId).sort());
   assert.ok(r.v.stats.refused > 0, "the limit really was hit");
   assert.equal(r.v.stats.requests, base.requests, "the vendor served exactly as many requests as an unlimited run: nothing was fetched twice");
-  assert.ok(r.waits.length > 0 && r.waits.every((w) => w >= 60_000 && w <= 600_000), `waits of one to ten minutes (${r.waits.join(", ")})`);
+  assert.ok(refusalWaits(r.waits).length > 0 && refusalWaits(r.waits).every((w) => w >= 60_000 && w <= 600_000), `waits of one to ten minutes (${r.waits.join(", ")})`);
   assert.ok(r.logs.some((l) => /rate limit .*waiting .* minute\(s\), then carrying on/.test(l)), "it says what it is doing");
   assert.ok(r.logs.some((l) => /rate limit per hour/.test(l)), "and the vendor's words are in it");
 });
@@ -56,7 +58,7 @@ test("with patience the run waits the limit out and finishes: every fight and fi
 test("the waits grow: a minute, two, five, then ten at a time", async () => {
   const r = rig({ hourlyLimit: 3 }, { patienceMs: 6 * HOUR });
   await loadAll(r.make());
-  const first = r.waits.slice(0, 5);
+  const first = refusalWaits(r.waits).slice(0, 5);
   assert.deepEqual(first, [60_000, 120_000, 300_000, 600_000, 600_000]);
 });
 

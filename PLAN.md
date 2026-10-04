@@ -1184,7 +1184,7 @@ The counting facts a fan quotes about a fighter were not on the page: how many r
 - Checked on screen at 390 and 1440 px in English and Arabic.
 - Tests: `tests/by-the-numbers.test.ts` (the counts; what is not counted; unknown is null not a guess; the thresholds; an unknown event), four mutations (a technical decision as the distance, a loss as a quick win, a missing round guessed as 0, no layoff floor) each failing it.
 
-## 124. Division names a real feed writes, and the fights they used to drop (round 64, 2026-10-04)
+## 127. Division names a real feed writes, and the fights they used to drop (round 64, 2026-10-04)
 Two ways a real feed could lose real fights, found by reading how division names are matched.
 - A fight whose division the feed names as something Ringside has no division for ("Catchweight", "Open weight") was rejected by the validator, so both fighters lost a real result from their record, form and rating. `placeBouts` (`lib/providers/boxing-data-api.ts`) now gives such a fight the division of its fighters (the heavier, when the two differ) and counts it (`boutDivisionFromFighters`, shown by the backfill with the other notes). Only a fight where neither fighter has a division stays unplaced.
 - `normalizeDivision` (`lib/divisions.ts`) read "Over 200 lbs" as cruiserweight (it saw 200); that is the heavyweight limit and now reads as heavyweight (a plain "200 lbs" is still cruiserweight). A "Women's" or "Female" prefix and a limit in brackets ("Super Light (140)", "Heavyweight (200+)") are ignored, where before each made the division unrecognised and dropped the fighter.
@@ -1226,7 +1226,7 @@ The thing round 70 said to measure next, measured in the browser: **the chip "20
 ## 120. The other orders: lowest rating, lowest knockout rate, best record, most losses, draws and times stopped (round 72, 2026-10-04)
 Twenty "who has the most / lowest / best" questions put to the live Ask page. Wrong in a way that looks right: **"lowest rated heavyweight" was the highest rated** (only the descending orders existed); "lowest knockout rate among fighters with 10 wins" and "best record among fighters with 20 fights" were sorted **by rating**; "who has the most losses", "most draws", "fighter with the most draws" and "who has been stopped the most" had **no answer** or were sorted by rating; "who has fought the most rounds" was **the most fights**; "most knockouts in a single year" was **the all-time knockout list**. The fighter search now has six more orders (`sort`: `lowRating`, `lowKoRate`, `winRate`, `losses`, `draws`, `stopped`; the sort chips, the answer's "by …" and the tool's arguments name them in both languages, 6 Arabic strings): "lowest rated / lowest rating / lowest Elo", "lowest knockout rate" (a fighter with no wins has no rate and goes last), "best record / best win rate / highest winning percentage", "most losses / defeats", "most draws / drawn the most", "most knockout losses / most losses by knockout / stopped the most / most times knocked out". The record lists keep their own questions ("who has the most wins", "the highest knockout rate"). Rounds fought (most, fewest, total), and "in a single year", "in a year", "per year" with a superlative, are no answer (no tool counts either). Round 53's expectation that "the most draws" has no answer is changed: it is now this order. Checked: types, lint, 837 tests (836 pass, 1 skipped as before; 3 new in `tests/ask-sort-more.test.ts`, each order checked against the league's own numbers), the Ask battery and all ten sentence groups 100%, build, smoke on all five feeds; 21 deliberate mutations over three runs, all killed in the end (the first tests missed the "rating / Elo" wording, "win rate", the plural of "rounds" and "per year"). Not done: "worst record" and "worst fighter" have no answer (the meaning is not one order); "who is the heaviest" (no weights in the data); the fastest or longest of anything except knockouts.
 
-## 123. Importer hygiene and three ways to choose the N fighters (round 73, 2026-10-04)
+## 124. Importer hygiene and three ways to choose the N fighters (round 73, 2026-10-04)
 
 From the first real fetch (5,000 fighters: 1,189 validator errors, 219 conflicts, 3.6% of records adding up): the errors were partly the importer's own doing, and keeping the N most recent left most records short.
 
@@ -1235,4 +1235,23 @@ From the first real fetch (5,000 fighters: 1,189 validator errors, 219 conflicts
 - Writing the test found a real bug: `opponents` chained, adding opponents of opponents depending on the order of the fights, because the set it tested against grew while it looped.
 - Tests: `tests/vendor-selection-modes.test.ts` (modes, plan block, end to end on the mock vendor: complete records, no conflicts, never more than N), hygiene test in `tests/boxing-data-api.test.ts`; four mutations killed.
 - Not shown: how the user's real data behaves. That needs their `--check` with the new flags (their key and cache), not run here.
+
+## 125. Why a record conflicts, and draws the vendor never recorded (round 74, 2026-10-04)
+
+The first real load was refused for 219 conflicts ("loaded 0-0-1, vendor 18-0-0"). The importer turned every finished decision with no winner into a draw; the feed also leaves the winner out of fights it has not settled, so draws appeared that the vendor never recorded.
+
+- **Draw fix** (`demoteUnsupportedDraws`, run at the end of `load()`): a drawn fight is kept only if each fighter's career record has a draw to spare, counted fight by fight; otherwise it becomes "no result yet" (`drawDemoted`). A fighter with no career record cannot be checked and keeps the draw. Which of two draws is kept for a fighter with room for one is arbitrary.
+- **Explainer** (`explainConflicts`, `describeConflictReport` in `lib/vendor-verify.ts`): for every conflict, the cause read from the fights themselves: `draw`, `repeat` (same pair twice within 30 days), `same-day`, `recent` (the surplus goes away without the last 14 days), else `wins`/`losses`, else `unexplained`. `--check` always prints the tally when there are conflicts; `--explain-conflicts [--show N]` adds the fights behind the first N fighters.
+- Not shown: whether the draw guess accounts for most of the user's 219; that needs their `--check --explain-conflicts` on their cache. Conflicts that are not draws (e.g. a loaded win the vendor lacks) are not fixed, only explained.
+- Tests: `tests/vendor-verify.test.ts` (causes, report), `tests/boxing-data-api.test.ts` (unit and through a real load); six mutations killed.
+
+## 126. Fetch pacing when no --per-hour is given (round 75, 2026-10-04)
+
+The user's full fetch (30,000 fighters uncached) ran without `--per-hour`, sent about 200 fighters in two minutes and was refused by the Mega plan's hourly limit; the progress line then promised "4110 min to go".
+
+- A run that was given no `--per-hour` adopts 400 an hour after the first rate-limit refusal (`autoPerHour`, `pacing()`), and says so. A run with `--per-hour` keeps its own.
+- Before the fighters are fetched the run counts those not in the cache and says so, with a warning when there are more than 300 and no `--per-hour`.
+- The progress line says how many are left to fetch, and estimates from the last 100 (waits included, never faster than the pace set) instead of from the whole run.
+- One existing test asserted that the only sleep after a 429 was the Retry-After; the requests after a refusal are now paced, so it asserts the first sleep.
+- Tests: two in `tests/boxing-data-api.test.ts`; three mutations killed (a fourth did not apply and was redone: killed).
 

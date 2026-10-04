@@ -569,7 +569,7 @@ test("retries wait out Retry-After or back off 1, 2, 4 ... seconds (capped at 30
 
   let m = flaky([429, 200], { "retry-after": "2" });
   let p = make(m); await p.fetchBouts();
-  assert.deepEqual(sleeps.splice(0), [2000], "Retry-After is obeyed"); assert.equal(countCalls(m.calls, "/v2/fights"), 2);
+  assert.equal(sleeps.splice(0)[0], 2000, "Retry-After is obeyed (the requests after a refusal are then paced: round 75)"); assert.equal(countCalls(m.calls, "/v2/fights"), 2);
 
   m = flaky([503, 502, 200]); p = make(m); await p.fetchBouts();
   assert.deepEqual(sleeps.splice(0), [1000, 2000], "no Retry-After: 1 s, then 2 s");
@@ -642,4 +642,71 @@ test("importer hygiene (round 73): a fighter against himself is skipped, a knock
   assert.equal(long.rounds, 12); assert.equal(long.endRound, 12); assert.equal(n.roundsRaisedToEnd, 1);
   const fine = B.mapFight(fight("h5", "A", "B", { scheduled_rounds: 10, results: { outcome: "KO", round: 7 } }), n)!.bout;
   assert.equal(fine.rounds, 10); assert.equal(n.roundsRaisedToEnd, 1, "a stoppage inside the schedule is untouched");
+});
+
+test("a drawn fight is kept only where each fighter's career record has room for a draw; one the vendor never recorded becomes 'no result yet' (round 74)", () => {
+  const n = notes();
+  const d = (id: string, a: string, b: string) => B.mapFight(fight(id, a, b, { fighters: { fighter_1: side(a, false), fighter_2: side(b, false) }, results: { outcome: "SD", round: null } }), n)!.bout;
+  const bouts = [d("d1", "A", "B"), d("d2", "C", "D"), d("d3", "A", "E"), d("d4", "F", "G")];
+  const vendor = new Map([["bda-f-A", { wins: 5, losses: 0, draws: 1 }], ["bda-f-B", { wins: 0, losses: 0, draws: 2 }], ["bda-f-C", { wins: 18, losses: 0, draws: 0 }], ["bda-f-D", { wins: 1, losses: 0, draws: 1 }], ["bda-f-E", { wins: 0, losses: 0, draws: 3 }]]);
+  const out = B.demoteUnsupportedDraws(bouts, vendor, n);
+  assert.deepEqual(out.map((b) => b.method), ["DRAW", null, null, "DRAW"], "C has no draws (demoted); A's one draw is used up by the first; F and G have no record, so the draw stays");
+  assert.equal(out[1].endRound, null); assert.equal(out[1].scores, undefined); assert.equal(n.drawDemoted, 2);
+});
+
+test("through a real load: a decision with no winner is a draw only if the vendor's totals have room for it (round 74)", async () => {
+  const noWinner = { fighter_1: side("A1", false), fighter_2: side("B1", false) };
+  const both: Record<string, B.ApiFighter> = {
+    A1: fighter("A1", "Alpha One", { stats: { wins: 18, losses: 0, draws: 0, total_bouts: 18 } }),
+    B1: fighter("B1", "Bravo One", { stats: { wins: 3, losses: 1, draws: 1, total_bouts: 5 } }),
+    C1: fighter("C1", "Charlie One", { stats: { wins: 2, losses: 0, draws: 1, total_bouts: 3 } }),
+  };
+  const fights = [fight("1", "A1", "B1", { fighters: noWinner, results: { outcome: "SD", round: null } }), fight("2", "B1", "C1", { fighters: { fighter_1: side("B1", false), fighter_2: side("C1", false) }, results: { outcome: "MD", round: null }, date: "2025-03-01T20:00:00Z", event: { id: "ev-2", title: "Spring", date: "2025-03-01T20:00:00Z", location: "London, United Kingdom", venue: "O2" } })];
+  const { impl } = mockFetch((path) => path === "/v2/fights/" ? { body: env(fights) } : path === "/v2/fights/schedule" ? { body: env([]) } : { body: env(both[path.split("/").pop()!]) });
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0 });
+  const bouts = await p.fetchBouts();
+  const by = Object.fromEntries(bouts.map((b) => [b.externalId, b.method]));
+  assert.deepEqual([by["bda-b-1"], by["bda-b-2"]], [null, "DRAW"], "Alpha has no draws (his fight with Bravo is not a draw); Bravo and Charlie each have one");
+  assert.equal(p.notes().drawDemoted, 1); assert.equal(p.notes().drawInferred, 2);
+});
+
+test("a run given no --per-hour slows itself after the first rate-limit refusal; one given --per-hour is paced from the start; the run says so (round 75)", async () => {
+  const fighters = ["A1", "B1", "C1", "D1"];
+  const run = async (extra: Partial<Parameters<typeof B.boxingDataApiProvider>[0]>) => {
+    let refused = false;
+    const sleeps: number[] = [], lines: string[] = [];
+    const { impl } = mockFetch((path) => {
+      if (path === "/v2/fights/") return { body: env(fighters.slice(1).map((f, i) => fight(`f${i}`, fighters[i], f))) };
+      if (path === "/v2/fights/schedule") return { body: env([]) };
+      if (path === "/v2/fighters/C1" && !refused) { refused = true; return { status: 429, body: { message: "You have exceeded the rate limit per hour for your plan, MEGA, by the API provider" } }; }
+      return { body: env(fighter(path.split("/").pop()!, `F ${path.split("/").pop()}`)) };
+    });
+    const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0, sleep: async (ms) => { sleeps.push(ms); }, log: (m) => lines.push(m), patienceMs: 3_600_000, ...extra });
+    await p.fetchBoxers();
+    return { sleeps, lines };
+  };
+  const auto = await run({});
+  assert.ok(auto.lines.some((l) => /no --per-hour was given, so from now on .* 400 requests an hour/.test(l)), auto.lines.join("\n"));
+  assert.ok(auto.sleeps.filter((ms) => ms === 9000).length >= 1, `after the refusal each request waits 9 s (400 an hour): ${auto.sleeps}`);
+  const given = await run({ perHour: 450 });
+  assert.ok(!given.lines.some((l) => /no --per-hour was given, so from now on/.test(l)), "a run with its own pace keeps it");
+  assert.ok(given.sleeps.includes(8000), `450 an hour is 8 s apart: ${given.sleeps}`);
+});
+
+test("before fetching, the run says how many fighters are not cached, and warns when that is a burst with no --per-hour (round 75)", async () => {
+  const many = Array.from({ length: 320 }, (_, i) => `X${i}`);
+  const lines: string[] = [];
+  const dir = await tmp("burst");
+  const { impl } = mockFetch((path) => {
+    if (path === "/v2/fights/") return { body: env(many.slice(1).map((f, i) => fight(`g${i}`, many[i], f))) };
+    if (path === "/v2/fights/schedule") return { body: env([]) };
+    return { body: env(fighter(path.split("/").pop()!, "F")) };
+  });
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0, cacheDir: dir, log: (m) => lines.push(m), maxFights: 400, maxRequests: 10_000 });
+  await p.fetchBoxers();
+  assert.ok(lines.some((l) => /^320 fighters are not in the cache and no --per-hour was given/.test(l)), lines.join("\n"));
+  lines.length = 0;
+  const q = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0, cacheDir: dir, log: (m) => lines.push(m), maxFights: 400, maxRequests: 10_000, perHour: 450 });
+  await q.fetchBoxers();
+  assert.ok(!lines.some((l) => /not in the cache/.test(l)) && !lines.some((l) => /^\d+ fighters to fetch/.test(l)), lines.join("\n"));
 });

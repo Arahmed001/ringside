@@ -96,12 +96,12 @@ export const divisionOf = (raw: string): string | null => normalizeDivision(raw)
 
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
-  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "stoppageWithoutWinner" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
+  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
   | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, stoppageWithoutWinner: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
+  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, windowTooBig: 0,
 });
 
@@ -275,6 +275,27 @@ export function finishBoxers(rows: Loose[], bouts: ProviderBout[], eventDates: M
 
 // ---- the client ----
 const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * 86400000).toISOString().slice(0, 10);
+/**
+ * A decision with no winner is taken as a draw by `mapFight`, but the feed also leaves the winner out of fights it has not settled (a result not yet posted,
+ * a no contest): a draw the vendor never recorded then shows up as a conflict ("loaded 0-0-1, vendor 18-0-0"). So a drawn fight is kept only where each fighter's
+ * career record has room for it: the vendor's draws, counted fight by fight, never exceeded. A fighter with no career record cannot be checked, and keeps the
+ * draw. A demoted fight is "no result yet", as a decision with no outcome at all already is, and is counted as `drawDemoted`.
+ */
+export function demoteUnsupportedDraws(bouts: ProviderBout[], vendor: Map<string, CareerRecord>, notes: Notes): ProviderBout[] {
+  const used = new Map<string, number>();
+  const room = (id: string) => { const v = vendor.get(id); return !v || (used.get(id) ?? 0) < v.draws; };
+  return bouts.map((b) => {
+    if (b.method !== "DRAW") return b;
+    if (!room(b.redExternalId) || !room(b.blueExternalId)) {
+      notes.drawDemoted++;
+      const { scores: _scores, ...rest } = b; void _scores;
+      return { ...rest, method: null, endRound: null };
+    }
+    for (const id of [b.redExternalId, b.blueExternalId]) used.set(id, (used.get(id) ?? 0) + 1);
+    return b;
+  });
+}
+
 export class BudgetError extends Error {}
 
 /**
@@ -365,6 +386,8 @@ export interface BoxingDataApiProvider extends DataProvider {
   plan(): Promise<BackfillPlan>;
 }
 
+/** the pace a run adopts after a rate-limit refusal when it was given no `perHour`: under the Mega plan's 500 an hour, with room for what else was asked in the same hour */
+const AUTO_PER_HOUR = 400;
 const backoff = (attempt: number) => Math.min(30_000, 1000 * 2 ** attempt);
 /** how long to wait after the 1st, 2nd, 3rd ... rate-limit refusal of one request when the gateway names no time (the last step repeats) */
 const RATE_STEPS_MS = [60_000, 120_000, 300_000, 600_000];
@@ -407,6 +430,8 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
   let used = 0, hits = 0, downloaded = 0, notes = emptyNotes(), cache: Promise<{ boxers: ProviderBoxer[]; events: ProviderEvent[]; bouts: ProviderBout[] }> | null = null;
   let listed: Promise<{ events: Map<string, ProviderEvent>; bouts: ProviderBout[]; ids: Set<string> }> | null = null;
   const careers = new Map<string, CareerRecord>();
+  /** set by the first rate-limit refusal of a run that was given no `perHour`: the run paces itself from then on (see AUTO_PER_HOUR) */
+  let autoPerHour: number | undefined;
 
   /** The vendor's own reason for a refusal ("not subscribed", "invalid key", "endpoint not on your plan"), with the key scrubbed out. */
   async function explain(res: Response): Promise<string> {
@@ -430,14 +455,17 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     fs.renameSync(tmp, file); // a crash mid-write leaves no half file for the next run to trust
   };
 
+  /** the gap between requests: the larger of `gapMs` and what `perHour` (or the pace a rate-limit refusal made the run adopt) asks for */
+  const pacing = () => { const per = o.perHour && o.perHour > 0 ? o.perHour : autoPerHour; return Math.max(o.gapMs ?? 0, per ? Math.ceil(3_600_000 / per) : 0); };
+
   async function get<T>(p: string, params: Record<string, string | number | undefined> = {}): Promise<Envelope<T>> {
     const file = o.cacheDir ? cacheFile(p, params) : undefined;
     if (file && !o.refresh && !(o.refreshLists && p.startsWith("/v2/fights"))) { const hit = fromCache<T>(file); if (hit) { hits++; return hit; } }
     const qs = Object.entries(params).filter(([, v]) => v !== undefined).map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
     const attempts = 1 + (o.retries ?? 0);
-    const spacing = Math.max(o.gapMs ?? 0, o.perHour && o.perHour > 0 ? Math.ceil(3_600_000 / o.perHour) : 0);
     let rateWaits = 0, waited = 0;
     for (let attempt = 0; ; attempt++) {
+      const spacing = pacing();
       if (used >= max) throw new BudgetError(`Stopped after ${used} requests (limit ${max}; raise BOXING_API_MAX_REQUESTS only if your plan allows it).`);
       used++;
       if (used > 1 && spacing) await sleep(spacing);
@@ -452,6 +480,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
         const after = Number(res.headers.get("retry-after"));
         // an allowance that is used up (monthly, daily): no wait helps, so say so now, in the vendor's words
         if (QUOTA_USED.test(said)) throw new HttpError(`Boxing Data API quota used up on ${p}: ${said}. Waiting will not help: check the plan and the key's app in the RapidAPI dashboard.`, 429);
+        if (!(o.perHour && o.perHour > 0) && !autoPerHour) { autoPerHour = AUTO_PER_HOUR; log(`the plan refused: no --per-hour was given, so from now on this run sends at most ${AUTO_PER_HOUR} requests an hour (one every ${Math.ceil(3_600_000 / AUTO_PER_HOUR / 1000)} s). Give --per-hour N yourself to choose the pace from the start.`); }
         if ((o.patienceMs ?? 0) > 0) {
           const wait = Number.isFinite(after) && after > 0 ? Math.min(after, 3600) * 1000 : RATE_STEPS_MS[Math.min(rateWaits, RATE_STEPS_MS.length - 1)];
           if (waited + wait > o.patienceMs!) throw new HttpError(`Boxing Data API rate limit on ${p} still in force after waiting ${Math.round(waited / 60000)} minute(s): ${said}. Run the same command again later: everything fetched so far is cached. (--per-hour spaces the requests under the limit instead.)`, 429);
@@ -586,6 +615,11 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     const rows: Loose[] = [];
     let n = 0, cachedFighters = 0;
     const started = Date.now();
+    // what is not in the cache yet is what costs requests: say so before spending them, and what pace they will be sent at
+    const toFetch = o.cacheDir && !o.refresh ? chosen.filter((id) => !fs.existsSync(cacheFile(`/v2/fighters/${id}`, {}))).length : chosen.length;
+    if (toFetch > 300 && !(o.perHour && o.perHour > 0)) log(`${toFetch} fighters are not in the cache and no --per-hour was given: a plan with an hourly limit (Mega: 500) refuses a burst. Use --per-hour 400 to pace the run from the start; without it the first refusal makes the run slow itself to 400 an hour.`);
+    else if (toFetch > 0) log(`${toFetch} fighters to fetch${o.perHour ? `, about ${Math.ceil((toFetch * 3600) / o.perHour)} minute(s) at ${o.perHour} an hour` : ""}`);
+    let windowAt = started, windowFetched = 0;
     for (const id of chosen) {
       const before = hits;
       try {
@@ -600,8 +634,11 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
       } catch (e) { if (e instanceof BudgetError || (e instanceof HttpError && e.status === 429)) throw e; /* a plan that refuses (a limit, a quota) refuses the next fighter too: stop, do not skip a thousand */ log(`fighter ${id} skipped: ${e instanceof Error ? e.message : e}`); }
       if (hits > before) cachedFighters++;
       if (++n % 100 === 0) {
-        const perRequest = (Date.now() - started) / Math.max(1, n - cachedFighters); // cached fighters cost nothing, so time per fighter actually fetched
-        log(`fighters: ${n} of ${chosen.length}${cachedFighters ? ` (${cachedFighters} from the cache)` : ""}, at most ${Math.ceil(((chosen.length - n) * perRequest) / 60000)} min to go`);
+        const fetched = n - cachedFighters, now = Date.now();
+        const perRequest = Math.max(pacing(), (now - windowAt) / Math.max(1, fetched - windowFetched)); // the rate of the last 100, waits included, never faster than the pace set
+        windowAt = now; windowFetched = fetched;
+        const left = Math.max(0, toFetch - fetched);
+        log(`fighters: ${n} of ${chosen.length}${cachedFighters ? ` (${cachedFighters} from the cache)` : ""}${left ? `, ${left} to fetch, at most ${Math.ceil((left * perRequest) / 60000)} min to go` : ""}`);
       }
     }
     const have = new Set(rows.map((r) => r.externalId));
@@ -617,7 +654,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     notes.fightersDroppedNoDivision += finished.length - placed.length;
     const placedIds = new Set(placed.map((r) => r.externalId));
     const kept = placeBouts(keep.filter((b) => { const ok = placedIds.has(b.redExternalId) && placedIds.has(b.blueExternalId); if (!ok) notes.boutsDroppedNoDivision++; return ok; }), placed, notes);
-    return { boxers: placed, events: [...events.values()], bouts: kept };
+    return { boxers: placed, events: [...events.values()], bouts: demoteUnsupportedDraws(kept, careers, notes) };
   }
   const once = () => (cache ??= load());
   /** The official lists: 17 requests (one page per division, the pages being the same four bodies each), cached like every other page (so a stopped load resumes, and a reload asks for nothing; the daily `--update` refreshes everything), and never fatal: a plan without them just has none. */

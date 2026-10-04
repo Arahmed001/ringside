@@ -33,7 +33,7 @@ Look at the printed list of approximations and the validator's findings, then op
 | `page_size` up to 100 is allowed | `pageSize` | A 400 or a short page; set a smaller `pageSize` |
 | ~~`location` looks like "City, Region, Country"~~ | `parseLocation` | **Wrong; the real format is "City, Region"** (see above); handled |
 | Event `date` is a UTC instant, so an evening card in the Americas can land on the next calendar day | `mapFight` | Wrong event dates by a day. This matters: the live ledger grades on the last snapshot strictly before the event date. If the feed has a venue time zone or a local date, use it |
-| A drawn decision is `outcome: UD/MD/SD/PTS` with no winner | `mapFight` | A genuine draw is stored as "no result yet", or a fight with a missing winner is stored as a draw. `drawInferred` and `resultMissing` count both |
+| A drawn decision is `outcome: UD/MD/SD/PTS` with no winner | `mapFight` | A genuine draw is stored as "no result yet", or a fight with a missing winner is stored as a draw. `drawInferred` and `resultMissing` count both. Since round 74 a drawn fight is kept only if both fighters' career records have a draw to spare (`drawDemoted` counts those turned into "no result yet") |
 | Outcomes beyond `UD/MD/SD/TKO/KO/PTS` (DQ, RTD, no contest, technical decision) exist in the data | `mapFight` | They become "no result yet". Look for them in the sample and extend the mapping |
 | `fighter_1` is the red corner | `mapFight` | The feed has no corner colours; the choice only affects which side is labelled red, and a 50% call counts as red |
 | `/v2/fights/` also returns future fights, or only `/schedule` does | `load()` | Handled either way (deduplicated by id), but check upcoming fights actually arrive |

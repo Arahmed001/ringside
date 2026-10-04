@@ -13,6 +13,7 @@
  *          --fighters N (take only the N most recently active fighters, coming fights counting: the fights between two of them are loaded; run again with a bigger N, or none, for the rest: what is fetched is cached)
  *          --with-opponents | --whole-groups (with --fighters N: also fetch every opponent of the N, so each of the N has all his fights; or take whole groups of fighters, newest group first, while they fit in N, so nobody in them has a fight outside: `--plan` prints what each would ask for)
  *          --complete-only (load only the fighters whose records add up exactly to the vendor's career totals, and whose opponents' do: a smaller league in which no record is short)
+ *          --explain-conflicts (with --check: list the fights behind the first --show 10 conflicts; the tally of causes is always printed)
  *          --allow-incomplete (load even though some fighters could not be fetched)  --allow-errors (load even though the validator found errors)
  *          --min-complete 0.9 (the share of fighters whose loaded fights must add up to the vendor's career record)  --allow-partial  --allow-conflicts
  *          --into-existing (the database already holds other fighters: load alongside them)  --no-backup
@@ -28,7 +29,7 @@ import type { DataProvider } from "../lib/providers";
 import { countBySeverity, groupIssues, sanitizeFeed } from "../lib/validate";
 import { todayIso } from "../lib/clock";
 import { acquireBackfillLock, describePlan, foreignFighters, releaseBackfillLock, updateSince } from "../lib/vendor-backfill";
-import { coherentCore, describeReconciliation, reconcileDb, reconcileFeed, recordGate, restrictFeed } from "../lib/vendor-verify";
+import { coherentCore, describeConflictReport, describeReconciliation, explainConflicts, reconcileDb, reconcileFeed, recordGate, restrictFeed } from "../lib/vendor-verify";
 
 /** how many days the vendor's career totals may trail a result before a surplus counts as a contradiction (daily update audit only; a load is strict) */
 const LAG_DAYS = Number(process.env.VENDOR_LAG_DAYS ?? 7);
@@ -122,6 +123,7 @@ async function main() {
   if (!update) {
     const rec = reconcileFeed(raw, provider.vendorRecords());
     for (const line of describeReconciliation(rec)) console.log(line);
+    if (rec.conflict) for (const line of describeConflictReport(explainConflicts(raw, provider.vendorRecords(), todayIso()), flag("explain-conflicts") ? Number(arg("show") ?? 10) : 0)) console.log(line);
     gate = recordGate(rec, gateOpts);
   }
   if (check) {
