@@ -3,6 +3,7 @@ import path from "node:path";
 import { ImageResponse } from "next/og";
 import type { Locale } from "./i18n/config";
 import { tEn, type T } from "./i18n/t";
+import { arabicForCard } from "./arabic-card";
 
 export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_TYPE = "image/png";
@@ -36,9 +37,10 @@ export function ogCard({ locale, t = tEn, kicker, title, subtitle, stats = [], a
   const face = ar ? "Tajawal" : "Barlow";
   const color = ACCENT[accent];
   const size = title.length > 26 ? 84 : title.length > 16 ? 104 : 128;
-  // The renderer does not reorder Arabic words, so right-to-left text is laid out word by word from the right (row-reverse) and wraps from the right.
+  // The renderer does not reorder Arabic words, so right-to-left text is laid out word by word from the right (row-reverse) and wraps from the right;
+  // each word goes through arabicForCard so it is measured as wide as it is drawn (no blank gaps, no early wrapping).
   const text = (txt: string, style: Record<string, string | number>) => ar
-    ? <div style={{ display: "flex", flexDirection: "row-reverse", flexWrap: "wrap", columnGap: "0.28em", ...style }}>{txt.split(" ").filter(Boolean).map((x, i) => <span key={i} style={{ display: "flex" }}>{x}</span>)}</div>
+    ? <div style={{ display: "flex", flexDirection: "row-reverse", flexWrap: "wrap", columnGap: "0.28em", ...style }}>{txt.split(" ").filter(Boolean).map((x, i) => <span key={i} style={{ display: "flex" }}>{arabicForCard(x)}</span>)}</div>
     : <div style={{ display: "flex", flexWrap: "wrap", ...style }}>{txt}</div>;
   return new ImageResponse(
     (
