@@ -57,7 +57,7 @@ export function StyleMap({ points, styles, divisions }: { points: MapPoint[]; st
             </Link>
           ))}
         </svg>
-        <div className="pointer-events-none absolute start-4 top-4 min-h-14 rounded-xl border border-line bg-bg/85 px-3 py-2 text-sm backdrop-blur" style={{ opacity: hover ? 1 : 0.6 }}>
+        <div className="pointer-events-none absolute start-4 top-4 min-h-14 rounded-xl [@media(hover:none)]:hidden border border-line bg-bg/85 px-3 py-2 text-sm backdrop-blur" style={{ opacity: hover ? 1 : 0.6 }}>
           {hover ? <><div className="font-display text-lg font-bold leading-tight">{hover[1]}</div><div className="text-xs text-muted">{t("{style} · {division} · {record}", { style: t(styles[hover[4]].label), division: t(divisions[hover[6]]), record: hover[5] })}</div></> : <div className="text-xs text-muted">{t("Hover a dot · click to open the profile")}</div>}
         </div>
       </div>
