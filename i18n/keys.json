@@ -517,6 +517,13 @@
   ]
  },
  {
+  "key": "{n} fights in all",
+  "plural": "{n} fight in all",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{n} fights it called before the bell",
   "files": [
    "components/MyPicks.tsx"
@@ -3014,6 +3021,12 @@
   ]
  },
  {
+  "key": "Career record stated by the data supplier",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
   "key": "Catchweight {n} lb",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -4846,6 +4859,12 @@
   ]
  },
  {
+  "key": "Fighters whose fights Ringside holds only in part",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
   "key": "Fighters with a new head trainer",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -6344,6 +6363,12 @@
   "key": "Lower is better · plain Elo {e} · coin flip {c}",
   "files": [
    "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "lower is better; their pages say so",
+  "files": [
+   "lib/coverage.ts"
   ]
  },
  {
@@ -9224,6 +9249,12 @@
   ]
  },
  {
+  "key": "shown, labelled, when Ringside holds fewer fights than that",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
   "key": "Shows now",
   "files": [
    "components/ReportQueue.tsx"
@@ -10477,6 +10508,12 @@
   "key": "The rating weight is fitted on {n} past bouts (held-out log-loss {fit} vs {base} for plain Elo). Other weights are hand-set; see Data & model for how each compares.",
   "files": [
    "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "The record is the career total from the data supplier. Ringside holds {held} of those {total} fights, so the fight list, knockouts, rating and rates on this page are built from those {held} only.",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {

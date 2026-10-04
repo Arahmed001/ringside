@@ -7,7 +7,7 @@ import { CareerMoneyCard } from "@/components/Money";
 import { TitlesCard, NextFightCard } from "@/components/TitlesCard";
 import { BoxerRecords } from "@/components/Awards";
 import { notFound } from "next/navigation";
-import { getWorld, recordStr } from "@/lib/world";
+import { careerView, getWorld, recordStr } from "@/lib/world";
 import { getDb } from "@/lib/db";
 import { isKnown, orDash, wikipediaUrl } from "@/lib/facts";
 import { boxerPageNotes } from "@/lib/accounts/corrections";
@@ -51,6 +51,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const w = await getWorld();
   const b = w.bySlug.get(slug);
   if (!b) notFound();
+  const career = careerView(b);
   const bouts = w.boutsByBoxer.get(b.id) ?? [];
   const done = bouts.filter((x) => !x.upcoming).slice().reverse(); // includes cancelled bouts, shown with a chip
   const completed = done.filter((x) => countsInRecord(x.method));
@@ -148,11 +149,16 @@ const HONOURS_SHOWN = 8;
           {b.nickname && <div className="mt-1 font-serif text-3xl italic text-gold">“{t.name(b.nickname)}”</div>}
           <div className="mt-2 text-muted">{flag(b.country)} {[countryName(b.country, t.locale), b.age !== null ? t("Age {age}", { age: b.age }) : null, b.stance ? t(b.stance) : null, b.turnedPro !== null ? t("Pro since {year}", { year: b.turnedPro }) : null].filter(Boolean).join(" · ")}</div>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat label={t("Record")} value={recordStr(b)} sub={t.n(b.bouts, "{n} fight", "{n} fights")} />
+            <Stat label={t("Record")} value={recordStr(b)} sub={career.source === "supplier" ? t.n(career.total, "{n} fight in all", "{n} fights in all") : t.n(b.bouts, "{n} fight", "{n} fights")} />
             <Stat label={t("Knockouts")} value={b.kos} sub={t("{p} of wins", { p: pct(b.koRate) })} />
             <Stat label={t("Rating")} value={Math.round(b.rating)} sub={t("Elo-style")} />
             <Stat label={t("Reach")} value={orDash(b.reachCm, (n) => t("{n}cm", { n }))} sub={isKnown(b.heightCm) ? t("{h}cm tall · {limit}", { h: b.heightCm, limit: limitLabel(div, t) }) : limitLabel(div, t)} />
           </div>
+          {career.source === "supplier" && (
+            <p className="mt-3 max-w-2xl text-xs leading-snug text-muted">
+              {t("The record is the career total from the data supplier. Ringside holds {held} of those {total} fights, so the fight list, knockouts, rating and rates on this page are built from those {held} only.", { held: career.held, total: career.total })}
+            </p>
+          )}
           {nextBlock}
         </div>
       </section>

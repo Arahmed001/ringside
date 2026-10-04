@@ -136,7 +136,7 @@ ${REIGN_SCHEMA}
 const ADDED_COLUMNS: [string, string, string][] = [
   ["boxers", "birth_date", "TEXT"], ["boxers", "birth_place", "TEXT"], ["boxers", "residence", "TEXT"], ["boxers", "wikidata_id", "TEXT"],
   ["boxers", "boxrec_id", "TEXT"], ["boxers", "ibhof_id", "TEXT"], ["boxers", "olympedia_id", "TEXT"], ["boxers", "aliases", "TEXT"], ["boxers", "debut_date", "TEXT"], ["boxers", "retired_date", "TEXT"],
-  ["orgs", "wikidata_id", "TEXT"], ["events", "promoter_org_id", "INTEGER"], ["events", "broadcaster", "TEXT"], ["events", "attendance", "INTEGER"],
+  ["orgs", "wikidata_id", "TEXT"], ["boxers", "vendor_wins", "INTEGER"], ["boxers", "vendor_losses", "INTEGER"], ["boxers", "vendor_draws", "INTEGER"], ["events", "promoter_org_id", "INTEGER"], ["events", "broadcaster", "TEXT"], ["events", "attendance", "INTEGER"],
   ["wikidata_boxers", "ibhof_id", "TEXT"], ["wikidata_boxers", "olympedia_id", "TEXT"], ["wikidata_boxers", "awards", "TEXT"], ["wikidata_boxers", "extras_at", "TEXT"], ["wikidata_boxers", "ar_label", "TEXT"], ["wikidata_boxers", "nickname", "TEXT"], ["wikidata_boxers", "enwiki", "TEXT"], ["wikidata_boxers", "labels_at", "TEXT"], ["boxers", "wikipedia_title", "TEXT"],
   ["bouts", "round_time", "TEXT"], ["bouts", "kd_red", "INTEGER"], ["bouts", "kd_blue", "INTEGER"], ["bouts", "odds_red", "REAL"],
   ["team_stints", "source_url", "TEXT"], ["team_stints", "note", "TEXT"],

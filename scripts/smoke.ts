@@ -1,5 +1,5 @@
 /**
- * npm run build && npm run smoke [-- --feed sparse|empty] [-- --facts unknown] [-- --scale 20] [-- --crawl 200] [-- --database FILE]      render every kind of page in English and Arabic on a real production server and inspect it
+ * npm run build && npm run smoke [-- --feed sparse|empty|partial] [-- --facts unknown] [-- --scale 20] [-- --crawl 200] [-- --database FILE]      render every kind of page in English and Arabic on a real production server and inspect it
  *
  * Seeds a throwaway database with the demo league (clock pinned to 2026-10-03), starts `next start` on a free port, requests a
  * representative page of every kind plus the JSON and image endpoints, and checks each (status, language and direction, a heading,
@@ -42,9 +42,19 @@ async function main() {
   // world can be in (the first load, or the gap between seasons): no page may fail because something it expects is not there yet
   const feedName = arg("feed");
   if (feedName) {
-    if (feedName !== "sparse" && feedName !== "empty") { console.error('--feed is "sparse" or "empty"'); process.exit(2); }
+    if (feedName !== "sparse" && feedName !== "empty" && feedName !== "partial") { console.error('--feed is "sparse", "empty" or "partial"'); process.exit(2); }
     const { miniFeed } = await import("../tests/helpers");
-    const f = miniFeed();
+    let f = miniFeed();
+    // `--feed partial`: the shape a real first load has. A league from the stand-in vendor, read through the real adapter with only the most recently active fighters
+    // taken (so most careers are held in part and the supplier's career totals are shown), no organisations, people, officials or any other source
+    if (feedName === "partial") {
+      const { makeWorld, mockVendor } = await import("../lib/vendor-mock");
+      const { boxingDataApiProvider } = await import("../lib/providers/boxing-data-api");
+      const { loadFeed } = await import("../lib/feed");
+      const league = makeWorld({ fighters: 260, fights: 520, upcoming: 6, seed: 5, today: "2026-10-03" });
+      const provider = boxingDataApiProvider({ key: "k".repeat(40), purpose: "evaluation", fetchImpl: mockVendor(league).fetchImpl, scheduleDays: 0, maxRequests: 1e6, retries: 0, gapMs: 0, maxFighters: 100, log: () => {}, sleep: async () => {} });
+      f = await loadFeed(provider);
+    }
     const feed = feedName === "empty" ? { ...f, boxers: [], events: [], bouts: [], people: [], orgs: [], stints: [], weighIns: [], officials: [], scorecards: [], corners: [], punches: [] } : f;
     const file = path.join(os.tmpdir(), `ringside-smoke-feed-${process.pid}.json`);
     fs.writeFileSync(file, JSON.stringify(feed));
@@ -116,7 +126,7 @@ async function main() {
       const bad = problemsIn(route, locale, res.status, res.headers.get("content-type") ?? "", body);
       // the browser-side contract: the policy and nonce on every page, the standing headers on everything (see lib/security.ts)
       if (/text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...securityProblems(res.headers, body));
-      if (locale === "ar" && feedName !== "sparse" && scale === 1 && /text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...arabicLeaks(body).map((l) => `English on the Arabic page: ${l}`));
+      if (locale === "ar" && (feedName === undefined || feedName === "empty") && scale === 1 && /text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...arabicLeaks(body).map((l) => `English on the Arabic page: ${l}`));
       else for (const h of STATIC_HEADERS) if (res.headers.get(h.key) !== h.value) bad.push(`header ${h.key} is ${res.headers.get(h.key) ?? "missing"}`);
       checked++;
       const ms = Math.round(performance.now() - t0);

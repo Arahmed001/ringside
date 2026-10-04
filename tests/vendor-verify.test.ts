@@ -44,7 +44,7 @@ test("reconciling a feed: wins, losses and draws are counted from the fights; ca
   assert.deepEqual(r.partials, [{ externalId: "C", name: "Fighter C", loaded: "0-0-1", vendor: "0-0-2" }]);
   assert.deepEqual(r.conflicts, [{ externalId: "D", name: "Fighter D", loaded: "0-0-1", vendor: "0-0-0" }]);
   const text = describeReconciliation(r).join("\n");
-  assert.match(text, /2 of 4 fighters \(50\.0%\)/); assert.match(text, /1 partial.*shorter record/); assert.match(text, /1 CONFLICT.*contradicts itself/); assert.match(text, /1 fighter\(s\) came with no career record/);
+  assert.match(text, /2 of 4 fighters \(50\.0%\)/); assert.match(text, /1 partial.*fewer fights are held/); assert.match(text, /1 CONFLICT.*contradicts itself/); assert.match(text, /1 fighter\(s\) came with no career record/);
   assert.equal(reconcileFeed({ ...feed, bouts: [] } as FeedData, new Map()).share, 0, "nothing to check is a share of 0, not 100%");
 });
 
@@ -100,7 +100,7 @@ test("the gate: a conflict always needs a deliberate override; too few complete 
   assert.deepEqual(recordGate(bad(100, 100, 0, 0), open), { ok: true, reasons: [] });
   assert.equal(recordGate(bad(100, 90, 10, 0), open).ok, true, "exactly at the bar passes");
   const low = recordGate(bad(100, 89, 11, 0), open);
-  assert.equal(low.ok, false); assert.match(low.reasons[0], /only 89\.0% of fighters \(89 of 100\).*90% is required.*SHORTER record.*Partial 0: loaded 1-0-0, vendor 20-0-0/);
+  assert.equal(low.ok, false); assert.match(low.reasons[0], /only 89\.0% of fighters \(89 of 100\).*90% is required.*fewer fights than the vendor's career total.*Partial 0: loaded 1-0-0, vendor 20-0-0/);
   assert.equal(recordGate(bad(100, 89, 11, 0), { ...open, minComplete: 0.85 }).ok, true);
   assert.equal(recordGate(bad(100, 0, 100, 0), { ...open, allowPartial: true }).ok, true, "a window shorter than the careers can be loaded on purpose");
   const clash = recordGate(bad(100, 99, 0, 1), open);
