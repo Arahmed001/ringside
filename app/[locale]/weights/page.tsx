@@ -44,7 +44,7 @@ export default async function Weights() {
       <section className="grid gap-5 lg:grid-cols-2">
         <div className="card p-5">
           <div className="eyebrow mb-3">{t("Missed-weight rate by division")}</div>
-          <BarList rows={limited.map((d) => ({ label: t(d.division), value: d.missRate, sub: t("limit {n} lb", { n: d.limitLb! }) }))} fmt={(v) => pct(v, 1)} />
+          <BarList rows={limited.map((d) => ({ label: t(d.division), value: d.missRate, sub: t("limit {n} lb", { n: d.limitLb! }) }))} max={Math.max(...limited.map((d) => d.missRate), 0.001)} fmt={(v) => pct(v, 1)} />
         </div>
         <div className="card p-5">
           <div className="eyebrow mb-3">{t("Average rehydration (official → fight night)")}</div>
