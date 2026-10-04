@@ -236,6 +236,8 @@ export function heuristicParse(q: string, countries: string[], today?: string): 
   if (/\byoungest\b/.test(s)) f.sort = "youngest";
   else if (/\boldest\b/.test(s)) f.sort = "age";
   arabicHints(original, f, countries, today);
+  // "undefeated in 2025" is not a filter we have (no loss within a year): no result, not all the undefeated
+  if (/\b(?:undefeated|unbeaten)\s+in\s+(?:19|20)\d\d\b/.test(s)) { delete f.undefeated; f.text = original.trim(); }
   if (!Object.keys(f).length && q.trim()) f.text = q.trim();
   return f;
 }

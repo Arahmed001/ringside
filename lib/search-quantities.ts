@@ -85,7 +85,7 @@ export function peelQuantities(q: string, f: Filters): string {
   take(new RegExp(`\\bwon\\s+(?:${CMP}\\s+)?(?<n>\\d+)\\s*(?:\\+|${SUFFIX})?\\s*times\\b`, "i"), (g) => one("wins", +g.n!, g, "ge"));
 
   // rating, as shown: "rated above 1600", "a rating of at least 1500", "Elo over 1600", "rated between 1400 and 1500"
-  take(new RegExp(`\\b(?:rated|rating|elo(?: rating)?)\\s*(?:of|is|at)?\\s*between\\s+(?<a>\\d{3,4})\\s*(?:and|to|-|–)\\s*(?<b>\\d{3,4})(?!\\d)`, "i"), (g) => put(f, "rating", Math.min(+g.a!, +g.b!), Math.max(+g.a!, +g.b!)));
+  take(new RegExp(`\\b(?:rated|rating|elo(?: rating)?)\\s*(?:of|is|at)?\\s*(?:between\\s+)?(?<a>\\d{3,4})\\s*(?:and|to|-|–)\\s*(?<b>\\d{3,4})(?!\\d)`, "i"), (g) => put(f, "rating", Math.min(+g.a!, +g.b!), Math.max(+g.a!, +g.b!)));
   take(new RegExp(`\\b(?:rated|rating|elo(?: rating)?)\\s*(?:of|is|at)?\\s*(?:${CMP}\\s+)?(?<n>\\d{3,4})(?!\\d)(?:\\s*${SUFFIX})?`, "i"), (g) => one("rating", +g.n!, g, "ge"));
   // reach, with or without the word "reach" first
   take(new RegExp(String.raw`\breach\s*(?:of|is|at)?\s*(?:between\s+)?(?<a>\d{2,3})\s*(?:cm)?\s*(?:and|to|-|–)\s*(?<b>\d{2,3})(?!\d)`, "i"), (g) => put(f, "reach", Math.min(+g.a!, +g.b!), Math.max(+g.a!, +g.b!)));
@@ -115,5 +115,7 @@ export function peelQuantities(q: string, f: Filters): string {
   take(new RegExp(String.raw`(?<![\d.])(?<n>\d{2})\s*(?:(?<sge>or older|and older|or over|and over)|(?<sle>or younger|and younger))`, "i"), (g) => one("age", +g.n!, g, "eq"));
   // "over 35", "under 25", "older than 33": an age, when nothing counted follows
   take(new RegExp(`\\b${CMP}\\s+(?<n>\\d{2})(?![\\d.]|\\s*(?:%|(?:${ANY_NOUN}|${CM}|kg|lbs?|pounds|rounds?|percent)\\b))`, "i"), (g) => { const n = +g.n!; if (n < 16 || n > 60) return false; one("age", n, g, "eq"); });
+  // a record as it is written, "5-0" or "12-3-1": exactly those wins and losses (and draws when there are three numbers), what is left once every counted thing is out of the sentence
+  take(new RegExp(String.raw`(?<![\d.\-–/])(?<w>\d{1,2})-(?<l>\d{1,2})(?:-(?<d>\d{1,2}))?(?![\d\-–/%.])`), (g) => { put(f, "wins", +g.w!, +g.w!); put(f, "losses", +g.l!, +g.l!); if (g.d !== undefined) put(f, "draws", +g.d, +g.d); });
   return q;
 }

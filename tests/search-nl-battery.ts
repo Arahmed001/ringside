@@ -7,7 +7,7 @@ import type { BoxerFull } from "../lib/types";
  * that ignores part of the sentence, or reads a number as the wrong thing, returns the wrong set; that is what this measures. Fighters with no fight are not
  * in a search, and a fact the data does not have never satisfies a condition on it.
  */
-export interface NlCase { q: string; kind: string; group: "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I"; truth: (b: BoxerFull, w: World) => boolean }
+export interface NlCase { q: string; kind: string; group: "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J"; truth: (b: BoxerFull, w: World) => boolean }
 
 const known = (v: number | null, f: (v: number) => boolean) => v !== null && f(v);
 /** The fights that count in a record, oldest first. */
@@ -292,6 +292,23 @@ export function nlCases(): NlCase[] {
     c("I", "ar combined: age + never stopped", "ملاكمون فوق 35 سنة لم يتعرضوا للضربة القاضية أبدا", (b) => known(b.age, (a) => a >= 36) && b.koLosses === 0),
     c("I", "ar combined: undefeated + streak", "ملاكمون بدون هزائم في سلسلة انتصارات من 5 نزالات", (b) => b.losses === 0 && b.streak.type === "W" && b.streak.count >= 5),
     c("I", "ar combined: southpaw + recent", "ملاكمون أعسر خاضوا نزالا في آخر سنة", (b, w) => b.stance === "Southpaw" && b.lastFight !== null && b.lastFight >= back(w, 1, "years")),
+    // J: records as they are written, a draw fought, a year of not fighting, a rating range (round 67); measured on the search as it was
+    c("J", "record 2-4", "fighters who are 2-4", (b) => b.wins === 2 && b.losses === 4),
+    c("J", "record 3-5", "boxers with a 3-5 record", (b) => b.wins === 3 && b.losses === 5),
+    c("J", "record with draws", "fighters who are 2-6-0", (b) => b.wins === 2 && b.losses === 6 && b.draws === 0),
+    c("J", "record, division", "welterweights who are 2-4", (b) => b.weightClass === "Welterweight" && b.wins === 2 && b.losses === 4),
+    c("J", "record, 1 loss", "fighters who are 1-4", (b) => b.wins === 1 && b.losses === 4),
+    c("J", "record, 1 loss", "women who are 9-1", (b) => b.sex === "female" && b.wins === 9 && b.losses === 1),
+    c("J", "draw fought", "fighters who have fought a draw", (b) => b.draws >= 1),
+    c("J", "draw fought + never stopped", "fighters who have fought a draw and never been stopped", (b) => b.draws >= 1 && b.koLosses === 0),
+    c("J", "draw, fought to", "boxers who fought to a draw", (b) => b.draws >= 1),
+    c("J", "a year without a fight", "fighters who haven't fought in a year", (b, w) => b.lastFight !== null && b.lastFight <= back(w, 1, "years")),
+    c("J", "two years without", "boxers who haven't fought in 2 years", (b, w) => b.lastFight !== null && b.lastFight <= back(w, 2, "years")),
+    c("J", "active + a year without", "active fighters who haven't fought in a year", (b, w) => b.active && b.lastFight !== null && b.lastFight <= back(w, 1, "years")),
+    c("J", "rating range hyphen", "fighters rated 1500-1600", (b) => Math.round(b.rating) >= 1500 && Math.round(b.rating) <= 1600),
+    c("J", "rating between", "fighters rated between 1550 and 1650", (b) => Math.round(b.rating) >= 1550 && Math.round(b.rating) <= 1650),
+    c("J", "rating over", "boxers with a rating over 1600", (b) => Math.round(b.rating) > 1600),
+    c("J", "wins hyphen range stays a range", "fighters with 5-10 wins", (b) => b.wins >= 5 && b.wins <= 10),
     // C: a second batch, other wordings, written after the parser and measured once before anything was changed for it
     c("C", "losses, lost N times", "fighters who have lost more than 5 times", (b) => b.losses > 5),
     c("C", "wins, won N times", "fighters who have won at least 20 times", (b) => b.wins >= 20),

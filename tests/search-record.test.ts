@@ -133,3 +133,28 @@ test("the model's filters are checked, and the chips say what was understood in 
   const ar = (await import("../lib/i18n/dicts")).dictOf("ar");
   for (const k of ["Never stopped", "No draws", "Stopped ≥ {n} times", "Stopped ≤ {n} times", "Draws ≥ {n}", "Draws ≤ {n}", "Win streak ≥ {n}", "Losing streak ≥ {n}", "Unbeaten in last {n}", "Last fought since {date}", "Last fought by {date}"]) assert.ok(typeof ar[k] === "string" && ar[k] !== k, k);
 });
+
+test("a record as it is written is exactly those wins and losses, and only when it is a record (round 67)", () => {
+  const p = (q: string) => ai.heuristicParse(q, countries, T);
+  assert.deepEqual(p("welterweights who are 2-4"), { weightClass: "Welterweight", minWins: 2, maxWins: 2, minLosses: 4, maxLosses: 4 });
+  assert.deepEqual(p("fighters who are 2-6-0"), { minWins: 2, maxWins: 2, minLosses: 6, maxLosses: 6, minDraws: 0, maxDraws: 0 });
+  assert.deepEqual(p("fighters with 5-10 wins"), { minWins: 5, maxWins: 10 }, "a range of a counted thing is still a range");
+  assert.equal(p("turned pro 2015-2018").minWins, undefined, "a span of years is not a record");
+  assert.equal(p("fights on 12-10-2024").minWins, undefined, "nor is a date");
+  assert.equal(p("turned pro 2015-18").minWins, undefined, "nor is the end of a span of years");
+  assert.deepEqual(p("fighters rated 1500-1600"), { minRating: 1500, maxRating: 1600 });
+});
+
+test("'undefeated in 2025' is not all the undefeated, and 'in the last 3' still is a run", () => {
+  const p = (q: string) => ai.heuristicParse(q, countries, T);
+  assert.equal(p("undefeated in 2025").undefeated, undefined);
+  assert.equal(p("fighters unbeaten in 2024").unbeatenIn, undefined);
+  assert.deepEqual(p("fighters unbeaten in their last 3"), { unbeatenIn: 3 });
+});
+
+test("'haven't fought in a year' is a year without a fight, and a draw fought is a draw", () => {
+  const p = (q: string) => ai.heuristicParse(q, countries, T);
+  assert.deepEqual(p("active fighters who haven't fought in a year"), { active: true, lastFightBefore: "2025-10-03" });
+  assert.deepEqual(p("fighters who have fought a draw and never been stopped"), { minDraws: 1, maxStopped: 0 });
+  assert.deepEqual(p("boxers who fought to a draw"), { minDraws: 1 });
+});
