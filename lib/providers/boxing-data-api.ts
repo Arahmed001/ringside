@@ -1,4 +1,4 @@
-import { previewSelection, rankByRecency, selectionSizes, type SelectionPreview } from "../vendor-selection";
+import { chooseByMode, previewModes, previewSelection, rankByRecency, selectionSizes, type ModePreview, type SelectionMode, type SelectionPreview } from "../vendor-selection";
 import type { DataProvider, ProviderBoxer, ProviderBout, ProviderEvent, ProviderOfficialRanking, RankingBody } from "./index";
 import fs from "node:fs";
 import path from "node:path";
@@ -89,12 +89,12 @@ export function mapRanking(raw: ApiRanking, notes: Notes): ProviderOfficialRanki
 
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
-  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection"
+  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "stoppageWithoutWinner" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
   | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
+  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, stoppageWithoutWinner: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, windowTooBig: 0,
 });
 
@@ -143,6 +143,7 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
   const a = f.fighters?.fighter_1, b = f.fighters?.fighter_2;
   const date = (f.event?.date ?? f.date ?? "").slice(0, 10); // a UTC calendar date: an evening card in the Americas can land a day late (see the readiness doc)
   if (!f.id || !a?.fighter_id || !b?.fighter_id || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { notes.fightsSkipped++; return null; }
+  if (a.fighter_id === b.fighter_id) { notes.fightsSkipped++; return null; } // a fighter cannot fight himself: a feed slip, not a fight
 
   const loc = parseLocation(f.event?.location ?? f.location, notes);
   const eId = f.event?.id ? eventId(f.event.id) : `bda-e-fight-${f.id}`;
@@ -163,11 +164,15 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
   }
   // a decision with no winner is a draw; a finished fight with neither a winner nor an outcome is left "no result yet" rather than guessed
   if (finished && !winner && outcome && DECISIONS.has(outcome)) { method = "DRAW"; notes.drawInferred++; }
+  // a knockout with no winner is a feed slip (the validator rejects it): left as no result rather than a winner guessed
+  if (finished && !winner && (method === "KO" || method === "TKO")) { method = null; notes.stoppageWithoutWinner++; }
   if (finished && !winner && !method) notes.resultMissing++;
   const round = f.results?.round === null || f.results?.round === undefined ? NaN : parseInt(String(f.results.round), 10);
-  const rounds = f.scheduled_rounds && f.scheduled_rounds > 0 ? f.scheduled_rounds : 10;
+  let rounds = f.scheduled_rounds && f.scheduled_rounds > 0 ? f.scheduled_rounds : 10;
   const endRound = !method ? null : method === "KO" || method === "TKO" ? (Number.isFinite(round) ? round : null) : Number.isFinite(round) ? round : rounds;
 
+  // a fight that ended after its scheduled rounds ("round 12 of 10") had more rounds scheduled than the feed says
+  if (endRound !== null && endRound > rounds) { rounds = endRound; notes.roundsRaisedToEnd++; }
   const divName = f.division?.name ?? "";
   const weightClass = normalizeDivision(divName) ?? (divName || "Unknown");
   if (!normalizeDivision(divName)) notes.divisionUnknown++;
@@ -295,6 +300,8 @@ export interface BoxingDataApiOptions {
    * fetches the rest, the first ones being in the cache. Unset: every fighter in the list.
    */
   maxFighters?: number;
+  /** how `maxFighters` chooses: the most recently active (default), those and all their opponents, or whole groups of fighters (see lib/vendor-selection.ts) */
+  selectMode?: SelectionMode;
   /**
    * When the gateway refuses with a rate limit (a 429 that is not a used-up quota), wait and try the same request again, for up to this many ms in all for
    * that request: 1, 2, 5, then 10 minutes at a time (or the Retry-After it gives). A refusal that says the quota is used up is never waited for: it ends
@@ -317,6 +324,8 @@ export interface BackfillPlan {
   requestsMade: number;
   /** what taking only the most recently active fighters would give, for a few sizes (from the fight list alone; nothing is fetched to know it) */
   selection?: SelectionPreview[];
+  /** what the other two ways of choosing (`--with-opponents`, `--whole-groups`) would ask for at the same sizes */
+  modes?: ModePreview[];
   /** set when `maxFighters` is in force: fighters, fighterRequests and fightersCached then count only the chosen ones, and this is how many the list holds */
   allFighters?: number;
 }
@@ -541,7 +550,9 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     const ranked = rankByRecency(bouts, dateOf); // external ids
     const n = o.maxFighters && o.maxFighters > 0 ? Math.min(o.maxFighters, ranked.length) : ranked.length;
     const cut = fighterId("").length;
-    return { ranked, chosen: ranked.slice(0, n).map((x) => x.slice(cut)), left: new Set(ranked.slice(n)), total: ids.size };
+    const pick = chooseByMode(bouts, ranked, n, o.maxFighters && o.maxFighters > 0 ? o.selectMode ?? "recent" : "recent");
+    const inPick = new Set(pick.chosen);
+    return { ranked, chosen: pick.chosen.map((x) => x.slice(cut)), left: new Set(ranked.filter((x) => !inPick.has(x))), total: ids.size, pick };
   }
 
   async function load() {
@@ -576,7 +587,13 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
       return ok;
     });
     const eventDates = new Map([...events.values()].map((e) => [e.externalId, e.date]));
-    return { boxers: finishBoxers(rows, keep, eventDates, notes), events: [...events.values()], bouts: keep };
+    // a fighter with no division even from his fights cannot be placed (the validator rejects "Unknown" and would drop him, and every fight of his with a bad reference): left out here, and his fights with him
+    const finished = finishBoxers(rows, keep, eventDates, notes);
+    const placed = finished.filter((r) => normalizeDivision(r.weightClass));
+    notes.fightersDroppedNoDivision += finished.length - placed.length;
+    const placedIds = new Set(placed.map((r) => r.externalId));
+    const kept = keep.filter((b) => { const ok = placedIds.has(b.redExternalId) && placedIds.has(b.blueExternalId); if (!ok) notes.boutsDroppedNoDivision++; return ok; });
+    return { boxers: placed, events: [...events.values()], bouts: kept };
   }
   const once = () => (cache ??= load());
   /** The official lists: 17 requests (one page per division, the pages being the same four bodies each), cached like every other page (so a stopped load resumes, and a reload asks for nothing; the daily `--update` refreshes everything), and never fatal: a plan without them just has none. */
@@ -611,7 +628,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
       const limited = chosen.length < ids.size;
       return {
         fights: bouts.length, events: events.size, fighters: chosen.length, fightersCached: cached, fighterRequests: chosen.length - cached, requestsMade: used,
-        selection: selectionSizes(ranked.length).map((n) => previewSelection(bouts, ranked, n)), ...(limited ? { allFighters: ids.size } : {}),
+        selection: selectionSizes(ranked.length).map((n) => previewSelection(bouts, ranked, n)), modes: selectionSizes(ranked.length).map((n) => previewModes(bouts, ranked, n)), ...(limited ? { allFighters: ids.size } : {}),
       };
     },
   };

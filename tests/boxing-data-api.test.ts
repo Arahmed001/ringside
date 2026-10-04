@@ -604,7 +604,7 @@ test("plan prices the backfill before it is spent: the list pages are fetched, t
   const dir = await tmp("plan");
   const m = mockFetch(standard);
   const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: m.impl, cacheDir: dir, scheduleDays: 0 });
-  const sizes = (x: Awaited<ReturnType<typeof p.plan>>) => { const { selection, ...rest } = x; assert.ok(selection && selection.length >= 1, "the plan also says what taking only the most recent fighters would give"); return rest; };
+  const sizes = (x: Awaited<ReturnType<typeof p.plan>>) => { const { selection, modes, ...rest } = x; assert.ok(modes && modes.length >= 1, "and what the other two ways of choosing would give"); assert.ok(selection && selection.length >= 1, "the plan also says what taking only the most recent fighters would give"); return rest; };
   assert.deepEqual(sizes(await p.plan()), { fights: 2, events: 2, fighters: 3, fightersCached: 0, fighterRequests: 3, requestsMade: 1 });
   assert.equal(countCalls(m.calls, "/v2/fighters/"), 0, "no fighter was fetched to find out");
   await p.fetchBouts();
@@ -627,4 +627,19 @@ test("a placeholder pasted instead of the key is refused at once with a plain me
   assert.doesNotThrow(() => B.boxingDataApiProvider({ key: "670ff79763msh4f16640bd83dd54p15aae0jsn46b3a23a82ed", purpose: "evaluation" }));
   assert.doesNotThrow(() => B.boxingDataApiProvider({ key: "replay", purpose: "evaluation", fetchImpl: (async () => new Response("{}")) as typeof fetch }));
   assert.throws(() => B.boxingDataApiProvider({ key: "replay", purpose: "evaluation" }), /not a plausible API key/, "but the same short key to the real server is refused");
+});
+
+test("importer hygiene (round 73): a fighter against himself is skipped, a knockout with no winner becomes a no result, 'round 12 of 10' lengthens the fight", () => {
+  const n = notes();
+  assert.equal(B.mapFight(fight("h1", "A", "A"), n), null, "a fight of a fighter against himself");
+  assert.equal(n.fightsSkipped, 1);
+  const noWinner = { fighter_1: side("A", false), fighter_2: side("B", false) };
+  const ko = B.mapFight(fight("h2", "A", "B", { fighters: noWinner, results: { outcome: "KO", round: 4 } }), n)!.bout;
+  assert.equal(ko.winnerExternalId ?? null, null); assert.equal(ko.method ?? null, null, "no winner, so not a knockout"); assert.equal(n.stoppageWithoutWinner, 1);
+  const draw = B.mapFight(fight("h3", "A", "B", { fighters: noWinner, results: { outcome: "MD", round: null } }), n)!.bout;
+  assert.equal(draw.method, "DRAW", "a decision with no winner is still a draw"); assert.equal(n.stoppageWithoutWinner, 1);
+  const long = B.mapFight(fight("h4", "A", "B", { scheduled_rounds: 10, results: { outcome: "KO", round: 12 } }), n)!.bout;
+  assert.equal(long.rounds, 12); assert.equal(long.endRound, 12); assert.equal(n.roundsRaisedToEnd, 1);
+  const fine = B.mapFight(fight("h5", "A", "B", { scheduled_rounds: 10, results: { outcome: "KO", round: 7 } }), n)!.bout;
+  assert.equal(fine.rounds, 10); assert.equal(n.roundsRaisedToEnd, 1, "a stoppage inside the schedule is untouched");
 });

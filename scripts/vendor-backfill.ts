@@ -11,6 +11,7 @@
  * Options: --since YYYY-MM-DD  --refresh (fetch everything again)  --gap-ms 300  --retries 4  --max-requests 100000
  *          --per-hour N (never more than N requests an hour, evenly spaced: for a plan with its own hourly limit; or set BOXING_API_PER_HOUR)  --patience-min 90 (how long to wait out a rate-limit refusal before giving up; 0 = don't wait)  --cache-dir <dir>  --offset-limit 10000 (documents a page number can reach; a longer list is read in date windows)
  *          --fighters N (take only the N most recently active fighters, coming fights counting: the fights between two of them are loaded; run again with a bigger N, or none, for the rest: what is fetched is cached)
+ *          --with-opponents | --whole-groups (with --fighters N: also fetch every opponent of the N, so each of the N has all his fights; or take whole groups of fighters, newest group first, while they fit in N, so nobody in them has a fight outside: `--plan` prints what each would ask for)
  *          --complete-only (load only the fighters whose records add up exactly to the vendor's career totals, and whose opponents' do: a smaller league in which no record is short)
  *          --allow-incomplete (load even though some fighters could not be fetched)  --allow-errors (load even though the validator found errors)
  *          --min-complete 0.9 (the share of fighters whose loaded fights must add up to the vendor's career record)  --allow-partial  --allow-conflicts
@@ -56,10 +57,13 @@ async function main() {
   const maxFighters = fightersText === undefined ? undefined : Number(fightersText);
   if (maxFighters !== undefined && !(Number.isInteger(maxFighters) && maxFighters > 0)) throw new Error(`--fighters must be a whole number above 0, not "${fightersText}".`);
   const completeOnly = flag("complete-only");
+  const withOpponents = flag("with-opponents"), wholeGroups = flag("whole-groups");
+  if (withOpponents && wholeGroups) throw new Error("--with-opponents and --whole-groups are two ways to choose the fighters: use one.");
+  if ((withOpponents || wholeGroups) && maxFighters === undefined) throw new Error("--with-opponents and --whole-groups choose from the first --fighters N: give --fighters N too (without it every fighter is taken anyway).");
   if (update && (maxFighters !== undefined || completeOnly)) throw new Error("--fighters and --complete-only are for the first load, not for --update (an update fetches the fighters of the recent fights, all of them).");
   const base: BoxingDataApiOptions = {
     key, baseUrl: process.env.BOXING_API_URL || undefined, purpose: plan && !planCaches ? "evaluation" : "ingest", // a plan with no --cache-dir reads the list in memory and keeps nothing
-    retries: Number(arg("retries") ?? 4), gapMs, perHour, maxFighters, patienceMs: Math.max(0, Number(arg("patience-min") ?? 90)) * 60_000, maxRequests: Number(arg("max-requests") ?? 100_000), log, since: arg("since"), offsetLimit: arg("offset-limit") ? Number(arg("offset-limit")) : undefined,
+    retries: Number(arg("retries") ?? 4), gapMs, perHour, maxFighters, selectMode: wholeGroups ? "groups" : withOpponents ? "opponents" : "recent", patienceMs: Math.max(0, Number(arg("patience-min") ?? 90)) * 60_000, maxRequests: Number(arg("max-requests") ?? 100_000), log, since: arg("since"), offsetLimit: arg("offset-limit") ? Number(arg("offset-limit")) : undefined,
     ...(plan && !planCaches ? {} : { cacheDir: path.resolve(arg("cache-dir") ?? path.join(process.cwd(), "data", "vendor-cache", "boxing-data-api")) }),
     // a daily update must see today's results (not yesterday's cached pages) and fresh career records for the fighters who just fought (a cached record predates the fight, and the audit would call it a contradiction)
     refresh: flag("refresh") || update,

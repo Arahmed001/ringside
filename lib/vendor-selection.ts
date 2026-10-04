@@ -67,3 +67,56 @@ export function selectionSizes(total: number): number[] {
   const out = [1000, 2500, 5000, 10000, 20000].filter((n) => n < total);
   return [...out, total];
 }
+
+/**
+ * Three ways to choose the N fighters (round 73). The first load of the real league showed why the plain one is not enough: the 5,000 most recently active
+ * fighters had 4,151 fights between them and 40,114 outside, so 96% of their records came out short and the load was refused.
+ *  - `recent`: the N most recently active (what `--fighters N` has always done).
+ *  - `opponents`: those N and every opponent they have in the fight list. Each of the N then has every one of his fights loaded; the opponents at the edge are short
+ *    (their page shows the vendor's career total, labelled). It costs more requests than N: the number is printed by `--plan`.
+ *  - `groups`: whole groups of fighters, taken newest group first, as long as a group fits in what is left of the N. A group is the chain of opponents' opponents
+ *    (through fights that count in a record), so nobody in it has a fight outside it: every record in it can be right. A group bigger than what is left is skipped
+ *    and counted, so the largest group (in a connected league there is often one huge one) is never taken by accident.
+ */
+export type SelectionMode = "recent" | "opponents" | "groups";
+
+export interface ChosenSet { chosen: string[]; groupsTaken: number; groupsSkipped: number; largestGroup: number }
+
+const counts = (b: Fight) => b.status !== "cancelled" && !!(b.winnerExternalId || b.method === "DRAW");
+
+export function chooseByMode(bouts: Fight[], ranked: string[], n: number, mode: SelectionMode): ChosenSet {
+  const first = ranked.slice(0, n);
+  if (mode === "recent") return { chosen: first, groupsTaken: 0, groupsSkipped: 0, largestGroup: 0 };
+  if (mode === "opponents") {
+    const core = new Set(first), take = new Set(first); // opponents of the first N only, not of their opponents
+    for (const b of bouts) {
+      if (core.has(b.redExternalId)) take.add(b.blueExternalId);
+      if (core.has(b.blueExternalId)) take.add(b.redExternalId);
+    }
+    // the first N keep their order, the opponents follow in the order of the ranking
+    const extra = ranked.filter((id) => take.has(id) && !first.includes(id));
+    return { chosen: [...first, ...extra], groupsTaken: 0, groupsSkipped: 0, largestGroup: 0 };
+  }
+  const parent = new Map<string, string>();
+  for (const id of ranked) parent.set(id, id);
+  const find = (x: string): string => { let r = x; while (parent.get(r) !== r) r = parent.get(r)!; while (parent.get(x) !== r) { const nx = parent.get(x)!; parent.set(x, r); x = nx; } return r; };
+  for (const b of bouts) if (counts(b) && parent.has(b.redExternalId) && parent.has(b.blueExternalId)) parent.set(find(b.redExternalId), find(b.blueExternalId));
+  const members = new Map<string, string[]>(); // the group's members in ranking order
+  for (const id of ranked) { const r = find(id); (members.get(r) ?? members.set(r, []).get(r)!).push(id); }
+  const groups = [...members.values()]; // each group sits where its most recently active member does (the first of its members in the ranking)
+  groups.sort((a, b) => ranked.indexOf(a[0]) - ranked.indexOf(b[0]));
+  const chosen: string[] = [];
+  let taken = 0, skipped = 0, largest = 0;
+  for (const g of groups) {
+    largest = Math.max(largest, g.length);
+    if (chosen.length + g.length <= n) { chosen.push(...g); taken++; } else skipped++;
+  }
+  return { chosen, groupsTaken: taken, groupsSkipped: skipped, largestGroup: largest };
+}
+
+/** What each mode would choose for `n`, for the plan to print: the fighters it asks for, and for groups how many groups it took, skipped and the largest. */
+export interface ModePreview { n: number; opponents: number; groups: number; groupsTaken: number; groupsSkipped: number; largestGroup: number }
+export function previewModes(bouts: Fight[], ranked: string[], n: number): ModePreview {
+  const g = chooseByMode(bouts, ranked, n, "groups");
+  return { n, opponents: chooseByMode(bouts, ranked, n, "opponents").chosen.length, groups: g.chosen.length, groupsTaken: g.groupsTaken, groupsSkipped: g.groupsSkipped, largestGroup: g.largestGroup };
+}

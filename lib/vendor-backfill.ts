@@ -47,6 +47,10 @@ export function describePlan(p: BackfillPlan, o: { gapMs: number; msPerRequest?:
   if (p.selection && (p.selection.length > 1 || p.allFighters)) {
     lines.push("", "taking only the most recently active fighters (--fighters N) would load, from the fight list alone:");
     for (const s of p.selection) lines.push(`  ${String(s.fighters).padStart(6)} fighters: ${String(s.fights).padStart(6)} fights; ${(s.share * 100).toFixed(0).padStart(3)}% of the fighters have every fight in the list loaded; ${String(s.closed).padStart(6)} sit in groups chosen whole; about ${time(s.fighters)} to fetch`);
+    if (p.modes?.length) {
+      lines.push("", "the other two ways to choose the same number (fighters asked for, from the fight list alone):");
+      for (const m of p.modes) lines.push(`  ${String(m.n).padStart(6)}: --with-opponents asks for ${String(m.opponents).padStart(6)} fighters (each of the ${m.n} has every fight loaded); --whole-groups asks for ${String(m.groups).padStart(6)} (${m.groupsTaken} group(s) taken whole, ${m.groupsSkipped} too big for what was left, the biggest has ${m.largestGroup} fighters)`);
+    }
     lines.push("  (A record is right only if every fight is loaded. 'every fight loaded' lets a fighter's opponents show a short record; 'groups chosen whole' is what --complete-only could keep at most, where nobody's record is short. A fighter's career in the list can also be shorter than the vendor's total, which only fetching shows: --check says.)");
   }
   return lines;
