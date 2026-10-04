@@ -67,7 +67,7 @@ const fighters: Tool = {
     { name: "minKoRate", kind: "number", about: "knockouts as a share of wins, 0 to 1", min: 0, max: 1 }, { name: "minAge", kind: "number", about: "at least this age", min: 16, max: 60 }, { name: "maxAge", kind: "number", about: "at most this age", min: 16, max: 60 },
     { name: "archetype", kind: "string", about: "style: Knockout Artist, Volume Boxer, Technician, Iron-Chin Brawler, Counter-Puncher, Journeyman" },
     { name: "trainer", kind: "string", about: "head trainer name" }, { name: "gym", kind: "string", about: "gym name" },
-    { name: "sort", kind: "enum", about: "sort order (default rating)", values: ["rating", "wins", "kos", "koRate", "age", "youngest", "reach", "height", "shortest", "bouts"] }, LIMIT,
+    { name: "sort", kind: "enum", about: "sort order (default rating)", values: ["rating", "wins", "kos", "koRate", "age", "youngest", "reach", "height", "shortest", "bouts", "lowRating", "lowKoRate", "winRate", "losses", "draws", "stopped"] }, LIMIT,
   ],
   run({ w, t, names }, args) {
     const countries = [...new Set(w.boxers.map((b) => b.country))];
@@ -89,7 +89,7 @@ const fighters: Tool = {
     };
   },
 };
-const SORT_NAME: Record<string, string> = { rating: msg("rating"), wins: msg("wins"), kos: msg("knockouts"), koRate: msg("KO rate"), age: msg("age, oldest first"), youngest: msg("age, youngest first"), reach: msg("reach"), height: msg("height"), shortest: msg("height, shortest first"), bouts: msg("fights") };
+const SORT_NAME: Record<string, string> = { rating: msg("rating"), wins: msg("wins"), kos: msg("knockouts"), koRate: msg("KO rate"), age: msg("age, oldest first"), youngest: msg("age, youngest first"), reach: msg("reach"), height: msg("height"), shortest: msg("height, shortest first"), bouts: msg("fights"), lowRating: msg("rating, lowest first"), lowKoRate: msg("KO rate, lowest first"), winRate: msg("win rate"), losses: msg("losses"), draws: msg("draws"), stopped: msg("times stopped") };
 
 const recordListTool: Tool = {
   name: "record_list",

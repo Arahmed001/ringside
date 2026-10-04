@@ -4475,6 +4475,12 @@
   ]
  },
  {
+  "key": "draws",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Draws ≤ {n}",
   "files": [
    "lib/ai.ts"
@@ -6626,6 +6632,12 @@
   ]
  },
  {
+  "key": "KO rate, lowest first",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "KO share",
   "files": [
    "app/[locale]/analytics/page.tsx"
@@ -7122,6 +7134,12 @@
   "key": "Losing streak ≥ {n}",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "losses",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -9310,6 +9328,12 @@
   "key": "Rating over time",
   "files": [
    "components/charts.tsx"
+  ]
+ },
+ {
+  "key": "rating, lowest first",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -12044,6 +12068,12 @@
   ]
  },
  {
+  "key": "times stopped",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "Times stopped",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -13300,6 +13330,12 @@
   "key": "Win probability, how the fight likely ends and what drives the number for {a} against {b}.",
   "files": [
    "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "win rate",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
