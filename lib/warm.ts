@@ -20,6 +20,7 @@ import { getNames } from "./i18n/names";
 import { exampleQuestions } from "./ask/examples";
 import { planByRules } from "./ask/rules";
 import { toolByName } from "./ask/tools";
+import { searchFighters } from "./fighter-search";
 
 const DAY = 86_400_000;
 /** Milliseconds from `now` to just after the next UTC midnight (the app's day is the UTC date; see clock.ts). */
@@ -56,6 +57,8 @@ export const WARM_STEPS: [string, (w: World) => unknown][] = [
       for (const c of planByRules(exampleQuestions(w, t)[0], w, names)) toolByName(c.tool)?.run(ctx, c.args);
     }
   }],
+  // the fighter-search index (every name, nickname and alias, normalised), one per language: the first search typed on the site would otherwise build it (140 ms at 19,000 fighters)
+  ["fighter search", async (w) => { for (const locale of LOCALES) searchFighters(w, "zz", { names: await getNames(locale), forgiving: false }); }],
   ["data coverage", () => coverage()],
 ];
 

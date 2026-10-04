@@ -258,7 +258,7 @@ const HONOURS_SHOWN = 8;
             )}
           </dl>
           <CorrectionNotes rows={noteRows} />
-          <p className="mt-3 text-xs text-muted"><Link href={`/report?boxer=${b.slug}`} className="underline decoration-dotted hover:text-ink">{t("Report a mistake on this profile")}</Link></p>
+          <p className="mt-2 text-xs text-muted"><Link href={`/report?boxer=${b.slug}`} className="inline-block py-1 underline decoration-dotted hover:text-ink">{t("Report a mistake on this profile")}</Link></p>
           <BoxerRecords w={w} boxerId={b.id} />
           {honours.length > 0 && (
             <div className="mt-4 border-t border-line/60 pt-3">
@@ -315,7 +315,7 @@ const HONOURS_SHOWN = 8;
               </ul>
             </div>
           )}
-          <p className="mt-3 text-xs text-muted"><Link href={`/contribute?boxer=${b.slug}`} className="underline decoration-dotted hover:text-ink">{t("Suggest an edit to this team history")}</Link></p>
+          <p className="mt-2 text-xs text-muted"><Link href={`/contribute?boxer=${b.slug}`} className="inline-block py-1 underline decoration-dotted hover:text-ink">{t("Suggest an edit to this team history")}</Link></p>
         </div>
       </section>
 

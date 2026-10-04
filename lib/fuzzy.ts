@@ -30,10 +30,34 @@ export function editDistance(a: string, b: string, max: number): number {
  */
 export function prefixDistance(typed: string, word: string, max: number): number {
   if (word.startsWith(typed)) return 0;
+  // One pass of the edit-distance table of `typed` against the first n+1 letters of `word`: its last row holds the distance to every prefix of those lengths, so
+  // the three prefixes need no slicing and no table each (this scan runs over every word of the vocabulary: 37,000 at 19,000 fighters, 100 ms with a table per prefix).
+  const n = typed.length, lo = Math.max(1, n - 1), hi = Math.min(word.length, n + 1);
+  if (hi < lo) return max + 1;
+  if (scratch[0].length < hi + 1) scratch = [new Int32Array(hi + 1), new Int32Array(hi + 1), new Int32Array(hi + 1)];
+  let prev2 = scratch[0], prev = scratch[1], cur = scratch[2];
+  for (let j = 0; j <= hi; j++) prev[j] = j;
+  for (let i = 1; i <= n; i++) {
+    const ti = typed.charCodeAt(i - 1), tp = i > 1 ? typed.charCodeAt(i - 2) : -1;
+    cur[0] = i;
+    let rowMin = i;
+    for (let j = 1; j <= hi; j++) {
+      const wj = word.charCodeAt(j - 1);
+      let v = prev[j - 1] + (ti === wj ? 0 : 1);
+      if (prev[j] + 1 < v) v = prev[j] + 1;
+      if (cur[j - 1] + 1 < v) v = cur[j - 1] + 1;
+      if (j > 1 && ti === word.charCodeAt(j - 2) && tp === wj && prev2[j - 2] + 1 < v) v = prev2[j - 2] + 1;
+      cur[j] = v;
+      if (v < rowMin) rowMin = v;
+    }
+    if (rowMin > max) return max + 1;
+    const t = prev2; prev2 = prev; prev = cur; cur = t;
+  }
   let best = max + 1;
-  for (let len = Math.max(1, typed.length - 1); len <= Math.min(word.length, typed.length + 1); len++) best = Math.min(best, editDistance(typed, word.slice(0, len), max));
+  for (let j = lo; j <= hi; j++) if (prev[j] < best) best = prev[j];
   return best;
 }
+let scratch = [new Int32Array(64), new Int32Array(64), new Int32Array(64)];
 
 /** How many slips to forgive in a word of this length: none in the shortest (too many words are one slip apart), one in a short name, two in a long one. */
 export const allowedSlips = (len: number): number => (len <= 3 ? 0 : len <= 6 ? 1 : 2);

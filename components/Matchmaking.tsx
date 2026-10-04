@@ -23,7 +23,7 @@ export async function PairingCard({ p, rank, division }: { p: Pairing; rank?: nu
         {[a, b].map((f, i) => (
           <Link key={f.id} href={`/boxers/${f.slug}`} className={`flex min-w-0 flex-col items-center gap-1 text-center ${i === 1 ? "order-3" : ""}`}>
             <Headshot boxer={f} size={64} />
-            <div className="w-full truncate font-display text-lg font-bold leading-tight" dir="auto">{t.name(f.name)}</div>
+            <div className="w-full text-balance break-words font-display text-lg font-bold leading-tight" dir="auto">{t.name(f.name)}</div>
             <div className="text-xs text-muted"><span className="tabular">{recordStr(f)}</span> · Elo {Math.round(f.rating)}</div>
           </Link>
         ))}
@@ -35,7 +35,7 @@ export async function PairingCard({ p, rank, division }: { p: Pairing; rank?: nu
       </ul>
       <div className="mt-4 flex flex-wrap gap-4 text-sm">
         <Link href={`/compare?a=${a.slug}&b=${b.slug}`} className="inline-block py-1 text-ink hover:text-gold">{t("Full matchup breakdown")} <span className="inline-block rtl:rotate-180">→</span></Link>
-        <Link href={`/matchmaking?x=${a.slug}&y=${b.slug}#dream`} className="text-muted hover:text-ink">{t("Open in the dream-fight builder")}</Link>
+        <Link href={`/matchmaking?x=${a.slug}&y=${b.slug}#dream`} className="inline-block py-1 text-muted hover:text-ink">{t("Open in the dream-fight builder")} <span className="inline-block rtl:rotate-180">→</span></Link>
       </div>
     </article>
   );

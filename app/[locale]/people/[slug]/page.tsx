@@ -133,7 +133,7 @@ export default async function PersonPage({ params, searchParams }: { params: Pro
           </div>
           <ScrollRegion className="card p-5" label={t("Scoring record")}>
             <table className="w-full text-sm" aria-label={t("Scoring record")}><tbody>{judged.rows.map((b) => (
-              <tr key={b.id} className="border-t border-line/60 first:border-0"><td className="py-2 text-muted tabular">{fmtDate(b.date, { month: "short", day: "numeric", year: "numeric" }, t.locale)}</td><td><Link href={`/bouts/${b.id}`} className="hover:text-gold">{b.label}</Link></td><td className="tabular text-muted">{b.result}</td><td className="text-end tabular font-semibold">{b.detail}</td></tr>
+              <tr key={b.id} className="border-t border-line/60 first:border-0"><td className="whitespace-nowrap py-2 pe-3 text-muted tabular">{fmtDate(b.date, { month: "short", day: "numeric", year: "numeric" }, t.locale)}</td><td><Link href={`/bouts/${b.id}`} className="hover:text-gold">{b.label}</Link></td><td className="whitespace-nowrap px-3 tabular text-muted">{b.result}</td><td className="whitespace-nowrap text-end tabular font-semibold">{b.detail}</td></tr>
             ))}</tbody></table>
           </ScrollRegion>
           <Pager page={judged.pg.page} pages={judged.pg.pages} href={(n) => sectionHref(here, query, judged.key, n)} label={t("Pages of bouts scored")} />
@@ -151,7 +151,7 @@ export default async function PersonPage({ params, searchParams }: { params: Pro
           </div>
           <ScrollRegion className="card p-5" label={t("Officiating record")}>
             <table className="w-full text-sm" aria-label={t("Officiating record")}><tbody>{refereed.rows.map((b) => (
-              <tr key={b.id} className="border-t border-line/60 first:border-0"><td className="py-2 text-muted tabular">{fmtDate(b.date, { month: "short", day: "numeric", year: "numeric" }, t.locale)}</td><td><Link href={`/bouts/${b.id}`} className="hover:text-gold">{b.label}</Link></td><td className="text-end tabular text-muted">{b.result}</td></tr>
+              <tr key={b.id} className="border-t border-line/60 first:border-0"><td className="whitespace-nowrap py-2 pe-3 text-muted tabular">{fmtDate(b.date, { month: "short", day: "numeric", year: "numeric" }, t.locale)}</td><td><Link href={`/bouts/${b.id}`} className="hover:text-gold">{b.label}</Link></td><td className="whitespace-nowrap ps-3 text-end tabular text-muted">{b.result}</td></tr>
             ))}</tbody></table>
           </ScrollRegion>
           <Pager page={refereed.pg.page} pages={refereed.pg.pages} href={(n) => sectionHref(here, query, refereed.key, n)} label={t("Pages of bouts refereed")} />

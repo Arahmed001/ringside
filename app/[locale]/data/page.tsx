@@ -70,7 +70,7 @@ export default async function DataPage() {
                   const f = r.of ? r.have / r.of : 0;
                   return (
                     <li key={r.field}>
-                      <div className="mb-1 flex justify-between gap-3 text-xs"><span>{t(r.field)}{r.note && <span className="ms-1.5 text-muted">· {t(r.note)}</span>}</span><span className="tabular text-muted">{r.have.toLocaleString("en-US")} / {r.of.toLocaleString("en-US")} · <b className="text-ink">{pct(f)}</b></span></div>
+                      <div className="mb-1 flex justify-between gap-3 text-xs"><span>{t(r.field)}{r.note && <span className="ms-1.5 text-muted">· {t(r.note)}</span>}</span><span className="tabular shrink-0 whitespace-nowrap text-muted">{r.have.toLocaleString("en-US")} / {r.of.toLocaleString("en-US")} · <b className="text-ink">{pct(f)}</b></span></div>
                       <div className="h-2 overflow-hidden rounded-full bg-panel2"><div className="growx h-full rounded-full" style={{ width: `${f * 100}%`, background: f > 0.85 ? "var(--green)" : f > 0.4 ? "var(--gold)" : "var(--red)" }} /></div>
                     </li>
                   );

@@ -98,13 +98,13 @@ export default async function BeltPage({ params }: { params: Promise<{ slug: str
                 <div className="flex flex-wrap items-center gap-4">
                   <span className="w-8 font-display text-2xl font-bold text-gold tabular">{r.n}</span>
                   {who && <Headshot boxer={who} size={52} />}
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-[11rem] flex-1">
                     <Link href={`/boxers/${who?.slug ?? ""}`} className="font-display text-2xl font-bold leading-tight hover:text-gold">{name(r.boxerId)}</Link>
                     <div className="text-xs text-muted">
                       {t(HOW[r.how])}{r.opponentId ? ` · ${t("beat {name}", { name: name(r.opponentId) })}` : ""}{b ? <> · <Link href={`/bouts/${b.id}`} className="hover:text-ink">{fmtDate(r.start, { month: "short", day: "numeric", year: "numeric" }, t.locale)}, {methodLabel(b.method, b.endRound, t)}</Link></> : null}
                     </div>
                   </div>
-                  <div className="text-end text-sm">
+                  <div className="w-full text-sm sm:w-auto sm:text-end">
                     <div className="tabular"><b>{days(r.days)}</b> · {t.n(r.defenses.length, "{n} defence", "{n} defences")}{r.draws ? ` · ${t.n(r.draws, "{n} draw", "{n} draws")}` : ""}</div>
                     <div className="text-xs text-muted">
                       {r.end ? `${t(ENDED[r.endedBy!])}${winnerName ? ` · ${t("to {name}", { name: winnerName })}` : ""} · ${fmtDate(r.end, { month: "short", year: "numeric" }, t.locale)}` : belt.stale ? t("reign still on the books") : t("current champion")}

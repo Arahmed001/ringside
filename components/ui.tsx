@@ -14,11 +14,12 @@ export async function SectionTitle({ eyebrow, title, href, cta }: { eyebrow?: st
   const t = await getT();
   return (
     <div className="mb-4 flex items-end justify-between gap-4">
-      <div>
+      <div className="min-w-0">
         {eyebrow && <div className="eyebrow mb-1">{eyebrow}</div>}
         <h2 className="font-display text-3xl font-bold uppercase leading-none">{title}</h2>
       </div>
-      {href && <Link href={href} className="inline-block py-1 text-sm text-muted transition hover:text-ink">{cta ?? t("View all")} <span className="inline-block rtl:rotate-180">→</span></Link>}
+      {/* a short link ("View all", "Full card") stays on one line and the title wraps instead; a long one may wrap */}
+      {href && <Link href={href} className={`inline-block py-1 text-sm text-muted transition hover:text-ink ${(cta ?? t("View all")).length <= 18 ? "shrink-0 whitespace-nowrap" : ""}`}>{cta ?? t("View all")} <span className="inline-block rtl:rotate-180">→</span></Link>}
     </div>
   );
 }
@@ -84,7 +85,8 @@ export function Stat({ label, value, sub }: { label: string; value: string | num
   return (
     <div className="card p-4">
       <div className="text-xs uppercase tracking-widest text-muted">{label}</div>
-      <div className="font-display text-4xl font-bold leading-tight tabular">{value}</div>
+      {/* a long figure (a combined record, "660-575-59") is set smaller on phones and never broken at its hyphens */}
+      <div className={`whitespace-nowrap font-display font-bold leading-tight tabular sm:text-4xl ${String(value).length >= 9 ? "text-2xl" : String(value).length >= 7 ? "text-3xl" : "text-4xl"}`}>{value}</div>
       {sub && <div className="text-xs text-muted">{sub}</div>}
     </div>
   );
