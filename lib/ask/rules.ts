@@ -285,19 +285,20 @@ const ABOUT_FIGHTS = /\b(knockouts?|kos?|stoppages?|fights?|bouts?|decisions?|dr
 const FACT_ASKED: [RegExp, FighterFact][] = [
   [/\bnext (fight|bout|opponent)\b|\bfights?\b.*\bnext\b|\bwhen (does|is|will)\b.*\bfight\b|\bupcoming (fight|bout)\b|\bfight(ing)? (again|soon)\b|\bfight soon\b|نزاله القادم|نزال القادم|نزال\S*\s+(?:\S+\s+){0,3}القادم|متي (?:ينزل|يقاتل|سيقاتل|يلعب)/, "next_fight"],
   [/\blast (fight|bout|opponent)\b|\bmost recent (fight|bout)\b|\bwhen did\b.*\b(last )?(fight|box)\b|\b(fought|fight|box|boxed) last\b|\blast (fought|boxed)\b|اخر نزال|قاتل\S*\s+(?:\S+\s+){0,3}اخر مره|اخر مره\s+(?:قاتل|لعب|نزل)/, "last_fight"],
-  [/\bwhen did\b.*\b(turn|go|went) pro\b|\b(turned|went) pro\b|\bpro(fessional)? debut\b|\bdebut(ed)?\b|\bfirst pro(fessional)? fight\b|\bhow long\b.*\bpro\b/, "debut"],
-  [/\bnicknames?\b|\bnicknamed\b|\bknown as\b|\bgoes by\b|\bcalled\b/, "nickname"],
-  [/\b(fighting |boxing )?style\b|\bwhat kind of (fighter|boxer)\b|\barchetype\b/, "style"],
-  [/\bpromoter\b|\bpromoted by\b|\bwho promotes\b|\bpromotion (company|firm)\b/, "promoter"],
+  [/سلسله|اطول فتره انتصارات/, "streak"],
+  [/\bwhen did\b.*\b(turn|go|went) pro\b|\b(turned|went) pro\b|\bpro(fessional)? debut\b|\bdebut(ed)?\b|\bfirst pro(fessional)? fight\b|\bhow long\b.*\bpro\b|احترف|متي بدا|سنه الاحتراف|اول نزال احترافي/, "debut"],
+  [/\bnicknames?\b|\bnicknamed\b|\bknown as\b|\bgoes by\b|\bcalled\b|اسم الشهره|ما لقب|لقبه|يلقب|ملقب/, "nickname"],
+  [/\b(fighting |boxing )?style\b|\bwhat kind of (fighter|boxer)\b|\barchetype\b|اسلوب|نمط قتال/, "style"],
+  [/\bpromoter\b|\bpromoted by\b|\bwho promotes\b|\bpromotion (company|firm)\b|مروج|شركه ترويج/, "promoter"],
   [/\bstreaks?\b|\bwinning run\b|\bwin run\b|\bon a roll\b|\bhow many (in a row|straight)\b/, "streak"],
-  [/\bdecisions?\b|\bgone the distance\b|\bgo the distance\b|\bon (the )?scorecards?\b/, "decisions"],
+  [/\bdecisions?\b|\bgone the distance\b|\bgo the distance\b|\bon (the )?scorecards?\b|بالنقاط|بالقرار|قرار الحكام/, "decisions"],
   [/\bhow tall\b|\bheight\b|\btall is\b|\b(taller|shorter)\b|طول/, "height"],
   [/\breach\b|\barms?( span| length)?\b|امتداد|مدي الذراع/, "reach"],
-  [/\bhow old\b|\b(older|younger)\b|\bages?\b|\bborn\b|\bbirth(day| year| date)?\b|كم عمر|عمر/, "age"],
+  [/\bhow old\b|\b(older|younger)\b|\bages?\b|\bborn\b|\bbirth(day| year| date)?\b|كم عمر|عمر|اكبر سنا|اصغر سنا/, "age"],
   [/\bsouthpaw\b|\borthodox\b|\bstance\b|\bleft.?handed\b|\bright.?handed\b|\blefty\b|اعسر|وقفه/, "stance"],
   [/\bwhere (is|was)\b.*\bfrom\b|\bnationality\b|\bwhich country\b|\bcountry\b|جنسيه|من اي بلد/, "country"],
   [/\bgym\b|\bwhere does\b.*\btrain\b|\btrains? at\b|صاله/, "gym"],
-  [/\btrainer\b|\bcoach(es|ed)?\b|\bwho trains\b|\btrained by\b|مدرب/, "trainer"],
+  [/\btrainer\b|\bcoach(es|ed)?\b|\bwho trains\b|\btrained by\b|مدرب|يدرب|دربه/, "trainer"],
   [/\btitle (fights?|bouts?)\b|\btitle (record|wins)\b|\bfor a (world )?title\b|\bwon (a|the) (world )?title\b/, "title_fights"],
   [/\bmanager\b|\bagent\b|\bwho manages\b|\bmanaged by\b/, "manager"],
   [/\bbelts?\b|\btitles?\b(?! (fights?|bouts?|wins?))|\bchampion\b|\bchamp\b|\bholds?\b|حزام|لقب/, "belts"],
@@ -305,7 +306,7 @@ const FACT_ASKED: [RegExp, FighterFact][] = [
   [/\bknockouts?\b|\bkos?\b|\bko (rate|percentage)\b|ضربات (ال)?قاضيه/, "knockouts"],
   [/\brating\b|\brated\b|\belo\b|\brank(ed|ing)?\b|\bhow good\b|تصنيف|ترتيب/, "rating"],
   [/\bdivision\b|\bweight class\b|\bwhat weight\b|\bwhich weight\b|وزن/, "division"],
-  [/\bretired\b|\bstill (fighting|boxing|active)\b|\bactive\b|\bundefeated\b|\bunbeaten\b|\bever lost\b|\bever been beaten\b|\bany losses\b|\bperfect\b|\blost a (fight|bout)\b|\bever (been )?defeated\b/, "status"],
+  [/\bretired\b|\bstill (fighting|boxing|active)\b|\bactive\b|\bundefeated\b|\bunbeaten\b|\bever lost\b|\bever been beaten\b|\bany losses\b|\bperfect\b|\blost a (fight|bout)\b|\bever (been )?defeated\b|معتزل|ما زال نشط|لا يزال نشط/, "status"],
   [/\brecord\b|\bhow many (fights?|bouts?|wins?|losses|times)\b|\b(more|fewer) (wins|losses|fights|bouts)\b|\b(fought|won|lost) more\b|\bexperience[d]?\b|سجل|كم نزال|كم فوز/, "record"],
 ];
 /** The facts two fighters can be asked about together (every one but the next and last fight), and the wording that makes a question about how they met (a head to head) and not about the facts. */
@@ -348,7 +349,7 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   if (!fighters.length && has(q, REGIONS)) return [];
   // counts and facts of the coming cards that the events list does not give ("how many cards are scheduled this month", "how many fights does the next card have"), and a belt's history or kind: no answer, not the latest card, every champion or a fighter search
   if (!fighters.length && has(q, /\bhow many\b.*\b(cards?|events?|shows?)\b.*\b(scheduled|upcoming|coming|next|planned|this (week|month|year)|does the next|has the next)\b|\bhow many\b.*\b(does|has|will)\b.*\b(next|upcoming)\b.*\b(card|event)\b/)) return [];
-  if (!fighters.length && has(q, /\b(interim|vacant|stripped|unified)\b|\bchanged hands\b|\bhow many times has\b.*\b(title|belt)\b|\bhow many (world )?(titles|belts)\b/)) return [];
+  if (!fighters.length && has(q, /موقت|شاغر|تغير حامل|تغيير حامل|\b(interim|vacant|stripped|unified)\b|\bchanged hands\b|\bhow many times has\b.*\b(title|belt)\b|\bhow many (world )?(titles|belts)\b/)) return [];
   // groupings no tool makes: by venue, by country ("which country has the most champions"), by round ("fights that ended in the first round"): no answer, not a list of
   // fighters sorted by fights, the list of champions or every fight
   if (!fighters.length && has(q, /\b(venues?|arenas?|stadiums?|cit(?:y|ies))\b/) && !has(q, /\b(gates?|tickets?|revenue|purses?|earn\w*|paid|attendance)\b/) && has(q, /\b(most|more|biggest|largest|best|top)\b/)) return [];

@@ -138,7 +138,7 @@ const DEMONYM_BARE_AR: Record<string, string[]> = { Germany: ["المان"], Tur
 /** How a division is said in Arabic besides its name in the dictionary (compared after normalize()). */
 const DIVISION_SAYINGS_AR: Record<string, string[]> = {
   Heavyweight: ["ثقيلو الوزن", "ثقيلي الوزن", "ثقيل الوزن", "وزن ثقيل", "الثقيل"], "Light Heavyweight": ["نصف الثقيل", "وزن نصف ثقيل", "نصف ثقيل"],
-  Middleweight: ["متوسطو الوزن", "متوسطي الوزن", "متوسط الوزن", "وزن متوسط"], "Super Middleweight": ["فوق المتوسط"],
+  Middleweight: ["متوسطو الوزن", "متوسطي الوزن", "متوسط الوزن", "وزن متوسط", "وزن الوسط"], "Super Middleweight": ["فوق المتوسط"],
   Lightweight: ["خفيفو الوزن", "خفيفي الوزن", "خفيف الوزن", "وزن خفيف"], Welterweight: ["ويلتر"], "Super Welterweight": ["فوق الويلتر"], Cruiserweight: ["كروزر"],
   Featherweight: ["ريشه"], "Super Featherweight": ["فوق الريشه"], Bantamweight: ["ديك"], "Super Bantamweight": ["فوق الديك"],
   Flyweight: ["ذبابه"], "Super Flyweight": ["فوق الذبابه"], "Light Flyweight": ["الذبابه الخفيف"],
@@ -160,11 +160,12 @@ function arabicHints(q: string, f: Filters, countries: string[], today?: string)
   for (const [c, stems] of Object.entries(DEMONYM_STEMS_AR)) if (new RegExp(`(?<![\\u0600-\\u06ff])(?:ال)?(?:${stems.join("|")})(?:ي|يه|يين|يون|يات)(?![\\u0600-\\u06ff])`).test(s)) f.country ??= c;
   const has = (re: RegExp) => re.test(s);
   // the youngest and the oldest are an order to sort in ("أصغر ملاكم", "الأكبر سنا"), not a filter
+  if (has(/اكثر ملاكم نزالا|اكثرهم نزالا|اكثر (?:ال)?ملاكمين نزالا/)) f.sort = "bouts";
   if (has(/اصغر (?:ملاكم|ملاكمين|ملاكمه|بطل)|الاصغر سنا|اصغرهم|اصغر سنا/)) f.sort = "youngest";
   else if (has(/اكبر (?:ملاكم|ملاكمين|ملاكمه|بطل)(?: \S+)? سنا|الاكبر سنا|اكبرهم سنا|اكبر سنا/)) f.sort = "age";
   if (has(/ساوثباو|اعسر|يسار/)) f.stance ??= "Southpaw";
   if (has(/ارثوذكس|ستاندرد|يمني|يمين(?:ي|يه|يون|يين)/)) f.stance ??= "Orthodox"; // the question is folded (ى is ي) before it is read
-  if (has(/نساء|سيدات|اناث|ملاكمات/)) f.sex ??= "female"; else if (has(/رجال|ذكور/)) f.sex ??= "male";
+  if (has(/نساء|سيدات|اناث|ملاكمات|ملاكمه/)) f.sex ??= "female"; else if (has(/رجال|ذكور/)) f.sex ??= "male";
   if (has(/لم يهزم|لم يخسر|بدون هزيمه|بدون خساره|دون خساره|غير مهزوم|ارقام مثاليه/)) f.undefeated = true;
   if (has(/معتزل/)) f.active = false; else if (has(/نشط|حاليا/)) f.active ??= true;
   // champions: now (the live belts), formerly, or ever; a champion who is also something else is a search, not the champions list
