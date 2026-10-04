@@ -64,14 +64,14 @@ export default async function Home() {
     <div className="space-y-16 overflow-x-clip">
       {/* Hero: the next fight is the page (direction A) */}
       {next && p ? (
-        <section className="rise grid items-end gap-10 lg:grid-cols-[minmax(0,27rem)_1fr]">
-          <div className="relative mx-auto w-full max-w-md">
+        <section className="rise grid items-end gap-10 md:grid-cols-[minmax(0,15rem)_1fr] lg:grid-cols-[minmax(0,27rem)_1fr]">
+          <div className="relative mx-auto w-full max-w-md md:max-w-none">
             <div className="absolute -inset-8 -z-10 rounded-[2rem] bg-red/25 blur-3xl live" />
             <Link href={`/events/${next.event.id}`} className="block transition hover:scale-[1.015]"><Poster event={next.event} main={next.main} red={next.red} blue={next.blue} priority /></Link>
           </div>
           <div>
             <div className="eyebrow mb-3">{t.n(daysUntil(next.event.date), "In {n} day", "In {n} days")} · {fmtDate(next.event.date, undefined, t.locale)} · {t.name(next.event.venue)}</div>
-            <h1 className={`font-display font-extrabold uppercase ${t.locale === "ar" ? "text-6xl leading-[1.25] sm:text-8xl" : "text-7xl leading-[.9] sm:text-9xl"}`}>
+            <h1 className={`font-display font-extrabold uppercase ${t.locale === "ar" ? "text-6xl leading-[1.25] sm:text-8xl md:text-5xl lg:text-8xl" : "text-7xl leading-[.9] sm:text-9xl md:text-6xl lg:text-9xl"}`}>
               <span>{surname(next.red.name)}</span><br /><span className="text-2xl font-bold text-gold sm:text-4xl">{t("VS")}</span><br /><span className="text-red-ink">{surname(next.blue.name)}</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg text-muted">{t("{a} vs {b}", { a: t.name(next.red.name), b: t.name(next.blue.name) })} · {next.main.title ? t.name(next.main.title) : divisionLabel(next.main.weightClass, next.red.sex, t)}</p>
