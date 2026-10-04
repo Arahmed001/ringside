@@ -276,7 +276,7 @@ function batch4(w: World): Case[] {
     { q: "Find me orthodox middleweights from Ukraine who are still active", tool: "fighters" },
     { q: "left-handed light heavyweights over thirty", tool: "fighters" },
     { q: "which active heavyweights are undefeated?", tool: "fighters" },
-    { q: "boxers who have never been knocked out", tool: null, note: "there is no knocked-out-count filter, so the honest answer is that it cannot be answered" },
+    { q: "boxers who have never been knocked out", tool: "fighters", args: { maxStopped: 0 }, note: "round 53 added the times-stopped filter; before it, the honest answer was that it could not be answered" },
     { q: "who has the most knockouts in 2024", tool: null, note: "the lists have no year; an all-time answer would look right and be wrong" },
     { q: "most wins this year", tool: null },
     { q: "fighters with a knockout rate above 80 percent", tool: ["fighters", "record_list"] },

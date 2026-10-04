@@ -4244,6 +4244,18 @@
   ]
  },
  {
+  "key": "Draws ≤ {n}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Draws ≥ {n}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "Draws, no-contests and fights where either fighter had no earlier bout in the database are left out.",
   "files": [
    "app/[locale]/accountability/page.tsx"
@@ -6342,6 +6354,13 @@
   ]
  },
  {
+  "key": "Last {n} fights",
+  "plural": "Last fight",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Last 12 months",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
@@ -6381,6 +6400,45 @@
   "key": "Last fought",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "Last fought {n} days ago",
+  "plural": "Last fought {n} day ago",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Last fought {n} months ago",
+  "plural": "Last fought {n} month ago",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Last fought {n} years ago",
+  "plural": "Last fought {n} year ago",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Last fought by {date}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Last fought since {date}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Last fought today",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -6733,6 +6791,12 @@
  },
  {
   "key": "Losing record",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Losing streak ≥ {n}",
   "files": [
    "lib/ai.ts"
   ]
@@ -7217,6 +7281,12 @@
   ]
  },
  {
+  "key": "Never stopped",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "NEW",
   "files": [
    "components/ui.tsx"
@@ -7356,6 +7426,12 @@
   "key": "No cookie is set unless you sign in.",
   "files": [
    "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "No draws",
+  "files": [
+   "lib/ai.ts"
   ]
  },
  {
@@ -10163,6 +10239,18 @@
   ]
  },
  {
+  "key": "Stopped ≤ {n} times",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Stopped ≥ {n} times",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "Stopped in round {r} of {n}",
   "files": [
    "lib/fight-score.ts"
@@ -11205,6 +11293,24 @@
   ]
  },
  {
+  "key": "then <r>{record}</r>, rated {rating}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "then on debut, rated {rating}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "then rated {rating}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "There are no analytics, advertising or tracking scripts, and no script, style, font or frame is loaded from any other website.",
   "files": [
    "app/[locale]/privacy/page.tsx"
@@ -11777,6 +11883,12 @@
   "key": "Unanimous decision",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Unbeaten in last {n}",
+  "files": [
+   "lib/ai.ts"
   ]
  },
  {
@@ -12631,6 +12743,12 @@
   "key": "win rate when 8+ lb heavier",
   "files": [
    "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Win streak ≥ {n}",
+  "files": [
+   "lib/ai.ts"
   ]
  },
  {
