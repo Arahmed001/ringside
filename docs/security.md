@@ -24,6 +24,7 @@ Two concessions, stated plainly: `style-src-attr 'unsafe-inline'`, because chart
 ## Rules for writing code under it
 
 - No inline `<script>` without the nonce. The layout reads it (`headers().get("x-nonce")`) and passes it to `InlineScript`; a JSON-LD block (`type="application/ld+json"`) is data and needs none. A test scans `app/` and `components/` for any other inline script or inline event handler string.
+- The proxy also sets an `x-pathname` request header (the path asked for) for the not-found page, which uses it to offer the fighter a mistyped link probably meant. It is overwritten on every request, so a visitor cannot choose it; the page shows names from the database only, and only letters, digits and spaces of the slug reach the search (`lib/not-found.ts`).
 - No `onclick="..."` strings or `javascript:` links; use React handlers.
 - A new third-party origin (analytics, an embed, a font host) needs a deliberate change to `lib/security.ts` and a line in this file saying why. Nothing third-party is loaded today.
 - Pages must stay dynamically rendered (the root layout is `force-dynamic`): a nonce cannot be baked into a page at build time.
