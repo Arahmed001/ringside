@@ -7,7 +7,8 @@
 import { countOn, shiftDay } from "./on-this-day";
 import { careerView, recordStr, type World } from "./world";
 import { NAV_GROUPS, OFF_NAV } from "./nav";
-import { slugifyDivision } from "./divisions";
+import { DIVISIONS, slugifyDivision } from "./divisions";
+import { rankedBoxers, rankingDepth } from "./rankings";
 import { LISTS } from "./records";
 import { belts } from "./lineage";
 import { fightYears } from "./fight-score";
@@ -39,6 +40,12 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   // a fighter whose history Ringside holds only in part: the page shows the supplier's career total, and says so (a partial load; none in the demo league)
   const partial = boxers.find((b) => careerView(b).source === "supplier");
   if (partial) out.push({ path: `/boxers/${partial.slug}`, kind: "page", label: "fighter with a partial history (the supplier's career total shown)", mustShow: recordStr(partial) });
+  // a league loaded in part: the rankings need five fights each, so divisions can be empty, and the pages must say why
+  if (rankingDepth(w).partialShare > 0.5) {
+    out.push({ path: "/rankings", kind: "page", label: "rankings of a league loaded in part (says why divisions are thin)", mustShow: "count only the fights Ringside holds" });
+    const bare = DIVISIONS.find((d) => rankedBoxers(w, d.name, "male").length === 0);
+    if (bare) out.push({ path: `/rankings/${slugifyDivision(bare.name)}`, kind: "page", label: "an empty division of a league loaded in part", mustShow: "has the five fights on record" });
+  }
   if (star && woman) page(`/compare?a=${star.slug}&b=${boxers[1].slug}`, "matchup");
   page(`/boxers?q=${q("southpaw welterweights with 10+ KOs")}`, "plain-English search");
   page("/boxers?sex=female", "women's fighter list");
@@ -137,8 +144,9 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   }
   if (up) out.push({ path: `/api/preview/${up.id}`, kind: "api", label: "api: preview article" });
   out.push({ path: "/this-page-does-not-exist", kind: "missing", label: "unknown page" });
-  const seen = new Set<string>();
-  return out.filter((r) => (seen.has(r.path) ? false : (seen.add(r.path), true)));
+  // one request per path, but a later route's "must show" is not lost when an earlier one (the nav) took the path first
+  const seen = new Map<string, SmokeRoute>();
+  return out.filter((r) => { const first = seen.get(r.path); if (!first) { seen.set(r.path, r); return true; } if (r.mustShow && !first.mustShow) { first.mustShow = r.mustShow; first.label = `${first.label}; ${r.label}`; } return false; });
 }
 
 /** `n` of the items, the same ones every time for a seed, in no particular order (all of them when `n` is as many as there are). */
