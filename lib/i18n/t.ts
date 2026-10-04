@@ -35,7 +35,7 @@ export interface T {
  * is all digits and separators is wrapped (a name or a sentence is not), and only for Arabic.
  */
 const NUMERIC_RUN = /^[\d\s\-–−/:.,%()+]+$/;
-export const isolateNumeric = (v: string, locale: Locale): string => (locale === "ar" && /\d\s?[-–−/:]\s?\d/.test(v) && NUMERIC_RUN.test(v) ? `\u2066${v}\u2069` : v);
+export const isolateNumeric = (v: string, locale: Locale): string => (locale === "ar" && NUMERIC_RUN.test(v) && (/\d\s?[-–−/:]\s?\d/.test(v) || /^[+\-−]\d/.test(v)) ? `\u2066${v}\u2069` : v); // (a signed number too: "+12.5" is drawn "12.5+" after Arabic text)
 const fill = (s: string, vars?: Vars, locale: Locale = "en") => (vars ? s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? isolateNumeric(String(vars[k]), locale) : m)) : s);
 
 export type Names = Record<string, string>;
