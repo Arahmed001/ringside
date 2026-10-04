@@ -85,6 +85,8 @@ export function smokeRoutes(w: World): SmokeRoute[] {
     out.push({ path: `/orgs?kind=promotion&q=${q(`${p.slice(0, -1).join(" ")} ${last.slice(0, 2)}${last.slice(3)}`.trim())}`, kind: "page", label: "promotion search with a letter missing", mustShow: promo.o.name, englishOnly: true });
   }
   page("/orgs?kind=gym&page=9999", "gym list page beyond the end");
+  page("/rankings/welterweight?page=9999", "division ranking page beyond the end");
+  page("/rankings/welterweight?q=zzzq", "division ranking filter that finds no one");
   const org = (kind: string) => [...w.orgs.values()].find((o) => o.kind === kind);
   for (const k of ["gym", "promotion", "sanctioning_body"]) { const o = org(k); if (o) page(`/orgs/${o.slug}`, `org: ${k}`); }
   for (const b of belts(w).slice(0, 2)) page(`/titles/${b.slug}`, `belt: ${b.title}`);

@@ -4959,6 +4959,12 @@
   ]
  },
  {
+  "key": "Find a fighter in this division",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
   "key": "Find a gym by name",
   "files": [
    "app/[locale]/orgs/page.tsx"

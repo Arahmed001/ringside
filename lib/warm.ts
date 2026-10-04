@@ -12,6 +12,8 @@ import { divisionWeights, fightNightEdge, missedWeights } from "./weights";
 import { belts } from "./lineage";
 import { dayOf, onThisDay } from "./on-this-day";
 import { coverage } from "./coverage";
+import { rankedBoxers } from "./rankings";
+import { DIVISIONS } from "./divisions";
 
 const DAY = 86_400_000;
 /** Milliseconds from `now` to just after the next UTC midnight (the app's day is the UTC date; see clock.ts). */
@@ -27,6 +29,7 @@ export const WARM_STEPS: [string, (w: World) => unknown][] = [
   // the all-time lists include the greatest fights ever, which scores every year of fights (the fighter pages need those too)
   ["all-time lists", (w) => { for (const l of LISTS) { recordList(w, l.id, {}, 5); if (l.subject !== "bout") recordList(w, l.id, {}, 10); } }],
   ["lineages", (w) => belts(w)],
+  ["division rankings", (w) => { for (const sex of ["male", "female"] as const) for (const d of DIVISIONS) rankedBoxers(w, d.name, sex); }],
   ["upset watch record", (w) => { upsetRecord(w); signalLift(w); }],
   ["track record", (w) => trackRecord(w)],
   ["trainer impact", (w) => { trainerImpact(w); moves(w); switchStudy(w); underdogLifters(w); recentTrainerChanges(w, 9); }],

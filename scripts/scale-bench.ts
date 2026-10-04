@@ -82,7 +82,7 @@ async function main() {
   await time("home: calendar, p4p, recent, upsets", () => { const u = ev.eventViews(w2, ev.upcomingEvents(w2).slice(0, 13)); const r = ev.eventViews(w2, ev.recentEvents(w2, 5)); rk.pound4pound(w2, 8); an.biggestUpsets(w2, 1, "2025-01-01"); if (u[0]) predict(u[0].red, u[0].blue); return r.length; });
   await time("home: watchlist API for 20 starred fighters", () => payload("/api/watch (20 fighters)", watchEntries(w2, w2.boxers.filter((b) => b.active).slice(0, 20).map((b) => b.slug))), (n) => `${kb(n)} per request`);
   await time("rankings: every division, men and women", () => { for (const d of DIVISION_NAMES) { rk.rankDivision(w2, d, 5, "male"); rk.rankDivision(w2, d, 5, "female"); } rk.pound4pound(w2, 10); });
-  await time("rankings/[division]: one division, top 15", () => rk.rankDivision(w2, "Welterweight", 15, "male"));
+  await time("rankings/[division]: one division, one page of 25 (deep page)", () => { const all = rk.rankedBoxers(w2, "Welterweight", "male"); return { n: all.length, rows: rk.rankDivision(w2, "Welterweight", 25, "male", Math.max(0, all.length - 25)).length }; }, (r) => `${r.n} ranked, last page has ${r.rows}`);
   await time("fighters list: filter + sort everyone", () => w2.boxers.filter((b) => b.bouts > 0).sort((a, b) => b.rating - a.rating).slice(0, 48));
   await time("fighters list: natural-language trainer filter", async () => { const t = [...w2.people.values()].find((p) => w2.roles.get(p.id)?.has("trainer")); return ai.applyFilters(w2.boxers.filter((b) => b.bouts > 0), { trainer: t?.name ?? "a", weightClass: "Welterweight" }, w2).length; });
   await time("fighter profile: team, weights, rank, similar, report", () => {

@@ -33,6 +33,7 @@ test("warming computes the keys the slow pages asked for when measured at 160,00
   const { warmAggregates } = await import("../lib/warm");
   const { memoKeys } = await import("../lib/memo");
   const { LISTS } = await import("../lib/records");
+  const { DIVISIONS } = await import("../lib/divisions");
   const { fightYears } = await import("../lib/fight-score");
   const { currentYear } = await import("../lib/clock");
   const results = await warmAggregates(w);
@@ -43,6 +44,7 @@ test("warming computes the keys the slow pages asked for when measured at 160,00
     ...LISTS.map((l) => `record:${l.id}:::5`), ...LISTS.filter((l) => l.subject !== "bout").map((l) => `record:${l.id}:::10`),
     "accountability.record", "accountability.calls", "upsetRecord", "signalLift", "trainerImpact", "trainerMoves", "switchStudy", "underdogLifters", "recentTrainerChanges:9",
     "orgsRanking", "trainerLeaderboard:4",
+    ...DIVISIONS.flatMap((d) => ["male", "female"].map((sex) => `divisionPool:${sex}:${d.name}`)),
     "overview", "byWeightClass", "methodSplit", "boutsPerYear", "finishHeat", "biggestUpsets:6:", "biggestUpsets:200:", `biggestUpsets:1:${currentYear() - 1}-01-01`, "countryLeaders", "stanceEdge", "reachEdge", "longestStreaks:6", "finishRoundHistogram",
     "moneyCoverage", "revenueByYear", "topGates:8", "topPpv:8", "topPurses:10", "topEarners:10:all", "broadcasterTable",
     "divisionWeights", "fightNightEdge", "missedWeights:12", "onThisDay:index",

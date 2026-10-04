@@ -2,10 +2,13 @@ import Link from "@/components/L";
 import { notFound } from "next/navigation";
 import { getWorld, recordStr } from "@/lib/world";
 import { DIVISIONS, divisionFromSlug, divisionLabel, limitLabel, slugifyDivision } from "@/lib/divisions";
-import { rankDivision } from "@/lib/rankings";
+import { rankDivision, rankedBoxers, rankRow } from "@/lib/rankings";
+import { pageRows } from "@/lib/people-list";
+import { ListFinder } from "@/components/ListFinder";
+import { getNames } from "@/lib/i18n/names";
 import { archetype } from "@/lib/style";
 import { Headshot } from "@/components/Portrait";
-import { Delta, ArchBadge } from "@/components/ui";
+import { Delta, ArchBadge, Pager } from "@/components/ui";
 import { countryName, flag, fmtDate } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
@@ -23,22 +26,31 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string;
   };
 });
 
-export default async function DivisionRankings({ params, searchParams }: { params: Promise<{ locale: string; division: string }>; searchParams: Promise<{ sex?: string }> }) {
+/** Fighters per page of a division's ranking. */
+const RANK_PAGE = 25;
+
+export default async function DivisionRankings({ params, searchParams }: { params: Promise<{ locale: string; division: string }>; searchParams: Promise<{ sex?: string; q?: string; page?: string }> }) {
   const t = await getT();
   const { division } = await params;
-  const sex = (await searchParams).sex === "female" ? "female" : "male";
-  const q = sex === "female" ? "?sex=female" : "";
+  const sp = await searchParams;
+  const sex = sp.sex === "female" ? "female" : "male";
+  const sexQ = sex === "female" ? "?sex=female" : "";
+  const typed = (sp.q ?? "").slice(0, 80);
   const d = divisionFromSlug(division);
   if (!d) notFound();
   const w = await getWorld();
-  const rows = rankDivision(w, d.name, 15, sex);
-  const champ = rows[0];
+  const names = await getNames(t.locale);
+  // every ranked fighter is reachable: a name filter and pages of 25, each fighter keeping the place held in the whole division
+  const pg = pageRows(rankedBoxers(w, d.name, sex), (b) => b.name, { q: typed, page: sp.page, names, size: RANK_PAGE });
+  const rows = pg.shown.map(({ row, rank }) => rankRow(w, d.name, sex, row, rank));
+  const champ = rankDivision(w, d.name, 1, sex)[0];
+  const href = (n: number) => `/rankings/${slugifyDivision(d.name)}?${new URLSearchParams({ ...(sex === "female" ? { sex } : {}), ...(typed ? { q: typed } : {}), ...(n > 1 ? { page: String(n) } : {}) })}`;
   void archetype;
 
   return (
     <div>
       <div className="flex flex-wrap gap-1.5">
-        {DIVISIONS.map((x) => <Link key={x.name} href={`/rankings/${slugifyDivision(x.name)}${q}`} className={`chip transition hover:text-ink ${x.name === d.name ? "!border-gold/50 !text-gold" : ""}`}>{t(x.short)}</Link>)}
+        {DIVISIONS.map((x) => <Link key={x.name} href={`/rankings/${slugifyDivision(x.name)}${sexQ}`} className={`chip transition hover:text-ink ${x.name === d.name ? "!border-gold/50 !text-gold" : ""}`}>{t(x.short)}</Link>)}
       </div>
       <div className="eyebrow mb-2 mt-8">{limitLabel(d, t)}</div>
       <h1 className="font-display text-6xl font-extrabold uppercase leading-none">{divisionLabel(d.name, sex, t)}</h1>
@@ -56,7 +68,9 @@ export default async function DivisionRankings({ params, searchParams }: { param
         </Link>
       )}
 
-      <div className="card mt-6 overflow-x-auto">
+      <div className="mt-6" />
+      {(pg.of > RANK_PAGE || typed) && <ListFinder path={`/rankings/${slugifyDivision(d.name)}`} hidden={sex === "female" ? { sex } : {}} q={typed} label={t("Find a fighter in this division")} total={pg.total} of={pg.of} close={pg.close} />}
+      <div className="card overflow-x-auto">
         <table className="w-full text-sm" aria-label={t("{division} rankings", { division: divisionLabel(d.name, sex, t) })}>
           <thead><tr className="text-start text-xs uppercase tracking-widest text-muted">
             <th className="p-3">#</th><th>{t("Fighter")}</th><th className="hidden sm:table-cell">{t("Style")}</th><th>{t("Record")}</th><th className="hidden md:table-cell">{t("KO%")}</th><th className="hidden md:table-cell">{t("Last fight")}</th><th className="text-end">{t("Rating")}</th><th className="p-3 text-end">{t("90d")}</th>
@@ -76,8 +90,9 @@ export default async function DivisionRankings({ params, searchParams }: { param
             ))}
           </tbody>
         </table>
-        {!rows.length && <div className="p-8 text-center text-muted">{t("No qualifying fighters in this division yet.")}</div>}
+        {!pg.of && <div className="p-8 text-center text-muted">{t("No qualifying fighters in this division yet.")}</div>}
       </div>
+      <Pager page={pg.page} pages={pg.pages} href={href} />
     </div>
   );
 }
