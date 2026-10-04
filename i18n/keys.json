@@ -6222,6 +6222,13 @@
   ]
  },
  {
+  "key": "Last {n} fights",
+  "plural": "Last fight",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Last 12 months",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
@@ -6261,6 +6268,33 @@
   "key": "Last fought",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "Last fought {n} days ago",
+  "plural": "Last fought {n} day ago",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Last fought {n} months ago",
+  "plural": "Last fought {n} month ago",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Last fought {n} years ago",
+  "plural": "Last fought {n} year ago",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Last fought today",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -11033,6 +11067,24 @@
   "key": "Their careers did not overlap",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "then <r>{record}</r>, rated {rating}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "then on debut, rated {rating}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "then rated {rating}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {

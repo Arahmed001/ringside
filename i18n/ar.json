@@ -700,7 +700,40 @@
  "Last fight: {result} against {opp}, {n} months ago.": "آخر نزال: {result} أمام {opp} قبل {n} أشهر.",
  "Last five results": "نتائج آخر خمسة نزالات",
  "Last fought": "آخر نزال",
+ "Last fought today": "آخر نزال اليوم",
+ "Last fought {n} days ago": {
+  "zero": "آخر نزال قبل {n} يوم",
+  "one": "آخر نزال قبل يوم واحد",
+  "two": "آخر نزال قبل يومين",
+  "few": "آخر نزال قبل {n} أيام",
+  "many": "آخر نزال قبل {n} يومًا",
+  "other": "آخر نزال قبل {n} يوم"
+ },
+ "Last fought {n} months ago": {
+  "zero": "آخر نزال قبل {n} شهر",
+  "one": "آخر نزال قبل شهر واحد",
+  "two": "آخر نزال قبل شهرين",
+  "few": "آخر نزال قبل {n} أشهر",
+  "many": "آخر نزال قبل {n} شهرًا",
+  "other": "آخر نزال قبل {n} شهر"
+ },
+ "Last fought {n} years ago": {
+  "zero": "آخر نزال قبل {n} سنة",
+  "one": "آخر نزال قبل سنة واحدة",
+  "two": "آخر نزال قبل سنتين",
+  "few": "آخر نزال قبل {n} سنوات",
+  "many": "آخر نزال قبل {n} سنة",
+  "other": "آخر نزال قبل {n} سنة"
+ },
  "Last nine months": "آخر تسعة أشهر",
+ "Last {n} fights": {
+  "zero": "آخر {n} نزال",
+  "one": "آخر نزال",
+  "two": "آخر نزالين",
+  "few": "آخر {n} نزالات",
+  "many": "آخر {n} نزالًا",
+  "other": "آخر {n} نزال"
+ },
  "Latest": "الأحدث",
  "Latest completed year": "آخر سنة مكتملة",
  "Layoff": "فترة الغياب",
@@ -1866,6 +1899,9 @@
  "the model gave the winner {pct}%": "منح النموذج الفائز {pct}%",
  "the question you type into Ask the data, and the figures the database returned for it": "السؤال الذي تكتبه في «اسأل البيانات»، والأرقام التي أعادتها قاعدة البيانات له",
  "the words you type into the fighter search, so they can be turned into filters; and a scouting report, built from a fighter’s record": "الكلمات التي تكتبها في بحث الملاكمين لتحويلها إلى مرشّحات، وتقرير استكشاف يُبنى من سجل ملاكم",
+ "then <r>{record}</r>, rated {rating}": "حينها <r>{record}</r> بتصنيف {rating}",
+ "then on debut, rated {rating}": "حينها في أول نزال احترافي، بتصنيف {rating}",
+ "then rated {rating}": "حينها بتصنيف {rating}",
  "to close": "للإغلاق",
  "to move": "للتنقل",
  "to open": "للفتح",

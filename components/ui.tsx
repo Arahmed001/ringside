@@ -64,7 +64,7 @@ export async function ResultPill({ r }: { r: "W" | "L" | "D" | "NC" }) {
   return <span className={`grid h-6 min-w-6 place-items-center rounded-md px-1 text-xs font-bold ${c}`}>{t(RES[r])}</span>;
 }
 
-export async function BoutLine({ bout, focusId }: { bout: BoutRow; focusId?: number }) {
+export async function BoutLine({ bout, focusId, context }: { bout: BoutRow; focusId?: number; /** a line under the opponent: what they were going into this fight */ context?: React.ReactNode }) {
   const t = await getT();
   const opp = focusId === bout.redId ? { n: bout.blueName, s: bout.blueSlug } : { n: bout.redName, s: bout.redSlug };
   const r = bout.method === "NC" ? "NC" : bout.winnerId === null ? "D" : bout.winnerId === focusId ? "W" : "L";
@@ -72,7 +72,7 @@ export async function BoutLine({ bout, focusId }: { bout: BoutRow; focusId?: num
     <tr className="border-t border-line/60 text-sm">
       <td className="py-2.5 pe-3 tabular text-muted">{fmtDate(bout.date, { month: "short", year: "numeric", day: "numeric" }, t.locale)}</td>
       <td className="pe-3">{bout.method ? <Link href={`/bouts/${bout.id}`} title={t("Full bout details")}><ResultPill r={r} /></Link> : <Link href={`/bouts/${bout.id}`} className={`chip ${bout.status === "cancelled" ? "!border-red/40 !text-red-ink" : ""}`}>{bout.status === "cancelled" ? t("Cancelled") : t("TBA")}</Link>}</td>
-      <td className="pe-3"><Link href={`/boxers/${opp.s}`} className="hover:text-gold">{t.name(opp.n)}</Link></td>
+      <td className="pe-3"><Link href={`/boxers/${opp.s}`} className="hover:text-gold">{t.name(opp.n)}</Link>{context && <div className="tabular text-xs text-muted">{context}</div>}</td>
       <td className="pe-3 tabular text-muted">{methodLabel(bout.method, bout.endRound, t)}</td>
       <td className="hidden pe-3 text-muted sm:table-cell"><Link href={`/events/${bout.eventId}`} className="hover:text-ink">{t.name(bout.eventName)}</Link></td>
       <td className="hidden text-end text-xs text-gold md:table-cell">{bout.title ? t.name(bout.title) : ""}</td>
