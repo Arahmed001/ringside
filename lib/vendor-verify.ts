@@ -159,3 +159,79 @@ export function describeReconciliation(r: Reconciliation): string[] {
   if (r.noVendorRecord) lines.push(`  ${r.noVendorRecord} fighter(s) came with no career record, so nothing can be checked for them`);
   return lines;
 }
+
+/**
+ * Why a fighter's loaded fights come to MORE than the vendor's career record: the question a conflict leaves open. A conflict is the feed
+ * contradicting itself, and the usual reasons can be told apart from the fights themselves, without the vendor:
+ * - `draw`: more draws loaded than the vendor counts (a drawn fight the vendor never recorded);
+ * - `wins` / `losses`: more of those than the vendor counts, with no other reason below to blame (a wrong winner, another fighter's fights under his id, a stale total);
+ * - `repeat`: the same two fighters twice within 30 days, which is one fight listed twice;
+ * - `same-day`: two fights on one date for one fighter;
+ * - `recent`: the surplus disappears when the fights of the last 14 days are set aside, so the vendor's total probably trails its results.
+ * A fighter can have several. `unexplained` is a conflict none of these accounts for.
+ */
+export type ConflictCause = "draw" | "wins" | "losses" | "repeat" | "same-day" | "recent" | "unexplained";
+export interface ConflictFight { date: string; opponent: string; result: "W" | "L" | "D" | "NC"; method: string | null; boutId: string }
+export interface ConflictExplanation { externalId: string; name: string; loaded: string; vendor: string; causes: ConflictCause[]; fights: ConflictFight[] }
+export interface ConflictReport { total: number; tally: Record<ConflictCause, number>; fighters: ConflictExplanation[] }
+
+const DAY = 86_400_000;
+const days = (a: string, b: string) => Math.abs(Date.parse(a) - Date.parse(b)) / DAY;
+
+export function explainConflicts(feed: FeedData, vendor: Map<string, CareerRecord>, today: string): ConflictReport {
+  const rec = reconcileFeed(feed, vendor);
+  const name = new Map(feed.boxers.map((b) => [b.externalId, b.name]));
+  const dateOf = new Map(feed.events.map((e) => [e.externalId, e.date]));
+  const byFighter = new Map<string, ConflictFight[]>();
+  for (const b of feed.bouts) {
+    if (b.status === "cancelled") continue;
+    const date = dateOf.get(b.eventExternalId) ?? "";
+    for (const [me, opp] of [[b.redExternalId, b.blueExternalId], [b.blueExternalId, b.redExternalId]] as const) {
+      const result = b.winnerExternalId ? (b.winnerExternalId === me ? "W" : "L") : b.method === "DRAW" ? "D" : "NC";
+      const list = byFighter.get(me) ?? byFighter.set(me, []).get(me)!;
+      list.push({ date, opponent: name.get(opp) ?? opp, result, method: b.method ?? null, boutId: b.externalId });
+    }
+  }
+  const tally: Record<ConflictCause, number> = { draw: 0, wins: 0, losses: 0, repeat: 0, "same-day": 0, recent: 0, unexplained: 0 };
+  const fighters: ConflictExplanation[] = [];
+  const count = (fs: ConflictFight[]): CareerRecord => ({ wins: fs.filter((f) => f.result === "W").length, losses: fs.filter((f) => f.result === "L").length, draws: fs.filter((f) => f.result === "D").length });
+  for (const c of rec.conflicts) {
+    const v = vendor.get(c.externalId)!;
+    const fights = (byFighter.get(c.externalId) ?? []).sort((a, b) => a.date.localeCompare(b.date));
+    const l = count(fights), causes: ConflictCause[] = [];
+    const counting = fights.filter((f) => f.result !== "NC");
+    if (l.draws > v.draws) causes.push("draw");
+    const dup = counting.some((f, i) => counting.some((g, j) => j > i && g.opponent === f.opponent && days(f.date, g.date) <= 30));
+    if (dup) causes.push("repeat");
+    if (counting.some((f, i) => counting.some((g, j) => j > i && g.date === f.date))) causes.push("same-day");
+    if (classifyRecord(count(fights.filter((f) => days(f.date, today) > 14)), v) !== "conflict") causes.push("recent");
+    // a surplus of wins or losses is blamed on the feed's winner only when nothing else accounts for it
+    if (!causes.some((k) => k !== "draw")) { if (l.wins > v.wins) causes.push("wins"); if (l.losses > v.losses) causes.push("losses"); }
+    if (!causes.length) causes.push("unexplained");
+    for (const k of causes) tally[k]++;
+    fighters.push({ externalId: c.externalId, name: c.name, loaded: c.loaded, vendor: c.vendor, causes, fights });
+  }
+  return { total: rec.conflicts.length, tally, fighters };
+}
+
+const CAUSE_TEXT: Record<ConflictCause, string> = {
+  draw: "more draws loaded than the vendor counts (a drawn fight the vendor never recorded)",
+  wins: "more wins loaded than the vendor counts, with no repeated fight to blame (wrong winner, another fighter's fights under his id, or a stale total)",
+  losses: "more losses loaded than the vendor counts, with no repeated fight to blame",
+  repeat: "the same two fighters twice within 30 days (one fight listed twice)",
+  "same-day": "two fights on one date for one fighter",
+  recent: "the surplus goes away without the last 14 days' fights: the vendor's total probably trails its results",
+  unexplained: "no cause found in the fights",
+};
+
+/** The tally of causes (always worth printing when there are conflicts) and, with `show` above 0, the fights of that many conflicted fighters, so each can be checked by eye. */
+export function describeConflictReport(r: ConflictReport, show = 0): string[] {
+  if (!r.total) return [];
+  const lines = [`why the ${r.total} conflict(s) (a fighter can have more than one reason):`];
+  for (const k of Object.keys(CAUSE_TEXT) as ConflictCause[]) if (r.tally[k]) lines.push(`  ${String(r.tally[k]).padStart(5)}  ${CAUSE_TEXT[k]}`);
+  for (const f of r.fighters.slice(0, show)) {
+    lines.push(`  ${f.name}: loaded ${f.loaded}, vendor ${f.vendor}: ${f.causes.join(", ")}`);
+    for (const x of f.fights) lines.push(`      ${x.date}  ${x.result}  ${(x.method ?? "no result").padEnd(9)} vs ${x.opponent}  (${x.boutId})`);
+  }
+  return lines;
+}

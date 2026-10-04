@@ -89,12 +89,12 @@ export function mapRanking(raw: ApiRanking, notes: Notes): ProviderOfficialRanki
 
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
-  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "stoppageWithoutWinner" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
+  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
   | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, stoppageWithoutWinner: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
+  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, windowTooBig: 0,
 });
 
@@ -251,6 +251,27 @@ export function finishBoxers(rows: Loose[], bouts: ProviderBout[], eventDates: M
 
 // ---- the client ----
 const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * 86400000).toISOString().slice(0, 10);
+/**
+ * A decision with no winner is taken as a draw by `mapFight`, but the feed also leaves the winner out of fights it has not settled (a result not yet posted,
+ * a no contest): a draw the vendor never recorded then shows up as a conflict ("loaded 0-0-1, vendor 18-0-0"). So a drawn fight is kept only where each fighter's
+ * career record has room for it: the vendor's draws, counted fight by fight, never exceeded. A fighter with no career record cannot be checked, and keeps the
+ * draw. A demoted fight is "no result yet", as a decision with no outcome at all already is, and is counted as `drawDemoted`.
+ */
+export function demoteUnsupportedDraws(bouts: ProviderBout[], vendor: Map<string, CareerRecord>, notes: Notes): ProviderBout[] {
+  const used = new Map<string, number>();
+  const room = (id: string) => { const v = vendor.get(id); return !v || (used.get(id) ?? 0) < v.draws; };
+  return bouts.map((b) => {
+    if (b.method !== "DRAW") return b;
+    if (!room(b.redExternalId) || !room(b.blueExternalId)) {
+      notes.drawDemoted++;
+      const { scores: _scores, ...rest } = b; void _scores;
+      return { ...rest, method: null, endRound: null };
+    }
+    for (const id of [b.redExternalId, b.blueExternalId]) used.set(id, (used.get(id) ?? 0) + 1);
+    return b;
+  });
+}
+
 export class BudgetError extends Error {}
 
 /**
@@ -593,7 +614,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     notes.fightersDroppedNoDivision += finished.length - placed.length;
     const placedIds = new Set(placed.map((r) => r.externalId));
     const kept = keep.filter((b) => { const ok = placedIds.has(b.redExternalId) && placedIds.has(b.blueExternalId); if (!ok) notes.boutsDroppedNoDivision++; return ok; });
-    return { boxers: placed, events: [...events.values()], bouts: kept };
+    return { boxers: placed, events: [...events.values()], bouts: demoteUnsupportedDraws(kept, careers, notes) };
   }
   const once = () => (cache ??= load());
   /** The official lists: 17 requests (one page per division, the pages being the same four bodies each), cached like every other page (so a stopped load resumes, and a reload asks for nothing; the daily `--update` refreshes everything), and never fatal: a plan without them just has none. */

@@ -643,3 +643,29 @@ test("importer hygiene (round 73): a fighter against himself is skipped, a knock
   const fine = B.mapFight(fight("h5", "A", "B", { scheduled_rounds: 10, results: { outcome: "KO", round: 7 } }), n)!.bout;
   assert.equal(fine.rounds, 10); assert.equal(n.roundsRaisedToEnd, 1, "a stoppage inside the schedule is untouched");
 });
+
+test("a drawn fight is kept only where each fighter's career record has room for a draw; one the vendor never recorded becomes 'no result yet' (round 74)", () => {
+  const n = notes();
+  const d = (id: string, a: string, b: string) => B.mapFight(fight(id, a, b, { fighters: { fighter_1: side(a, false), fighter_2: side(b, false) }, results: { outcome: "SD", round: null } }), n)!.bout;
+  const bouts = [d("d1", "A", "B"), d("d2", "C", "D"), d("d3", "A", "E"), d("d4", "F", "G")];
+  const vendor = new Map([["bda-f-A", { wins: 5, losses: 0, draws: 1 }], ["bda-f-B", { wins: 0, losses: 0, draws: 2 }], ["bda-f-C", { wins: 18, losses: 0, draws: 0 }], ["bda-f-D", { wins: 1, losses: 0, draws: 1 }], ["bda-f-E", { wins: 0, losses: 0, draws: 3 }]]);
+  const out = B.demoteUnsupportedDraws(bouts, vendor, n);
+  assert.deepEqual(out.map((b) => b.method), ["DRAW", null, null, "DRAW"], "C has no draws (demoted); A's one draw is used up by the first; F and G have no record, so the draw stays");
+  assert.equal(out[1].endRound, null); assert.equal(out[1].scores, undefined); assert.equal(n.drawDemoted, 2);
+});
+
+test("through a real load: a decision with no winner is a draw only if the vendor's totals have room for it (round 74)", async () => {
+  const noWinner = { fighter_1: side("A1", false), fighter_2: side("B1", false) };
+  const both: Record<string, B.ApiFighter> = {
+    A1: fighter("A1", "Alpha One", { stats: { wins: 18, losses: 0, draws: 0, total_bouts: 18 } }),
+    B1: fighter("B1", "Bravo One", { stats: { wins: 3, losses: 1, draws: 1, total_bouts: 5 } }),
+    C1: fighter("C1", "Charlie One", { stats: { wins: 2, losses: 0, draws: 1, total_bouts: 3 } }),
+  };
+  const fights = [fight("1", "A1", "B1", { fighters: noWinner, results: { outcome: "SD", round: null } }), fight("2", "B1", "C1", { fighters: { fighter_1: side("B1", false), fighter_2: side("C1", false) }, results: { outcome: "MD", round: null }, date: "2025-03-01T20:00:00Z", event: { id: "ev-2", title: "Spring", date: "2025-03-01T20:00:00Z", location: "London, United Kingdom", venue: "O2" } })];
+  const { impl } = mockFetch((path) => path === "/v2/fights/" ? { body: env(fights) } : path === "/v2/fights/schedule" ? { body: env([]) } : { body: env(both[path.split("/").pop()!]) });
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0 });
+  const bouts = await p.fetchBouts();
+  const by = Object.fromEntries(bouts.map((b) => [b.externalId, b.method]));
+  assert.deepEqual([by["bda-b-1"], by["bda-b-2"]], [null, "DRAW"], "Alpha has no draws (his fight with Bravo is not a draw); Bravo and Charlie each have one");
+  assert.equal(p.notes().drawDemoted, 1); assert.equal(p.notes().drawInferred, 2);
+});

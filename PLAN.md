@@ -1220,3 +1220,12 @@ From the first real fetch (5,000 fighters: 1,189 validator errors, 219 conflicts
 - Tests: `tests/vendor-selection-modes.test.ts` (modes, plan block, end to end on the mock vendor: complete records, no conflicts, never more than N), hygiene test in `tests/boxing-data-api.test.ts`; four mutations killed.
 - Not shown: how the user's real data behaves. That needs their `--check` with the new flags (their key and cache), not run here.
 
+## 125. Why a record conflicts, and draws the vendor never recorded (round 74, 2026-10-04)
+
+The first real load was refused for 219 conflicts ("loaded 0-0-1, vendor 18-0-0"). The importer turned every finished decision with no winner into a draw; the feed also leaves the winner out of fights it has not settled, so draws appeared that the vendor never recorded.
+
+- **Draw fix** (`demoteUnsupportedDraws`, run at the end of `load()`): a drawn fight is kept only if each fighter's career record has a draw to spare, counted fight by fight; otherwise it becomes "no result yet" (`drawDemoted`). A fighter with no career record cannot be checked and keeps the draw. Which of two draws is kept for a fighter with room for one is arbitrary.
+- **Explainer** (`explainConflicts`, `describeConflictReport` in `lib/vendor-verify.ts`): for every conflict, the cause read from the fights themselves: `draw`, `repeat` (same pair twice within 30 days), `same-day`, `recent` (the surplus goes away without the last 14 days), else `wins`/`losses`, else `unexplained`. `--check` always prints the tally when there are conflicts; `--explain-conflicts [--show N]` adds the fights behind the first N fighters.
+- Not shown: whether the draw guess accounts for most of the user's 219; that needs their `--check --explain-conflicts` on their cache. Conflicts that are not draws (e.g. a loaded win the vendor lacks) are not fixed, only explained.
+- Tests: `tests/vendor-verify.test.ts` (causes, report), `tests/boxing-data-api.test.ts` (unit and through a real load); six mutations killed.
+
