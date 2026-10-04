@@ -18,7 +18,7 @@ before(async () => {
 test("the sentence battery: a search returns exactly the fighters the sentence describes (round 51)", () => {
   const wrong: string[] = [];
   for (const c of nlCases()) {
-    const found = ai.applyFilters(w.boxers.filter((b) => b.bouts > 0), ai.heuristicParse(c.q, countries), w, {});
+    const found = ai.applyFilters(w.boxers.filter((b) => b.bouts > 0), ai.heuristicParse(c.q, countries, w.today), w, {});
     const p = nlProblem(w, c, found);
     if (p) wrong.push(`${c.q}: ${p}`);
   }
@@ -28,7 +28,7 @@ test("the sentence battery: a search returns exactly the fighters the sentence d
 test("the battery's truths are not empty or everyone: a search that ignored the sentence could not pass by luck", () => {
   const all = w.boxers.filter((b) => b.bouts > 0).length;
   const thin: string[] = [];
-  for (const c of nlCases()) { const n = w.boxers.filter((b) => b.bouts > 0 && c.truth(b)).length; if (n === 0 || n === all) thin.push(`${c.q}: ${n} of ${all}`); }
+  for (const c of nlCases()) { const n = w.boxers.filter((b) => b.bouts > 0 && c.truth(b, w)).length; if (n === 0 || n === all) thin.push(`${c.q}: ${n} of ${all}`); }
   assert.deepEqual(thin, []);
 });
 

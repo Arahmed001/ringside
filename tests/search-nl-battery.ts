@@ -7,9 +7,12 @@ import type { BoxerFull } from "../lib/types";
  * that ignores part of the sentence, or reads a number as the wrong thing, returns the wrong set; that is what this measures. Fighters with no fight are not
  * in a search, and a fact the data does not have never satisfies a condition on it.
  */
-export interface NlCase { q: string; kind: string; group: "A" | "B" | "C" | "D" | "E"; truth: (b: BoxerFull) => boolean }
+export interface NlCase { q: string; kind: string; group: "A" | "B" | "C" | "D" | "E" | "F" | "G"; truth: (b: BoxerFull, w: World) => boolean }
 
 const known = (v: number | null, f: (v: number) => boolean) => v !== null && f(v);
+/** The fights that count in a record, oldest first. */
+const record = (b: BoxerFull, w: World) => (w.boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming && x.method !== null && x.method !== "NC");
+const back = (w: World, n: number, unit: "months" | "years" | "weeks"): string => { const d = new Date(w.today + "T12:00:00Z"); if (unit === "months") d.setUTCMonth(d.getUTCMonth() - n); else if (unit === "years") d.setUTCFullYear(d.getUTCFullYear() - n); else d.setUTCDate(d.getUTCDate() - 7 * n); return d.toISOString().slice(0, 10); };
 
 export function nlCases(): NlCase[] {
   const c = (group: NlCase["group"], kind: string, q: string, truth: NlCase["truth"]): NlCase => ({ q, kind, group, truth });
@@ -143,6 +146,82 @@ export function nlCases(): NlCase[] {
     c("E", "ar combined: Indic digits range", "ملاكمون لديهم بين ١٥ و٢٥ فوزا", (b) => b.wins >= 15 && b.wins <= 25),
     c("E", "ar combined: stance + losses", "ملاكمون أعسر ليس لديهم هزائم", (b) => b.stance === "Southpaw" && b.losses === 0),
     c("E", "ar combined: KOs + no losses", "ملاكمون لديهم 8 ضربات قاضية أو أكثر وبدون هزائم", (b) => b.kos >= 8 && b.losses === 0),
+    // F: a fighter's record and form: stopped, draws, streaks, unbeaten runs, when they last fought (round 53); measured on the search as it was
+    c("F", "stopped, never", "fighters who have never been knocked out", (b) => b.koLosses === 0),
+    c("F", "stopped, never (stopped)", "boxers who have never been stopped", (b) => b.koLosses === 0),
+    c("F", "stopped, never lost by knockout", "boxers who never lost by knockout", (b) => b.koLosses === 0),
+    c("F", "stopped, more than twice", "fighters stopped more than twice", (b) => b.koLosses > 2),
+    c("F", "stopped, at least 3 times", "boxers who lost by knockout at least 3 times", (b) => b.koLosses >= 3),
+    c("F", "stopped, been knocked out more than once", "boxers who have been knocked out more than once", (b) => b.koLosses > 1),
+    c("F", "stopped, KO losses", "fighters with 5 or more KO losses", (b) => b.koLosses >= 5),
+    c("F", "stopped, fewer than", "fighters stopped fewer than 2 times", (b) => b.koLosses < 2),
+    c("F", "stopped, active voice is wins by knockout", "fighters who have knocked out at least 10 opponents", (b) => b.kos >= 10),
+    c("F", "distance, every time", "fighters who went the distance every time", (b) => b.koLosses === 0 && b.kos === 0),
+    c("F", "draws, with a draw", "fighters with a draw", (b) => b.draws >= 1),
+    c("F", "draws, none", "fighters with no draws", (b) => b.draws === 0),
+    c("F", "draws, more than", "fighters with more than 2 draws", (b) => b.draws > 2),
+    c("F", "draws, never drawn", "fighters who have never drawn", (b) => b.draws === 0),
+    c("F", "draws, exactly", "fighters with exactly 2 draws", (b) => b.draws === 2),
+    c("F", "streak, winning of at least", "fighters on a winning streak of at least 5", (b) => b.streak.type === "W" && b.streak.count >= 5),
+    c("F", "streak, N fight winning", "fighters on a 4 fight winning streak", (b) => b.streak.type === "W" && b.streak.count >= 4),
+    c("F", "streak, won their last", "fighters who have won their last 3", (b) => b.streak.type === "W" && b.streak.count >= 3),
+    c("F", "streak, bare winning", "fighters on a winning streak", (b) => b.streak.type === "W" && b.streak.count >= 2),
+    c("F", "streak, losing", "fighters on a losing streak", (b) => b.streak.type === "L" && b.streak.count >= 2),
+    c("F", "streak, lost their last two", "boxers who lost their last two", (b) => b.streak.type === "L" && b.streak.count >= 2),
+    c("F", "streak, lost last fight", "fighters who lost their last fight", (b) => b.streak.type === "L"),
+    c("F", "streak, won last fight", "boxers who won their last fight", (b) => b.streak.type === "W"),
+    c("F", "streak, losing of at least 3", "fighters on a losing streak of at least 3", (b) => b.streak.type === "L" && b.streak.count >= 3),
+    c("F", "unbeaten in last 5", "fighters unbeaten in their last 5", (b, w) => { const l = record(b, w); return l.length >= 5 && l.slice(-5).every((x) => x.winnerId === null || x.winnerId === b.id); }),
+    c("F", "undefeated in last 3 fights", "boxers undefeated in their last 3 fights", (b, w) => { const l = record(b, w); return l.length >= 3 && l.slice(-3).every((x) => x.winnerId === null || x.winnerId === b.id); }),
+    c("F", "recent, last 6 months", "fighters who fought in the last 6 months", (b, w) => b.lastFight !== null && b.lastFight >= back(w, 6, "months")),
+    c("F", "recent, past year", "boxers who have fought in the past year", (b, w) => b.lastFight !== null && b.lastFight >= back(w, 1, "years")),
+    c("F", "recent, this year", "fighters who fought this year", (b, w) => b.lastFight !== null && b.lastFight >= w.today.slice(0, 4) + "-01-01"),
+    c("F", "inactive, over a year", "fighters who have not fought in over a year", (b, w) => b.lastFight !== null && b.lastFight < back(w, 1, "years")),
+    c("F", "inactive, for 2 years", "fighters inactive for 2 years", (b, w) => b.lastFight !== null && b.lastFight <= back(w, 2, "years")),
+    c("F", "last fought in a year", "fighters who last fought in 2024", (b) => b.lastFight !== null && b.lastFight.startsWith("2024")),
+    c("F", "last fought, haven't since", "boxers who haven't fought since 2023", (b) => b.lastFight !== null && b.lastFight <= "2023-12-31"),
+    c("F", "ko rate, under", "fighters with a ko rate under 30%", (b) => b.wins > 0 && b.koRate <= 0.3),
+    c("F", "combined: division + never stopped", "heavyweights who have never been stopped", (b) => b.weightClass === "Heavyweight" && b.koLosses === 0),
+    c("F", "combined: streak + age", "boxers over 35 on a winning streak", (b) => known(b.age, (a) => a >= 36) && b.streak.type === "W" && b.streak.count >= 2),
+    c("F", "combined: recent + wins", "fighters with more than 20 wins who fought in the last year", (b, w) => b.wins > 20 && b.lastFight !== null && b.lastFight >= back(w, 1, "years")),
+    c("F", "combined: no draws + never stopped", "fighters with no draws who have never been knocked out", (b) => b.draws === 0 && b.koLosses === 0),
+    // G: a second batch on record and form, other wordings, written after the first was fitted and measured once before anything was changed for it
+    c("G", "stopped, KO'd", "boxers who have never been KO'd", (b) => b.koLosses === 0),
+    c("G", "stopped, were never", "fighters who were never knocked out", (b) => b.koLosses === 0),
+    c("G", "stopped, twice", "fighters knocked out twice", (b) => b.koLosses >= 2),
+    c("G", "stopped, exactly once", "fighters stopped exactly once", (b) => b.koLosses === 1),
+    c("G", "stopped, no KO losses", "boxers with no knockout losses", (b) => b.koLosses === 0),
+    c("G", "stopped, at most 1 KO loss", "fighters with at most 1 KO loss", (b) => b.koLosses <= 1),
+    c("G", "stopped, at least 4 times", "fighters who have been stopped at least 4 times", (b) => b.koLosses >= 4),
+    c("G", "stopped, by stoppage", "boxers who lost by stoppage more than 3 times", (b) => b.koLosses > 3),
+    c("G", "draws, drawn at least once", "boxers who have drawn at least once", (b) => b.draws >= 1),
+    c("G", "draws, 3 or more", "fighters with 3 or more draws", (b) => b.draws >= 3),
+    c("G", "draws, fewer than", "fighters with fewer than 2 draws", (b) => b.draws < 2),
+    c("G", "draws, never fought a draw", "fighters who never fought a draw", (b) => b.draws === 0),
+    c("G", "streak, 6 fight", "fighters on a 6 fight winning streak", (b) => b.streak.type === "W" && b.streak.count >= 6),
+    c("G", "streak, won their last 5 fights", "boxers who have won their last 5 fights", (b) => b.streak.type === "W" && b.streak.count >= 5),
+    c("G", "streak, lost their last 3 fights", "fighters who lost their last 3 fights", (b) => b.streak.type === "L" && b.streak.count >= 3),
+    c("G", "streak, word number", "fighters on a three fight losing streak", (b) => b.streak.type === "L" && b.streak.count >= 3),
+    c("G", "streak, riding", "fighters riding a winning streak", (b) => b.streak.type === "W" && b.streak.count >= 2),
+    c("G", "streak, of 4", "fighters with a winning streak of 4", (b) => b.streak.type === "W" && b.streak.count >= 4),
+    c("G", "unbeaten, haven't lost", "fighters who haven't lost in their last 4", (b, w) => { const l = record(b, w); return l.length >= 4 && l.slice(-4).every((x) => x.winnerId === null || x.winnerId === b.id); }),
+    c("G", "unbeaten, no losses in", "fighters with no losses in their last 5 fights", (b, w) => { const l = record(b, w); return l.length >= 5 && l.slice(-5).every((x) => x.winnerId === null || x.winnerId === b.id); }),
+    c("G", "unbeaten, over their last", "boxers unbeaten over their last 6 fights", (b, w) => { const l = record(b, w); return l.length >= 6 && l.slice(-6).every((x) => x.winnerId === null || x.winnerId === b.id); }),
+    c("G", "recent, within 3 months", "fighters who fought within the last 3 months", (b, w) => b.lastFight !== null && b.lastFight >= back(w, 3, "months")),
+    c("G", "recent, last 2 years", "fighters who have fought in the last 2 years", (b, w) => b.lastFight !== null && b.lastFight >= back(w, 2, "years")),
+    c("G", "recent, last year", "fighters who fought last year", (b, w) => { const y = +w.today.slice(0, 4) - 1; return b.lastFight !== null && b.lastFight >= `${y}-01-01` && b.lastFight <= `${y}-12-31`; }),
+    c("G", "recent, since", "fighters who have fought since 2025", (b) => b.lastFight !== null && b.lastFight >= "2025-01-01"),
+    c("G", "inactive, at least 18 months", "fighters who haven't fought in at least 18 months", (b, w) => b.lastFight !== null && b.lastFight <= back(w, 18, "months")),
+    c("G", "inactive, more than 2 years", "boxers who haven't been in a fight for more than 2 years", (b, w) => b.lastFight !== null && b.lastFight < back(w, 2, "years")),
+    c("G", "inactive, over a year", "boxers who have been inactive for over a year", (b, w) => b.lastFight !== null && b.lastFight < back(w, 1, "years")),
+    c("G", "last fought before", "fighters who last fought before 2023", (b) => b.lastFight !== null && b.lastFight < "2023-01-01"),
+    c("G", "ko rate, below", "boxers with a knockout rate below 20%", (b) => b.wins > 0 && b.koRate <= 0.2),
+    c("G", "ko rate, at most", "fighters with a ko rate of at most 25%", (b) => b.wins > 0 && b.koRate <= 0.25),
+    c("G", "combined: women + never stopped", "women who have never been knocked out", (b) => b.sex === "female" && b.koLosses === 0),
+    c("G", "combined: undefeated + streak", "undefeated fighters on a winning streak of at least 5", (b) => b.losses === 0 && b.streak.type === "W" && b.streak.count >= 5),
+    c("G", "combined: country + recent", "Mexican fighters who fought in the last year", (b, w) => b.country === "Mexico" && b.lastFight !== null && b.lastFight >= back(w, 1, "years")),
+    c("G", "combined: stopped + wins", "fighters with more than 20 wins who have never been stopped", (b) => b.wins > 20 && b.koLosses === 0),
+    c("G", "combined: losing streak + age", "fighters under 30 on a losing streak", (b) => known(b.age, (a) => a < 30) && b.streak.type === "L" && b.streak.count >= 2),
     // C: a second batch, other wordings, written after the parser and measured once before anything was changed for it
     c("C", "losses, lost N times", "fighters who have lost more than 5 times", (b) => b.losses > 5),
     c("C", "wins, won N times", "fighters who have won at least 20 times", (b) => b.wins >= 20),
@@ -192,7 +271,7 @@ export function nlCases(): NlCase[] {
 
 /** Whether the search for `q` returns exactly the fighters that match `truth`; and who is wrong. */
 export function nlProblem(w: World, c: NlCase, found: BoxerFull[]): string | null {
-  const want = new Set(w.boxers.filter((b) => b.bouts > 0 && c.truth(b)).map((b) => b.id));
+  const want = new Set(w.boxers.filter((b) => b.bouts > 0 && c.truth(b, w)).map((b) => b.id));
   const got = new Set(found.map((b) => b.id));
   const extra = [...got].filter((id) => !want.has(id)).length, missing = [...want].filter((id) => !got.has(id)).length;
   return extra || missing ? `${got.size} returned, ${want.size} expected (${extra} too many, ${missing} missing)` : null;

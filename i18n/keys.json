@@ -4140,6 +4140,18 @@
   ]
  },
  {
+  "key": "Draws ≤ {n}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Draws ≥ {n}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "Draws, no-contests and fights where either fighter had no earlier bout in the database are left out.",
   "files": [
    "app/[locale]/accountability/page.tsx"
@@ -6264,6 +6276,18 @@
   ]
  },
  {
+  "key": "Last fought by {date}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Last fought since {date}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "Last nine months",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -6607,6 +6631,12 @@
  },
  {
   "key": "Losing record",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Losing streak ≥ {n}",
   "files": [
    "lib/ai.ts"
   ]
@@ -7090,6 +7120,12 @@
   ]
  },
  {
+  "key": "Never stopped",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "NEW",
   "files": [
    "components/ui.tsx"
@@ -7229,6 +7265,12 @@
   "key": "No cookie is set unless you sign in.",
   "files": [
    "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "No draws",
+  "files": [
+   "lib/ai.ts"
   ]
  },
  {
@@ -10000,6 +10042,18 @@
   ]
  },
  {
+  "key": "Stopped ≤ {n} times",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Stopped ≥ {n} times",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "Stopped in round {r} of {n}",
   "files": [
    "lib/fight-score.ts"
@@ -11605,6 +11659,12 @@
   ]
  },
  {
+  "key": "Unbeaten in last {n}",
+  "files": [
+   "lib/ai.ts"
+  ]
+ },
+ {
   "key": "Undefeated",
   "files": [
    "lib/ai.ts"
@@ -12444,6 +12504,12 @@
   "key": "win rate when 8+ lb heavier",
   "files": [
    "app/[locale]/weights/page.tsx"
+  ]
+ },
+ {
+  "key": "Win streak ≥ {n}",
+  "files": [
+   "lib/ai.ts"
   ]
  },
  {

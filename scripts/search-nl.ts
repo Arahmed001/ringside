@@ -20,7 +20,7 @@ async function main() {
   const group: Record<string, [number, number]> = {};
   const wrong: string[] = [];
   for (const c of nlCases()) {
-    const f = heuristicParse(c.q, countries);
+    const f = heuristicParse(c.q, countries, w.today);
     const p = nlProblem(w, c, applyFilters(w.boxers.filter((b) => b.bouts > 0), f, w, {}));
     const g = (group[c.group] ??= [0, 0]); g[0]++; if (!p) g[1]++;
     if (p) wrong.push(`  ${c.group} ${c.q.padEnd(54)} ${JSON.stringify(f).slice(0, 80).padEnd(80)} ${p}`);

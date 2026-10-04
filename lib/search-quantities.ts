@@ -9,12 +9,12 @@ import type { Filters } from "./ai";
  * always was (the chip under the search says so), except an age ("30 years old", "aged 30"), which is exactly that age.
  */
 
-export type Measure = "wins" | "losses" | "kos" | "bouts" | "age" | "height" | "reach";
+export type Measure = "wins" | "losses" | "kos" | "bouts" | "age" | "height" | "reach" | "stopped" | "draws";
 export type Cmp = "ge" | "gt" | "le" | "lt" | "eq";
 
 const KEYS: Record<Measure, [keyof Filters, keyof Filters]> = {
   wins: ["minWins", "maxWins"], losses: ["minLosses", "maxLosses"], kos: ["minKOs", "maxKOs"], bouts: ["minBouts", "maxBouts"],
-  age: ["minAge", "maxAge"], height: ["minHeight", "maxHeight"], reach: ["minReach", "maxReach"],
+  age: ["minAge", "maxAge"], height: ["minHeight", "maxHeight"], reach: ["minReach", "maxReach"], stopped: ["minStopped", "maxStopped"], draws: ["minDraws", "maxDraws"],
 };
 
 const CMP_WORDS = [
@@ -26,11 +26,12 @@ const CMP_WORDS = [
 ].join("|");
 const CMP = `(?:${CMP_WORDS})`;
 const SUFFIX = "(?:(?<sge>or more|or higher|or over|and over|and up|and above|plus|or older|or taller|or longer|or greater)|(?<sle>or fewer|or less|or lower|or under|and under|and below|or younger|or shorter))";
-const NOUN: Record<Exclude<Measure, "height" | "reach">, string> = {
+const NOUN: Record<Exclude<Measure, "height" | "reach" | "stopped">, string> = {
   wins: "(?:wins?|victor(?:y|ies))",
   losses: "(?:loss(?:es)?|defeats?)",
   kos: "(?:kos?|knockouts?)",
   bouts: "(?:(?:pro(?:fessional)? )?(?:fights?|bouts?)|times)",
+  draws: "(?:draws?|drawn fights?)",
   age: "(?:years? old|years? of age|yo)",
 };
 /** "5 knockout artists" and "80% knockout rate" name a style and a rate, not a number of knockouts. */
@@ -96,7 +97,7 @@ export function peelQuantities(q: string, f: Filters): string {
   take(new RegExp(String.raw`\b(?:(?<gt>taller)|(?<lt>shorter)) than (?<n>\d{3})(?!\d)`, "i"), (g) => one("height", +g.n!, g, "gt"));
 
   // a range of a counted thing: "between 15 and 25 wins", "20 to 30 wins", "from 5-10 KOs"
-  for (const [m, noun] of Object.entries(NOUN) as [Exclude<Measure, "height" | "reach">, string][]) {
+  for (const [m, noun] of Object.entries(NOUN) as [Exclude<Measure, "height" | "reach" | "stopped">, string][]) {
     take(new RegExp(`\\bbetween\\s+(?<a>\\d+)\\s*(?:and|to|-|–)\\s*(?<b>\\d+)\\s*${noun}\\b`, "i"), (g) => put(f, m, Math.min(+g.a!, +g.b!), Math.max(+g.a!, +g.b!)));
     take(new RegExp(`(?<![\\d.])(?:from\\s+)?(?<a>\\d+)\\s*(?:to|-|–)\\s*(?<b>\\d+)\\s*${noun}\\b`, "i"), (g) => put(f, m, Math.min(+g.a!, +g.b!), Math.max(+g.a!, +g.b!)));
   }
