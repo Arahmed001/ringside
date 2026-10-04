@@ -52,7 +52,7 @@ test("each fact asked is the fact answered, with the tool and the fact named in 
     { qs: ["how tall is NAME", "NAME's height", "what is the height of NAME"], who: star, fact: "height", has: [`${star.heightCm} cm tall`] },
     { qs: ["what is NAME's reach", "NAME reach"], who: star, fact: "reach", has: [`reach is ${star.reachCm} cm`] },
     { qs: ["how old is NAME", "what is NAME's age"], who: star, fact: "age", has: [`${star.age} years old`] },
-    { qs: ["is NAME a southpaw", "what stance does NAME fight from"], who: star, fact: "stance", has: [`${star.stance} stance`] },
+    { qs: ["is NAME a southpaw", "what stance does NAME fight from"], who: star, fact: "stance", has: [`stance is ${star.stance}`] },
     { qs: ["where is NAME from", "what is NAME's nationality"], who: star, fact: "country", has: ["is from"] },
     { qs: ["what weight class is NAME", "which division does NAME fight at"], who: star, fact: "division", has: ["fights at"] },
     { qs: ["who trains NAME", "who is NAME's trainer"], who: trained, fact: "trainer", has: [`head trainer is ${trainer.name}`] },
@@ -102,7 +102,7 @@ test("the same facts in Arabic, with the fighter's Arabic name", async () => {
 
 test("the `about` argument is declared for the model's plan too, and a value that is not a fact is dropped", () => {
   const tool = T.toolByName("fighter")!;
-  assert.deepEqual(T.FIGHTER_FACTS.length, 18);
+  assert.deepEqual(T.FIGHTER_FACTS.length, 24, "the eighteen of rounds 48 and 49 and the six of round 61");
   assert.equal(T.sanitizeArgs(tool, { name: "X", about: "height" }).about, "height");
   assert.equal(T.sanitizeArgs(tool, { name: "X", about: "shoe size" }).about, undefined);
   assert.ok(tool.about.includes("about"));

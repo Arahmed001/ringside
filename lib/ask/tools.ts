@@ -10,7 +10,7 @@ import { belts, beltLabel, reignsOf } from "../lineage";
 import { eventViews, recentEvents, upcomingEvents } from "../events";
 import { fightsOfYear, fightOfTheYear, resultLine, fightReasons } from "../fight-score";
 import { secondsIn } from "../records";
-import { isDecision, isStoppage } from "../methods";
+import { countsInRecord, isDecision, isStoppage } from "../methods";
 import { upsetWatch, TIER_LABEL } from "../upsets";
 import { trainerImpact, VERDICT_LABEL, underdogRecordOf } from "../trainer-impact";
 import { personStable } from "../team";
@@ -121,7 +121,7 @@ function factSentence(ctx: Ctx, b: BoxerFull, fact: FighterFact, more: { rank: n
     case "height": return b.heightCm !== null ? t("{name} is {cm} cm tall.", { name, cm: b.heightCm }) : gap(t("a height"));
     case "reach": return b.reachCm !== null ? t("{name}'s reach is {cm} cm.", { name, cm: b.reachCm }) : gap(t("a reach"));
     case "age": return b.age !== null ? t("{name} is {age} years old.", { name, age: b.age }) : gap(t("an age"));
-    case "stance": return b.stance ? t("{name} fights from a {stance} stance.", { name, stance: t(b.stance) }) : gap(t("a stance"));
+    case "stance": return b.stance ? t("{name}'s stance is {stance}.", { name, stance: t(b.stance) }) : gap(t("a stance"));
     case "country": return t("{name} is from {country}.", { name, country: countryName(b.country, t.locale) });
     case "division": return t("{name} fights at {division}.", { name, division: divisionLabel(b.weightClass, b.sex, t) });
     case "trainer": return more.trainer ? t("{name}'s head trainer is {trainer}.", { name, trainer: t.name(more.trainer.name) }) : t("The data has no current head trainer for {name}.", { name });
@@ -163,12 +163,33 @@ function factSentence(ctx: Ctx, b: BoxerFull, fact: FighterFact, more: { rank: n
     case "record": return t("{name} has had {n} fights: {record}.", { name, n: b.wins + b.losses + b.draws, record: recordStr(b) });
     case "knockouts": return t("{name} has {kos} knockouts in {wins} wins ({pct}%).", { name, kos: b.kos, wins: b.wins, pct: b.wins ? Math.round((100 * b.kos) / b.wins) : 0 });
     case "rating": return t("{name} is rated {elo}{rank}.", { name, elo: Math.round(b.rating), rank: more.rank ? t(", number {n} in the division", { n: more.rank }) : "" });
+    case "debut": return b.turnedPro !== null ? t("{name} turned pro in {year}.", { name, year: b.turnedPro }) : gap(t("a pro debut year"));
+    case "nickname": return b.nickname ? t("{name} is known as “{nickname}”.", { name, nickname: t.name(b.nickname) }) : t("{name} has no nickname on record.", { name });
+    case "style": return t("{name}'s style is {style}.", { name, style: t(archetype(b)) });
+    case "promoter": {
+      const stint = (w.stintsByBoxer.get(b.id) ?? []).find((x) => x.role === "promoter" && x.end === null && x.orgId);
+      const org = stint?.orgId ? w.orgs.get(stint.orgId) : undefined;
+      return org ? t("{name}'s promoter is {promoter}.", { name, promoter: t.name(org.name) }) : t("The data has no current promoter for {name}.", { name });
+    }
+    case "streak": {
+      const list = (w.boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming && countsInRecord(x.method));
+      let longest = 0, run = 0;
+      for (const x of list) { run = x.winnerId === b.id ? run + 1 : 0; longest = Math.max(longest, run); }
+      if (!list.length) return t("{name} has no completed fights on record.", { name });
+      if (b.streak.type === "W") return t("{name} is on a winning streak of {n} (the longest winning run: {longest}).", { name, n: b.streak.count, longest });
+      if (b.streak.type === "L") return t("{name} is on a losing streak of {n} (the longest winning run: {longest}).", { name, n: b.streak.count, longest });
+      return t("{name} is not on a streak (the longest winning run: {longest}).", { name, longest });
+    }
+    case "decisions": {
+      const list = (w.boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming && isDecision(x.method) && x.winnerId !== null);
+      return t("{name}: {won} wins and {lost} losses by decision.", { name, won: list.filter((x) => x.winnerId === b.id).length, lost: list.filter((x) => x.winnerId !== b.id).length });
+    }
     case "belts": return more.held.length ? t("{name} holds {belts}.", { name, belts: more.held.map((h) => beltLabel(h.belt, t)).join("; ") }) : t("{name} holds no current belt.", { name });
   }
 }
 
 /** What a question about one fighter can ask for, so the answer is that fact and not the whole profile. */
-export const FIGHTER_FACTS = ["height", "reach", "age", "stance", "country", "division", "trainer", "gym", "manager", "last_fight", "next_fight", "record", "knockouts", "stopped", "title_fights", "status", "rating", "belts"] as const;
+export const FIGHTER_FACTS = ["height", "reach", "age", "stance", "country", "division", "trainer", "gym", "manager", "last_fight", "next_fight", "record", "knockouts", "stopped", "title_fights", "status", "rating", "belts", "debut", "nickname", "style", "promoter", "streak", "decisions"] as const;
 export type FighterFact = (typeof FIGHTER_FACTS)[number];
 
 const fighter: Tool = {

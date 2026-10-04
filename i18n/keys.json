@@ -982,12 +982,6 @@
   ]
  },
  {
-  "key": "{name} fights from a {stance} stance.",
-  "files": [
-   "lib/ask/tools.ts"
-  ]
- },
- {
   "key": "{name} fought {n} weeks ago, a quick turnaround",
   "files": [
    "lib/matchmaking.ts"
@@ -1070,6 +1064,12 @@
  },
  {
   "key": "{name} has no completed fights on record.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name} has no nickname on record.",
   "files": [
    "lib/ask/tools.ts"
   ]
@@ -1187,6 +1187,18 @@
   ]
  },
  {
+  "key": "{name} is known as “{nickname}”.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name} is not on a streak (the longest winning run: {longest}).",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} is on a {n}-fight win streak.",
   "files": [
    "lib/preview.ts"
@@ -1197,6 +1209,18 @@
   "plural": "{name} is on a {n}-fight winning run",
   "files": [
    "lib/upsets.ts"
+  ]
+ },
+ {
+  "key": "{name} is on a losing streak of {n} (the longest winning run: {longest}).",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name} is on a winning streak of {n} (the longest winning run: {longest}).",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -1279,6 +1303,12 @@
   ]
  },
  {
+  "key": "{name} turned pro in {year}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name} weighed {n} lb more on fight night.",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -1327,6 +1357,12 @@
   ]
  },
  {
+  "key": "{name}: {won} wins and {lost} losses by decision.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name}: estimated effect {effect} Elo against an average trainer ({verdict}); {fighters} fighters, {record} together.",
   "files": [
    "lib/ask/tools.ts"
@@ -1357,7 +1393,25 @@
   ]
  },
  {
+  "key": "{name}'s promoter is {promoter}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
   "key": "{name}'s reach is {cm} cm.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name}'s stance is {stance}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{name}'s style is {style}.",
   "files": [
    "lib/ask/tools.ts"
   ]
@@ -1992,6 +2046,12 @@
   "key": "A pressure fighter who walks through return fire and bets his chin beats yours.",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "a pro debut year",
+  "files": [
+   "lib/ask/tools.ts"
   ]
  },
  {
@@ -11064,6 +11124,12 @@
  },
  {
   "key": "The data has no current manager for {name}.",
+  "files": [
+   "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "The data has no current promoter for {name}.",
   "files": [
    "lib/ask/tools.ts"
   ]

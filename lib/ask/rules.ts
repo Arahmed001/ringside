@@ -285,6 +285,12 @@ const ABOUT_FIGHTS = /\b(knockouts?|kos?|stoppages?|fights?|bouts?|decisions?|dr
 const FACT_ASKED: [RegExp, FighterFact][] = [
   [/\bnext (fight|bout|opponent)\b|\bfights?\b.*\bnext\b|\bwhen (does|is|will)\b.*\bfight\b|\bupcoming (fight|bout)\b|\bfight(ing)? (again|soon)\b|\bfight soon\b|نزاله القادم|نزال القادم|نزال\S*\s+(?:\S+\s+){0,3}القادم|متي (?:ينزل|يقاتل|سيقاتل|يلعب)/, "next_fight"],
   [/\blast (fight|bout|opponent)\b|\bmost recent (fight|bout)\b|\bwhen did\b.*\b(last )?(fight|box)\b|\b(fought|fight|box|boxed) last\b|\blast (fought|boxed)\b|اخر نزال|قاتل\S*\s+(?:\S+\s+){0,3}اخر مره|اخر مره\s+(?:قاتل|لعب|نزل)/, "last_fight"],
+  [/\bwhen did\b.*\b(turn|go|went) pro\b|\b(turned|went) pro\b|\bpro(fessional)? debut\b|\bdebut(ed)?\b|\bfirst pro(fessional)? fight\b|\bhow long\b.*\bpro\b/, "debut"],
+  [/\bnicknames?\b|\bnicknamed\b|\bknown as\b|\bgoes by\b|\bcalled\b/, "nickname"],
+  [/\b(fighting |boxing )?style\b|\bwhat kind of (fighter|boxer)\b|\barchetype\b/, "style"],
+  [/\bpromoter\b|\bpromoted by\b|\bwho promotes\b|\bpromotion (company|firm)\b/, "promoter"],
+  [/\bstreaks?\b|\bwinning run\b|\bwin run\b|\bon a roll\b|\bhow many (in a row|straight)\b/, "streak"],
+  [/\bdecisions?\b|\bgone the distance\b|\bgo the distance\b|\bon (the )?scorecards?\b/, "decisions"],
   [/\bhow tall\b|\bheight\b|\btall is\b|\b(taller|shorter)\b|طول/, "height"],
   [/\breach\b|\barms?( span| length)?\b|امتداد|مدي الذراع/, "reach"],
   [/\bhow old\b|\b(older|younger)\b|\bages?\b|\bborn\b|\bbirth(day| year| date)?\b|كم عمر|عمر/, "age"],
@@ -380,7 +386,7 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   // a fighter's knockdowns are not in the data (only a fight's): "how many times has X been knocked down" is no answer, not the record
   if (fighters.length === 1 && has(q, /\bknocked down\b|\bknockdowns? (suffered|taken|scored)\b/)) return [];
   // one fighter named and one fact asked ("how tall is X", "what is X's knockout rate"): the answer is that fact, not the profile and not a list for everybody
-  if (fighters.length === 1 && !has(q, SUPERLATIVE)) {
+  if (fighters.length === 1 && (!has(q, SUPERLATIVE) || has(q, /\bstreaks?\b|\bwinning run\b|\bwin run\b/))) {
     const about = FACT_ASKED.find(([re]) => has(q, re))?.[1];
     // (a trainer named in a question that says "trainer" is the trainers tool's question, even when a fighter has nearly the same name)
     if (about && !(about === "trainer" && trainer())) return [{ tool: "fighter", args: { name: fighters[0].name, about } }];
