@@ -346,6 +346,9 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   const { fighters, rest } = claim(w, names, question);
   // a region is not a country the data has: "the best welterweight from South America" answered with every welterweight would look right and be wrong
   if (!fighters.length && has(q, REGIONS)) return [];
+  // counts and facts of the coming cards that the events list does not give ("how many cards are scheduled this month", "how many fights does the next card have"), and a belt's history or kind: no answer, not the latest card, every champion or a fighter search
+  if (!fighters.length && has(q, /\bhow many\b.*\b(cards?|events?|shows?)\b.*\b(scheduled|upcoming|coming|next|planned|this (week|month|year)|does the next|has the next)\b|\bhow many\b.*\b(does|has|will)\b.*\b(next|upcoming)\b.*\b(card|event)\b/)) return [];
+  if (!fighters.length && has(q, /\b(interim|vacant|stripped|unified)\b|\bchanged hands\b|\bhow many times has\b.*\b(title|belt)\b|\bhow many (world )?(titles|belts)\b/)) return [];
   // groupings no tool makes: by venue, by country ("which country has the most champions"), by round ("fights that ended in the first round"): no answer, not a list of
   // fighters sorted by fights, the list of champions or every fight
   if (!fighters.length && has(q, /\b(venues?|arenas?|stadiums?|cit(?:y|ies))\b/) && !has(q, /\b(gates?|tickets?|revenue|purses?|earn\w*|paid|attendance)\b/) && has(q, /\b(most|more|biggest|largest|best|top)\b/)) return [];
@@ -474,7 +477,7 @@ export function planByRules(question: string, w: World, names: Names): Call[] {
   // "top 5 southpaws": a ranking is by division; a group of fighters from anywhere is a search
   if (GROUP_KEYS.some((k) => k in f) && has(q, /\btop \d+\b|\bbest\b|\bhighest rated\b/) && !has(q, /pound.for.pound|\bp4p\b/)) return [filters()];
   if (!cut && has(q, /rankings?\b|ranked\b|top \d+|pound.for.pound|\bp4p\b|تصنيف|ترتيب/)) return [{ tool: "rankings", args: withLimit(scope) }];
-  if (has(q, /(upcoming|next|coming up|future) (fights?|events?|cards?|shows?)|fight calendar|schedule|(what|which) (fights?|cards?|boxing|events?|bouts?) (is |are )?(on|coming|scheduled|happening|next)|who.?s (fighting|boxing)( next| tonight| this)?|who headlines|headliners?|next (big |major |title )?(fight|bout|card)|coming up|boxing is on|on this (week|month|weekend)|this weekend|tonight|next (week|month)|القادمه|القادم|جدول/)) return [{ tool: "events", args: withLimit({ when: "upcoming" }) }];
+  if (has(q, /(upcoming|next|coming up|future) (fights?|events?|cards?|shows?)|fight calendar|schedule|(what|which) (fights?|cards?|boxing|events?|bouts?) (is |are )?(on|coming|scheduled|happening|next)|who.?s (fighting|boxing)( next| tonight| this)?|who headlines|headliners?|next (big |major |title )?(fight|bout|card)|(next|upcoming|coming) (main event|headline|headliner|big fight)|coming up|boxing is on|on this (week|month|weekend)|this weekend|tonight|next (week|month)|القادمه|القادم|جدول/)) return [{ tool: "events", args: withLimit({ when: "upcoming" }) }];
   if (has(q, /(recent|latest|last|most recent) (boxing |fight )?(fights?|events?|cards?|results?)|results? of the (most )?(recent|latest|last)|last (night|weekend)|yesterday|who won the most recent|اخر (نزالات|النزالات|الفعاليات|فعاليه|فعاليات|نتايج|نتيجه)|نتايج (اخر|الفعاليات)|(النزالات|الفعاليات|النتايج) الاخيره/)) return [{ tool: "events", args: withLimit({ when: "recent" }) }];
 
   const filterKeys = Object.keys(f).filter((k) => k !== "text");
