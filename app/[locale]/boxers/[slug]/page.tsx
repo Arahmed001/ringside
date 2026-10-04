@@ -21,7 +21,8 @@ import { Headshot } from "@/components/Portrait";
 import { Sparkline, Radar, Donut } from "@/components/charts";
 import { ScoutingReport } from "@/components/ScoutingReport";
 import { WatchButton } from "@/components/Watch";
-import { BoutLine, BoxerCard, SectionTitle, Stat } from "@/components/ui";
+import { BoutLine, BoxerCard, ResultPill, SectionTitle, Stat } from "@/components/ui";
+import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { countryName, flag, fmtDate, fmtPartialDate, pct } from "@/lib/format";
 import { msg } from "@/lib/i18n/t";
 import { countsInRecord, isDecision, isStoppage } from "@/lib/methods";
@@ -56,6 +57,21 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const done = bouts.filter((x) => !x.upcoming).slice().reverse(); // includes cancelled bouts, shown with a chip
   const completed = done.filter((x) => countsInRecord(x.method));
   const upcoming = bouts.find((x) => x.upcoming);
+  // the facts a fan looks for first: how the last five went, how long ago the last fight was, and each opponent as they were going into the fight
+  const recent = formOf(bouts, b.id);
+  const lastDone = [...bouts].reverse().find((x) => resultFor(x, b.id) !== null);
+  const ago = lastDone ? since(w.today, lastDone.date) : null;
+  const lastFought = (x: Since) => x.n === 0 && x.unit === "days" ? t("Last fought today") : x.unit === "days" ? t.n(x.n, "Last fought {n} day ago", "Last fought {n} days ago") : x.unit === "months" ? t.n(x.n, "Last fought {n} month ago", "Last fought {n} months ago") : t.n(x.n, "Last fought {n} year ago", "Last fought {n} years ago");
+  const opponentThen = new Map<number, React.ReactNode>();
+  for (const x of done) {
+    if (resultFor(x, b.id) === null) continue;
+    const oppId = x.redId === b.id ? x.blueId : x.redId;
+    const opp = w.byId.get(oppId);
+    if (!opp) continue;
+    const pre = w.boutPre.get(x.id);
+    const g = goingIn(w.boutsByBoxer.get(oppId) ?? [], x.id, oppId, Math.round((oppId === x.redId ? pre?.red : pre?.blue) ?? 1500), careerView(opp).source === "loaded");
+    opponentThen.set(x.id, g.record ? t.rich("then <r>{record}</r>, rated {rating}", { record: g.record, rating: g.rating, r: (c) => <bdi dir="ltr">{c}</bdi> }) : g.debut ? t("then on debut, rated {rating}", { rating: g.rating }) : t("then rated {rating}", { rating: g.rating }));
+  }
   const history = w.history.get(b.id) ?? [];
   const rank = rankOf(w, b);
   const div = divisionInfo(b.weightClass)!;
@@ -113,7 +129,7 @@ const HONOURS_SHOWN = 8;
     nextBlock = (
       <Link href={`/compare?a=${b.slug}&b=${opp.slug}`} className="card card-hover mt-6 flex flex-wrap items-center gap-4 p-4">
         <span className="chip !border-gold/40 !text-gold live">{t("Next fight")}</span>
-        <span className="text-sm">{t.rich("{date} vs <b>{name}</b>", { date: fmtDate(upcoming.date, undefined, t.locale), name: t.name(opp.name), b: (c) => <b>{c}</b> })} <span className="text-muted">({recordStr(opp)})</span></span>
+        <span className="text-sm">{t.rich("{date} vs <b>{name}</b>", { date: fmtDate(upcoming.date, undefined, t.locale), name: t.name(opp.name), b: (c) => <b>{c}</b> })} <span className="text-muted">(<bdi dir="ltr">{recordStr(opp)}</bdi>)</span></span>
         <span className="ms-auto text-sm">{t.rich("Model: <b>{p}%</b> win", { p: Math.round(p.pA * 100), b: (c) => <b className="text-gold">{c}</b> })}</span>
       </Link>
     );
@@ -154,6 +170,15 @@ const HONOURS_SHOWN = 8;
             <Stat label={t("Rating")} value={Math.round(b.rating)} sub={t("Elo-style")} />
             <Stat label={t("Reach")} value={orDash(b.reachCm, (n) => t("{n}cm", { n }))} sub={isKnown(b.heightCm) ? t("{h}cm tall · {limit}", { h: b.heightCm, limit: limitLabel(div, t) }) : limitLabel(div, t)} />
           </div>
+          {recent.length > 0 && (
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+              <span className="flex items-center gap-1.5">
+                <span className="me-1 text-muted">{t.n(recent.length, "Last fight", "Last {n} fights")}</span>
+                {recent.map((r, i) => <ResultPill key={i} r={r} />)}
+              </span>
+              {ago && <span className="text-muted">{lastFought(ago)}</span>}
+            </div>
+          )}
           {career.source === "supplier" && (
             <p className="mt-3 max-w-2xl text-xs leading-snug text-muted">
               {t("The record is the career total from the data supplier. Ringside holds {held} of those {total} fights, so the fight list, knockouts, rating and rates on this page are built from those {held} only.", { held: career.held, total: career.total })}
@@ -300,7 +325,7 @@ const HONOURS_SHOWN = 8;
       <section>
         <SectionTitle eyebrow={t("Fight record")} title={t.n(completed.length, "{n} bout", "{n} bouts")} />
         <ScrollRegion className="card p-4" label={t("Fight record")}>
-          <table className="w-full" aria-label={t("Fight record")}><tbody>{(upcoming ? [upcoming, ...done] : done).map((x) => <BoutLine key={x.id} bout={x} focusId={b.id} />)}</tbody></table>
+          <table className="w-full" aria-label={t("Fight record")}><tbody>{(upcoming ? [upcoming, ...done] : done).map((x) => <BoutLine key={x.id} bout={x} focusId={b.id} context={opponentThen.get(x.id)} />)}</tbody></table>
         </ScrollRegion>
       </section>
     </div>
