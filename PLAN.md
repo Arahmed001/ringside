@@ -1264,7 +1264,7 @@ The user's full fetch (30,000 fighters uncached) ran without `--per-hour`, sent 
 - Tests: two in `tests/boxing-data-api.test.ts`; three mutations killed (a fourth did not apply and was redone: killed).
 
 
-## 127. --cached-only: look at a part-way fetch without a request (round 76, 2026-10-05)
+## 129. --cached-only: look at a part-way fetch without a request (round 76, 2026-10-05)
 
 The user's full fetch takes about 68 hours at 400 an hour, and a `--check` beside it is refused (one run per key, one hourly allowance). The cache already holds thousands of fighters, enough to see whether the draw fix and the conflict explainer (§125) do their job.
 
