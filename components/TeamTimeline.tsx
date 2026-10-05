@@ -31,7 +31,7 @@ export async function TeamTimeline({ rows, today }: { rows: TimelineRow[]; today
     <div className="space-y-2">
       {rows.map((row) => (
         <div key={row.label} className="grid grid-cols-[86px_1fr] items-center gap-3 sm:grid-cols-[120px_1fr]">
-          <div className="truncate text-xs uppercase tracking-widest text-muted" title={row.label}>{row.label}</div>
+          <div className="line-clamp-2 break-words text-xs uppercase leading-snug tracking-widest text-muted" title={row.label}>{row.label}</div>
           <div className="ltr-fixed relative h-10 rounded-lg bg-panel2/60">
             {row.segments.map((s, i) => {
               const left = pos(s.from, min) * 100, right = pos(s.to, ms(today)) * 100;
