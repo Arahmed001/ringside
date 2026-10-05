@@ -1,7 +1,7 @@
 import { msg } from "./i18n/t";
 
 export type IconName =
-  | "ask" | "rankings" | "titles" | "all-time" | "fighters" | "countries" | "learn" | "events" | "previews" | "fight-of-the-year" | "matchups" | "matchmaking" | "picks" | "watchlist" | "leaderboard"
+  | "ask" | "rankings" | "titles" | "all-time" | "fighters" | "countries" | "learn" | "events" | "previews" | "fight-of-the-year" | "matchups" | "matchmaking" | "picks" | "tonight" | "watchlist" | "leaderboard"
   | "on-this-day" | "upset-watch" | "trainers" | "corners" | "orgs" | "weigh-ins" | "money" | "accountability" | "analytics" | "style-map" | "data";
 
 export interface NavItem { href: string; label: string; icon: IconName }
@@ -19,6 +19,7 @@ export const NAV_GROUPS: NavGroup[] = [
     { href: "/countries", label: msg("Countries"), icon: "countries" },
   ] },
   { id: "fights", title: msg("Fights"), items: [
+    { href: "/tonight", label: msg("Tonight"), icon: "tonight" },
     { href: "/events", label: msg("Events"), icon: "events" },
     { href: "/previews", label: msg("Fight previews"), icon: "previews" },
     { href: "/fight-of-the-year", label: msg("Fight of the year"), icon: "fight-of-the-year" },
