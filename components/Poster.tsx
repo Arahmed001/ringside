@@ -5,6 +5,7 @@ import { HEADER_SCRIM, POSTER_HUES } from "@/lib/poster-colors";
 import { divisionLabel } from "@/lib/divisions";
 import { getT } from "@/lib/i18n/server";
 import { countryName, fmtDate } from "@/lib/format";
+import { recordStr } from "@/lib/career";
 
 /** A real (licensed) photo when we have one, otherwise the generated portrait. */
 function Fighter({ boxer, x }: { boxer: BoxerFull; x: number }) {
@@ -62,8 +63,8 @@ export async function Poster({ event, main, red, blue, className = "", priority 
       <text x="378" y="500" textAnchor="end" fill="#fff" fontSize={fs(bs)} fontWeight="800" style={{ fontFamily: "var(--font-display)" }}>{bs}</text>
       <circle cx="200" cy="448" r="19" fill={accent} />
       <text x="200" y="455" textAnchor="middle" fill="#0a0a0c" fontSize="20" fontWeight="900" style={{ fontFamily: "var(--font-display)" }}>{t("VS")}</text>
-      <text x="22" y="474" fill={accent} fontSize="12" letterSpacing="2" style={{ fontFamily: "var(--font-display)" }}>{t("{record} · {country}", { record: `${red.wins}-${red.losses}-${red.draws}`, country: up(countryName(red.country, t.locale)) })}</text>
-      <text x="378" y="518" textAnchor="end" fill={accent} fontSize="12" letterSpacing="2" style={{ fontFamily: "var(--font-display)" }}>{t("{record} · {country}", { record: `${blue.wins}-${blue.losses}-${blue.draws}`, country: up(countryName(blue.country, t.locale)) })}</text>
+      <text x="22" y="474" fill={accent} fontSize="12" letterSpacing="2" style={{ fontFamily: "var(--font-display)" }}>{t("{record} · {country}", { record: recordStr(red), country: up(countryName(red.country, t.locale)) })}</text>
+      <text x="378" y="518" textAnchor="end" fill={accent} fontSize="12" letterSpacing="2" style={{ fontFamily: "var(--font-display)" }}>{t("{record} · {country}", { record: recordStr(blue), country: up(countryName(blue.country, t.locale)) })}</text>
       {event.status === "cancelled" && (
         <g transform="rotate(-18 200 280)">
           <rect x="-40" y="248" width="480" height="64" fill="#0a0a0c" fillOpacity=".78" />

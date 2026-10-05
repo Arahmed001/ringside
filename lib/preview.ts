@@ -1,6 +1,6 @@
 import { DASH } from "./facts";
 import type { World } from "./world";
-import { recordStr } from "./world";
+import { koView, recordStr } from "./world";
 import type { BoutRow, BoxerFull, EventRow } from "./types";
 import { divisionLabel } from "./divisions";
 import { archetype } from "./style";
@@ -87,7 +87,7 @@ export function buildPreview(w: World, bout: BoutRow, t: T = tEn): Preview {
   const mAgo = (b: BoxerFull) => months(w, b.lastFight);
   const tape: TapeRow[] = [
     { label: t("Record"), red: recordStr(red), blue: recordStr(blue), edge: edge(red.winRate, blue.winRate) },
-    { label: t("Knockouts"), red: `${red.kos} (${Math.round(red.koRate * 100)}%)`, blue: `${blue.kos} (${Math.round(blue.koRate * 100)}%)`, edge: edge(red.koRate, blue.koRate) },
+    { label: t("Knockouts"), red: `${koView(red).kos} (${Math.round(koView(red).rate * 100)}%)`, blue: `${koView(blue).kos} (${Math.round(koView(blue).rate * 100)}%)`, edge: edge(koView(red).rate, koView(blue).rate) },
     { label: t("Elo rating"), red: String(Math.round(red.rating)), blue: String(Math.round(blue.rating)), edge: edge(red.rating, blue.rating) },
     { label: t("Division rank"), red: ra ? `#${ra}` : "–", blue: rb ? `#${rb}` : "–", edge: ra && rb ? edge(ra, rb, false) : null },
     { label: t("Age"), red: num(red.age), blue: num(blue.age), edge: edge(red.age, blue.age, false) },

@@ -1,7 +1,7 @@
 import { orDash } from "../facts";
 import type { BoutRow, BoxerFull } from "../types";
 import { WEIGHT_CLASSES } from "../types";
-import { recordStr } from "../world";
+import { careerCounts, careerView, koView, recordStr } from "../world";
 import { applyFilters, matchupBlurb, sanitizeFilters, type Filters } from "../ai";
 import { searchFighters } from "../fighter-search";
 import { LISTS, listDef, recordList, rowText, type ListId, type Scope } from "../records";
@@ -82,9 +82,9 @@ const fighters: Tool = {
     return {
       tool: "fighters", args,
       summary: t.n(all.length, "{n} fighter matches. The first, by {sort}, is {name} ({record}).", "{n} fighters match. The first, by {sort}, is {name} ({record}).", { sort: t(SORT_NAME[sort]), name: t.name(lead.name), record: recordStr(lead) }),
-      lines: [`${all.length} fighters match; sorted by ${sort}.`, ...top.map((b, i) => `${i + 1}. ${t.name(b.name)}: ${recordStr(b)}, ${b.kos} KOs, rating ${Math.round(b.rating)}, ${b.weightClass}, ${b.stance}, age ${b.age}`)],
+      lines: [`${all.length} fighters match; sorted by ${sort}.`, ...top.map((b, i) => `${i + 1}. ${t.name(b.name)}: ${recordStr(b)}, ${koView(b).kos} KOs, rating ${Math.round(b.rating)}, ${b.weightClass}, ${b.stance}, age ${b.age}`)],
       tables: [{ id: "fighters", title: t("Matching fighters"), columns: ["#", t("Fighter"), t("Record"), t("KOs"), t("Rating"), t("Division")],
-        rows: top.map((b, i) => [String(i + 1), boxerCell(b, t), recordStr(b), String(b.kos), String(Math.round(b.rating)), divisionLabel(b.weightClass, b.sex, t)]),
+        rows: top.map((b, i) => [String(i + 1), boxerCell(b, t), recordStr(b), String(koView(b).kos), String(Math.round(b.rating)), divisionLabel(b.weightClass, b.sex, t)]),
         note: all.length > top.length ? t("Showing {n} of {total}.", { n: top.length, total: all.length }) : undefined }],
     };
   },
@@ -148,8 +148,9 @@ function factSentence(ctx: Ctx, b: BoxerFull, fact: FighterFact, more: { rank: n
     }
     case "status": {
       const record = recordStr(b);
-      if (b.losses === 0) return b.active ? t("{name} is active and unbeaten ({record}).", { name, record }) : t("{name} is retired and unbeaten ({record}).", { name, record });
-      return b.active ? t.n(b.losses, "{name} is active and has lost {n} time ({record}).", "{name} is active and has lost {n} times ({record}).", { name, record }) : t("{name} is retired; the record is {record}.", { name, record });
+      const lost = careerCounts(b).losses; // the career as the page shows it, not only the fights held
+      if (lost === 0) return b.active ? t("{name} is active and unbeaten ({record}).", { name, record }) : t("{name} is retired and unbeaten ({record}).", { name, record });
+      return b.active ? t.n(lost, "{name} is active and has lost {n} time ({record}).", "{name} is active and has lost {n} times ({record}).", { name, record }) : t("{name} is retired; the record is {record}.", { name, record });
     }
     case "last_fight": {
       const x = more.recent[0];
@@ -161,8 +162,11 @@ function factSentence(ctx: Ctx, b: BoxerFull, fact: FighterFact, more: { rank: n
       const next = (w.boutsByBoxer.get(b.id) ?? []).filter((x) => x.upcoming).sort((p, q) => p.date.localeCompare(q.date))[0]; // (a bout that fell off the card, or on a called-off one, is not upcoming)
       return next ? t("{name}'s next fight is against {opponent} on {date}.", { name, opponent: t.name(next.redId === b.id ? next.blueName : next.redName), date: fmtDate(next.date, { month: "short", day: "numeric", year: "numeric" }, t.locale) }) : t("No upcoming fight is scheduled for {name}.", { name });
     }
-    case "record": return t("{name} has had {n} fights: {record}.", { name, n: b.wins + b.losses + b.draws, record: recordStr(b) });
-    case "knockouts": return t("{name} has {kos} knockouts in {wins} wins ({pct}%).", { name, kos: b.kos, wins: b.wins, pct: b.wins ? Math.round((100 * b.kos) / b.wins) : 0 });
+    case "record": return t("{name} has had {n} fights: {record}.", { name, n: (({ wins, losses, draws }) => wins + losses + draws)(careerCounts(b)), record: recordStr(b) });
+    case "knockouts": { // the career's knockouts when the supplier states them for a career held in part; otherwise what the fights held add up to
+      const k = koView(b), wins = k.source === "supplier" ? careerView(b).wins : b.wins;
+      return t("{name} has {kos} knockouts in {wins} wins ({pct}%).", { name, kos: k.kos, wins, pct: wins ? Math.round((100 * k.kos) / wins) : 0 });
+    }
     case "rating": return t("{name} is rated {elo}{rank}.", { name, elo: Math.round(b.rating), rank: more.rank ? t(", number {n} in the division", { n: more.rank }) : "" });
     case "debut": return b.turnedPro !== null ? t("{name} turned pro in {year}.", { name, year: b.turnedPro }) : gap(t("a pro debut year"));
     case "nickname": return b.nickname ? t("{name} is known as “{nickname}”.", { name, nickname: t.name(b.nickname) }) : t("{name} has no nickname on record.", { name });
@@ -216,7 +220,7 @@ const fighter: Tool = {
         return b.age !== null ? t("{name} is a {age}-year-old {division} from {country}: {record}, rated {elo}{rank}.", { ...v, age: b.age }) : t("{name} is a {division} from {country}: {record}, rated {elo}{rank}.", v); // an unknown age is left out, not guessed
       })(),
       lines: [
-        `${t.name(b.name)}: ${recordStr(b)}, ${b.kos} KOs, rating ${Math.round(b.rating)}, ${b.weightClass}, ${b.stance ?? "stance unknown"}, age ${b.age ?? "unknown"}, ${b.country}, style ${archetype(b)}${rank ? `, rank ${rank} in division` : ""}.`,
+        `${t.name(b.name)}: ${recordStr(b)}, ${koView(b).kos} KOs, rating ${Math.round(b.rating)}, ${b.weightClass}, ${b.stance ?? "stance unknown"}, age ${b.age ?? "unknown"}, ${b.country}, style ${archetype(b)}${rank ? `, rank ${rank} in division` : ""}.`,
         `Streak: ${b.streak.type}${b.streak.count}. ${b.active ? "Active" : "Retired"}.`,
         held.length ? `Holds: ${held.map((h) => beltLabel(h.belt, t)).join("; ")}.` : "Holds no current belt.",
         trainer ? `Head trainer: ${t.name(trainer.name)}.` : "",
@@ -246,14 +250,14 @@ const headToHead: Tool = {
       summary: `${matchupBlurb(a, b, t)} ${met.length ? t("They have met {n} times: {a} {wa}, {b} {wb}.", { n: met.length, a: t.name(a.name), wa: winsA, b: t.name(b.name), wb: winsB }) : t("They have never met.")}`,
       lines: [
         `Model: ${t.name(a.name)} ${Math.round(p.pA * 100)}%, ${t.name(b.name)} ${Math.round(p.pB * 100)}%, draw ${Math.round(p.pDraw * 100)}%; stoppage chance ${Math.round(p.koProb * 100)}%.`,
-        `${t.name(a.name)}: ${recordStr(a)}, rating ${Math.round(a.rating)}, age ${a.age ?? "unknown"}, reach ${a.reachCm === null ? "unknown" : a.reachCm + "cm"}, KO rate ${Math.round(a.koRate * 100)}%.`,
-        `${t.name(b.name)}: ${recordStr(b)}, rating ${Math.round(b.rating)}, age ${b.age ?? "unknown"}, reach ${b.reachCm === null ? "unknown" : b.reachCm + "cm"}, KO rate ${Math.round(b.koRate * 100)}%.`,
+        `${t.name(a.name)}: ${recordStr(a)}, rating ${Math.round(a.rating)}, age ${a.age ?? "unknown"}, reach ${a.reachCm === null ? "unknown" : a.reachCm + "cm"}, KO rate ${Math.round(koView(a).rate * 100)}%.`,
+        `${t.name(b.name)}: ${recordStr(b)}, rating ${Math.round(b.rating)}, age ${b.age ?? "unknown"}, reach ${b.reachCm === null ? "unknown" : b.reachCm + "cm"}, KO rate ${Math.round(koView(b).rate * 100)}%.`,
         met.length ? `Previous meetings: ${met.length}; ${t.name(a.name)} won ${winsA}, ${t.name(b.name)} won ${winsB}.` : "They have not fought each other.",
       ],
       tables: [
         { id: "tape", title: t("Tale of the tape"), columns: ["", t.name(a.name), t.name(b.name)], rows: [
           row(t("Record"), recordStr(a), recordStr(b)), row(t("Rating"), String(Math.round(a.rating)), String(Math.round(b.rating))), row(t("Age"), orDash(a.age, String), orDash(b.age, String)),
-          row(t("Reach"), orDash(a.reachCm, (n) => `${n}cm`), orDash(b.reachCm, (n) => `${n}cm`)), row(t("KO rate"), `${Math.round(a.koRate * 100)}%`, `${Math.round(b.koRate * 100)}%`),
+          row(t("Reach"), orDash(a.reachCm, (n) => `${n}cm`), orDash(b.reachCm, (n) => `${n}cm`)), row(t("KO rate"), `${Math.round(koView(a).rate * 100)}%`, `${Math.round(koView(b).rate * 100)}%`),
           row(t("Win chance"), `${Math.round(p.pA * 100)}%`, `${Math.round(p.pB * 100)}%`)], note: undefined },
         ...(met.length ? [{ id: "meetings", title: t("Previous meetings"), columns: [t("Date"), t("Fight"), t("Result")], rows: met.slice(0, 5).map((x) => [fmtDate(x.date, { month: "short", year: "numeric" }, t.locale), boutCell(x, t), resultLine(w, x, t)]), note: undefined }] : []),
       ],

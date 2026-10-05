@@ -318,4 +318,4 @@ function buildWorld(db: DatabaseSync, key: string): World {
   return g.__world;
 }
 
-export { careerView, koView, recordStr, type CareerView, type KoView } from "./career";
+export { careerView, careerCounts, knockouts, koView, recordStr, type CareerView, type KoView } from "./career";

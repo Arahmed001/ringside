@@ -1,7 +1,7 @@
 import type { BoxerFull } from "./types";
 import { WEIGHT_CLASSES } from "./types";
 import type { World } from "./world";
-import { recordStr } from "./world";
+import { careerCounts, careerView, knockouts, recordStr } from "./world";
 import { archetype } from "./style";
 import { predict } from "./predict";
 import { missCount } from "./weights";
@@ -355,27 +355,27 @@ export function applyFilters(boxers: BoxerFull[], f: Filters, w?: World, names: 
     (!f.sex || b.sex === f.sex) &&
     (!f.country || b.country === f.country) &&
     (f.active === undefined || b.active === f.active) &&
-    (!f.undefeated || (b.losses === 0 && b.bouts > 0)) &&
-    (f.minWins === undefined || b.wins >= f.minWins) &&
-    (f.maxWins === undefined || b.wins <= f.maxWins) &&
-    (f.minKOs === undefined || b.kos >= f.minKOs) &&
-    (f.maxKOs === undefined || b.kos <= f.maxKOs) &&
-    (f.minKoRate === undefined || b.koRate >= f.minKoRate) &&
-    (f.maxKoRate === undefined || (b.wins > 0 && b.koRate <= f.maxKoRate)) &&
-    (f.minLosses === undefined || b.losses >= f.minLosses) &&
-    (f.maxLosses === undefined || b.losses <= f.maxLosses) &&
-    (f.minStopped === undefined || b.koLosses >= f.minStopped) &&
-    (f.maxStopped === undefined || b.koLosses <= f.maxStopped) &&
-    (f.minDraws === undefined || b.draws >= f.minDraws) &&
-    (f.maxDraws === undefined || b.draws <= f.maxDraws) &&
+    (!f.undefeated || (careerCounts(b).losses === 0 && careerCounts(b).bouts > 0)) &&
+    (f.minWins === undefined || careerCounts(b).wins >= f.minWins) &&
+    (f.maxWins === undefined || careerCounts(b).wins <= f.maxWins) &&
+    (f.minKOs === undefined || (knockouts(b) !== null && knockouts(b)!.kos >= f.minKOs)) &&
+    (f.maxKOs === undefined || (knockouts(b) !== null && knockouts(b)!.kos <= f.maxKOs)) &&
+    (f.minKoRate === undefined || (knockouts(b) !== null && knockouts(b)!.rate >= f.minKoRate)) &&
+    (f.maxKoRate === undefined || (knockouts(b) !== null && careerCounts(b).wins > 0 && knockouts(b)!.rate <= f.maxKoRate)) &&
+    (f.minLosses === undefined || careerCounts(b).losses >= f.minLosses) &&
+    (f.maxLosses === undefined || careerCounts(b).losses <= f.maxLosses) &&
+    (f.minStopped === undefined || (knockouts(b)?.stopped != null && knockouts(b)!.stopped! >= f.minStopped)) &&
+    (f.maxStopped === undefined || (knockouts(b)?.stopped != null && knockouts(b)!.stopped! <= f.maxStopped)) &&
+    (f.minDraws === undefined || careerCounts(b).draws >= f.minDraws) &&
+    (f.maxDraws === undefined || careerCounts(b).draws <= f.maxDraws) &&
     (f.minWinStreak === undefined || (b.streak.type === "W" && b.streak.count >= f.minWinStreak)) &&
     (f.minLossStreak === undefined || (b.streak.type === "L" && b.streak.count >= f.minLossStreak)) &&
     (f.unbeatenIn === undefined || (!!w && unbeatenIn(w, b, f.unbeatenIn))) &&
     (f.lastFightAfter === undefined || (b.lastFight !== null && b.lastFight >= f.lastFightAfter)) && // a fighter who has not fought has no last fight to compare
     (f.lastFightBefore === undefined || (b.lastFight !== null && b.lastFight <= f.lastFightBefore)) &&
-    (f.minBouts === undefined || b.bouts >= f.minBouts) &&
-    (f.maxBouts === undefined || b.bouts <= f.maxBouts) &&
-    (!f.record || (f.record === "winning" ? b.wins > b.losses : b.losses > b.wins)) &&
+    (f.minBouts === undefined || careerCounts(b).bouts >= f.minBouts) &&
+    (f.maxBouts === undefined || careerCounts(b).bouts <= f.maxBouts) &&
+    (!f.record || (f.record === "winning" ? careerCounts(b).wins > careerCounts(b).losses : careerCounts(b).losses > careerCounts(b).wins)) &&
     (f.debutAfter === undefined || (b.turnedPro !== null && b.turnedPro >= f.debutAfter)) && // a fact the data does not have never satisfies a filter on it
     (f.debutBefore === undefined || (b.turnedPro !== null && b.turnedPro <= f.debutBefore)) &&
     (f.minReach === undefined || (b.reachCm !== null && b.reachCm >= f.minReach)) &&
@@ -390,7 +390,11 @@ export function applyFilters(boxers: BoxerFull[], f: Filters, w?: World, names: 
     (!f.text || normalize(`${b.name} ${names[b.name] ?? ""} ${b.nickname ?? ""} ${b.nickname ? names[b.nickname] ?? "" : ""}`).includes(normalize(f.text))),
   );
   const key = f.sort ?? "rating";
-  const val = (b: BoxerFull): number | null => ({ lowRating: -b.rating, lowKoRate: b.wins > 0 ? -b.koRate : null, winRate: b.bouts ? b.winRate : null, losses: b.losses, draws: b.draws, stopped: b.koLosses, rating: b.rating, wins: b.wins, kos: b.kos, koRate: b.koRate, age: b.age, youngest: b.age === null ? null : -b.age, reach: b.reachCm, height: b.heightCm, shortest: b.heightCm === null ? null : -b.heightCm, bouts: b.bouts })[key];
+  // the sort keys compare the career as the page shows it (a fighter held in part by the fights Ringside has is compared by the supplier's totals); where those say nothing (knockouts of a part-held career) the value is unknown and sorts last
+  const val = (b: BoxerFull): number | null => {
+    const c = careerCounts(b), k = knockouts(b), held = careerView(b).source === "loaded";
+    return ({ lowRating: -b.rating, lowKoRate: k && c.wins > 0 ? -k.rate : null, winRate: c.bouts ? (held ? b.winRate : c.wins / c.bouts) : null, losses: c.losses, draws: c.draws, stopped: k?.stopped ?? null, rating: b.rating, wins: c.wins, kos: k ? k.kos : null, koRate: k ? k.rate : null, age: b.age, youngest: b.age === null ? null : -b.age, reach: b.reachCm, height: b.heightCm, shortest: b.heightCm === null ? null : -b.heightCm, bouts: c.bouts })[key];
+  };
   // fighters with an unknown value for the sort key go last, whichever way it sorts
   return out.sort((a, b) => { const x = val(a), y = val(b); return x === null ? (y === null ? 0 : 1) : y === null ? -1 : y - x; });
 }

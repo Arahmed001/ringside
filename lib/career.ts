@@ -38,3 +38,21 @@ export function koView(b: Rec & { vendorRecord?: (Rec & { koWins?: number; stopp
   return { kos: b.kos, rate: b.koRate, stopped: b.koLosses, source: "loaded" };
 }
 export const recordStr = (b: Rec & { vendorRecord?: Rec | null }) => { const c = careerView(b); return `${c.wins}-${c.losses}-${c.draws}`; };
+
+/**
+ * The counts a record filter or a sort key compares: the career as the page shows it (`careerView`), so "undefeated" never lists a fighter whose page says 14-1-1
+ * because the fights held happen to hold no loss. With no supplier total, or when the fights held are the career, these are the counts of the fights held, as before.
+ */
+export function careerCounts(b: Rec & { bouts: number; vendorRecord?: Rec | null }): { wins: number; losses: number; draws: number; bouts: number } {
+  const c = careerView(b);
+  return { wins: c.wins, losses: c.losses, draws: c.draws, bouts: c.source === "supplier" ? c.total : b.bouts };
+}
+/**
+ * The knockout figures a filter or a sort key compares, or null when there are none to compare: the career is held in part and the supplier gave no knockout totals,
+ * so the fights held say nothing about the career (a fact the data does not have never satisfies a filter on it, as everywhere else).
+ */
+export function knockouts(b: Rec & { vendorRecord?: (Rec & { koWins?: number; stopped?: number }) | null; kos: number; koRate: number; koLosses: number }): { kos: number; rate: number; stopped: number | null } | null {
+  if (careerView(b).source === "loaded") return { kos: b.kos, rate: b.koRate, stopped: b.koLosses };
+  const k = koView(b);
+  return k.source === "supplier" ? { kos: k.kos, rate: k.rate, stopped: k.stopped } : null;
+}
