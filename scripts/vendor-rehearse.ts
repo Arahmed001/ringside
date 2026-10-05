@@ -106,6 +106,15 @@ async function realistic(checks: [string, boolean, string][]) {
     checks.push(["A: the load goes through without them, the list names only fighters with a wrong total, and none is in the database", g.code === 0 && left !== null && listed === Number(left[1]) && listedIds.every((id) => wrongIds.includes(id) && !inDb.has(`bda-f-${id}`)) && inDb.size > 0, `exit ${g.code}, ${listed} listed, ${inDb.size} fighters loaded`]);
   });
 
+  // D: winners reversed in the fight list (the vendor's totals are right): the explainer must say the reversal clears BOTH fighters, which is what tells a wrong flag from a wrong total
+  await scenario("D. winners reversed in the list", { seed: N.seed + 3, reversed: Math.max(10, Math.round(N.fights * 0.002)) }, async (go, cache) => {
+    const a = await go("a. --check --explain-conflicts", ["--check", "--explain-conflicts", "--show", "1", "--cache-dir", cache]);
+    const total = Number(/^why the (\d+) conflict/m.exec(a.out)?.[1] ?? 0);
+    const flipped = Number(/^\s+(\d+)\s+reversing the winner of one fight/m.exec(a.out)?.[1] ?? 0);
+    const mutual = Number(/of those: (\d+) where the same reversal/.exec(a.out)?.[1] ?? 0);
+    checks.push(["D: reversed winners are named, and the same reversal clears both fighters", total > 0 && flipped >= total * 0.8 && mutual >= flipped * 0.8, `${total} conflicts, ${flipped} flipped, ${mutual} mutual`]);
+  });
+
   // C: only duplicated fights: merged, so the records add up again
   await scenario("C. duplicated fights only", { seed: N.seed + 2, duplicates }, async (go, cache) => {
     const a = await go("a. --check", ["--check", "--cache-dir", cache]);

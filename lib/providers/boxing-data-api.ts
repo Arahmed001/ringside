@@ -96,12 +96,12 @@ export const divisionOf = (raw: string): string | null => normalizeDivision(raw)
 
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
-  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter" | "duplicateFightsMerged" | "duplicateFightsDisagree" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
+  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter" | "duplicateFightsMerged" | "duplicateFightsDisagree" | "duplicateFightsAcrossProfiles" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
   | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "outcomeMapped" | "outcomeUnreadable" | "roundUnreadable" | "bothMarkedWinner" | "eventsWithoutFights" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, fightsSkippedNoId: 0, fightsSkippedNoFighter: 0, fightsSkippedNoDate: 0, fightsSkippedSameFighter: 0, duplicateFightsMerged: 0, duplicateFightsDisagree: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
+  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, fightsSkippedNoId: 0, fightsSkippedNoFighter: 0, fightsSkippedNoDate: 0, fightsSkippedSameFighter: 0, duplicateFightsMerged: 0, duplicateFightsDisagree: 0, duplicateFightsAcrossProfiles: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, outcomeMapped: 0, outcomeUnreadable: 0, roundUnreadable: 0, bothMarkedWinner: 0, eventsWithoutFights: 0, windowTooBig: 0,
 });
 
@@ -295,10 +295,14 @@ const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * 86400
  * different winners. Each copy counts as a result, so the fighters' records come out above the vendor's totals (a conflict). Fights between the same two fighters
  * within a day of each other are one fight: where the copies agree on the winner one is kept (the one with a result, then with scores, then the lowest id); where they
  * disagree none is believed, and the one kept says "no result yet", never a guessed winner. Rematches are months apart, so nothing real is merged.
+ * The two generations of records sometimes name two PROFILES of the same opponent (Mayweather against "Canelo Alvarez" under two fighter ids, a day apart), so the
+ * pair is the two fighters' NAMES where `names` knows them (normalised: case, accents and spacing ignored), and their ids where it does not.
  */
-export function mergeDuplicateFights(bouts: ProviderBout[], eventDates: Map<string, string>, notes: Notes): ProviderBout[] {
+export function mergeDuplicateFights(bouts: ProviderBout[], eventDates: Map<string, string>, notes: Notes, names?: Map<string, string>): ProviderBout[] {
   const groups = new Map<string, number[]>();
-  bouts.forEach((b, i) => { if (b.status !== "cancelled") { const k = [b.redExternalId, b.blueExternalId].sort().join("|"); (groups.get(k) ?? groups.set(k, []).get(k)!).push(i); } });
+  const who = (id: string) => { const n = names?.get(id); return n ? n.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() || id : id; };
+  const idPair = (b: ProviderBout) => [b.redExternalId, b.blueExternalId].sort().join("|");
+  bouts.forEach((b, i) => { if (b.status !== "cancelled") { const k = [who(b.redExternalId), who(b.blueExternalId)].sort().join("|"); (groups.get(k) ?? groups.set(k, []).get(k)!).push(i); } });
   const drop = new Set<number>(), blank = new Set<number>();
   const hasResult = (b: ProviderBout) => !!b.winnerExternalId || b.method === "DRAW";
   const verdict = (b: ProviderBout) => b.winnerExternalId ?? (b.method === "DRAW" ? "DRAW" : "");
@@ -314,6 +318,7 @@ export function mergeDuplicateFights(bouts: ProviderBout[], eventDates: Map<stri
         const best = [...cluster].sort((x, y) => Number(hasResult(bouts[y.i])) - Number(hasResult(bouts[x.i])) || (bouts[y.i].scores?.length ?? 0) - (bouts[x.i].scores?.length ?? 0) || bouts[x.i].externalId.localeCompare(bouts[y.i].externalId))[0];
         for (const x of cluster) if (x !== best) drop.add(x.i);
         notes.duplicateFightsMerged += cluster.length - 1;
+        if (new Set(cluster.map((x) => idPair(bouts[x.i]))).size > 1) notes.duplicateFightsAcrossProfiles += cluster.length - 1; // the copies name different profiles of the same fighter
         if (verdicts.size > 1) { blank.add(best.i); notes.duplicateFightsDisagree++; }
       }
       cluster = [];
@@ -736,7 +741,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     const kept = placeBouts(keep.filter((b) => { const ok = placedIds.has(b.redExternalId) && placedIds.has(b.blueExternalId); if (!ok) notes.boutsDroppedNoDivision++; return ok; }), placed, notes);
     // an event exists here only because a fight said so: one whose every fight was dropped (a fighter outside the selection, an unplaceable division) is not a card with a page,
     // and would be a 404 in the sitemap, the search and the country pages. In a partial load that is most small cards, so it is left out and counted
-    const finalBouts = demoteUnsupportedDraws(o.mergeDuplicates === false ? kept : mergeDuplicateFights(kept, eventDates, notes), careers, notes), onCard = new Set(finalBouts.map((b) => b.eventExternalId));
+    const finalBouts = demoteUnsupportedDraws(o.mergeDuplicates === false ? kept : mergeDuplicateFights(kept, eventDates, notes, new Map(placed.map((r) => [r.externalId, r.name]))), careers, notes), onCard = new Set(finalBouts.map((b) => b.eventExternalId));
     const cards = [...events.values()].filter((e) => onCard.has(e.externalId));
     notes.eventsWithoutFights += events.size - cards.length;
     return { boxers: placed, events: cards, bouts: finalBouts };

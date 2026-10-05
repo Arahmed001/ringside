@@ -179,9 +179,11 @@ export function describeReconciliation(r: Reconciliation): string[] {
  * A fighter can have several. `unexplained` is a conflict none of these accounts for.
  */
 export type ConflictCause = "draw" | "wins" | "losses" | "repeat" | "same-day" | "recent" | "short" | "flipped" | "unexplained";
-export interface ConflictFight { date: string; opponent: string; result: "W" | "L" | "D" | "NC"; method: string | null; /** scheduled rounds: an exhibition or an amateur bout the vendor's career total leaves out is often 3 */ rounds: number; boutId: string }
-export interface ConflictExplanation { externalId: string; name: string; loaded: string; vendor: string; causes: ConflictCause[]; fights: ConflictFight[] }
-export interface ConflictReport { total: number; tally: Record<ConflictCause, number>; fighters: ConflictExplanation[] }
+export interface ConflictFight { date: string; opponent: string; opponentId: string; result: "W" | "L" | "D" | "NC"; method: string | null; /** scheduled rounds: an exhibition or an amateur bout the vendor's career total leaves out is often 3 */ rounds: number; boutId: string }
+/** what the fights of the OPPONENT say about a one-fight reversal that would clear this fighter's conflict: see `explainConflicts` */
+export type FlipEvidence = "mutual" | "open" | "contradicted";
+export interface ConflictExplanation { externalId: string; name: string; loaded: string; vendor: string; causes: ConflictCause[]; fights: ConflictFight[]; flip?: FlipEvidence }
+export interface ConflictReport { total: number; tally: Record<ConflictCause, number>; flipEvidence: Record<FlipEvidence, number>; fighters: ConflictExplanation[] }
 
 const DAY = 86_400_000;
 const days = (a: string, b: string) => Math.abs(Date.parse(a) - Date.parse(b)) / DAY;
@@ -192,17 +194,20 @@ export function explainConflicts(feed: FeedData, vendor: Map<string, CareerRecor
   const name = new Map(feed.boxers.map((b) => [b.externalId, b.name]));
   const dateOf = new Map(feed.events.map((e) => [e.externalId, e.date]));
   const byFighter = new Map<string, ConflictFight[]>();
+  const loadedAll = new Map<string, CareerRecord>(); // every fighter's loaded record, to ask what a reversed winner would do to the OTHER fighter
   for (const b of feed.bouts) {
     if (b.status === "cancelled") continue;
+    if (b.winnerExternalId) { add(loadedAll, b.winnerExternalId, "wins"); add(loadedAll, b.winnerExternalId === b.redExternalId ? b.blueExternalId : b.redExternalId, "losses"); } else if (b.method === "DRAW") { add(loadedAll, b.redExternalId, "draws"); add(loadedAll, b.blueExternalId, "draws"); }
     const date = dateOf.get(b.eventExternalId) ?? "";
     for (const [me, opp] of [[b.redExternalId, b.blueExternalId], [b.blueExternalId, b.redExternalId]] as const) {
       const result = b.winnerExternalId ? (b.winnerExternalId === me ? "W" : "L") : b.method === "DRAW" ? "D" : "NC";
       const list = byFighter.get(me) ?? byFighter.set(me, []).get(me)!;
-      list.push({ date, opponent: name.get(opp) ?? opp, result, method: b.method ?? null, rounds: b.rounds, boutId: b.externalId });
+      list.push({ date, opponent: name.get(opp) ?? opp, opponentId: opp, result, method: b.method ?? null, rounds: b.rounds, boutId: b.externalId });
     }
   }
   const tally: Record<ConflictCause, number> = { draw: 0, wins: 0, losses: 0, repeat: 0, "same-day": 0, recent: 0, short: 0, flipped: 0, unexplained: 0 };
   const fighters: ConflictExplanation[] = [];
+  const flipEvidence: Record<FlipEvidence, number> = { mutual: 0, open: 0, contradicted: 0 };
   const count = (fs: ConflictFight[]): CareerRecord => ({ wins: fs.filter((f) => f.result === "W").length, losses: fs.filter((f) => f.result === "L").length, draws: fs.filter((f) => f.result === "D").length });
   for (const c of rec.conflicts) {
     const v = vendor.get(c.externalId)!;
@@ -217,14 +222,33 @@ export function explainConflicts(feed: FeedData, vendor: Map<string, CareerRecor
     if (classifyRecord(count(fights.filter((f) => f.rounds > 3)), v) !== "conflict") causes.push("short");
     // a surplus of wins or losses is blamed on the feed's winner only when nothing else accounts for it
     if (!causes.some((k) => k !== "draw")) { if (l.wins > v.wins) causes.push("wins"); if (l.losses > v.losses) causes.push("losses"); }
-    // would reversing the winner of a single fight remove the conflict?
+    // would reversing the winner of a single fight remove the conflict? And what would that do to the OTHER fighter in it: one reversed flag in the list moves a win and a loss in
+    // opposite directions, so if it is the list that is wrong the opponent's record should improve too ("mutual"); if the opponent's record adds up exactly now, reversing it would
+    // break him, so that winner looks right and the vendor's total is the odd one out ("contradicted"); a partial or unchecked opponent says nothing ("open")
     const flip = (f: ConflictFight): ConflictFight[] => fights.map((x) => (x === f ? { ...x, result: x.result === "W" ? "L" : "W" } : x));
-    if (fights.some((f) => (f.result === "W" || f.result === "L") && classifyRecord(count(flip(f)), v) !== "conflict")) causes.push("flipped");
+    const candidates = fights.filter((f) => (f.result === "W" || f.result === "L") && classifyRecord(count(flip(f)), v) !== "conflict");
+    let flipKind: FlipEvidence | undefined;
+    if (candidates.length) {
+      causes.push("flipped");
+      const rank: Record<FlipEvidence, number> = { mutual: 2, open: 1, contradicted: 0 };
+      for (const f of candidates) {
+        const ov = vendor.get(f.opponentId), ol = loadedAll.get(f.opponentId) ?? { wins: 0, losses: 0, draws: 0 };
+        const after = f.result === "W" ? { ...ol, wins: ol.wins + 1, losses: ol.losses - 1 } : { ...ol, wins: ol.wins - 1, losses: ol.losses + 1 };
+        let kind: FlipEvidence = "open";
+        if (ov) {
+          const was = classifyRecord(ol, ov), now = classifyRecord(after, ov);
+          if (was === "conflict" && now !== "conflict") kind = "mutual";
+          else if (was === "complete" || (was === "partial" && now === "conflict")) kind = "contradicted";
+        }
+        if (flipKind === undefined || rank[kind] > rank[flipKind]) flipKind = kind;
+      }
+      flipEvidence[flipKind!]++;
+    }
     if (!causes.length) causes.push("unexplained");
     for (const k of causes) tally[k]++;
-    fighters.push({ externalId: c.externalId, name: c.name, loaded: c.loaded, vendor: c.vendor, causes, fights });
+    fighters.push({ externalId: c.externalId, name: c.name, loaded: c.loaded, vendor: c.vendor, causes, fights, ...(flipKind ? { flip: flipKind } : {}) });
   }
-  return { total: rec.conflicts.length, tally, fighters };
+  return { total: rec.conflicts.length, tally, flipEvidence, fighters };
 }
 
 const CAUSE_TEXT: Record<ConflictCause, string> = {
@@ -243,7 +267,16 @@ const CAUSE_TEXT: Record<ConflictCause, string> = {
 export function describeConflictReport(r: ConflictReport, show = 0): string[] {
   if (!r.total) return [];
   const lines = [`why the ${r.total} conflict(s) (a fighter can have more than one reason):`];
-  for (const k of Object.keys(CAUSE_TEXT) as ConflictCause[]) if (r.tally[k]) lines.push(`  ${String(r.tally[k]).padStart(5)}  ${CAUSE_TEXT[k]}`);
+  for (const k of Object.keys(CAUSE_TEXT) as ConflictCause[]) {
+    if (!r.tally[k]) continue;
+    lines.push(`  ${String(r.tally[k]).padStart(5)}  ${CAUSE_TEXT[k]}`);
+    if (k === "flipped") {
+      const e = r.flipEvidence;
+      lines.push(`         of those: ${e.mutual} where the same reversal would also clear the OTHER fighter's conflict (the fight list's winner flag looks reversed),`);
+      lines.push(`                   ${e.open} where it only touches an opponent with no record to check or a partial one (no evidence either way),`);
+      lines.push(`                   ${e.contradicted} where every such reversal would break an opponent whose record adds up exactly (that winner looks right: the vendor's total is the odd one)`);
+    }
+  }
   for (const f of r.fighters.slice(0, show)) {
     lines.push(`  ${f.name}: loaded ${f.loaded}, vendor ${f.vendor}: ${f.causes.join(", ")}`);
     for (const x of f.fights) lines.push(`      ${x.date}  ${x.result}  ${(x.method ?? "no result").padEnd(9)} ${String(x.rounds).padStart(2)} rds  vs ${x.opponent}  (${x.boutId})`);

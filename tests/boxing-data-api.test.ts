@@ -717,3 +717,14 @@ test("before fetching, the run says how many fighters are not cached, and warns 
   await B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0, cacheDir: r, log: (m) => l2.push(m), maxFights: 400, maxRequests: 10_000, perHour: 450, sleep: async () => {} }).fetchBoxers();
   assert.match(s1(l2), /^320 fighters to fetch, about 43 minute\(s\) at 450 an hour$/);
 });
+
+test("through a real load: a fight listed under two profiles of the same opponent is one bout (round 82)", async () => {
+  const both: Record<string, B.ApiFighter> = { A1: fighter("A1", "Alpha One"), B1: fighter("B1", "Bravo One"), B2: fighter("B2", "Bravo One") };
+  const day2 = "2024-12-22T21:00:00+00:00";
+  const fights = [fight("1", "A1", "B1"), fight("2", "A1", "B2", { date: day2, event: { id: "ev-2", title: "Reignited", date: day2, location: "Riyadh, Saudi Arabia", venue: "Kingdom Arena" } })];
+  const { impl } = mockFetch((path) => path === "/v2/fights/" ? { body: env(fights) } : path === "/v2/fights/schedule" ? { body: env([]) } : { body: env(both[path.split("/").pop()!]) });
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0 });
+  const bouts = await p.fetchBouts();
+  assert.equal(bouts.length, 1, "one fight, not two against 'Bravo One'");
+  assert.equal(p.notes().duplicateFightsMerged, 1); assert.equal(p.notes().duplicateFightsAcrossProfiles, 1);
+});
