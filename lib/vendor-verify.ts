@@ -173,11 +173,12 @@ export function describeReconciliation(r: Reconciliation): string[] {
  * - `wins` / `losses`: more of those than the vendor counts, with no other reason below to blame (a wrong winner, another fighter's fights under his id, a stale total);
  * - `repeat`: the same two fighters twice within 30 days, which is one fight listed twice;
  * - `same-day`: two fights on one date for one fighter;
- * - `recent`: the surplus disappears when the fights of the last 14 days are set aside, so the vendor's total probably trails its results.
+ * - `recent`: the surplus disappears when the fights of the last 14 days are set aside, so the vendor's total probably trails its results;
+ * - `short`: the surplus disappears when the fights scheduled for 3 rounds or fewer are set aside: probably an amateur or exhibition bout the vendor's career total leaves out (professional bouts are 4 rounds or more).
  * A fighter can have several. `unexplained` is a conflict none of these accounts for.
  */
-export type ConflictCause = "draw" | "wins" | "losses" | "repeat" | "same-day" | "recent" | "unexplained";
-export interface ConflictFight { date: string; opponent: string; result: "W" | "L" | "D" | "NC"; method: string | null; boutId: string }
+export type ConflictCause = "draw" | "wins" | "losses" | "repeat" | "same-day" | "recent" | "short" | "unexplained";
+export interface ConflictFight { date: string; opponent: string; result: "W" | "L" | "D" | "NC"; method: string | null; /** scheduled rounds: an exhibition or an amateur bout the vendor's career total leaves out is often 3 */ rounds: number; boutId: string }
 export interface ConflictExplanation { externalId: string; name: string; loaded: string; vendor: string; causes: ConflictCause[]; fights: ConflictFight[] }
 export interface ConflictReport { total: number; tally: Record<ConflictCause, number>; fighters: ConflictExplanation[] }
 
@@ -196,10 +197,10 @@ export function explainConflicts(feed: FeedData, vendor: Map<string, CareerRecor
     for (const [me, opp] of [[b.redExternalId, b.blueExternalId], [b.blueExternalId, b.redExternalId]] as const) {
       const result = b.winnerExternalId ? (b.winnerExternalId === me ? "W" : "L") : b.method === "DRAW" ? "D" : "NC";
       const list = byFighter.get(me) ?? byFighter.set(me, []).get(me)!;
-      list.push({ date, opponent: name.get(opp) ?? opp, result, method: b.method ?? null, boutId: b.externalId });
+      list.push({ date, opponent: name.get(opp) ?? opp, result, method: b.method ?? null, rounds: b.rounds, boutId: b.externalId });
     }
   }
-  const tally: Record<ConflictCause, number> = { draw: 0, wins: 0, losses: 0, repeat: 0, "same-day": 0, recent: 0, unexplained: 0 };
+  const tally: Record<ConflictCause, number> = { draw: 0, wins: 0, losses: 0, repeat: 0, "same-day": 0, recent: 0, short: 0, unexplained: 0 };
   const fighters: ConflictExplanation[] = [];
   const count = (fs: ConflictFight[]): CareerRecord => ({ wins: fs.filter((f) => f.result === "W").length, losses: fs.filter((f) => f.result === "L").length, draws: fs.filter((f) => f.result === "D").length });
   for (const c of rec.conflicts) {
@@ -212,6 +213,7 @@ export function explainConflicts(feed: FeedData, vendor: Map<string, CareerRecor
     if (dup) causes.push("repeat");
     if (counting.some((f, i) => counting.some((g, j) => j > i && g.date === f.date))) causes.push("same-day");
     if (classifyRecord(count(fights.filter((f) => days(f.date, today) > 14)), v) !== "conflict") causes.push("recent");
+    if (classifyRecord(count(fights.filter((f) => f.rounds > 3)), v) !== "conflict") causes.push("short");
     // a surplus of wins or losses is blamed on the feed's winner only when nothing else accounts for it
     if (!causes.some((k) => k !== "draw")) { if (l.wins > v.wins) causes.push("wins"); if (l.losses > v.losses) causes.push("losses"); }
     if (!causes.length) causes.push("unexplained");
@@ -228,6 +230,7 @@ const CAUSE_TEXT: Record<ConflictCause, string> = {
   repeat: "the same two fighters twice within 30 days (one fight listed twice)",
   "same-day": "two fights on one date for one fighter",
   recent: "the surplus goes away without the last 14 days' fights: the vendor's total probably trails its results",
+  short: "the surplus goes away without the fights scheduled for 3 rounds or fewer: probably an amateur or exhibition bout the vendor's career total leaves out",
   unexplained: "no cause found in the fights",
 };
 
@@ -238,7 +241,7 @@ export function describeConflictReport(r: ConflictReport, show = 0): string[] {
   for (const k of Object.keys(CAUSE_TEXT) as ConflictCause[]) if (r.tally[k]) lines.push(`  ${String(r.tally[k]).padStart(5)}  ${CAUSE_TEXT[k]}`);
   for (const f of r.fighters.slice(0, show)) {
     lines.push(`  ${f.name}: loaded ${f.loaded}, vendor ${f.vendor}: ${f.causes.join(", ")}`);
-    for (const x of f.fights) lines.push(`      ${x.date}  ${x.result}  ${(x.method ?? "no result").padEnd(9)} vs ${x.opponent}  (${x.boutId})`);
+    for (const x of f.fights) lines.push(`      ${x.date}  ${x.result}  ${(x.method ?? "no result").padEnd(9)} ${String(x.rounds).padStart(2)} rds  vs ${x.opponent}  (${x.boutId})`);
   }
   return lines;
 }

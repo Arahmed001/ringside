@@ -103,3 +103,11 @@ test("--drop-conflicts: the conflicted fighters leave with their fights, the oth
   const clean = dropConflicted(out.feed, after);
   assert.equal(clean.feed, out.feed, "nothing to drop: the feed is returned as it was"); assert.deepEqual(clean.dropped, []);
 });
+
+import { lagDays } from "../lib/vendor-backfill";
+test("how long a vendor total may trail its results: a week for the daily update, two for a load, either set by the environment, nonsense ignored (round 80)", () => {
+  assert.equal(lagDays("update", {}), 7); assert.equal(lagDays("load", {}), 14);
+  assert.equal(lagDays("update", { VENDOR_LAG_DAYS: "10" }), 10); assert.equal(lagDays("load", { VENDOR_LAG_DAYS: "10" }), 10, "the older variable still sets both");
+  assert.equal(lagDays("load", { VENDOR_LAG_DAYS: "10", VENDOR_LOAD_LAG_DAYS: "3" }), 3); assert.equal(lagDays("update", { VENDOR_LAG_DAYS: "10", VENDOR_LOAD_LAG_DAYS: "3" }), 10);
+  for (const bad of ["", "0", "-2", "x", "3.5"]) { assert.equal(lagDays("update", { VENDOR_LAG_DAYS: bad }), 7, bad); assert.equal(lagDays("load", { VENDOR_LOAD_LAG_DAYS: bad }), 14, bad); }
+});

@@ -31,11 +31,11 @@ import { loadFeed } from "../lib/feed";
 import type { DataProvider } from "../lib/providers";
 import { countBySeverity, groupIssues, sanitizeFeed } from "../lib/validate";
 import { todayIso } from "../lib/clock";
-import { acquireBackfillLock, describePlan, foreignFighters, releaseBackfillLock, updateSince } from "../lib/vendor-backfill";
+import { acquireBackfillLock, describePlan, lagDays, foreignFighters, releaseBackfillLock, updateSince } from "../lib/vendor-backfill";
 import { coherentCore, describeConflictReport, dropConflicted, describeReconciliation, explainConflicts, reconcileDb, reconcileFeed, recordGate, restrictFeed } from "../lib/vendor-verify";
 
-/** how many days the vendor's career totals may trail a result before a surplus counts as a contradiction (daily update audit only; a load is strict) */
-const LAG_DAYS = Number(process.env.VENDOR_LAG_DAYS ?? 7);
+/** how many days the vendor's career totals may trail a result before a surplus counts as a contradiction: one setting for the daily update audit, a longer one for a load */
+const LAG_DAYS = lagDays("update"), LOAD_LAG_DAYS = lagDays("load"); // see lagDays
 const argv = process.argv.slice(2);
 const arg = (k: string) => { const i = argv.indexOf(`--${k}`); return i > -1 ? argv[i + 1] : undefined; };
 const flag = (k: string) => argv.includes(`--${k}`);
@@ -121,7 +121,7 @@ async function main() {
   // --drop-conflicts: the fighters whose loaded fights come to more than the vendor's own career total are left out, with their fights, and listed; the rest is checked and loaded as usual.
   // Their opponents' records can only get shorter (partial, shown with the vendor's total), never become conflicts.
   if (dropConflicts) {
-    const before = reconcileFeed(raw, provider.vendorRecords(), { today: todayIso(), days: LAG_DAYS });
+    const before = reconcileFeed(raw, provider.vendorRecords(), { today: todayIso(), days: LOAD_LAG_DAYS });
     const out = dropConflicted(raw, before);
     if (out.dropped.length) {
       console.log(`--drop-conflicts: left out ${out.dropped.length} fighter(s) whose loaded fights come to more than the vendor's career total, and their ${out.fightsDropped} fights (first ${Math.min(20, out.dropped.length)}):`);
@@ -145,9 +145,9 @@ async function main() {
   const gateOpts = { minComplete: Number(arg("min-complete") ?? 0.9), allowPartial: flag("allow-partial"), allowConflicts: flag("allow-conflicts") };
   let gate = { ok: true, reasons: [] as string[] };
   if (!update) {
-    const rec = reconcileFeed(raw, provider.vendorRecords(), { today: todayIso(), days: LAG_DAYS });
+    const rec = reconcileFeed(raw, provider.vendorRecords(), { today: todayIso(), days: LOAD_LAG_DAYS });
     for (const line of describeReconciliation(rec)) console.log(line);
-    if (rec.conflict) for (const line of describeConflictReport(explainConflicts(raw, provider.vendorRecords(), todayIso(), LAG_DAYS), flag("explain-conflicts") ? Number(arg("show") ?? 10) : 0)) console.log(line);
+    if (rec.conflict) for (const line of describeConflictReport(explainConflicts(raw, provider.vendorRecords(), todayIso(), LOAD_LAG_DAYS), flag("explain-conflicts") ? Number(arg("show") ?? 10) : 0)) console.log(line);
     gate = recordGate(rec, gateOpts);
   }
   if (check) {

@@ -141,6 +141,18 @@ test("the report prints the tally, and the fights behind the first N conflicts o
   const r = explainConflicts(conflictFeed(), vendorOf, "2026-10-04");
   const tally = describeConflictReport(r).join("\n");
   assert.match(tally, /why the \d+ conflict/); assert.match(tally, /more draws loaded than the vendor counts/); assert.doesNotMatch(tally, /d1\)/);
-  assert.match(describeConflictReport(r, 1).join("\n"), /Fighter A: loaded 0-0-1, vendor 18-0-0: draw\n\s+2020-01-01  D  DRAW\s+vs Fighter B  \(d1\)/);
+  assert.match(describeConflictReport(r, 1).join("\n"), /Fighter A: loaded 0-0-1, vendor 18-0-0: draw\n\s+2020-01-01  D  DRAW\s+10 rds\s+vs Fighter B  \(d1\)/);
   assert.deepEqual(describeConflictReport(explainConflicts({ ...miniFeed(), boxers: [boxer("A")], bouts: [] }, new Map(), "2026-10-04")), [], "nothing to say when there is no conflict");
+});
+
+test("a surplus that goes away without the 3-round fights is named as one: probably an exhibition or amateur bout the vendor's total leaves out", () => {
+  const feed: FeedData = { ...miniFeed(), boxers: ["A", "B", "C"].map(boxer), events: [ev("E1", "2014-01-01"), ev("E2", "2016-08-16")],
+    bouts: [bout("pro", "A", "B", { eventExternalId: "E1" }), bout("ex", "C", "A", { eventExternalId: "E2", rounds: 3 })] };   // A beats B in 10; C beats A in 3: the vendor's A has one win and no loss
+  const v = new Map([["A", rec(1, 0, 0)], ["B", rec(0, 1, 0)], ["C", rec(0, 0, 0)]]);
+  const r = explainConflicts(feed, v, "2026-10-04", 14);
+  const by = Object.fromEntries(r.fighters.map((f) => [f.name, f.causes]));
+  assert.deepEqual(by["Fighter A"], ["short"], "A: a loaded loss the vendor lacks, in a 3-round fight");
+  assert.deepEqual(by["Fighter C"], ["short"], "and the other side's win");
+  assert.equal(r.tally.short, 2); assert.equal(r.tally.losses, 0, "not blamed on a wrong winner");
+  assert.match(describeConflictReport(r, 1).join("\n"), /3 rds/);
 });

@@ -86,3 +86,13 @@ export function acquireBackfillLock(key: string, o: LockOptions = {}): string {
 export function releaseBackfillLock(file: string, pid = process.pid): void {
   try { if ((JSON.parse(fs.readFileSync(file, "utf8")) as LockInfo).pid === pid) fs.rmSync(file, { force: true }); } catch { /* already gone */ }
 }
+
+/**
+ * How many days a vendor total may trail its results before a surplus counts as a contradiction. The daily update reads fresh fighter records and allows
+ * VENDOR_LAG_DAYS (default 7); a load reads a cache that may be days old, and on the first real cache the totals trailed by 9 to 11 days (24 conflicts vanished
+ * at 14 days, 3 at 7), so a load allows VENDOR_LOAD_LAG_DAYS, else VENDOR_LAG_DAYS, else 14. A value that is not a whole number of days above 0 is ignored.
+ */
+export function lagDays(kind: "update" | "load", env: Record<string, string | undefined> = { VENDOR_LAG_DAYS: process.env.VENDOR_LAG_DAYS, VENDOR_LOAD_LAG_DAYS: process.env.VENDOR_LOAD_LAG_DAYS }): number {
+  const ok = (x: string | undefined) => { const n = Number(x); return x !== undefined && x !== "" && Number.isInteger(n) && n > 0 ? n : undefined; };
+  return kind === "update" ? ok(env.VENDOR_LAG_DAYS) ?? 7 : ok(env.VENDOR_LOAD_LAG_DAYS) ?? ok(env.VENDOR_LAG_DAYS) ?? 14;
+}
