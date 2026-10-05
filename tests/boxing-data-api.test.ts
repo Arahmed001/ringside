@@ -742,6 +742,23 @@ test("through a real load: a fight listed under two profiles of the same opponen
   assert.equal(p.notes().duplicateFightsMerged, 1); assert.equal(p.notes().duplicateFightsAcrossProfiles, 1);
 });
 
+test("through a real load: a card whose every fight was cancelled is left out with its bouts; a card with one fight cancelled stays (round 99)", async () => {
+  const both: Record<string, B.ApiFighter> = { A1: fighter("A1", "Alpha One"), B1: fighter("B1", "Bravo One"), C1: fighter("C1", "Charlie One") };
+  const day2 = "2024-12-22T21:00:00+00:00", day3 = "2024-12-23T21:00:00+00:00";
+  const ev = (id: string, date: string) => ({ id, title: id, date, location: "Riyadh, Saudi Arabia", venue: "Kingdom Arena" });
+  const fights = [
+    fight("1", "A1", "B1", { status: "CANCELLED", date: day2, event: ev("ev-gone", day2) }),
+    fight("2", "A1", "C1", { date: day3, event: ev("ev-mixed", day3) }),
+    fight("3", "B1", "C1", { status: "CANCELLED", date: day3, event: ev("ev-mixed", day3) }),
+  ];
+  const { impl } = mockFetch((path) => path === "/v2/fights/" ? { body: env(fights) } : path === "/v2/fights/schedule" ? { body: env([]) } : { body: env(both[path.split("/").pop()!]) });
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0 });
+  const bouts = await p.fetchBouts(), events = await p.fetchEvents();
+  assert.deepEqual(events.map((e) => e.externalId), ["bda-e-ev-mixed"]);
+  assert.deepEqual(bouts.map((b) => [b.externalId, b.status ?? null]).sort(), [["bda-b-2", null], ["bda-b-3", "cancelled"]]);
+  assert.equal(p.notes().cancelledCardsLeftOut, 1); assert.equal(p.notes().cancelledFights, 2);
+});
+
 test("a run with patience waits out a network outage instead of skipping fighters; one whose network stays down stops; one without patience skips as before (round 84)", async () => {
   const run = async (failures: number, extra: Partial<B.BoxingDataApiOptions>) => {
     const sleeps: number[] = [], lines: string[] = [];
