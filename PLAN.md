@@ -1298,7 +1298,7 @@ The user's full fetch takes about 68 hours at 400 an hour, and a `--check` besid
 - Not exercised: the stand-in's career records always add up, so conflicts, `--allow-partial`, `--complete-only` and `--explain-conflicts` were not tested at scale by this run (they are covered by unit tests only).
 - `docs/real-data-runbook.md` gains section 2c, the load-day decision (conflicts first; partial: `--allow-partial` or `--complete-only`; a new database; check by hand).
 
-## 132. Rehearsing the load-day paths on a league that does not add up (round 77, 2026-10-05)
+## 133. Rehearsing the load-day paths on a league that does not add up (round 77, 2026-10-05)
 
 The round 76 rehearsal passed everything because its stand-in vendor always adds up; conflicts, partial records, `--complete-only` and `--cached-only` had only unit tests. `degradeWorld` (`lib/vendor-mock.ts`) lays the first real fetch's faults over a clean league (earlier careers the list does not reach; fights the vendor does not count; fights listed twice) and `npm run vendor:rehearse -- --realistic [--prior 0.04]` runs the real command four ways on it, then a second league with only unposted results.
 
