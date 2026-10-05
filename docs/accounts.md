@@ -9,7 +9,7 @@ Built host-agnostic: one more SQLite file next to the sports database, no email 
 
 ## Where things live
 
-`accounts.db` (default: next to `DATABASE_PATH`, override with `ACCOUNTS_DB_PATH`) holds `users`, `sessions`, `resets`, `picks`, `contributions` and `audit`. It is separate from `ringside.db` on purpose: that file is rebuilt, re-ingested and (for the demo) deleted at will, and nobody's account may go with it. Everything in it points at the sports data by **external id** (a bout's and a boxer's `external_id`), never by row number, so a rebuilt database does not orphan a pick or an edit.
+`accounts.db` (default: next to `DATABASE_PATH`, override with `ACCOUNTS_DB_PATH`) holds `users`, `sessions`, `resets`, `picks`, `watchlist`, `contributions` and `audit`. It is separate from `ringside.db` on purpose: that file is rebuilt, re-ingested and (for the demo) deleted at will, and nobody's account may go with it. Everything in it points at the sports data by **external id** (a bout's and a boxer's `external_id`), never by row number, so a rebuilt database does not orphan a pick or an edit.
 
 Approved community edits are written into `ringside.db` as `team_stints` rows with `source = "Community edit"` (plus `source_url` and the quote in `note`), and **replayed from `accounts.db` every time the sports database opens** (`applyContributions`, idempotent). Vendor re-ingests replace team history per source, so they never touch the community rows; a database rebuilt from scratch gets them back on the next open. An approved edit about a fighter the current database lacks is skipped, not lost. `npm run accounts -- apply` does the same by hand.
 
@@ -98,4 +98,4 @@ Run them where the files are (inside the container: `docker exec ringside npm ru
 
 ## Privacy
 
-A person's data is a name, a password hash, their picks and the edits they proposed. `/account` offers a download of all of it (`/api/account/export`, no secrets) and deletion (password required): it removes the person, their picks and sessions; edits they proposed stay in the record, with no name on them, because what was published rests on a source, not on who found it.
+A person's data is a name, a password hash, their picks, the fighters on their watchlist and the edits they proposed. `/account` offers a download of all of it (`/api/account/export`, no secrets) and deletion (password required): it removes the person, their picks, watchlist and sessions; edits they proposed stay in the record, with no name on them, because what was published rests on a source, not on who found it.
