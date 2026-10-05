@@ -1214,6 +1214,10 @@ A league of awkward values (`lib/hostile-feed.ts`: markup and SQL in names, a 30
 - Fix: strip trailing dots and lower-case before matching; refuse `.localhost`, `.local`, `.internal` and the private IPv4/IPv6 forms.
 - Tests: two in `tests/fetcher-hardening.test.ts` (refused names; a public name with a trailing dot, or one merely containing "localhost", still allowed). Mutation: reverting the fix fails the first.
 
+## 132. The first-fetch checklist (round 77, 2026-10-04)
+
+- `docs/real-data-runbook.md`: what to paste back from the first real fetch, and a table of every note count (meaning, when it matters). Docs only.
+
 ## 133. The Arabic review queue (round 67, 2026-10-04)
 The state of the Arabic, read with the repo's own `i18n:review status` and `qa`: 2,235 strings and 1,848 names, none reviewed by a person; the mechanical checks list only notes (gendered English to confirm, glossary terms, a few numbers and Latin words), no failures. `docs/arabic-review-queue.md` lists the 239 strings written on 2026-10-04 (Ask the data answers, Boxing explained, the fighter and country pages, the official lists, the matchup page, the share button) grouped by page with the English beside the Arabic, so the reviewer starts with what a reader meets first; `docs/arabic-review.md` points to it. The complete offline sheet is `npm run i18n:review -- export` (`review/`, deliberately not committed). Docs only; no behaviour changes.
 
