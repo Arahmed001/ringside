@@ -39,7 +39,7 @@ export default async function UpsetWatch() {
       <div>
         <div className="eyebrow mb-2">{t("Fights to watch")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase">{t("Upset watch")}</h1>
-        <p className="mt-2 max-w-3xl text-muted">{t("Every upcoming fight, ranked by the underdog's chance of winning from the same model as the predictor, with the reasons an upset could happen. Below, how the same calls have fared in past fights, including which warning signs turned out to matter.")}</p>
+        <p className="mt-2 max-w-3xl text-muted">{t("Every upcoming fight, ranked by the underdog’s chance of winning from the same model as the predictor, with the reasons an upset could happen. Below, how the same calls have fared in past fights, including which warning signs turned out to matter.")}</p>
         <p className="mt-3 flex flex-wrap gap-2 text-sm">
           <a href={feed} className="chip !border-gold/40 hover:!text-gold">{t("Follow in a feed reader")}</a>
           <Link href="/previews" className="chip hover:!text-ink">{t("Fight previews")}</Link>

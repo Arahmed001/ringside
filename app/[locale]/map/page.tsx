@@ -4,7 +4,7 @@ import { StyleMap, type MapPoint } from "@/components/StyleMap";
 import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
 
-export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({ path: "/map", title: t("Style Map"), description: t("Every fighter plotted by how they fight, with power, durability, workrate, reach, age and form compressed into one map. Fighters close together fight alike.") }));
+export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({ path: "/map", title: t("Style map"), description: t("Every fighter plotted by how they fight, with power, durability, workrate, reach, age and form compressed into one map. Fighters close together fight alike.") }));
 
 export default async function MapPage() {
   const t = await getT();

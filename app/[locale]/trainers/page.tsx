@@ -11,7 +11,7 @@ import { metaFor } from "@/lib/seo-server";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({
   path: "/trainers", title: t("Trainer impact"),
-  description: t("How much head trainers change their fighters' results, estimated with a model that separates a trainer's effect from their fighters' own ability, with honest error bars, plus what happens when fighters change trainer."),
+  description: t("How much head trainers change their fighters’ results, estimated with a model that separates a trainer’s effect from their fighters’ own ability, with honest error bars, plus what happens when fighters change trainer."),
 }));
 
 const sign = (v: number) => `${v >= 0 ? "+" : "−"}${Math.abs(Math.round(v))}`;
@@ -49,7 +49,7 @@ export default async function Trainers() {
       <div>
         <div className="eyebrow mb-2">{t("Camps")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase">{t("Trainer impact")}</h1>
-        <p className="mt-2 max-w-3xl text-muted">{t("Does the head trainer change how a fighter performs? Fighters' ratings rising under a trainer proves little: young fighters rise whoever trains them. So each trainer's effect is estimated together with every fighter's own ability, using fighters who have worked with more than one trainer, and every estimate comes with its error bars.")}</p>
+        <p className="mt-2 max-w-3xl text-muted">{t("Does the head trainer change how a fighter performs? Fighters’ ratings rising under a trainer proves little: young fighters rise whoever trains them. So each trainer’s effect is estimated together with every fighter’s own ability, using fighters who have worked with more than one trainer, and every estimate comes with its error bars.")}</p>
         <p className="mt-3 flex flex-wrap gap-2 text-sm"><Link href="/people?role=trainer" className="chip hover:!text-ink">{t("All corner people")}</Link><Link href="/upset-watch" className="chip hover:!text-ink">{t("Upset watch")}</Link></p>
       </div>
 
@@ -63,10 +63,10 @@ export default async function Trainers() {
       <section className="card p-6" aria-labelledby="honest">
         <h2 id="honest" className="font-display text-3xl font-bold uppercase">{t("What the data can and cannot say")}</h2>
         <ul className="mt-3 max-w-3xl space-y-2 text-sm">
-          <li className="flex gap-2"><span className="text-gold" aria-hidden>●</span><span>{t("A trainer's effect is in Elo points against the average trainer (zero). A fighter with a +30 trainer is about 30 Elo points better than the same fighter would be with an average one: roughly 4 percentage points of win chance against an equal opponent.")}</span></li>
+          <li className="flex gap-2"><span className="text-gold" aria-hidden>●</span><span>{t("A trainer’s effect is in Elo points against the average trainer (zero). A fighter with a +30 trainer is about 30 Elo points better than the same fighter would be with an average one: roughly 4 percentage points of win chance against an equal opponent.")}</span></li>
           <li className="flex gap-2"><span className="text-gold" aria-hidden>●</span><span>{t("The ranges are wide. Only {clear} of {n} trainers are clearly above or below average, and {leaning} more lean one way. For everyone else the honest answer is that the data cannot tell them from average.", { clear, n: T.all.length, leaning })}</span></li>
-          <li className="flex gap-2"><span className="text-gold" aria-hidden>●</span><span>{t("Only fighters who changed trainer tell a trainer's effect apart from their fighters' ability. A trainer whose fighters never left is pulled toward zero, however good the results.")}</span></li>
-          <li className="flex gap-2"><span className="text-gold" aria-hidden>●</span><span>{t("Fighters do not change trainer at random: they often move after a bad run. And each fighter's ability is treated as fixed through a career. Both can bias the estimates, and the penalty that pulls estimates toward zero (a typical trainer within about {n} Elo) is a judgment.", { n: Math.round(LOGIT_TO_ELO / Math.sqrt(PENALTY.trainer)) })}</span></li>
+          <li className="flex gap-2"><span className="text-gold" aria-hidden>●</span><span>{t("Only fighters who changed trainer tell a trainer’s effect apart from their fighters’ ability. A trainer whose fighters never left is pulled toward zero, however good the results.")}</span></li>
+          <li className="flex gap-2"><span className="text-gold" aria-hidden>●</span><span>{t("Fighters do not change trainer at random: they often move after a bad run. And each fighter’s ability is treated as fixed through a career. Both can bias the estimates, and the penalty that pulls estimates toward zero (a typical trainer within about {n} Elo) is a judgment.", { n: Math.round(LOGIT_TO_ELO / Math.sqrt(PENALTY.trainer)) })}</span></li>
         </ul>
       </section>
 
@@ -132,7 +132,7 @@ export default async function Trainers() {
               );
             })}
           </ul>
-          <p className="mt-3 text-xs text-muted">{t("The shift is the new trainer's estimated effect minus the old one's, shown only when both have enough evidence. It is about as uncertain as the two estimates behind it. {n} moves are on record in all.", { n: mv.length.toLocaleString("en-US") })}</p>
+          <p className="mt-3 text-xs text-muted">{t("The shift is the new trainer’s estimated effect minus the old one’s, shown only when both have enough evidence. It is about as uncertain as the two estimates behind it. {n} moves are on record in all.", { n: mv.length.toLocaleString("en-US") })}</p>
         </section>
       )}
     </div>

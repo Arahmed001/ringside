@@ -72,7 +72,7 @@ export async function OfficialListView({ list, w }: { list: List; w: World }) {
       </ScrollRegion>
       <p className="max-w-3xl text-xs leading-snug text-muted">
         {date ? t("The {body} list as it stood on {date}.", { body: list.body, date }) : t("The {body} list.", { body: list.body })}{" "}
-        {t("These are the body's own standings, relayed by Boxing Data API from BoxingScene. They are not Ringside's ranking, and a fighter shown without a link or numbers is not in Ringside's data yet.")}
+        {t("These are the body’s own standings, relayed by Boxing Data API from BoxingScene. They are not Ringside’s ranking, and a fighter shown without a link or numbers is not in Ringside’s data yet.")}
       </p>
     </div>
   );

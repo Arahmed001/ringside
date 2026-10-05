@@ -37,7 +37,7 @@ const byAlias = new Map<string, Division>();
 for (const d of DIVISIONS) for (const a of d.aliases) byAlias.set(a, d);
 
 /** "Welterweight" or "Women's Welterweight": the divisions share names and limits, but the rankings are separate. */
-export const divisionLabel = (name: string, sex: "male" | "female", t: T = tEn) => (sex === "female" ? t("Women's {division}", { division: t(name) }) : t(name));
+export const divisionLabel = (name: string, sex: "male" | "female", t: T = tEn) => (sex === "female" ? t("Women’s {division}", { division: t(name) }) : t(name));
 
 export const slugifyDivision = (n: string) => n.toLowerCase().replace(/\s+/g, "-");
 export const divisionFromSlug = (s: string) => DIVISIONS.find((d) => slugifyDivision(d.name) === s);

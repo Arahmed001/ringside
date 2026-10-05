@@ -78,7 +78,7 @@ export function nightLines(n: Night, w: World, t: T = tEn): string[] {
   const out: string[] = [];
   for (const c of n.crowned.slice(0, 3)) out.push(t("New champion: {name}, {belt}.", { name: name(c.winnerId), belt: belt(c.beltSlug) }));
   for (const d of n.defended.slice(0, 3)) out.push(t("Title defended: {name}, {belt}.", { name: name(d.winnerId), belt: belt(d.beltSlug) }));
-  if (n.upset) out.push(t("The night's biggest surprise: {winner} beat {loser}, a {p} chance in the model's eyes.", { winner: name(n.upset.winnerId), loser: name(n.upset.loserId), p: pct(n.upset.pWinner) }));
+  if (n.upset) out.push(t("The night’s biggest surprise: {winner} beat {loser}, a {p} chance in the model’s eyes.", { winner: name(n.upset.winnerId), loser: name(n.upset.loserId), p: pct(n.upset.pWinner) }));
   out.push(t.n(n.decided, "{n} fight decided, {s} ended inside the distance.", "{n} fights decided, {s} ended inside the distance.", { s: n.endedEarly }));
   if (n.fastest) out.push(n.fastest.time ? t("Fastest finish: {winner} stopped {loser} in round {r}, at {time}.", { winner: name(n.fastest.winnerId), loser: name(n.fastest.loserId), r: n.fastest.round, time: n.fastest.time })
     : t("Fastest finish: {winner} stopped {loser} in round {r}.", { winner: name(n.fastest.winnerId), loser: name(n.fastest.loserId), r: n.fastest.round }));
@@ -89,7 +89,7 @@ export function nightLines(n: Night, w: World, t: T = tEn): string[] {
       : t("Biggest climb: {name}, from #{a} to #{b} at {division}.", { name: name(n.climb.boxerId), a: n.climb.before, b: n.climb.after ?? 0, division: div }));
   }
   if (n.streak) out.push(t("Longest streak run up: {name}, {n} wins in a row.", { name: name(n.streak.boxerId), n: n.streak.n }));
-  for (const u of n.unbeatenEnded.slice(0, 2)) out.push(t("{name}'s unbeaten run of {n} fights ended.", { name: name(u.boxerId), n: u.n }));
+  for (const u of n.unbeatenEnded.slice(0, 2)) out.push(t("{name}’s unbeaten run of {n} fights ended.", { name: name(u.boxerId), n: u.n }));
   return out;
 }
 
