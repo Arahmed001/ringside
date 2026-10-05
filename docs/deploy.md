@@ -34,7 +34,7 @@ All optional; see `.env.example` for the full list.
 
 - `SITE_URL`: the public origin, used for canonical URLs, sitemaps and share images. **Set it.**
 - `SITE_CONTACT`: where someone who is not signed in can report a mistake, an email address or an `https://` page, published as written on the Data and Report pages (a role address like `corrections@…`, never a personal one). No default; the doctor warns when `BOXING_PROVIDER=licensed` and it is unset.
-- `VENDOR_TERMS_URL`: the `https://` link to the data vendor's licence terms (or the page that states the written agreement). The Data page credits the vendor whenever `BOXING_PROVIDER=licensed` and links the terms once this is set.
+- `VENDOR_TERMS_URL`: the `https://` link to the data vendor's licence terms (or the page that states the written agreement). The Data page credits the vendor whenever `BOXING_PROVIDER=licensed` and links the terms once this is set; every page's footer carries the credit too ("Fight, fighter and event data: Boxing Data API"), because the vendor was told it would be credited wherever its data appears (where it is and how to remove it: `docs/vendor-credit.md`).
 - `BOXING_PROVIDER`: while it is `demo` the site is `noindex`, so a demo deployment never competes with real sites in search. Set `INDEXABLE=1` only to override that on purpose.
 - `ANTHROPIC_API_KEY`, `AI_DAILY_BUDGET`, `AI_CLIENT_LIMIT`, `AI_CLIENT_WINDOW_MS`: the AI features and what visitors can spend. Without a key everything falls back to rules.
 - `DATABASE_PATH`: defaults to `/data/ringside.db` in the image.

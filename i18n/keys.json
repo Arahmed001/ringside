@@ -5316,7 +5316,8 @@
  {
   "key": "Fight, fighter and event data: <a>{name}</a>.",
   "files": [
-   "app/[locale]/data/page.tsx"
+   "app/[locale]/data/page.tsx",
+   "app/[locale]/layout.tsx"
   ]
  },
  {
