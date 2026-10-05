@@ -820,3 +820,15 @@ test("the watchlist has a ceiling, is in the data export, and goes when the acco
   assert.equal(del.status, 200);
   assert.equal((accountsDb().prepare("SELECT COUNT(*) c FROM watchlist WHERE user_id = ?").get(uid) as { c: number }).c, 0, "deleted with the account");
 });
+
+test("a malformed session cookie means signed out, not a server error", async () => {
+  const { cookieOf } = await import("../lib/accounts/api");
+  const req = (c: string) => ({ headers: new Headers({ cookie: c }) });
+  assert.equal(cookieOf(req("rs_session=abc%20def")), "abc def");
+  for (const bad of ["rs_session=%", "rs_session=%E0%A4%A", "rs_session=%00%ff%"]) assert.doesNotThrow(() => cookieOf(req(bad)), bad);
+  assert.equal(cookieOf(req("rs_session=%")), undefined);
+  const r = await routes();
+  const res = await call(r.me, "GET", undefined, { cookie: "rs_session=%E0%A4%A" });
+  assert.equal(res.status, 200, "the page that asks who is signed in still answers");
+  assert.equal(res.json.user, null);
+});
