@@ -8,9 +8,9 @@ import { getNames } from "@/lib/i18n/names";
 import { msg } from "@/lib/i18n/t";
 import { flag } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
-import { metaFor } from "@/lib/seo-server";
+import { metaFor, pagedTitle, tabbedTitle, type SearchParams } from "@/lib/seo-server";
 
-export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({ path: "/orgs", title: t("Gyms, promotions & bodies"), description: t("Boxing gyms, promotions and sanctioning bodies: who trains and signs the fighters, how many events each promotes and which belts they sanction.") }));
+export const generateMetadata = ({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<SearchParams> }) => metaFor(params, (p, t, sp) => ({ path: "/orgs", title: pagedTitle(t, tabbedTitle(t, t("Gyms, promotions & bodies"), KINDS, sp.kind), sp.page), description: t("Boxing gyms, promotions and sanctioning bodies: who trains and signs the fighters, how many events each promotes and which belts they sanction.") }), searchParams);
 
 const KINDS = [["promotion", msg("Promotions")], ["gym", msg("Gyms")]] as const;
 

@@ -99,7 +99,8 @@ export async function readCapped(res: Response, maxBytes: number): Promise<strin
   return out.slice(0, maxBytes);
 }
 
-const privateHost = (h: string) => /^(localhost|.*\.local|.*\.internal)$/.test(h) || /^(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.|\[?::1\]?$)/.test(h);
+/** A name that is, or is under, a name that only ever means this machine or this network. A trailing dot is the same host ("localhost." is "localhost"), and every name under `.localhost` is loopback (RFC 6761). The visitor-facing path also resolves the name and checks the address; this is the first filter, and the only one for the command-line tool. */
+const privateHost = (raw: string) => { const h = raw.toLowerCase().replace(/\.+$/, ""); return /^(localhost|.*\.localhost|.*\.local|.*\.internal)$/.test(h) || /^(127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.|\[?::1\]?$)/.test(h); };
 
 /**
  * A polite fetcher: identifies itself, obeys robots.txt and Crawl-delay, waits between requests to a host, caches what it reads,

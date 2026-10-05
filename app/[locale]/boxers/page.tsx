@@ -11,10 +11,10 @@ import { getNames } from "@/lib/i18n/names";
 import { searchFighters } from "@/lib/fighter-search";
 import { applyControls, asSort, asStatus, optionsOf, KO_RATE_MIN_WINS } from "@/lib/fighter-list";
 import { countryName } from "@/lib/format";
-import { metaFor } from "@/lib/seo-server";
+import { metaFor, pagedTitle, type SearchParams } from "@/lib/seo-server";
 
-export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) =>
-  metaFor(params, (p, t) => ({ path: "/boxers", title: t("Fighters"), description: t("Search every fighter in the Ringside database in plain language, or filter by division and sex: records, ratings, knockouts and fighting styles.") }));
+export const generateMetadata = ({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<SearchParams> }) =>
+  metaFor(params, (p, t, sp) => ({ path: "/boxers", title: pagedTitle(t, t("Fighters"), sp.page), description: t("Search every fighter in the Ringside database in plain language, or filter by division and sex: records, ratings, knockouts and fighting styles.") }), searchParams);
 
 /** Fighters per page: the full result set is always reachable, 48 at a time. */
 const PAGE = 48;

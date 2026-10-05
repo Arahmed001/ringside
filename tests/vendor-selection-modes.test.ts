@@ -62,3 +62,46 @@ test("end to end: --whole-groups loads groups no fighter of which has a fight ou
   assert.equal(rec.conflict, 0);
   assert.equal(rec.partial, 0, "no record is short: every group is in whole");
 });
+
+// round 76: --cached-only
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+test("cached only: no request is made, the fighters not in the cache are left out, and the fights between the others still load", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "bda-cachedonly-"));
+  const filled = mockVendor(world);
+  const common = { key: KEY, purpose: "evaluation" as const, scheduleDays: 0, maxRequests: 100_000, retries: 0, gapMs: 0, log: () => {}, sleep: async () => {}, cacheDir: dir };
+  const full = boxingDataApiProvider({ ...common, fetchImpl: filled.fetchImpl });
+  const all = { boxers: await full.fetchBoxers(), bouts: await full.fetchBouts() };
+  const fighterFiles = fs.readdirSync(dir).filter((f) => /fighters/.test(f) && !/fights/.test(f));
+  assert.equal(fighterFiles.length, all.boxers.length, "one cache file for each fighter");
+  const gone = fighterFiles.slice(0, 10);
+  for (const f of gone) fs.rmSync(path.join(dir, f));
+  let calls = 0;
+  const never = (async () => { calls++; throw new Error("a request was made"); }) as typeof fetch;
+  const lines: string[] = [];
+  const p = boxingDataApiProvider({ ...common, fetchImpl: never, cachedOnly: true, log: (m) => lines.push(m) });
+  const boxers = await p.fetchBoxers(), bouts = await p.fetchBouts();
+  assert.equal(calls, 0); assert.equal(p.requests(), 0);
+  assert.ok(lines.some((l) => /--cached-only: \d+ of \d+ chosen fighters are in the cache; the other 10 are left for a later run/.test(l)) && !lines.some((l) => /skipped/.test(l)), "it says what it left out, and no fighter is reported as failed");
+  assert.equal(boxers.length, all.boxers.length - 10, "the ten missing fighters are left out");
+  const ids = new Set(boxers.map((b) => b.externalId));
+  assert.ok(bouts.length > 0 && bouts.length < all.bouts.length);
+  assert.ok(bouts.every((b) => ids.has(b.redExternalId) && ids.has(b.blueExternalId)), "every fight kept is between two fighters held");
+  assert.ok(p.notes().boutsOutsideSelection > 0); assert.equal(p.notes().boutsDroppedUnknownFighter, 0, "left out by choice, not reported as fighters that could not be fetched (which would stop a load)");
+  // and without the flag the same missing fighters would have been asked for
+  const asks = mockVendor(world);
+  await boxingDataApiProvider({ ...common, fetchImpl: asks.fetchImpl }).fetchBoxers();
+  assert.ok(asks.stats.requests >= 10);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("cached only: an empty cache is an error about the fight list, not a silent empty league", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "bda-cachedonly-empty-"));
+  const never = (async () => { throw new Error("a request was made"); }) as typeof fetch;
+  const p = boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: never, scheduleDays: 0, retries: 0, gapMs: 0, log: () => {}, cacheDir: dir, cachedOnly: true });
+  const r = await p.fetchBoxers().then((b) => ({ n: b.length }), (e: Error) => ({ error: e.message }));
+  assert.ok("error" in r && /\/v2\/fights\/ is not in the cache \(--cached-only makes no request\)/.test(r.error), JSON.stringify(r));
+  fs.rmSync(dir, { recursive: true, force: true });
+});
