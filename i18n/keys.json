@@ -226,6 +226,7 @@
  {
   "key": "{date} vs {name}",
   "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
    "lib/watch.ts"
   ]
  },
@@ -4194,6 +4195,7 @@
  {
   "key": "D",
   "files": [
+   "components/FighterPrintSheet.tsx",
    "components/WatchlistPage.tsx",
    "components/ui.tsx",
    "lib/ask/tools.ts"
@@ -4228,6 +4230,7 @@
   "key": "Date",
   "files": [
    "app/[locale]/weights/page.tsx",
+   "components/FighterPrintSheet.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -6750,6 +6753,7 @@
   "files": [
    "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
+   "components/FighterPrintSheet.tsx",
    "components/WatchlistPage.tsx",
    "components/ui.tsx",
    "lib/ask/tools.ts"
@@ -7732,6 +7736,7 @@
  {
   "key": "NC",
   "files": [
+   "components/FighterPrintSheet.tsx",
    "components/WatchlistPage.tsx",
    "components/ui.tsx",
    "lib/i18n/dynamic-keys.ts"
@@ -7826,6 +7831,7 @@
   "key": "Next fight",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
+   "components/FighterPrintSheet.tsx",
    "components/WatchlistPage.tsx"
   ]
  },
@@ -8627,6 +8633,7 @@
   "files": [
    "app/[locale]/matchmaking/page.tsx",
    "app/[locale]/weights/page.tsx",
+   "components/FighterPrintSheet.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -9855,6 +9862,7 @@
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx",
    "app/[locale]/weights/page.tsx",
+   "components/FighterPrintSheet.tsx",
    "lib/ask/tools.ts",
    "lib/correction-text.ts"
   ]
@@ -13026,6 +13034,7 @@
   "files": [
    "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
+   "components/FighterPrintSheet.tsx",
    "components/WatchlistPage.tsx",
    "components/ui.tsx",
    "lib/ask/tools.ts"
