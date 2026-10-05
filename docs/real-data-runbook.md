@@ -164,6 +164,35 @@ A running app notices the change by itself: its next request rebuilds the in-mem
 - [ ] The site is indexable and says nothing about "fictional" (`isDemoData()` is false once `BOXING_PROVIDER` is not `demo`): set `SITE_URL`, then decide deliberately that it is ready for search engines and the public.
 - [ ] **The live ledger** now has real coming fights to predict. It starts its clock the first time the running app builds the world; keep the app running.
 
+### The first real fetch: what to paste back, and what each note means
+
+Paste back: the whole output of `--check` (or the load), from the first line to the last, including the `notes:` block, any `dropped` counts and any warnings. Not the cache files. A note is a count of times the importer had to approximate; **zero means the feed supplied the fact itself**, and every non-zero count is printed automatically. None is an error by itself; what matters is the size next to the number of fights or fighters.
+
+| Note | What it means | When to worry |
+|---|---|---|
+| `drawInferred`, `resultMissing` | A drawn decision stored as a draw, or a fight with no winner stored as "no result yet" | Both a large share of finished fights: the vendor's `outcome` words are not what the adapter expects; paste a sample |
+| `drawDemoted` | A draw dropped to "no result yet" because neither fighter's career total has a draw to spare | A few hundred in 150,000 is the vendor's own records disagreeing; thousands is a pattern to look at |
+| `stoppageWithoutWinner` | KO/TKO with no winner, stored as "no result yet" | Same as above |
+| `outcomeMapped` | An outcome word outside the feed's own list ("DQ", "RTD", "Corner Retirement", "Technical Decision", "No Contest") read through the importers' spelling table | Informational; a large count means the feed uses words worth adding to the list |
+| `outcomeUnreadable` | A winner with an outcome nobody can read: kept in both fighters' history as "no result yet", no winner named | Hundreds or more: paste ten examples of the outcome field |
+| `bothMarkedWinner` | Both fighters flagged as winner: neither picked | A handful is a feed slip; many means the winner flag is not what the adapter expects |
+| `roundUnreadable` | A result round of 0 or below, treated as unknown | Informational |
+| `eventsWithoutFights` | Events left out because none of their fights was kept | Informational (most small cards in a partial first load) |
+| `roundsRaisedToEnd` | A stoppage later than the scheduled rounds; the fight's length was raised | Large counts mean the schedule field is unreliable |
+| `fightersDroppedNoDivision`, `boutsDroppedNoDivision` | Fighters with no usable weight class, and their fights, left out | Over a few percent of fighters: paste the division spellings; add an alias in `lib/divisions.ts` |
+| `divisionFromFight`, `boutDivisionFromFighters` | A fighter's class taken from his fight, or a catchweight fight placed in the heavier fighter's class | Informational |
+| `boutsDroppedUnknownFighter`, `boutsOutsideSelection` | Fights whose fighter is not in the loaded set (expected on a `--fighters N` partial load) | Only if no partial load was asked for |
+| `fightsSkipped` | Fights skipped (a fighter against himself, unusable rows) | Hundreds is fine; check the sample the run prints |
+| `birthYearUnknown`, `physicalsUnknown`, `stanceUnknown`, `debutUnknown` | Facts the vendor left blank; shown as a dash, never invented | Informational: these are the vendor's gaps |
+| `physicalsConverted` | Heights or reaches converted to cm | Informational |
+| `locationUnparsed`, `locationCountryInferred`, `locationRegionAmbiguous` | Venue text the importer could not place, or placed by a rule | A large `locationUnparsed` means country pages will be thin; paste ten examples |
+| `rankingsUnavailable`, `rankingsSkipped`, `scheduleUnavailable`, `upcomingUnavailable` | The plan does not include that endpoint, or it failed | Expected on lower plans; the pages say so |
+| `windowTooBig` | A date window hit the 10,000-document limit and was split | Informational |
+
+A change in these counts between two runs is the signal to watch in daily `--update` use; a sudden jump means the vendor changed something.
+
+After the load, in order: `npm run doctor`; open ten fighters you know; check `/divisions`, one country, one event; then paste the output of `doctor` as well.
+
 ## Rehearse it first, for nothing: `npm run vendor:rehearse`
 
 Before a plan is bought, the whole procedure can be run at full size against a stand-in vendor on your own machine (`lib/vendor-mock.ts`, the real answer shapes, nothing leaves the machine):
