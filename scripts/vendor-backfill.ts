@@ -13,6 +13,7 @@
  *          --fighters N (take only the N most recently active fighters, coming fights counting: the fights between two of them are loaded; run again with a bigger N, or none, for the rest: what is fetched is cached)
  *          --with-opponents | --whole-groups (with --fighters N: also fetch every opponent of the N, so each of the N has all his fights; or take whole groups of fighters, newest group first, while they fit in N, so nobody in them has a fight outside: `--plan` prints what each would ask for)
  *          --complete-only (load only the fighters whose records add up exactly to the vendor's career totals, and whose opponents' do: a smaller league in which no record is short)
+ *          --cached-only (with --check or a load: make no request, use only what --cache-dir holds, and leave out the fighters not fetched yet; needs no key and does not wait for a fetch under way)
  *          --explain-conflicts (with --check: list the fights behind the first --show 10 conflicts; the tally of causes is always printed)
  *          --allow-incomplete (load even though some fighters could not be fetched)  --allow-errors (load even though the validator found errors)
  *          --min-complete 0.9 (the share of fighters whose loaded fights must add up to the vendor's career record)  --allow-partial  --allow-conflicts
@@ -40,16 +41,19 @@ const stamp = () => new Date().toISOString().slice(11, 19);
 const log = (m: string) => console.log(`${stamp()}  ${m}`);
 
 async function main() {
-  const key = process.env.BOXING_API_KEY;
+  const cachedOnly = flag("cached-only");
+  // --cached-only sends nothing, so it needs no key and no lock (it shares no allowance); the key is only a placeholder the adapter never sends
+  const key = process.env.BOXING_API_KEY ?? (cachedOnly ? "cached-only-no-request-is-ever-sent-0000000000" : undefined);
   if (!key) throw new Error("Set BOXING_API_KEY (your RapidAPI key for the Boxing Data API).");
   const plan = flag("plan"), check = flag("check"), update = flag("update");
+  if (cachedOnly && (plan || update || flag("refresh") || arg("cache-dir") === undefined)) throw new Error("--cached-only reads what --cache-dir already holds and makes no request: give --cache-dir, and not --plan, --update or --refresh.");
   const planCaches = plan && arg("cache-dir") !== undefined; // a plan told where to cache keeps the list pages: the 400-odd list requests are an hour of the plan's allowance
   // one run at a time per key on this machine: they share the plan's hourly allowance (a plan that keeps nothing still spends it, so it is locked too)
-  const lock = acquireBackfillLock(key, { command: process.argv.slice(2).join(" ") });
-  const unlock = () => releaseBackfillLock(lock);
+  const lock = cachedOnly ? undefined : acquireBackfillLock(key, { command: process.argv.slice(2).join(" ") });
+  const unlock = () => { if (lock) releaseBackfillLock(lock); };
   process.on("exit", unlock);
   for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"] as const) process.on(sig, () => process.exit(130));
-  if (!plan || planCaches) storageStatus(); // before anything is created: if storing is switched off (=0) the refusal leaves no cache and no empty database behind
+  if ((!plan || planCaches) && !cachedOnly) storageStatus(); // before anything is created: if storing is switched off (=0) the refusal leaves no cache and no empty database behind
   const gapMs = Number(arg("gap-ms") ?? 300);
   const perHourText = arg("per-hour") ?? process.env.BOXING_API_PER_HOUR; // the plan's own hourly limit: 500 on the Mega plan
   const perHour = perHourText ? Number(perHourText) : undefined;
@@ -68,6 +72,7 @@ async function main() {
     ...(plan && !planCaches ? {} : { cacheDir: path.resolve(arg("cache-dir") ?? path.join(process.cwd(), "data", "vendor-cache", "boxing-data-api")) }),
     // a daily update must see today's results (not yesterday's cached pages) and fresh career records for the fighters who just fought (a cached record predates the fight, and the audit would call it a contradiction)
     refresh: flag("refresh") || update,
+    ...(cachedOnly ? { cachedOnly: true, retries: 0, gapMs: 0 } : {}),
   };
 
   let db: Awaited<ReturnType<typeof import("../lib/db").getDb>> | undefined;

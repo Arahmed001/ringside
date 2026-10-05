@@ -1248,3 +1248,18 @@ The user's full fetch (30,000 fighters uncached) ran without `--per-hour`, sent 
 - One existing test asserted that the only sleep after a 429 was the Retry-After; the requests after a refusal are now paced, so it asserts the first sleep.
 - Tests: two in `tests/boxing-data-api.test.ts`; three mutations killed (a fourth did not apply and was redone: killed).
 
+
+## 127. --cached-only: look at a part-way fetch without a request (round 76, 2026-10-05)
+
+The user's full fetch takes about 68 hours at 400 an hour, and a `--check` beside it is refused (one run per key, one hourly allowance). The cache already holds thousands of fighters, enough to see whether the draw fix and the conflict explainer (§125) do their job.
+
+- `--cached-only` (with `--check` or a load, and `--cache-dir`) makes no request: `cachedOnly` in the adapter turns a cache miss into a 404 (so a missing schedule or rankings page is "unavailable" like on a plan without them), and `load()` leaves the fighters not in the cache out like fighters outside a selection (`boutsOutsideSelection`, not "could not be fetched", which would stop a load). An empty cache says the fight list is not in the cache.
+- No API key needed (a placeholder the adapter never sends), no backfill lock (it shares no allowance) and no "storing provisionally" warning. Not with `--plan`, `--update` or `--refresh`.
+- Tried against a throwaway cache with fighters removed: the user's running fetch's lock was left alone.
+- Tests: two in `tests/vendor-selection-modes.test.ts` (nothing requested, missing fighters left out and the rest load; empty cache); three mutations killed, one (the pre-filter) only through the log line, since the loop's 404 would have skipped the same fighters.
+- **Fix to round 75's start-up line:** "N fighters to fetch, about X minute(s) at P an hour" printed seconds under the word minutes (27,159 fighters at 400 an hour read "244431 minute(s)"; the true figure is 4,074). Found from the user's paced run; now `N * 60 / P`, with a test that pins 320 fighters at 450 an hour to 43 minutes. The progress lines already gave the right figure.
+
+### Load-day rehearsal at the user's size (2026-10-05, while the real fetch ran)
+`npm run vendor:rehearse -- --fighters 35000 --fights 44000 --years 10` against the stand-in vendor, on a temp database and cache, with its own key (so it shared nothing with the real fetch): `--plan` 6 s / 181 MB, `--check` (32,647 requests answered instantly) 71 s / 206 MB, the load 2.8 s / 246 MB with 0 requests, the daily `--update` 1.5 s / 178 MB, a kill-and-resume asked only the unfinished requests. All checks passed except one that was the check's own fault: a SIGKILL during a cache write leaves a stale `<name>.<pid>.tmp` (written then renamed, so never read as an answer); the check counted it as an unreadable answer. It now separates stale temp files (reported) from unreadable answers (failure); reproduced twice at full size and once at 3,000 fighters.
+- Not exercised: the stand-in's career records always add up, so conflicts, `--allow-partial`, `--complete-only` and `--explain-conflicts` were not tested at scale by this run (they are covered by unit tests only).
+- `docs/real-data-runbook.md` gains section 2c, the load-day decision (conflicts first; partial: `--allow-partial` or `--complete-only`; a new database; check by hand).

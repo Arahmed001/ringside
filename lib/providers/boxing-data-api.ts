@@ -315,6 +315,8 @@ export interface BoxingDataApiOptions {
    * run showed the plan has its own limit per hour, set by the API provider, well below what the default spacing would send.
    */
   perHour?: number;
+  /** Make no request at all: answer from the cache or not at all. A page missing from the cache is a 404 (so a missing schedule or rankings page is "unavailable", as for a plan without them), and the fighters not in the cache are left out like fighters outside a selection. For looking at what a part-way fetch holds. */
+  cachedOnly?: boolean;
   /**
    * Fetch only this many fighters: the ones with the most recent (or coming) fight first. The fights between two of them are loaded and no others, so a
    * first load of a few thousand fighters is a league that holds together, in hours instead of days; a later run with a larger number (or none) only
@@ -397,7 +399,7 @@ export function assertPlausibleKey(key: string, willBeSent = true): void {
 
 export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiProvider {
   assertPlausibleKey(o.key, !o.fetchImpl);
-  if (o.purpose === "ingest" && storageStatus() === "provisional") (o.log ?? (() => {}))(STORAGE_WARNING);
+  if (o.purpose === "ingest" && !o.cachedOnly && storageStatus() === "provisional") (o.log ?? (() => {}))(STORAGE_WARNING);
   const base = (o.baseUrl ?? "https://boxing-data-api.p.rapidapi.com").replace(/\/+$/, "");
   const host = new URL(base).host;
   const doFetch = o.fetchImpl ?? fetch;
@@ -438,6 +440,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     const file = o.cacheDir ? cacheFile(p, params) : undefined;
     if (file && !o.refresh && !(o.refreshLists && p.startsWith("/v2/fights"))) { const hit = fromCache<T>(file); if (hit) { hits++; return hit; } }
     const qs = Object.entries(params).filter(([, v]) => v !== undefined).map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
+    if (o.cachedOnly) throw new HttpError(`${p} is not in the cache (--cached-only makes no request)`, 404);
     const attempts = 1 + (o.retries ?? 0);
     let rateWaits = 0, waited = 0;
     for (let attempt = 0; ; attempt++) {
@@ -586,7 +589,15 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
 
   async function load() {
     const { events, bouts } = await fightsOnce();
-    const { chosen, left, total } = await chooseFighters();
+    const picked = await chooseFighters();
+    const { total } = picked;
+    let { chosen, left } = picked;
+    if (o.cachedOnly) {
+      const have = chosen.filter((id) => fs.existsSync(cacheFile(`/v2/fighters/${id}`, {})));
+      const out = new Set(chosen.filter((id) => !have.includes(id)).map(fighterId));
+      log(`--cached-only: ${have.length} of ${chosen.length} chosen fighters are in the cache; the other ${out.size} are left for a later run (their fights are not loaded)`);
+      chosen = have; left = new Set([...left, ...out]);
+    }
     if (left.size) log(`taking the ${chosen.length} most recently active of ${total} fighters; the other ${left.size} are left for a later run (their fights are not loaded)`);
     const rows: Loose[] = [];
     let n = 0, cachedFighters = 0;
@@ -594,7 +605,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     // what is not in the cache yet is what costs requests: say so before spending them, and what pace they will be sent at
     const toFetch = o.cacheDir && !o.refresh ? chosen.filter((id) => !fs.existsSync(cacheFile(`/v2/fighters/${id}`, {}))).length : chosen.length;
     if (toFetch > 300 && !(o.perHour && o.perHour > 0)) log(`${toFetch} fighters are not in the cache and no --per-hour was given: a plan with an hourly limit (Mega: 500) refuses a burst. Use --per-hour 400 to pace the run from the start; without it the first refusal makes the run slow itself to 400 an hour.`);
-    else if (toFetch > 0) log(`${toFetch} fighters to fetch${o.perHour ? `, about ${Math.ceil((toFetch * 3600) / o.perHour)} minute(s) at ${o.perHour} an hour` : ""}`);
+    else if (toFetch > 0) log(`${toFetch} fighters to fetch${o.perHour ? `, about ${Math.ceil((toFetch * 60) / o.perHour)} minute(s) at ${o.perHour} an hour` : ""}`);
     let windowAt = started, windowFetched = 0;
     for (const id of chosen) {
       const before = hits;
