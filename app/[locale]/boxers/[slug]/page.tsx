@@ -45,7 +45,7 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string;
     return {
       path: `/boxers/${b.slug}`, type: "profile" as const, title: t.name(b.name),
       description: t("{name}: {division} boxer from {country}. Record {record} with {kos} KOs and a {rating} Elo rating. Fight history, team, weigh-ins and scouting report.", {
-        name: t.name(b.name), division: divisionLabel(b.weightClass, b.sex, t), country: countryName(b.country, t.locale), record: recordStr(b), kos: b.kos, rating: Math.round(b.rating),
+        name: t.name(b.name), division: divisionLabel(b.weightClass, b.sex, t), country: countryName(b.country, t.locale), record: recordStr(b), kos: koView(b).kos, rating: Math.round(b.rating),
       }),
     };
   });

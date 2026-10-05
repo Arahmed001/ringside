@@ -1,7 +1,7 @@
 import type { BoxerFull } from "./types";
 import { WEIGHT_CLASSES } from "./types";
 import type { World } from "./world";
-import { careerCounts, careerView, knockouts, recordStr } from "./world";
+import { careerCounts, careerView, knockouts, koView, recordStr } from "./world";
 import { archetype } from "./style";
 import { predict } from "./predict";
 import { missCount } from "./weights";
@@ -474,7 +474,7 @@ export function rulesReport(b: BoxerFull, w: World, t: T = tEn): string {
   const rank = w.boxers.filter((x) => x.weightClass === b.weightClass && x.sex === b.sex && x.active && x.rating > b.rating).length + 1;
   const division = divisionLabel(b.weightClass, b.sex, t).toLowerCase();
   const parts: string[] = [];
-  const intro = { name: t.name(b.name), nick: b.nickname ? ` “${t.name(b.nickname)}”` : "", division, country: countryName(b.country, t.locale), record: recordStr(b), kos: b.kos, pct: Math.round(b.koRate * 100) };
+  const intro = { name: t.name(b.name), nick: b.nickname ? ` “${t.name(b.nickname)}”` : "", division, country: countryName(b.country, t.locale), record: recordStr(b), kos: koView(b).kos, pct: Math.round(koView(b).rate * 100) };
   // a fact the data does not have is left out of the sentence, not guessed
   parts.push(b.age !== null && b.stance ? t("{name}{nick} is a {age}-year-old {stance} {division} from {country}, {record} with {kos} knockouts ({pct}% of wins).", { ...intro, age: b.age, stance: t(b.stance).toLowerCase() })
     : b.age !== null ? t("{name}{nick} is a {age}-year-old {division} from {country}, {record} with {kos} knockouts ({pct}% of wins).", { ...intro, age: b.age })
@@ -504,7 +504,7 @@ export async function scoutingReport(b: BoxerFull, w: World, t: T = tEn, client?
         const r = x.winnerId === null ? "D" : x.winnerId === b.id ? "W" : "L";
         return `${r} ${x.method}${x.endRound ? " R" + x.endRound : ""} vs ${t.name(opp)}`;
       });
-      const facts = `${t.name(b.name)} (${b.nickname ? t.name(b.nickname) : "no nickname"}), ${b.sex}, ${b.age ?? "age unknown"}, ${b.country}, ${b.stance ?? "stance unknown"}, ${b.weightClass}, ${b.heightCm === null ? "height unknown" : b.heightCm + "cm"}/${b.reachCm === null ? "reach unknown" : b.reachCm + "cm reach"}, record ${recordStr(b)}, ${b.kos} KOs, ${b.koLosses} KO losses, Elo ${Math.round(b.rating)}, style archetype ${archetype(b)}, avg fight length ${b.avgRounds.toFixed(1)} rounds. Last fights: ${recent.join("; ")}.`;
+      const facts = `${t.name(b.name)} (${b.nickname ? t.name(b.nickname) : "no nickname"}), ${b.sex}, ${b.age ?? "age unknown"}, ${b.country}, ${b.stance ?? "stance unknown"}, ${b.weightClass}, ${b.heightCm === null ? "height unknown" : b.heightCm + "cm"}/${b.reachCm === null ? "reach unknown" : b.reachCm + "cm reach"}, record ${recordStr(b)}, ${koView(b).kos} KOs, ${koView(b).stopped ?? b.koLosses} KO losses, Elo ${Math.round(b.rating)}, style archetype ${archetype(b)}, avg fight length ${b.avgRounds.toFixed(1)} rounds. Last fights: ${recent.join("; ")}.`;
       const language = t.locale === "ar" ? " Write in clear Modern Standard Arabic, the way a Saudi sports desk would; keep fighter names exactly as given in the facts and write numbers with Western digits (0-9)." : "";
       const text = await claude(
         `You are a boxing analyst writing a short scouting report (90-130 words, 2 paragraphs) for a stats site. Use ONLY the facts supplied; do not invent opponents, titles, or biography, and do not guess anything marked unknown. Note that this is a fictional demo dataset only if asked. Plain text, no headings.${language}`,

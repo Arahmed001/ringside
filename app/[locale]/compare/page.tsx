@@ -1,7 +1,7 @@
 import { ShareButton } from "@/components/ShareButton";
 import { DASH, isKnown, orDash } from "@/lib/facts";
 import Link from "@/components/L";
-import { getWorld, recordStr } from "@/lib/world";
+import { getWorld, koView, recordStr } from "@/lib/world";
 import { predict, featuresOf } from "@/lib/predict";
 import { MatchupLab } from "@/components/MatchupLab";
 import { FighterPicker } from "@/components/FighterPicker";
@@ -103,7 +103,7 @@ async function Result({ A, B, w }: { A: BoxerFull; B: BoxerFull; w: Awaited<Retu
   const co = commonOpponents(w, A, B);
   const h2h = (w.boutsByBoxer.get(A.id) ?? []).filter((x) => x.method && (x.redId === B.id || x.blueId === B.id));
   const rows: [string, string, string][] = [
-    [t("Record"), recordStr(A), recordStr(B)], [t("KO rate"), pct(A.koRate), pct(B.koRate)], [t("Rating"), String(Math.round(A.rating)), String(Math.round(B.rating))],
+    [t("Record"), recordStr(A), recordStr(B)], [t("KO rate"), pct(koView(A).rate), pct(koView(B).rate)], [t("Rating"), String(Math.round(A.rating)), String(Math.round(B.rating))],
     [t("Age"), orDash(A.age, String), orDash(B.age, String)], [t("Height"), cm(A.heightCm), cm(B.heightCm)], [t("Reach"), cm(A.reachCm), cm(B.reachCm)],
     [t("Stance"), A.stance ? t(A.stance) : DASH, B.stance ? t(B.stance) : DASH], [t("Style"), t(archetype(A)), t(archetype(B))], [t("Division"), divisionLabel(A.weightClass, A.sex, t), divisionLabel(B.weightClass, B.sex, t)],
   ];

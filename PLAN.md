@@ -1398,3 +1398,10 @@ The fetch's key was handled badly again and again: the hidden `read -s` prompt t
 - `vendor:status` shows the key file's state and, with no key in the tab, suggests `npm run vendor:fetch` (or `--setup`), and its placeholder test is the same narrow one (it used to flag any key containing "your", "paste" or "here").
 - Tests: the file's mode and refusals, the narrow placeholder rule, the key never in a report, the arguments, the status next steps, and the wrapper end to end on a stand-in vendor (the key from a file, the fetch into the cache with 25 fighters, the key not printed, a second run with 0 requests, no file: how to make one, `--setup` refused outside a terminal and nothing written); four mutations killed.
 - Not done by me: creating the key file. That is the owner's, in a real terminal tab.
+
+## 146. Knockout figures beside a part-held career agree with the page (round 86, 2026-10-05)
+
+Looking at the simulated partial league's Arabic fighter page (the partial-career note and the record read right, in Arabic too): the page said "Knockouts 2, 15% of wins" (the supplier's career knockouts over the career wins), while the scouting text below it said "(50% of wins)": two knockouts over the four wins Ringside holds. Round 79 fixed the lists and answers; these other places still printed the held figures beside the career record.
+- `rulesReport` and the facts handed to the optional AI report, the fighter page's structured data, the social card, the rankings table's KO column, the compare table's KO rate, the fight preview's "Finishing power" line and the upset signal ("finishes {pb}% of wins") now use `koView`, as the page's own Knockouts card does.
+- Left on purpose: the radar and model inputs (power, matchmaking, the preview's win/KO probabilities), which are computed from the fights held and are labelled so, and the all-time lists.
+- Test: a 500-of-3,000 league ingested through the importer, a part-held fighter whose held and career KO rates differ by 5 points or more: the scouting text carries the career figures and not the held rate; one mutation killed. Checked by hand on the simulated league in English and Arabic.

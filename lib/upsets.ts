@@ -9,6 +9,7 @@
  * said? Where the answer is "no", the page says so.
  */
 import type { World } from "./world";
+import { koView } from "./career";
 import type { BoutRow, BoxerFull, EventRow } from "./types";
 import { predict } from "./predict";
 import { countsInRecord, isStoppage } from "./methods";
@@ -90,7 +91,7 @@ export const upsetWatch = (w: World, t: T): Watch[] => memo(w, `upsetWatch:${t.l
     const misses = missCount(w, favourite.id);
     if (misses >= SIGNS.misses) signals.push({ kind: "weight", text: t.n(misses, "{name} has missed weight {n} time", "{name} has missed weight {n} times", { name: fname }), weight: 0.03 });
     const stopped = favourite.bouts ? favourite.koLosses / favourite.bouts : 0;
-    if (stopped >= 0.15 && underdog.koRate >= 0.5) signals.push({ kind: "chin", text: t("{a} has been stopped in {pa}% of fights; {b} finishes {pb}% of wins", { a: fname, pa: Math.round(stopped * 100), b: uname, pb: Math.round(underdog.koRate * 100) }), weight: 0.05 });
+    if (stopped >= 0.15 && koView(underdog).rate >= 0.5) signals.push({ kind: "chin", text: t("{a} has been stopped in {pa}% of fights; {b} finishes {pb}% of wins", { a: fname, pa: Math.round(stopped * 100), b: uname, pb: Math.round(koView(underdog).rate * 100) }), weight: 0.05 });
     signals.sort((a, c) => c.weight - a.weight);
     out.push({ bout: b, event, favourite, underdog, chance, favouriteChance: 1 - chance - p.pDraw, pRed: p.pA, pBlue: p.pB, pDraw: p.pDraw, tier: tierOf(chance), signals: signals.slice(0, 4) });
   }
