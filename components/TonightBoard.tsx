@@ -47,7 +47,7 @@ export function TonightBoard({ bouts }: { bouts: TonightBout[] }) {
               </div>
               <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-3">
                 {side(b.red, false)}
-                <Link href={`/bouts/${b.id}`} className="py-1 text-center" title={t("Full bout details")}>
+                <Link href={`/bouts/${b.id}`} className="min-w-12 py-1 text-center" title={t("Full bout details")}>
                   <div className="font-display text-xl font-bold text-gold">{t("VS")}</div>
                   <div className="text-xs text-muted">{b.status === "decided" ? b.how : b.status === "pending" ? t("To come") : ""}</div>
                 </Link>
