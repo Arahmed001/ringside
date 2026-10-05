@@ -15,7 +15,7 @@ export const NAV_GROUPS: NavGroup[] = [
     { href: "/titles", label: msg("Titles"), icon: "titles" },
     { href: "/all-time", label: msg("All-time"), icon: "all-time" },
     { href: "/boxers", label: msg("Fighters"), icon: "fighters" },
-    { href: "/learn", label: msg("Boxing explained"), icon: "learn" },
+    { href: "/learn", label: msg("Boxing, explained"), icon: "learn" },
     { href: "/countries", label: msg("Countries"), icon: "countries" },
   ] },
   { id: "fights", title: msg("Fights"), items: [
@@ -39,7 +39,7 @@ export const NAV_GROUPS: NavGroup[] = [
   { id: "data", title: msg("Data and models"), items: [
     { href: "/analytics", label: msg("Analytics"), icon: "analytics" },
     { href: "/accountability", label: msg("Track record"), icon: "accountability" },
-    { href: "/map", label: msg("Style Map"), icon: "style-map" },
+    { href: "/map", label: msg("Style map"), icon: "style-map" },
     { href: "/data", label: msg("Data"), icon: "data" },
   ] },
 ];

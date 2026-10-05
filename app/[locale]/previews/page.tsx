@@ -13,7 +13,7 @@ import { SectionTitle } from "@/components/ui";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({
   path: "/previews", title: t("Fight previews"),
-  description: t("Previews for every main event and co-main on the upcoming calendar: what is at stake, the tale of the tape, form, the model's pick and how it expects each fight to end."),
+  description: t("Previews for every main event and co-main on the upcoming calendar: what is at stake, the tale of the tape, form, the model’s pick and how it expects each fight to end."),
 }));
 
 /** Cards covered: the headline fights of the next few shows. */
@@ -31,7 +31,7 @@ export default async function Previews() {
       <div>
         <div className="eyebrow mb-2">{t("Before the bell")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase">{t("Fight previews")}</h1>
-        <p className="mt-2 max-w-3xl text-muted">{t("The main event and co-main of each upcoming show: what is at stake, the tale of the tape, how each fighter has been doing, the model's pick and how it expects the fight to end. Written from the data; with an API key, Claude writes the article from those same facts.")}</p>
+        <p className="mt-2 max-w-3xl text-muted">{t("The main event and co-main of each upcoming show: what is at stake, the tale of the tape, how each fighter has been doing, the model’s pick and how it expects the fight to end. Written from the data; with an API key, Claude writes the article from those same facts.")}</p>
       </div>
       {cards.length === 0 && <p className="card p-6 text-muted">{t("No upcoming cards on the calendar.")}</p>}
       {cards.map((e) => {

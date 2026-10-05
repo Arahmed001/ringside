@@ -173,7 +173,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
           {oddsBlock(t, b.oddsRed, b.oddsBlue, mkt, eloP)}
           {call && (
             <div className="mt-4 border-t border-line/60 pt-3 text-sm">
-              <div className="mb-1 flex justify-between gap-3"><span className="text-muted">{t("The model's call before the fight")}</span><span className="tabular"><b className="text-red-ink">{pct(call.pRed)}</b> / <b className="text-blue">{pct(1 - call.pRed)}</b></span></div>
+              <div className="mb-1 flex justify-between gap-3"><span className="text-muted">{t("The model’s call before the fight")}</span><span className="tabular"><b className="text-red-ink">{pct(call.pRed)}</b> / <b className="text-blue">{pct(1 - call.pRed)}</b></span></div>
               <div className="flex justify-between gap-3 text-xs">
                 {Math.max(call.pRed, 1 - call.pRed) < 0.52
                   ? <span className="text-muted">{t("A toss-up: the model saw no clear favourite")}</span>
@@ -191,7 +191,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
 
       {cards.length === 0 && b.vendorScores && b.vendorScores.length > 0 && (
         <section>
-          <SectionTitle eyebrow={t("Official result")} title={t("Judges' scores")} />
+          <SectionTitle eyebrow={t("Official result")} title={t("Judges’ scores")} />
           <div className="card p-5">
             <ul className="flex flex-wrap gap-2" dir="ltr">{b.vendorScores.map((x, i) => <li key={i} className="chip tabular text-base">{x}</li>)}</ul>
             <p className="mt-3 text-xs text-muted">{t("As given by the data supplier, in its order. It does not say which judge gave which score, or which corner each number belongs to.")}</p>

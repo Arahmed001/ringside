@@ -120,12 +120,12 @@ function factSentence(ctx: Ctx, b: BoxerFull, fact: FighterFact, more: { rank: n
   const gap = (what: string) => t("The data does not give {what} for {name}.", { what, name });
   switch (fact) {
     case "height": return b.heightCm !== null ? t("{name} is {cm} cm tall.", { name, cm: b.heightCm }) : gap(t("a height"));
-    case "reach": return b.reachCm !== null ? t("{name}'s reach is {cm} cm.", { name, cm: b.reachCm }) : gap(t("a reach"));
+    case "reach": return b.reachCm !== null ? t("{name}’s reach is {cm} cm.", { name, cm: b.reachCm }) : gap(t("a reach"));
     case "age": return b.age !== null ? t("{name} is {age} years old.", { name, age: b.age }) : gap(t("an age"));
-    case "stance": return b.stance ? t("{name}'s stance is {stance}.", { name, stance: t(b.stance) }) : gap(t("a stance"));
+    case "stance": return b.stance ? t("{name}’s stance is {stance}.", { name, stance: t(b.stance) }) : gap(t("a stance"));
     case "country": return t("{name} is from {country}.", { name, country: countryName(b.country, t.locale) });
     case "division": return t("{name} fights at {division}.", { name, division: divisionLabel(b.weightClass, b.sex, t) });
-    case "trainer": return more.trainer ? t("{name}'s head trainer is {trainer}.", { name, trainer: t.name(more.trainer.name) }) : t("The data has no current head trainer for {name}.", { name });
+    case "trainer": return more.trainer ? t("{name}’s head trainer is {trainer}.", { name, trainer: t.name(more.trainer.name) }) : t("The data has no current head trainer for {name}.", { name });
     case "gym": {
       const stint = (w.stintsByBoxer.get(b.id) ?? []).find((x) => x.role === "gym" && x.end === null);
       const gym = stint?.orgId ? w.orgs.get(stint.orgId) : undefined;
@@ -134,7 +134,7 @@ function factSentence(ctx: Ctx, b: BoxerFull, fact: FighterFact, more: { rank: n
     case "manager": {
       const stint = (w.stintsByBoxer.get(b.id) ?? []).find((x) => x.role === "manager" && x.end === null && x.personId);
       const person = stint?.personId ? w.people.get(stint.personId) : undefined;
-      return person ? t("{name}'s manager is {manager}.", { name, manager: t.name(person.name) }) : t("The data has no current manager for {name}.", { name });
+      return person ? t("{name}’s manager is {manager}.", { name, manager: t.name(person.name) }) : t("The data has no current manager for {name}.", { name });
     }
     case "title_fights": {
       const title = (w.boutsByBoxer.get(b.id) ?? []).filter((x) => x.title && !x.upcoming && x.method);
@@ -156,11 +156,11 @@ function factSentence(ctx: Ctx, b: BoxerFull, fact: FighterFact, more: { rank: n
       const x = more.recent[0];
       if (!x) return t("{name} has no completed fights on record.", { name });
       const result = x.winnerId === null ? t("a draw") : x.winnerId === b.id ? t("a win") : t("a loss");
-      return t("{name}'s last fight was on {date}: {result} against {opponent} ({method}).", { name, date: fmtDate(x.date, { month: "short", day: "numeric", year: "numeric" }, t.locale), result, opponent: t.name(x.redId === b.id ? x.blueName : x.redName), method: methodLabel(x.method, x.endRound, t) });
+      return t("{name}’s last fight was on {date}: {result} against {opponent} ({method}).", { name, date: fmtDate(x.date, { month: "short", day: "numeric", year: "numeric" }, t.locale), result, opponent: t.name(x.redId === b.id ? x.blueName : x.redName), method: methodLabel(x.method, x.endRound, t) });
     }
     case "next_fight": {
       const next = (w.boutsByBoxer.get(b.id) ?? []).filter((x) => x.upcoming).sort((p, q) => p.date.localeCompare(q.date))[0]; // (a bout that fell off the card, or on a called-off one, is not upcoming)
-      return next ? t("{name}'s next fight is against {opponent} on {date}.", { name, opponent: t.name(next.redId === b.id ? next.blueName : next.redName), date: fmtDate(next.date, { month: "short", day: "numeric", year: "numeric" }, t.locale) }) : t("No upcoming fight is scheduled for {name}.", { name });
+      return next ? t("{name}’s next fight is against {opponent} on {date}.", { name, opponent: t.name(next.redId === b.id ? next.blueName : next.redName), date: fmtDate(next.date, { month: "short", day: "numeric", year: "numeric" }, t.locale) }) : t("No upcoming fight is scheduled for {name}.", { name });
     }
     case "record": return t("{name} has had {n} fights: {record}.", { name, n: (({ wins, losses, draws }) => wins + losses + draws)(careerCounts(b)), record: recordStr(b) });
     case "knockouts": { // the career's knockouts when the supplier states them for a career held in part; otherwise what the fights held add up to
@@ -170,11 +170,11 @@ function factSentence(ctx: Ctx, b: BoxerFull, fact: FighterFact, more: { rank: n
     case "rating": return t("{name} is rated {elo}{rank}.", { name, elo: Math.round(b.rating), rank: more.rank ? t(", number {n} in the division", { n: more.rank }) : "" });
     case "debut": return b.turnedPro !== null ? t("{name} turned pro in {year}.", { name, year: b.turnedPro }) : gap(t("a pro debut year"));
     case "nickname": return b.nickname ? t("{name} is known as “{nickname}”.", { name, nickname: t.name(b.nickname) }) : t("{name} has no nickname on record.", { name });
-    case "style": return t("{name}'s style is {style}.", { name, style: t(archetype(b)) });
+    case "style": return t("{name}’s style is {style}.", { name, style: t(archetype(b)) });
     case "promoter": {
       const stint = (w.stintsByBoxer.get(b.id) ?? []).find((x) => x.role === "promoter" && x.end === null && x.orgId);
       const org = stint?.orgId ? w.orgs.get(stint.orgId) : undefined;
-      return org ? t("{name}'s promoter is {promoter}.", { name, promoter: t.name(org.name) }) : t("The data has no current promoter for {name}.", { name });
+      return org ? t("{name}’s promoter is {promoter}.", { name, promoter: t.name(org.name) }) : t("The data has no current promoter for {name}.", { name });
     }
     case "streak": {
       const list = (w.boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming && countsInRecord(x.method));
@@ -302,7 +302,7 @@ const champions: Tool = {
     if (by) {
       // the champions whose age the data gives, in the order asked (a champion with no known age is left out, not placed)
       const aged = rows.map((b) => ({ ...line(b) })).filter((x) => x.c.age !== null).sort((p, q) => (by === "youngest" ? p.c.age! - q.c.age! : q.c.age! - p.c.age!) || p.c.name.localeCompare(q.c.name));
-      if (!aged.length) return empty("champions", args, t, t("The data gives no champion's age."));
+      if (!aged.length) return empty("champions", args, t, t("The data gives no champion’s age."));
       const top = aged[0];
       return {
         tool: "champions", args,

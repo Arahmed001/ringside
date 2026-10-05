@@ -1326,7 +1326,7 @@
   ]
  },
  {
-  "key": "{name} took the {belt}, ending {loser}'s reign of {days} days and {n} defences.",
+  "key": "{name} took the {belt}, ending {loser}’s reign of {days} days and {n} defences.",
   "plural": "{name} took the {belt}, ending {loser}'s reign of {days} days and {n} defence.",
   "files": [
    "lib/recap.ts"
@@ -1411,61 +1411,61 @@
   ]
  },
  {
-  "key": "{name}'s head trainer is {trainer}.",
+  "key": "{name}’s head trainer is {trainer}.",
   "files": [
    "lib/ask/tools.ts"
   ]
  },
  {
-  "key": "{name}'s last fight was on {date}: {result} against {opponent} ({method}).",
+  "key": "{name}’s last fight was on {date}: {result} against {opponent} ({method}).",
   "files": [
    "lib/ask/tools.ts"
   ]
  },
  {
-  "key": "{name}'s manager is {manager}.",
+  "key": "{name}’s manager is {manager}.",
   "files": [
    "lib/ask/tools.ts"
   ]
  },
  {
-  "key": "{name}'s next fight is against {opponent} on {date}.",
+  "key": "{name}’s next fight is against {opponent} on {date}.",
   "files": [
    "lib/ask/tools.ts"
   ]
  },
  {
-  "key": "{name}'s promoter is {promoter}.",
+  "key": "{name}’s promoter is {promoter}.",
   "files": [
    "lib/ask/tools.ts"
   ]
  },
  {
-  "key": "{name}'s reach is {cm} cm.",
+  "key": "{name}’s reach is {cm} cm.",
   "files": [
    "lib/ask/tools.ts"
   ]
  },
  {
-  "key": "{name}'s stance is {stance}.",
+  "key": "{name}’s stance is {stance}.",
   "files": [
    "lib/ask/tools.ts"
   ]
  },
  {
-  "key": "{name}'s style is {style}.",
+  "key": "{name}’s style is {style}.",
   "files": [
    "lib/ask/tools.ts"
   ]
  },
  {
-  "key": "{name}'s unbeaten run of {n} fights ended.",
+  "key": "{name}’s unbeaten run of {n} fights ended.",
   "files": [
    "lib/night.ts"
   ]
  },
  {
-  "key": "{name}'s unbeaten run of {n} fights is over.",
+  "key": "{name}’s unbeaten run of {n} fights is over.",
   "files": [
    "lib/recap.ts"
   ]
@@ -1982,7 +1982,7 @@
   ]
  },
  {
-  "key": "A factor needs |z| of about 2 or more to count as signal. Fitted on rating, reach, age, layoff, knockout rate, KO losses, experience, usual rehydration, fight-night weight edge, new-trainer flag and the trainer's prior win rate. In this demo league the weigh-in and trainer effects were planted but are small, so they are not detectable at this sample size. That is the honest answer, and real data will say what is really there.",
+  "key": "A factor needs |z| of about 2 or more to count as signal. Fitted on rating, reach, age, layoff, knockout rate, KO losses, experience, usual rehydration, fight-night weight edge, new-trainer flag and the trainer’s prior win rate. In this demo league the weigh-in and trainer effects were planted but are small, so they are not detectable at this sample size. That is the honest answer, and real data will say what is really there.",
   "files": [
    "app/[locale]/data/page.tsx"
   ]
@@ -2030,7 +2030,7 @@
   ]
  },
  {
-  "key": "A fighter's corner pulls them out between rounds. Ringside counts it as a knockout, as most record keepers do.",
+  "key": "A fighter’s corner pulls them out between rounds. Ringside counts it as a knockout, as most record keepers do.",
   "files": [
    "app/[locale]/learn/page.tsx"
   ]
@@ -2175,7 +2175,7 @@
   ]
  },
  {
-  "key": "A trainer's effect is in Elo points against the average trainer (zero). A fighter with a +30 trainer is about 30 Elo points better than the same fighter would be with an average one: roughly 4 percentage points of win chance against an equal opponent.",
+  "key": "A trainer’s effect is in Elo points against the average trainer (zero). A fighter with a +30 trainer is about 30 Elo points better than the same fighter would be with an average one: roughly 4 percentage points of win chance against an equal opponent.",
   "files": [
    "app/[locale]/trainers/page.tsx"
   ]
@@ -2361,7 +2361,7 @@
   ]
  },
  {
-  "key": "Against an average head trainer, after allowing for each fighter's own ability. The 95% range runs from {lo} to {hi}. Based on {fights} fights of {n} fighters, {informative} of them from fighters who have also worked with someone else.",
+  "key": "Against an average head trainer, after allowing for each fighter’s own ability. The 95% range runs from {lo} to {hi}. Based on {fights} fights of {n} fighters, {informative} of them from fighters who have also worked with someone else.",
   "files": [
    "components/TrainerImpactCard.tsx"
   ]
@@ -2587,13 +2587,13 @@
   ]
  },
  {
-  "key": "An organisation may also name an interim champion while the champion is out, or a super champion for its best fighter. Ringside rebuilds each belt's line of champions from the title fights in the data.",
+  "key": "An organisation may also name an interim champion while the champion is out, or a super champion for its best fighter. Ringside rebuilds each belt’s line of champions from the title fights in the data.",
   "files": [
    "app/[locale]/learn/page.tsx"
   ]
  },
  {
-  "key": "An outlet's or analyst's estimate, or worked out from other figures. Treat as approximate.",
+  "key": "An outlet’s or analyst’s estimate, or worked out from other figures. Treat as approximate.",
   "files": [
    "components/Money.tsx"
   ]
@@ -2805,7 +2805,7 @@
   ]
  },
  {
-  "key": "at least one fighter's purse",
+  "key": "at least one fighter’s purse",
   "files": [
    "lib/coverage.ts"
   ]
@@ -3053,12 +3053,6 @@
   ]
  },
  {
-  "key": "Best rated",
-  "files": [
-   "app/[locale]/countries/[slug]/page.tsx"
-  ]
- },
- {
   "key": "Best streak",
   "files": [
    "app/[locale]/leaderboard/page.tsx"
@@ -3113,7 +3107,7 @@
   ]
  },
  {
-  "key": "Biggest surprises, by the model's own numbers",
+  "key": "Biggest surprises, by the model’s own numbers",
   "files": [
    "app/[locale]/accountability/page.tsx"
   ]
@@ -3211,7 +3205,7 @@
   ]
  },
  {
-  "key": "Both fighters' knockdowns added together.",
+  "key": "Both fighters’ knockdowns added together.",
   "files": [
    "lib/records.ts"
   ]
@@ -3283,12 +3277,6 @@
   ]
  },
  {
-  "key": "Boxing explained",
-  "files": [
-   "lib/nav.ts"
-  ]
- },
- {
   "key": "Boxing gyms, promotions and sanctioning bodies: who trains and signs the fighters, how many events each promotes and which belts they sanction.",
   "files": [
    "app/[locale]/orgs/page.tsx"
@@ -3321,7 +3309,8 @@
  {
   "key": "Boxing, explained",
   "files": [
-   "app/[locale]/learn/page.tsx"
+   "app/[locale]/learn/page.tsx",
+   "lib/nav.ts"
   ]
  },
  {
@@ -3824,12 +3813,6 @@
   "key": "Comeback",
   "files": [
    "lib/fight-score.ts"
-  ]
- },
- {
-  "key": "Coming fights",
-  "files": [
-   "app/[locale]/countries/[slug]/page.tsx"
   ]
  },
  {
@@ -4442,7 +4425,7 @@
   ]
  },
  {
-  "key": "Does the head trainer change how a fighter performs? Fighters' ratings rising under a trainer proves little: young fighters rise whoever trains them. So each trainer's effect is estimated together with every fighter's own ability, using fighters who have worked with more than one trainer, and every estimate comes with its error bars.",
+  "key": "Does the head trainer change how a fighter performs? Fighters’ ratings rising under a trainer proves little: young fighters rise whoever trains them. So each trainer’s effect is estimated together with every fighter’s own ability, using fighters who have worked with more than one trainer, and every estimate comes with its error bars.",
   "files": [
    "app/[locale]/trainers/page.tsx"
   ]
@@ -4954,7 +4937,7 @@
   ]
  },
  {
-  "key": "Every upcoming fight, ranked by the underdog's chance of winning from the same model as the predictor, with the reasons an upset could happen. Below, how the same calls have fared in past fights, including which warning signs turned out to matter.",
+  "key": "Every upcoming fight, ranked by the underdog’s chance of winning from the same model as the predictor, with the reasons an upset could happen. Below, how the same calls have fared in past fights, including which warning signs turned out to matter.",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
   ]
@@ -5413,7 +5396,7 @@
   ]
  },
  {
-  "key": "Fighters do not change trainer at random: they often move after a bad run. And each fighter's ability is treated as fixed through a career. Both can bias the estimates, and the penalty that pulls estimates toward zero (a typical trainer within about {n} Elo) is a judgment.",
+  "key": "Fighters do not change trainer at random: they often move after a bad run. And each fighter’s ability is treated as fixed through a career. Both can bias the estimates, and the penalty that pulls estimates toward zero (a typical trainer within about {n} Elo) is a judgment.",
   "files": [
    "app/[locale]/trainers/page.tsx"
   ]
@@ -5718,7 +5701,7 @@
   ]
  },
  {
-  "key": "For someone who left, a fall in rating afterwards counts in the trainer's favour.",
+  "key": "For someone who left, a fall in rating afterwards counts in the trainer’s favour.",
   "files": [
    "components/TrainerImpactCard.tsx"
   ]
@@ -5785,13 +5768,13 @@
   ]
  },
  {
-  "key": "From an official record: a commission disclosure, a company filing or the promoter's own statement.",
+  "key": "From an official record: a commission disclosure, a company filing or the promoter’s own statement.",
   "files": [
    "components/Money.tsx"
   ]
  },
  {
-  "key": "From the top eight available fighters in each division (active, not already booked, not training partners). One best fight per division; the strongest eight overall are shown. It is a model's view, not a promoter's.",
+  "key": "From the top eight available fighters in each division (active, not already booked, not training partners). One best fight per division; the strongest eight overall are shown. It is a model’s view, not a promoter’s.",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
   ]
@@ -6216,7 +6199,7 @@
   ]
  },
  {
-  "key": "How a fight is won and scored, how to read a record, what the weight classes and belts mean, and where Ringside's ratings come from, in plain words.",
+  "key": "How a fight is won and scored, how to read a record, what the weight classes and belts mean, and where Ringside’s ratings come from, in plain words.",
   "files": [
    "app/[locale]/learn/page.tsx"
   ]
@@ -6265,7 +6248,7 @@
   ]
  },
  {
-  "key": "How much head trainers change their fighters' results, estimated with a model that separates a trainer's effect from their fighters' own ability, with honest error bars, plus what happens when fighters change trainer.",
+  "key": "How much head trainers change their fighters’ results, estimated with a model that separates a trainer’s effect from their fighters’ own ability, with honest error bars, plus what happens when fighters change trainer.",
   "files": [
    "app/[locale]/trainers/page.tsx"
   ]
@@ -6542,13 +6525,13 @@
   ]
  },
  {
-  "key": "Judges' scorecards",
+  "key": "Judges’ scorecards",
   "files": [
    "lib/coverage.ts"
   ]
  },
  {
-  "key": "Judges' scores",
+  "key": "Judges’ scores",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
   ]
@@ -7496,13 +7479,13 @@
   ]
  },
  {
-  "key": "Model's confidence",
+  "key": "Model’s confidence",
   "files": [
    "app/[locale]/accountability/page.tsx"
   ]
  },
  {
-  "key": "Model's confidence in its pick (%)",
+  "key": "Model’s confidence in its pick (%)",
   "files": [
    "app/[locale]/accountability/page.tsx"
   ]
@@ -8484,7 +8467,7 @@
   ]
  },
  {
-  "key": "One night's pay",
+  "key": "One night’s pay",
   "files": [
    "app/[locale]/money/page.tsx"
   ]
@@ -8514,7 +8497,7 @@
   ]
  },
  {
-  "key": "Only fighters who changed trainer tell a trainer's effect apart from their fighters' ability. A trainer whose fighters never left is pulled toward zero, however good the results.",
+  "key": "Only fighters who changed trainer tell a trainer’s effect apart from their fighters’ ability. A trainer whose fighters never left is pulled toward zero, however good the results.",
   "files": [
    "app/[locale]/trainers/page.tsx"
   ]
@@ -9076,7 +9059,7 @@
   ]
  },
  {
-  "key": "Previews for every main event and co-main on the upcoming calendar: what is at stake, the tale of the tape, form, the model's pick and how it expects each fight to end.",
+  "key": "Previews for every main event and co-main on the upcoming calendar: what is at stake, the tale of the tape, form, the model’s pick and how it expects each fight to end.",
   "files": [
    "app/[locale]/previews/page.tsx"
   ]
@@ -9412,7 +9395,7 @@
   ]
  },
  {
-  "key": "Ratings are Elo-style: Ringside's own calculation from results, not an official ranking. Everyone starts at 1,500 and gains or loses points after each fight, more for beating a higher-rated opponent, and a stoppage counts for a little more than a decision.",
+  "key": "Ratings are Elo-style: Ringside’s own calculation from results, not an official ranking. Everyone starts at 1,500 and gains or loses points after each fight, more for beating a higher-rated opponent, and a stoppage counts for a little more than a decision.",
   "files": [
    "app/[locale]/learn/page.tsx"
   ]
@@ -10851,12 +10834,6 @@
   "key": "Style map",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
-   "app/[locale]/map/page.tsx"
-  ]
- },
- {
-  "key": "Style Map",
-  "files": [
    "app/[locale]/map/page.tsx",
    "lib/nav.ts",
    "lib/search.ts"
@@ -11325,7 +11302,7 @@
   ]
  },
  {
-  "key": "The data gives no champion's age.",
+  "key": "The data gives no champion’s age.",
   "files": [
    "lib/ask/tools.ts"
   ]
@@ -11403,7 +11380,7 @@
   ]
  },
  {
-  "key": "The few things this site's numbers take for granted: how a fight is won, how to read a record and what a belt means.",
+  "key": "The few things this site’s numbers take for granted: how a fight is won, how to read a record and what a belt means.",
   "files": [
    "app/[locale]/learn/page.tsx"
   ]
@@ -11415,7 +11392,7 @@
   ]
  },
  {
-  "key": "The fight is declared void, for example after an accidental foul early on. It is in neither fighter's record.",
+  "key": "The fight is declared void, for example after an accidental foul early on. It is in neither fighter’s record.",
   "files": [
    "app/[locale]/learn/page.tsx"
   ]
@@ -11445,7 +11422,7 @@
   ]
  },
  {
-  "key": "The fights where the winner had the lowest chance in the model's eyes before the first bell.",
+  "key": "The fights where the winner had the lowest chance in the model’s eyes before the first bell.",
   "files": [
    "app/[locale]/accountability/page.tsx"
   ]
@@ -11481,13 +11458,13 @@
   ]
  },
  {
-  "key": "The highest fight scores in the data: knockdowns, a close or late finish, plenty of action, evenly matched fighters, an upset, a title on the line, a comeback. The same score that picks each year's fight of the year.",
+  "key": "The highest fight scores in the data: knockdowns, a close or late finish, plenty of action, evenly matched fighters, an upset, a title on the line, a comeback. The same score that picks each year’s fight of the year.",
   "files": [
    "lib/records.ts"
   ]
  },
  {
-  "key": "The largest rating gaps overcome by the winner, using each fighter's rating going into the fight.",
+  "key": "The largest rating gaps overcome by the winner, using each fighter’s rating going into the fight.",
   "files": [
    "lib/records.ts"
   ]
@@ -11529,7 +11506,7 @@
   ]
  },
  {
-  "key": "The main event and co-main of each upcoming show: what is at stake, the tale of the tape, how each fighter has been doing, the model's pick and how it expects the fight to end. Written from the data; with an API key, Claude writes the article from those same facts.",
+  "key": "The main event and co-main of each upcoming show: what is at stake, the tale of the tape, how each fighter has been doing, the model’s pick and how it expects the fight to end. Written from the data; with an API key, Claude writes the article from those same facts.",
   "files": [
    "app/[locale]/previews/page.tsx"
   ]
@@ -11626,7 +11603,7 @@
   ]
  },
  {
-  "key": "The model's call before the fight",
+  "key": "The model’s call before the fight",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
   ]
@@ -11662,7 +11639,7 @@
   ]
  },
  {
-  "key": "The night's biggest surprise: {winner} beat {loser}, a {p} chance in the model's eyes.",
+  "key": "The night’s biggest surprise: {winner} beat {loser}, a {p} chance in the model’s eyes.",
   "files": [
    "lib/night.ts"
   ]
@@ -11782,7 +11759,7 @@
   ]
  },
  {
-  "key": "The shift is the new trainer's estimated effect minus the old one's, shown only when both have enough evidence. It is about as uncertain as the two estimates behind it. {n} moves are on record in all.",
+  "key": "The shift is the new trainer’s estimated effect minus the old one’s, shown only when both have enough evidence. It is about as uncertain as the two estimates behind it. {n} moves are on record in all.",
   "files": [
    "app/[locale]/trainers/page.tsx"
   ]
@@ -11812,13 +11789,13 @@
   ]
  },
  {
-  "key": "The site's default predictions use the fitted rating scale (<b>{scale}</b> a plain Elo expectation); the fit found ratings are compressed relative to true skill gaps in this league.",
+  "key": "The site’s default predictions use the fitted rating scale (<b>{scale}</b> a plain Elo expectation); the fit found ratings are compressed relative to true skill gaps in this league.",
   "files": [
    "app/[locale]/data/page.tsx"
   ]
  },
  {
-  "key": "The site's default predictions use the standard Elo scale.",
+  "key": "The site’s default predictions use the standard Elo scale.",
   "files": [
    "app/[locale]/data/page.tsx"
   ]
@@ -11966,13 +11943,13 @@
   ]
  },
  {
-  "key": "These are the body's own standings, relayed by Boxing Data API from BoxingScene. They are not Ringside's ranking, and a fighter shown without a link or numbers is not in Ringside's data yet.",
+  "key": "These are the body’s own standings, relayed by Boxing Data API from BoxingScene. They are not Ringside’s ranking, and a fighter shown without a link or numbers is not in Ringside’s data yet.",
   "files": [
    "components/OfficialList.tsx"
   ]
  },
  {
-  "key": "These are the calls the model would have made before each of the {n} completed fights in the database, rebuilt from what was known at the time: ratings, records and layoffs up to each fighter's previous bout. Its settings were chosen with these results in view, so the headline figures use the most recent quarter of fights ({from} to {to}), the period it was not fitted on.",
+  "key": "These are the calls the model would have made before each of the {n} completed fights in the database, rebuilt from what was known at the time: ratings, records and layoffs up to each fighter’s previous bout. Its settings were chosen with these results in view, so the headline figures use the most recent quarter of fights ({from} to {to}), the period it was not fitted on.",
   "files": [
    "app/[locale]/accountability/page.tsx"
   ]
@@ -12306,7 +12283,7 @@
   ]
  },
  {
-  "key": "Too few of {name}'s fighters have worked with anyone else to tell the trainer's effect apart from the fighters' own ability: {n} fights qualify, {min} are needed. The estimate is held at about zero.",
+  "key": "Too few of {name}’s fighters have worked with anyone else to tell the trainer’s effect apart from the fighters’ own ability: {n} fights qualify, {min} are needed. The estimate is held at about zero.",
   "files": [
    "components/TrainerImpactCard.tsx"
   ]
@@ -12368,6 +12345,7 @@
  {
   "key": "Top rated",
   "files": [
+   "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx"
   ]
  },
@@ -12462,7 +12440,7 @@
   ]
  },
  {
-  "key": "Trainer's prior win rate",
+  "key": "Trainer’s prior win rate",
   "files": [
    "lib/fit.ts"
   ]
@@ -12699,6 +12677,7 @@
  {
   "key": "Upcoming fights",
   "files": [
+   "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/upset-watch/page.tsx"
   ]
  },
@@ -13148,7 +13127,7 @@
   ]
  },
  {
-  "key": "When Ringside does not hold a fighter's early fights, the record on the page is the career total from the data supplier and the page says so; the fight list and the rates are then built only from the fights we hold.",
+  "key": "When Ringside does not hold a fighter’s early fights, the record on the page is the career total from the data supplier and the page says so; the fight list and the rates are then built only from the fights we hold.",
   "files": [
    "app/[locale]/learn/page.tsx"
   ]
@@ -13184,7 +13163,7 @@
   ]
  },
  {
-  "key": "Where Ringside's ratings come from",
+  "key": "Where Ringside’s ratings come from",
   "files": [
    "app/[locale]/learn/page.tsx"
   ]
@@ -13331,7 +13310,7 @@
   ]
  },
  {
-  "key": "Who trains, manages, scores and referees. Every fighter's team history is tracked with dates, so you can see how fighters did before, during and after a trainer.",
+  "key": "Who trains, manages, scores and referees. Every fighter’s team history is tracked with dates, so you can see how fighters did before, during and after a trainer.",
   "files": [
    "app/[locale]/people/page.tsx"
   ]
@@ -13618,7 +13597,7 @@
   ]
  },
  {
-  "key": "Women's {division}",
+  "key": "Women’s {division}",
   "files": [
    "lib/divisions.ts"
   ]
@@ -13893,7 +13872,7 @@
   ]
  },
  {
-  "key": "Your fight-night picks, graded against the results and against the Ringside model's call before the bell.",
+  "key": "Your fight-night picks, graded against the results and against the Ringside model’s call before the bell.",
   "files": [
    "app/[locale]/picks/page.tsx"
   ]

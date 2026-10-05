@@ -51,7 +51,7 @@ export default async function Matchmaking({ searchParams }: { searchParams: Prom
         {now.length ? (
           <div className="grid gap-5 md:grid-cols-2">{now.map((p, i) => <PairingCard key={`${p.a.id}-${p.b.id}`} p={p} rank={i + 1} division={p.division} />)}</div>
         ) : <p className="card p-6 text-muted">{t("Not enough available top fighters to suggest a fight.")}</p>}
-        <p className="mt-3 max-w-3xl text-xs text-muted">{t("From the top eight available fighters in each division (active, not already booked, not training partners). One best fight per division; the strongest eight overall are shown. It is a model's view, not a promoter's.")}</p>
+        <p className="mt-3 max-w-3xl text-xs text-muted">{t("From the top eight available fighters in each division (active, not already booked, not training partners). One best fight per division; the strongest eight overall are shown. It is a model’s view, not a promoter’s.")}</p>
       </section>
 
       <section id="next">

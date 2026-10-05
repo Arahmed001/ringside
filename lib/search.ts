@@ -34,7 +34,7 @@ export const PAGES: { href: string; label: string; words: string }[] = [
   { href: "/analytics", label: msg("Analytics"), words: "analytics statistics stats" },
   { href: "/picks", label: msg("My picks"), words: "my picks pick em pickem predictions streak record vs model" },
   { href: "/accountability", label: msg("Track record"), words: "track record accountability accuracy calibration backtest model predictions how good" },
-  { href: "/map", label: msg("Style Map"), words: "style map" },
+  { href: "/map", label: msg("Style map"), words: "style map" },
   { href: "/data", label: msg("Data"), words: "data model coverage sources" },
   { href: "/privacy", label: msg("Privacy"), words: "privacy data cookies delete account export personal information storage tracking gdpr" },
 ];

@@ -4,7 +4,7 @@ import { MyPicks } from "@/components/MyPicks";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({
   path: "/picks", title: t("My picks"),
-  description: t("Your fight-night picks, graded against the results and against the Ringside model's call before the bell."),
+  description: t("Your fight-night picks, graded against the results and against the Ringside model’s call before the bell."),
 }));
 
 export default async function Picks() {

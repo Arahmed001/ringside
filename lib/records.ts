@@ -44,10 +44,10 @@ export const LISTS: ListDef[] = [
   { id: "longest-reign", group: "titles", subject: "reign", scoped: true, title: msg("Longest title reigns"), blurb: msg("Days as champion of one belt in one reign. A reign that is still running counts up to today.") },
   { id: "reign-defenses", group: "titles", subject: "reign", scoped: true, title: msg("Most defences in a single reign"), blurb: msg("The longest chain of defences without losing the belt.") },
   { id: "divisions", group: "titles", subject: "boxer", scoped: false, title: msg("Champions in the most divisions"), blurb: msg("Different weight divisions in which a fighter has been champion of a belt.") },
-  { id: "fights", group: "fights", subject: "bout", scoped: true, title: msg("Greatest fights"), blurb: msg("The highest fight scores in the data: knockdowns, a close or late finish, plenty of action, evenly matched fighters, an upset, a title on the line, a comeback. The same score that picks each year's fight of the year.") },
-  { id: "upsets", group: "fights", subject: "bout", scoped: true, title: msg("Biggest upsets"), blurb: msg("The largest rating gaps overcome by the winner, using each fighter's rating going into the fight.") },
+  { id: "fights", group: "fights", subject: "bout", scoped: true, title: msg("Greatest fights"), blurb: msg("The highest fight scores in the data: knockdowns, a close or late finish, plenty of action, evenly matched fighters, an upset, a title on the line, a comeback. The same score that picks each year’s fight of the year.") },
+  { id: "upsets", group: "fights", subject: "bout", scoped: true, title: msg("Biggest upsets"), blurb: msg("The largest rating gaps overcome by the winner, using each fighter’s rating going into the fight.") },
   { id: "fastest-kos", group: "fights", subject: "bout", scoped: true, title: msg("Fastest knockouts"), blurb: msg("Knockouts and stoppages ended soonest after the opening bell.") },
-  { id: "knockdowns", group: "fights", subject: "bout", scoped: true, title: msg("Most knockdowns in a fight"), blurb: msg("Both fighters' knockdowns added together.") },
+  { id: "knockdowns", group: "fights", subject: "bout", scoped: true, title: msg("Most knockdowns in a fight"), blurb: msg("Both fighters’ knockdowns added together.") },
 ];
 
 export const listDef = (id: string): ListDef | undefined => LISTS.find((l) => l.id === id);

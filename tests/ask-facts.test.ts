@@ -144,7 +144,7 @@ test("two fighters and one fact between them are two answers side by side, in th
   const cases: [string, string, string[]][] = [
     [`who is taller, ${a.name} or ${b.name}`, "height", [`${a.name} is ${a.heightCm} cm tall.`, `${b.name} is ${b.heightCm} cm tall.`]],
     [`which is shorter, ${b.name} or ${a.name}`, "height", [`${b.name} is ${b.heightCm} cm tall.`, `${a.name} is ${a.heightCm} cm tall.`]],
-    [`who has the longer reach, ${a.name} or ${b.name}`, "reach", [`${a.name}'s reach is ${a.reachCm} cm.`, `${b.name}'s reach is ${b.reachCm} cm.`]],
+    [`who has the longer reach, ${a.name} or ${b.name}`, "reach", [`${a.name}’s reach is ${a.reachCm} cm.`, `${b.name}’s reach is ${b.reachCm} cm.`]],
     [`is ${a.name} older than ${b.name}`, "age", [`${a.name} is ${a.age} years old.`, `${b.name} is ${b.age} years old.`]],
     [`${a.name} vs ${b.name} height`, "height", [`${a.name} is ${a.heightCm} cm tall.`, `${b.name} is ${b.heightCm} cm tall.`]],
     [`who has more knockouts, ${a.name} or ${b.name}`, "knockouts", [`${a.name} has ${a.kos} knockouts`, `${b.name} has ${b.kos} knockouts`]],

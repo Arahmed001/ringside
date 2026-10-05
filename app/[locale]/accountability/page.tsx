@@ -48,7 +48,7 @@ export default async function Accountability() {
 
       <section className="card p-5">
         <div className="eyebrow mb-2">{t("A backtest, not a live record")}</div>
-        <p className="max-w-3xl text-sm text-ink/90">{t("These are the calls the model would have made before each of the {n} completed fights in the database, rebuilt from what was known at the time: ratings, records and layoffs up to each fighter's previous bout. Its settings were chosen with these results in view, so the headline figures use the most recent quarter of fights ({from} to {to}), the period it was not fitted on.", { n: r.all.n.toLocaleString("en-US"), from: d(r.splitDate), to: d(rc.to) })}</p>
+        <p className="max-w-3xl text-sm text-ink/90">{t("These are the calls the model would have made before each of the {n} completed fights in the database, rebuilt from what was known at the time: ratings, records and layoffs up to each fighter’s previous bout. Its settings were chosen with these results in view, so the headline figures use the most recent quarter of fights ({from} to {to}), the period it was not fitted on.", { n: r.all.n.toLocaleString("en-US"), from: d(r.splitDate), to: d(rc.to) })}</p>
         <p className="mt-2 max-w-3xl text-xs text-muted">{wt.finishFitted ? t("The early-finish estimate is fitted to results.") : t("The early-finish estimate is the hand-set rule, not yet fitted to results.")} {wt.fitted ? t("Weights in use: the Elo scale is fitted to results (×{k} the plain Elo expectation); the other terms are hand-set.", { k: wt.eloScale.toFixed(1) }) : t("Weights in use: hand-set defaults, not yet fitted to results.")}</p>
       </section>
 
@@ -60,13 +60,13 @@ export default async function Accountability() {
       </section>
 
       <section className="grid gap-8 lg:grid-cols-[minmax(0,26rem)_1fr]">
-        <CalibrationChart bins={rc.calibration} label={t("Calibration chart")} desc={rc.calibration.filter((b) => b.n >= 10).map((b) => t("{lo}–{hi}% confidence: right {o}% of {n} fights", { lo: Math.round(b.lo * 100), hi: Math.round(b.hi * 100), o: Math.round(b.observed * 100), n: b.n })).join("; ")} xLabel={t("Model's confidence in its pick (%)")} yLabel={t("How often the pick won (%)")} perfect={t("Perfect calibration")} />
+        <CalibrationChart bins={rc.calibration} label={t("Calibration chart")} desc={rc.calibration.filter((b) => b.n >= 10).map((b) => t("{lo}–{hi}% confidence: right {o}% of {n} fights", { lo: Math.round(b.lo * 100), hi: Math.round(b.hi * 100), o: Math.round(b.observed * 100), n: b.n })).join("; ")} xLabel={t("Model’s confidence in its pick (%)")} yLabel={t("How often the pick won (%)")} perfect={t("Perfect calibration")} />
         <div className="min-w-0">
           <h2 className="font-display text-3xl font-bold uppercase">{t("When the model says 70%, is it right 70% of the time?")}</h2>
           <p className="mt-2 text-sm text-ink/90">{calText}</p>
           <ScrollRegion className="mt-4 rounded-2xl border border-line" label={t("When the model says 70%, is it right 70% of the time?")}>
             <table className="w-full min-w-[22rem] text-sm tabular" aria-label={t("When the model says 70%, is it right 70% of the time?")}>
-              <thead className="text-xs uppercase tracking-widest text-muted"><tr className="border-b border-line"><th className="px-3 py-2 text-start">{t("Model's confidence")}</th><th className="px-3 py-2 text-end">{t("Fights")}</th><th className="px-3 py-2 text-end">{t("It said")}</th><th className="px-3 py-2 text-end">{t("Actually won")}</th></tr></thead>
+              <thead className="text-xs uppercase tracking-widest text-muted"><tr className="border-b border-line"><th className="px-3 py-2 text-start">{t("Model’s confidence")}</th><th className="px-3 py-2 text-end">{t("Fights")}</th><th className="px-3 py-2 text-end">{t("It said")}</th><th className="px-3 py-2 text-end">{t("Actually won")}</th></tr></thead>
               <tbody>
                 {rc.calibration.map((b) => (
                   <tr key={b.lo} className="border-b border-line/50 last:border-0"><td className="px-3 py-2"><span dir="ltr">{Math.round(b.lo * 100)}–{Math.round(b.hi * 100)}%</span></td><td className="px-3 py-2 text-end">{b.n}</td><td className="px-3 py-2 text-end">{b.n ? pct(b.predicted) : "–"}</td><td className="px-3 py-2 text-end text-gold">{b.n ? pct(b.observed) : "–"}</td></tr>
@@ -90,8 +90,8 @@ export default async function Accountability() {
       </section>
 
       <section>
-        <h2 className="font-display text-3xl font-bold uppercase">{t("Biggest surprises, by the model's own numbers")}</h2>
-        <p className="mt-1 text-sm text-muted">{t("The fights where the winner had the lowest chance in the model's eyes before the first bell.")}</p>
+        <h2 className="font-display text-3xl font-bold uppercase">{t("Biggest surprises, by the model’s own numbers")}</h2>
+        <p className="mt-1 text-sm text-muted">{t("The fights where the winner had the lowest chance in the model’s eyes before the first bell.")}</p>
         <ol className="mt-4 space-y-2">
           {r.upsets.map((u) => {
             const winner = w.byId.get(u.redWon ? u.redId : u.blueId)!, loser = w.byId.get(u.redWon ? u.blueId : u.redId)!;
