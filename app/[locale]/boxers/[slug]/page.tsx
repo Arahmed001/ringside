@@ -375,7 +375,7 @@ const HONOURS_SHOWN = 8;
 
       <section className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <div className="card p-5">
-          <div className="eyebrow mb-1">{t("AI scouting report")}</div>
+          <div className="eyebrow mb-1">{t("Scouting report")}</div>
           <ScoutingReport slug={b.slug} initial={rulesReport(b, w, t)} />
         </div>
         <div className="card flex items-center justify-center p-5"><Radar axes={radar} /></div>

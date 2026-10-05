@@ -27,7 +27,7 @@ import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
 import { localePath } from "@/lib/i18n/config";
 
-export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({ path: "/", title: t("Boxing ratings, rankings and predictions"), description: t("Every fighter, every fight, every number. Ratings, rankings, predictions and AI scouting for professional boxing.") }));
+export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({ path: "/", title: t("Boxing ratings, rankings and predictions"), description: t("Every fighter, every fight, every number. Ratings, rankings, predictions and scouting reports for professional boxing.") }));
 
 /** Posters shown in the "Coming up" strip; the full calendar is one click away. */
 const STRIP = 12;
@@ -97,7 +97,7 @@ export default async function Home() {
       <section aria-labelledby="ask" className="max-w-3xl">
         <div className="eyebrow mb-2">{t("Boxing intelligence · {fighters} fighters · {bouts} bouts", { fighters: o.boxers, bouts: o.bouts.toLocaleString("en-US") })}</div>
         <h2 id="ask" className="font-display text-5xl font-extrabold uppercase leading-[.95] sm:text-6xl">{t("Ask the data")}<span className="text-red-ink">.</span></h2>
-        <p className="mt-3 max-w-2xl text-lg text-muted">{t("Ratings, rankings, win-probabilities and AI scouting for the whole sport, in one place. Ask in plain English.")}</p>
+        <p className="mt-3 max-w-2xl text-lg text-muted">{t("Ratings, rankings, win-probabilities and scouting reports for the whole sport, in one place. Ask in plain English.")}</p>
         <form action={localePath(t.locale, "/ask")} className="mt-6 flex flex-col gap-2 sm:flex-row">
           <input name="q" aria-label={t("Ask the data")} placeholder={t("Who has the most knockouts among women?")} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-4 py-4 text-[15px] outline-none transition placeholder:text-muted focus:border-gold/60 sm:px-6 sm:py-5 sm:text-lg" />
           <button className="rounded-2xl bg-red-btn px-9 py-3 font-display text-2xl font-bold uppercase tracking-wide text-white transition hover:brightness-90">{t("Ask")}</button>

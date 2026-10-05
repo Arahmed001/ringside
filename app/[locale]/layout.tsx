@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const t = tFor(locale);
-  const description = t("Every fighter, every fight, every number. Ratings, rankings, predictions and AI scouting for professional boxing.");
+  const description = t("Every fighter, every fight, every number. Ratings, rankings, predictions and scouting reports for professional boxing.");
   // Canonical and hreflang are per page (pageMetadata); only what every page shares is set here. Robots is
   // inherited, which is what keeps a demo deployment out of search results (see lib/seo.ts).
   return {
