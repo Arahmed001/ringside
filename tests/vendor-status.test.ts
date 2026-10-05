@@ -50,6 +50,11 @@ test("the report says how long is left from the recent pace, and the next comman
   assert.match(fake, /looks like a placeholder/);
   const done = describeStatus({ ...base, cache: { ...cache, fighters: 35000 }, total: 35000 }).join("\n");
   assert.match(done, /every fighter in the fight list is in the cache/); assert.match(done, /the cache is complete: run the check, then follow docs\/real-data-runbook\.md section 2c/);
+  // an hour that crawls inside a steady six: the estimate uses the six-hour pace, and the report says the fetch has slowed
+  const crawl = describeStatus({ ...base, cache: { ...cache, fightersLastHour: 81, fightersLast6Hours: 1429 }, total: 35000, running: [{ pid: 1, startedAt: "2026-10-05T00:00:00Z", command: "" }] }).join("\n");
+  assert.match(crawl, /about 4\.\d days at 238 an hour/); assert.match(crawl, /SLOWED: 81 fighters in the last hour against 238 an hour over six/); assert.match(crawl, /network error/);
+  assert.doesNotMatch(describeStatus({ ...base, cache, total: 35000, running: [{ pid: 1, startedAt: "", command: "" }] }).join("\n"), /SLOWED/, "a steady pace is not reported as slowed");
+  assert.doesNotMatch(describeStatus({ ...base, cache: { ...cache, fightersLastHour: 81, fightersLast6Hours: 1429 }, total: 35000 }).join("\n"), /SLOWED/, "nothing running: not slowed, just idle");
   const slow = describeStatus({ ...base, cache: { ...cache, fightersLastHour: 0, fightersLast6Hours: 0 }, total: 35000 }).join("\n");
   assert.match(slow, /at 400 an hour/, "with no recent pace the Mega plan's 400 an hour is assumed");
   assert.match(describeStatus({ ...base, cache, total: null }).join("\n"), /11,000 fighters, 477 fight-list pages/);

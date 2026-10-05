@@ -61,8 +61,11 @@ export function describeStatus(i: StatusInput): string[] {
   out.push(`  ${fmt(c.fighters)} fighters${i.total ? ` of ${fmt(i.total)} (${((100 * c.fighters) / i.total).toFixed(1)}%)` : ""}, ${fmt(c.listPages)} fight-list pages, ${c.rankingPages} rankings pages${c.staleTemp ? `, ${c.staleTemp} stale temp file(s) (harmless: a kill left them)` : ""}`);
   if (c.newest) out.push(`  newest answer ${c.newest.toISOString().replace("T", " ").slice(0, 19)} UTC; ${c.fightersLastHour} fighters in the last hour, ${c.fightersLast6Hours} in the last six`);
   const left = i.total ? Math.max(0, i.total - c.fighters) : null;
-  const perHour = c.fightersLastHour >= 50 ? c.fightersLastHour : c.fightersLast6Hours >= 50 ? c.fightersLast6Hours / 6 : 400;
+  // the six-hour average is steadier than the last hour (a short outage or a sleep makes one hour look like a crawl)
+  const perHour = c.fightersLast6Hours >= 300 ? c.fightersLast6Hours / 6 : c.fightersLastHour >= 50 ? c.fightersLastHour : 400;
+  const slowed = i.running.length > 0 && c.fightersLast6Hours >= 300 && c.fightersLastHour < 0.5 * (c.fightersLast6Hours / 6);
   if (left !== null) out.push(left ? `  ${fmt(left)} to fetch: about ${hours(left / perHour)} at ${Math.round(perHour)} an hour` : "  every fighter in the fight list is in the cache");
+  if (slowed) out.push(`  SLOWED: ${c.fightersLastHour} fighters in the last hour against ${Math.round(c.fightersLast6Hours / 6)} an hour over six. Look at the fetch's own terminal for "network error" or "rate limit" lines: a network that dropped (or a laptop that slept) stalls it, and a fighter skipped for it is fetched again the next time the same command is run.`);
   out.push(i.running.length ? `fetch: RUNNING (${i.running.map((r) => `process ${r.pid} since ${r.startedAt.slice(0, 19).replace("T", " ")} UTC${r.command ? `: ${r.command}` : ""}`).join("; ")})` : "fetch: not running");
   out.push(!i.key.set ? "key: NOT set in this terminal tab" : i.key.placeholder ? `key: set, but ${i.key.length} characters and it looks like a placeholder, not a real key (a real one is about 50)` : `key: set (${i.key.length} characters)`);
   out.push(`storage confirmed: ${i.storageConfirmed === "1" ? "yes" : i.storageConfirmed === "0" ? "NO: storing is switched off" : "not set (storing is on, with a warning, until BOXING_API_STORAGE_CONFIRMED=1)"}; database: ${i.databasePath ?? "not set (the demo path: set DATABASE_PATH to a NEW file before a load)"}`);

@@ -356,6 +356,8 @@ export function demoteUnsupportedDraws(bouts: ProviderBout[], vendor: Map<string
 }
 
 export class BudgetError extends Error {}
+/** The network stayed down for the whole patience: the run stops (as for a rate limit) instead of skipping a fighter at a time; what was fetched is cached. */
+export class NetworkError extends Error {}
 
 /**
  * A stand-in for `fetch` that answers from responses saved by `rawDir` (the files `001-v2_fights.json`, `002-v2_fighters_<id>.json`, ...),
@@ -454,6 +456,8 @@ const AUTO_PER_HOUR = 400;
 const backoff = (attempt: number) => Math.min(30_000, 1000 * 2 ** attempt);
 /** how long to wait after the 1st, 2nd, 3rd ... rate-limit refusal of one request when the gateway names no time (the last step repeats) */
 const RATE_STEPS_MS = [60_000, 120_000, 300_000, 600_000];
+/** how long to wait after the 1st, 2nd, 3rd ... network failure of one request when the run has patience (the last step repeats): a blip is over in seconds, an outage is not */
+const NET_STEPS_MS = [10_000, 30_000, 60_000, 120_000, 300_000, 600_000];
 /** a refusal that says an allowance is used up (monthly, daily): waiting an hour will not help */
 const QUOTA_USED = /\b(monthly|daily|weekly)\b|quota/i;
 const slug = (x: string) => x.replace(/[^a-z0-9._-]+/gi, "-").replace(/^-+|-+$/g, "");
@@ -527,7 +531,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     const qs = Object.entries(params).filter(([, v]) => v !== undefined).map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
     if (o.cachedOnly) throw new HttpError(`${p} is not in the cache (--cached-only makes no request)`, 404);
     const attempts = 1 + (o.retries ?? 0);
-    let rateWaits = 0, waited = 0;
+    let rateWaits = 0, waited = 0, netWaits = 0, netWaited = 0;
     for (let attempt = 0; ; attempt++) {
       const spacing = pacing();
       if (used >= max) throw new BudgetError(`Stopped after ${used} requests (limit ${max}; raise BOXING_API_MAX_REQUESTS only if your plan allows it).`);
@@ -536,7 +540,18 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
       let res: Response;
       try { res = await doFetch(`${base}${p}${qs ? `?${qs}` : ""}`, { headers: { "x-rapidapi-key": o.key, "x-rapidapi-host": host, accept: "application/json" } }); }
       catch (e) {
-        if (attempt + 1 < attempts) { log(`network error on ${p} (${e instanceof Error ? e.message : e}); retrying`); await sleep(backoff(attempt)); continue; }
+        const why = e instanceof Error ? e.message : String(e);
+        // a run with patience treats a network failure as an outage to wait out (10 s, 30 s, 1, 2, 5, 10 minutes), not as a fighter to skip: a laptop that woke up with no network
+        // skipped hundreds of fighters one at a time (and a skipped fighter is a hole the check then refuses). Without patience: the quick retries, then skip, as before.
+        if ((o.patienceMs ?? 0) > 0) {
+          const wait = NET_STEPS_MS[Math.min(netWaits, NET_STEPS_MS.length - 1)];
+          if (netWaited + wait > o.patienceMs!) throw new NetworkError(`Boxing Data API unreachable on ${p} for ${Math.round(netWaited / 60000)} minute(s): ${why}. The network looks down: run the same command again when it is back; everything fetched so far is cached.`);
+          netWaits++; netWaited += wait; attempt--; // this does not use up the ordinary retries
+          log(`network error on ${p} (${why}); waiting ${wait / 1000} s, then trying again (${(netWaited / 60000).toFixed(1)} min so far; the network may be down)`);
+          await sleep(wait);
+          continue;
+        }
+        if (attempt + 1 < attempts) { log(`network error on ${p} (${why}); retrying`); await sleep(backoff(attempt)); continue; }
         throw new Error(`Boxing Data API unreachable on ${p}: ${e instanceof Error ? e.message : e}`);
       }
       if (res.status === 429) {
@@ -716,7 +731,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
           rows.push(career ? { ...m, careerRecord: career } : m);
           if (career) careers.set(m.externalId, career);
         }
-      } catch (e) { if (e instanceof BudgetError || (e instanceof HttpError && e.status === 429)) throw e; /* a plan that refuses (a limit, a quota) refuses the next fighter too: stop, do not skip a thousand */ log(`fighter ${id} skipped: ${e instanceof Error ? e.message : e}`); }
+      } catch (e) { if (e instanceof BudgetError || e instanceof NetworkError || (e instanceof HttpError && e.status === 429)) throw e; /* a plan that refuses (a limit, a quota) refuses the next fighter too: stop, do not skip a thousand */ log(`fighter ${id} skipped: ${e instanceof Error ? e.message : e}`); }
       if (hits > before) cachedFighters++;
       if (++n % 100 === 0) {
         const fetched = n - cachedFighters, now = Date.now();
