@@ -48,7 +48,17 @@ test("end to end on a stand-in vendor: the check is shown, nothing is written wi
   try {
     const refused = await run(base, env);
     assert.equal(refused.code, 1); assert.match(refused.out, /written confirmation that its data may be stored has not been stated/); assert.ok(!fs.existsSync(db) && !fs.existsSync(cache), "nothing written, nothing fetched");
-    const dry = await run([...base, "--storage-confirmed", "--dry-run"], env);
+    // a dry run reads only the cache: on an empty one it says so (and sends nothing), and it needs no key file
+    const empty = await run(["--cache-dir", cache, "--dry-run", "--per-hour", "3600000"], { ...env, RINGSIDE_KEY_FILE: path.join(d, "no-such-key-file") });
+    assert.match(empty.out, /key:      \(not needed: a dry run reads only the cache and makes no request\)/); assert.match(empty.out, /is not in the cache \(--cached-only makes no request\)/); assert.ok(!fs.existsSync(db));
+    assert.equal(vendor.stats.requests, 0, "the dry run on an empty cache asked the vendor for nothing");
+    // fill the cache the way the owner does (the fetch wrapper), then the dry run shows the whole report from it
+    const filled = await new Promise<number | null>((resolve) => { const c = spawn(process.execPath, ["--import", "tsx", "scripts/vendor-fetch.ts", "--key-file", keyFile, "--cache-dir", cache, "--gap-ms", "0", "--per-hour", "3600000", "--no-caffeinate"], { cwd: path.resolve(__dirname, ".."), env: { ...process.env, BOXING_API_URL: vendor.url, RINGSIDE_NO_SEED: "1" }, stdio: "ignore" }); c.on("close", resolve); });
+    assert.ok(filled === 0 || filled === 1, `the fetch ends with the check's verdict (1: this league has conflicts the gate would refuse): ${filled}`);
+    assert.ok(fs.readdirSync(cache).filter((f) => f.startsWith("v2-fighters-")).length > 300, "the cache holds the fighters");
+    const before = vendor.stats.requests;
+    const dry = await run([...base, "--storage-confirmed", "--dry-run"], { ...env, RINGSIDE_KEY_FILE: path.join(d, "no-such-key-file") });
+    assert.equal(vendor.stats.requests, before, "the dry run made no request");
     assert.match(dry.out, /vendor:load[\s\S]*database: .*real\.db  \(new\)/); assert.match(dry.out, /step 1: the check/); assert.match(dry.out, /--keep-disputed: \d+ fighter\(s\) whose loaded fights come to more than the vendor's career total are kept and marked/); assert.match(dry.out, /^why the \d+ conflict/m);
     assert.match(dry.out, /--dry-run: stopped after the check/); assert.ok(!fs.existsSync(db), "a dry run writes no database");
     assert.ok(!dry.out.includes(secret), "the key is never printed");

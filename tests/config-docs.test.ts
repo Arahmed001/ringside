@@ -79,3 +79,35 @@ test("the scanner itself sees the three ways of reading a setting (so an unnotic
   assert.ok([...read.values()].flat().some((f) => f.startsWith("scripts")), "scripts are scanned");
   assert.ok(read.size >= 25, `only ${read.size} settings found`);
 });
+
+/**
+ * PLAN.md is written by more than one session, and a section's number is taken when it merges (the rule at the top of the file). Two sections with one number
+ * means the later merge forgot to renumber. Sections 94 and 110 to 120 were written twice before the rule existed: they are tolerated exactly twice each,
+ * so a third 110 or a second 121 still fails. A change to PLAN.md alone runs this test (the docs-only CI path), which is what lets it catch the collision.
+ */
+const OLD_REPEATS = new Set([94, ...Array.from({ length: 11 }, (_, i) => 110 + i)]);
+export function planClashes(text: string): string[] {
+  const at = new Map<number, number[]>();
+  let fenced = false;
+  text.split("\n").forEach((line, i) => {
+    if (/^\s*```/.test(line)) fenced = !fenced;
+    const m = !fenced && /^## (\d+)\./.exec(line);
+    if (m) at.set(+m[1], [...(at.get(+m[1]) ?? []), i + 1]);
+  });
+  return [...at].filter(([n, lines]) => lines.length > (OLD_REPEATS.has(n) ? 2 : 1)).map(([n, lines]) => `${n} (lines ${lines.join(", ")})`);
+}
+
+test("no PLAN.md section number is used twice (apart from the old repeats), so two sessions cannot leave a collision behind", () => {
+  const clashes = planClashes(fs.readFileSync(path.join(ROOT, "PLAN.md"), "utf8"));
+  assert.equal(clashes.length, 0, `PLAN.md numbers used more than once: ${clashes.join("; ")}. The section that merged second renumbers itself: highest number on origin/main plus one (see the rule at the top of PLAN.md).`);
+});
+
+test("the numbering check itself: a repeat is found, the old repeats are tolerated twice, and a code block is not a heading", () => {
+  assert.deepEqual(planClashes("## 1. a\n## 2. b\n"), []);
+  assert.deepEqual(planClashes("## 148. a\ntext\n## 148. b\n"), ["148 (lines 1, 3)"]);
+  assert.deepEqual(planClashes("## 110. a\n## 110. b\n"), [], "an old repeat twice is history");
+  assert.deepEqual(planClashes("## 110. a\n## 110. b\n## 110. c\n"), ["110 (lines 1, 2, 3)"], "a third is new");
+  assert.deepEqual(planClashes("## 121. a\n```\n## 121. in a code block\n```\n"), []);
+  assert.deepEqual(planClashes("## 120. a\n## 120. b\n"), [], "120 is the last old repeat");
+  assert.deepEqual(planClashes("## 121. a\n## 121. b\n"), ["121 (lines 1, 2)"], "121 is not");
+});

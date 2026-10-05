@@ -30,3 +30,13 @@ test("the vendor is credited only when a real feed is configured, and the terms 
   assert.equal(vendorCredit({ BOXING_PROVIDER: "licensed", VENDOR_TERMS_URL: "javascript:alert(1)" })!.termsUrl, null);
   assert.equal(vendorCredit({ BOXING_PROVIDER: "licensed", VENDOR_TERMS_URL: "http://boxing-data.com/terms" })!.termsUrl, null);
 });
+
+test("the vendor is credited on every page, in the footer, whenever a real feed is configured (round 92)", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const layout = fs.readFileSync(path.resolve(__dirname, "..", "app/[locale]/layout.tsx"), "utf8");
+  const footer = layout.slice(layout.indexOf("<footer"), layout.indexOf("</footer>"));
+  assert.match(footer, /vendorCredit\(\)/, "the footer asks for the credit (null for the demo league, so the demo footer is unchanged)");
+  assert.match(footer, /Fight, fighter and event data: <a>\{name\}<\/a>\./, "with the same sentence the Data page uses, so it is translated once");
+  assert.match(footer, /rel="noopener noreferrer"/);
+});
