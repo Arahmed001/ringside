@@ -26,11 +26,9 @@ export default async function Boxers({ searchParams }: { searchParams: Promise<{
   const w = await getWorld();
   let results = w.boxers.filter((b) => b.bouts > 0);
   let chips: string[] = [];
-  let source: "ai" | "rules" | null = null;
   let closeTo: string | null = null; // the name typed, when nothing is spelt that way and these are the nearest spellings
   if (q.trim()) {
-    const { filters, source: s } = await parseQuery(q, w, clientId(await headers()));
-    source = s;
+    const { filters } = await parseQuery(q, w, clientId(await headers()));
     chips = describeFilters(filters, t);
     const names = await getNames(t.locale);
     results = applyFilters(results, filters, w, names);
@@ -89,7 +87,6 @@ export default async function Boxers({ searchParams }: { searchParams: Promise<{
         <div className="mt-5 flex flex-wrap items-center gap-2 text-sm">
           <span className="text-muted">{t("Interpreted as")}</span>
           {chips.length ? chips.map((c) => <span key={c} className="chip !border-gold/40 !text-gold">{c}</span>) : <span className="text-muted">{t("no recognised filters")}</span>}
-          <span className="chip">{source === "ai" ? "✦ Claude" : t("rule-based parser")}</span>
         </div>
       )}
       {asSort(sort) === "ko" && <p className="mt-2 text-xs text-muted">{t("Ordered by knockouts as a share of wins. Fighters with fewer than {min} wins, or whose career is held only in part, come last.", { min: KO_RATE_MIN_WINS })}</p>}

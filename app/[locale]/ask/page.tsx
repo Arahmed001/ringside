@@ -2,7 +2,6 @@ import { headers } from "next/headers";
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
 import { askData, MAX_QUESTION } from "@/lib/ask";
-import { hasKey } from "@/lib/ai";
 import { clientId } from "@/lib/ai-guard";
 import { exampleQuestions } from "@/lib/ask/examples";
 import { AskResults } from "@/components/AskResults";
@@ -38,7 +37,6 @@ export default async function Ask({ searchParams }: { searchParams: Promise<{ q?
           <input id="q" name="q" defaultValue={q} maxLength={MAX_QUESTION} autoComplete="off" placeholder={t("Try: {example}", { example: examples[0] })} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-4 py-3.5 text-[15px] outline-none transition placeholder:text-muted focus:border-gold/60 sm:px-5 sm:text-base" />
           <button className="rounded-2xl bg-red-btn px-6 py-3 font-display text-lg font-bold uppercase text-white transition hover:brightness-90 sm:py-0">{t("Ask")}</button>
         </form>
-        {!hasKey() && <p className="mt-3 max-w-3xl text-xs text-muted">{t("No AI key is set on this site, so answers are put together by rules rather than written by a model. They still come entirely from the data.")}</p>}
       </div>
       {answer ? <AskResults a={answer} /> : null}
       {(!answer || !answer.understood) && (

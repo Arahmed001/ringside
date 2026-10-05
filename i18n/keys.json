@@ -1813,18 +1813,6 @@
   ]
  },
  {
-  "key": "✦ Written by Claude",
-  "files": [
-   "components/ScoutingReport.tsx"
-  ]
- },
- {
-  "key": "✦ Written by Claude from the facts on this page",
-  "files": [
-   "components/PreviewArticle.tsx"
-  ]
- },
- {
   "key": "1.5–4 lb heavier",
   "files": [
    "lib/weights.ts"
@@ -2345,18 +2333,6 @@
   ]
  },
  {
-  "key": "Add an ANTHROPIC_API_KEY to enable richer AI previews.",
-  "files": [
-   "components/PreviewArticle.tsx"
-  ]
- },
- {
-  "key": "Add an ANTHROPIC_API_KEY to enable richer AI reports.",
-  "files": [
-   "components/ScoutingReport.tsx"
-  ]
- },
- {
   "key": "Add or correct who trains or manages a fighter, with a source an editor can check.",
   "files": [
    "app/[locale]/contribute/page.tsx"
@@ -2436,12 +2412,6 @@
   "key": "age, youngest first",
   "files": [
    "lib/ask/tools.ts"
-  ]
- },
- {
-  "key": "AI scouting report",
-  "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -2583,12 +2553,6 @@
   ]
  },
  {
-  "key": "An AI model chose which of our fixed, read-only queries to run. It cannot run anything else, and every number comes from the queries below, not from the model.",
-  "files": [
-   "components/AskResults.tsx"
-  ]
- },
- {
   "key": "An all-{country} fight",
   "files": [
    "lib/matchmaking.ts"
@@ -2616,13 +2580,6 @@
   "key": "An upset: the model gave {name} {p}.",
   "files": [
    "lib/recap.ts"
-  ]
- },
- {
-  "key": "Analysing…",
-  "files": [
-   "components/PreviewArticle.tsx",
-   "components/ScoutingReport.tsx"
   ]
  },
  {
@@ -2846,13 +2803,6 @@
   "key": "Attribute radar",
   "files": [
    "components/charts.tsx"
-  ]
- },
- {
-  "key": "Auto-generated from stats",
-  "files": [
-   "components/PreviewArticle.tsx",
-   "components/ScoutingReport.tsx"
   ]
  },
  {
@@ -4917,7 +4867,7 @@
   ]
  },
  {
-  "key": "Every fighter, every fight, every number. Ratings, rankings, predictions and AI scouting for professional boxing.",
+  "key": "Every fighter, every fight, every number. Ratings, rankings, predictions and scouting reports for professional boxing.",
   "files": [
    "app/[locale]/layout.tsx",
    "app/[locale]/page.tsx"
@@ -7875,12 +7825,6 @@
   ]
  },
  {
-  "key": "No AI key is set on this site, so answers are put together by rules rather than written by a model. They still come entirely from the data.",
-  "files": [
-   "app/[locale]/ask/page.tsx"
-  ]
- },
- {
   "key": "No cards found.",
   "files": [
    "lib/ask/tools.ts"
@@ -8823,12 +8767,6 @@
   ]
  },
  {
-  "key": "Patterns in the question chose which of our fixed, read-only queries to run. Every number comes from the queries below.",
-  "files": [
-   "components/AskResults.tsx"
-  ]
- },
- {
   "key": "pay-per-view",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -9393,12 +9331,6 @@
   ]
  },
  {
-  "key": "Put together by rules from the results below",
-  "files": [
-   "components/AskResults.tsx"
-  ]
- },
- {
   "key": "Questions and answers",
   "files": [
    "app/[locale]/ask/page.tsx"
@@ -9531,7 +9463,7 @@
   ]
  },
  {
-  "key": "Ratings, rankings, win-probabilities and AI scouting for the whole sport, in one place. Ask in plain English.",
+  "key": "Ratings, rankings, win-probabilities and scouting reports for the whole sport, in one place. Ask in plain English.",
   "files": [
    "app/[locale]/page.tsx"
   ]
@@ -10049,12 +9981,6 @@
   ]
  },
  {
-  "key": "rule-based parser",
-  "files": [
-   "app/[locale]/boxers/page.tsx"
-  ]
- },
- {
   "key": "run",
   "files": [
    "lib/records.ts"
@@ -10174,6 +10100,12 @@
   "key": "Scoring record",
   "files": [
    "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Scouting report",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -11357,12 +11289,6 @@
   ]
  },
  {
-  "key": "The AI budget for today is used up, so this answer comes from rules instead.",
-  "files": [
-   "components/AskResults.tsx"
-  ]
- },
- {
   "key": "The Arabic on this site was written by a machine. A string counts as reviewed only when a native speaker approved or edited it, and only for the exact wording they saw: if the text changes afterwards it goes back to unchecked. Expect mistakes in anything not yet reviewed.",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -11687,7 +11613,7 @@
   ]
  },
  {
-  "key": "The main event and co-main of each upcoming show: what is at stake, the tale of the tape, how each fighter has been doing, the model’s pick and how it expects the fight to end. Written from the data; with an API key, Claude writes the article from those same facts.",
+  "key": "The main event and co-main of each upcoming show: what is at stake, the tale of the tape, how each fighter has been doing, the model’s pick and how it expects the fight to end. Written from the data.",
   "files": [
    "app/[locale]/previews/page.tsx"
   ]
@@ -11859,6 +11785,12 @@
   "key": "The people behind the fights",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "The question was matched to our fixed, read-only queries. Every number comes from the queries below.",
+  "files": [
+   "components/AskResults.tsx"
   ]
  },
  {
@@ -13899,12 +13831,6 @@
   ]
  },
  {
-  "key": "Written by AI from the results below",
-  "files": [
-   "components/AskResults.tsx"
-  ]
- },
- {
   "key": "Wrong",
   "files": [
    "components/LiveLedger.tsx",
@@ -13995,12 +13921,6 @@
   "key": "You have 20 reports waiting. Wait for a decision, or withdraw one.",
   "files": [
    "lib/account-text.ts"
-  ]
- },
- {
-  "key": "You have asked a lot in a short time, so this answer comes from rules instead of AI.",
-  "files": [
-   "components/AskResults.tsx"
   ]
  },
  {
