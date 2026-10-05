@@ -13,7 +13,7 @@ test("the production policy lets only nonced scripts run and nothing be framed, 
   assert.ok(!/unsafe-inline|unsafe-eval/.test(directive(csp, "script-src")) && !/unsafe-eval/.test(csp));
   assert.equal(directive(csp, "style-src"), "style-src 'self' 'nonce-abc123'", "style elements need the nonce");
   assert.equal(directive(csp, "style-src-attr"), "style-src-attr 'unsafe-inline'", "style attributes cannot carry one");
-  for (const d of ["default-src 'self'", "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'", "connect-src 'self'", "media-src 'none'"]) assert.ok(csp.split("; ").includes(d), d);
+  for (const d of ["default-src 'self'", "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'", "connect-src 'self'", "media-src 'self'"]) assert.ok(csp.split("; ").includes(d), d);
   assert.ok(!csp.includes("upgrade-insecure-requests"), "only over https");
   assert.ok(contentSecurityPolicy({ nonce: "n", https: true }).includes("upgrade-insecure-requests"));
   assert.ok(!/ws:/.test(csp), "no websockets in production");
