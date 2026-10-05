@@ -5,6 +5,7 @@ import { WatchlistPage } from "@/components/WatchlistPage";
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({
   path: "/watchlist", title: t("My watchlist"),
   description: t("The fighters you follow, with their next fight, last result and rating."),
+  noindex: true, // personal page: nothing in it for a search engine
 }));
 
 export default async function Watchlist() {
