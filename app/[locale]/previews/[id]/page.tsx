@@ -57,12 +57,12 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
         </div>
       </header>
 
-      <section className="card p-6">
-        <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4">
+      <section className="card p-4 sm:p-6">
+        <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-4">
           {[red, blue].map((f, i) => (
             <Link key={f.id} href={`/boxers/${f.slug}`} className={`flex min-w-0 flex-col items-center gap-2 text-center ${i === 1 ? "order-3" : ""}`}>
               <Headshot boxer={f} size={110} />
-              <div className="w-full text-balance break-words font-display text-3xl font-bold leading-tight" dir="auto" style={{ color: i === 0 ? "#e5322d" : "#4a8cff" }}>{name(f)}</div>
+              <div className="w-full text-balance break-words font-display text-2xl font-bold sm:text-3xl leading-tight" dir="auto" style={{ color: i === 0 ? "#e5322d" : "#4a8cff" }}>{name(f)}</div>
               <div className="text-xs text-muted"><span className="tabular">{pv.tape[0][i === 0 ? "red" : "blue"]}</span> · Elo {Math.round(f.rating)}</div>
             </Link>
           ))}

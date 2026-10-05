@@ -41,7 +41,7 @@ async function Side({ f, color, win }: { f: Fighter; color: string; win: boolean
   return (
     <Link href={`/boxers/${f.slug}`} className="flex flex-col items-center gap-2 text-center">
       <div className="relative"><Headshot boxer={f} size={110} />{win && <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-win px-2 py-0.5 text-xs font-bold text-bg">{t("WINNER")}</span>}</div>
-      <div className="min-w-0 max-w-full break-words font-display text-2xl font-bold leading-tight sm:text-3xl" style={{ color }}>{t.name(f.name)}</div>
+      <div className="min-w-0 max-w-full break-words text-balance font-display text-lg font-bold leading-tight [:lang(ar)_&]:text-base min-[480px]:text-2xl [:lang(ar)_&]:min-[480px]:text-2xl sm:text-3xl" style={{ color }}>{t.name(f.name)}</div>
       <div className="text-xs text-muted">{flag(f.country)} {recordStr(f)}{f.stance ? ` · ${t(f.stance)}` : ""}</div>
     </Link>
   );
@@ -97,10 +97,10 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
         </div>
 
         {b.upcoming && b.status !== "cancelled" && <p className="mt-4 flex flex-wrap items-center gap-2 text-sm"><Link href={`/previews/${b.id}`} className="chip !border-gold/40 hover:!text-gold">{t("Read the preview")}</Link>{locked && <Link href="/accountability" className="chip hover:!text-gold">{t("Prediction on file since {date}: {a} / {b}", { date: fmtDate(locked.lockedOn, undefined, t.locale), a: pct(locked.pRed), b: pct(1 - locked.pRed) })}</Link>}</p>}
-        <div className="card mt-5 p-6">
-          <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4">
+        <div className="card mt-5 p-4 sm:p-6">
+          <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-4">
             <Side f={red} color="#e5322d" win={winner?.id === red.id} />
-            <div className="text-center">
+            <div className="max-w-[5.5rem] text-center sm:max-w-none">
               <div className="font-display text-3xl font-extrabold text-gold">{t("VS")}</div>
               {b.method && (
                 <div className="mt-3">
