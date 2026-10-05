@@ -15,6 +15,28 @@ export class AiLimited extends Error {
   constructor(public reason: "client" | "budget") { super(`AI call refused: ${reason} limit`); }
 }
 
+/**
+ * The model could not be reached or answered with an error (a wrong key, no network, an outage, an overload). Callers fall back to the rules,
+ * as for a limit, but the fallback must not be remembered for the day: the next visitor, after the pause below, gets another try.
+ */
+export class AiFailed extends Error {
+  constructor(message: string) { super(message); }
+}
+/** True when a model call was refused or failed, so the plain answer it fell back to must not be cached. */
+export const notRemembered = (e: unknown) => e instanceof AiLimited || e instanceof AiFailed;
+
+const PAUSE_MS = 60_000;
+const gf = globalThis as unknown as { __aiPause?: { until: number; lastLog: string } };
+/** After a failure no call is made for a minute, so a broken key or an outage costs no waiting and no hammering. */
+export const aiPaused = (at = Date.now()) => (gf.__aiPause?.until ?? 0) > at;
+/** Records a failure: pauses the model for a minute and says why on the server log (never on a page), once per distinct reason. */
+export function noteAiFailure(reason: string, at = Date.now()) {
+  const prev = gf.__aiPause;
+  gf.__aiPause = { until: at + PAUSE_MS, lastLog: reason };
+  if (prev?.lastLog !== reason) console.warn(`[ai] model call failed, using the built-in answers for a minute: ${reason}`);
+}
+export const resetAiPause = () => { gf.__aiPause = undefined; };
+
 interface State { day: string; used: number; clients: Map<string, number[]> }
 const g = globalThis as unknown as { __aiGuard?: State };
 const MAX_CLIENTS = 5000;
@@ -44,7 +66,7 @@ export function reserveAiCall(client = "anon", at = Date.now()): Verdict {
 }
 
 export const aiUsage = () => ({ day: state().day, used: state().used, daily: aiLimits().daily, clients: state().clients.size });
-export const resetAiGuard = () => { g.__aiGuard = undefined; };
+export const resetAiGuard = () => { g.__aiGuard = undefined; resetAiPause(); };
 
 /** Who is asking, for the per-client limit. Never trusted for the daily budget. */
 export function clientId(headers: Pick<Headers, "get">): string {

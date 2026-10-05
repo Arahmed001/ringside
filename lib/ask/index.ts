@@ -16,7 +16,7 @@ import type { Call, Ctx, Table, ToolResult } from "./types";
 import { TOOLS, sanitizeArgs, toolByName } from "./tools";
 import { planByRules, refusalReason } from "./rules";
 import { claude, hasKey } from "../ai";
-import { AiLimited } from "../ai-guard";
+import { AiLimited, notRemembered } from "../ai-guard";
 import { normalize } from "../fighter-search";
 import { Lru } from "../lru";
 import { DIVISION_NAMES } from "../divisions";
@@ -118,7 +118,7 @@ export function askData(rawQuestion: string, ctx: Ctx, client?: string): Promise
   const job = (async (): Promise<Answer> => {
     let limited: Answer["limited"];
     let cacheable = true;
-    const refused = (e: unknown) => { if (e instanceof AiLimited) { limited = e.reason; cacheable = false; } };
+    const refused = (e: unknown) => { if (e instanceof AiLimited) limited = e.reason; if (notRemembered(e)) cacheable = false; };
 
     let plan: Plan = [], planner: Answer["planner"] = "rules";
     if (hasKey()) {

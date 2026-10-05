@@ -11,7 +11,7 @@ import { countsInRecord } from "./methods";
 import { countryName, fmtDate } from "./format";
 import { missCount } from "./weights";
 import { monthsWithCurrentTrainer } from "./team";
-import { AiLimited } from "./ai-guard";
+import { notRemembered } from "./ai-guard";
 import { Lru } from "./lru";
 import { rankDivision } from "./rankings";
 import { eventMoney } from "./money";
@@ -218,7 +218,7 @@ export async function previewArticle(w: World, bout: BoutRow, t: T = tEn, client
       );
       const paragraphs = text.split(/\n{2,}/).map((s) => s.trim()).filter(Boolean);
       if (paragraphs.length >= 2) out = { paragraphs, source: "ai" };
-    } catch (e) { if (e instanceof AiLimited) cacheable = false; /* keep the plain version; a refused call is not remembered */ }
+    } catch (e) { if (notRemembered(e)) cacheable = false; /* keep the plain version; a refused or failed call is not remembered */ }
   }
   if (cacheable) cache.set(key, out);
   return out;

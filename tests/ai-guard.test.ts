@@ -106,6 +106,30 @@ test("a refused call answers with the rules for that visitor only, and is not re
   assert.equal(sent.length, 2);
 });
 
+test("a model that errors (a refused key, an outage): the rules answer, nothing is remembered, calls pause for a minute, the cause is logged once, then it recovers", async () => {
+  process.env.ANTHROPIC_API_KEY = "bad-key";
+  const warnings: string[] = [];
+  const realWarn = console.warn;
+  console.warn = (...a: unknown[]) => { warnings.push(a.join(" ")); };
+  let calls = 0;
+  globalThis.fetch = (async () => { calls++; return new Response("{}", { status: 401 }); }) as typeof fetch;
+  try {
+    const first = await ai.parseQuery("southpaw bantamweights", w, "u1");
+    assert.equal(first.source, "rules");
+    assert.ok(Object.keys(first.filters).length > 0, "the plain answer is a real answer");
+    assert.equal(calls, 1);
+    assert.equal(warnings.length, 1);
+    assert.match(warnings[0], /401.*refused/, "the log says why, for whoever runs the server");
+    assert.equal((await ai.parseQuery("orthodox cruiserweights", w, "u2")).source, "rules");
+    assert.equal(calls, 1, "no second call during the pause: no waiting, no hammering");
+    assert.equal(warnings.length, 1, "one log line per cause, not one per visitor");
+    // the key is fixed (or the outage ends) and the pause is over: the same search, which was not cached, now reaches the model
+    guard.resetAiPause();
+    mockModel();
+    assert.equal((await ai.parseQuery("southpaw bantamweights", w, "u1")).source, "ai", "the failed answer was not remembered for the day");
+  } finally { console.warn = realWarn; }
+});
+
 test("scouting reports and previews: the same, with the cache bounded and refusals not remembered", async () => {
   process.env.ANTHROPIC_API_KEY = "test-key"; process.env.AI_DAILY_BUDGET = "0";
   mockModel(() => "First paragraph.\n\nSecond paragraph.\n\nThird paragraph.");
