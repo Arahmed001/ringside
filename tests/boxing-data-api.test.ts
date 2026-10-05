@@ -76,6 +76,15 @@ test("fights not yet fought carry no result, even if the feed has stray fields; 
   assert.equal(n.liveTreatedAsUpcoming, 1);
 });
 
+test("a CANCELLED fight is kept as a cancelled bout with no result, counted, and never read as a fight with no result", () => {
+  const n = notes();
+  const b = B.mapFight(fight("c1", "A", "B", { status: "CANCELLED", results: { outcome: "UD", round: null }, fighters: { fighter_1: side("A", true), fighter_2: side("B", false) } }), n)!.bout;
+  assert.equal(b.status, "cancelled"); assert.equal(b.method, null); assert.equal(b.winnerExternalId, null);
+  assert.equal(n.cancelledFights, 1); assert.equal(n.resultMissing, 0);
+  const done = B.mapFight(fight("c2", "A", "B", { status: "FINISHED", results: { outcome: "UD", round: null }, fighters: { fighter_1: side("A", true), fighter_2: side("B", false) } }), n)!.bout;
+  assert.equal(done.status, undefined); assert.equal(n.cancelledFights, 1);
+});
+
 test("rows that cannot be used are skipped and counted, not half-mapped", () => {
   const n = notes();
   assert.equal(B.mapFight(fight("x1", "A", "B", { date: null, event: { id: "e", date: null } }), n), null);

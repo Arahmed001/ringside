@@ -96,12 +96,12 @@ export const divisionOf = (raw: string): string | null => normalizeDivision(raw)
 
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
-  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter" | "duplicateFightsMerged" | "duplicateFightsDisagree" | "duplicateFightsAcrossProfiles" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
+  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "cancelledFights" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter" | "duplicateFightsMerged" | "duplicateFightsDisagree" | "duplicateFightsAcrossProfiles" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
   | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "outcomeMapped" | "outcomeUnreadable" | "roundUnreadable" | "bothMarkedWinner" | "eventsWithoutFights" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, fightsSkippedNoId: 0, fightsSkippedNoFighter: 0, fightsSkippedNoDate: 0, fightsSkippedSameFighter: 0, duplicateFightsMerged: 0, duplicateFightsDisagree: 0, duplicateFightsAcrossProfiles: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
+  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, cancelledFights: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, fightsSkippedNoId: 0, fightsSkippedNoFighter: 0, fightsSkippedNoDate: 0, fightsSkippedSameFighter: 0, duplicateFightsMerged: 0, duplicateFightsDisagree: 0, duplicateFightsAcrossProfiles: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, outcomeMapped: 0, outcomeUnreadable: 0, roundUnreadable: 0, bothMarkedWinner: 0, eventsWithoutFights: 0, windowTooBig: 0,
 });
 
@@ -166,6 +166,8 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
 
   const finished = f.status === "FINISHED";
   if (f.status === "LIVE") notes.liveTreatedAsUpcoming++;
+  const cancelled = f.status === "CANCELLED"; // fell off the card: kept as a cancelled bout (it counts for nothing in a record, a form line or a rating), not read as a fight with no result
+  if (cancelled) notes.cancelledFights++;
   const outcome = finished ? (f.results?.outcome ?? null) : null;
   // both fighters marked the winner: a feed slip. Neither is picked (that would be inventing a result) and the fight is left "no result yet", not read as a draw
   const bothMarked = finished && !!a.winner && !!b.winner;
@@ -200,6 +202,7 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
   const bout: ProviderBout = {
     externalId: boutId(f.id), eventExternalId: eId, redExternalId: fighterId(a.fighter_id), blueExternalId: fighterId(b.fighter_id), // no corner colours in the feed: fighter_1 is "red"
     weightClass, rounds, winnerExternalId: winnerOf ? fighterId(winnerOf.fighter_id!) : null, method, endRound,
+    ...(cancelled ? { status: "cancelled" as const } : {}),
     title: f.titles?.[0]?.name ?? null, position: index, // card order is not in the feed: the order the fights came back in
   };
   const scores = finished && hasScorecards(method) ? cleanScores(f.scores) : []; // only a fight that went to the cards has scores: a stoppage with scores attached is a feed slip, not a result
