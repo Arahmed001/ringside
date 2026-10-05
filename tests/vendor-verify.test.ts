@@ -156,3 +156,15 @@ test("a surplus that goes away without the 3-round fights is named as one: proba
   assert.equal(r.tally.short, 2); assert.equal(r.tally.losses, 0, "not blamed on a wrong winner");
   assert.match(describeConflictReport(r, 1).join("\n"), /3 rds/);
 });
+
+test("a conflict that one reversed winner would remove is named as such: 1-0-0 loaded against a vendor 0-1-0", () => {
+  const feed: FeedData = { ...miniFeed(), boxers: ["A", "B"].map(boxer), events: [ev("E1", "2020-01-01")], bouts: [bout("1", "A", "B", { eventExternalId: "E1" })] };   // A beats B
+  const v = new Map([["A", rec(0, 1, 0)], ["B", rec(1, 0, 0)]]);                                                                                                   // the vendor has it the other way round
+  const r = explainConflicts(feed, v, "2026-10-04", 14);
+  assert.deepEqual(r.fighters.map((f) => [f.name, f.causes]), [["Fighter A", ["wins", "flipped"]], ["Fighter B", ["losses", "flipped"]]]);
+  assert.equal(r.tally.flipped, 2);
+  // a fighter with several surplus wins is not one flipped winner away from his record
+  const many: FeedData = { ...miniFeed(), boxers: ["A", "B", "C", "D"].map(boxer), events: [ev("E1", "2020-01-01")], bouts: [bout("1", "A", "B", { eventExternalId: "E1" }), bout("2", "A", "C", { eventExternalId: "E1" }), bout("3", "A", "D", { eventExternalId: "E1" })] };
+  const m = explainConflicts(many, new Map([["A", rec(0, 0, 0)], ["B", rec(0, 1, 0)], ["C", rec(0, 1, 0)], ["D", rec(0, 1, 0)]]), "2026-10-04", 14);
+  assert.deepEqual(m.fighters.find((f) => f.name === "Fighter A")!.causes.includes("flipped"), false);
+});

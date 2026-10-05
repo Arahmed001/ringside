@@ -78,6 +78,19 @@ Measured on a production build with the demo league (968 fighters, 7,466 bouts; 
 
 What to do with it: give the container **at least 768 MB**, or cap the heap (`NODE_OPTIONS=--max-old-space-size=...`) and leave 200 MB for everything else. The heap needed grows with the data: the 20x test world (159,000 bouts) needed about 460 MB of heap, so a real feed's size matters more than traffic does. It is one core's worth of work per instance, and PLAN.md explains why there should be one instance; if you need more than about 100 pages a second, put a CDN or page cache in front rather than a second instance.
 
+**At the size of the real feed (measured 2026-10-05):** a league of 32,152 fighters and 43,889 bouts, loaded by `vendor:backfill` from the stand-in vendor with the first real fetch's faults (half the careers held in part, `--drop-conflicts --allow-partial`), a 21 MB database, the same production build and machine.
+
+| | |
+|---|---|
+| start-up | the world is built and the pages warmed in 1.2 s; 515 MB resident right after start (no heap cap) |
+| pages | 11-100 ms one at a time (home 100 ms the first time, the rest 11-35 ms) |
+| throughput | 117-135 pages a second at 30 or 50 at a time; p50 270-440 ms, p95 310-520 ms, no failures in 4,500 requests |
+| memory, no cap | **761 MB resident** after 2,000 requests |
+| memory, `--max-old-space-size=400` | works, **565 MB resident**, same speed |
+| memory, `--max-old-space-size=250` | **does not start**: out of memory while building the world |
+
+So at this size give the container **1 GB**, or cap the heap at 400 MB and give it 768 MB. The heap the world needs is between 250 and 400 MB here; it grows with fighters and fights, so re-measure when the feed grows by a lot. (The 760 MB is mostly garbage not yet collected, as with the demo.)
+
 `npm run loadtest -- --base https://your-host --conc 50 --total 1000 --each` repeats this against any server you own (`--each` times every page alone to find a slow one). It is one Node process: past a few hundred requests a second it is measuring itself.
 
 ### The first visitor, and what start-up now does about it

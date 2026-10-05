@@ -175,9 +175,10 @@ export function describeReconciliation(r: Reconciliation): string[] {
  * - `same-day`: two fights on one date for one fighter;
  * - `recent`: the surplus disappears when the fights of the last 14 days are set aside, so the vendor's total probably trails its results;
  * - `short`: the surplus disappears when the fights scheduled for 3 rounds or fewer are set aside: probably an amateur or exhibition bout the vendor's career total leaves out (professional bouts are 4 rounds or more).
+ * - `flipped` (alongside the others): reversing the winner of ONE counted fight would remove the conflict, so a winner flag in the fight list, or the vendor's total, may be the wrong way round (a fighter loaded 1-0-0 against a vendor 0-1-0). The fights cannot say which is right.
  * A fighter can have several. `unexplained` is a conflict none of these accounts for.
  */
-export type ConflictCause = "draw" | "wins" | "losses" | "repeat" | "same-day" | "recent" | "short" | "unexplained";
+export type ConflictCause = "draw" | "wins" | "losses" | "repeat" | "same-day" | "recent" | "short" | "flipped" | "unexplained";
 export interface ConflictFight { date: string; opponent: string; result: "W" | "L" | "D" | "NC"; method: string | null; /** scheduled rounds: an exhibition or an amateur bout the vendor's career total leaves out is often 3 */ rounds: number; boutId: string }
 export interface ConflictExplanation { externalId: string; name: string; loaded: string; vendor: string; causes: ConflictCause[]; fights: ConflictFight[] }
 export interface ConflictReport { total: number; tally: Record<ConflictCause, number>; fighters: ConflictExplanation[] }
@@ -200,7 +201,7 @@ export function explainConflicts(feed: FeedData, vendor: Map<string, CareerRecor
       list.push({ date, opponent: name.get(opp) ?? opp, result, method: b.method ?? null, rounds: b.rounds, boutId: b.externalId });
     }
   }
-  const tally: Record<ConflictCause, number> = { draw: 0, wins: 0, losses: 0, repeat: 0, "same-day": 0, recent: 0, short: 0, unexplained: 0 };
+  const tally: Record<ConflictCause, number> = { draw: 0, wins: 0, losses: 0, repeat: 0, "same-day": 0, recent: 0, short: 0, flipped: 0, unexplained: 0 };
   const fighters: ConflictExplanation[] = [];
   const count = (fs: ConflictFight[]): CareerRecord => ({ wins: fs.filter((f) => f.result === "W").length, losses: fs.filter((f) => f.result === "L").length, draws: fs.filter((f) => f.result === "D").length });
   for (const c of rec.conflicts) {
@@ -216,6 +217,9 @@ export function explainConflicts(feed: FeedData, vendor: Map<string, CareerRecor
     if (classifyRecord(count(fights.filter((f) => f.rounds > 3)), v) !== "conflict") causes.push("short");
     // a surplus of wins or losses is blamed on the feed's winner only when nothing else accounts for it
     if (!causes.some((k) => k !== "draw")) { if (l.wins > v.wins) causes.push("wins"); if (l.losses > v.losses) causes.push("losses"); }
+    // would reversing the winner of a single fight remove the conflict?
+    const flip = (f: ConflictFight): ConflictFight[] => fights.map((x) => (x === f ? { ...x, result: x.result === "W" ? "L" : "W" } : x));
+    if (fights.some((f) => (f.result === "W" || f.result === "L") && classifyRecord(count(flip(f)), v) !== "conflict")) causes.push("flipped");
     if (!causes.length) causes.push("unexplained");
     for (const k of causes) tally[k]++;
     fighters.push({ externalId: c.externalId, name: c.name, loaded: c.loaded, vendor: c.vendor, causes, fights });
@@ -230,6 +234,7 @@ const CAUSE_TEXT: Record<ConflictCause, string> = {
   repeat: "the same two fighters twice within 30 days (one fight listed twice)",
   "same-day": "two fights on one date for one fighter",
   recent: "the surplus goes away without the last 14 days' fights: the vendor's total probably trails its results",
+  flipped: "reversing the winner of one fight would remove the conflict: a winner flag in the fight list, or the vendor's total, may be the wrong way round (the fights cannot say which)",
   short: "the surplus goes away without the fights scheduled for 3 rounds or fewer: probably an amateur or exhibition bout the vendor's career total leaves out",
   unexplained: "no cause found in the fights",
 };

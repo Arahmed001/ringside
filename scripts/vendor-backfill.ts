@@ -123,6 +123,8 @@ async function main() {
   if (dropConflicts) {
     const before = reconcileFeed(raw, provider.vendorRecords(), { today: todayIso(), days: LOAD_LAG_DAYS });
     const out = dropConflicted(raw, before);
+    // the tally of WHY they conflict is read before they are dropped: afterwards there are none left to explain
+    if (before.conflict && flag("explain-conflicts")) for (const line of describeConflictReport(explainConflicts(raw, provider.vendorRecords(), todayIso(), LOAD_LAG_DAYS), Number(arg("show") ?? 10))) console.log(line);
     if (out.dropped.length) {
       console.log(`--drop-conflicts: left out ${out.dropped.length} fighter(s) whose loaded fights come to more than the vendor's career total, and their ${out.fightsDropped} fights (first ${Math.min(20, out.dropped.length)}):`);
       for (const m of out.dropped.slice(0, 20)) console.log(`  ${m.name}: loaded ${m.loaded}, vendor ${m.vendor}`);

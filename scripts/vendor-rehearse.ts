@@ -93,9 +93,9 @@ async function realistic(checks: [string, boolean, string][]) {
     const e = await go("e. load --allow-partial (conflicts stand)", ["--allow-partial", "--cache-dir", cache], { DATABASE_PATH: dbFile });
     checks.push(["A: --allow-partial does not wave a conflict through", e.code !== 0 && /MORE wins, losses or draws/.test(e.out) && boxersIn(dbFile) === 0, `exit ${e.code}, ${boxersIn(dbFile)} fighters written`]);
     const wrongIds = world.faults?.wrongTotals ?? [];
-    const f = await go("f. --check --cached-only --drop-conflicts --allow-partial", ["--check", "--cached-only", "--drop-conflicts", "--allow-partial", "--cache-dir", cache], noKey);
+    const f = await go("f. --check --cached-only --drop-conflicts --allow-partial", ["--check", "--cached-only", "--drop-conflicts", "--allow-partial", "--explain-conflicts", "--cache-dir", cache], noKey);
     const left = /--drop-conflicts: left out (\d+) fighter/.exec(f.out);
-    checks.push(["A: --drop-conflicts leaves out the fighters with wrong totals, and then the check passes", f.code === 0 && !!left && Number(left[1]) >= wrongIds.length * 0.9 && Number(left[1]) <= wrongIds.length && !/a load would be refused/.test(f.out), `${left?.[1] ?? "none"} left out of ${wrongIds.length} wrong totals (a fighter whose earlier career is also missing is short, not in conflict), exit ${f.code}`]);
+    checks.push(["A: --drop-conflicts says why they conflicted, leaves them out, and then the check passes", f.code === 0 && /^why the \d+ conflict/m.test(f.out) && !!left && Number(left[1]) >= wrongIds.length * 0.9 && Number(left[1]) <= wrongIds.length && !/a load would be refused/.test(f.out), `${left?.[1] ?? "none"} left out of ${wrongIds.length} wrong totals (a fighter whose earlier career is also missing is short, not in conflict), exit ${f.code}`]);
     const dbFile3 = path.join(dir, "dropped.db"), listFile = path.join(dir, "dropped.csv");
     const g = await go("g. load --drop-conflicts --allow-partial", ["--drop-conflicts", "--allow-partial", "--dropped-file", listFile, "--cache-dir", cache], { DATABASE_PATH: dbFile3 });
     const listedIds = fs.existsSync(listFile) ? fs.readFileSync(listFile, "utf8").trim().split("\n").slice(1).map((l) => l.split(",")[0].replace(/^bda-f-/, "")) : [];
