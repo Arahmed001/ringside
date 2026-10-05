@@ -9185,6 +9185,12 @@
   ]
  },
  {
+  "key": "Print / save as PDF",
+  "files": [
+   "components/PrintButton.tsx"
+  ]
+ },
+ {
   "key": "Privacy",
   "files": [
    "app/[locale]/layout.tsx",

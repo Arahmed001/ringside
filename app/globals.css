@@ -138,3 +138,22 @@ html[dir="rtl"] .rail .rail-chevron { transform-origin: center; }
 .drawer::backdrop { background: rgb(0 0 0 / .6); }
 body:has(dialog[open]) { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .rail, .rail-chevron { transition: none; } }
+
+/* Printing and "save as PDF": white paper, dark ink, no menus. The screen stays dark; only the printed page is light (DESIGN.md: approved for print only). */
+@media print {
+  :root {
+    --bg: #fff; --panel: #fff; --panel-2: #f3f3f3; --line: #c8c8c8; --text: #111; --muted: #4d4d4d;
+    --red: #b3140f; --red-ink: #a8120d; --red-btn: #b3140f; --gold: #7a5608; --blue: #1d4fb8; --green: #0a6b43;
+  }
+  html { color-scheme: light; }
+  body { background: #fff !important; color: #111; }
+  body::before { display: none; }
+  .no-print, .rail, .skip-link { display: none !important; }
+  main { max-width: none !important; padding: 0 !important; }
+  footer { padding: 12px 0 0 !important; border-top: 1px solid #c8c8c8; }
+  .card { background: #fff !important; border-color: #c8c8c8; box-shadow: none; break-inside: avoid; }
+  .chip { background: #fff; }
+  h1, h2, h3 { break-after: avoid; }
+  a { color: inherit; text-decoration: none; }
+  .sticky, .lg\:sticky { position: static !important; }
+}

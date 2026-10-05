@@ -67,7 +67,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
               <div className="border-t border-line/70 p-2"><RailToggle /></div>
             </aside>
             <div className="min-w-0 flex-1">
-              <header className="sticky top-0 z-20 border-b border-line/70 bg-bg/75 backdrop-blur-xl">
+              <header className="no-print sticky top-0 z-20 border-b border-line/70 bg-bg/75 backdrop-blur-xl">
                 <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-3 sm:gap-3 sm:px-5">
                   <MobileMenu logo={<Logo />}><NavGroups /></MobileMenu>
                   <div className="lg:hidden"><Logo /></div>
