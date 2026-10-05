@@ -111,3 +111,22 @@ test("how long a vendor total may trail its results: a week for the daily update
   assert.equal(lagDays("load", { VENDOR_LAG_DAYS: "10", VENDOR_LOAD_LAG_DAYS: "3" }), 3); assert.equal(lagDays("update", { VENDOR_LAG_DAYS: "10", VENDOR_LOAD_LAG_DAYS: "3" }), 10);
   for (const bad of ["", "0", "-2", "x", "3.5"]) { assert.equal(lagDays("update", { VENDOR_LAG_DAYS: bad }), 7, bad); assert.equal(lagDays("load", { VENDOR_LOAD_LAG_DAYS: bad }), 14, bad); }
 });
+
+test("the same fight under two PROFILES of the same opponent, a day apart, is one fight (round 82: Mayweather against two 'Canelo Alvarez' ids)", () => {
+  const n = notes();
+  const names = new Map([["M", "Floyd Mayweather"], ["C1", "Canelo Alvarez"], ["C2", "Canelo Álvarez "], ["X", "Someone Else"]]);
+  const out = B.mergeDuplicateFights([
+    bout("old", "M", "C1", "e1", { method: "MD" }),
+    bout("new", "M", "C2", "e2", { method: "MD" }),            // the other generation: the other profile, a day later, the accent and a trailing space differ
+    bout("other", "M", "X", "e1"),                             // a different opponent
+  ], dates, n, names);
+  assert.equal(out.length, 2); assert.ok(out.some((b) => b.externalId === "other"));
+  assert.equal(n.duplicateFightsMerged, 1); assert.equal(n.duplicateFightsAcrossProfiles, 1, "counted as across profiles");
+  // without the names the two profiles are two opponents: nothing merges
+  const n2 = notes();
+  assert.equal(B.mergeDuplicateFights([bout("old", "M", "C1", "e1"), bout("new", "M", "C2", "e2")], dates, n2).length, 2);
+  // the same two ids merge as before, and are not counted as across profiles
+  const n3 = notes();
+  assert.equal(B.mergeDuplicateFights([bout("a", "M", "C1", "e1"), bout("b", "C1", "M", "e2", { winnerExternalId: "M" })], dates, n3, names).length, 1);
+  assert.equal(n3.duplicateFightsAcrossProfiles, 0);
+});

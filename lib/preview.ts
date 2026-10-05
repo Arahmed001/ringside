@@ -139,7 +139,7 @@ export function buildPreview(w: World, bout: BoutRow, t: T = tEn): Preview {
     const b = side === "red" ? red : blue, o = side === "red" ? blue : red;
     const out = p.factors.filter((f) => (side === "red" ? f.shift > 0.004 : f.shift < -0.004)).sort((x, y) => Math.abs(y.shift) - Math.abs(x.shift)).map((f) => `${t(f.label)}: ${f.note}`);
     if (b.streak.type === "W" && b.streak.count >= 3) out.push(t("{n} wins in a row", { n: b.streak.count }));
-    if (b.koRate >= 0.5 && b.koRate > o.koRate) out.push(t("Finishing power: {pct}% of wins by stoppage", { pct: Math.round(b.koRate * 100) }));
+    if (koView(b).rate >= 0.5 && koView(b).rate > koView(o).rate) out.push(t("Finishing power: {pct}% of wins by stoppage", { pct: Math.round(koView(b).rate * 100) }));
     if (b.bouts >= o.bouts + 8) out.push(t("More experience: {a} fights against {b}", { a: b.bouts, b: o.bouts }));
     return out.slice(0, 3);
   };

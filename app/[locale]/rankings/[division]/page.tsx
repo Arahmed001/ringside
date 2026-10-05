@@ -1,6 +1,6 @@
 import Link from "@/components/L";
 import { notFound } from "next/navigation";
-import { getWorld, recordStr } from "@/lib/world";
+import { getWorld, koView, recordStr } from "@/lib/world";
 import { DIVISIONS, divisionFromSlug, divisionLabel, limitLabel, slugifyDivision } from "@/lib/divisions";
 import { rankDivision, rankedBoxers, rankRow, rankingDepth } from "@/lib/rankings";
 import { pageRows } from "@/lib/people-list";
@@ -102,7 +102,7 @@ export default async function DivisionRankings({ params, searchParams }: { param
                 <td><Link href={`/boxers/${r.boxer.slug}`} className="flex items-center gap-3 py-2"><Headshot boxer={r.boxer} size={36} /><span><b>{t.name(r.boxer.name)}</b><span className="block text-xs text-muted">{flag(r.boxer.country)} {countryName(r.boxer.country, t.locale)} · {r.boxer.age}</span></span></Link></td>
                 <td className="hidden sm:table-cell"><ArchBadge b={r.boxer} /></td>
                 <td className="tabular">{recordStr(r.boxer)}</td>
-                <td className="hidden tabular text-muted md:table-cell">{Math.round(r.boxer.koRate * 100)}%</td>
+                <td className="hidden tabular text-muted md:table-cell">{Math.round(koView(r.boxer).rate * 100)}%</td>
                 <td className="hidden text-muted md:table-cell">{r.boxer.lastFight ? fmtDate(r.boxer.lastFight, { month: "short", year: "numeric" }, t.locale) : "—"}</td>
                 <td className="text-end font-semibold tabular">{Math.round(r.boxer.rating)}</td>
                 <td className="p-3 text-end"><div className="flex items-center justify-end gap-2"><span className={`tabular text-xs ${r.ratingChange >= 0 ? "text-win" : "text-red-ink"}`}>{r.ratingChange >= 0 ? "+" : ""}{Math.round(r.ratingChange)}</span><Delta d={r.delta} /></div></td>

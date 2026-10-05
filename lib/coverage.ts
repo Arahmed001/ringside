@@ -68,7 +68,7 @@ function computeCoverage(db: DatabaseSync): Coverage {
         { field: msg("Weigh-in weights"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM weigh_ins WHERE official_lb IS NOT NULL AND " + inDone), of: done },
         { field: msg("Fight-night (pre-fight) weights"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM weigh_ins WHERE fight_night_lb IS NOT NULL AND " + inDone), of: done, note: msg("few commissions record these") },
         { field: msg("Referee"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM officials WHERE role='referee' AND " + inDone), of: done },
-        { field: msg("Judges' scorecards"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM scorecards WHERE " + inDecisions), of: decisions, note: msg("decisions only") },
+        { field: msg("Judges’ scorecards"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM scorecards WHERE " + inDecisions), of: decisions, note: msg("decisions only") },
         { field: msg("Corner trainers"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM corners WHERE " + inDone), of: done },
         { field: msg("Round and time of stoppage"), have: n("SELECT COUNT(*) c FROM bouts WHERE method IN ('KO','TKO') AND round_time IS NOT NULL"), of: stoppages },
         { field: msg("Closing odds"), have: n("SELECT COUNT(*) c FROM bouts WHERE odds_red IS NOT NULL"), of: n("SELECT COUNT(*) c FROM bouts") },
@@ -79,7 +79,7 @@ function computeCoverage(db: DatabaseSync): Coverage {
       title: msg("Money"),
       rows: [
         { field: msg("Gate, tickets or PPV figures"), have: n("SELECT COUNT(DISTINCT event_id) c FROM event_financials"), of: n(`SELECT COUNT(*) c FROM events WHERE COALESCE(status, '') != 'cancelled' AND date <= '${todayIso()}'`), note: msg("completed cards") },
-        { field: msg("Fighter purses"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM purses WHERE " + inDone), of: done, note: msg("at least one fighter's purse") },
+        { field: msg("Fighter purses"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM purses WHERE " + inDone), of: done, note: msg("at least one fighter’s purse") },
         { field: msg("Purses backed by an official record"), have: n("SELECT COUNT(*) c FROM purses WHERE basis = 'disclosed'"), of: n("SELECT COUNT(*) c FROM purses"), note: msg("rest are reported or estimated") },
         { field: msg("Broadcaster and audience"), have: n("SELECT COUNT(DISTINCT event_id) c FROM event_broadcasts"), of: n("SELECT COUNT(*) c FROM events WHERE COALESCE(status, '') != 'cancelled'") },
         { field: msg("Yearly earnings lists"), have: n("SELECT COUNT(DISTINCT boxer_id) c FROM earnings"), of: boxers },

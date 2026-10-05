@@ -18,6 +18,7 @@ import type { T } from "@/lib/i18n/t";
 import { METHOD_NAME, endsEarly } from "@/lib/methods";
 import { divisionLabel } from "@/lib/divisions";
 import { BoutScore } from "@/components/Awards";
+import { PrintButton } from "@/components/PrintButton";
 import type { PunchLine } from "@/lib/types";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; id: string }> }) => metaFor(params, async ({ id }, t) => {
@@ -94,6 +95,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
           {b.title && <span className="chip !border-gold/50 !text-gold">{body ? <Link href={`/orgs/${body.slug}`}>{body.name.match(/\(([^)]+)\)/)?.[1] ?? body.name}</Link> : null} {b.titleVacant ? t("{title} (vacant)", { title: t.name(b.title) }) : t.name(b.title)}</span>}
           {ev.broadcaster && <span className="chip">{t.name(ev.broadcaster)}</span>}
           {ev.attendance && <span className="chip">{t("{n} attended", { n: ev.attendance.toLocaleString("en-US") })}</span>}
+          <span className="ms-auto"><PrintButton /></span>
         </div>
 
         {b.upcoming && b.status !== "cancelled" && <p className="mt-4 flex flex-wrap items-center gap-2 text-sm"><Link href={`/previews/${b.id}`} className="chip !border-gold/40 hover:!text-gold">{t("Read the preview")}</Link>{locked && <Link href="/accountability" className="chip hover:!text-gold">{t("Prediction on file since {date}: {a} / {b}", { date: fmtDate(locked.lockedOn, undefined, t.locale), a: pct(locked.pRed), b: pct(1 - locked.pRed) })}</Link>}</p>}
@@ -173,7 +175,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
           {oddsBlock(t, b.oddsRed, b.oddsBlue, mkt, eloP)}
           {call && (
             <div className="mt-4 border-t border-line/60 pt-3 text-sm">
-              <div className="mb-1 flex justify-between gap-3"><span className="text-muted">{t("The model's call before the fight")}</span><span className="tabular"><b className="text-red-ink">{pct(call.pRed)}</b> / <b className="text-blue">{pct(1 - call.pRed)}</b></span></div>
+              <div className="mb-1 flex justify-between gap-3"><span className="text-muted">{t("The model’s call before the fight")}</span><span className="tabular"><b className="text-red-ink">{pct(call.pRed)}</b> / <b className="text-blue">{pct(1 - call.pRed)}</b></span></div>
               <div className="flex justify-between gap-3 text-xs">
                 {Math.max(call.pRed, 1 - call.pRed) < 0.52
                   ? <span className="text-muted">{t("A toss-up: the model saw no clear favourite")}</span>
@@ -191,7 +193,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
 
       {cards.length === 0 && b.vendorScores && b.vendorScores.length > 0 && (
         <section>
-          <SectionTitle eyebrow={t("Official result")} title={t("Judges' scores")} />
+          <SectionTitle eyebrow={t("Official result")} title={t("Judges’ scores")} />
           <div className="card p-5">
             <ul className="flex flex-wrap gap-2" dir="ltr">{b.vendorScores.map((x, i) => <li key={i} className="chip tabular text-base">{x}</li>)}</ul>
             <p className="mt-3 text-xs text-muted">{t("As given by the data supplier, in its order. It does not say which judge gave which score, or which corner each number belongs to.")}</p>

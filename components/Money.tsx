@@ -8,9 +8,9 @@ import { countryName, fmtDate } from "@/lib/format";
 
 const BASIS_LABEL = { disclosed: msg("Official"), reported: msg("Reported"), estimated: msg("Estimated") } as const;
 const BASIS_HELP = {
-  disclosed: msg("From an official record: a commission disclosure, a company filing or the promoter's own statement."),
+  disclosed: msg("From an official record: a commission disclosure, a company filing or the promoter’s own statement."),
   reported: msg("Published by a named outlet that cited people or documents."),
-  estimated: msg("An outlet's or analyst's estimate, or worked out from other figures. Treat as approximate."),
+  estimated: msg("An outlet’s or analyst’s estimate, or worked out from other figures. Treat as approximate."),
 } as const;
 const BASIS_STYLE = { disclosed: "!border-win/40 !text-win", reported: "", estimated: "!border-dashed" } as const;
 

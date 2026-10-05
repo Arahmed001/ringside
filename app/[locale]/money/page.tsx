@@ -93,7 +93,7 @@ export default async function Money() {
 
       <section className="grid gap-5 lg:grid-cols-2">
         <div className="card min-w-0 p-5">
-          <SectionTitle eyebrow={t("One night's pay")} title={t("Highest purses")} />
+          <SectionTitle eyebrow={t("One night’s pay")} title={t("Highest purses")} />
           <ol className="space-y-2.5">
             {purses.map((p, i) => (
               <li key={`${p.bout.id}-${p.boxer.id}`} className="flex items-center gap-3 text-sm">

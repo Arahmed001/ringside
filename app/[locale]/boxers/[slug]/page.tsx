@@ -23,6 +23,7 @@ import { Sparkline, Radar, Donut } from "@/components/charts";
 import { ScoutingReport } from "@/components/ScoutingReport";
 import { WatchButton } from "@/components/Watch";
 import { ShareButton } from "@/components/ShareButton";
+import { PrintButton } from "@/components/PrintButton";
 import { BoutLine, BoxerCard, ResultPill, SectionTitle, Stat } from "@/components/ui";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
@@ -45,7 +46,7 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string;
     return {
       path: `/boxers/${b.slug}`, type: "profile" as const, title: t.name(b.name),
       description: t("{name}: {division} boxer from {country}. Record {record} with {kos} KOs and a {rating} Elo rating. Fight history, team, weigh-ins and scouting report.", {
-        name: t.name(b.name), division: divisionLabel(b.weightClass, b.sex, t), country: countryName(b.country, t.locale), record: recordStr(b), kos: b.kos, rating: Math.round(b.rating),
+        name: t.name(b.name), division: divisionLabel(b.weightClass, b.sex, t), country: countryName(b.country, t.locale), record: recordStr(b), kos: koView(b).kos, rating: Math.round(b.rating),
       }),
     };
   });
@@ -175,7 +176,7 @@ const HONOURS_SHOWN = 8;
               </Link>
             ))}
             {!b.active && <span className="chip">{t("Retired")}</span>}
-            <span className="ms-auto flex gap-2"><ShareButton title={t.name(b.name)} /><WatchButton slug={b.slug} /></span>
+            <span className="ms-auto flex gap-2"><ShareButton title={t.name(b.name)} /><PrintButton /><WatchButton slug={b.slug} /></span>
           </div>
           <h1 className="mt-3 font-display text-6xl font-extrabold uppercase leading-[.95] sm:text-7xl">{t.name(b.name)}</h1>
           {b.nickname && <div className="mt-1 font-serif text-3xl italic text-gold">“{t.name(b.nickname)}”</div>}

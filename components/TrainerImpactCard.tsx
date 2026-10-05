@@ -50,13 +50,13 @@ export async function TrainerImpactCard({ w, personId }: { w: World; personId: n
       </div>
       <div className="card p-5">
         {imp.evidence === "thin" ? (
-          <p className="text-sm text-muted">{t("Too few of {name}'s fighters have worked with anyone else to tell the trainer's effect apart from the fighters' own ability: {n} fights qualify, {min} are needed. The estimate is held at about zero.", { name: t.name(imp.person.name), n: imp.informative, min: MIN_INFORMATIVE_FIGHTS })}</p>
+          <p className="text-sm text-muted">{t("Too few of {name}’s fighters have worked with anyone else to tell the trainer’s effect apart from the fighters’ own ability: {n} fights qualify, {min} are needed. The estimate is held at about zero.", { name: t.name(imp.person.name), n: imp.informative, min: MIN_INFORMATIVE_FIGHTS })}</p>
         ) : (
           <div className="grid items-center gap-4 md:grid-cols-[minmax(0,1fr)_14rem]">
             <div>
               <div className="font-display text-4xl font-bold tabular text-gold">{sign(imp.effect)} <span className="text-lg text-muted">Elo</span></div>
               <div className="text-sm">{t(VERDICT_LABEL[imp.verdict])}</div>
-              <p className="mt-2 text-sm text-muted">{t("Against an average head trainer, after allowing for each fighter's own ability. The 95% range runs from {lo} to {hi}. Based on {fights} fights of {n} fighters, {informative} of them from fighters who have also worked with someone else.", { lo: sign(imp.effect - 1.96 * imp.se), hi: sign(imp.effect + 1.96 * imp.se), fights: imp.fights, n: imp.fighters, informative: imp.informative })}</p>
+              <p className="mt-2 text-sm text-muted">{t("Against an average head trainer, after allowing for each fighter’s own ability. The 95% range runs from {lo} to {hi}. Based on {fights} fights of {n} fighters, {informative} of them from fighters who have also worked with someone else.", { lo: sign(imp.effect - 1.96 * imp.se), hi: sign(imp.effect + 1.96 * imp.se), fights: imp.fights, n: imp.fighters, informative: imp.informative })}</p>
             </div>
             <ImpactRange impact={imp} height={40} />
           </div>
@@ -66,7 +66,7 @@ export async function TrainerImpactCard({ w, personId }: { w: World; personId: n
       {(arrived.length > 0 || left.length > 0) && (
         <div className="grid gap-4 lg:grid-cols-2">
           {arrived.length > 0 && <div className="card p-5"><div className="eyebrow mb-2">{t("Fighters who joined")}</div><MoveTable rows={arrived} kind="arrived" /></div>}
-          {left.length > 0 && <div className="card p-5"><div className="eyebrow mb-2">{t("Fighters who left")}</div><MoveTable rows={left} kind="left" /><p className="mt-2 text-xs text-muted">{t("For someone who left, a fall in rating afterwards counts in the trainer's favour.")}</p></div>}
+          {left.length > 0 && <div className="card p-5"><div className="eyebrow mb-2">{t("Fighters who left")}</div><MoveTable rows={left} kind="left" /><p className="mt-2 text-xs text-muted">{t("For someone who left, a fall in rating afterwards counts in the trainer’s favour.")}</p></div>}
         </div>
       )}
       {ud && ud.underdogFights >= 5 && (

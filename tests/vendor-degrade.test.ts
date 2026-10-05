@@ -36,3 +36,10 @@ test("round 78 faults: wrong totals lower the vendor's wins (and are named), dis
     assert.ok(o && o.winner !== null && o.winner !== c.winner, "the same fight a day earlier, with the other winner");
   }
 });
+
+test("round 82 fault: reversed winners change the fight list and leave the vendor's totals alone", () => {
+  const clean = league(), w = degradeWorld(league(), { seed: 2, reversed: 7 });
+  const changed = w.fights.filter((f, i) => f.winner !== clean.fights[i].winner);
+  assert.equal(changed.length, 7); assert.ok(changed.every((f) => f.winner !== null && clean.fights.find((c) => c.id === f.id)!.winner !== null));
+  assert.deepEqual([...w.careers], [...clean.careers], "the totals are the truth");
+});

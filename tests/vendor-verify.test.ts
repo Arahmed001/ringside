@@ -156,3 +156,40 @@ test("a surplus that goes away without the 3-round fights is named as one: proba
   assert.equal(r.tally.short, 2); assert.equal(r.tally.losses, 0, "not blamed on a wrong winner");
   assert.match(describeConflictReport(r, 1).join("\n"), /3 rds/);
 });
+
+test("a conflict that one reversed winner would remove is named as such: 1-0-0 loaded against a vendor 0-1-0", () => {
+  const feed: FeedData = { ...miniFeed(), boxers: ["A", "B"].map(boxer), events: [ev("E1", "2020-01-01")], bouts: [bout("1", "A", "B", { eventExternalId: "E1" })] };   // A beats B
+  const v = new Map([["A", rec(0, 1, 0)], ["B", rec(1, 0, 0)]]);                                                                                                   // the vendor has it the other way round
+  const r = explainConflicts(feed, v, "2026-10-04", 14);
+  assert.deepEqual(r.fighters.map((f) => [f.name, f.causes]), [["Fighter A", ["wins", "flipped"]], ["Fighter B", ["losses", "flipped"]]]);
+  assert.equal(r.tally.flipped, 2);
+  // a fighter with several surplus wins is not one flipped winner away from his record
+  const many: FeedData = { ...miniFeed(), boxers: ["A", "B", "C", "D"].map(boxer), events: [ev("E1", "2020-01-01")], bouts: [bout("1", "A", "B", { eventExternalId: "E1" }), bout("2", "A", "C", { eventExternalId: "E1" }), bout("3", "A", "D", { eventExternalId: "E1" })] };
+  const m = explainConflicts(many, new Map([["A", rec(0, 0, 0)], ["B", rec(0, 1, 0)], ["C", rec(0, 1, 0)], ["D", rec(0, 1, 0)]]), "2026-10-04", 14);
+  assert.deepEqual(m.fighters.find((f) => f.name === "Fighter A")!.causes.includes("flipped"), false);
+});
+
+// round 82: what a one-fight reversal would do to the OTHER fighter
+const oneFight = (): FeedData => ({ ...miniFeed(), boxers: ["A", "B"].map(boxer), events: [ev("E1", "2020-01-01")], bouts: [bout("1", "A", "B", { eventExternalId: "E1" })] }); // A beats B
+const evidenceOf = (v: Map<string, ReturnType<typeof rec>>) => explainConflicts(oneFight(), v, "2026-10-04", 14);
+
+test("flip evidence: a reversal that clears both fighters is mutual (the list's flag looks reversed)", () => {
+  const r = evidenceOf(new Map([["A", rec(0, 1, 0)], ["B", rec(1, 0, 0)]]));   // the vendor has it the other way round for both
+  assert.deepEqual(r.flipEvidence, { mutual: 2, open: 0, contradicted: 0 });
+  assert.deepEqual(r.fighters.map((f) => f.flip), ["mutual", "mutual"]);
+});
+
+test("flip evidence: a reversal that would break an opponent whose record adds up exactly is contradicted (that winner looks right)", () => {
+  const r = evidenceOf(new Map([["A", rec(0, 1, 0)], ["B", rec(0, 1, 0)]]));   // B's 0-1-0 is exact; only A's total is odd
+  assert.equal(r.total, 1); assert.deepEqual(r.flipEvidence, { mutual: 0, open: 0, contradicted: 1 });
+  // an opponent with a partial record that the reversal would push into a conflict is the same
+  const p = evidenceOf(new Map([["A", rec(0, 1, 0)], ["B", rec(0, 3, 0)]]));   // B holds 0-1-0 of 0-3-0: partial; with a win he would exceed 0 wins
+  assert.deepEqual(p.flipEvidence, { mutual: 0, open: 0, contradicted: 1 });
+});
+
+test("flip evidence: an opponent with no vendor record, or a partial one the reversal leaves partial, says nothing either way", () => {
+  assert.deepEqual(evidenceOf(new Map([["A", rec(0, 1, 0)]])).flipEvidence, { mutual: 0, open: 1, contradicted: 0 });
+  assert.deepEqual(evidenceOf(new Map([["A", rec(0, 1, 0)], ["B", rec(5, 4, 0)]])).flipEvidence, { mutual: 0, open: 1, contradicted: 0 });
+  const text = describeConflictReport(evidenceOf(new Map([["A", rec(0, 1, 0)], ["B", rec(1, 0, 0)]]))).join("\n");
+  assert.match(text, /of those: 2 where the same reversal would also clear the OTHER fighter's conflict/); assert.match(text, /0 where every such reversal would break an opponent/);
+});

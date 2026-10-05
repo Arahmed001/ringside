@@ -717,3 +717,40 @@ test("before fetching, the run says how many fighters are not cached, and warns 
   await B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0, cacheDir: r, log: (m) => l2.push(m), maxFights: 400, maxRequests: 10_000, perHour: 450, sleep: async () => {} }).fetchBoxers();
   assert.match(s1(l2), /^320 fighters to fetch, about 43 minute\(s\) at 450 an hour$/);
 });
+
+test("through a real load: a fight listed under two profiles of the same opponent is one bout (round 82)", async () => {
+  const both: Record<string, B.ApiFighter> = { A1: fighter("A1", "Alpha One"), B1: fighter("B1", "Bravo One"), B2: fighter("B2", "Bravo One") };
+  const day2 = "2024-12-22T21:00:00+00:00";
+  const fights = [fight("1", "A1", "B1"), fight("2", "A1", "B2", { date: day2, event: { id: "ev-2", title: "Reignited", date: day2, location: "Riyadh, Saudi Arabia", venue: "Kingdom Arena" } })];
+  const { impl } = mockFetch((path) => path === "/v2/fights/" ? { body: env(fights) } : path === "/v2/fights/schedule" ? { body: env([]) } : { body: env(both[path.split("/").pop()!]) });
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0 });
+  const bouts = await p.fetchBouts();
+  assert.equal(bouts.length, 1, "one fight, not two against 'Bravo One'");
+  assert.equal(p.notes().duplicateFightsMerged, 1); assert.equal(p.notes().duplicateFightsAcrossProfiles, 1);
+});
+
+test("a run with patience waits out a network outage instead of skipping fighters; one whose network stays down stops; one without patience skips as before (round 84)", async () => {
+  const run = async (failures: number, extra: Partial<B.BoxingDataApiOptions>) => {
+    const sleeps: number[] = [], lines: string[] = [];
+    let seen = 0;
+    const inner = mockFetch(standard).impl;
+    const flaky = (async (url: string, init?: RequestInit) => { if (String(url).includes("/v2/fighters/A1") && seen++ < failures) throw new TypeError("fetch failed"); return inner(url, init); }) as unknown as typeof fetch;
+    const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: flaky, scheduleDays: 0, retries: 4, sleep: async (ms) => { sleeps.push(ms); }, log: (m) => lines.push(m), ...extra });
+    const boxers = await p.fetchBoxers().then((b) => b, (e: Error) => e);
+    return { boxers, sleeps, lines };
+  };
+  // five failures in a row, then the network is back: every fighter arrives, none skipped, the waits grow
+  const back = await run(5, { patienceMs: 3_600_000 });
+  assert.ok(Array.isArray(back.boxers) && back.boxers.length === 3, "all three fighters, none skipped");
+  assert.deepEqual(back.sleeps.filter((ms) => ms >= 10_000), [10_000, 30_000, 60_000, 120_000, 300_000]);
+  assert.ok(!back.lines.some((l) => /skipped/.test(l)));
+  // the network never comes back: the run stops with a message that says so, after the patience, rather than skipping
+  const down = await run(1e9, { patienceMs: 5 * 60_000 });
+  assert.ok(down.boxers instanceof B.NetworkError, String(down.boxers));
+  assert.match((down.boxers as Error).message, /network looks down: run the same command again/);
+  assert.deepEqual(down.sleeps.filter((ms) => ms >= 10_000), [10_000, 30_000, 60_000, 120_000], "220 s waited; the next step (300 s) would pass the 5 minutes");
+  // no patience: the quick retries and then the fighter is skipped, as it always was
+  const none = await run(1e9, {});
+  assert.ok(Array.isArray(none.boxers) && none.boxers.length === 2, "A1 skipped, the others loaded");
+  assert.ok(none.lines.some((l) => /fighter A1 skipped: Boxing Data API unreachable/.test(l)));
+});

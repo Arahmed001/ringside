@@ -84,10 +84,11 @@ export function makeWorld(o: { fighters: number; fights: number; years?: number;
  * - `unrecorded`: this many finished fights have no winner but a decision outcome, and the vendor's totals do NOT count them (a result not yet posted: the importer's draw guess made these conflicts);
  * - `wrongTotals`: this many fighters have a vendor total of wins one below what their fights give (a wrong winner, a stale total, an exhibition counted in the list: a conflict nothing in the fights explains; their ids are in `world.faults`);
  * - `disagree`: this many fights are listed again a day later with the OTHER fighter as winner (the vendor counts the original once);
+ * - `reversed`: this many fights have their winner reversed in the fight list while the vendor's totals stay as they were (the list's flag is the wrong way round: both fighters' records come out wrong, in opposite directions);
  * - `duplicates`: this many fights are listed twice (same pair, same card) while the vendor's totals count them once (a conflict: "repeat" and "same-day").
  * The league is changed in place and returned; deterministic for a seed.
  */
-export function degradeWorld(w: MockWorld, o: { seed?: number; priorShare?: number; unrecorded?: number; duplicates?: number; wrongTotals?: number; disagree?: number }): MockWorld {
+export function degradeWorld(w: MockWorld, o: { seed?: number; priorShare?: number; unrecorded?: number; duplicates?: number; wrongTotals?: number; disagree?: number; reversed?: number }): MockWorld {
   const rand = mulberry32(o.seed ?? 3);
   const done = w.fights.filter((f) => f.status === "FINISHED");
   const career = (id: string) => w.careers.get(id) ?? w.careers.set(id, { wins: 0, losses: 0, draws: 0 }).get(id)!;
@@ -98,6 +99,7 @@ export function degradeWorld(w: MockWorld, o: { seed?: number; priorShare?: numb
   const decided = done.filter((f) => f.winner !== null); // a fight that already has no winner is a real draw: leave those alone
   const pick = () => { for (let k = 0; k < 20; k++) { const f = decided[Math.floor(rand() * decided.length)]; if (!used.has(f.id)) { used.add(f.id); return f; } } return null; };
   for (let i = 0; i < (o.unrecorded ?? 0); i++) { const f = pick(); if (!f) break; drop(f); f.winner = null; f.outcome = "UD"; f.round = null; }
+  for (let i = 0; i < (o.reversed ?? 0); i++) { const f = pick(); if (f) f.winner = f.winner === "a" ? "b" : "a"; } // the fight list only: `careers` keep the true results
   const copies: MockFight[] = [];
   for (let i = 0; i < (o.duplicates ?? 0); i++) { const f = pick(); if (f) copies.push({ ...f, id: `d${i}` }); }
   for (let i = 0; i < (o.disagree ?? 0); i++) {

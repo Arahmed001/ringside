@@ -93,9 +93,9 @@ async function realistic(checks: [string, boolean, string][]) {
     const e = await go("e. load --allow-partial (conflicts stand)", ["--allow-partial", "--cache-dir", cache], { DATABASE_PATH: dbFile });
     checks.push(["A: --allow-partial does not wave a conflict through", e.code !== 0 && /MORE wins, losses or draws/.test(e.out) && boxersIn(dbFile) === 0, `exit ${e.code}, ${boxersIn(dbFile)} fighters written`]);
     const wrongIds = world.faults?.wrongTotals ?? [];
-    const f = await go("f. --check --cached-only --drop-conflicts --allow-partial", ["--check", "--cached-only", "--drop-conflicts", "--allow-partial", "--cache-dir", cache], noKey);
+    const f = await go("f. --check --cached-only --drop-conflicts --allow-partial", ["--check", "--cached-only", "--drop-conflicts", "--allow-partial", "--explain-conflicts", "--cache-dir", cache], noKey);
     const left = /--drop-conflicts: left out (\d+) fighter/.exec(f.out);
-    checks.push(["A: --drop-conflicts leaves out the fighters with wrong totals, and then the check passes", f.code === 0 && !!left && Number(left[1]) >= wrongIds.length * 0.9 && Number(left[1]) <= wrongIds.length && !/a load would be refused/.test(f.out), `${left?.[1] ?? "none"} left out of ${wrongIds.length} wrong totals (a fighter whose earlier career is also missing is short, not in conflict), exit ${f.code}`]);
+    checks.push(["A: --drop-conflicts says why they conflicted, leaves them out, and then the check passes", f.code === 0 && /^why the \d+ conflict/m.test(f.out) && !!left && Number(left[1]) >= wrongIds.length * 0.9 && Number(left[1]) <= wrongIds.length && !/a load would be refused/.test(f.out), `${left?.[1] ?? "none"} left out of ${wrongIds.length} wrong totals (a fighter whose earlier career is also missing is short, not in conflict), exit ${f.code}`]);
     const dbFile3 = path.join(dir, "dropped.db"), listFile = path.join(dir, "dropped.csv");
     const g = await go("g. load --drop-conflicts --allow-partial", ["--drop-conflicts", "--allow-partial", "--dropped-file", listFile, "--cache-dir", cache], { DATABASE_PATH: dbFile3 });
     const listedIds = fs.existsSync(listFile) ? fs.readFileSync(listFile, "utf8").trim().split("\n").slice(1).map((l) => l.split(",")[0].replace(/^bda-f-/, "")) : [];
@@ -104,6 +104,15 @@ async function realistic(checks: [string, boolean, string][]) {
     const inDb = new Set((x.prepare("SELECT external_id e FROM boxers").all() as { e: string }[]).map((r) => r.e));
     x.close();
     checks.push(["A: the load goes through without them, the list names only fighters with a wrong total, and none is in the database", g.code === 0 && left !== null && listed === Number(left[1]) && listedIds.every((id) => wrongIds.includes(id) && !inDb.has(`bda-f-${id}`)) && inDb.size > 0, `exit ${g.code}, ${listed} listed, ${inDb.size} fighters loaded`]);
+  });
+
+  // D: winners reversed in the fight list (the vendor's totals are right): the explainer must say the reversal clears BOTH fighters, which is what tells a wrong flag from a wrong total
+  await scenario("D. winners reversed in the list", { seed: N.seed + 3, reversed: Math.max(10, Math.round(N.fights * 0.002)) }, async (go, cache) => {
+    const a = await go("a. --check --explain-conflicts", ["--check", "--explain-conflicts", "--show", "1", "--cache-dir", cache]);
+    const total = Number(/^why the (\d+) conflict/m.exec(a.out)?.[1] ?? 0);
+    const flipped = Number(/^\s+(\d+)\s+reversing the winner of one fight/m.exec(a.out)?.[1] ?? 0);
+    const mutual = Number(/of those: (\d+) where the same reversal/.exec(a.out)?.[1] ?? 0);
+    checks.push(["D: reversed winners are named, and the same reversal clears both fighters", total > 0 && flipped >= total * 0.8 && mutual >= flipped * 0.8, `${total} conflicts, ${flipped} flipped, ${mutual} mutual`]);
   });
 
   // C: only duplicated fights: merged, so the records add up again

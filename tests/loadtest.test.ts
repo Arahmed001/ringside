@@ -34,3 +34,11 @@ test("cold cost: the first request against the median of the rest, never negativ
   const after = [30, 10, 20]; coldCost(1, after);
   assert.deepEqual(after, [30, 10, 20], "the caller's array is left alone");
 });
+
+test("the demo fighters in the default paths are replaced by fighters that exist in the league being tested (round 81)", async () => {
+  const { LOAD_PATHS, withSlugs } = await import("../lib/loadtest");
+  const out = withSlugs(LOAD_PATHS, "alpha-one", "beta-two");
+  assert.ok(out.includes("/boxers/alpha-one") && out.includes("/compare?a=alpha-one&b=beta-two"));
+  assert.ok(!out.some((p) => /ramil-abad|tomas-villalba/.test(p)), "no demo slug is left");
+  assert.equal(out.length, LOAD_PATHS.length); assert.ok(out.includes("/rankings"), "the other paths are untouched");
+});

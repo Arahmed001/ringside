@@ -29,7 +29,7 @@ export default async function People({ searchParams }: { searchParams: Promise<{
       <div>
         <div className="eyebrow mb-2">{t("The people behind the fights")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase">{t("Corners & officials")}</h1>
-        <p className="mt-2 max-w-2xl text-muted">{t("Who trains, manages, scores and referees. Every fighter's team history is tracked with dates, so you can see how fighters did before, during and after a trainer.")}</p>
+        <p className="mt-2 max-w-2xl text-muted">{t("Who trains, manages, scores and referees. Every fighter’s team history is tracked with dates, so you can see how fighters did before, during and after a trainer.")}</p>
       </div>
       <div className="flex flex-wrap gap-2">
         {TABS.map(([k, label]) => <Link key={k} href={`/people?role=${k}`} className={`chip ${tab === k ? "!border-gold/50 !text-gold" : ""}`}>{t(label)}</Link>)}

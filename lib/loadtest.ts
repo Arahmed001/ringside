@@ -10,6 +10,11 @@ export function summarise(latencies: number[], seconds: number): Summary {
 export const LOAD_PATHS = ["/", "/rankings", "/boxers/ramil-abad", "/events", "/analytics", "/map", "/all-time/greatest", "/ar", "/boxers?page=2", "/compare?a=ramil-abad&b=tomas-villalba",
   "/matchmaking", "/trainers", "/upset-watch", "/fight-of-the-year", "/on-this-day", "/money", "/titles", "/people", "/api/search?q=ram", "/api/fighters?q=ram"];
 
+/** The two fighters the default paths name exist only in the demo league. Against another league they are 404s, which the load test counts as failures (seen on a 32,000-fighter league). */
+export const DEMO_SLUGS = ["ramil-abad", "tomas-villalba"] as const;
+/** The default paths with the demo fighters' slugs replaced by two that exist in the league being tested. */
+export const withSlugs = (paths: string[], a: string, b: string): string[] => paths.map((p) => p.split(DEMO_SLUGS[0]).join(a).split(DEMO_SLUGS[1]).join(b));
+
 /**
  * What the first visitor to a page pays beyond what everyone after them does: the first request's time, the median of the requests after it,
  * and the difference. The first request after a restart includes work the server only does when someone asks (building a table, scoring a year);

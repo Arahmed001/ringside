@@ -15,6 +15,7 @@ export interface SearchHit { kind: HitKind; title: string; subtitle?: string; hr
 /** The pages ⌘K can jump to (locale-free paths; keywords help "weigh" find Weigh-ins). */
 export const PAGES: { href: string; label: string; words: string }[] = [
   { href: "/rankings", label: msg("Rankings"), words: "rankings pound for pound p4p divisions" },
+  { href: "/tonight", label: msg("Tonight"), words: "tonight today tonights fight night live card results now" },
   { href: "/previews", label: msg("Fight previews"), words: "previews preview upcoming fights predictions picks what to watch" },
   { href: "/titles", label: msg("Title lineages"), words: "titles belts champions lineage reigns world continental" },
   { href: "/all-time", label: msg("All-time lists"), words: "all-time records greatest of all time goat longest reign most knockouts fastest knockout biggest upsets best fights" },
@@ -32,9 +33,10 @@ export const PAGES: { href: string; label: string; words: string }[] = [
   { href: "/weights", label: msg("Weigh-ins"), words: "weigh-ins weights scale" },
   { href: "/money", label: msg("Fight money"), words: "money purses gate ppv pay-per-view earnings revenue tickets broadcasters viewers" },
   { href: "/analytics", label: msg("Analytics"), words: "analytics statistics stats" },
+  { href: "/watchlist", label: msg("My watchlist"), words: "my watchlist watch list follow following starred favourite favorite fighters next fight" },
   { href: "/picks", label: msg("My picks"), words: "my picks pick em pickem predictions streak record vs model" },
   { href: "/accountability", label: msg("Track record"), words: "track record accountability accuracy calibration backtest model predictions how good" },
-  { href: "/map", label: msg("Style Map"), words: "style map" },
+  { href: "/map", label: msg("Style map"), words: "style map" },
   { href: "/data", label: msg("Data"), words: "data model coverage sources" },
   { href: "/privacy", label: msg("Privacy"), words: "privacy data cookies delete account export personal information storage tracking gdpr" },
 ];

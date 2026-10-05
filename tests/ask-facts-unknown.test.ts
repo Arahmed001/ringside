@@ -47,16 +47,16 @@ test("where the data does not give the fact, the answer says so, in English and 
     assert.equal(await run("what is Diego Ramos's record"), "Diego Ramos has had 3 fights: 1-1-1.");
     assert.equal(await run("how many knockouts does Diego Ramos have"), "Diego Ramos has 1 knockouts in 1 wins (100%).");
     assert.equal(await run("which gym does Diego Ramos train at"), "Diego Ramos trains at Iron Works.");
-    assert.equal(await run("who trains Diego Ramos"), "Diego Ramos's head trainer is Trainer Two.");
-    assert.equal(await run("when does Diego Ramos fight next"), "Diego Ramos's next fight is against Mateo Vidal on Nov 15, 2026.", "the earliest card that is on: not the called-off one, and not the later one listed first");
-    assert.match(await run("when did Diego Ramos last fight"), /^Diego Ramos's last fight was on Sep 1, 2025: a draw against Mateo Vidal \(/);
+    assert.equal(await run("who trains Diego Ramos"), "Diego Ramos’s head trainer is Trainer Two.");
+    assert.equal(await run("when does Diego Ramos fight next"), "Diego Ramos’s next fight is against Mateo Vidal on Nov 15, 2026.", "the earliest card that is on: not the called-off one, and not the later one listed first");
+    assert.match(await run("when did Diego Ramos last fight"), /^Diego Ramos’s last fight was on Sep 1, 2025: a draw against Mateo Vidal \(/);
     // the other facts, from the same record: who has been stopped, whether still fighting or unbeaten, the manager now and not the one before, a title never fought for
     assert.equal(await run("has Diego Ramos ever been knocked out"), "Diego Ramos has never been knocked out or stopped on record.");
     assert.equal(await run("has Mateo Vidal ever been knocked out"), "Mateo Vidal has been stopped 1 time (losses in all: 1).");
     assert.equal(await run("is Diego Ramos still fighting"), "Diego Ramos is active and has lost 1 time (1-1-1).");
     assert.equal(await run("is Pablo Quintana undefeated"), "Pablo Quintana is active and unbeaten (0-0-0).");
     assert.equal(await run("is Old Timer retired"), "Old Timer is retired and unbeaten (0-0-0).");
-    assert.equal(await run("who is Diego Ramos's manager"), "Diego Ramos's manager is Judge Two.");
+    assert.equal(await run("who is Diego Ramos's manager"), "Diego Ramos’s manager is Judge Two.");
     assert.equal(await run("who manages Pablo Quintana"), "The data has no current manager for Pablo Quintana.");
     assert.equal(await run("how many title fights has Diego Ramos won"), "Diego Ramos has not fought for a title on record.");
     // two of them side by side, in the order asked (and a question about when one fights the other is about that bout)

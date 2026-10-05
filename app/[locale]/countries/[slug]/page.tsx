@@ -64,7 +64,7 @@ export default async function Country({ params }: { params: Promise<{ slug: stri
       )}
 
       <section>
-        <SectionTitle eyebrow={t("Best rated")} title={t("Top fighters")} href={`/boxers?country=${encodeURIComponent(v.name)}`} cta={t("All {n} fighters", { n: v.fighters })} />
+        <SectionTitle eyebrow={t("Top rated")} title={t("Top fighters")} href={`/boxers?country=${encodeURIComponent(v.name)}`} cta={t("All {n} fighters", { n: v.fighters })} />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {v.top.map((b, i) => <BoxerCard key={b.id} b={b} rank={i + 1} />)}
         </div>
@@ -72,7 +72,7 @@ export default async function Country({ params }: { params: Promise<{ slug: stri
 
       {v.next.length > 0 && (
         <section>
-          <SectionTitle eyebrow={t("Fight calendar")} title={t("Coming fights")} href="/events" cta={t("All events")} />
+          <SectionTitle eyebrow={t("Fight calendar")} title={t("Upcoming fights")} href="/events" cta={t("All events")} />
           <ul className="grid gap-3 md:grid-cols-2">
             {v.next.map((b) => (
               <li key={b.id}>

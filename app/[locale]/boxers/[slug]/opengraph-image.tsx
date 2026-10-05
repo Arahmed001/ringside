@@ -1,7 +1,7 @@
 import { isLocale } from "@/lib/i18n/config";
 import { getTFor } from "@/lib/i18n/dicts";
 import { OG_SIZE, OG_TYPE, ogCard } from "@/lib/og";
-import { getWorld, recordStr } from "@/lib/world";
+import { getWorld, koView, recordStr } from "@/lib/world";
 import { countryName, pct } from "@/lib/format";
 import { divisionLabel } from "@/lib/divisions";
 
@@ -23,7 +23,7 @@ export default async function Image({ params }: { params: Promise<{ locale: stri
     stats: [
       { label: t("record"), value: recordStr(b) },
       { label: t("Elo rating"), value: String(Math.round(b.rating)) },
-      { label: t("KO rate"), value: pct(b.koRate) },
+      { label: t("KO rate"), value: pct(koView(b).rate) },
     ],
   });
 }

@@ -29,6 +29,6 @@ test("limits and slugs", () => {
 });
 
 test("women's label keeps the division name", () => {
-  assert.equal(divisionLabel("Flyweight", "female"), "Women's Flyweight");
+  assert.equal(divisionLabel("Flyweight", "female"), "Women’s Flyweight");
   assert.equal(divisionLabel("Flyweight", "male"), "Flyweight");
 });

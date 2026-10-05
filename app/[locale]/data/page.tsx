@@ -183,7 +183,7 @@ export default async function DataPage() {
                   </tr>
                 ))}</tbody>
               </table>
-              <p className="mt-3 text-xs text-muted">{t("A factor needs |z| of about 2 or more to count as signal. Fitted on rating, reach, age, layoff, knockout rate, KO losses, experience, usual rehydration, fight-night weight edge, new-trainer flag and the trainer's prior win rate. In this demo league the weigh-in and trainer effects were planted but are small, so they are not detectable at this sample size. That is the honest answer, and real data will say what is really there.")}</p>
+              <p className="mt-3 text-xs text-muted">{t("A factor needs |z| of about 2 or more to count as signal. Fitted on rating, reach, age, layoff, knockout rate, KO losses, experience, usual rehydration, fight-night weight edge, new-trainer flag and the trainer’s prior win rate. In this demo league the weigh-in and trainer effects were planted but are small, so they are not detectable at this sample size. That is the honest answer, and real data will say what is really there.")}</p>
             </ScrollRegion>
             <div className="card p-5">
               <div className="eyebrow mb-3">{t("Is it calibrated? ({model}, held-out fights)", { model: RECOMMENDED[fit.recommended] ? t(RECOMMENDED[fit.recommended]) : fit.recommended })}</div>
@@ -194,7 +194,7 @@ export default async function DataPage() {
               ))}</ul>
               <p className="mt-3 text-xs text-muted">{t("Gold bar = average probability the model gave; green tick = how often those fighters actually won.")}</p>
             </div>
-            <p className="text-sm text-muted">{eloScale > 1.05 ? t.rich("The site's default predictions use the fitted rating scale (<b>{scale}</b> a plain Elo expectation); the fit found ratings are compressed relative to true skill gaps in this league.", { scale: `${eloScale.toFixed(1)}×`, b: (c) => <b className="text-ink">{c}</b> }) : t("The site's default predictions use the standard Elo scale.")}</p>
+            <p className="text-sm text-muted">{eloScale > 1.05 ? t.rich("The site’s default predictions use the fitted rating scale (<b>{scale}</b> a plain Elo expectation); the fit found ratings are compressed relative to true skill gaps in this league.", { scale: `${eloScale.toFixed(1)}×`, b: (c) => <b className="text-ink">{c}</b> }) : t("The site’s default predictions use the standard Elo scale.")}</p>
           </div>
         )}
       </section>

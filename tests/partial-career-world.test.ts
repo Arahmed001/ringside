@@ -36,3 +36,26 @@ test("on a league held in part, 'undefeated' and the record filters agree with t
   const heldNoLoss = w.boxers.filter((b) => b.losses === 0 && b.bouts > 0 && shown(b).losses > 0);
   assert.ok(heldNoLoss.length > 0, "the league does have fighters whose fights held hold no loss but whose career has one (what the old filter listed wrongly)");
 });
+
+test("the knockout figures printed in the scouting text, the preview, the upset signals and the rankings table are the ones the fighter page shows (round 86)", async () => {
+  const { makeWorld, mockVendor } = await import("../lib/vendor-mock");
+  const { boxingDataApiProvider } = await import("../lib/providers/boxing-data-api");
+  const { getDb } = await import("../lib/db");
+  const { ingest } = await import("../lib/ingest");
+  const { getWorld, koView, careerView } = await import("../lib/world");
+  const { rulesReport } = await import("../lib/ai");
+  const db = await getDb();
+  db.exec("DELETE FROM bouts; DELETE FROM events; DELETE FROM boxers;");
+  const league = makeWorld({ fighters: 3000, fights: 3700, upcoming: 4, seed: 8, today: "2026-10-03" });
+  const p = boxingDataApiProvider({ key: "k".repeat(40), purpose: "evaluation", fetchImpl: mockVendor(league).fetchImpl, scheduleDays: 0, maxRequests: 1e6, retries: 0, gapMs: 0, sleep: async () => {}, log: () => {}, maxFighters: 500 });
+  await ingest(db, p, { strict: false });
+  const w = await getWorld();
+  // a fighter held in part, whose career knockouts the supplier states, and whose held rate differs from the career rate
+  const b = w.boxers.find((x) => careerView(x).source === "supplier" && x.vendorRecord && typeof x.vendorRecord.koWins === "number" && x.kos > 0 && Math.abs(Math.round(x.koRate * 100) - Math.round(koView(x).rate * 100)) >= 5 && koView(x).kos > 0);
+  assert.ok(b, "the league has a part-held fighter whose held and career knockout rates differ");
+  const shown = Math.round(koView(b!).rate * 100), held = Math.round(b!.koRate * 100);
+  assert.notEqual(shown, held);
+  const text = rulesReport(b!, w);
+  assert.ok(text.includes(`${koView(b!).kos}`) && text.includes(`${shown}%`), `the report says the career figures (${koView(b!).kos} KOs, ${shown}%): ${text}`);
+  assert.ok(!text.includes(`${held}%`) || held === shown, "and not the rate of the fights held");
+});

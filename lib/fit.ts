@@ -26,7 +26,7 @@ export const FEATURES = [
   { key: "rehyd", label: msg("Usual rehydration"), unit: msg("per lb"), scale: 1 },
   { key: "weightEdge", label: msg("Fight-night weight edge"), unit: msg("per lb"), scale: 1 },
   { key: "newTrainer", label: msg("New trainer (<6 mo)"), unit: msg("vs not"), scale: 1 },
-  { key: "trainerWins", label: msg("Trainer's prior win rate"), unit: msg("per 10 pts"), scale: 0.1 },
+  { key: "trainerWins", label: msg("Trainer’s prior win rate"), unit: msg("per 10 pts"), scale: 0.1 },
 ] as const;
 export type FeatureKey = (typeof FEATURES)[number]["key"];
 

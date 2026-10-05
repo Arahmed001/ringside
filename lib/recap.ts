@@ -147,7 +147,7 @@ export function recapLines(r: Recap, w: World, t: T = tEn): string[] {
       titleLine = (r.title.how === "vacant" ? t("{name} won the vacant {belt}.", { name: winner, belt })
         : r.title.how === "first" ? t("{name} became the first champion on record of the {belt}.", { name: winner, belt })
         : r.title.how === "inherited" ? t("{name} took the {belt}: the champion was not in the ring.", { name: winner, belt })
-        : r.title.days !== null && r.title.defenses !== null ? t.n(r.title.defenses, "{name} took the {belt}, ending {loser}'s reign of {days} days and {n} defence.", "{name} took the {belt}, ending {loser}'s reign of {days} days and {n} defences.", { name: winner, belt, loser, days: r.title.days })
+        : r.title.days !== null && r.title.defenses !== null ? t.n(r.title.defenses, "{name} took the {belt}, ending {loser}'s reign of {days} days and {n} defence.", "{name} took the {belt}, ending {loser}’s reign of {days} days and {n} defences.", { name: winner, belt, loser, days: r.title.days })
         : t("{name} beat the champion and took the {belt}.", { name: winner, belt }));
     } else if (r.title.kind === "defended") titleLine = (t("{name} made defence number {n} of the {belt}.", { name: winner, n: r.title.number, belt: beltName(r.title.beltSlug) }));
     else titleLine = t("A title fight, but the belt did not change hands.");
@@ -165,7 +165,7 @@ export function recapLines(r: Recap, w: World, t: T = tEn): string[] {
       : t("{name} fell from #{a} to #{b} at {division}.", { name, a: m.before ?? 0, b: m.after, division: div }));
   }
   if (r.winStreak >= 3) out.push(t("{name} has now won {n} in a row.", { name: winner, n: r.winStreak }));
-  if (r.loserUnbeatenEnded) out.push(t("{name}'s unbeaten run of {n} fights is over.", { name: loser, n: r.loserUnbeatenEnded }));
+  if (r.loserUnbeatenEnded) out.push(t("{name}’s unbeaten run of {n} fights is over.", { name: loser, n: r.loserUnbeatenEnded }));
   else if (r.loserLossStreak >= 2) out.push(t("{name} has now lost {n} in a row.", { name: loser, n: r.loserLossStreak }));
   if (r.loserFirstStoppage) out.push(t("The first time {name} has been stopped in {n} fights.", { name: loser, n: r.loserFirstStoppage + 1 }));
   const fmt = (x: Rec) => `${x.w}-${x.l}-${x.d}`;
