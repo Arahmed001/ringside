@@ -6,6 +6,9 @@ import { api, useAccount } from "./useAccount";
 export const PICKS_KEY = "ringside:picks";
 const EMPTY: Record<number, number> = {};
 
+/** A stored value that is not a plain object (an edited or foreign value) counts as no picks, instead of breaking the page. */
+const isPickMap = (v: unknown): v is Record<number, number> => typeof v === "object" && v !== null && !Array.isArray(v);
+
 /**
  * The visitor's pick'em picks, wherever they live: on the account when signed in (so they follow the person across devices and count on the
  * leaderboard), in this browser otherwise. `choose` returns an error code when the server refuses (locked, rate limited...), after undoing
@@ -28,7 +31,7 @@ export function usePicks() {
     return () => { live = false; };
   }, [user]);
 
-  const picks = user !== null ? (remote?.for === user ? remote.picks : EMPTY) : local;
+  const picks = user !== null ? (remote?.for === user ? remote.picks : EMPTY) : isPickMap(local) ? local : EMPTY;
 
   const mirror = useRef<Record<number, number>>({}); // the latest picks, so two quick clicks do not overwrite each other
   const update = useCallback((next: Record<number, number>) => { mirror.current = next; if (user !== null) setRemote({ for: user, picks: next }); }, [user]);
