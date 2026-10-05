@@ -77,6 +77,6 @@ export function describeStatus(i: StatusInput): string[] {
   else if (fileOk && (left === null || left > 0)) out.push("  start the paced fetch (one run only; the key is read from the key file):  npm run vendor:fetch");
   else if ((!i.key.set || i.key.placeholder) && !fileOk) out.push("  save the key once, in a real terminal tab (hidden prompt, never in a chat box):  npm run vendor:fetch -- --setup");
   else if (left === null || left > 0) out.push(`  (re)start the fetch, one run only, paced:  npm run vendor:backfill -- --check --per-hour 400 --patience-min 240 --cache-dir ${i.cacheDir}`);
-  else out.push(`  the cache is complete: run the check, then follow docs/real-data-runbook.md section 2c:  npm run vendor:backfill -- --check --drop-conflicts --allow-partial --explain-conflicts --cache-dir ${i.cacheDir}`);
+  else out.push(`  the cache is complete. See what the load would do, writing nothing:  npm run vendor:load -- --dry-run   (then, and only if you agree with it:  npm run vendor:load; docs/real-data-runbook.md section 2c)`);
   return out;
 }

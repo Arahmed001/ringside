@@ -49,7 +49,7 @@ test("the report says how long is left from the recent pace, and the next comman
   const fake = describeStatus({ ...base, cache, total: 35000, key: { set: true, length: 13, placeholder: true } }).join("\n");
   assert.match(fake, /looks like a placeholder/);
   const done = describeStatus({ ...base, cache: { ...cache, fighters: 35000 }, total: 35000 }).join("\n");
-  assert.match(done, /every fighter in the fight list is in the cache/); assert.match(done, /the cache is complete: run the check, then follow docs\/real-data-runbook\.md section 2c/);
+  assert.match(done, /every fighter in the fight list is in the cache/); assert.match(done, /the cache is complete\. See what the load would do, writing nothing:  npm run vendor:load -- --dry-run/);
   // an hour that crawls inside a steady six: the estimate uses the six-hour pace, and the report says the fetch has slowed
   const crawl = describeStatus({ ...base, cache: { ...cache, fightersLastHour: 81, fightersLast6Hours: 1429 }, total: 35000, running: [{ pid: 1, startedAt: "2026-10-05T00:00:00Z", command: "" }] }).join("\n");
   assert.match(crawl, /about 4\.\d days at 238 an hour/); assert.match(crawl, /SLOWED: 81 fighters in the last hour against 238 an hour over six/); assert.match(crawl, /network error/);

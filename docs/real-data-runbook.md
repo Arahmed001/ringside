@@ -163,6 +163,15 @@ For the day the full fetch (`--check --per-hour 400 --patience-min 240`, three d
 
 If anything looks wrong after the load: the database file is the only thing it wrote (and a backup if one existed). Delete it and load again from the cache for nothing (see "Undoing it").
 
+## 3a. The load, guided: `npm run vendor:load`
+
+```bash
+npm run vendor:load -- --dry-run                       # the check only: what a load would refuse or leave out, and why; writes nothing
+npm run vendor:load -- --storage-confirmed             # the same, then asks you to type LOAD, then loads
+```
+
+It reads the key from the key file (`npm run vendor:fetch -- --setup`), uses the cache (`~/ringside-real/vendor-cache`), and writes `DATABASE_PATH` (default `~/ringside-real/real.db`, new). It prints what it will do (cache and how many fighters it holds, the database and whether it is new, the dropped-fighters file, the key's length) and **changes nothing until you type exactly `LOAD`** (`--yes` skips the question; a terminal that is not interactive refuses without it). Defaults: `--drop-conflicts --allow-partial` (fighters whose records contradict the feed are left out and listed in `dropped.csv` beside the database; partial careers carry the vendor's total), replaced by `--complete-only` or `--allow-conflicts` if you give one; `--dropped-file`, `--cache-dir`, `--per-hour` and any other option of `vendor:backfill` pass through. **The vendor's written confirmation that its data may be stored is yours to state**: `BOXING_API_STORAGE_CONFIRMED=1` in the environment or `--storage-confirmed` on the command; it is never assumed, and `=0` switches storing off. The cache should be complete first (`npm run vendor:status`): a load asks the vendor for any fighter the cache lacks. It does what section 3 below lists; afterwards: section 4.
+
 ## 3. Load: no flags
 
 ```bash
