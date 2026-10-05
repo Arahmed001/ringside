@@ -9,6 +9,7 @@ import { AccountMenu } from "@/components/AccountMenu";
 import { dirOf, isLocale, localePath } from "@/lib/i18n/config";
 import { clientDict, tFor } from "@/lib/i18n/dicts";
 import { abs, indexable, isDemoData, jsonLd, siteUrl } from "@/lib/seo";
+import { vendorCredit } from "@/lib/site-info";
 import { NavGroups, Logo } from "@/components/SideNav";
 import { MobileMenu, RailToggle } from "@/components/RailControls";
 import { InlineScript } from "@/components/InlineScript";
@@ -86,6 +87,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
                 {isDemoData()
                   ? t.rich("Ringside demo build · All fighters, fights and events shown are <b>fictional, simulated data</b>. Ratings are Elo-style and unofficial.", { b: (c) => <b className="text-ink/80">{c}</b> })
                   : t("Ringside · Ratings are Elo-style and unofficial. Data sources and their licences are listed on the Data page.")}
+                {vendorCredit() && <>{" "}{t.rich("Fight, fighter and event data: <a>{name}</a>.", { name: vendorCredit()!.name, a: (c) => <a href={vendorCredit()!.url} lang="en" dir="ltr" target="_blank" rel="noopener noreferrer" className="inline-block py-1 underline decoration-dotted hover:text-ink">{c}</a> })}</>}
                 {" "}<Link href="/privacy" className="inline-block py-1 underline decoration-dotted hover:text-ink">{t("Privacy")}</Link>
               </footer>
             </div>
