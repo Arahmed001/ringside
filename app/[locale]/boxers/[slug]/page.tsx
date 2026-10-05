@@ -24,11 +24,12 @@ import { ScoutingReport } from "@/components/ScoutingReport";
 import { WatchButton } from "@/components/Watch";
 import { ShareButton } from "@/components/ShareButton";
 import { PrintButton } from "@/components/PrintButton";
+import { FighterPrintSheet, type PrintRow } from "@/components/FighterPrintSheet";
 import { BoutLine, BoxerCard, ResultPill, SectionTitle, Stat } from "@/components/ui";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
-import { countryName, flag, fmtDate, fmtPartialDate, pct } from "@/lib/format";
+import { countryName, flag, fmtDate, fmtPartialDate, methodLabel, pct } from "@/lib/format";
 import { msg } from "@/lib/i18n/t";
 import { countsInRecord, isDecision, isStoppage } from "@/lib/methods";
 import { EDIT_SOURCE } from "@/lib/accounts/edit-source";
@@ -147,8 +148,18 @@ const HONOURS_SHOWN = 8;
     );
   }
 
+  // the one-page print version: the five latest results with how each ended, the next fight, the belts and the headline numbers
+  const printRows: PrintRow[] = done.flatMap((x) => {
+    const r = resultFor(x, b.id);
+    return r === null ? [] : [{ date: fmtDate(x.date, { month: "short", day: "numeric", year: "numeric" }, t.locale), opponent: t.name(x.redId === b.id ? x.blueName : x.redName), result: r, how: methodLabel(x.method, x.endRound, t) }];
+  }).slice(0, 5);
+  const printNext = upcoming ? t("{date} vs {name}", { date: fmtDate(upcoming.date, undefined, t.locale), name: t.name(upcoming.redId === b.id ? upcoming.blueName : upcoming.redName) }) : null;
+  const printBelts = (w.official.byBoxer.get(b.id) ?? []).filter((p) => p.sex === "male" && p.place === "champion")
+    .map((p) => (p.titleType === "interim" ? t("{body} interim champion", { body: p.body }) : p.titleType === "regular" ? t("{body} regular champion", { body: p.body }) : t("{body} champion", { body: p.body })));
+
   return (
-    <div className="space-y-10">
+    <>
+    <div className="space-y-10 no-print">
       <JsonLd data={{
         "@type": "Person", name: t.name(b.name), ...(t.name(b.name) !== b.name ? { alternateName: [b.name] } : {}), jobTitle: "Professional boxer",
         nationality: { "@type": "Country", name: b.country }, ...(b.birthDate ? { birthDate: b.birthDate } : {}), ...(b.photoUrl ? { image: b.photoUrl } : {}),
@@ -397,5 +408,17 @@ const HONOURS_SHOWN = 8;
         </ScrollRegion>
       </section>
     </div>
+    <FighterPrintSheet
+      name={t.name(b.name)} nickname={b.nickname ? t.name(b.nickname) : null} division={divisionLabel(b.weightClass, b.sex, t)}
+      rankLine={rank ? t("#{rank} {division}", { rank, division: divisionLabel(b.weightClass, b.sex, t) }) : null} belts={printBelts}
+      line={`${countryName(b.country, t.locale)}${[b.age !== null ? t("Age {age}", { age: b.age }) : null, b.stance ? t(b.stance) : null, b.turnedPro !== null ? t("Pro since {year}", { year: b.turnedPro }) : null].filter(Boolean).map((x) => ` · ${x}`).join("")}`}
+      stats={[
+        { label: t("Record"), value: recordStr(b), sub: t.n(b.bouts, "{n} fight", "{n} fights") },
+        { label: t("Knockouts"), value: String(ko.kos), sub: t("{p} of wins", { p: pct(ko.rate) }) },
+        { label: t("Rating"), value: String(Math.round(b.rating)), sub: t("Elo-style") },
+        { label: t("Reach"), value: orDash(b.reachCm, (n) => t("{n}cm", { n })), sub: isKnown(b.heightCm) ? t("{h}cm tall · {limit}", { h: b.heightCm, limit: limitLabel(div, t) }) : limitLabel(div, t) },
+      ]}
+      recent={printRows} recentTitle={t.n(printRows.length, "Last fight", "Last {n} fights")} next={printNext} />
+    </>
   );
 }
