@@ -2,6 +2,8 @@
 
 A boxing database with better design and far more analytics than BoxRec. This file covers what exists, how the pieces fit, and what comes next.
 
+**Numbering the sections below.** More than one session adds to this file, so a number is taken at merge time, not when the section is started. Just before you push or merge: fetch `origin/main`, use the highest `## N.` heading there plus one, and place the section before `## 110. The next main event` (the anchor the sections are inserted at). If two sections end up with the same number, the one that merged second renumbers its own section (never the other's) and any pointer to it, such as `PLAN §N`. Repeats of 94 and 110 to 120 are old history: leave them.
+
 ## 1. Principles
 1. **Own the database.** Vendors feed our tables through an adapter and nothing renders from a live vendor call. A vendor can then change pricing or disappear without breaking the site, as long as the licence allows storing the data (see §4).
 2. **Provenance on everything.** Every photo shows its licence and author. Every rating is labelled as ours, unofficial.
