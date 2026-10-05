@@ -1501,6 +1501,12 @@
   ]
  },
  {
+  "key": "{opponent}, {how}",
+  "files": [
+   "components/WatchlistPage.tsx"
+  ]
+ },
+ {
   "key": "{org} {division} champion",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -3370,6 +3376,12 @@
   ]
  },
  {
+  "key": "Browse fighters",
+  "files": [
+   "components/WatchlistPage.tsx"
+  ]
+ },
+ {
   "key": "Build it",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
@@ -4011,7 +4023,8 @@
  {
   "key": "Couldn’t load your watchlist. Try again in a moment.",
   "files": [
-   "components/Watch.tsx"
+   "components/Watch.tsx",
+   "components/WatchlistPage.tsx"
   ]
  },
  {
@@ -4172,6 +4185,7 @@
  {
   "key": "D",
   "files": [
+   "components/WatchlistPage.tsx",
    "components/ui.tsx",
    "lib/ask/tools.ts"
   ]
@@ -5480,6 +5494,12 @@
   ]
  },
  {
+  "key": "Fighters you follow",
+  "files": [
+   "app/[locale]/watchlist/page.tsx"
+  ]
+ },
+ {
   "key": "Fighters, events, bouts, results, belts; sometimes weights, scorecards, referees",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -6711,6 +6731,7 @@
   "files": [
    "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
+   "components/WatchlistPage.tsx",
    "components/ui.tsx",
    "lib/ask/tools.ts"
   ]
@@ -6743,7 +6764,8 @@
  {
   "key": "Last fight",
   "files": [
-   "app/[locale]/rankings/[division]/page.tsx"
+   "app/[locale]/rankings/[division]/page.tsx",
+   "components/WatchlistPage.tsx"
   ]
  },
  {
@@ -7060,7 +7082,8 @@
  {
   "key": "Loading your watchlist…",
   "files": [
-   "components/Watch.tsx"
+   "components/Watch.tsx",
+   "components/WatchlistPage.tsx"
   ]
  },
  {
@@ -7628,6 +7651,14 @@
   ]
  },
  {
+  "key": "My watchlist",
+  "files": [
+   "app/[locale]/watchlist/page.tsx",
+   "lib/nav.ts",
+   "lib/search.ts"
+  ]
+ },
+ {
   "key": "n={n}",
   "files": [
    "app/[locale]/data/page.tsx",
@@ -7669,6 +7700,7 @@
  {
   "key": "NC",
   "files": [
+   "components/WatchlistPage.tsx",
    "components/ui.tsx",
    "lib/i18n/dynamic-keys.ts"
   ]
@@ -7755,7 +7787,8 @@
  {
   "key": "Next fight",
   "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "components/WatchlistPage.tsx"
   ]
  },
  {
@@ -7843,7 +7876,8 @@
  {
   "key": "No fight booked",
   "files": [
-   "components/Watch.tsx"
+   "components/Watch.tsx",
+   "components/WatchlistPage.tsx"
   ]
  },
  {
@@ -7916,6 +7950,12 @@
   "key": "No fighters yet.",
   "files": [
    "app/[locale]/countries/page.tsx"
+  ]
+ },
+ {
+  "key": "No fights on record",
+  "files": [
+   "components/WatchlistPage.tsx"
   ]
  },
  {
@@ -8515,9 +8555,21 @@
   ]
  },
  {
+  "key": "Open any fighter’s profile and press ☆ Watch. Their next fight, last result and rating will show up here.",
+  "files": [
+   "components/WatchlistPage.tsx"
+  ]
+ },
+ {
   "key": "Open in the dream-fight builder",
   "files": [
    "components/Matchmaking.tsx"
+  ]
+ },
+ {
+  "key": "Open watchlist",
+  "files": [
+   "app/[locale]/page.tsx"
   ]
  },
  {
@@ -9656,6 +9708,12 @@
   ]
  },
  {
+  "key": "Remove from watchlist",
+  "files": [
+   "components/WatchlistPage.tsx"
+  ]
+ },
+ {
   "key": "Removed at once: your name, password hash, picks, sign-ins, one-time codes and any fighter linked to you. The contact you gave on a report is erased, and in the activity log your name is replaced by “deleted account”.",
   "files": [
    "app/[locale]/privacy/page.tsx"
@@ -9781,6 +9839,7 @@
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/boxers/page.tsx",
+   "components/WatchlistPage.tsx",
    "lib/ai.ts"
   ]
  },
@@ -10559,6 +10618,12 @@
   ]
  },
  {
+  "key": "Soonest fight first. Your list stays in this browser; Ringside only looks these fighters up to show you the latest.",
+  "files": [
+   "app/[locale]/watchlist/page.tsx"
+  ]
+ },
+ {
   "key": "Sort by",
   "files": [
    "app/[locale]/boxers/page.tsx",
@@ -10732,6 +10797,12 @@
   "key": "Still to come",
   "files": [
    "components/MyPicks.tsx"
+  ]
+ },
+ {
+  "key": "Stop watching {name}",
+  "files": [
+   "components/WatchlistPage.tsx"
   ]
  },
  {
@@ -11407,6 +11478,12 @@
   "key": "the fighters on your watchlist",
   "files": [
    "lib/privacy.ts"
+  ]
+ },
+ {
+  "key": "The fighters you follow, with their next fight, last result and rating, kept in this browser.",
+  "files": [
+   "app/[locale]/watchlist/page.tsx"
   ]
  },
  {
@@ -12846,6 +12923,7 @@
   "files": [
    "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
+   "components/WatchlistPage.tsx",
    "components/ui.tsx",
    "lib/ask/tools.ts"
   ]
@@ -13747,6 +13825,12 @@
   "key": "You are not allowed to do that.",
   "files": [
    "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "You are not watching anyone yet.",
+  "files": [
+   "components/WatchlistPage.tsx"
   ]
  },
  {

@@ -32,6 +32,7 @@ export const PAGES: { href: string; label: string; words: string }[] = [
   { href: "/weights", label: msg("Weigh-ins"), words: "weigh-ins weights scale" },
   { href: "/money", label: msg("Fight money"), words: "money purses gate ppv pay-per-view earnings revenue tickets broadcasters viewers" },
   { href: "/analytics", label: msg("Analytics"), words: "analytics statistics stats" },
+  { href: "/watchlist", label: msg("My watchlist"), words: "my watchlist watch list follow following starred favourite favorite fighters next fight" },
   { href: "/picks", label: msg("My picks"), words: "my picks pick em pickem predictions streak record vs model" },
   { href: "/accountability", label: msg("Track record"), words: "track record accountability accuracy calibration backtest model predictions how good" },
   { href: "/map", label: msg("Style map"), words: "style map" },
