@@ -89,6 +89,17 @@ test("a CANCELLED fight is kept as a cancelled bout with no result, counted, and
   assert.equal(done.status, undefined); assert.equal(n.cancelledFights, 1);
 });
 
+test("a bout of an amateur or multi-sport event is not a professional fight: skipped and counted, by the event title only (round 100)", () => {
+  const n = notes();
+  for (const title of ["2016 Rio Olympics: Boxing Day 4", "2014 Glasgow Commonwealth Games: Boxing Day 1", "Russian National Amateur Boxing Championships 2019: Day 2", "2018 Aichi-Nagoya Asian Games: Boxing Finals"]) {
+    assert.equal(B.mapFight(fight("am", "A", "B", { event: { id: "e", title, date: "2016-08-16" } }), n), null, title);
+  }
+  assert.equal(n.amateurBoutsSkipped, 4); assert.equal(n.fightsSkipped, 0);
+  for (const title of ["Usyk v Fury", "Olympic Auditorium Fight Night", "Gladiators of Olympus 3"]) assert.ok(B.mapFight(fight("pro", "A", "B", { event: { id: "e2", title, date: "2024-12-21" } }), n), title);
+  assert.equal(n.amateurBoutsSkipped, 4);
+  assert.ok(B.mapFight(fight("v", "A", "B", { venue: "Olympic Stadium", event: { id: "e3", title: "Heavyweight Night", date: "2024-12-21", venue: "Olympic Stadium" } }), n), "a pro card in an Olympic stadium stays");
+});
+
 test("rows that cannot be used are skipped and counted, not half-mapped", () => {
   const n = notes();
   assert.equal(B.mapFight(fight("x1", "A", "B", { date: null, event: { id: "e", date: null } }), n), null);

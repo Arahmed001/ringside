@@ -209,6 +209,7 @@ Paste back: the whole output of `--check` (or the load), from the first line to 
 | Note | What it means | When to worry |
 |---|---|---|
 | `drawInferred`, `resultMissing` | A drawn decision stored as a draw, or a fight with no winner stored as "no result yet" | Both a large share of finished fights: the vendor's `outcome` words are not what the adapter expects; paste a sample |
+| `amateurBoutsSkipped` | Fights of an Olympic, Asian, Commonwealth or other games or an amateur championship (by the event title), left out | On the first real cache 497 in the chosen fighters' fights; a few hundred is normal. A large count in a league with no amateur events means a title is matching by accident: paste a sample |
 | `resultMissingOld`, `cancelledFights` | A finished fight with no result that is more than 30 days old (the part of `resultMissing` that is not simply recent), and a fight the vendor lists as CANCELLED (kept as a cancelled bout) | On the first real cache 5,091 of 6,059 were old: the vendor's own gap, listed in the findings email, not something the importer can repair |
 | `drawDemoted` | A draw dropped to "no result yet" because neither fighter's career total has a draw to spare | A few hundred in 150,000 is the vendor's own records disagreeing; thousands is a pattern to look at |
 | `stoppageWithoutWinner` | KO/TKO with no winner, stored as "no result yet" | Same as above |
