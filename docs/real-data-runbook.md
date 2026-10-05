@@ -52,6 +52,14 @@ npm run vendor:backfill -- --plan --per-hour 450 --cache-dir $HOME/ringside-real
 
 the list pages are kept there (that is storing, so it says "provisional" until `BOXING_API_STORAGE_CONFIRMED=1`, and `=0` refuses it before anything is created), Ctrl-C is safe, and the `--check` or load that follows, with the same `--cache-dir`, asks for no list page at all. Still no database is touched.
 
+### Where does it stand? `npm run vendor:status`
+
+```bash
+npm run vendor:status -- --cache-dir $HOME/ringside-real/vendor-cache
+```
+
+Run it in the project folder, in the terminal tab you use for the fetch. It makes no request and never prints the key (only its length), and in about ten seconds says: how many fighters are in the cache of those the fight list names and how long is left at the recent pace; whether a fetch is running on this machine (and its command); whether `BOXING_API_KEY` is set **in this tab** (and whether it is plainly a placeholder); whether storage is confirmed and `DATABASE_PATH` is set; and the next command that fits. `--no-total` skips reading the fight list (the total and the time left).
+
 ### One run at a time, and what the first real run taught
 
 - **The allowance belongs to the key.** Two runs with the same key, even with different cache folders, share the 500 an hour. The command now refuses to start a second one on the same machine ("Another backfill is already running with this API key (process N …)"). The lock is a small file in the temp folder named by a hash of the key (the key is never written); a lock whose process is gone is taken over by the next run. It cannot see another machine, so do not run it on two computers at once. `pgrep -fl vendor-backfill` lists the runs.
