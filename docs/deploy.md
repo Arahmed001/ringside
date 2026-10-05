@@ -91,6 +91,8 @@ What to do with it: give the container **at least 768 MB**, or cap the heap (`NO
 
 So at this size give the container **1 GB**, or cap the heap at 400 MB and give it 768 MB. The heap the world needs is between 250 and 400 MB here; it grows with fighters and fights, so re-measure when the feed grows by a lot. (The 760 MB is mostly garbage not yet collected, as with the demo.)
 
+Around the site at that size (same league, same machine, 2026-10-05): `npm run model:fit` 1.2 s and 400 MB; `npm run backup` 0.4 s; `npm run data:check` 0.25 s and 87 MB; `npm run doctor` seconds. **A data change under a running site** (the daily `--update`, an approved edit): the next request rebuilds the in-memory world in 0.7-0.9 s (the following ones are 30-50 ms again), and with the heap capped at 400 MB the process stayed at 510-520 MB over four changes in a row, with no heap error: the old world is released before the new one is kept, so the cap does not have to cover two.
+
 `npm run loadtest -- --base https://your-host --conc 50 --total 1000 --each` repeats this against any server you own (`--each` times every page alone to find a slow one). It is one Node process: past a few hundred requests a second it is measuring itself.
 
 ### The first visitor, and what start-up now does about it
