@@ -733,7 +733,8 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
         }
       } catch (e) { if (e instanceof BudgetError || e instanceof NetworkError || (e instanceof HttpError && e.status === 429)) throw e; /* a plan that refuses (a limit, a quota) refuses the next fighter too: stop, do not skip a thousand */ log(`fighter ${id} skipped: ${e instanceof Error ? e.message : e}`); }
       if (hits > before) cachedFighters++;
-      if (++n % 100 === 0) {
+      // a progress line every 100 fighters while any are being fetched; when everything is in the cache it is a read of files, and 140 lines would bury the report
+      if (++n % (toFetch === 0 ? 2000 : 100) === 0) {
         const fetched = n - cachedFighters, now = Date.now();
         const perRequest = Math.max(pacing(), (now - windowAt) / Math.max(1, fetched - windowFetched)); // the rate of the last 100, waits included, never faster than the pace set
         windowAt = now; windowFetched = fetched;

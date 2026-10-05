@@ -129,7 +129,7 @@ async function main() {
   if (keepDisputed) {
     const before = reconcileFeed(raw, provider.vendorRecords(), { today: todayIso(), days: LOAD_LAG_DAYS });
     const marked = new Set(before.conflicts.map((m) => m.externalId));
-    if (before.conflict && flag("explain-conflicts")) for (const line of describeConflictReport(explainConflicts(raw, provider.vendorRecords(), todayIso(), LOAD_LAG_DAYS), Number(arg("show") ?? 10))) console.log(line);
+    // (the why-tally is printed once, with the records line below: the conflicts are still there after they are marked)
     console.log(`--keep-disputed: ${marked.size} fighter(s) whose loaded fights come to more than the vendor's career total are kept and marked (their pages show the vendor's total and say the two disagree)${marked.size ? " (first " + Math.min(20, marked.size) + "):" : "."}`);
     for (const m of before.conflicts.slice(0, 20)) console.log(`  ${m.name}: loaded ${m.loaded}, vendor ${m.vendor}`);
     const file = arg("disputed-file");

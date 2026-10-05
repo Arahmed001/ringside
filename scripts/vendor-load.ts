@@ -39,7 +39,9 @@ async function main() {
   // the storage confirmation reaches the backfill only if the owner stated it (the environment or --storage-confirmed): it is never set for them
   const env = { BOXING_API_KEY: key ?? "", DATABASE_PATH: plan.database, ...(plan.refusal ? {} : { BOXING_API_STORAGE_CONFIRMED: "1" }) };
   console.log("step 1: the check (nothing is written to the database)\n");
-  const checked = await run(dry ? [...plan.checkArgs, "--cached-only"] : plan.checkArgs, env);
+  // a dry run writes nothing at all: not even the list of marked fighters (it is printed, and written by the real check and load)
+  const noFiles = (a: string[]) => a.filter((x, i) => !["--disputed-file", "--dropped-file"].includes(x) && !["--disputed-file", "--dropped-file"].includes(a[i - 1]));
+  const checked = await run(dry ? [...noFiles(plan.checkArgs), "--cached-only"] : plan.checkArgs, env);
   if (dry) { console.log(`\n--dry-run: stopped after the check (exit ${checked}). Nothing was loaded.`); process.exit(checked); }
   if (checked !== 0 && !argv.includes("--allow-errors")) { console.error(`\nThe check would not allow a load (exit ${checked}); read why above. Nothing was loaded.`); process.exit(checked); }
   if (!yes) {

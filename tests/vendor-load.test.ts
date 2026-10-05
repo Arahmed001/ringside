@@ -61,6 +61,9 @@ test("end to end on a stand-in vendor: the check is shown, nothing is written wi
     assert.equal(vendor.stats.requests, before, "the dry run made no request");
     assert.match(dry.out, /vendor:load[\s\S]*database: .*real\.db  \(new\)/); assert.match(dry.out, /step 1: the check/); assert.match(dry.out, /--keep-disputed: \d+ fighter\(s\) whose loaded fights come to more than the vendor's career total are kept and marked/); assert.match(dry.out, /^why the \d+ conflict/m);
     assert.match(dry.out, /--dry-run: stopped after the check/); assert.ok(!fs.existsSync(db), "a dry run writes no database");
+    assert.equal((dry.out.match(/^why the \d+ conflict/gm) ?? []).length, 1, "the conflict tally is printed once, not once when marking and again with the records");
+    assert.ok(!fs.existsSync(path.join(d, "disputed.csv")), "a dry run writes no file at all, not even the list of marked fighters");
+    assert.ok(!/fighters: \d+ of \d+/.test(dry.out), "no progress line for a read of files in the cache");
     assert.ok(!dry.out.includes(secret), "the key is never printed");
     const noTty = await run([...base, "--storage-confirmed"], env);
     assert.equal(noTty.code, 1); assert.match(noTty.out, /not an interactive terminal.*--yes.*Nothing was loaded/); assert.ok(!fs.existsSync(db));
