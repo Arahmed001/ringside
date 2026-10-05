@@ -13,7 +13,7 @@ import { countryName, fmtDate } from "./format";
 import { DIVISIONS } from "./divisions";
 import { normalize } from "./fighter-search";
 import { dictOf } from "./i18n/dicts";
-import { AiLimited, reserveAiCall } from "./ai-guard";
+import { AiFailed, aiPaused, noteAiFailure, notRemembered, reserveAiCall, AiLimited } from "./ai-guard";
 import { Lru } from "./lru";
 import { peelQuantities } from "./search-quantities";
 import { peelRecord } from "./search-record";
@@ -26,17 +26,24 @@ export const hasKey = () => !!process.env.ANTHROPIC_API_KEY;
 
 /** One model call. `client` identifies the visitor for the per-client limit; throws AiLimited when a limit says no (see ai-guard.ts). */
 export async function claude(system: string, user: string, maxTokens = 600, client?: string): Promise<string> {
+  if (aiPaused()) throw new AiFailed("paused after a failed call");
   const verdict = reserveAiCall(client);
   if (verdict !== "ok") throw new AiLimited(verdict);
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
-    signal: AbortSignal.timeout(15000),
-  });
-  if (!res.ok) throw new Error(`Anthropic ${res.status}`);
-  const j = (await res.json()) as { content: { type: string; text?: string }[] };
-  return j.content.filter((c) => c.type === "text").map((c) => c.text).join("");
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system, messages: [{ role: "user", content: user }] }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) throw new Error(`Anthropic answered ${res.status}${res.status === 401 ? " (the key was refused)" : res.status === 404 ? ` (is the model name ${MODEL} right?)` : ""}`);
+    const j = (await res.json()) as { content: { type: string; text?: string }[] };
+    return j.content.filter((c) => c.type === "text").map((c) => c.text).join("");
+  } catch (e) {
+    const reason = e instanceof Error ? e.message : String(e);
+    noteAiFailure(reason);
+    throw new AiFailed(reason);
+  }
 }
 
 /* ---------- Natural-language search ---------- */
@@ -277,7 +284,7 @@ Allowed keys: weightClass (one of ${WEIGHT_CLASSES.join(", ")}), stance (Orthodo
       const json = JSON.parse(reply.slice(reply.indexOf("{"), reply.lastIndexOf("}") + 1));
       out = { filters: sanitizeFilters(json, countries), source: "ai" };
     } catch (e) {
-      if (e instanceof AiLimited) cacheable = false; // this visitor is over a limit; the next one may not be
+      if (notRemembered(e)) cacheable = false; // this visitor is over a limit, or the model is down; the next one may be fine
       out = { filters: heuristicParse(q, countries, w.today), source: "rules" };
     }
     if (cacheable) queryCache.set(key, out);
@@ -511,7 +518,7 @@ export async function scoutingReport(b: BoxerFull, w: World, t: T = tEn, client?
         facts, 400, client,
       );
       result = { text: text.trim(), source: "ai" };
-    } catch (e) { if (e instanceof AiLimited) cacheable = false; /* keep rules; a refused call is not remembered */ }
+    } catch (e) { if (notRemembered(e)) cacheable = false; /* keep rules; a refused or failed call is not remembered */ }
   }
   if (cacheable) reportCache.set(key, result);
   return result;
