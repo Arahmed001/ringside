@@ -1916,6 +1916,12 @@
   ]
  },
  {
+  "key": "A 70-second silent walkthrough of Ringside: rankings, fighter pages, your watchlist, tonight’s card and the matchup lab.",
+  "files": [
+   "app/[locale]/tour/page.tsx"
+  ]
+ },
+ {
   "key": "A backtest, not a live record",
   "files": [
    "app/[locale]/accountability/page.tsx"
@@ -2053,6 +2059,12 @@
   "key": "A fighter’s details are the fighter’s to state. Give the fighter’s own official page. Other sources are kept as a note, but cannot change what the site shows. If you are this fighter, choose “This is about me”.",
   "files": [
    "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "A fighter’s page",
+  "files": [
+   "app/[locale]/tour/page.tsx"
   ]
  },
  {
@@ -4578,6 +4590,12 @@
   ]
  },
  {
+  "key": "Each fighter has a full page: record, rating, next fight and last five results",
+  "files": [
+   "app/[locale]/tour/page.tsx"
+  ]
+ },
+ {
   "key": "Each judge scores every round with the 10-point must system: the fighter who won the round gets 10 points and the other gets 9 or fewer. A knockdown usually costs the fighter who went down an extra point, and the referee can take a point for a foul. A round that is exactly level is scored {level}, which is rare.",
   "files": [
    "app/[locale]/learn/page.tsx"
@@ -5729,6 +5747,12 @@
   "key": "Flyweight",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Follow a fighter",
+  "files": [
+   "app/[locale]/tour/page.tsx"
   ]
  },
  {
@@ -7391,7 +7415,14 @@
  {
   "key": "Matchup lab",
   "files": [
-   "app/[locale]/compare/page.tsx"
+   "app/[locale]/compare/page.tsx",
+   "app/[locale]/tour/page.tsx"
+  ]
+ },
+ {
+  "key": "Matchup lab: pick any two fighters and see who is favoured and why",
+  "files": [
+   "app/[locale]/tour/page.tsx"
   ]
  },
  {
@@ -7698,9 +7729,16 @@
  {
   "key": "My watchlist",
   "files": [
+   "app/[locale]/tour/page.tsx",
    "app/[locale]/watchlist/page.tsx",
    "lib/nav.ts",
    "lib/search.ts"
+  ]
+ },
+ {
+  "key": "My watchlist: your fighters, soonest fight first. Saved on your account or this browser",
+  "files": [
+   "app/[locale]/tour/page.tsx"
   ]
  },
  {
@@ -7789,6 +7827,24 @@
  },
  {
   "key": "New to boxing?",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
+  "key": "New to boxing? Boxing, explained",
+  "files": [
+   "app/[locale]/tour/page.tsx"
+  ]
+ },
+ {
+  "key": "New to Ringside?",
+  "files": [
+   "app/[locale]/tour/page.tsx"
+  ]
+ },
+ {
+  "key": "New to Ringside? Watch the 70-second tour",
   "files": [
    "app/[locale]/learn/page.tsx"
   ]
@@ -9201,9 +9257,21 @@
   ]
  },
  {
+  "key": "Print",
+  "files": [
+   "app/[locale]/tour/page.tsx"
+  ]
+ },
+ {
   "key": "Print / save as PDF",
   "files": [
    "components/PrintButton.tsx"
+  ]
+ },
+ {
+  "key": "Print or save any fighter as a one-page PDF",
+  "files": [
+   "app/[locale]/tour/page.tsx"
   ]
  },
  {
@@ -9440,8 +9508,15 @@
    "app/[locale]/rankings/[division]/opengraph-image.tsx",
    "app/[locale]/rankings/page.tsx",
    "app/[locale]/titles/page.tsx",
+   "app/[locale]/tour/page.tsx",
    "lib/nav.ts",
    "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Rankings for every division, men and women",
+  "files": [
+   "app/[locale]/tour/page.tsx"
   ]
  },
  {
@@ -9988,6 +10063,12 @@
   ]
  },
  {
+  "key": "Ringside tour video, with captions",
+  "files": [
+   "app/[locale]/tour/page.tsx"
+  ]
+ },
+ {
   "key": "Role",
   "files": [
    "components/ContributeForm.tsx"
@@ -10321,6 +10402,12 @@
   "key": "Seven parts, each from 0 to 1, added up with these weights. A part that cannot be worked out for a fight (no scorecards, no punch statistics) is left out and the rest scaled up, so missing data never counts against a fight. The weights are our judgment of what makes a great fight; nothing was fitted to votes.",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
+  "key": "Seventy seconds, no sound, with captions. The fighters in it are made up.",
+  "files": [
+   "app/[locale]/tour/page.tsx"
   ]
  },
  {
@@ -11102,10 +11189,23 @@
   ]
  },
  {
+  "key": "Take the tour",
+  "files": [
+   "app/[locale]/tour/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
   "key": "Tale of the tape",
   "files": [
    "app/[locale]/previews/[id]/page.tsx",
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Tap Watch to follow a fighter",
+  "files": [
+   "app/[locale]/tour/page.tsx"
   ]
  },
  {
@@ -11642,6 +11742,18 @@
   "key": "The highest fight scores in the data: knockdowns, a close or late finish, plenty of action, evenly matched fighters, an upset, a title on the line, a comeback. The same score that picks each year’s fight of the year.",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "The home page",
+  "files": [
+   "app/[locale]/tour/page.tsx"
+  ]
+ },
+ {
+  "key": "The home page: the next big fight, ratings movers and the latest results",
+  "files": [
+   "app/[locale]/tour/page.tsx"
   ]
  },
  {
@@ -12461,8 +12573,15 @@
   "key": "Tonight",
   "files": [
    "app/[locale]/tonight/page.tsx",
+   "app/[locale]/tour/page.tsx",
    "lib/nav.ts",
    "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Tonight: the card in fight order with win chances, your picks and live results",
+  "files": [
+   "app/[locale]/tour/page.tsx"
   ]
  },
  {
@@ -13284,6 +13403,12 @@
   ]
  },
  {
+  "key": "What the tour shows",
+  "files": [
+   "app/[locale]/tour/page.tsx"
+  ]
+ },
+ {
   "key": "What this result changed",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -14069,6 +14194,12 @@
   "key": "Your account: {name}",
   "files": [
    "components/AccountMenu.tsx"
+  ]
+ },
+ {
+  "key": "Your browser can’t play this video. The list below says what it shows.",
+  "files": [
+   "app/[locale]/tour/page.tsx"
   ]
  },
  {
