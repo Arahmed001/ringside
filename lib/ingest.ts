@@ -82,8 +82,8 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
     const boxerSlug = slugger(db, "boxers");
     const bx = new Map<string, number>();
     const insB = db.prepare(`INSERT INTO boxers (external_id, slug, name, nickname, country, birth_year, stance, height_cm, reach_cm, weight_class, turned_pro, active, photo_url,
-        birth_date, birth_place, residence, wikidata_id, boxrec_id, aliases, debut_date, retired_date, sex, vendor_wins, vendor_losses, vendor_draws, vendor_ko_wins, vendor_stopped)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        birth_date, birth_place, residence, wikidata_id, boxrec_id, aliases, debut_date, retired_date, sex, vendor_wins, vendor_losses, vendor_draws, vendor_ko_wins, vendor_stopped, record_disputed)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
       ON CONFLICT(external_id) DO UPDATE SET name=excluded.name, active=excluded.active, reach_cm=excluded.reach_cm, height_cm=excluded.height_cm,
         stance=excluded.stance, sex=excluded.sex,
         photo_credit = CASE WHEN excluded.photo_url IS NOT NULL THEN NULL ELSE boxers.photo_credit END,
@@ -93,13 +93,14 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
         boxrec_id = COALESCE(excluded.boxrec_id, boxers.boxrec_id), aliases = COALESCE(excluded.aliases, boxers.aliases),
         debut_date = COALESCE(excluded.debut_date, boxers.debut_date), retired_date = excluded.retired_date,
         vendor_wins = COALESCE(excluded.vendor_wins, boxers.vendor_wins), vendor_losses = COALESCE(excluded.vendor_losses, boxers.vendor_losses), vendor_draws = COALESCE(excluded.vendor_draws, boxers.vendor_draws),
-        vendor_ko_wins = COALESCE(excluded.vendor_ko_wins, boxers.vendor_ko_wins), vendor_stopped = COALESCE(excluded.vendor_stopped, boxers.vendor_stopped)
+        vendor_ko_wins = COALESCE(excluded.vendor_ko_wins, boxers.vendor_ko_wins), vendor_stopped = COALESCE(excluded.vendor_stopped, boxers.vendor_stopped),
+        record_disputed = COALESCE(excluded.record_disputed, boxers.record_disputed)
       RETURNING id`);
     for (const b of boxers) {
       const row = insB.get(b.externalId, boxerSlug(b.name), b.name, b.nickname ?? null, b.country, b.birthYear, b.stance, b.heightCm, b.reachCm,
         division(b.weightClass), b.turnedPro, b.active ? 1 : 0, b.photoUrl ?? null, b.birthDate ?? null, b.birthPlace ?? null, b.residence ?? null,
         b.wikidataId ?? null, b.boxrecId ?? null, b.aliases?.length ? JSON.stringify(b.aliases) : null, b.debutDate ?? null, b.retiredDate ?? null,
-        b.sex === "female" ? "female" : "male", b.careerRecord?.wins ?? null, b.careerRecord?.losses ?? null, b.careerRecord?.draws ?? null, b.careerRecord?.koWins ?? null, b.careerRecord?.stopped ?? null) as { id: number };
+        b.sex === "female" ? "female" : "male", b.careerRecord?.wins ?? null, b.careerRecord?.losses ?? null, b.careerRecord?.draws ?? null, b.careerRecord?.koWins ?? null, b.careerRecord?.stopped ?? null, b.recordDisputed === undefined ? null : b.recordDisputed ? 1 : 0) as { id: number };
       bx.set(b.externalId, row.id);
     }
 

@@ -78,6 +78,6 @@ export function rankOf(w: World, b: BoxerFull): number | null {
 export function rankingDepth(w: World): { partialShare: number } {
   return memo(w, "rankingDepth", () => {
     const withTotal = w.boxers.filter((b) => b.vendorRecord);
-    return { partialShare: withTotal.length ? withTotal.filter((b) => careerView(b).source === "supplier").length / withTotal.length : 0 };
+    return { partialShare: withTotal.length ? withTotal.filter((b) => careerView(b).source !== "loaded").length / withTotal.length : 0 };
   });
 }

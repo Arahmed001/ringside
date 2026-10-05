@@ -110,6 +110,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
     country: r.country as string, birthYear: known(r.birth_year), stance: (r.stance as Boxer["stance"]) || null, sex: ((r.sex as string) === "female" ? "female" : "male"),
     heightCm: known(r.height_cm), reachCm: known(r.reach_cm), weightClass: r.weight_class as string,
     turnedPro: known(r.turned_pro), active: !!r.active, rating: r.rating as number,
+    recordDisputed: r.record_disputed === 1,
     vendorRecord: [r.vendor_wins, r.vendor_losses, r.vendor_draws].every((x) => typeof x === "number" && x >= 0) ? { wins: r.vendor_wins as number, losses: r.vendor_losses as number, draws: r.vendor_draws as number, ...supplierTotals(r) } : null,
     photoUrl: (r.photo_url as string) ?? null,
     photoCredit: r.photo_credit ? (JSON.parse(r.photo_credit as string) as Boxer["photoCredit"]) : null,

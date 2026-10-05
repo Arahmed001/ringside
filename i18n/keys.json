@@ -5499,6 +5499,12 @@
   ]
  },
  {
+  "key": "Fighters whose record the supplier's own fight list contradicts",
+  "files": [
+   "lib/coverage.ts"
+  ]
+ },
+ {
   "key": "Fighters with a new head trainer",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -11472,6 +11478,12 @@
   ]
  },
  {
+  "key": "The data supplier's career total ({total} fights) and its own fight list disagree: the list holds {held} fights, with more wins, losses or draws than that total allows. The record shown is the supplier's total; the fight list, rating and rates on this page are built from the fights held.",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "The difference ({d} Elo points) is within its margin of error: there is no clear sign that changing trainer moves results either way.",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -12042,6 +12054,12 @@
   "key": "Their careers did not overlap",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "their pages show the supplier's total and say the two disagree; lower is better",
+  "files": [
+   "lib/coverage.ts"
   ]
  },
  {

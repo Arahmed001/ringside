@@ -32,5 +32,5 @@ export function commonOpponents(w: World, a: BoxerFull, b: BoxerFull, limit = 8)
     rows.push({ opponent, a: fa.slice().sort((x, y) => (x.date < y.date ? -1 : x.date > y.date ? 1 : x.id - y.id)), b: fb.slice().sort((x, y) => (x.date < y.date ? -1 : x.date > y.date ? 1 : x.id - y.id)) });
   }
   rows.sort((x, y) => y.opponent.rating - x.opponent.rating || x.opponent.id - y.opponent.id);
-  return { rows: rows.slice(0, limit), total: rows.length, partial: careerView(a).source === "supplier" || careerView(b).source === "supplier" };
+  return { rows: rows.slice(0, limit), total: rows.length, partial: careerView(a).source !== "loaded" || careerView(b).source !== "loaded" };
 }

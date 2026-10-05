@@ -14,6 +14,7 @@
  *          --with-opponents | --whole-groups (with --fighters N: also fetch every opponent of the N, so each of the N has all his fights; or take whole groups of fighters, newest group first, while they fit in N, so nobody in them has a fight outside: `--plan` prints what each would ask for)
  *          --complete-only (load only the fighters whose records add up exactly to the vendor's career totals, and whose opponents' do: a smaller league in which no record is short)
  *          --cached-only (with --check or a load: make no request, use only what --cache-dir holds, and leave out the fighters not fetched yet; needs no key and does not wait for a fetch under way)
+ *          --keep-disputed (keep the fighters whose loaded fights come to more than the vendor's career total, but MARK them: their pages show the vendor's total and say it and its own fight list disagree; --disputed-file path.csv lists them; not with --drop-conflicts, --allow-conflicts, --complete-only or --update)
  *          --drop-conflicts (leave out the fighters whose loaded fights come to more than the vendor's career total, with their fights, and list them (--dropped-file path.csv lists all); the rest loads; not with --allow-conflicts or --complete-only)
  *          --explain-conflicts (with --check: list the fights behind the first --show 10 conflicts; the tally of causes is always printed)
  *          --allow-incomplete (load even though some fighters could not be fetched)  --allow-errors (load even though the validator found errors)
@@ -64,6 +65,8 @@ async function main() {
   const maxFighters = fightersText === undefined ? undefined : Number(fightersText);
   if (maxFighters !== undefined && !(Number.isInteger(maxFighters) && maxFighters > 0)) throw new Error(`--fighters must be a whole number above 0, not "${fightersText}".`);
   const completeOnly = flag("complete-only"), dropConflicts = flag("drop-conflicts");
+  const keepDisputed = flag("keep-disputed");
+  if (keepDisputed && (dropConflicts || flag("allow-conflicts") || completeOnly || update)) throw new Error("--keep-disputed keeps the fighters whose records contradict the feed and marks them: not with --drop-conflicts (which leaves them out), --allow-conflicts (which loads them unmarked), --complete-only or --update.");
   if (dropConflicts && (flag("allow-conflicts") || completeOnly || update)) throw new Error("--drop-conflicts leaves out the fighters whose records contradict the feed: not with --allow-conflicts (which keeps them), --complete-only (which already leaves them out) or --update.");
   const withOpponents = flag("with-opponents"), wholeGroups = flag("whole-groups");
   if (withOpponents && wholeGroups) throw new Error("--with-opponents and --whole-groups are two ways to choose the fighters: use one.");
@@ -120,6 +123,21 @@ async function main() {
 
   // --drop-conflicts: the fighters whose loaded fights come to more than the vendor's own career total are left out, with their fights, and listed; the rest is checked and loaded as usual.
   // Their opponents' records can only get shorter (partial, shown with the vendor's total), never become conflicts.
+  // --keep-disputed: the fighters whose loaded fights come to more than the vendor's own career total stay, and are MARKED (`recordDisputed`): their pages show the vendor's total and
+  // say that it and the vendor's own fight list disagree, instead of publishing the longer loaded record or leaving the fighter out. A mark is true or false for every fighter of a
+  // load (so a re-load clears a mark whose conflict has gone); the daily update does not send one and leaves them as they are.
+  if (keepDisputed) {
+    const before = reconcileFeed(raw, provider.vendorRecords(), { today: todayIso(), days: LOAD_LAG_DAYS });
+    const marked = new Set(before.conflicts.map((m) => m.externalId));
+    if (before.conflict && flag("explain-conflicts")) for (const line of describeConflictReport(explainConflicts(raw, provider.vendorRecords(), todayIso(), LOAD_LAG_DAYS), Number(arg("show") ?? 10))) console.log(line);
+    console.log(`--keep-disputed: ${marked.size} fighter(s) whose loaded fights come to more than the vendor's career total are kept and marked (their pages show the vendor's total and say the two disagree)${marked.size ? " (first " + Math.min(20, marked.size) + "):" : "."}`);
+    for (const m of before.conflicts.slice(0, 20)) console.log(`  ${m.name}: loaded ${m.loaded}, vendor ${m.vendor}`);
+    const file = arg("disputed-file");
+    if (file && marked.size) { fs.writeFileSync(file, ["id,name,loaded,vendor", ...before.conflicts.map((m) => [m.externalId, `"${m.name.replace(/"/g, '""')}"`, m.loaded, m.vendor].join(","))].join("\n") + "\n"); console.log(`  all ${marked.size} are listed in ${file}`); }
+    const boxers = raw.boxers.map((b) => ({ ...b, recordDisputed: marked.has(b.externalId) }));
+    raw = { ...raw, boxers };
+    source = { ...source, name: provider.name, fetchBoxers: async () => boxers };
+  }
   if (dropConflicts) {
     const before = reconcileFeed(raw, provider.vendorRecords(), { today: todayIso(), days: LOAD_LAG_DAYS });
     const out = dropConflicted(raw, before);
@@ -144,7 +162,7 @@ async function main() {
     for (const e of g.examples) console.log(`          ${e.entity} ${e.ref}: ${e.message}`);
   }
   // The one independent figure in the feed: each fighter's career record. A record the loaded fights do not add up to would be published wrongly.
-  const gateOpts = { minComplete: Number(arg("min-complete") ?? 0.9), allowPartial: flag("allow-partial"), allowConflicts: flag("allow-conflicts") };
+  const gateOpts = { minComplete: Number(arg("min-complete") ?? 0.9), allowPartial: flag("allow-partial"), allowConflicts: flag("allow-conflicts") || keepDisputed };
   let gate = { ok: true, reasons: [] as string[] };
   if (!update) {
     const rec = reconcileFeed(raw, provider.vendorRecords(), { today: todayIso(), days: LOAD_LAG_DAYS });

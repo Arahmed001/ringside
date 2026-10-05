@@ -182,7 +182,7 @@ const HONOURS_SHOWN = 8;
           {b.nickname && <div className="mt-1 font-serif text-3xl italic text-gold">“{t.name(b.nickname)}”</div>}
           <div className="mt-2 text-muted">{flag(b.country)} <Link href={`/countries/${countrySlug(b.country)}`} className="hover:text-ink">{countryName(b.country, t.locale)}</Link>{[b.age !== null ? t("Age {age}", { age: b.age }) : null, b.stance ? t(b.stance) : null, b.turnedPro !== null ? t("Pro since {year}", { year: b.turnedPro }) : null].filter(Boolean).map((x) => ` · ${x}`).join("")}</div>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat label={t("Record")} value={recordStr(b)} sub={career.source === "supplier" ? t.n(career.total, "{n} fight in all", "{n} fights in all") : t.n(b.bouts, "{n} fight", "{n} fights")} />
+            <Stat label={t("Record")} value={recordStr(b)} sub={career.source !== "loaded" ? t.n(career.total, "{n} fight in all", "{n} fights in all") : t.n(b.bouts, "{n} fight", "{n} fights")} />
             <Stat label={t("Knockouts")} value={ko.kos} sub={t("{p} of wins", { p: pct(ko.rate) })} />
             <Stat label={t("Rating")} value={Math.round(b.rating)} sub={t("Elo-style")} />
             <Stat label={t("Reach")} value={orDash(b.reachCm, (n) => t("{n}cm", { n }))} sub={isKnown(b.heightCm) ? t("{h}cm tall · {limit}", { h: b.heightCm, limit: limitLabel(div, t) }) : limitLabel(div, t)} />
@@ -201,6 +201,11 @@ const HONOURS_SHOWN = 8;
               {ko.source === "supplier"
                 ? t("The record and the knockouts are the career totals from the data supplier. Ringside holds {held} of those {total} fights, so the fight list, rating and rates on this page are built from those {held} only.", { held: career.held, total: career.total })
                 : t("The record is the career total from the data supplier. Ringside holds {held} of those {total} fights, so the fight list, knockouts, rating and rates on this page are built from those {held} only.", { held: career.held, total: career.total })}
+            </p>
+          )}
+          {career.source === "disputed" && (
+            <p className="mt-3 max-w-2xl text-xs leading-snug text-muted">
+              {t("The data supplier's career total ({total} fights) and its own fight list disagree: the list holds {held} fights, with more wins, losses or draws than that total allows. The record shown is the supplier's total; the fight list, rating and rates on this page are built from the fights held.", { held: career.held, total: career.total })}
             </p>
           )}
           {nextBlock}
@@ -246,7 +251,7 @@ const HONOURS_SHOWN = 8;
               </div>
             )}
           </div>
-          {career.source === "supplier" && <p className="mt-2 text-xs text-muted">{t("Worked out from the {held} fights Ringside holds, not the whole career.", { held: career.held })}</p>}
+          {career.source !== "loaded" && <p className="mt-2 text-xs text-muted">{t("Worked out from the {held} fights Ringside holds, not the whole career.", { held: career.held })}</p>}
         </section>
       )}
 

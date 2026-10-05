@@ -33,6 +33,8 @@ export interface ProviderBoxer {
   debutDate?: string;
   retiredDate?: string;
   /** The career record (wins, losses, draws) as the feed states it, when it states all three. Kept beside the record the loaded fights add up to, so a page can say which one it shows. */
+  /** Set by a load that kept a fighter whose loaded fights come to more than the feed's own career total (`--keep-disputed`): true marks him, false clears the mark, undefined (a daily update) leaves it as it was. A page then shows the feed's total and says the two disagree. */
+  recordDisputed?: boolean;
   careerRecord?: { wins: number; losses: number; draws: number; /** career knockouts and times stopped, when the feed gives them (never more than the wins and losses they are part of) */ koWins?: number; stopped?: number };
 }
 

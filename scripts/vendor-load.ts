@@ -3,7 +3,7 @@
  * The real load, guided: it shows the check first (what would be refused, why conflicts happen, who would be left out), then asks you to type LOAD, then loads from the cache into
  * DATABASE_PATH (default ~/ringside-real/real.db). It changes nothing until you type LOAD (or give --yes). `--dry-run` stops after the check. The key is read from the key file
  * (`npm run vendor:fetch -- --setup`); the cache should be complete first (`npm run vendor:status`): a load asks the vendor for any fighter the cache lacks.
- * Defaults: --drop-conflicts --allow-partial (replaced by --complete-only or --allow-conflicts), --dropped-file next to the database, --per-hour 400 --patience-min 240.
+ * Defaults: --keep-disputed --allow-partial (conflicted fighters stay, marked; --drop-conflicts, --complete-only or --allow-conflicts replace the first), --disputed-file next to the database, --per-hour 400 --patience-min 240.
  * The vendor's confirmation that its data may be stored is yours to state: BOXING_API_STORAGE_CONFIRMED=1 or --storage-confirmed; it is never assumed.
  */
 import { spawn } from "node:child_process";
@@ -34,7 +34,7 @@ async function main() {
   const key = readKeyFile(keyFile);
   const cacheDir = cacheArg ?? defaultCacheDir();
   const c = cacheDir ? cacheState(cacheDir) : null;
-  console.log(`vendor:load\n  cache:    ${cacheDir ?? "(the backfill's default)"}${c ? ` (${c.fighters.toLocaleString("en-US")} fighters, ${c.listPages} fight-list pages)` : ""}\n  database: ${plan.database}${fs.existsSync(plan.database) ? "  (exists: a re-load updates it in place; the backfill backs it up first)" : "  (new)"}\n  dropped:  ${plan.droppedFile}\n  key:      ${keyFile} (${key.length} characters)\n`);
+  console.log(`vendor:load\n  cache:    ${cacheDir ?? "(the backfill's default)"}${c ? ` (${c.fighters.toLocaleString("en-US")} fighters, ${c.listPages} fight-list pages)` : ""}\n  database: ${plan.database}${fs.existsSync(plan.database) ? "  (exists: a re-load updates it in place; the backfill backs it up first)" : "  (new)"}\n  ${plan.loadArgs.includes("--keep-disputed") ? "disputed: " + plan.disputedFile : "dropped:  " + plan.droppedFile}\n  key:      ${keyFile} (${key.length} characters)\n`);
   // the storage confirmation reaches the backfill only if the owner stated it (the environment or --storage-confirmed): it is never set for them
   const env = { BOXING_API_KEY: key, DATABASE_PATH: plan.database, ...(plan.refusal ? {} : { BOXING_API_STORAGE_CONFIRMED: "1" }) };
   console.log("step 1: the check (nothing is written to the database)\n");

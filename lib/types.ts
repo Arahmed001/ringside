@@ -25,6 +25,8 @@ export interface Boxer {
   active: boolean;
   rating: number;
   /** The career record as the data supplier states it (null when it gave none); see `careerRecord` in lib/world.ts for when a page shows it. */
+  /** Marked by a load that kept the fighter although the supplier's own fight list gives more wins, losses or draws than its career total: the page shows the total and says they disagree (see `careerView`). */
+  recordDisputed: boolean;
   vendorRecord: { wins: number; losses: number; draws: number; /** career knockouts and times stopped as the supplier states them, when it does */ koWins?: number; stopped?: number } | null;
   photoUrl: string | null;
   photoCredit: PhotoCredit | null;

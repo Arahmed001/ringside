@@ -41,6 +41,9 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   // a fighter whose history Ringside holds only in part: the page shows the supplier's career total, and says so (a partial load; none in the demo league)
   const partial = boxers.find((b) => careerView(b).source === "supplier");
   if (partial) out.push({ path: `/boxers/${partial.slug}`, kind: "page", label: "fighter with a partial history (the supplier's career total shown)", mustShow: recordStr(partial) });
+  // a fighter the load kept although the supplier's own fight list contradicts its career total: the page shows the total and says the two disagree
+  const disputed = boxers.find((b) => careerView(b).source === "disputed");
+  if (disputed) out.push({ path: `/boxers/${disputed.slug}`, kind: "page", label: "fighter whose record the supplier's own fight list contradicts", mustShow: "disagree", englishOnly: true });
   // a league loaded in part: the rankings need five fights each, so divisions can be empty, and the pages must say why
   if (rankingDepth(w).partialShare > 0.5) {
     out.push({ path: "/rankings", kind: "page", label: "rankings of a league loaded in part (says why divisions are thin)", mustShow: "count only the fights Ringside holds" });

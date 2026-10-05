@@ -11,16 +11,19 @@ import { degradeWorld, makeWorld, serveMockVendor } from "../lib/vendor-mock";
 /** `npm run vendor:load` (round 88): the load, guided: the check first, a typed confirmation, then the load. */
 test("the plan: the real cache's policy by default, replaced by the other answers, and the owner's storage statement is never assumed", () => {
   const p = loadPlan([], {}, "/cache");
-  assert.equal(p.database, DEFAULT_DATABASE); assert.equal(p.droppedFile, path.join(path.dirname(DEFAULT_DATABASE), "dropped.csv"));
+  assert.equal(p.database, DEFAULT_DATABASE); assert.equal(p.droppedFile, path.join(path.dirname(DEFAULT_DATABASE), "dropped.csv")); assert.equal(p.disputedFile, path.join(path.dirname(DEFAULT_DATABASE), "disputed.csv"));
   assert.deepEqual(p.checkArgs.slice(0, 4), ["--check", "--explain-conflicts", "--show", "3"]);
-  assert.ok(p.loadArgs.includes("--drop-conflicts") && p.loadArgs.includes("--allow-partial") && !p.loadArgs.includes("--check"));
+  assert.ok(p.loadArgs.includes("--keep-disputed") && p.loadArgs.includes("--allow-partial") && !p.loadArgs.includes("--check") && !p.loadArgs.includes("--drop-conflicts"), "conflicted fighters stay, marked");
+  assert.ok(p.loadArgs.includes("--disputed-file") && !p.loadArgs.includes("--dropped-file"));
+  const drop = loadPlan(["--drop-conflicts"], {}, "/cache").loadArgs;
+  assert.ok(drop.includes("--drop-conflicts") && !drop.includes("--keep-disputed") && drop.includes("--dropped-file") && !drop.includes("--disputed-file"), "dropping them is still one flag away");
   assert.match(p.refusal ?? "", /written confirmation.*BOXING_API_STORAGE_CONFIRMED=1.*--storage-confirmed/);
   assert.equal(loadPlan(["--storage-confirmed"], {}, "/cache").refusal, null);
   assert.equal(loadPlan([], { BOXING_API_STORAGE_CONFIRMED: "1" }, "/cache").refusal, null);
   assert.match(loadPlan(["--storage-confirmed"], { BOXING_API_STORAGE_CONFIRMED: "0" }, "/cache").refusal ?? "", /switches storing off/, "an explicit =0 wins");
   const own = loadPlan(["--complete-only"], { DATABASE_PATH: "/x/y.db" }, undefined);
-  assert.equal(own.database, "/x/y.db"); assert.ok(!own.loadArgs.includes("--drop-conflicts") && !own.loadArgs.includes("--allow-partial"), "--complete-only replaces the policy");
-  assert.ok(!loadPlan(["--allow-conflicts"], {}, "/c").loadArgs.includes("--drop-conflicts"));
+  assert.equal(own.database, "/x/y.db"); assert.ok(!own.loadArgs.includes("--keep-disputed") && !own.loadArgs.includes("--allow-partial"), "--complete-only replaces the policy");
+  assert.ok(!loadPlan(["--allow-conflicts"], {}, "/c").loadArgs.includes("--keep-disputed"));
   const tuned = loadPlan(["--per-hour", "450", "--cache-dir", "/mine", "--dry-run", "--yes", "--storage-confirmed"], {}, "/cache").loadArgs;
   assert.ok(tuned.includes("450") && !tuned.includes("400") && tuned.filter((a) => a === "--cache-dir").length === 1 && tuned.includes("/mine"));
   assert.ok(!tuned.some((a) => ["--dry-run", "--yes", "--storage-confirmed"].includes(a)), "the wrapper's own flags are not passed on");
@@ -46,7 +49,7 @@ test("end to end on a stand-in vendor: the check is shown, nothing is written wi
     const refused = await run(base, env);
     assert.equal(refused.code, 1); assert.match(refused.out, /written confirmation that its data may be stored has not been stated/); assert.ok(!fs.existsSync(db) && !fs.existsSync(cache), "nothing written, nothing fetched");
     const dry = await run([...base, "--storage-confirmed", "--dry-run"], env);
-    assert.match(dry.out, /vendor:load[\s\S]*database: .*real\.db  \(new\)/); assert.match(dry.out, /step 1: the check/); assert.match(dry.out, /--drop-conflicts: left out \d+ fighter/); assert.match(dry.out, /^why the \d+ conflict/m);
+    assert.match(dry.out, /vendor:load[\s\S]*database: .*real\.db  \(new\)/); assert.match(dry.out, /step 1: the check/); assert.match(dry.out, /--keep-disputed: \d+ fighter\(s\) whose loaded fights come to more than the vendor's career total are kept and marked/); assert.match(dry.out, /^why the \d+ conflict/m);
     assert.match(dry.out, /--dry-run: stopped after the check/); assert.ok(!fs.existsSync(db), "a dry run writes no database");
     assert.ok(!dry.out.includes(secret), "the key is never printed");
     const noTty = await run([...base, "--storage-confirmed"], env);
@@ -57,7 +60,10 @@ test("end to end on a stand-in vendor: the check is shown, nothing is written wi
     const { DatabaseSync } = await import("node:sqlite");
     const x = new DatabaseSync(db, { readOnly: true });
     const n = (x.prepare("SELECT COUNT(*) c FROM boxers").get() as { c: number }).c; x.close();
-    const dropped = fs.readFileSync(path.join(d, "dropped.csv"), "utf8").trim().split("\n").length - 1;
-    assert.ok(n > 300 && dropped >= 1 && dropped <= 6, `${n} fighters loaded, ${dropped} left out and listed`);
+    const listed = fs.readFileSync(path.join(d, "disputed.csv"), "utf8").trim().split("\n").length - 1;
+    const marks = new DatabaseSync(db, { readOnly: true }); const marked = (marks.prepare("SELECT COUNT(*) c FROM boxers WHERE record_disputed = 1").get() as { c: number }).c; marks.close();
+    assert.ok(n > 300 && listed >= 1 && listed <= 6, `${n} fighters loaded, ${listed} kept and marked as disputed`);
+    assert.equal(marked, listed, "every listed fighter is marked in the database, and nobody else");
+    assert.ok(!fs.existsSync(path.join(d, "dropped.csv")), "nobody was dropped");
   } finally { await vendor.close(); }
 });
