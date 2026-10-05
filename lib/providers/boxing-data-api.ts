@@ -96,12 +96,12 @@ export const divisionOf = (raw: string): string | null => normalizeDivision(raw)
 
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
-  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
+  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter" | "duplicateFightsMerged" | "duplicateFightsDisagree" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
   | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "outcomeMapped" | "outcomeUnreadable" | "roundUnreadable" | "bothMarkedWinner" | "eventsWithoutFights" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
+  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, fightsSkippedNoId: 0, fightsSkippedNoFighter: 0, fightsSkippedNoDate: 0, fightsSkippedSameFighter: 0, duplicateFightsMerged: 0, duplicateFightsDisagree: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, outcomeMapped: 0, outcomeUnreadable: 0, roundUnreadable: 0, bothMarkedWinner: 0, eventsWithoutFights: 0, windowTooBig: 0,
 });
 
@@ -149,8 +149,12 @@ export function careerTotals(s: NonNullable<ApiFighter["stats"]>): { koWins?: nu
 export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: ProviderBout; event: ProviderEvent; fighterIds: [string, string] } | null {
   const a = f.fighters?.fighter_1, b = f.fighters?.fighter_2;
   const date = (f.event?.date ?? f.date ?? "").slice(0, 10); // a UTC calendar date: an evening card in the Americas can land a day late (see the readiness doc)
-  if (!f.id || !a?.fighter_id || !b?.fighter_id || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { notes.fightsSkipped++; return null; }
-  if (a.fighter_id === b.fighter_id) { notes.fightsSkipped++; return null; } // a fighter cannot fight himself: a feed slip, not a fight
+  // each skipped fight is counted once under its first reason (and in the total): a fight with a fighter who has no profile id is one thing, a row with no date another
+  const skip = (why: "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter") => { notes.fightsSkipped++; notes[why]++; return null; };
+  if (!f.id) return skip("fightsSkippedNoId");
+  if (!a?.fighter_id || !b?.fighter_id) return skip("fightsSkippedNoFighter");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return skip("fightsSkippedNoDate");
+  if (a.fighter_id === b.fighter_id) return skip("fightsSkippedSameFighter"); // a fighter cannot fight himself: a feed slip, not a fight
 
   const loc = parseLocation(f.event?.location ?? f.location, notes);
   const eId = f.event?.id ? eventId(f.event.id) : `bda-e-fight-${f.id}`;
@@ -286,6 +290,46 @@ export function finishBoxers(rows: Loose[], bouts: ProviderBout[], eventDates: M
 // ---- the client ----
 const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * 86400000).toISOString().slice(0, 10);
 /**
+ * The same fight listed twice. The first real fetch showed the vendor holding two generations of records for one bout (ids from two import batches), the same two
+ * fighters on the same card or a day apart (a card on the 14th that another record dates the 15th), sometimes with different methods (KO and TKO) and a few times with
+ * different winners. Each copy counts as a result, so the fighters' records come out above the vendor's totals (a conflict). Fights between the same two fighters
+ * within a day of each other are one fight: where the copies agree on the winner one is kept (the one with a result, then with scores, then the lowest id); where they
+ * disagree none is believed, and the one kept says "no result yet", never a guessed winner. Rematches are months apart, so nothing real is merged.
+ */
+export function mergeDuplicateFights(bouts: ProviderBout[], eventDates: Map<string, string>, notes: Notes): ProviderBout[] {
+  const groups = new Map<string, number[]>();
+  bouts.forEach((b, i) => { if (b.status !== "cancelled") { const k = [b.redExternalId, b.blueExternalId].sort().join("|"); (groups.get(k) ?? groups.set(k, []).get(k)!).push(i); } });
+  const drop = new Set<number>(), blank = new Set<number>();
+  const hasResult = (b: ProviderBout) => !!b.winnerExternalId || b.method === "DRAW";
+  const verdict = (b: ProviderBout) => b.winnerExternalId ?? (b.method === "DRAW" ? "DRAW" : "");
+  const gap = (a: string, b: string) => Math.abs(Date.parse(a) - Date.parse(b)) / 86_400_000;
+  for (const idxs of groups.values()) {
+    if (idxs.length < 2) continue;
+    const dated = idxs.map((i) => ({ i, d: eventDates.get(bouts[i].eventExternalId) ?? "" })).filter((x) => x.d)
+      .sort((x, y) => x.d.localeCompare(y.d) || bouts[x.i].externalId.localeCompare(bouts[y.i].externalId));
+    let cluster: { i: number; d: string }[] = [];
+    const settle = () => {
+      if (cluster.length > 1) {
+        const verdicts = new Set(cluster.map((x) => verdict(bouts[x.i])).filter(Boolean));
+        const best = [...cluster].sort((x, y) => Number(hasResult(bouts[y.i])) - Number(hasResult(bouts[x.i])) || (bouts[y.i].scores?.length ?? 0) - (bouts[x.i].scores?.length ?? 0) || bouts[x.i].externalId.localeCompare(bouts[y.i].externalId))[0];
+        for (const x of cluster) if (x !== best) drop.add(x.i);
+        notes.duplicateFightsMerged += cluster.length - 1;
+        if (verdicts.size > 1) { blank.add(best.i); notes.duplicateFightsDisagree++; }
+      }
+      cluster = [];
+    };
+    for (const x of dated) { if (cluster.length && gap(x.d, cluster[cluster.length - 1].d) > 1) settle(); cluster.push(x); }
+    settle();
+  }
+  return bouts.flatMap((b, i) => {
+    if (drop.has(i)) return [];
+    if (!blank.has(i)) return [b];
+    const { scores: _scores, ...rest } = b; void _scores;
+    return [{ ...rest, winnerExternalId: null, method: null, endRound: null }];
+  });
+}
+
+/**
  * A decision with no winner is taken as a draw by `mapFight`, but the feed also leaves the winner out of fights it has not settled (a result not yet posted,
  * a no contest): a draw the vendor never recorded then shows up as a conflict ("loaded 0-0-1, vendor 18-0-0"). So a drawn fight is kept only where each fighter's
  * career record has room for it: the vendor's draws, counted fight by fight, never exceeded. A fighter with no career record cannot be checked, and keeps the
@@ -351,6 +395,8 @@ export interface BoxingDataApiOptions {
   perHour?: number;
   /** Make no request at all: answer from the cache or not at all. A page missing from the cache is a 404 (so a missing schedule or rankings page is "unavailable", as for a plan without them), and the fighters not in the cache are left out like fighters outside a selection. For looking at what a part-way fetch holds. */
   cachedOnly?: boolean;
+  /** Merge the same fight listed twice (default true; see `mergeDuplicateFights`). Off only for tests that count the bouts of a random league, in which the same two fighters meet twice in a day by chance. */
+  mergeDuplicates?: boolean;
   /**
    * Fetch only this many fighters: the ones with the most recent (or coming) fight first. The fights between two of them are loaded and no others, so a
    * first load of a few thousand fighters is a league that holds together, in hours instead of days; a later run with a larger number (or none) only
@@ -690,7 +736,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     const kept = placeBouts(keep.filter((b) => { const ok = placedIds.has(b.redExternalId) && placedIds.has(b.blueExternalId); if (!ok) notes.boutsDroppedNoDivision++; return ok; }), placed, notes);
     // an event exists here only because a fight said so: one whose every fight was dropped (a fighter outside the selection, an unplaceable division) is not a card with a page,
     // and would be a 404 in the sitemap, the search and the country pages. In a partial load that is most small cards, so it is left out and counted
-    const finalBouts = demoteUnsupportedDraws(kept, careers, notes), onCard = new Set(finalBouts.map((b) => b.eventExternalId));
+    const finalBouts = demoteUnsupportedDraws(o.mergeDuplicates === false ? kept : mergeDuplicateFights(kept, eventDates, notes), careers, notes), onCard = new Set(finalBouts.map((b) => b.eventExternalId));
     const cards = [...events.values()].filter((e) => onCard.has(e.externalId));
     notes.eventsWithoutFights += events.size - cards.length;
     return { boxers: placed, events: cards, bouts: finalBouts };

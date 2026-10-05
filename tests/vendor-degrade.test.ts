@@ -23,3 +23,16 @@ test("each fault changes the league in its own way: unrecorded fights leave the 
   assert.deepEqual([...degradeWorld(league(), { seed: 1, priorShare: 0.3 }).careers], [...prior.careers], "deterministic for a seed");
   assert.equal(results(degradeWorld(league(), {})), base, "no options, no change");
 });
+
+test("round 78 faults: wrong totals lower the vendor's wins (and are named), disagreeing duplicates are the same fight a day later with the other winner", () => {
+  const base = results(league());
+  const wrong = degradeWorld(league(), { seed: 2, wrongTotals: 5 });
+  assert.equal(wrong.faults?.wrongTotals.length, 5); assert.equal(results(wrong), base - 5);
+  const dis = degradeWorld(league(), { seed: 2, disagree: 4 });
+  const copies = dis.fights.filter((f) => f.id.startsWith("g"));
+  assert.equal(copies.length, 4); assert.equal(results(dis), base, "the vendor counts the original once");
+  for (const c of copies) {
+    const o = dis.fights.find((f) => f.a === c.a && f.b === c.b && !f.id.startsWith("g") && Date.parse(c.date) - Date.parse(f.date) === 86_400_000);
+    assert.ok(o && o.winner !== null && o.winner !== c.winner, "the same fight a day earlier, with the other winner");
+  }
+});

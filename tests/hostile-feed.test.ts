@@ -24,8 +24,8 @@ test("the adapter and the validator read the league without throwing, and every 
   const n = p.notes();
   const repeated = HOSTILE_FIGHTS.length - new Set(HOSTILE_FIGHTS.map((x) => x.id)).size;
   assert.ok(repeated >= 1, "the league repeats a fight id on purpose");
-  assert.equal(HOSTILE_FIGHTS.length, repeated + n.fightsSkipped + n.boutsDroppedUnknownFighter + n.boutsOutsideSelection + n.boutsDroppedNoDivision + feed.bouts.length,
-    "every fight is a repeat, skipped (and counted), dropped for a missing fighter or division (and counted), or a bout of the feed");
+  assert.equal(HOSTILE_FIGHTS.length, repeated + n.fightsSkipped + n.duplicateFightsMerged + n.boutsDroppedUnknownFighter + n.boutsOutsideSelection + n.boutsDroppedNoDivision + feed.bouts.length,
+    "every fight is a repeat, skipped (and counted), merged into another copy of the same fight (and counted), dropped for a missing fighter or division (and counted), or a bout of the feed");
   const s = sanitizeFeed(feed, { today: "2026-10-03" });
   assert.equal(feed.bouts.length, s.feed.bouts.length + (s.dropped.bout ?? 0), "every bout of the feed is kept by the validator or dropped and counted");
   const errors = s.issues.filter((i) => i.severity === "error" && i.entity === "bout");

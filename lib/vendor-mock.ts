@@ -35,7 +35,7 @@ export interface MockFight {
   id: string; date: string; a: string; b: string; status: "FINISHED" | "NOT_STARTED"; winner: "a" | "b" | null; outcome: string | null; round: number | null; division: string; event: string;
 }
 export interface MockFighter { id: string; name: string; birthYear: number; division: string; country: string }
-export interface MockWorld { today: string; fighters: Map<string, MockFighter>; fights: MockFight[]; careers: Map<string, { wins: number; losses: number; draws: number }> }
+export interface MockWorld { today: string; fighters: Map<string, MockFighter>; fights: MockFight[]; careers: Map<string, { wins: number; losses: number; draws: number }>; /** set by `degradeWorld`: the fighters whose vendor totals were made too low */ faults?: { wrongTotals: string[] } }
 
 const DIVISIONS = ["Heavyweight", "Cruiserweight", "Light Heavyweight", "Super Middleweight", "Middleweight", "Super Welterweight", "Welterweight", "Super Lightweight", "Lightweight", "Super Featherweight", "Featherweight", "Super Bantamweight", "Bantamweight", "Super Flyweight", "Flyweight", "Light Flyweight", "Minimumweight"];
 const COUNTRIES = ["United States", "Mexico", "United Kingdom", "Japan", "Ukraine", "Philippines", "Nigeria", "Argentina", "Germany", "Cuba"];
@@ -82,10 +82,12 @@ export function makeWorld(o: { fighters: number; fights: number; years?: number;
  * What the real feed looked like on the first full fetch, laid over a clean league (which always adds up, so it cannot show the load-day paths):
  * - `priorShare`: this share of fighters has an earlier career the fight list does not reach, so the vendor's total is above what their fights add up to (partial);
  * - `unrecorded`: this many finished fights have no winner but a decision outcome, and the vendor's totals do NOT count them (a result not yet posted: the importer's draw guess made these conflicts);
+ * - `wrongTotals`: this many fighters have a vendor total of wins one below what their fights give (a wrong winner, a stale total, an exhibition counted in the list: a conflict nothing in the fights explains; their ids are in `world.faults`);
+ * - `disagree`: this many fights are listed again a day later with the OTHER fighter as winner (the vendor counts the original once);
  * - `duplicates`: this many fights are listed twice (same pair, same card) while the vendor's totals count them once (a conflict: "repeat" and "same-day").
  * The league is changed in place and returned; deterministic for a seed.
  */
-export function degradeWorld(w: MockWorld, o: { seed?: number; priorShare?: number; unrecorded?: number; duplicates?: number }): MockWorld {
+export function degradeWorld(w: MockWorld, o: { seed?: number; priorShare?: number; unrecorded?: number; duplicates?: number; wrongTotals?: number; disagree?: number }): MockWorld {
   const rand = mulberry32(o.seed ?? 3);
   const done = w.fights.filter((f) => f.status === "FINISHED");
   const career = (id: string) => w.careers.get(id) ?? w.careers.set(id, { wins: 0, losses: 0, draws: 0 }).get(id)!;
@@ -98,7 +100,15 @@ export function degradeWorld(w: MockWorld, o: { seed?: number; priorShare?: numb
   for (let i = 0; i < (o.unrecorded ?? 0); i++) { const f = pick(); if (!f) break; drop(f); f.winner = null; f.outcome = "UD"; f.round = null; }
   const copies: MockFight[] = [];
   for (let i = 0; i < (o.duplicates ?? 0); i++) { const f = pick(); if (f) copies.push({ ...f, id: `d${i}` }); }
+  for (let i = 0; i < (o.disagree ?? 0); i++) {
+    const f = pick(); if (!f) break;
+    const d = new Date(Date.parse(`${f.date}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
+    copies.push({ ...f, id: `g${i}`, date: d, event: `${f.event}-g${i}`, winner: f.winner === "a" ? "b" : "a", outcome: "UD", round: null });
+  }
   w.fights.push(...copies);
+  const wrong: string[] = [];
+  for (const [id, c] of w.careers) { if (wrong.length >= (o.wrongTotals ?? 0)) break; if (c.wins >= 3 && rand() < 0.05) { c.wins--; wrong.push(id); } }
+  w.faults = { wrongTotals: wrong };
   for (const id of new Set(done.flatMap((f) => [f.a, f.b]))) {
     if (rand() < (o.priorShare ?? 0)) { const c = career(id); c.wins += 1 + Math.floor(rand() * 8); c.losses += Math.floor(rand() * 5); }
   }

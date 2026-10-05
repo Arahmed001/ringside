@@ -58,7 +58,7 @@ const line = (s: string, re: RegExp) => s.split("\n").filter((l) => re.test(l)).
 /** The load-day paths on leagues that do not add up (see the header): each step is a real `vendor:backfill` run, the vendor is a local stand-in with its own key. */
 async function realistic(checks: [string, boolean, string][]) {
   const unrecorded = Math.round(N.fights * 0.003), duplicates = Math.round(N.fights * 0.002);
-  const scenario = async (title: string, opts: Parameters<typeof degradeWorld>[1], body: (go: (name: string, args: string[], env?: Record<string, string>) => Promise<Run & { asked: number }>, cache: string, dir: string) => Promise<void>) => {
+  const scenario = async (title: string, opts: Parameters<typeof degradeWorld>[1], body: (go: (name: string, args: string[], env?: Record<string, string>) => Promise<Run & { asked: number }>, cache: string, dir: string, world: ReturnType<typeof makeWorld>) => Promise<void>) => {
     const world = degradeWorld(makeWorld({ ...N, today: TODAY, upcoming: 0 }), opts);
     console.log(`\n${title}: ${world.fights.length} fights (${opts.priorShare ? `${Math.round(opts.priorShare * 100)}% of fighters with an earlier career, ` : ""}${opts.unrecorded ?? 0} the vendor does not count, ${opts.duplicates ?? 0} listed twice)`);
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "rehearse-real-"));
@@ -70,17 +70,19 @@ async function realistic(checks: [string, boolean, string][]) {
       console.log(`  ${name.padEnd(46)} ${secs(r.ms).padStart(9)}  peak ${mb(r.peakRss).padStart(7)}  ${String(asked).padStart(6)} requests  exit ${r.code}`);
       return { ...r, asked };
     };
-    try { await body(go, path.join(dir, "cache"), dir); } finally { await vendor.close(); if (!argv.includes("--keep")) fs.rmSync(dir, { recursive: true, force: true }); }
+    try { await body(go, path.join(dir, "cache"), dir, world); } finally { await vendor.close(); if (!argv.includes("--keep")) fs.rmSync(dir, { recursive: true, force: true }); }
   };
   const boxersIn = (file: string) => { if (!fs.existsSync(file)) return 0; const x = new DatabaseSync(file, { readOnly: true }); try { return (x.prepare("SELECT COUNT(*) c FROM boxers").get() as { c: number }).c; } catch { return 0; } finally { x.close(); } };
   const noKey = { BOXING_API_KEY: "" };
 
   // A: what the first real fetch looked like: earlier careers missing, fights listed twice, results the vendor does not count
-  await scenario("A. faults", { seed: N.seed, priorShare: PRIOR, unrecorded, duplicates }, async (go, cache, dir) => {
+  const wrongTotals = Math.max(3, Math.round(N.fights * 0.0015));
+  await scenario("A. faults", { seed: N.seed, priorShare: PRIOR, unrecorded, duplicates, disagree: Math.round(duplicates / 3), wrongTotals }, async (go, cache, dir, world) => {
     const a = await go("a. --check --explain-conflicts", ["--check", "--explain-conflicts", "--show", "2", "--cache-dir", cache]);
     checks.push(["A: --check refuses while records do not add up", a.code === 1 && /a load would be refused/.test(a.out), line(a.out, /^records:/)]);
     checks.push(["A: the draw guess is demoted, not left as a conflict", /drawDemoted\s+[1-9]/.test(a.out) && !/more draws loaded than the vendor counts/.test(a.out), line(a.out, /drawDemoted/)]);
-    checks.push(["A: fights listed twice are named as repeats", /the same two fighters twice within 30 days/.test(a.out), line(a.out, /^why the/)]);
+    checks.push(["A: fights listed twice are merged into one, and the disagreeing ones left without a result", /duplicateFightsMerged\s+[1-9]/.test(a.out) && /duplicateFightsDisagree\s+[1-9]/.test(a.out) && !/the same two fighters twice within 30 days/.test(a.out), line(a.out, /duplicateFights/)]);
+    checks.push(["A: what is left is the vendor's wrong totals, named as such", /more wins loaded than the vendor counts/.test(a.out) && /^why the (\d+) conflict/m.test(a.out), line(a.out, /^why the/)]);
     const b = await go("b. --check --cached-only --explain-conflicts", ["--check", "--cached-only", "--explain-conflicts", "--cache-dir", cache], noKey);
     checks.push(["A: --cached-only asks for nothing and says the same", b.asked === 0 && /^why the/m.test(b.out), `${b.asked} requests`]);
     const c = await go("c. --check --cached-only --complete-only", ["--check", "--cached-only", "--complete-only", "--cache-dir", cache], noKey);
@@ -90,6 +92,25 @@ async function realistic(checks: [string, boolean, string][]) {
     const dbFile = path.join(dir, "partial.db");
     const e = await go("e. load --allow-partial (conflicts stand)", ["--allow-partial", "--cache-dir", cache], { DATABASE_PATH: dbFile });
     checks.push(["A: --allow-partial does not wave a conflict through", e.code !== 0 && /MORE wins, losses or draws/.test(e.out) && boxersIn(dbFile) === 0, `exit ${e.code}, ${boxersIn(dbFile)} fighters written`]);
+    const wrongIds = world.faults?.wrongTotals ?? [];
+    const f = await go("f. --check --cached-only --drop-conflicts --allow-partial", ["--check", "--cached-only", "--drop-conflicts", "--allow-partial", "--cache-dir", cache], noKey);
+    const left = /--drop-conflicts: left out (\d+) fighter/.exec(f.out);
+    checks.push(["A: --drop-conflicts leaves out the fighters with wrong totals, and then the check passes", f.code === 0 && !!left && Number(left[1]) >= wrongIds.length * 0.9 && Number(left[1]) <= wrongIds.length && !/a load would be refused/.test(f.out), `${left?.[1] ?? "none"} left out of ${wrongIds.length} wrong totals (a fighter whose earlier career is also missing is short, not in conflict), exit ${f.code}`]);
+    const dbFile3 = path.join(dir, "dropped.db"), listFile = path.join(dir, "dropped.csv");
+    const g = await go("g. load --drop-conflicts --allow-partial", ["--drop-conflicts", "--allow-partial", "--dropped-file", listFile, "--cache-dir", cache], { DATABASE_PATH: dbFile3 });
+    const listedIds = fs.existsSync(listFile) ? fs.readFileSync(listFile, "utf8").trim().split("\n").slice(1).map((l) => l.split(",")[0].replace(/^bda-f-/, "")) : [];
+    const listed = listedIds.length;
+    const x = new DatabaseSync(dbFile3, { readOnly: true });
+    const inDb = new Set((x.prepare("SELECT external_id e FROM boxers").all() as { e: string }[]).map((r) => r.e));
+    x.close();
+    checks.push(["A: the load goes through without them, the list names only fighters with a wrong total, and none is in the database", g.code === 0 && left !== null && listed === Number(left[1]) && listedIds.every((id) => wrongIds.includes(id) && !inDb.has(`bda-f-${id}`)) && inDb.size > 0, `exit ${g.code}, ${listed} listed, ${inDb.size} fighters loaded`]);
+  });
+
+  // C: only duplicated fights: merged, so the records add up again
+  await scenario("C. duplicated fights only", { seed: N.seed + 2, duplicates }, async (go, cache) => {
+    const a = await go("a. --check", ["--check", "--cache-dir", cache]);
+    const merged = Number(/duplicateFightsMerged\s+(\d+)/.exec(a.out)?.[1] ?? 0);
+    checks.push(["C: fights listed twice no longer stop the load", a.code === 0 && merged >= duplicates * 0.9 && !/CONFLICT/.test(a.out), `exit ${a.code}, ${merged} merged of ${duplicates}`]);
   });
 
   // B: only results the vendor has not posted: the importer's draw guess used to turn each into a conflict; now the records add up and the gate passes
@@ -134,7 +155,9 @@ async function main() {
     const db = new DatabaseSync(dbFile, { readOnly: true });
     const n = (sql: string) => (db.prepare(sql).get() as { c: number }).c;
     const bouts = n("SELECT COUNT(*) c FROM bouts"), boxers = n("SELECT COUNT(*) c FROM boxers");
-    checks.push(["load: every fight is in the database", load.code === 0 && bouts === world.fights.length, `${bouts} of ${world.fights.length}`]);
+    // two random fights between the same pair within a day of each other are, by the importer's rule, one fight listed twice: they are merged and counted
+    const merged = Number(/duplicateFightsMerged\s+(\d+)/.exec(load.out)?.[1] ?? 0);
+    checks.push(["load: every fight is in the database (or merged into its other copy, and counted)", load.code === 0 && bouts + merged === world.fights.length, `${bouts} of ${world.fights.length}${merged ? `, ${merged} merged` : ""}`]);
     checks.push(["load: every fighter with a fight is in", boxers === new Set(world.fights.flatMap((f) => [f.a, f.b])).size, `${boxers} fighters`]);
     checks.push(["load made no new requests (all cached)", results[2].requests === 0, `${results[2].requests}`]);
     db.close();

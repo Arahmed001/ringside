@@ -205,7 +205,8 @@ test("pagination: it follows total_pages and stops at the fight limit", async ()
     if (path === "/v2/fights/") {
       pages.push(`${q.get("page_num")}/${q.get("page_size")}/${q.get("date_sort")}`);
       const p = Number(q.get("page_num"));
-      return { body: env([fight(`p${p}`, "A1", "B1")], { pagination: { page: p, total_pages: 3, next_page: null } }) };
+      const date = `2024-0${p}-01T21:00:00+00:00`; // three different cards: the same two fighters within a day would be one fight listed three times (round 78)
+      return { body: env([fight(`p${p}`, "A1", "B1", { date, event: { id: `ev-p${p}`, title: "Card", date, location: "Riyadh, Saudi Arabia", venue: "Arena" } })], { pagination: { page: p, total_pages: 3, next_page: null } }) };
     }
     return standard(path, q);
   });

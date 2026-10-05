@@ -14,6 +14,7 @@
  *          --with-opponents | --whole-groups (with --fighters N: also fetch every opponent of the N, so each of the N has all his fights; or take whole groups of fighters, newest group first, while they fit in N, so nobody in them has a fight outside: `--plan` prints what each would ask for)
  *          --complete-only (load only the fighters whose records add up exactly to the vendor's career totals, and whose opponents' do: a smaller league in which no record is short)
  *          --cached-only (with --check or a load: make no request, use only what --cache-dir holds, and leave out the fighters not fetched yet; needs no key and does not wait for a fetch under way)
+ *          --drop-conflicts (leave out the fighters whose loaded fights come to more than the vendor's career total, with their fights, and list them (--dropped-file path.csv lists all); the rest loads; not with --allow-conflicts or --complete-only)
  *          --explain-conflicts (with --check: list the fights behind the first --show 10 conflicts; the tally of causes is always printed)
  *          --allow-incomplete (load even though some fighters could not be fetched)  --allow-errors (load even though the validator found errors)
  *          --min-complete 0.9 (the share of fighters whose loaded fights must add up to the vendor's career record)  --allow-partial  --allow-conflicts
@@ -23,6 +24,7 @@
  * Point DATABASE_PATH at a NEW file for the real league; never at the demo database.
  */
 process.env.RINGSIDE_NO_SEED = "1"; // an empty database is what we are here to fill: the app's own first-request seeding must not start
+import fs from "node:fs";
 import path from "node:path";
 import { boxingDataApiProvider, storageStatus, type BoxingDataApiOptions } from "../lib/providers/boxing-data-api";
 import { loadFeed } from "../lib/feed";
@@ -30,7 +32,7 @@ import type { DataProvider } from "../lib/providers";
 import { countBySeverity, groupIssues, sanitizeFeed } from "../lib/validate";
 import { todayIso } from "../lib/clock";
 import { acquireBackfillLock, describePlan, foreignFighters, releaseBackfillLock, updateSince } from "../lib/vendor-backfill";
-import { coherentCore, describeConflictReport, describeReconciliation, explainConflicts, reconcileDb, reconcileFeed, recordGate, restrictFeed } from "../lib/vendor-verify";
+import { coherentCore, describeConflictReport, dropConflicted, describeReconciliation, explainConflicts, reconcileDb, reconcileFeed, recordGate, restrictFeed } from "../lib/vendor-verify";
 
 /** how many days the vendor's career totals may trail a result before a surplus counts as a contradiction (daily update audit only; a load is strict) */
 const LAG_DAYS = Number(process.env.VENDOR_LAG_DAYS ?? 7);
@@ -61,7 +63,8 @@ async function main() {
   const fightersText = arg("fighters");
   const maxFighters = fightersText === undefined ? undefined : Number(fightersText);
   if (maxFighters !== undefined && !(Number.isInteger(maxFighters) && maxFighters > 0)) throw new Error(`--fighters must be a whole number above 0, not "${fightersText}".`);
-  const completeOnly = flag("complete-only");
+  const completeOnly = flag("complete-only"), dropConflicts = flag("drop-conflicts");
+  if (dropConflicts && (flag("allow-conflicts") || completeOnly || update)) throw new Error("--drop-conflicts leaves out the fighters whose records contradict the feed: not with --allow-conflicts (which keeps them), --complete-only (which already leaves them out) or --update.");
   const withOpponents = flag("with-opponents"), wholeGroups = flag("whole-groups");
   if (withOpponents && wholeGroups) throw new Error("--with-opponents and --whole-groups are two ways to choose the fighters: use one.");
   if ((withOpponents || wholeGroups) && maxFighters === undefined) throw new Error("--with-opponents and --whole-groups choose from the first --fighters N: give --fighters N too (without it every fighter is taken anyway).");
@@ -115,6 +118,22 @@ async function main() {
     source = { ...provider, name: provider.name, fetchBoxers: async () => cut.boxers, fetchEvents: async () => cut.events, fetchBouts: async () => cut.bouts };
   } else if (maxFighters !== undefined) console.log(`selection: the ${maxFighters} most recently active fighters (and the fights between them). Their records come out short wherever an opponent was not taken; the records line below says how many (--complete-only keeps only the ones that are right).`);
 
+  // --drop-conflicts: the fighters whose loaded fights come to more than the vendor's own career total are left out, with their fights, and listed; the rest is checked and loaded as usual.
+  // Their opponents' records can only get shorter (partial, shown with the vendor's total), never become conflicts.
+  if (dropConflicts) {
+    const before = reconcileFeed(raw, provider.vendorRecords(), { today: todayIso(), days: LAG_DAYS });
+    const out = dropConflicted(raw, before);
+    if (out.dropped.length) {
+      console.log(`--drop-conflicts: left out ${out.dropped.length} fighter(s) whose loaded fights come to more than the vendor's career total, and their ${out.fightsDropped} fights (first ${Math.min(20, out.dropped.length)}):`);
+      for (const m of out.dropped.slice(0, 20)) console.log(`  ${m.name}: loaded ${m.loaded}, vendor ${m.vendor}`);
+      const file = arg("dropped-file");
+      if (file) { fs.writeFileSync(file, ["id,name,loaded,vendor", ...out.dropped.map((m) => [m.externalId, `"${m.name.replace(/"/g, '""')}"`, m.loaded, m.vendor].join(","))].join("\n") + "\n"); console.log(`  all ${out.dropped.length} are listed in ${file}`); }
+      raw = out.feed;
+      const cut = out.feed;
+      source = { ...source, name: provider.name, fetchBoxers: async () => cut.boxers, fetchEvents: async () => cut.events, fetchBouts: async () => cut.bouts };
+    } else console.log("--drop-conflicts: no fighter's record contradicts the feed; nothing left out.");
+  }
+
   const { issues } = sanitizeFeed(raw, { today: todayIso() });
   const sev = countBySeverity(issues);
   console.log(`validator: ${sev.errors} error(s), ${sev.warnings} warning(s), ${sev.infos} note(s)`);
@@ -126,9 +145,9 @@ async function main() {
   const gateOpts = { minComplete: Number(arg("min-complete") ?? 0.9), allowPartial: flag("allow-partial"), allowConflicts: flag("allow-conflicts") };
   let gate = { ok: true, reasons: [] as string[] };
   if (!update) {
-    const rec = reconcileFeed(raw, provider.vendorRecords());
+    const rec = reconcileFeed(raw, provider.vendorRecords(), { today: todayIso(), days: LAG_DAYS });
     for (const line of describeReconciliation(rec)) console.log(line);
-    if (rec.conflict) for (const line of describeConflictReport(explainConflicts(raw, provider.vendorRecords(), todayIso()), flag("explain-conflicts") ? Number(arg("show") ?? 10) : 0)) console.log(line);
+    if (rec.conflict) for (const line of describeConflictReport(explainConflicts(raw, provider.vendorRecords(), todayIso(), LAG_DAYS), flag("explain-conflicts") ? Number(arg("show") ?? 10) : 0)) console.log(line);
     gate = recordGate(rec, gateOpts);
   }
   if (check) {

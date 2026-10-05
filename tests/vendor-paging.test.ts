@@ -9,10 +9,11 @@ import { makeWorld, mockVendor, type MockOptions, type MockWorld } from "../lib/
  * asks for the history in date windows. These tests shrink the limit to 300 so a 1,200-fight league reaches it.
  */
 const KEY = "sk-paging-test-key-0123456789abcdef0123456789";
+// the paging tests count the bouts of a random league, where the same two fighters meet twice within a day by chance: the importer would (rightly) merge those, so it is off here (round 78)
 const load = async (w: MockWorld, o: MockOptions, extra: Record<string, unknown> = {}) => {
   const v = mockVendor(w, o);
   const logs: string[] = [];
-  const p = boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: v.fetchImpl, scheduleDays: 0, maxRequests: 100_000, log: (m) => logs.push(m), ...extra });
+  const p = boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: v.fetchImpl, scheduleDays: 0, maxRequests: 100_000, mergeDuplicates: false, log: (m) => logs.push(m), ...extra });
   const bouts = await p.fetchBouts();
   return { bouts, v, logs, p };
 };
@@ -32,7 +33,7 @@ test("a league inside the limit is read exactly as before: no date parameters (a
   const small = makeWorld({ fighters: 60, fights: 250, upcoming: 0, seed: 3 }); // 3 pages; the limit below reaches 4
   const seen: string[] = [];
   const v = mockVendor(small, { offsetLimit: 400, historyDays: 365 * 40 });
-  const p = boxingDataApiProvider({ key: KEY, purpose: "evaluation", scheduleDays: 0, offsetLimit: 400, fetchImpl: (async (u: RequestInfo | URL) => { seen.push(String(u)); return v.fetchImpl(u); }) as typeof fetch });
+  const p = boxingDataApiProvider({ key: KEY, purpose: "evaluation", scheduleDays: 0, offsetLimit: 400, mergeDuplicates: false, fetchImpl: (async (u: RequestInfo | URL) => { seen.push(String(u)); return v.fetchImpl(u); }) as typeof fetch });
   assert.equal((await p.fetchBouts()).length, 250);
   assert.equal(seen.filter((u) => u.includes("/v2/fights/")).length, 3, "three list pages of at most 100");
   assert.ok(seen.every((u) => !u.includes("date_from")), "no date window was asked for");

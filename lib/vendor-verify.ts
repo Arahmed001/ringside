@@ -62,16 +62,22 @@ function reconcile(fighters: { externalId: string; name: string }[], loaded: Map
 const add = (m: Map<string, CareerRecord>, id: string, k: keyof CareerRecord) => { const r = m.get(id) ?? { wins: 0, losses: 0, draws: 0 }; r[k]++; m.set(id, r); };
 
 /** Reconciles a feed (before anything is written) against the vendor's career records. Fights with a winner count as a win and a loss, a DRAW as a draw each; cancelled fights and fights with no result count for nothing. */
-export function reconcileFeed(feed: FeedData, vendor: Map<string, CareerRecord>): Reconciliation {
+export function reconcileFeed(feed: FeedData, vendor: Map<string, CareerRecord>, lag?: { today: string; days: number }): Reconciliation {
   const loaded = new Map<string, CareerRecord>();
+  // with `lag`, the fights of the last `days` days are also counted apart: a conflict that goes away without them is the vendor's total trailing its results (`lagging`), not the feed contradicting itself
+  const recent = lag ? new Map<string, CareerRecord>() : undefined;
+  const dateOf = new Map(feed.events.map((e) => [e.externalId, e.date]));
+  const cutoff = lag ? new Date(Date.parse(`${lag.today}T00:00:00Z`) - lag.days * 86_400_000).toISOString().slice(0, 10) : "";
   for (const b of feed.bouts) {
     if (b.status === "cancelled") continue;
+    const isRecent = !!recent && (dateOf.get(b.eventExternalId) ?? "") >= cutoff && !!dateOf.get(b.eventExternalId);
+    const count = (id: string, k: keyof CareerRecord) => { add(loaded, id, k); if (isRecent) add(recent!, id, k); };
     if (b.winnerExternalId) {
-      add(loaded, b.winnerExternalId, "wins");
-      add(loaded, b.winnerExternalId === b.redExternalId ? b.blueExternalId : b.redExternalId, "losses");
-    } else if (b.method === "DRAW") { add(loaded, b.redExternalId, "draws"); add(loaded, b.blueExternalId, "draws"); }
+      count(b.winnerExternalId, "wins");
+      count(b.winnerExternalId === b.redExternalId ? b.blueExternalId : b.redExternalId, "losses");
+    } else if (b.method === "DRAW") { count(b.redExternalId, "draws"); count(b.blueExternalId, "draws"); }
   }
-  return reconcile(feed.boxers, loaded, vendor);
+  return reconcile(feed.boxers, loaded, vendor, recent);
 }
 
 /**
@@ -178,8 +184,9 @@ export interface ConflictReport { total: number; tally: Record<ConflictCause, nu
 const DAY = 86_400_000;
 const days = (a: string, b: string) => Math.abs(Date.parse(a) - Date.parse(b)) / DAY;
 
-export function explainConflicts(feed: FeedData, vendor: Map<string, CareerRecord>, today: string): ConflictReport {
-  const rec = reconcileFeed(feed, vendor);
+export function explainConflicts(feed: FeedData, vendor: Map<string, CareerRecord>, today: string, lagDays?: number): ConflictReport {
+  // with `lagDays` the fighters whose surplus is only the last days' fights are `lagging`, not conflicts (as in the records line), so the `recent` cause cannot arise
+  const rec = reconcileFeed(feed, vendor, lagDays === undefined ? undefined : { today, days: lagDays });
   const name = new Map(feed.boxers.map((b) => [b.externalId, b.name]));
   const dateOf = new Map(feed.events.map((e) => [e.externalId, e.date]));
   const byFighter = new Map<string, ConflictFight[]>();
@@ -234,4 +241,16 @@ export function describeConflictReport(r: ConflictReport, show = 0): string[] {
     for (const x of f.fights) lines.push(`      ${x.date}  ${x.result}  ${(x.method ?? "no result").padEnd(9)} vs ${x.opponent}  (${x.boutId})`);
   }
   return lines;
+}
+
+/**
+ * `--drop-conflicts`: the fighters whose loaded fights come to MORE than the vendor's own career total, taken out together with their fights, so the rest can be
+ * loaded. A fighter's removal only takes fights from his opponents' counts, so it cannot turn anyone else into a conflict (a record can become shorter, and a
+ * shorter record is a partial one, shown with the vendor's total). The dropped are returned so they can be listed: nobody leaves the league unannounced.
+ */
+export function dropConflicted(feed: FeedData, rec: Reconciliation): { feed: FeedData; dropped: Mismatch[]; fightsDropped: number } {
+  const gone = new Set(rec.conflicts.map((m) => m.externalId));
+  if (!gone.size) return { feed, dropped: [], fightsDropped: 0 };
+  const cut = restrictFeed(feed, new Set(feed.boxers.map((b) => b.externalId).filter((id) => !gone.has(id))));
+  return { feed: cut, dropped: rec.conflicts, fightsDropped: feed.bouts.length - cut.bouts.length };
 }
