@@ -10,6 +10,9 @@ import type { FeedData } from "./feed";
 import { DIVISIONS, normalizeDivision } from "./divisions";
 import { METHODS, endsEarly, hasScorecards, hasWinner, isDrawResult } from "./methods";
 import type { ProviderBout } from "./providers";
+
+/** Most scheduled rounds a bout may have. Historical fights ran 20, 25, 42 rounds; a hundred is a data error (a feed's absurd value is dropped, not trusted). */
+export const MAX_SCHEDULED_ROUNDS = 50;
 import { sanitizeMoney, validDate } from "./validate-money";
 
 export type Severity = "error" | "warning" | "info";
@@ -70,7 +73,7 @@ export function sanitizeFeed(input: Omit<FeedData, "officialRankings"> & Partial
     if (b.redExternalId === b.blueExternalId) return err("same_fighter", "a fighter cannot fight himself");
     if (!normalizeDivision(b.weightClass)) return err("unknown_division", `"${b.weightClass}" is not a recognised weight class`);
     if (b.method !== null && !methodSet.has(b.method)) return err("unknown_method", `"${b.method}" is not a recognised result method`);
-    if (!(b.rounds >= 1 && b.rounds <= 15)) return err("bad_round", `${b.rounds} scheduled rounds`);
+    if (!(b.rounds >= 1 && b.rounds <= MAX_SCHEDULED_ROUNDS)) return err("bad_round", `${b.rounds} scheduled rounds`);
     if (b.endRound !== null && b.endRound !== undefined && !(b.endRound >= 1 && b.endRound <= b.rounds)) return err("bad_round", `ended in round ${b.endRound} of ${b.rounds}`);
     if (b.method === null && b.winnerExternalId) return err("result_inconsistent", "a winner is named but no result method");
     if (b.method !== null && hasWinner(b.method) && !b.winnerExternalId) return err("result_inconsistent", `${b.method} result without a winner`);

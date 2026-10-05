@@ -45,18 +45,22 @@ export const boutsPerYear = (w: World) => memo(w, "boutsPerYear", () => {
   return [...m].sort().map(([year, v]) => ({ year, ...v }));
 });
 
+/** The charts show rounds 1 to 12 and fold every later stoppage (a historical 15-, 20- or 25-round fight) into the last column, labelled "12+". */
+export const FINISH_ROUNDS = 12;
+const finishBin = (endRound: number) => Math.min(endRound, FINISH_ROUNDS) - 1;
+
 export const finishRoundHistogram = (w: World) => memo(w, "finishRoundHistogram", () => {
-  const counts = Array(12).fill(0) as number[];
-  for (const b of done(w)) if (isKO(b.method) && b.endRound) counts[b.endRound - 1]++;
+  const counts = Array(FINISH_ROUNDS).fill(0) as number[];
+  for (const b of done(w)) if (isKO(b.method) && b.endRound) counts[finishBin(b.endRound)]++;
   return counts;
 });
 
 /** Heatmap: weight class × round (share of that class's finishes). */
 export const finishHeat = (w: World) => memo(w, "finishHeat", () => {
-  const rows = new Map(WEIGHT_CLASSES.map((wc) => [wc as string, { row: Array(12).fill(0) as number[], total: 0 }]));
+  const rows = new Map(WEIGHT_CLASSES.map((wc) => [wc as string, { row: Array(FINISH_ROUNDS).fill(0) as number[], total: 0 }]));
   for (const b of done(w)) {
     const r = isKO(b.method) && b.endRound ? rows.get(b.weightClass) : undefined;
-    if (r) { r.row[b.endRound! - 1]++; r.total++; }
+    if (r) { r.row[finishBin(b.endRound!)]++; r.total++; }
   }
   return WEIGHT_CLASSES.map((wc) => { const { row, total } = rows.get(wc)!; return { weightClass: wc, cells: row.map((v) => (total ? v / total : 0)), total }; });
 });
