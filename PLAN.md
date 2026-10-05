@@ -1233,7 +1233,7 @@ The state of the Arabic, read with the repo's own `i18n:review status` and `qa`:
 - The one place that assumed the old limit: the knockout-by-round histogram and heatmap on the analytics page used twelve fixed cells and indexed them by the round of the stoppage, so a stoppage in round 13 or later (even in a 15-round fight, already allowed) wrote past the end and put NaN in the chart. Rounds after 12 now fold into the last column, labelled "12+" (`FINISH_ROUNDS`, `finishBin` in `lib/analytics.ts`), so nothing is dropped and no cell is NaN. No other page indexes by round.
 - Tests: `tests/long-fights.test.ts` (a 20-round fight kept, the ceiling exact, 51 and 100 dropped, the fold with real fights ended in rounds 12, 14, 18 and 3); three mutations (no fold, ceiling back to 15, no ceiling) each fail it.
 
-## 140. The vendor email, drafted in one piece (round 80, 2026-10-05)
+## 148. The vendor email, drafted in one piece (round 80, 2026-10-05)
 
 - `docs/boxing-data-api-vendor-email.md`: one email for the owner to send (rankings licence and BoxingScene credit, the value lists for `outcome`, `weight_class` and `scheduled_rounds`, `scores` order, fighter totals, and the hourly limit), replacing the two earlier follow-up drafts. Docs only; not sent.
 
