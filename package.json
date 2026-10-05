@@ -16,6 +16,7 @@
     "vendor:status": "tsx scripts/vendor-status.ts",
     "vendor:fetch": "tsx scripts/vendor-fetch.ts",
     "vendor:load": "tsx scripts/vendor-load.ts",
+    "vendor:enrich": "tsx scripts/vendor-enrich.ts",
     "vendor:explain": "tsx scripts/vendor-explain.ts",
     "venues:resolve": "tsx scripts/resolve-venues.ts",
     "model:fit": "tsx scripts/fit-model.ts",
