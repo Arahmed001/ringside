@@ -59,6 +59,7 @@ export function WatchlistPage() {
             {f.rating ? (
               <div className="shrink-0 text-end">
                 <div className="tabular text-lg font-bold text-gold">{f.rating}</div>
+                <div className="text-xs text-muted">{t("Elo-style")}</div>
                 {f.ratingChange ? <div className={`tabular text-xs ${f.ratingChange > 0 ? "text-win" : "text-red-ink"}`} dir="ltr">{f.ratingChange > 0 ? "+" : ""}{f.ratingChange}</div> : null}
               </div>
             ) : null}
