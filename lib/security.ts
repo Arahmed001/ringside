@@ -24,7 +24,7 @@ export function contentSecurityPolicy({ nonce, dev = false, https = false }: Csp
     ["img-src", "'self' data: blob: https:"],
     ["font-src", "'self' data:"],
     ["connect-src", `'self'${dev ? " ws: wss:" : ""}`],
-    ["media-src", "'none'"],
+    ["media-src", "'self'"],
     ["object-src", "'none'"],
     ["base-uri", "'self'"],
     ["form-action", "'self'"],
