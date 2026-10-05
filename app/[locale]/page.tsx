@@ -200,7 +200,7 @@ export default async function Home() {
               </Link>
             </div>
           )}
-          <div className="mt-6"><SectionTitle title={t("Your watchlist")} /><WatchlistStrip /></div>
+          <div className="mt-6"><SectionTitle title={t("Your watchlist")} href="/watchlist" cta={t("Open watchlist")} /><WatchlistStrip /></div>
         </div>
       </section>
     </div>

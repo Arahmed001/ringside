@@ -2707,5 +2707,17 @@
  "✦ Written by Claude": "✦ كتبه Claude",
  "✦ Written by Claude from the facts on this page": "✦ كتبه Claude من الحقائق الواردة في هذه الصفحة",
  "✦ marks the model’s pick. Picks are saved in this browser.": "✦ يشير إلى اختيار النموذج. تُحفظ الاختيارات في هذا المتصفح.",
- "✦ marks the model’s pick. Saved to your account; picks lock when fight day begins.": "✦ يشير إلى اختيار النموذج. محفوظ في حسابك؛ تُقفل الاختيارات عند بدء يوم النزال."
+ "✦ marks the model’s pick. Saved to your account; picks lock when fight day begins.": "✦ يشير إلى اختيار النموذج. محفوظ في حسابك؛ تُقفل الاختيارات عند بدء يوم النزال.",
+ "Browse fighters": "تصفّح الملاكمين",
+ "Fighters you follow": "الملاكمون الذين تتابعهم",
+ "My watchlist": "قائمة متابعتي",
+ "No fights on record": "لا توجد نزالات مسجّلة",
+ "Open any fighter’s profile and press ☆ Watch. Their next fight, last result and rating will show up here.": "افتح ملف أي ملاكم واضغط ☆ متابعة. سيظهر هنا نزاله القادم وآخر نتيجة وتصنيفه.",
+ "Open watchlist": "افتح قائمة المتابعة",
+ "Remove from watchlist": "إزالة من قائمة المتابعة",
+ "Soonest fight first. Your list stays in this browser; Ringside only looks these fighters up to show you the latest.": "الأقرب موعداً أولاً. تبقى قائمتك في هذا المتصفح، ويبحث Ringside عن هؤلاء الملاكمين فقط ليعرض لك آخر المستجدات.",
+ "Stop watching {name}": "إيقاف متابعة {name}",
+ "The fighters you follow, with their next fight, last result and rating, kept in this browser.": "الملاكمون الذين تتابعهم مع نزالهم القادم وآخر نتيجة وتصنيفهم، محفوظة في هذا المتصفح.",
+ "You are not watching anyone yet.": "لا تتابع أي ملاكم بعد.",
+ "{opponent}, {how}": "{opponent}، {how}"
 }
