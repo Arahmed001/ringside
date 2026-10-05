@@ -14,6 +14,7 @@
     "vendor:backfill": "tsx scripts/vendor-backfill.ts",
     "vendor:rehearse": "tsx scripts/vendor-rehearse.ts",
     "vendor:status": "tsx scripts/vendor-status.ts",
+    "vendor:fetch": "tsx scripts/vendor-fetch.ts",
     "vendor:explain": "tsx scripts/vendor-explain.ts",
     "venues:resolve": "tsx scripts/resolve-venues.ts",
     "model:fit": "tsx scripts/fit-model.ts",

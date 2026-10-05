@@ -45,7 +45,7 @@ test("the report says how long is left from the recent pace, and the next comman
   const idle = describeStatus({ ...base, cache, total: 35000 }).join("\n");
   assert.match(idle, /fetch: not running/); assert.match(idle, /\(re\)start the fetch, one run only, paced:.*--per-hour 400 --patience-min 240 --cache-dir \/c/);
   const nokey = describeStatus({ ...base, cache, total: 35000, key: { set: false, length: 0, placeholder: false } }).join("\n");
-  assert.match(nokey, /key: NOT set in this terminal tab/); assert.match(nokey, /read -s/);
+  assert.match(nokey, /key: NOT set in this terminal tab/); assert.match(nokey, /vendor:fetch -- --setup/);
   const fake = describeStatus({ ...base, cache, total: 35000, key: { set: true, length: 13, placeholder: true } }).join("\n");
   assert.match(fake, /looks like a placeholder/);
   const done = describeStatus({ ...base, cache: { ...cache, fighters: 35000 }, total: 35000 }).join("\n");

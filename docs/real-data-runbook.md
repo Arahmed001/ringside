@@ -52,6 +52,17 @@ npm run vendor:backfill -- --plan --per-hour 450 --cache-dir $HOME/ringside-real
 
 the list pages are kept there (that is storing, so it says "provisional" until `BOXING_API_STORAGE_CONFIRMED=1`, and `=0` refuses it before anything is created), Ctrl-C is safe, and the `--check` or load that follows, with the same `--cache-dir`, asks for no list page at all. Still no database is touched.
 
+### Starting the fetch without handling the key: `npm run vendor:fetch`
+
+The key kept ending up in the wrong place (typed into a chat box, missing from the tab that ran the command, a placeholder). Save it once to a file only you can read, and start the fetch from any tab:
+
+```bash
+npm run vendor:fetch -- --setup     # once, in a real terminal tab: a hidden prompt, saved to ~/.ringside-key (mode 600)
+npm run vendor:fetch                # the paced fetch: --check --per-hour 400 --patience-min 240, into ~/ringside-real/vendor-cache
+```
+
+`--setup` refuses to run anywhere that is not a real terminal (a chat box or a pipe), because it could not hide what you type. The fetch reads the key from the file, puts it in the fetch's environment only (never on a command line, never printed), and on a Mac keeps the machine awake while it runs. A key file that other users can read is refused with the `chmod 600` that fixes it. Extra options go through and win over the same default (`npm run vendor:fetch -- --per-hour 450`); `--no-check` drops `--check` for the load itself; `--key-file PATH` and `--cache-dir DIR` choose the files. One fetch runs at a time per key: stop the first with Ctrl-C in its tab. `npm run vendor:status` says whether the key file is ready.
+
 ### Where does it stand? `npm run vendor:status`
 
 ```bash
