@@ -31,8 +31,11 @@ function computeCoverage(db: DatabaseSync): Coverage {
   const n = (sql: string) => (db.prepare(sql).get() as { c: number }).c;
   const boxers = n("SELECT COUNT(*) c FROM boxers");
   const done = n("SELECT COUNT(*) c FROM bouts WHERE method IS NOT NULL");
-  const decisions = n("SELECT COUNT(*) c FROM bouts WHERE method IN ('UD','SD','MD','DRAW')");
+  const decisions = n("SELECT COUNT(*) c FROM bouts WHERE method IN ('UD','SD','MD','DRAW','TD','TDRAW')");
   const stoppages = n("SELECT COUNT(*) c FROM bouts WHERE method IN ('KO','TKO')");
+  // A coverage figure counts only rows of the same bouts its total counts, so it can never read above 100% (an announced card has corners and weights before it has a result).
+  const inDone = "bout_id IN (SELECT id FROM bouts WHERE method IS NOT NULL)";
+  const inDecisions = "bout_id IN (SELECT id FROM bouts WHERE method IN ('UD','SD','MD','DRAW','TD','TDRAW'))";
   const activeBoxers = n("SELECT COUNT(*) c FROM boxers WHERE active = 1");
   const groups: CoverageGroup[] = [
     {
@@ -62,21 +65,21 @@ function computeCoverage(db: DatabaseSync): Coverage {
         { field: msg("Belt photo of the four sanctioning bodies (free-licensed)"), have: n("SELECT COUNT(*) c FROM entity_media WHERE kind = 'belt' AND status = 'matched'"), of: 4, note: msg("WBA, WBC, IBF, WBO") },
         { field: msg("Organisation logo (free-licensed)"), have: n("SELECT COUNT(*) c FROM entity_media WHERE kind = 'org_logo' AND status = 'matched'"), of: n("SELECT COUNT(*) c FROM orgs WHERE kind IN ('promotion', 'sanctioning_body', 'broadcaster')"), note: msg("promotion logos are trademarks, mostly not free") },
         { field: msg("Venue verified on Wikidata (capacity, coordinates)"), have: n("SELECT COUNT(*) c FROM events e JOIN venues v ON v.name = e.venue AND v.city = e.city AND v.status = 'matched'"), of: n("SELECT COUNT(*) c FROM events"), note: msg("fight cards") },
-        { field: msg("Weigh-in weights"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM weigh_ins WHERE official_lb IS NOT NULL"), of: done },
-        { field: msg("Fight-night (pre-fight) weights"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM weigh_ins WHERE fight_night_lb IS NOT NULL"), of: done, note: msg("few commissions record these") },
-        { field: msg("Referee"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM officials WHERE role='referee'"), of: done },
-        { field: msg("Judges' scorecards"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM scorecards"), of: decisions, note: msg("decisions only") },
-        { field: msg("Corner trainers"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM corners"), of: done },
+        { field: msg("Weigh-in weights"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM weigh_ins WHERE official_lb IS NOT NULL AND " + inDone), of: done },
+        { field: msg("Fight-night (pre-fight) weights"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM weigh_ins WHERE fight_night_lb IS NOT NULL AND " + inDone), of: done, note: msg("few commissions record these") },
+        { field: msg("Referee"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM officials WHERE role='referee' AND " + inDone), of: done },
+        { field: msg("Judges' scorecards"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM scorecards WHERE " + inDecisions), of: decisions, note: msg("decisions only") },
+        { field: msg("Corner trainers"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM corners WHERE " + inDone), of: done },
         { field: msg("Round and time of stoppage"), have: n("SELECT COUNT(*) c FROM bouts WHERE method IN ('KO','TKO') AND round_time IS NOT NULL"), of: stoppages },
         { field: msg("Closing odds"), have: n("SELECT COUNT(*) c FROM bouts WHERE odds_red IS NOT NULL"), of: n("SELECT COUNT(*) c FROM bouts") },
-        { field: msg("Punch statistics"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM punch_stats"), of: done, note: msg("CompuBox-style; paid and partial in reality") },
+        { field: msg("Punch statistics"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM punch_stats WHERE " + inDone), of: done, note: msg("CompuBox-style; paid and partial in reality") },
       ],
     },
     {
       title: msg("Money"),
       rows: [
         { field: msg("Gate, tickets or PPV figures"), have: n("SELECT COUNT(DISTINCT event_id) c FROM event_financials"), of: n(`SELECT COUNT(*) c FROM events WHERE COALESCE(status, '') != 'cancelled' AND date <= '${todayIso()}'`), note: msg("completed cards") },
-        { field: msg("Fighter purses"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM purses"), of: done, note: msg("at least one fighter's purse") },
+        { field: msg("Fighter purses"), have: n("SELECT COUNT(DISTINCT bout_id) c FROM purses WHERE " + inDone), of: done, note: msg("at least one fighter's purse") },
         { field: msg("Purses backed by an official record"), have: n("SELECT COUNT(*) c FROM purses WHERE basis = 'disclosed'"), of: n("SELECT COUNT(*) c FROM purses"), note: msg("rest are reported or estimated") },
         { field: msg("Broadcaster and audience"), have: n("SELECT COUNT(DISTINCT event_id) c FROM event_broadcasts"), of: n("SELECT COUNT(*) c FROM events WHERE COALESCE(status, '') != 'cancelled'") },
         { field: msg("Yearly earnings lists"), have: n("SELECT COUNT(DISTINCT boxer_id) c FROM earnings"), of: boxers },

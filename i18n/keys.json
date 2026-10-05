@@ -8631,6 +8631,12 @@
   ]
  },
  {
+  "key": "Page {n}",
+  "files": [
+   "lib/seo-server.ts"
+  ]
+ },
+ {
   "key": "Page {page} of {pages}",
   "files": [
    "components/ui.tsx"

@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Method, Stance } from "../types";
 import { DIVISIONS, normalizeDivision } from "../divisions";
-import { hasScorecards } from "../methods";
+import { hasScorecards, hasWinner, normalizeMethod } from "../methods";
 import { currentYear, nowMs, todayIso } from "../clock";
 
 /**
@@ -97,12 +97,12 @@ export const divisionOf = (raw: string): string | null => normalizeDivision(raw)
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
   | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
-  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "eventsWithoutFights" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
+  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "outcomeMapped" | "outcomeUnreadable" | "roundUnreadable" | "bothMarkedWinner" | "eventsWithoutFights" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
   ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
-  birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, eventsWithoutFights: 0, windowTooBig: 0,
+  birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, outcomeMapped: 0, outcomeUnreadable: 0, roundUnreadable: 0, bothMarkedWinner: 0, eventsWithoutFights: 0, windowTooBig: 0,
 });
 
 export const fighterId = (id: string) => `bda-f-${id}`;
@@ -163,18 +163,28 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
   const finished = f.status === "FINISHED";
   if (f.status === "LIVE") notes.liveTreatedAsUpcoming++;
   const outcome = finished ? (f.results?.outcome ?? null) : null;
-  const winner = finished ? (a.winner ? a : b.winner ? b : null) : null;
+  // both fighters marked the winner: a feed slip. Neither is picked (that would be inventing a result) and the fight is left "no result yet", not read as a draw
+  const bothMarked = finished && !!a.winner && !!b.winner;
+  if (bothMarked) notes.bothMarkedWinner++;
+  const winner = finished && !bothMarked ? (a.winner ? a : b.winner ? b : null) : null;
   let method: Method | null = null;
-  if (finished && outcome) {
+  if (finished && outcome && !bothMarked) {
     if (outcome === "PTS") { method = "UD"; notes.ptsAsUnanimousDecision++; }
     else if (outcome === "UD" || outcome === "MD" || outcome === "SD" || outcome === "KO" || outcome === "TKO") method = outcome;
+    else { const m = normalizeMethod(outcome); if (m) { method = m; notes.outcomeMapped++; } } // "DQ", "RTD", "Technical Decision", "No Contest"...: the words the feed's own list does not show but a real feed has
   }
   // a decision with no winner is a draw; a finished fight with neither a winner nor an outcome is left "no result yet" rather than guessed
-  if (finished && !winner && outcome && DECISIONS.has(outcome)) { method = "DRAW"; notes.drawInferred++; }
-  // a knockout with no winner is a feed slip (the validator rejects it): left as no result rather than a winner guessed
-  if (finished && !winner && (method === "KO" || method === "TKO")) { method = null; notes.stoppageWithoutWinner++; }
-  if (finished && !winner && !method) notes.resultMissing++;
-  const round = f.results?.round === null || f.results?.round === undefined ? NaN : parseInt(String(f.results.round), 10);
+  if (finished && !bothMarked && !winner && outcome && DECISIONS.has(outcome)) { method = "DRAW"; notes.drawInferred++; }
+  // a result that needs a winner and has none (a knockout, a disqualification...) is a feed slip (the validator rejects it): left as no result rather than a winner guessed
+  if (finished && !winner && method && hasWinner(method)) { method = null; notes.stoppageWithoutWinner++; }
+  if (finished && !bothMarked && !winner && !method) notes.resultMissing++;
+  // the other way round: a winner with an outcome the feed gave no readable word for, or one that says there was no winner (a draw, a no-contest). The validator would reject the
+  // fight and both fighters would lose a real result; it stays in their history as "no result yet", with no winner named, and is counted
+  let winnerOf = winner;
+  if (winner && (!method || !hasWinner(method))) { winnerOf = null; method = null; notes.outcomeUnreadable++; }
+  const rawRound = f.results?.round === null || f.results?.round === undefined ? NaN : parseInt(String(f.results.round), 10);
+  const round = Number.isFinite(rawRound) && rawRound >= 1 ? rawRound : NaN; // round 0 or below is not a round (the validator rejects the fight): the end round is unknown
+  if (Number.isFinite(rawRound) && !Number.isFinite(round)) notes.roundUnreadable++;
   let rounds = f.scheduled_rounds && f.scheduled_rounds > 0 ? f.scheduled_rounds : 10;
   const endRound = !method ? null : method === "KO" || method === "TKO" ? (Number.isFinite(round) ? round : null) : Number.isFinite(round) ? round : rounds;
 
@@ -185,7 +195,7 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
   if (!divisionOf(divName)) notes.divisionUnknown++;
   const bout: ProviderBout = {
     externalId: boutId(f.id), eventExternalId: eId, redExternalId: fighterId(a.fighter_id), blueExternalId: fighterId(b.fighter_id), // no corner colours in the feed: fighter_1 is "red"
-    weightClass, rounds, winnerExternalId: winner ? fighterId(winner.fighter_id!) : null, method, endRound,
+    weightClass, rounds, winnerExternalId: winnerOf ? fighterId(winnerOf.fighter_id!) : null, method, endRound,
     title: f.titles?.[0]?.name ?? null, position: index, // card order is not in the feed: the order the fights came back in
   };
   const scores = finished && hasScorecards(method) ? cleanScores(f.scores) : []; // only a fight that went to the cards has scores: a stoppage with scores attached is a feed slip, not a result
