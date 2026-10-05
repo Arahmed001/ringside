@@ -32,3 +32,11 @@ test("the list is capped", () => {
   const many = Array.from({ length: watch.MAX_WATCH + 50 }, (_, i) => `x${i}`);
   assert.deepEqual(watch.watchEntries(w, many), []);
 });
+
+test("a damaged or foreign value in the browser's storage is treated as no list, never as something to crash on", async () => {
+  const { cleanList } = await import("../lib/useWatchlist");
+  for (const bad of [null, undefined, 123, "str", { a: 1 }, true]) assert.deepEqual(cleanList(bad), []);
+  assert.deepEqual(cleanList(["a", "b"]), ["a", "b"]);
+  assert.deepEqual(cleanList(["a", 1, null, "", "a", { x: 1 }, "b"]), ["a", "b"], "only non-empty, distinct strings are kept");
+  assert.equal(cleanList(Array.from({ length: 300 }, (_, i) => `s${i}`)).length, 100, "capped like the server");
+});

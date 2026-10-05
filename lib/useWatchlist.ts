@@ -1,10 +1,17 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocal } from "./useLocal";
 import { api, useAccount } from "./useAccount";
 
 export const WATCH_KEY = "ringside:watchlist";
 const EMPTY: string[] = [];
+
+/** Whatever is in this browser's storage, as a list of slugs: anything else (an edited, truncated or foreign value) is treated as no list at all. */
+export function cleanList(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return EMPTY;
+  const out = [...new Set(raw.filter((x): x is string => typeof x === "string" && x.length > 0 && x.length < 120))].slice(0, 100);
+  return out.length === raw.length ? (raw as string[]) : out;
+}
 
 /**
  * The visitor's watchlist, wherever it lives: on the account when signed in (so it follows the person across devices), in this browser otherwise.
@@ -13,7 +20,8 @@ const EMPTY: string[] = [];
  */
 export function useWatchlist() {
   const me = useAccount();
-  const [local, setLocal] = useLocal<string[]>(WATCH_KEY, EMPTY);
+  const [stored, setLocal] = useLocal<unknown>(WATCH_KEY, EMPTY);
+  const local = useMemo(() => cleanList(stored), [stored]);
   const [remote, setRemote] = useState<{ for: number; slugs: string[] } | null>(null);
   const user = me?.id ?? null;
   const merging = useRef<number | null>(null);
