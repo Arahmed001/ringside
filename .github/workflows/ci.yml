@@ -1,16 +1,57 @@
 name: CI
 
+# Minutes matter: this repository is private, so Actions minutes are metered (2,000 a month on the free plan), and several sessions push at once. What keeps the bill down:
+#  - a newer push to the same pull request cancels the older run;
+#  - a change to Markdown and docs/ only runs the one test that reads them (tests/config-docs.test.ts), not the build, the smoke tests or the image;
+#  - the image is built only on main, or when something that can change it changed;
+#  - the dependency audit runs on main, or when the package files changed;
+#  - the five extra smoke variants (sparse, empty, unknown facts, partial, hostile) run on main; a pull request runs the default smoke;
+#  - the Next build cache is kept between runs.
+# Everything runs on main in full, whatever the change.
 on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+      docker: ${{ steps.classify.outputs.docker }}
+      deps: ${{ steps.classify.outputs.deps }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Which files changed
+        id: classify
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            files=$(gh api "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files" --paginate -q '.[].filename' 2>/dev/null || echo "(unknown)")
+          elif [ "${{ github.event_name }}" = "push" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+            files=$(gh api "repos/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }}" -q '.files[].filename' 2>/dev/null || echo "(unknown)")
+          else
+            files="(unknown)"
+          fi
+          printf '%s\n' "$files" | node scripts/ci-changes.mjs | tee -a "$GITHUB_OUTPUT"
+
   verify:
+    needs: changes
     runs-on: ubuntu-24.04 # pinned: ubuntu-latest moves to 26.04 on 2026-10-19
     timeout-minutes: 15
     env:
       NEXT_TELEMETRY_DISABLED: "1"
+      DOCS_ONLY: ${{ needs.changes.outputs.docs_only }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -18,26 +59,47 @@ jobs:
           node-version: 22 # node:sqlite needs 22.5+
           cache: npm
       - run: npm ci
+      - name: Docs-only change - the one test that reads the docs (every setting they mention is one the code reads)
+        if: env.DOCS_ONLY == 'true'
+        run: node --import tsx --test tests/config-docs.test.ts
       - name: Generate route types
+        if: env.DOCS_ONLY != 'true'
         run: npx next typegen # LayoutProps, PageProps and next/root-params types are generated, not checked in
       - name: Type check
+        if: env.DOCS_ONLY != 'true'
         run: npx tsc --noEmit
       - name: Lint
+        if: env.DOCS_ONLY != 'true'
         run: npm run lint
       - name: Tests
+        if: env.DOCS_ONLY != 'true'
         run: npm test
       - name: Demo feed passes data validation
+        if: env.DOCS_ONLY != 'true'
         run: npm run data:check
         env:
           RINGSIDE_NOW: "2026-10-03"
+      - name: Next build cache
+        if: env.DOCS_ONLY != 'true'
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ github.sha }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
       - name: Production build
+        if: env.DOCS_ONLY != 'true'
         run: npm run build
       - name: Smoke test (every kind of page, both languages, on a production server)
+        if: env.DOCS_ONLY != 'true'
         run: npm run smoke
       - name: Smoke test on a league with nothing upcoming, one with no data at all, one with many facts unknown, a partial first load (supplier totals shown), and a hostile one (awkward values; markup in a name must never be on a page unescaped)
+        if: env.DOCS_ONLY != 'true' && github.event_name != 'pull_request'
         run: npm run smoke -- --feed sparse && npm run smoke -- --feed empty && npm run smoke -- --facts unknown && npm run smoke -- --feed partial && npm run smoke -- --feed hostile --crawl 60
 
   docker:
+    needs: changes
+    if: github.event_name != 'pull_request' || needs.changes.outputs.docker == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -65,6 +127,8 @@ jobs:
         run: docker logs ringside || true
 
   audit:
+    needs: changes
+    if: github.event_name != 'pull_request' || needs.changes.outputs.deps == 'true'
     runs-on: ubuntu-24.04 # pinned: ubuntu-latest moves to 26.04 on 2026-10-19
     timeout-minutes: 5
     continue-on-error: true # new advisories shouldn't block unrelated changes; check the result when it turns red
