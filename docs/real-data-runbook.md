@@ -104,6 +104,7 @@ Then:
 - `--complete-only` (with or without `--fighters`) loads **only the part that is right**: fighters whose loaded fights add up exactly to the vendor's career record and whose opponents do too, repeated until nothing short remains. Every record on the site is then the vendor's total; the cost is a smaller league, and it can be small early (it prints how many it kept and how many fighters it left out only because an opponent's record is short). An empty core is an error. It also waives the gate for what it leaves out, because nothing short is loaded.
 - `--with-opponents` and `--whole-groups` (both need `--fighters N`) change **who** the N are, so records come out right instead of being thrown away afterwards. `--with-opponents` takes the N most recent fighters **and every opponent they ever fought**: the N all have complete records, the opponents at the edge do not, and the league is bigger than N (the plan prints by how much). `--whole-groups` takes fighters in whole linked groups (a fighter and everyone chained to him through fights with a result), newest group first, and a group is taken only if all of it fits in N; groups too big for what is left are skipped. Every record in it is then right, and it never loads more than N. The plan prints, for each size, how many fighters each way would ask for, how many groups it took and skipped and the biggest group. Because the league is one big connected group, `--whole-groups` can end up small until N is large; read the plan before spending the hours.
 - The importer also repairs what looked like data gaps but were its own doing, and counts each in the run's notes: a fight of a fighter against himself is skipped; a KO or TKO with no winner becomes a no result; a stoppage in a later round than the fight was scheduled for lengthens the fight (`roundsRaisedToEnd`); fighters with no weight division are dropped, with their fights (`fightersDroppedNoDivision`, `boutsDroppedNoDivision`), instead of failing validation and cascading into fights that point at nobody.
+- `--cached-only` (with `--check` or a load, and `--cache-dir`) makes **no request at all**: it answers from the cache and leaves out the fighters that are not in it yet, like fighters outside a selection. Use it to see what a part-way fetch holds while the fetch is still running: `--check --cached-only --explain-conflicts` prints the records line and the conflict tally for the fighters fetched so far, and adding `--complete-only` shows the league that would load. It needs no API key, takes no lock and uses none of the hourly allowance, so it is safe beside a running fetch; the fight list and the fighters it uses must already be cached (an empty cache says the fight list is not in it). Not for `--plan`, `--update` or `--refresh`.
 - Neither flag is for `--update`; the daily update fetches the fighters of the recent fights, all of them. Do the staged loads first, finish with a run with no `--fighters` (everything), and only then switch to the daily update.
 
 
@@ -112,6 +113,29 @@ Besides the fights and fighters, every fetch (`--check`, the load, `--update`) a
 - A plan without the rankings endpoint (403/404) just has none: the run says so (`rankingsUnavailable` in the approximated-or-skipped list), the lists already stored stay as they were, and nothing fails.
 - The supplier's docs say the lists are "sourced from BoxingScene". **Before the site is public, get the supplier's written answer on storing and showing them and on the credit** (`docs/boxing-data-api-rankings-enquiry.md`); the page credits "Boxing Data API from BoxingScene" meanwhile.
 - A list the adapter cannot place (a body or a division it does not recognise) is skipped and counted (`rankingsSkipped`); read that count after the first real run: the real response is the test of the mapping, which was written from the docs.
+
+## 2c. Load day: after the fetch, what to decide
+
+For the day the full fetch (`--check --per-hour 400 --patience-min 240`, three days at the Mega plan's pace) has finished and printed its report. Nothing here fetches anything: the cache answers. To rehearse the decision on a part-way fetch, put `--cached-only` on every command below (no key, no lock, no requests).
+
+1. **Read the three numbers in the report.** The *records* line (how many fighters' loaded fights add up to the vendor's career record), the *partial* count, and the *CONFLICT* count with the "why the N conflict(s)" block under it (`--explain-conflicts --show 20` adds the fights behind the first fighters).
+2. **Conflicts first; none is ever waved through.** A conflict is the feed contradicting itself, and a load refuses while one exists. The "why" block says which kind: draws the vendor never recorded are already left as "no result yet"; a fight listed twice or two fights on one day are feed defects to report to the vendor; "more wins with nothing else to blame" is a wrong winner or a stale career total (`--refresh` refetches, and costs the whole fetch again, so first look at the fighters it lists). `--allow-conflicts` exists and should stay unused: it publishes records the feed itself says are wrong. `--complete-only` drops every conflicted fighter, because it keeps only fighters whose records add up exactly.
+3. **Then choose what the partial records mean.** The fight list starts at some date, so a fighter's earlier career is missing even when every fight in the list is loaded: the *records* line stays low however much is fetched.
+   - **The whole league, with labelled career totals:** `--allow-partial`. Each fighter's page shows the vendor's career total, labelled, and says how many fights are held; the fight list, rating and rates are built from the fights held, so ratings are thinner than they look for fighters whose early career is missing. Needs conflicts to be zero or to have been dealt with in step 2.
+   - **Only what is right:** `--complete-only`. Every record on the site is the vendor's own total; the league is smaller (it prints how many it kept and how many it left out because an opponent's record is short). Read how small before choosing it.
+   - Neither is a default. The decision is about what the site says to a visitor, so it is yours.
+4. **Load into a new database file, with storage confirmed:**
+
+   ```bash
+   export DATABASE_PATH=$HOME/ringside-real/real.db
+   export BOXING_API_STORAGE_CONFIRMED=1
+   npm run vendor:backfill -- --cache-dir $HOME/ringside-real/vendor-cache   # plus your choice from step 3
+   ```
+
+   It refuses a database that holds other fighters, backs up one that has data, and loads in one transaction (section 3 lists every refusal). Everything it needs is in the cache, so it should make no requests; if it reports any, stop and read why before it spends allowance.
+5. **Check the result by hand** (section 4), then switch to the daily `--update` (section 5) and not before.
+
+If anything looks wrong after the load: the database file is the only thing it wrote (and a backup if one existed). Delete it and load again from the cache for nothing (see "Undoing it").
 
 ## 3. Load: no flags
 

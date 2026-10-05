@@ -110,8 +110,10 @@ async function main() {
     checks.push(["crash: the second run finishes", r2.code === 0, line(r2.out, /^records:/)]);
     checks.push(["crash: the second run makes only the unfinished requests", secondAsked <= total - cachedFiles + 5, `${secondAsked} asked, ${total - cachedFiles} unfinished (${total} in all)`]);
     const files = fs.readdirSync(cache2);
-    const corrupt = files.filter((f) => { try { JSON.parse(fs.readFileSync(path.join(cache2, f), "utf8")); return false; } catch { return true; } });
-    checks.push(["crash: every answer on disk after the kill is whole", corrupt.length === 0, `${files.length} files, ${corrupt.length} unreadable`]);
+    // an answer is written to `<name>.<pid>.tmp` and renamed when whole, so a kill mid-write leaves a stale .tmp (never read as an answer) and never a half answer under its real name
+    const unreadable = files.filter((f) => { try { JSON.parse(fs.readFileSync(path.join(cache2, f), "utf8")); return false; } catch { return true; } });
+    const corrupt = unreadable.filter((f) => !f.endsWith(".tmp")), stale = unreadable.filter((f) => f.endsWith(".tmp"));
+    checks.push(["crash: every answer on disk after the kill is whole", corrupt.length === 0, `${files.length} files, ${corrupt.length} unreadable${corrupt.length ? `: ${corrupt.slice(0, 3).join(", ")}` : ""}${stale.length ? `; ${stale.length} stale temp file(s) from the kill, never read as an answer` : ""}`]);
   } finally {
     await vendor.close();
   }

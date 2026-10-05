@@ -14,20 +14,20 @@ import { getT } from "@/lib/i18n/server";
 import { OfficialListView } from "@/components/OfficialList";
 import { officialKey } from "@/lib/official";
 import { RANKING_BODIES } from "@/lib/providers";
-import { metaFor } from "@/lib/seo-server";
+import { metaFor, pagedTitle, type SearchParams } from "@/lib/seo-server";
 
-export const generateMetadata = ({ params }: { params: Promise<{ locale: string; division: string }> }) => metaFor(params, async (p, t) => {
+export const generateMetadata = ({ params, searchParams }: { params: Promise<{ locale: string; division: string }>; searchParams: Promise<SearchParams> }) => metaFor(params, async (p, t, sp) => {
   const d = divisionFromSlug(p.division);
   if (!d) notFound();
   const champ = rankDivision(await getWorld(), d.name, 1, "male")[0];
   return {
     path: `/rankings/${p.division}`,
-    title: t("{division} rankings", { division: t(d.name) }),
+    title: pagedTitle(t, t("{division} rankings", { division: t(d.name) }), sp.page),
     description: champ
       ? t("Current {division} boxing rankings by Elo rating, with record, style, KO rate and recent form. {name} ({record}) is the top-rated fighter.", { division: t(d.name), name: t.name(champ.boxer.name), record: recordStr(champ.boxer) })
       : t("Current {division} boxing rankings by Elo rating, with record, style, KO rate and recent form for every qualifying fighter.", { division: t(d.name) }),
   };
-});
+}, searchParams);
 
 /** Fighters per page of a division's ranking. */
 const RANK_PAGE = 25;

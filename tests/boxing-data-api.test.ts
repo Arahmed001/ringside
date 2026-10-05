@@ -709,4 +709,10 @@ test("before fetching, the run says how many fighters are not cached, and warns 
   const q = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0, cacheDir: dir, log: (m) => lines.push(m), maxFights: 400, maxRequests: 10_000, perHour: 450 });
   await q.fetchBoxers();
   assert.ok(!lines.some((l) => /not in the cache/.test(l)) && !lines.some((l) => /^\d+ fighters to fetch/.test(l)), lines.join("\n"));
+  // the estimate is in minutes: 320 fighters at 450 an hour is 320 * 60 / 450 = 43 minutes (a first version printed seconds under the word minutes)
+  const r = await tmp("eta");
+  const s1 = (m: string[]) => m.find((l) => /^\d+ fighters to fetch/.test(l)) ?? "";
+  const l2: string[] = [];
+  await B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0, cacheDir: r, log: (m) => l2.push(m), maxFights: 400, maxRequests: 10_000, perHour: 450, sleep: async () => {} }).fetchBoxers();
+  assert.match(s1(l2), /^320 fighters to fetch, about 43 minute\(s\) at 450 an hour$/);
 });

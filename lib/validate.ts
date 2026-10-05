@@ -62,8 +62,9 @@ export function sanitizeFeed(input: Omit<FeedData, "officialRankings"> & Partial
 
   // ---------- bouts ----------
   const methodSet = new Set<string>(METHODS);
+  const lostCards = new Set<string>(); // the cards a rejected fight was on: a card whose every fight was rejected is set aside below
   const bouts = unique(input.bouts, "bout").filter((b) => {
-    const err = (code: string, msg: string) => { add("error", code, "bout", b.externalId, msg); drop("bout"); return false; };
+    const err = (code: string, msg: string) => { add("error", code, "bout", b.externalId, msg); drop("bout"); lostCards.add(b.eventExternalId); return false; };
     if (!eventDate.has(b.eventExternalId)) return err("bad_reference", `event ${b.eventExternalId} does not exist`);
     if (!boxerIds.has(b.redExternalId) || !boxerIds.has(b.blueExternalId)) return err("bad_reference", `fighter ${!boxerIds.has(b.redExternalId) ? b.redExternalId : b.blueExternalId} does not exist`);
     if (b.redExternalId === b.blueExternalId) return err("same_fighter", "a fighter cannot fight himself");
@@ -200,14 +201,22 @@ export function sanitizeFeed(input: Omit<FeedData, "officialRankings"> & Partial
     add, drop,
   );
 
+  // ---------- cards the validation emptied ----------
+  // A card whose every fight was rejected has no page (an event with no card is a 404), yet the sitemap, the country and organisation pages and the search would still
+  // list it. It is set aside with a warning, so it is counted and named. A card the feed itself announced with no fights, and a card with money records, are left alone.
+  const onCard = new Set(bouts.map((b) => b.eventExternalId)), hasMoney = new Set([...financials.map((x) => x.eventExternalId), ...broadcasts.map((x) => x.eventExternalId)]);
+  const emptied = new Set(events.filter((e) => lostCards.has(e.externalId) && !onCard.has(e.externalId) && !hasMoney.has(e.externalId)).map((e) => e.externalId));
+  for (const id of emptied) { add("warning", "event_emptied", "event", id, "every fight on this card was set aside, so the card is too (it would have no page)"); drop("event"); }
+  const keptEvents = emptied.size ? events.filter((e) => !emptied.has(e.externalId)) : events;
+
   // ---------- orphans ----------
   const usedPeople = new Set<string>([...stints.map((s) => s.personExternalId), ...officials.map((o) => o.personExternalId), ...scorecards.map((c) => c.judgeExternalId), ...corners.map((c) => c.personExternalId)].filter((x): x is string => !!x));
-  const usedOrgs = new Set<string>([...stints.map((s) => s.orgExternalId), ...events.map((e) => e.promoterExternalId), ...bouts.map((b) => b.titleOrgExternalId)].filter((x): x is string => !!x));
+  const usedOrgs = new Set<string>([...stints.map((s) => s.orgExternalId), ...keptEvents.map((e) => e.promoterExternalId), ...bouts.map((b) => b.titleOrgExternalId)].filter((x): x is string => !!x));
   const orphanP = people.filter((p) => !usedPeople.has(p.externalId)).length, orphanO = orgs.filter((o) => !usedOrgs.has(o.externalId)).length;
   if (orphanP) add("info", "orphan_people", "person", "*", `${orphanP} people are not linked to any fighter, bout or card`);
   if (orphanO) add("info", "orphan_orgs", "org", "*", `${orphanO} organisations are not linked to anything`);
 
-  return { feed: { boxers, events, bouts, people, orgs, stints, weighIns, officials, scorecards, corners, punches, financials, purses, broadcasts, earnings, officialRankings: input.officialRankings ?? [] }, issues, dropped };
+  return { feed: { boxers, events: keptEvents, bouts, people, orgs, stints, weighIns, officials, scorecards, corners, punches, financials, purses, broadcasts, earnings, officialRankings: input.officialRankings ?? [] }, issues, dropped };
 }
 
 export interface IssueGroup { severity: Severity; code: string; count: number; examples: Issue[] }

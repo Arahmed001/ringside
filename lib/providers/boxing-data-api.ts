@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Method, Stance } from "../types";
 import { DIVISIONS, normalizeDivision } from "../divisions";
-import { hasScorecards } from "../methods";
+import { hasScorecards, hasWinner, normalizeMethod } from "../methods";
 import { currentYear, nowMs, todayIso } from "../clock";
 
 /**
@@ -97,12 +97,12 @@ export const divisionOf = (raw: string): string | null => normalizeDivision(raw)
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
   | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
-  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
+  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "outcomeMapped" | "outcomeUnreadable" | "roundUnreadable" | "bothMarkedWinner" | "eventsWithoutFights" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
   ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
-  birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, windowTooBig: 0,
+  birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, outcomeMapped: 0, outcomeUnreadable: 0, roundUnreadable: 0, bothMarkedWinner: 0, eventsWithoutFights: 0, windowTooBig: 0,
 });
 
 export const fighterId = (id: string) => `bda-f-${id}`;
@@ -163,18 +163,28 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
   const finished = f.status === "FINISHED";
   if (f.status === "LIVE") notes.liveTreatedAsUpcoming++;
   const outcome = finished ? (f.results?.outcome ?? null) : null;
-  const winner = finished ? (a.winner ? a : b.winner ? b : null) : null;
+  // both fighters marked the winner: a feed slip. Neither is picked (that would be inventing a result) and the fight is left "no result yet", not read as a draw
+  const bothMarked = finished && !!a.winner && !!b.winner;
+  if (bothMarked) notes.bothMarkedWinner++;
+  const winner = finished && !bothMarked ? (a.winner ? a : b.winner ? b : null) : null;
   let method: Method | null = null;
-  if (finished && outcome) {
+  if (finished && outcome && !bothMarked) {
     if (outcome === "PTS") { method = "UD"; notes.ptsAsUnanimousDecision++; }
     else if (outcome === "UD" || outcome === "MD" || outcome === "SD" || outcome === "KO" || outcome === "TKO") method = outcome;
+    else { const m = normalizeMethod(outcome); if (m) { method = m; notes.outcomeMapped++; } } // "DQ", "RTD", "Technical Decision", "No Contest"...: the words the feed's own list does not show but a real feed has
   }
   // a decision with no winner is a draw; a finished fight with neither a winner nor an outcome is left "no result yet" rather than guessed
-  if (finished && !winner && outcome && DECISIONS.has(outcome)) { method = "DRAW"; notes.drawInferred++; }
-  // a knockout with no winner is a feed slip (the validator rejects it): left as no result rather than a winner guessed
-  if (finished && !winner && (method === "KO" || method === "TKO")) { method = null; notes.stoppageWithoutWinner++; }
-  if (finished && !winner && !method) notes.resultMissing++;
-  const round = f.results?.round === null || f.results?.round === undefined ? NaN : parseInt(String(f.results.round), 10);
+  if (finished && !bothMarked && !winner && outcome && DECISIONS.has(outcome)) { method = "DRAW"; notes.drawInferred++; }
+  // a result that needs a winner and has none (a knockout, a disqualification...) is a feed slip (the validator rejects it): left as no result rather than a winner guessed
+  if (finished && !winner && method && hasWinner(method)) { method = null; notes.stoppageWithoutWinner++; }
+  if (finished && !bothMarked && !winner && !method) notes.resultMissing++;
+  // the other way round: a winner with an outcome the feed gave no readable word for, or one that says there was no winner (a draw, a no-contest). The validator would reject the
+  // fight and both fighters would lose a real result; it stays in their history as "no result yet", with no winner named, and is counted
+  let winnerOf = winner;
+  if (winner && (!method || !hasWinner(method))) { winnerOf = null; method = null; notes.outcomeUnreadable++; }
+  const rawRound = f.results?.round === null || f.results?.round === undefined ? NaN : parseInt(String(f.results.round), 10);
+  const round = Number.isFinite(rawRound) && rawRound >= 1 ? rawRound : NaN; // round 0 or below is not a round (the validator rejects the fight): the end round is unknown
+  if (Number.isFinite(rawRound) && !Number.isFinite(round)) notes.roundUnreadable++;
   let rounds = f.scheduled_rounds && f.scheduled_rounds > 0 ? f.scheduled_rounds : 10;
   const endRound = !method ? null : method === "KO" || method === "TKO" ? (Number.isFinite(round) ? round : null) : Number.isFinite(round) ? round : rounds;
 
@@ -185,7 +195,7 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
   if (!divisionOf(divName)) notes.divisionUnknown++;
   const bout: ProviderBout = {
     externalId: boutId(f.id), eventExternalId: eId, redExternalId: fighterId(a.fighter_id), blueExternalId: fighterId(b.fighter_id), // no corner colours in the feed: fighter_1 is "red"
-    weightClass, rounds, winnerExternalId: winner ? fighterId(winner.fighter_id!) : null, method, endRound,
+    weightClass, rounds, winnerExternalId: winnerOf ? fighterId(winnerOf.fighter_id!) : null, method, endRound,
     title: f.titles?.[0]?.name ?? null, position: index, // card order is not in the feed: the order the fights came back in
   };
   const scores = finished && hasScorecards(method) ? cleanScores(f.scores) : []; // only a fight that went to the cards has scores: a stoppage with scores attached is a feed slip, not a result
@@ -339,6 +349,8 @@ export interface BoxingDataApiOptions {
    * run showed the plan has its own limit per hour, set by the API provider, well below what the default spacing would send.
    */
   perHour?: number;
+  /** Make no request at all: answer from the cache or not at all. A page missing from the cache is a 404 (so a missing schedule or rankings page is "unavailable", as for a plan without them), and the fighters not in the cache are left out like fighters outside a selection. For looking at what a part-way fetch holds. */
+  cachedOnly?: boolean;
   /**
    * Fetch only this many fighters: the ones with the most recent (or coming) fight first. The fights between two of them are loaded and no others, so a
    * first load of a few thousand fighters is a league that holds together, in hours instead of days; a later run with a larger number (or none) only
@@ -421,7 +433,7 @@ export function assertPlausibleKey(key: string, willBeSent = true): void {
 
 export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiProvider {
   assertPlausibleKey(o.key, !o.fetchImpl);
-  if (o.purpose === "ingest" && storageStatus() === "provisional") (o.log ?? (() => {}))(STORAGE_WARNING);
+  if (o.purpose === "ingest" && !o.cachedOnly && storageStatus() === "provisional") (o.log ?? (() => {}))(STORAGE_WARNING);
   const base = (o.baseUrl ?? "https://boxing-data-api.p.rapidapi.com").replace(/\/+$/, "");
   const host = new URL(base).host;
   const doFetch = o.fetchImpl ?? fetch;
@@ -462,6 +474,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     const file = o.cacheDir ? cacheFile(p, params) : undefined;
     if (file && !o.refresh && !(o.refreshLists && p.startsWith("/v2/fights"))) { const hit = fromCache<T>(file); if (hit) { hits++; return hit; } }
     const qs = Object.entries(params).filter(([, v]) => v !== undefined).map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
+    if (o.cachedOnly) throw new HttpError(`${p} is not in the cache (--cached-only makes no request)`, 404);
     const attempts = 1 + (o.retries ?? 0);
     let rateWaits = 0, waited = 0;
     for (let attempt = 0; ; attempt++) {
@@ -610,7 +623,15 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
 
   async function load() {
     const { events, bouts } = await fightsOnce();
-    const { chosen, left, total } = await chooseFighters();
+    const picked = await chooseFighters();
+    const { total } = picked;
+    let { chosen, left } = picked;
+    if (o.cachedOnly) {
+      const have = chosen.filter((id) => fs.existsSync(cacheFile(`/v2/fighters/${id}`, {})));
+      const out = new Set(chosen.filter((id) => !have.includes(id)).map(fighterId));
+      log(`--cached-only: ${have.length} of ${chosen.length} chosen fighters are in the cache; the other ${out.size} are left for a later run (their fights are not loaded)`);
+      chosen = have; left = new Set([...left, ...out]);
+    }
     if (left.size) log(`taking the ${chosen.length} most recently active of ${total} fighters; the other ${left.size} are left for a later run (their fights are not loaded)`);
     const rows: Loose[] = [];
     let n = 0, cachedFighters = 0;
@@ -618,7 +639,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     // what is not in the cache yet is what costs requests: say so before spending them, and what pace they will be sent at
     const toFetch = o.cacheDir && !o.refresh ? chosen.filter((id) => !fs.existsSync(cacheFile(`/v2/fighters/${id}`, {}))).length : chosen.length;
     if (toFetch > 300 && !(o.perHour && o.perHour > 0)) log(`${toFetch} fighters are not in the cache and no --per-hour was given: a plan with an hourly limit (Mega: 500) refuses a burst. Use --per-hour 400 to pace the run from the start; without it the first refusal makes the run slow itself to 400 an hour.`);
-    else if (toFetch > 0) log(`${toFetch} fighters to fetch${o.perHour ? `, about ${Math.ceil((toFetch * 3600) / o.perHour)} minute(s) at ${o.perHour} an hour` : ""}`);
+    else if (toFetch > 0) log(`${toFetch} fighters to fetch${o.perHour ? `, about ${Math.ceil((toFetch * 60) / o.perHour)} minute(s) at ${o.perHour} an hour` : ""}`);
     let windowAt = started, windowFetched = 0;
     for (const id of chosen) {
       const before = hits;
@@ -654,7 +675,12 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     notes.fightersDroppedNoDivision += finished.length - placed.length;
     const placedIds = new Set(placed.map((r) => r.externalId));
     const kept = placeBouts(keep.filter((b) => { const ok = placedIds.has(b.redExternalId) && placedIds.has(b.blueExternalId); if (!ok) notes.boutsDroppedNoDivision++; return ok; }), placed, notes);
-    return { boxers: placed, events: [...events.values()], bouts: demoteUnsupportedDraws(kept, careers, notes) };
+    // an event exists here only because a fight said so: one whose every fight was dropped (a fighter outside the selection, an unplaceable division) is not a card with a page,
+    // and would be a 404 in the sitemap, the search and the country pages. In a partial load that is most small cards, so it is left out and counted
+    const finalBouts = demoteUnsupportedDraws(kept, careers, notes), onCard = new Set(finalBouts.map((b) => b.eventExternalId));
+    const cards = [...events.values()].filter((e) => onCard.has(e.externalId));
+    notes.eventsWithoutFights += events.size - cards.length;
+    return { boxers: placed, events: cards, bouts: finalBouts };
   }
   const once = () => (cache ??= load());
   /** The official lists: 17 requests (one page per division, the pages being the same four bodies each), cached like every other page (so a stopped load resumes, and a reload asks for nothing; the daily `--update` refreshes everything), and never fatal: a plan without them just has none. */

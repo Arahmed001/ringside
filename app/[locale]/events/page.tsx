@@ -6,12 +6,12 @@ import { Pager, SectionTitle } from "@/components/ui";
 import { paginate } from "@/lib/paging";
 import { fmtDate, methodLabel } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
-import { metaFor } from "@/lib/seo-server";
+import { metaFor, pagedTitle, type SearchParams } from "@/lib/seo-server";
 
-export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({
-  path: "/events", title: t("Events"),
+export const generateMetadata = ({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<SearchParams> }) => metaFor(params, (p, t, sp) => ({
+  path: "/events", title: pagedTitle(t, /^\d{4}$/.test(String(sp.year)) ? `${t("Events")} · ${sp.year}` : t("Events"), sp.page),
   description: t("The fight calendar: upcoming cards with their main events and win probabilities, plus recent results and how each main event ended."),
-}));
+}), searchParams);
 
 /** Upcoming cards shown before "show all": each poster is about 25 KB of markup, so a long calendar adds up. */
 const UPCOMING_SHOWN = 24;
