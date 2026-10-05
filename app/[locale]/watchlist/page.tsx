@@ -4,7 +4,7 @@ import { WatchlistPage } from "@/components/WatchlistPage";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({
   path: "/watchlist", title: t("My watchlist"),
-  description: t("The fighters you follow, with their next fight, last result and rating, kept in this browser."),
+  description: t("The fighters you follow, with their next fight, last result and rating."),
 }));
 
 export default async function Watchlist() {
@@ -14,7 +14,7 @@ export default async function Watchlist() {
       <div>
         <div className="eyebrow mb-2">{t("Fighters you follow")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase">{t("My watchlist")}</h1>
-        <p className="mt-2 max-w-2xl text-muted">{t("Soonest fight first. Your list stays in this browser; Ringside only looks these fighters up to show you the latest.")}</p>
+        <p className="mt-2 max-w-2xl text-muted">{t("Soonest fight first.")}</p>
       </div>
       <WatchlistPage />
     </div>

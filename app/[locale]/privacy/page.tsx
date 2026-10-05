@@ -75,7 +75,7 @@ export default async function Privacy() {
       <section aria-labelledby="deleting" className="space-y-3">
         <h2 id="deleting" className="font-display text-3xl font-bold uppercase">{t("What deleting removes, and what stays")}</h2>
         <ul className="list-disc space-y-2 ps-6 marker:text-muted">
-          <li className={li}>{t("Removed at once: your name, password hash, picks, sign-ins, one-time codes and any fighter linked to you. The contact you gave on a report is erased, and in the activity log your name is replaced by “deleted account”.")}</li>
+          <li className={li}>{t("Removed at once: your name, password hash, picks, watchlist, sign-ins, one-time codes and any fighter linked to you. The contact you gave on a report is erased, and in the activity log your name is replaced by “deleted account”.")}</li>
           <li className={li}>{t("Stays, without you: proposals and reports you sent (they are an editorial record about fighters, not about you), and edits that were already published. Do not put personal details in their notes.")}</li>
           <li className={li}>{t("Backups: the operator keeps copies of the databases (by default the last {n} daily ones). A copy made before you deleted your account still holds your data until it is rotated out.", { n: DEFAULT_BACKUPS_KEPT })}</li>
         </ul>

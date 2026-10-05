@@ -27,6 +27,10 @@ CREATE TABLE IF NOT EXISTS picks (
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, bout_ext TEXT NOT NULL, boxer_ext TEXT NOT NULL, picked_at TEXT NOT NULL,
   PRIMARY KEY (user_id, bout_ext)
 );
+CREATE TABLE IF NOT EXISTS watchlist (
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE, boxer_ext TEXT NOT NULL, added_at TEXT NOT NULL,
+  PRIMARY KEY (user_id, boxer_ext)
+);
 CREATE TABLE IF NOT EXISTS contributions (
   id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(id) ON DELETE SET NULL, kind TEXT NOT NULL DEFAULT 'team_stint',
   boxer_ext TEXT NOT NULL, role TEXT NOT NULL, person_name TEXT NOT NULL, start_date TEXT NOT NULL, end_date TEXT,

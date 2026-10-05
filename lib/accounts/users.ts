@@ -104,7 +104,7 @@ export async function changePassword(userId: number, current: string, next: stri
   return "ok";
 }
 
-/** Deleting an account removes the person, their picks and their sessions. Their contributions stay (the data they added was published under a source), with no name on them. */
+/** Deleting an account removes the person, their picks, their watchlist and their sessions. Their contributions stay (the data they added was published under a source), with no name on them. */
 /** The text that stands in for a deleted person in the activity log. */
 export const DELETED_NAME = "deleted account";
 
@@ -122,7 +122,7 @@ export async function deleteUser(userId: number, password: string, db: DatabaseS
   // `actor` (they did something), `target` ("alice -> boxer", an operator acted on them) or `detail` (a decision about something of theirs).
   db.prepare("UPDATE reports SET contact = NULL WHERE user_id = ?").run(userId);
   scrubName(db, row.username as string);
-  db.prepare("DELETE FROM users WHERE id = ?").run(userId); // cascades to sessions, resets, picks; contributions and reports keep their rows with user_id NULL
+  db.prepare("DELETE FROM users WHERE id = ?").run(userId); // cascades to sessions, resets, picks, watchlist; contributions and reports keep their rows with user_id NULL
   audit(db, null, "account_deleted", `user#${userId}`);
   return true;
 }
