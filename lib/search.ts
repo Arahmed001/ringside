@@ -15,6 +15,7 @@ export interface SearchHit { kind: HitKind; title: string; subtitle?: string; hr
 /** The pages ⌘K can jump to (locale-free paths; keywords help "weigh" find Weigh-ins). */
 export const PAGES: { href: string; label: string; words: string }[] = [
   { href: "/rankings", label: msg("Rankings"), words: "rankings pound for pound p4p divisions" },
+  { href: "/tonight", label: msg("Tonight"), words: "tonight today tonights fight night live card results now" },
   { href: "/previews", label: msg("Fight previews"), words: "previews preview upcoming fights predictions picks what to watch" },
   { href: "/titles", label: msg("Title lineages"), words: "titles belts champions lineage reigns world continental" },
   { href: "/all-time", label: msg("All-time lists"), words: "all-time records greatest of all time goat longest reign most knockouts fastest knockout biggest upsets best fights" },
