@@ -38,7 +38,7 @@ Roughly twice as many fighters show more losses than the totals count (120) as m
 
 **4. Fights where one fighter has no `fighter_id` (3,413 of 44,259, 7.7%).** The opponent is named but has no profile. Could these have ids, or is there another way to match them? Without ids we cannot place the fight in either fighter's history.
 
-**5. Finished fights with no winner and no outcome (6,059).** Many are 3-round fights on small cards (for example `68bb10ac853a38654faa3013`, 2025-09-06; `68be20ab0d81aeb81e9c02e2`, 2025-09-08). Are the results still to come, or are they missing?
+**5. Finished fights with no winner and no outcome (5,557 fights in the list; 6,059 with the duplicates in item 1).** These are not recent: 5,091 of them are more than a month old, and the share grows with the date. Counting `FINISHED` fights in the list by month, the fights with no result are under 4% each month until October 2025, then 23% (December 2025), 32%, 41% (February 2026), 29%, 28%, 23%, 28%, 34%, 33% and 36% (September 2026). Example: `68bb10ac853a38654faa3013` (2025-09-06) and `68be20ab0d81aeb81e9c02e2` (2025-09-08). Are the results still to be entered, or does `FINISHED` here mean only that the date has passed? If it is the second, a status that says so (or a result field that is filled) would let us show these fights as "result not recorded" rather than as fights that happened with no outcome. A further 5,220 fights are `CANCELLED`, which we read as intended.
 
 **6. Smaller things.**
 - A knockout or TKO with no winner marked: 504.

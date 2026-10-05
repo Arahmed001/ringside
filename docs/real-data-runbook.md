@@ -209,6 +209,7 @@ Paste back: the whole output of `--check` (or the load), from the first line to 
 | Note | What it means | When to worry |
 |---|---|---|
 | `drawInferred`, `resultMissing` | A drawn decision stored as a draw, or a fight with no winner stored as "no result yet" | Both a large share of finished fights: the vendor's `outcome` words are not what the adapter expects; paste a sample |
+| `resultMissingOld`, `cancelledFights` | A finished fight with no result that is more than 30 days old (the part of `resultMissing` that is not simply recent), and a fight the vendor lists as CANCELLED (kept as a cancelled bout) | On the first real cache 5,091 of 6,059 were old: the vendor's own gap, listed in the findings email, not something the importer can repair |
 | `drawDemoted` | A draw dropped to "no result yet" because neither fighter's career total has a draw to spare | A few hundred in 150,000 is the vendor's own records disagreeing; thousands is a pattern to look at |
 | `stoppageWithoutWinner` | KO/TKO with no winner, stored as "no result yet" | Same as above |
 | `outcomeMapped` | An outcome word outside the feed's own list ("DQ", "RTD", "Corner Retirement", "Technical Decision", "No Contest") read through the importers' spelling table | Informational; a large count means the feed uses words worth adding to the list |

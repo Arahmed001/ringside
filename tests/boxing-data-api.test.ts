@@ -65,6 +65,10 @@ test("draws and unresolved results: a decision with no winner is a draw; a finis
   assert.equal(draw.method, "DRAW"); assert.equal(draw.winnerExternalId, null); assert.equal(n.drawInferred, 1);
   const none = B.mapFight(fight("f7", "A", "B", { fighters: { fighter_1: side("A", false), fighter_2: side("B", false) }, results: { outcome: null, round: null } }), n)!.bout;
   assert.equal(none.method, null); assert.equal(none.winnerExternalId, null); assert.equal(none.endRound, null); assert.equal(n.resultMissing, 1);
+  assert.equal(n.resultMissingOld, 1); // 2024: long past
+  const day = new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10);
+  B.mapFight(fight("f8", "A", "B", { date: day, event: { id: "ev-f8", title: "Recent", date: day }, fighters: { fighter_1: side("A", false), fighter_2: side("B", false) }, results: { outcome: null, round: null } }), n);
+  assert.equal(n.resultMissing, 2); assert.equal(n.resultMissingOld, 1); // three days ago: a result that may still come
 });
 
 test("fights not yet fought carry no result, even if the feed has stray fields; LIVE counts as not finished", () => {
