@@ -18,6 +18,7 @@ import type { T } from "@/lib/i18n/t";
 import { METHOD_NAME, endsEarly } from "@/lib/methods";
 import { divisionLabel } from "@/lib/divisions";
 import { BoutScore } from "@/components/Awards";
+import { PrintButton } from "@/components/PrintButton";
 import type { PunchLine } from "@/lib/types";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; id: string }> }) => metaFor(params, async ({ id }, t) => {
@@ -94,6 +95,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
           {b.title && <span className="chip !border-gold/50 !text-gold">{body ? <Link href={`/orgs/${body.slug}`}>{body.name.match(/\(([^)]+)\)/)?.[1] ?? body.name}</Link> : null} {b.titleVacant ? t("{title} (vacant)", { title: t.name(b.title) }) : t.name(b.title)}</span>}
           {ev.broadcaster && <span className="chip">{t.name(ev.broadcaster)}</span>}
           {ev.attendance && <span className="chip">{t("{n} attended", { n: ev.attendance.toLocaleString("en-US") })}</span>}
+          <span className="ms-auto"><PrintButton /></span>
         </div>
 
         {b.upcoming && b.status !== "cancelled" && <p className="mt-4 flex flex-wrap items-center gap-2 text-sm"><Link href={`/previews/${b.id}`} className="chip !border-gold/40 hover:!text-gold">{t("Read the preview")}</Link>{locked && <Link href="/accountability" className="chip hover:!text-gold">{t("Prediction on file since {date}: {a} / {b}", { date: fmtDate(locked.lockedOn, undefined, t.locale), a: pct(locked.pRed), b: pct(1 - locked.pRed) })}</Link>}</p>}

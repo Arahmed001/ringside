@@ -2729,5 +2729,6 @@
  "Tonight": "الليلة",
  "You called it": "أصبتَ",
  "Your pick": "اختيارك",
- "{done} of {total} fights decided": "تم حسم {done} من {total} نزالات"
+ "{done} of {total} fights decided": "تم حسم {done} من {total} نزالات",
+ "Print / save as PDF": "طباعة / حفظ بصيغة PDF"
 }
