@@ -859,6 +859,7 @@
  "Sign in as an editor to review reports.",
  "Sign in first.",
  "Sign in or create an account",
+ "Sign in to keep it on every device",
  "Sign in to keep them",
  "Sign in to keep them on every device",
  "Sign in to report a mistake. Every report goes to an editor, who checks the source before anything changes.",
@@ -963,7 +964,8 @@
  "The feed gave",
  "The feed now says",
  "The fighter the ratings did not favour won.",
- "the fighters on your watchlist",
+ "the fighters on your watchlist, and when you added each, once you are signed in",
+ "the fighters on your watchlist, until you sign in (then they move to your account)",
  "The first time {name} has been stopped in {n} fights.",
  "The highest fight scores in the data: knockdowns, a close or late finish, plenty of action, evenly matched fighters, an upset, a title on the line, a comeback. The same score that picks each year’s fight of the year.",
  "The largest rating gaps overcome by the winner, using each fighter’s rating going into the fight.",
@@ -1174,5 +1176,7 @@
  "Your profile",
  "Your record",
  "Your reports",
- "Your suggestions"
+ "Your suggestions",
+ "Your watchlist is saved in this browser.",
+ "Your watchlist is saved to your account."
 ]

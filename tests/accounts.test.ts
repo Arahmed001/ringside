@@ -37,6 +37,7 @@ const routes = async () => ({
   password: (await import("../app/api/account/password/route")).POST, del: (await import("../app/api/account/delete/route")).POST,
   reset: (await import("../app/api/account/reset/route")).POST, settings: (await import("../app/api/account/settings/route")).POST,
   exportData: (await import("../app/api/account/export/route")).GET,
+  watch: await import("../app/api/account/watchlist/route"), importWatch: (await import("../app/api/account/watchlist/import/route")).POST,
   picks: await import("../app/api/account/picks/route"), importPicks: (await import("../app/api/account/picks/import/route")).POST,
   contribute: await import("../app/api/contribute/route"), review: await import("../app/api/review/route"), reviewId: await import("../app/api/review/[id]/route"),
 });
@@ -770,4 +771,52 @@ test("an accounts file from before the recap is upgraded on open", async () => {
   old.close();
   const cols = (accountsDb().prepare("PRAGMA table_info(users)").all() as { name: string }[]).map((x) => x.name);
   assert.ok(cols.includes("picks_seen_through"));
+});
+
+// ---------- the watchlist on an account ----------
+test("the watchlist: add, list, remove, import from the browser, and nothing without signing in", async () => {
+  const r = await routes();
+  const { db } = await world();
+  const slugs = (db.prepare("SELECT slug FROM boxers ORDER BY id LIMIT 6").all() as { slug: string }[]).map((x) => x.slug);
+  assert.equal((await call(r.watch.GET as Handler, "GET")).status, 401);
+  assert.equal((await call(r.watch.POST as Handler, "POST", { slug: slugs[0] })).status, 401);
+  const c = await asUser("wanda_w", "10.7.0.1");
+  assert.equal((await call(r.watch.POST as Handler, "POST", { slug: slugs[0] }, { cookie: c })).status, 200);
+  assert.equal((await call(r.watch.POST as Handler, "POST", { slug: slugs[0] }, { cookie: c })).status, 200, "adding twice is harmless");
+  assert.equal((await call(r.watch.POST as Handler, "POST", { slug: "no-such-fighter" }, { cookie: c })).status, 404);
+  assert.deepEqual((await call(r.watch.GET as Handler, "GET", undefined, { cookie: c })).json.slugs, [slugs[0]]);
+  // the browser's list is added, never replacing what the account has; junk is counted, not stored
+  const imp = await call(r.importWatch, "POST", { slugs: [slugs[0], slugs[1], slugs[2], "nobody", 7] }, { cookie: c });
+  assert.equal(imp.status, 200);
+  assert.equal(imp.json.added, 2);
+  assert.equal(imp.json.invalid, 2);
+  assert.deepEqual([...imp.json.slugs].sort(), [slugs[0], slugs[1], slugs[2]].sort());
+  assert.equal((await call(r.importWatch, "POST", { slugs: "x" }, { cookie: c })).status, 400);
+  await call(r.watch.DELETE as Handler, "DELETE", { slug: slugs[1] }, { cookie: c });
+  assert.deepEqual([...(await call(r.watch.GET as Handler, "GET", undefined, { cookie: c })).json.slugs].sort(), [slugs[0], slugs[2]].sort());
+  // one person's list is not another's
+  const d = await asUser("walt_w", "10.7.0.2");
+  assert.deepEqual((await call(r.watch.GET as Handler, "GET", undefined, { cookie: d })).json.slugs, []);
+});
+
+test("the watchlist has a ceiling, is in the data export, and goes when the account does", async () => {
+  const r = await routes();
+  const { MAX_WATCH } = await import("../lib/watch");
+  const { addWatch, listWatch } = await import("../lib/accounts/watchlist");
+  const { accountsDb } = await import("../lib/accounts/store");
+  const { db } = await world();
+  const all = (db.prepare("SELECT slug FROM boxers ORDER BY id").all() as { slug: string }[]).map((x) => x.slug);
+  const c = await asUser("wilma_w", "10.7.0.3");
+  const uid = (accountsDb().prepare("SELECT id FROM users WHERE username = 'wilma_w'").get() as { id: number }).id;
+  if (all.length > MAX_WATCH) {
+    for (const s of all.slice(0, MAX_WATCH)) assert.ok(addWatch(uid, s, db).ok);
+    assert.deepEqual(addWatch(uid, all[MAX_WATCH], db), { ok: false, error: "too_many" });
+    assert.equal(listWatch(uid, db).length, MAX_WATCH);
+  } else assert.ok(addWatch(uid, all[0], db).ok);
+  const ex = await r.exportData(new Request(`${HOST}/api/account/export`, { headers: { cookie: c } }));
+  const data = await ex.json();
+  assert.ok(Array.isArray(data.watchlist) && data.watchlist.length > 0 && data.watchlist[0].fighter && data.watchlist[0].addedAt);
+  const del = await call(r.del, "POST", { password: PW }, { cookie: c });
+  assert.equal(del.status, 200);
+  assert.equal((accountsDb().prepare("SELECT COUNT(*) c FROM watchlist WHERE user_id = ?").get(uid) as { c: number }).c, 0, "deleted with the account");
 });

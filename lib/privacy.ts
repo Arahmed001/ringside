@@ -11,7 +11,7 @@ import { msg } from "./i18n/t";
 /** The browser's own storage: nothing leaves the browser, nothing is read by the server. */
 export const STORAGE_KEYS: { key: string; what: string }[] = [
   { key: "ringside:picks", what: msg("your pick’em picks, until you sign in (then they move to your account)") },
-  { key: "ringside:watchlist", what: msg("the fighters on your watchlist") },
+  { key: "ringside:watchlist", what: msg("the fighters on your watchlist, until you sign in (then they move to your account)") },
   { key: "ringside-nav", what: msg("whether the side menu is open or collapsed") },
 ];
 
@@ -21,6 +21,7 @@ export const HELD: Record<string, { columns: string[]; what: string }> = {
   sessions: { columns: ["token_hash", "user_id", "created_at", "expires_at", "label", "last_seen"], what: msg("where you are signed in: a hash of the sign-in token, the dates, and a coarse device label such as “<c>Chrome on macOS</c>” (nothing else the browser sends)") },
   resets: { columns: ["token_hash", "user_id", "expires_at"], what: msg("a one-time sign-in code the operator issued you, as a hash, if you asked for one") },
   picks: { columns: ["user_id", "bout_ext", "boxer_ext", "picked_at"], what: msg("your picks: which fighter you chose in which fight, and when") },
+  watchlist: { columns: ["user_id", "boxer_ext", "added_at"], what: msg("the fighters on your watchlist, and when you added each, once you are signed in") },
   contributions: { columns: ["id", "user_id", "kind", "boxer_ext", "role", "person_name", "start_date", "end_date", "source_url", "quote", "note", "status", "created_at", "reviewed_by", "reviewed_at", "review_note", "source_check", "source_checked_at"], what: msg("trainer and manager changes you proposed, with the link and the words you quoted") },
   reports: { columns: ["id", "user_id", "kind", "target_type", "target_ext", "field", "shown_value", "proposed_value", "source_url", "quote", "note", "contact", "status", "created_at", "reviewed_by", "reviewed_at", "review_note", "source_check", "source_checked_at", "by_owner", "state", "original_value", "vendor_value", "applied_at"], what: msg("reports of a wrong fact you sent, including the contact you chose to give with them") },
   boxer_owners: { columns: ["user_id", "boxer_ext", "verified_by", "verified_at", "note", "official_urls"], what: msg("a fighter an administrator linked to your account as yours, after checking out of band") },

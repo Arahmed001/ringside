@@ -1,13 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useLocal } from "@/lib/useLocal";
+import { useWatchlist } from "@/lib/useWatchlist";
 import type { WatchEntry } from "@/lib/watch";
 import { flag } from "@/lib/format";
 import { useLocale, useT } from "@/components/i18n";
 import { useHref } from "@/components/L";
-
-const KEY = "ringside:watchlist";
-const EMPTY: string[] = [];
+import Link from "@/components/L";
 
 /** Soonest next fight first, then fighters with nothing booked (by name). */
 const byNext = (a: WatchEntry, b: WatchEntry) =>
@@ -18,19 +16,20 @@ export function WatchlistPage() {
   const t = useT();
   const locale = useLocale();
   const href = useHref();
-  const [list, setList] = useLocal<string[]>(KEY, EMPTY);
+  const { list, loading, remove, mode } = useWatchlist();
   const key = list.join(",");
   const [loaded, setLoaded] = useState<{ key: string; rows: WatchEntry[] | null } | null>(null);
   useEffect(() => {
-    if (!key) return;
+    if (!key || loading) return;
     const ctl = new AbortController();
     fetch(`/api/watch?slugs=${encodeURIComponent(key)}&lang=${locale}`, { signal: ctl.signal })
       .then((r) => (r.ok ? (r.json() as Promise<WatchEntry[]>) : null))
       .then((rows) => setLoaded({ key, rows }))
       .catch((e) => { if (e?.name !== "AbortError") setLoaded({ key, rows: null }); });
     return () => ctl.abort();
-  }, [key, locale]);
+  }, [key, locale, loading]);
 
+  if (loading) return <p className="text-sm text-muted">{t("Loading your watchlist…")}</p>;
   if (!key) return (
     <div className="card p-6 text-center">
       <p className="font-semibold">{t("You are not watching anyone yet.")}</p>
@@ -44,6 +43,7 @@ export function WatchlistPage() {
   const res = { W: t("W"), L: t("L"), D: t("D"), NC: t("NC") };
   const tone = { W: "bg-win/15 text-win", L: "bg-red/15 text-red-ink", D: "bg-white/10 text-muted", NC: "bg-white/10 text-muted" };
   return (
+    <div className="space-y-4">
     <ul className="grid gap-3 md:grid-cols-2">
       {rows.map((f) => (
         <li key={f.slug} className="card flex flex-col gap-3 p-4">
@@ -81,11 +81,15 @@ export function WatchlistPage() {
               </dd>
             </div>
           </dl>
-          <button onClick={() => setList(list.filter((s) => s !== f.slug))} className="chip cursor-pointer self-start !py-1.5 transition hover:text-ink" aria-label={t("Stop watching {name}", { name: f.name })}>
+          <button onClick={() => void remove(f.slug)} className="chip cursor-pointer self-start !py-1.5 transition hover:text-ink" aria-label={t("Stop watching {name}", { name: f.name })}>
             {t("Remove from watchlist")}
           </button>
         </li>
       ))}
     </ul>
+    <p className="text-xs text-muted">
+      {mode === "account" ? t("Your watchlist is saved to your account.") : <>{t("Your watchlist is saved in this browser.")} <Link href="/account" className="inline-block py-1 text-ink underline decoration-dotted hover:text-gold">{t("Sign in to keep it on every device")}</Link></>}
+    </p>
+    </div>
   );
 }
