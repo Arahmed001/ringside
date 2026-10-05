@@ -172,6 +172,11 @@ Paste back: the whole output of `--check` (or the load), from the first line to 
 | `drawInferred`, `resultMissing` | A drawn decision stored as a draw, or a fight with no winner stored as "no result yet" | Both a large share of finished fights: the vendor's `outcome` words are not what the adapter expects; paste a sample |
 | `drawDemoted` | A draw dropped to "no result yet" because neither fighter's career total has a draw to spare | A few hundred in 150,000 is the vendor's own records disagreeing; thousands is a pattern to look at |
 | `stoppageWithoutWinner` | KO/TKO with no winner, stored as "no result yet" | Same as above |
+| `outcomeMapped` | An outcome word outside the feed's own list ("DQ", "RTD", "Corner Retirement", "Technical Decision", "No Contest") read through the importers' spelling table | Informational; a large count means the feed uses words worth adding to the list |
+| `outcomeUnreadable` | A winner with an outcome nobody can read: kept in both fighters' history as "no result yet", no winner named | Hundreds or more: paste ten examples of the outcome field |
+| `bothMarkedWinner` | Both fighters flagged as winner: neither picked | A handful is a feed slip; many means the winner flag is not what the adapter expects |
+| `roundUnreadable` | A result round of 0 or below, treated as unknown | Informational |
+| `eventsWithoutFights` | Events left out because none of their fights was kept | Informational (most small cards in a partial first load) |
 | `roundsRaisedToEnd` | A stoppage later than the scheduled rounds; the fight's length was raised | Large counts mean the schedule field is unreliable |
 | `fightersDroppedNoDivision`, `boutsDroppedNoDivision` | Fighters with no usable weight class, and their fights, left out | Over a few percent of fighters: paste the division spellings; add an alias in `lib/divisions.ts` |
 | `divisionFromFight`, `boutDivisionFromFighters` | A fighter's class taken from his fight, or a catchweight fight placed in the heavier fighter's class | Informational |
