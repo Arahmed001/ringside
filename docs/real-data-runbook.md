@@ -218,7 +218,7 @@ Paste back: the whole output of `--check` (or the load), from the first line to 
 | `roundUnreadable` | A result round of 0 or below, treated as unknown | Informational |
 | `eventsWithoutFights` | Events left out because none of their fights was kept | Informational (most small cards in a partial first load) |
 | `roundsRaisedToEnd` | A stoppage later than the scheduled rounds; the fight's length was raised | Large counts mean the schedule field is unreliable |
-| `fightersDroppedNoDivision`, `boutsDroppedNoDivision` | Fighters with no usable weight class, and their fights, left out | Over a few percent of fighters: paste the division spellings; add an alias in `lib/divisions.ts` |
+| `fightersDroppedNoDivision`, `boutsDroppedNoDivision` | Fighters with no usable weight class (none on the profile, none on any of their fights), and their fights, left out. Placing them from their opponents' divisions was measured and not built: on the first real cache only 322 of 1,199 had a single opponent division to go by (PLAN §160) | Over a few percent of fighters: paste the division spellings; add an alias in `lib/divisions.ts` |
 | `divisionFromFight`, `boutDivisionFromFighters` | A fighter's class taken from his fight, or a catchweight fight placed in the heavier fighter's class | Informational |
 | `boutsDroppedUnknownFighter`, `boutsOutsideSelection` | Fights whose fighter is not in the loaded set (expected on a `--fighters N` partial load) | Only if no partial load was asked for |
 | `fightsSkipped` | Fights skipped (a fighter against himself, unusable rows) | Hundreds is fine; check the sample the run prints |

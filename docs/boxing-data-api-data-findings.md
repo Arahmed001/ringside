@@ -44,7 +44,7 @@ Roughly twice as many fighters show more losses than the totals count (120) as m
 - A knockout or TKO with no winner marked: 504.
 - A stoppage in a round after the scheduled number ("round 12 of 10"): 499.
 - A fight whose two fighters have the same id: 6. Both fighters marked as the winner: 4.
-- About 1,365 of the fighters we fetched have no `stats` block, and about 1,080 have no weight division.
+- About 1,365 of the fighters we fetched have no `stats` block. Of 14,359 fighter profiles fetched, 9,276 (65%) have no `division`; for 8,077 of those one of their fights names a division, and for 1,199 nothing does (857 of them have no opponent with a division either). Is the division on the profile meant to be filled in?
 - Reach recorded as 312 cm (17 fighters) or 123 cm against a height of 170 to 193 cm (57); a debut age of 5, 10 or 13 (11).
 
 We can send the complete lists of ids for any of these, as a file, if that helps. We are glad to credit the data wherever it appears and to tell you when the fixes make the numbers match.
