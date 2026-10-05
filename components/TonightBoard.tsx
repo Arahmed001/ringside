@@ -54,7 +54,7 @@ export function TonightBoard({ bouts }: { bouts: TonightBout[] }) {
                 {side(b.blue, true)}
               </div>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line/60 pt-3 text-xs text-muted">
-                <span>{t("Win chance")}{b.pDraw > 0 ? <> · {t("Draw")} <bdi dir="ltr">{b.pDraw}%</bdi></> : null}</span>
+                <span>{t("Win chance")} ({t("Elo-style")}){b.pDraw > 0 ? <> · {t("Draw")} <bdi dir="ltr">{b.pDraw}%</bdi></> : null}</span>
                 {b.status !== "cancelled" && (
                   <span>
                     {picked ? <>{t("Your pick")}: <b className="text-ink">{picked.name}</b></> : t("No pick made")}

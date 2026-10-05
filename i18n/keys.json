@@ -4726,7 +4726,9 @@
  {
   "key": "Elo-style",
   "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "components/TonightBoard.tsx",
+   "components/WatchlistPage.tsx"
   ]
  },
  {
