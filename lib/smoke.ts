@@ -174,7 +174,7 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   if (m1 && m2) { png(`/api/og/compare?a=${m1.slug}&b=${m2.slug}&lang=en`, "matchup"); png(`/api/og/compare?a=${m1.slug}&b=${m2.slug}&lang=ar`, "matchup (Arabic)"); }
   out.push({ path: "/this-page-does-not-exist", kind: "missing", label: "unknown page" });
   // an old or mistyped fighter link: a real 404 that offers the fighter they meant (English only: the Arabic page offers the name in Arabic)
-  if (star) out.push({ path: `/boxers/${star.slug.slice(0, -1)}`, kind: "missing", label: "mistyped fighter link (offers the fighter they meant)", mustShow: star.name });
+  if (star) out.push({ path: `/boxers/${star.slug.slice(0, -1)}`, kind: "missing", label: "mistyped fighter link (offers the fighter they meant)", ...(/^[\p{L}\p{N} .'’-]+$/u.test(star.name) ? { mustShow: star.name } : {}) }); // a name with markup characters reaches the page JSON-escaped twice: the route is still checked to be a real 404, and the hostile run checks the markup is not on the page
   // one request per path, but a later route's "must show" is not lost when an earlier one (the nav) took the path first
   const seen = new Map<string, SmokeRoute>();
   return out.filter((r) => { const first = seen.get(r.path); if (!first) { seen.set(r.path, r); return true; } if (r.mustShow && !first.mustShow) { first.mustShow = r.mustShow; first.label = `${first.label}; ${r.label}`; } return false; });

@@ -53,6 +53,8 @@ Put the key in your host's secret store, not in the image or the repository.
 
 The site renders with no data at all and with data but nothing upcoming: the home page says no fights are scheduled and drops the poster and calendar, the style map is empty until someone has eight bouts, rankings and analytics read zero rather than NaN. Both states are exercised in CI (`npm run smoke -- --feed empty` and `-- --feed sparse`, 68 and 95 pages in both languages) and by tests that call every aggregate and every Ask-the-data tool on those leagues. Before this was checked the home page and the style map returned a 500 in both states, which a real feed would have hit between seasons.
 
+A league made of awkward values (markup and SQL in names, a 300-letter name, absurd heights, contradictory results, impossible dates, a fighter with no name; `lib/hostile-feed.ts`) is read through the real adapter by `tests/hostile-feed.test.ts` (nothing throws, every fight is kept or counted) and rendered page by page in both languages by `npm run smoke -- --feed hostile --crawl 60` (326 pages), which also fails if the markup from a name is ever on a page unescaped. Run it by hand after changing the adapter, the validator or a page that shows a name.
+
 ## When a page breaks
 
 A visitor gets the site's own error page (in their language, with the navigation still there, a Try again button and a short reference number) and never a stack trace, a message or a path; if the root layout itself fails, a plain bilingual page with the same reference. The server writes **one line of JSON** to stderr per error:

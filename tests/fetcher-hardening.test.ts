@@ -151,3 +151,22 @@ test("a vendor reply that echoes the API key into a thrown message is scrubbed",
     assert.match(message, /\*\*\*/);
   }
 });
+
+test("the names of this machine are refused however they are written, with no host check at all (the command-line tool has none): a trailing dot, capitals, anything under .localhost", async () => {
+  for (const u of ["http://localhost/", "http://localhost./", "http://LOCALHOST/", "http://localhost.../x", "http://foo.localhost/", "http://a.b.localhost./", "http://printer.local./", "http://db.internal./", "http://127.0.0.1./", "http://[::1]/"]) {
+    const w = web({ [u]: { body: "<p>secret</p>" } });
+    const { f } = fetcher(w, {});
+    const r = await f.get(u);
+    assert.ok(!r.ok && r.reason === "bad-url", `${u}: refused`);
+    assert.deepEqual(w.log, [], `${u}: nothing was requested, not even its robots.txt`);
+  }
+});
+
+test("and a public name written with a trailing dot, or one that merely contains 'localhost', is still a public name", async () => {
+  for (const u of ["https://example.com./page", "https://localhost-news.example/page", "https://mylocalhost.example/page"]) {
+    const w = web({ [`${new URL(u).origin}/robots.txt`]: { status: 404, body: "" }, [u]: { body: "<p>quote</p>" } });
+    const { f } = fetcher(w, {});
+    const r = await f.get(u);
+    assert.ok(r.ok, `${u}: fetched (${JSON.stringify(r)})`);
+  }
+});

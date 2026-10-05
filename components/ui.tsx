@@ -85,8 +85,8 @@ export function Stat({ label, value, sub }: { label: string; value: string | num
   return (
     <div className="card p-4">
       <div className="text-xs uppercase tracking-widest text-muted">{label}</div>
-      {/* a long figure (a combined record, "660-575-59") is set smaller on phones and never broken at its hyphens */}
-      <div className={`whitespace-nowrap font-display font-bold leading-tight tabular sm:text-4xl ${String(value).length >= 9 ? "text-2xl" : String(value).length >= 7 ? "text-3xl" : "text-4xl"}`}>{value}</div>
+      {/* a long figure (a combined record, "660-575-59") is set smaller on phones and never broken at its hyphens; a value with spaces ("56% vs 40%") may wrap at them */}
+      <div className={`${/\s/.test(String(value)) ? "text-balance" : "whitespace-nowrap"} font-display font-bold leading-tight tabular sm:text-4xl ${String(value).length >= 9 ? "text-2xl" : String(value).length >= 7 ? "text-3xl" : "text-4xl"}`}>{value}</div>
       {sub && <div className="text-xs text-muted">{sub}</div>}
     </div>
   );

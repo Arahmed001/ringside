@@ -44,8 +44,8 @@ export function PickEm({ bouts }: { bouts: PickBout[] }) {
       <p className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
         <span>{mode === "account" ? t("✦ marks the model’s pick. Saved to your account; picks lock when fight day begins.") : t("✦ marks the model’s pick. Picks are saved in this browser.")}</span>
         <span className="flex gap-3">
-          {mode === "local" && <Link href="/account" className="text-ink underline decoration-dotted hover:text-gold">{t("Sign in to keep them")}</Link>}
-          <Link href="/picks" className="text-ink underline decoration-dotted hover:text-gold">{t("See how your picks did")}</Link>
+          {mode === "local" && <Link href="/account" className="inline-block py-1 text-ink underline decoration-dotted hover:text-gold">{t("Sign in to keep them")}</Link>}
+          <Link href="/picks" className="inline-block py-1 text-ink underline decoration-dotted hover:text-gold">{t("See how your picks did")}</Link>
         </span>
       </p>
     </div>
