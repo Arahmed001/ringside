@@ -17,12 +17,10 @@ export async function AskResults({ a, compact }: { a: Answer; /** The home page'
       <section className="card p-6" aria-labelledby="answer">
         <div className="mb-2 flex flex-wrap items-center gap-2">
           <h2 id="answer" className="eyebrow">{t("Answer")}</h2>
-          <span className={`chip ${a.source === "ai" ? "!border-gold/40 !text-gold" : ""}`}>{a.source === "ai" ? t("Written by AI from the results below") : t("Put together by rules from the results below")}</span>
         </div>
         {a.understood ? <p className="text-lg leading-relaxed" dir="auto">{a.answer}</p> : (
           <p className="text-muted">{a.hint === "year" ? t("Those lists cover all of boxing history, not one year, so there is nothing to show for a single year. Try “best fight of 2025” or “knockouts in 2025” instead.") : a.hint === "span" ? t("These lists and counts cover all of boxing history and cannot be cut to a stretch of years such as “since 2018” or “this decade”. Try one year, such as “best fight of 2025” or “knockouts in 2025”.") : a.hint === "group" ? t("These lists can be narrowed to men or women and one weight division, but not to other groups of fighters or to a region. Try a search such as “southpaw welterweights with 10+ KOs” or “most knockouts among women”.") : t("I could not match that question to anything in the data. Try one of the examples, or ask about fighters, fights, titles, records, upcoming cards or fight money.")}</p>
         )}
-        {a.limited && <p className="mt-3 text-sm text-muted">{a.limited === "budget" ? t("The AI budget for today is used up, so this answer comes from rules instead.") : t("You have asked a lot in a short time, so this answer comes from rules instead of AI.")}</p>}
       </section>
       {tables.map((tb) => (
         <section key={tb.id} className="card p-5" aria-labelledby={`t-${tb.id}`}>
@@ -42,7 +40,7 @@ export async function AskResults({ a, compact }: { a: Answer; /** The home page'
       {compact && <p className="text-sm"><Link href={`/ask?q=${encodeURIComponent(a.question)}`} className="inline-block py-1 text-ink hover:text-gold">{t("See the full answer and how it was worked out")} <span className="inline-block rtl:rotate-180">→</span></Link></p>}
       {!compact && <details className="card p-5 text-sm">
         <summary className="cursor-pointer py-1.5 font-semibold">{t("How this was answered")}</summary>
-        <p className="mt-3 text-muted">{a.planner === "ai" ? t("An AI model chose which of our fixed, read-only queries to run. It cannot run anything else, and every number comes from the queries below, not from the model.") : t("Patterns in the question chose which of our fixed, read-only queries to run. Every number comes from the queries below.")}</p>
+        <p className="mt-3 text-muted">{t("The question was matched to our fixed, read-only queries. Every number comes from the queries below.")}</p>
         <ul className="mt-3 space-y-1 font-mono text-xs" dir="ltr" lang="en">{a.calls.map((c, i) => <li key={i}>{c.tool}({Object.entries(c.args).map(([k, v]) => `${k}: ${JSON.stringify(v)}`).join(", ")})</li>)}</ul>
       </details>}
     </div>
