@@ -78,6 +78,33 @@ export function makeWorld(o: { fighters: number; fights: number; years?: number;
   return { today, fighters, fights, careers };
 }
 
+/**
+ * What the real feed looked like on the first full fetch, laid over a clean league (which always adds up, so it cannot show the load-day paths):
+ * - `priorShare`: this share of fighters has an earlier career the fight list does not reach, so the vendor's total is above what their fights add up to (partial);
+ * - `unrecorded`: this many finished fights have no winner but a decision outcome, and the vendor's totals do NOT count them (a result not yet posted: the importer's draw guess made these conflicts);
+ * - `duplicates`: this many fights are listed twice (same pair, same card) while the vendor's totals count them once (a conflict: "repeat" and "same-day").
+ * The league is changed in place and returned; deterministic for a seed.
+ */
+export function degradeWorld(w: MockWorld, o: { seed?: number; priorShare?: number; unrecorded?: number; duplicates?: number }): MockWorld {
+  const rand = mulberry32(o.seed ?? 3);
+  const done = w.fights.filter((f) => f.status === "FINISHED");
+  const career = (id: string) => w.careers.get(id) ?? w.careers.set(id, { wins: 0, losses: 0, draws: 0 }).get(id)!;
+  const drop = (f: MockFight) => { // the vendor's totals leave the fight out
+    if (f.winner === "a") { career(f.a).wins--; career(f.b).losses--; } else if (f.winner === "b") { career(f.b).wins--; career(f.a).losses--; } else { career(f.a).draws--; career(f.b).draws--; }
+  };
+  const used = new Set<string>();
+  const decided = done.filter((f) => f.winner !== null); // a fight that already has no winner is a real draw: leave those alone
+  const pick = () => { for (let k = 0; k < 20; k++) { const f = decided[Math.floor(rand() * decided.length)]; if (!used.has(f.id)) { used.add(f.id); return f; } } return null; };
+  for (let i = 0; i < (o.unrecorded ?? 0); i++) { const f = pick(); if (!f) break; drop(f); f.winner = null; f.outcome = "UD"; f.round = null; }
+  const copies: MockFight[] = [];
+  for (let i = 0; i < (o.duplicates ?? 0); i++) { const f = pick(); if (f) copies.push({ ...f, id: `d${i}` }); }
+  w.fights.push(...copies);
+  for (const id of new Set(done.flatMap((f) => [f.a, f.b]))) {
+    if (rand() < (o.priorShare ?? 0)) { const c = career(id); c.wins += 1 + Math.floor(rand() * 8); c.losses += Math.floor(rand() * 5); }
+  }
+  return w;
+}
+
 const side = (id: string, name: string, winner: boolean) => ({ fighter_id: id, name, full_name: name, winner });
 function apiFight(w: MockWorld, f: MockFight) {
   const A = w.fighters.get(f.a)!, B = w.fighters.get(f.b)!, done = f.status === "FINISHED";

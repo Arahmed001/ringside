@@ -43,7 +43,7 @@ const log = (m: string) => console.log(`${stamp()}  ${m}`);
 async function main() {
   const cachedOnly = flag("cached-only");
   // --cached-only sends nothing, so it needs no key and no lock (it shares no allowance); the key is only a placeholder the adapter never sends
-  const key = process.env.BOXING_API_KEY ?? (cachedOnly ? "cached-only-no-request-is-ever-sent-0000000000" : undefined);
+  const key = process.env.BOXING_API_KEY || (cachedOnly ? "cached-only-no-request-is-ever-sent-0000000000" : undefined);
   if (!key) throw new Error("Set BOXING_API_KEY (your RapidAPI key for the Boxing Data API).");
   const plan = flag("plan"), check = flag("check"), update = flag("update");
   if (cachedOnly && (plan || update || flag("refresh") || arg("cache-dir") === undefined)) throw new Error("--cached-only reads what --cache-dir already holds and makes no request: give --cache-dir, and not --plan, --update or --refresh.");

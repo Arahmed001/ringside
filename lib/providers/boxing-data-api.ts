@@ -527,6 +527,14 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     }
   }
 
+  /** The latest `date_to` of the cached fight-list windows (the top window's end: the halves end earlier), or undefined when the cache holds none or is not to be used. */
+  const cachedWindowEnd = (): string | undefined => {
+    if (!o.cacheDir || o.refresh || o.refreshLists || o.since) return undefined;
+    let best: string | undefined;
+    try { for (const f of fs.readdirSync(o.cacheDir)) { const m = /^v2-fights__.*date_to-(\d{4}-\d{2}-\d{2})/.exec(f); if (m && (!best || m[1] > best)) best = m[1]; } } catch { return undefined; }
+    return best;
+  };
+
   /** The fight list pages (and the schedule, if the list showed no coming fights): the fights, their events and the fighters they involve. */
   async function listFights() {
     notes = emptyNotes();
@@ -565,7 +573,12 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
       // The list is longer than a page number can reach (or the API stopped counting at the limit). What happens past it is not known (an error, or an
       // empty page that looks like the end), so rather than depend on either, ask for the history in date windows, splitting any window that is still
       // too long. Only a list this long gets here: a plan with a short history never sends a date range (a limited plan refuses one).
-      const from = String(params.date_from ?? "1900-01-01"), to = String(params.date_to ?? addDays(todayIso(), o.scheduleDays ?? 60));
+      // The windows are halved from `from` to `to`, so every window's cache file is named by `to`: anchored on today's date they would all miss the next day,
+      // and a run resumed after midnight (UTC) would read the whole list again (477 pages: about an hour of the plan's allowance). A cache that already holds
+      // this list is read with the window end it was made with; --refresh and --since (and a cache with no list in it) use today as before.
+      const from = String(params.date_from ?? "1900-01-01"), cachedTo = params.date_to === undefined ? cachedWindowEnd() : undefined;
+      const to = String(params.date_to ?? cachedTo ?? addDays(todayIso(), o.scheduleDays ?? 60));
+      if (cachedTo) log(`reading the fight list from the cache as it was made (windows end ${cachedTo}); --refresh reads it again`);
       log(`the fight list is longer than ${LIMIT} documents (${total} pages): reading it in date windows`);
       let windows = 0;
       const window = async (f: string, t: string): Promise<void> => {

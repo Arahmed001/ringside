@@ -105,3 +105,36 @@ test("cached only: an empty cache is an error about the fight list, not a silent
   assert.ok("error" in r && /\/v2\/fights\/ is not in the cache \(--cached-only makes no request\)/.test(r.error), JSON.stringify(r));
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+// round 77: the date windows of a long fight list are named by their end date; they must not move with the day
+test("a long fight list is read from the cache the next day, not read again: the windows keep the end date they were made with", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "bda-nextday-"));
+  const was = process.env.RINGSIDE_NOW;
+  const common = { key: KEY, purpose: "evaluation" as const, scheduleDays: 0, maxRequests: 100_000, retries: 0, gapMs: 0, sleep: async () => {}, cacheDir: dir, pageSize: 20, offsetLimit: 100 };
+  try {
+    process.env.RINGSIDE_NOW = "2026-10-04";
+    const day1 = mockVendor(world, { offsetLimit: 100 });
+    const lines1: string[] = [];
+    const a = boxingDataApiProvider({ ...common, fetchImpl: day1.fetchImpl, log: (m) => lines1.push(m) });
+    const all = await a.fetchBouts();
+    assert.ok(lines1.some((l) => /date windows/.test(l)), "the list was long enough to be read in date windows");
+    process.env.RINGSIDE_NOW = "2026-10-05"; // a day later
+    const day2 = mockVendor(world, { offsetLimit: 100 });
+    const lines2: string[] = [];
+    const b = boxingDataApiProvider({ ...common, fetchImpl: day2.fetchImpl, log: (m) => lines2.push(m) });
+    const again = await b.fetchBouts();
+    assert.equal(day2.stats.requests, 0, `the next day asked for ${day2.stats.requests} requests, the whole list again`);
+    assert.equal(again.length, all.length);
+    assert.ok(lines2.some((l) => /reading the fight list from the cache as it was made \(windows end 2026-10-04\)/.test(l)), lines2.join("\n"));
+    // --refresh still reads it again, from today's window
+    const day3 = mockVendor(world, { offsetLimit: 100 });
+    const lines3: string[] = [];
+    await boxingDataApiProvider({ ...common, refresh: true, fetchImpl: day3.fetchImpl, log: (m) => lines3.push(m) }).fetchBouts();
+    assert.ok(day3.stats.requests > 0);
+    assert.ok(!lines3.some((l) => /as it was made/.test(l)), "--refresh windows end today again, so a fight scheduled since is not missed");
+    // and a cache made one day is read by --cached-only the next
+    const never = (async () => { throw new Error("a request was made"); }) as typeof fetch;
+    const c = boxingDataApiProvider({ ...common, fetchImpl: never, cachedOnly: true, log: () => {} });
+    assert.equal((await c.fetchBouts()).length, all.length);
+  } finally { if (was === undefined) delete process.env.RINGSIDE_NOW; else process.env.RINGSIDE_NOW = was; fs.rmSync(dir, { recursive: true, force: true }); }
+});
