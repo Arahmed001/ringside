@@ -275,6 +275,12 @@
   ]
  },
  {
+  "key": "{done} of {total} fights decided",
+  "files": [
+   "components/TonightBoard.tsx"
+  ]
+ },
+ {
   "key": "{events} events · {fighters} fighters signed · {w}-{l} combined",
   "files": [
    "app/[locale]/orgs/page.tsx"
@@ -752,7 +758,8 @@
   "key": "{n} rds",
   "plural": "{n} rd",
   "files": [
-   "app/[locale]/events/[id]/page.tsx"
+   "app/[locale]/events/[id]/page.tsx",
+   "components/TonightBoard.tsx"
   ]
  },
  {
@@ -3502,6 +3509,7 @@
   "files": [
    "app/[locale]/events/[id]/page.tsx",
    "components/Poster.tsx",
+   "components/TonightBoard.tsx",
    "components/ui.tsx"
   ]
  },
@@ -3800,7 +3808,8 @@
   "key": "Co-main",
   "files": [
    "app/[locale]/events/[id]/page.tsx",
-   "app/[locale]/previews/page.tsx"
+   "app/[locale]/previews/page.tsx",
+   "components/TonightBoard.tsx"
   ]
  },
  {
@@ -4485,6 +4494,7 @@
    "app/[locale]/page.tsx",
    "app/[locale]/weights/page.tsx",
    "components/ReportForm.tsx",
+   "components/TonightBoard.tsx",
    "lib/correction-text.ts",
    "lib/format.ts",
    "lib/preview.ts",
@@ -5171,7 +5181,8 @@
  {
   "key": "Fight night",
   "files": [
-   "app/[locale]/bouts/[id]/page.tsx"
+   "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/tonight/page.tsx"
   ]
  },
  {
@@ -5816,6 +5827,7 @@
   "files": [
    "app/[locale]/events/[id]/page.tsx",
    "components/Awards.tsx",
+   "components/TonightBoard.tsx",
    "components/ui.tsx"
   ]
  },
@@ -5824,6 +5836,12 @@
   "files": [
    "app/[locale]/previews/[id]/page.tsx",
    "app/[locale]/previews/page.tsx"
+  ]
+ },
+ {
+  "key": "Full card and results",
+  "files": [
+   "app/[locale]/tonight/page.tsx"
   ]
  },
  {
@@ -6417,7 +6435,8 @@
   "files": [
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/page.tsx",
-   "app/[locale]/previews/[id]/page.tsx"
+   "app/[locale]/previews/[id]/page.tsx",
+   "app/[locale]/tonight/page.tsx"
   ]
  },
  {
@@ -6747,6 +6766,12 @@
   "key": "Last 12 months",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Last card in review",
+  "files": [
+   "app/[locale]/tonight/page.tsx"
   ]
  },
  {
@@ -7247,6 +7272,7 @@
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/previews/page.tsx",
    "components/Poster.tsx",
+   "components/TonightBoard.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -7421,6 +7447,12 @@
   "key": "Minimumweight",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Missed",
+  "files": [
+   "components/TonightBoard.tsx"
   ]
  },
  {
@@ -7773,6 +7805,12 @@
   ]
  },
  {
+  "key": "Next card: {event}, {date}.",
+  "files": [
+   "app/[locale]/tonight/page.tsx"
+  ]
+ },
+ {
   "key": "Next day",
   "files": [
    "app/[locale]/on-this-day/page.tsx"
@@ -7878,6 +7916,12 @@
   "files": [
    "components/Watch.tsx",
    "components/WatchlistPage.tsx"
+  ]
+ },
+ {
+  "key": "No fight card tonight.",
+  "files": [
+   "app/[locale]/tonight/page.tsx"
   ]
  },
  {
@@ -8016,6 +8060,12 @@
   "key": "No opponent in common.",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "No pick made",
+  "files": [
+   "components/TonightBoard.tsx"
   ]
  },
  {
@@ -10184,7 +10234,8 @@
  {
   "key": "See how your picks did",
   "files": [
-   "components/PickEm.tsx"
+   "components/PickEm.tsx",
+   "components/TonightBoard.tsx"
   ]
  },
  {
@@ -10198,6 +10249,12 @@
   "files": [
    "components/MyPicks.tsx",
    "components/PickStanding.tsx"
+  ]
+ },
+ {
+  "key": "See the next card",
+  "files": [
+   "app/[locale]/tonight/page.tsx"
   ]
  },
  {
@@ -11475,6 +11532,12 @@
   ]
  },
  {
+  "key": "The fighters and results here are the demo league’s, not a live scoreboard. When a card is on, this page checks for new results every minute.",
+  "files": [
+   "app/[locale]/tonight/page.tsx"
+  ]
+ },
+ {
   "key": "the fighters on your watchlist",
   "files": [
    "lib/privacy.ts"
@@ -12312,6 +12375,12 @@
   ]
  },
  {
+  "key": "To come",
+  "files": [
+   "components/TonightBoard.tsx"
+  ]
+ },
+ {
   "key": "To link this account to the fighter, once you have checked who they are, use the owner command on the server (see the accounts guide).",
   "files": [
    "components/ReportQueue.tsx"
@@ -12333,6 +12402,20 @@
   "key": "Today",
   "files": [
    "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
+  "key": "Today’s fight card in fight order, with win chances, your picks and the results as they come in.",
+  "files": [
+   "app/[locale]/tonight/page.tsx"
+  ]
+ },
+ {
+  "key": "Tonight",
+  "files": [
+   "app/[locale]/tonight/page.tsx",
+   "lib/nav.ts",
+   "lib/search.ts"
   ]
  },
  {
@@ -12628,7 +12711,8 @@
  {
   "key": "Undercard",
   "files": [
-   "app/[locale]/events/[id]/page.tsx"
+   "app/[locale]/events/[id]/page.tsx",
+   "components/TonightBoard.tsx"
   ]
  },
  {
@@ -12902,7 +12986,8 @@
    "app/[locale]/previews/page.tsx",
    "components/Awards.tsx",
    "components/Matchmaking.tsx",
-   "components/Poster.tsx"
+   "components/Poster.tsx",
+   "components/TonightBoard.tsx"
   ]
  },
  {
@@ -13474,6 +13559,7 @@
  {
   "key": "Win chance",
   "files": [
+   "components/TonightBoard.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -13840,6 +13926,12 @@
   ]
  },
  {
+  "key": "You called it",
+  "files": [
+   "components/TonightBoard.tsx"
+  ]
+ },
+ {
   "key": "You can propose corrections to a fighter’s team history, with a source an editor can check.",
   "files": [
    "components/AccountPanel.tsx"
@@ -13965,6 +14057,12 @@
   "key": "your name, a salted hash of your password (never the password), when you joined and last signed in, whether you are on the leaderboard, and the date up to which you have seen your graded picks",
   "files": [
    "lib/privacy.ts"
+  ]
+ },
+ {
+  "key": "Your pick",
+  "files": [
+   "components/TonightBoard.tsx"
   ]
  },
  {

@@ -2715,5 +2715,19 @@
  "Stop watching {name}": "إيقاف متابعة {name}",
  "The fighters you follow, with their next fight, last result and rating, kept in this browser.": "الملاكمون الذين تتابعهم مع نزالهم القادم وآخر نتيجة وتصنيفهم، محفوظة في هذا المتصفح.",
  "You are not watching anyone yet.": "لا تتابع أي ملاكم بعد.",
- "{opponent}, {how}": "{opponent}، {how}"
+ "{opponent}, {how}": "{opponent}، {how}",
+ "Full card and results": "البطاقة الكاملة والنتائج",
+ "Last card in review": "ملخص آخر بطاقة",
+ "Missed": "أخطأت",
+ "Next card: {event}, {date}.": "البطاقة القادمة: {event}، {date}.",
+ "No fight card tonight.": "لا توجد بطاقة نزالات الليلة.",
+ "No pick made": "لم تختر بعد",
+ "See the next card": "شاهد البطاقة القادمة",
+ "The fighters and results here are the demo league’s, not a live scoreboard. When a card is on, this page checks for new results every minute.": "الملاكمون والنتائج هنا من الدوري التجريبي وليست لوحة نتائج مباشرة. عند إقامة بطاقة، تتحقق هذه الصفحة من النتائج الجديدة كل دقيقة.",
+ "To come": "لم يبدأ بعد",
+ "Today’s fight card in fight order, with win chances, your picks and the results as they come in.": "بطاقة نزالات اليوم بترتيب النزالات، مع فرص الفوز واختياراتك والنتائج فور وصولها.",
+ "Tonight": "الليلة",
+ "You called it": "أصبتَ",
+ "Your pick": "اختيارك",
+ "{done} of {total} fights decided": "تم حسم {done} من {total} نزالات"
 }
