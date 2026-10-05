@@ -157,3 +157,7 @@ body:has(dialog[open]) { overflow: hidden; }
   a { color: inherit; text-decoration: none; }
   .sticky, .lg\:sticky { position: static !important; }
 }
+
+/* The one-page fighter sheet exists only for the printer. */
+.print-only { display: none; }
+@media print { .print-only { display: block; } }

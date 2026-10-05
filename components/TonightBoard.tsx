@@ -47,14 +47,14 @@ export function TonightBoard({ bouts }: { bouts: TonightBout[] }) {
               </div>
               <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start gap-3">
                 {side(b.red, false)}
-                <Link href={`/bouts/${b.id}`} className="py-1 text-center" title={t("Full bout details")}>
+                <Link href={`/bouts/${b.id}`} className="min-w-12 py-1 text-center" title={t("Full bout details")}>
                   <div className="font-display text-xl font-bold text-gold">{t("VS")}</div>
                   <div className="text-xs text-muted">{b.status === "decided" ? b.how : b.status === "pending" ? t("To come") : ""}</div>
                 </Link>
                 {side(b.blue, true)}
               </div>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line/60 pt-3 text-xs text-muted">
-                <span>{t("Win chance")}{b.pDraw > 0 ? <> · {t("Draw")} <bdi dir="ltr">{b.pDraw}%</bdi></> : null}</span>
+                <span>{t("Win chance")} ({t("Elo-style")}){b.pDraw > 0 ? <> · {t("Draw")} <bdi dir="ltr">{b.pDraw}%</bdi></> : null}</span>
                 {b.status !== "cancelled" && (
                   <span>
                     {picked ? <>{t("Your pick")}: <b className="text-ink">{picked.name}</b></> : t("No pick made")}
