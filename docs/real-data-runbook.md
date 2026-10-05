@@ -2,6 +2,8 @@
 
 For the day a plan with full history is bought. **The vendor has confirmed that its data may be stored (to the owner, 2026-10-03):** set `BOXING_API_STORAGE_CONFIRMED=1` and keep the vendor's message where you can find it. Until it is set, every run that stores says so. If it says no, the data has to go: see "Undoing it" (a separate database file and a cache directory make that a clean delete). See `docs/real-data-readiness.md` for what the adapter does and does not know.
 
+**The short version, in order, with what to look at after each step: `docs/load-day.md`** (keep that one open; this page is the reference).
+
 Everything here is one command, `npm run vendor:backfill`, in four modes. It resumes after any interruption, backs up before writing, and refuses the mistakes that are easy to make (the wrong database, a half-fetched league, a failing validator).
 
 ## 0. Before you start
