@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { DEFAULT_LOCALE, LOCALES } from "@/lib/i18n/config";
-import { HSTS, contentSecurityPolicy, isHttps, makeNonce } from "@/lib/security";
+import { HSTS, contentSecurityPolicy, isEmbedPath, isHttps, makeNonce } from "@/lib/security";
 
 /**
  * English at the bare path, every other language under its prefix.
@@ -20,6 +20,20 @@ export function proxy(req: NextRequest) {
     const redirect = NextResponse.redirect(url, 308);
     if (https) redirect.headers.set("Strict-Transport-Security", HSTS);
     return redirect;
+  }
+
+  // the embeds are made to be framed and are not in a language segment (their locale is in the path after /embed): same nonce policy, framing allowed, no locale rewrite
+  if (isEmbedPath(pathname)) {
+    const nonce = makeNonce();
+    const csp = contentSecurityPolicy({ nonce, dev: process.env.NODE_ENV === "development", https, embed: true });
+    const headers = new Headers(req.headers);
+    headers.set("x-nonce", nonce);
+    headers.set("x-pathname", pathname);
+    headers.set("Content-Security-Policy", csp);
+    const res = NextResponse.next({ request: { headers } });
+    res.headers.set("Content-Security-Policy", csp);
+    if (https) res.headers.set("Strict-Transport-Security", HSTS);
+    return res;
   }
 
   // a fresh nonce per request; Next reads it back out of the policy and puts it on its own scripts and styles, and the layout puts it on ours

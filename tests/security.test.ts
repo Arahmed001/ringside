@@ -57,8 +57,10 @@ test("the proxy puts a new nonce and the policy on every page, forwards both to 
 test("the standing headers are applied to every route, and the framework is not announced", async () => {
   const config = (await import("../next.config")).default;
   const rules = await config.headers!();
-  assert.equal(rules.length, 1); assert.equal(rules[0].source, "/:path*");
-  assert.deepEqual(rules[0].headers, STATIC_HEADERS);
+  // two rules: the embeds (made to be framed) and every other path (which refuses to be). tests/embeds.test.ts holds the details of the split
+  assert.equal(rules.length, 2); assert.equal(rules[0].source, "/embed/:path*"); assert.equal(rules[1].source, "/((?!embed/).*)");
+  assert.deepEqual(rules[1].headers, STATIC_HEADERS, "every other path gets the whole standing set, X-Frame-Options included");
+  assert.deepEqual(rules[0].headers, STATIC_HEADERS.filter((h) => h.key !== "X-Frame-Options"), "an embed gets the same set but for the one header that would stop it being framed");
   assert.equal(config.poweredByHeader, false);
   const keys = STATIC_HEADERS.map((h) => h.key);
   for (const k of ["X-Content-Type-Options", "Referrer-Policy", "X-Frame-Options", "Permissions-Policy", "Cross-Origin-Opener-Policy"]) assert.ok(keys.includes(k), k);

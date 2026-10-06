@@ -20,7 +20,7 @@ import { countryList } from "./countries";
 
 export type Locale = "en" | "ar";
 const shows = (r: { mustShow?: string; alsoShow?: string[] }): string[] => [...(r.mustShow ? [r.mustShow] : []), ...(r.alsoShow ?? [])];
-export interface SmokeRoute { path: string; kind: "page" | "api" | "svg" | "png" | "ics" | "missing"; label: string; /** text the page must show (a search that has to find someone) */ mustShow?: string; /** more text it must show, when two routes to the same page each ask for something */ alsoShow?: string[]; /** not requested on the Arabic site: the path carries English the person typed, which the page rightly echoes */ englishOnly?: boolean }
+export interface SmokeRoute { path: string; kind: "page" | "api" | "svg" | "png" | "ics" | "embed" | "missing"; label: string; /** text the page must show (a search that has to find someone) */ mustShow?: string; /** more text it must show, when two routes to the same page each ask for something */ alsoShow?: string[]; /** not requested on the Arabic site: the path carries English the person typed, which the page rightly echoes */ englishOnly?: boolean }
 
 /** Directories under app/[locale] whose URL has a parameter: every one must have a sampler below, or a new page escapes the check. */
 export const DYNAMIC_PAGES = ["all-time/[list]", "bouts/[id]", "boxers/[slug]", "countries/[slug]", "events/[id]", "fight-of-the-year/[year]", "orgs/[slug]", "people/[slug]", "previews/[id]", "rankings/[division]", "titles/[slug]"] as const;
@@ -34,7 +34,8 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   const page = (path: string, label: string) => out.push({ path, kind: "page", label });
   page("/", "home");
   for (const g of NAV_GROUPS) for (const i of g.items) page(i.href, `nav: ${i.label}`);
-  for (const p of OFF_NAV) page(p, `off-nav: ${p}`); // reached from the account menu, not the rail
+  for (const p of OFF_NAV) page(p, `off-nav: ${p}`);
+  out.push({ path: "/developers", kind: "page", label: "developers: the API and the embed builder", mustShow: "Public API", alsoShow: ["Embeds", "What to embed"] }); // reached from the account menu, not the rail
 
   const boxers = [...w.boxers].sort((a, b) => b.rating - a.rating);
   const star = boxers[0], retired = boxers.find((b) => !b.active && b.bouts > 5 && b !== star), woman = boxers.find((b) => b.sex === "female"), debut = w.boxers.find((b) => b.bouts <= 1);
@@ -166,6 +167,10 @@ export function smokeRoutes(w: World): SmokeRoute[] {
     out.push({ path: `/api/v1/rankings/${topDivision}?limit=5`, kind: "api", label: "public api: a ranking" });
     out.push({ path: "/api/v1/events?when=recent&limit=3", kind: "api", label: "public api: recent events" });
     out.push({ path: "/api/v1/openapi.json", kind: "api", label: "public api: the OpenAPI description" });
+    out.push({ path: `/embed/en/fighter/${star.slug}`, kind: "embed", label: "embed: a fighter card", mustShow: star.name });
+    out.push({ path: `/embed/ar/fighter/${star.slug}?theme=light`, kind: "embed", label: "embed: a fighter card, in Arabic, light" });
+    out.push({ path: `/embed/en/rankings/${topDivision}?limit=5`, kind: "embed", label: "embed: a ranking" });
+    out.push({ path: `/embed/ar/rankings/${topDivision}?limit=3&theme=light`, kind: "embed", label: "embed: a ranking, in Arabic, light" });
     out.push({ path: `/api/watch/digest?slugs=${star.slug}`, kind: "api", label: "api: watchlist digest, a first visit" });
     const card = [...w.events].reverse().find((e) => e.upcoming) ?? w.events[w.events.length - 1], fight = w.bouts[w.bouts.length - 1];
     out.push({ path: "/feeds/calendar.ics", kind: "ics", label: "calendar: the next cards" });
@@ -270,6 +275,14 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
     const long = body.split("\r\n").find((l) => new TextEncoder().encode(l).length > 75);
     if (long) bad.push(`a line over 75 octets: ${long.slice(0, 40)}…`);
     if ((body.match(/BEGIN:VEVENT/g) ?? []).length !== (body.match(/END:VEVENT/g) ?? []).length) bad.push("an event that does not end");
+    return bad;
+  }
+  if (route.kind === "embed") { // a widget for another site's frame: bare HTML, a link back that opens in a new tab, and never something a search engine may list
+    if (!/html/.test(contentType)) bad.push(`not HTML (${contentType})`);
+    if (!/target="_blank"[^>]*rel="noopener"/.test(body)) bad.push("no link back to Ringside that opens in a new tab");
+    if (/<nav\b|<header\b|id="side-nav"|class="skip-link"/.test(body)) bad.push("site chrome inside an embed");
+    if (!/name="robots" content="noindex/.test(body)) bad.push("an embed that search engines may list");
+    if (route.mustShow && locale === "en" && !body.includes(route.mustShow)) bad.push(`the embed does not show "${route.mustShow}"`);
     return bad;
   }
   if (route.kind === "png") { // a share card: a real image, not an error page that happens to be 200

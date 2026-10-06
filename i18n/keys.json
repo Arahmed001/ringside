@@ -227,6 +227,7 @@
   "key": "{date} vs {name}",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
+   "app/embed/[locale]/fighter/[slug]/page.tsx",
    "components/WatchDigest.tsx",
    "lib/watch.ts"
   ]
@@ -273,6 +274,7 @@
   "files": [
    "app/[locale]/rankings/[division]/opengraph-image.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
+   "app/embed/[locale]/rankings/[division]/page.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -1989,6 +1991,18 @@
   ]
  },
  {
+  "key": "A division's ranking",
+  "files": [
+   "app/[locale]/developers/page.tsx"
+  ]
+ },
+ {
+  "key": "A division's top fighters",
+  "files": [
+   "components/EmbedBuilder.tsx"
+  ]
+ },
+ {
   "key": "a draw",
   "files": [
    "lib/ask/tools.ts",
@@ -2047,6 +2061,12 @@
   "key": "A fighter breaks the rules badly or repeatedly, for example with low blows, and loses on the spot.",
   "files": [
    "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
+  "key": "A fighter card",
+  "files": [
+   "components/EmbedBuilder.tsx"
   ]
  },
  {
@@ -3684,6 +3704,18 @@
   ]
  },
  {
+  "key": "Choose a card, copy the code, paste it into your page.",
+  "files": [
+   "app/[locale]/developers/page.tsx"
+  ]
+ },
+ {
+  "key": "Choose a fighter to see the card.",
+  "files": [
+   "components/EmbedBuilder.tsx"
+  ]
+ },
+ {
   "key": "Choose a role.",
   "files": [
    "lib/account-text.ts"
@@ -3819,6 +3851,12 @@
   ]
  },
  {
+  "key": "Code to paste",
+  "files": [
+   "components/EmbedBuilder.tsx"
+  ]
+ },
+ {
   "key": "Collapse menu",
   "files": [
    "components/RailControls.tsx"
@@ -3925,6 +3963,18 @@
   "key": "Contributor terms",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Copied",
+  "files": [
+   "components/EmbedBuilder.tsx"
+  ]
+ },
+ {
+  "key": "Copy the code",
+  "files": [
+   "components/EmbedBuilder.tsx"
   ]
  },
  {
@@ -4200,11 +4250,18 @@
  {
   "key": "D",
   "files": [
+   "app/embed/[locale]/fighter/[slug]/page.tsx",
    "components/FighterPrintSheet.tsx",
    "components/WatchDigest.tsx",
    "components/WatchlistPage.tsx",
    "components/ui.tsx",
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Dark",
+  "files": [
+   "components/EmbedBuilder.tsx"
   ]
  },
  {
@@ -4326,6 +4383,12 @@
   ]
  },
  {
+  "key": "Developers",
+  "files": [
+   "app/[locale]/developers/page.tsx"
+  ]
+ },
+ {
   "key": "Development data only. It carries every field the real contract supports.",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -4415,6 +4478,7 @@
   "key": "Division",
   "files": [
    "app/[locale]/compare/page.tsx",
+   "components/EmbedBuilder.tsx",
    "components/RecordsFilter.tsx",
    "components/StyleMap.tsx",
    "lib/ask/tools.ts"
@@ -4436,6 +4500,12 @@
   "key": "Divisions",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Divisions, lightest to heaviest",
+  "files": [
+   "app/[locale]/developers/page.tsx"
   ]
  },
  {
@@ -4744,6 +4814,12 @@
   ]
  },
  {
+  "key": "Embeds",
+  "files": [
+   "app/[locale]/developers/page.tsx"
+  ]
+ },
+ {
   "key": "Ended in {date}",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -4883,6 +4959,12 @@
   "key": "Every {division} champion of the {belt}: {n} reigns by {champions} fighters, {defences} title defences{current}.",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Every answer is JSON with a data part and a meta part, in English or Arabic (<c>lang=ar</c>). Pages of {max} at most, {n} by default. Open to any site (CORS), cached for five minutes.",
+  "files": [
+   "app/[locale]/developers/page.tsx"
   ]
  },
  {
@@ -5329,7 +5411,8 @@
   "key": "Fight, fighter and event data: <a>{name}</a>.",
   "files": [
    "app/[locale]/data/page.tsx",
-   "app/[locale]/layout.tsx"
+   "app/[locale]/layout.tsx",
+   "components/EmbedFrame.tsx"
   ]
  },
  {
@@ -5345,6 +5428,7 @@
    "app/[locale]/rankings/[division]/page.tsx",
    "app/[locale]/weights/page.tsx",
    "components/ContributeForm.tsx",
+   "components/EmbedBuilder.tsx",
    "components/OfficialList.tsx",
    "components/ReportForm.tsx",
    "components/StyleMap.tsx",
@@ -5538,6 +5622,12 @@
   "key": "Fighters, events, bouts, results, belts; sometimes weights, scorecards, referees",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Fighters: best rated first, or search by name",
+  "files": [
+   "app/[locale]/developers/page.tsx"
   ]
  },
  {
@@ -5765,6 +5855,13 @@
   "key": "Follow in a feed reader",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "For developers",
+  "files": [
+   "app/[locale]/developers/page.tsx",
+   "app/[locale]/layout.tsx"
   ]
  },
  {
@@ -6697,6 +6794,7 @@
   "key": "Knockouts",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
+   "app/embed/[locale]/fighter/[slug]/page.tsx",
    "lib/preview.ts"
   ]
  },
@@ -6793,6 +6891,7 @@
   "files": [
    "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
+   "app/embed/[locale]/fighter/[slug]/page.tsx",
    "components/FighterPrintSheet.tsx",
    "components/WatchDigest.tsx",
    "components/WatchlistPage.tsx",
@@ -6801,10 +6900,17 @@
   ]
  },
  {
+  "key": "Language",
+  "files": [
+   "components/EmbedBuilder.tsx"
+  ]
+ },
+ {
   "key": "Last {n} fights",
   "plural": "Last fight",
   "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/embed/[locale]/fighter/[slug]/page.tsx"
   ]
  },
  {
@@ -7032,6 +7138,12 @@
   "key": "LIG",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Light",
+  "files": [
+   "components/EmbedBuilder.tsx"
   ]
  },
  {
@@ -7797,6 +7909,7 @@
  {
   "key": "NC",
   "files": [
+   "app/embed/[locale]/fighter/[slug]/page.tsx",
    "components/FighterPrintSheet.tsx",
    "components/WatchDigest.tsx",
    "components/WatchlistPage.tsx",
@@ -7911,6 +8024,7 @@
   "key": "Next fight",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
+   "app/embed/[locale]/fighter/[slug]/page.tsx",
    "components/FighterPrintSheet.tsx",
    "components/WatchDigest.tsx",
    "components/WatchlistPage.tsx"
@@ -8244,6 +8358,7 @@
  {
   "key": "Nobody is ranked there.",
   "files": [
+   "app/embed/[locale]/rankings/[division]/page.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -8648,6 +8763,18 @@
   "key": "One cookie, “<c>{name}</c>”, keeps you signed in for {days} days. It cannot be read by scripts on the page, is not sent along with requests from other websites, and is marked secure when the site is served over https. It is used for nothing else.",
   "files": [
    "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "One event with its bouts and results",
+  "files": [
+   "app/[locale]/developers/page.tsx"
+  ]
+ },
+ {
+  "key": "One fighter: record, rating, rank, last fights, next fight",
+  "files": [
+   "app/[locale]/developers/page.tsx"
   ]
  },
  {
@@ -9256,6 +9383,12 @@
   ]
  },
  {
+  "key": "Preview",
+  "files": [
+   "components/EmbedBuilder.tsx"
+  ]
+ },
+ {
   "key": "Previews for every main event and co-main on the upcoming calendar: what is at stake, the tale of the tape, form, the model’s pick and how it expects each fight to end.",
   "files": [
    "app/[locale]/previews/page.tsx"
@@ -9404,6 +9537,12 @@
   ]
  },
  {
+  "key": "Public API",
+  "files": [
+   "app/[locale]/developers/page.tsx"
+  ]
+ },
+ {
   "key": "Public records",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -9520,12 +9659,19 @@
   ]
  },
  {
+  "key": "Rank #{n}",
+  "files": [
+   "app/embed/[locale]/fighter/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Rankings",
   "files": [
    "app/[locale]/rankings/[division]/opengraph-image.tsx",
    "app/[locale]/rankings/page.tsx",
    "app/[locale]/titles/page.tsx",
    "app/[locale]/tour/page.tsx",
+   "app/embed/[locale]/rankings/[division]/page.tsx",
    "lib/nav.ts",
    "lib/search.ts"
   ]
@@ -9574,6 +9720,7 @@
    "app/[locale]/boxers/page.tsx",
    "app/[locale]/compare/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
+   "app/embed/[locale]/fighter/[slug]/page.tsx",
    "components/MatchupLab.tsx",
    "components/TrainerImpactCard.tsx",
    "components/WatchDigest.tsx",
@@ -9696,6 +9843,12 @@
   ]
  },
  {
+  "key": "Read-only JSON, and cards you can frame on your own site. Please keep the link back and the credit on a card, and keep to {limit} requests a minute.",
+  "files": [
+   "app/[locale]/developers/page.tsx"
+  ]
+ },
+ {
   "key": "Rebuilt from the title fights in the data: a champion who wins a title fight is a defence, one who loses hands the belt on, and a vacant-title fight crowns a new one. What the results cannot show (a champion stripped, or a belt vacated by retirement) is not guessed; a dormant belt is marked as such.",
   "files": [
    "app/[locale]/titles/page.tsx"
@@ -9771,6 +9924,7 @@
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
+   "app/embed/[locale]/fighter/[slug]/page.tsx",
    "components/OfficialList.tsx",
    "components/StyleMap.tsx",
    "lib/ask/tools.ts",
@@ -10011,6 +10165,7 @@
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/boxers/page.tsx",
+   "app/embed/[locale]/fighter/[slug]/page.tsx",
    "components/WatchlistPage.tsx",
    "lib/ai.ts"
   ]
@@ -10099,6 +10254,12 @@
   ]
  },
  {
+  "key": "Ringside's ratings, rankings and fights as read-only JSON, and cards you can frame on your own site.",
+  "files": [
+   "app/[locale]/developers/page.tsx"
+  ]
+ },
+ {
   "key": "Role",
   "files": [
    "components/ContributeForm.tsx"
@@ -10151,6 +10312,12 @@
   "key": "Routine",
   "files": [
    "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "Rows",
+  "files": [
+   "components/EmbedBuilder.tsx"
   ]
  },
  {
@@ -10356,6 +10523,7 @@
   "files": [
    "app/[locale]/matchmaking/page.tsx",
    "components/ContributeForm.tsx",
+   "components/EmbedBuilder.tsx",
    "components/ReportForm.tsx"
   ]
  },
@@ -11506,6 +11674,12 @@
   ]
  },
  {
+  "key": "The <c>OpenAPI</c> description",
+  "files": [
+   "app/[locale]/developers/page.tsx"
+  ]
+ },
+ {
   "key": "The Arabic on this site was written by a machine. A string counts as reviewed only when a native speaker approved or edited it, and only for the exact wording they saw: if the text changes afterwards it goes back to unchecked. Expect mistakes in anything not yet reviewed.",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -12023,6 +12197,12 @@
   ]
  },
  {
+  "key": "The public API and the embeds are not available on this site.",
+  "files": [
+   "app/[locale]/developers/page.tsx"
+  ]
+ },
+ {
   "key": "The question was matched to our fixed, read-only queries. Every number comes from the queries below.",
   "files": [
    "components/AskResults.tsx"
@@ -12244,6 +12424,12 @@
   "key": "their pages show the supplier's total and say the two disagree; lower is better",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Theme",
+  "files": [
+   "components/EmbedBuilder.tsx"
   ]
  },
  {
@@ -13088,6 +13274,12 @@
   ]
  },
  {
+  "key": "Upcoming or recent events",
+  "files": [
+   "app/[locale]/developers/page.tsx"
+  ]
+ },
+ {
   "key": "Updated after every fight",
   "files": [
    "app/[locale]/rankings/page.tsx"
@@ -13187,6 +13379,12 @@
   ]
  },
  {
+  "key": "View on Ringside",
+  "files": [
+   "components/EmbedFrame.tsx"
+  ]
+ },
+ {
   "key": "Volume Boxer",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -13241,6 +13439,7 @@
   "files": [
    "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
+   "app/embed/[locale]/fighter/[slug]/page.tsx",
    "components/FighterPrintSheet.tsx",
    "components/WatchDigest.tsx",
    "components/WatchlistPage.tsx",
@@ -13486,6 +13685,12 @@
   "key": "What this site keeps about you, who can see it, what it sends elsewhere, and how to get your data or delete it.",
   "files": [
    "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "What to embed",
+  "files": [
+   "components/EmbedBuilder.tsx"
   ]
  },
  {
@@ -14058,7 +14263,8 @@
  {
   "key": "Worked out from the {held} fights Ringside holds, not the whole career.",
   "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/embed/[locale]/fighter/[slug]/page.tsx"
   ]
  },
  {

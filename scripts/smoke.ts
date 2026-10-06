@@ -96,7 +96,7 @@ async function main() {
   // seed and read the league in this process, then let the server open the same file
   const { getWorld } = await import("../lib/world");
   const { smokeRoutes, crawlRoutes, problemsIn, arabicLeaks, flippedRecords } = await import("../lib/smoke");
-  const { securityProblems, STATIC_HEADERS } = await import("../lib/security");
+  const { securityProblems, STATIC_HEADERS, EMBED_HEADERS } = await import("../lib/security");
   const world = await getWorld();
   // a real league (--database) has the supplier's names with no Arabic form yet: they are not leaks there (see knownNames)
   const names = existing ? (await import("../lib/smoke")).knownNames(world) : undefined;
@@ -140,11 +140,11 @@ async function main() {
       const body = await res.text();
       const bad = problemsIn(route, locale, res.status, res.headers.get("content-type") ?? "", body);
       // the browser-side contract: the policy and nonce on every page, the standing headers on everything (see lib/security.ts)
-      if (/text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...securityProblems(res.headers, body));
+      if (/text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...securityProblems(res.headers, body, { embed: route.kind === "embed" }));
       if (feedName === "hostile" && /text\/html/.test(res.headers.get("content-type") ?? "") && body.includes(HOSTILE_MARKUP)) bad.push("hostile markup from a fighter's name is on the page as markup, not escaped");
       if (locale === "ar" && /text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...flippedRecords(body).map((l) => `a record shown backwards on the Arabic page: ${l}`));
       if (locale === "ar" && (feedName === undefined || feedName === "empty") && scale === 1 && /text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...arabicLeaks(body, names).map((l) => `English on the Arabic page: ${l}`));
-      else for (const h of STATIC_HEADERS) if (res.headers.get(h.key) !== h.value) bad.push(`header ${h.key} is ${res.headers.get(h.key) ?? "missing"}`);
+      else for (const h of route.kind === "embed" ? EMBED_HEADERS : STATIC_HEADERS) if (res.headers.get(h.key) !== h.value) bad.push(`header ${h.key} is ${res.headers.get(h.key) ?? "missing"}`);
       checked++;
       const ms = Math.round(performance.now() - t0);
       if (ms >= 1000) slow.push(`${ms} ms  ${locale} ${url}`);
@@ -155,6 +155,8 @@ async function main() {
     if (r.kind === "page" || r.kind === "missing") {
       await run(r.path, r.label, r, "en");
       if (!r.englishOnly) await run(r.path === "/" ? "/ar" : `/ar${r.path}`, r.label, r, "ar");
+    } else if (r.kind === "embed") { // a widget: one request, in the language its address names
+      await run(r.path, r.label, r, r.path.startsWith("/embed/ar/") ? "ar" : "en");
     } else if (r.kind === "png" && !r.path.startsWith("/api/")) { // a share card is served in both languages
       await run(r.path, r.label, r, "en");
       await run(`/ar${r.path}`, r.label, r, "ar");

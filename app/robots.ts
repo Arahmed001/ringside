@@ -6,5 +6,5 @@ export const dynamic = "force-dynamic";
 
 export default function robots(): MetadataRoute.Robots {
   if (!indexable()) return { rules: { userAgent: "*", disallow: "/" } }; // demo data is fictional: keep it out of search results
-  return { rules: { userAgent: "*", allow: "/", disallow: ["/api/"] }, sitemap: abs("/sitemap.xml") };
+  return { rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/embed/"] }, sitemap: abs("/sitemap.xml") };
 }

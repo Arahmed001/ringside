@@ -31,6 +31,8 @@ export const API_MAX_LIMIT = 50, API_DEFAULT_LIMIT = 20;
 export interface Ctx { w: World; t: T; /** an absolute address for a path on the site, in the request's language */ url: (path: string) => string }
 /** an answer in the usual envelope, one with nothing around it (the OpenAPI document must be the document), or an error */
 export type Result = { data: unknown; meta?: Record<string, unknown> } | { raw: unknown } | { error: number; message: string };
+/** The data of an answer, or null when it is an error (or a raw document): for a page that builds on the same fields. */
+export const dataOf = (r: Result): unknown => ("data" in r ? r.data : null);
 const bad = (message: string, error = 400): Result => ({ error, message });
 
 /** `limit` and `offset` from a query: whole numbers, the limit between 1 and 50. Null for a value that is not one. */
