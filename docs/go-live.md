@@ -68,6 +68,23 @@ If step 1 or 4 fails: use the host's rollback (or run the old container), then t
 - When real data is ready, follow [real-data-runbook.md](real-data-runbook.md). The site stays hidden from search until then.
 - If you ever need to put a backup back, ask for help first. Restoring replaces the current data, so it is done carefully and one step at a time.
 
+## 6. Know when the overnight update stops (once the real league is live)
+
+The real league is kept current by one nightly job (`vendor:fetch -- --update`, in [load-day.md](load-day.md) step 8). If it stops (the machine was off, the vendor's key lapsed, a limit was hit) **the site keeps working and keeps showing the last results, with nothing on the page to say they are old.** The site tells you in two places, but only if you look:
+
+- `https://your-address/api/health` contains `"stale":true` when the last successful update is more than two days old (`"updatedAt"` and `"ageHours"` are in the same answer). The page itself still answers normally; it never turns into an error for this.
+- `npm run doctor` prints a warning with the date of the last update.
+
+So make something look for you. Any uptime monitor that can **alert when a page contains some text** will do (several have a free plan; I have not tried any against your host, so choose one you trust): point it at `https://your-address/api/health` and alert on the text `"stale":true`, and also on the page not answering at all. Send the alert to an address you read daily. Two days is the threshold, so a missed night alerts you about a day after the second miss, not at once.
+
+When it fires:
+1. Open the log the job writes to (the `>> .../update.log` in the cron line): its last lines say what stopped it.
+2. Run the update by hand, once, with the same command, and watch it. A wrong or lapsed key, or the hourly limit, says so in plain words.
+3. Open `/api/health` again: `"stale":false` and a new `updatedAt` mean it is fixed.
+4. If you cannot tell, paste the whole output of step 2 to me.
+
+If you would rather not use a monitor yet: put a weekly reminder in your calendar to open `/api/health` and check `"stale":false`.
+
 ## What I (Claude) can and cannot do for you here
 
 I can write, test and prepare the code, and walk you through each step above. I cannot log in to your host, and I will not guess at it. For steps 2 to 4 you do the clicking and typing, and tell me what you see after each one.
