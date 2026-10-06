@@ -194,7 +194,7 @@ const HONOURS_SHOWN = 8;
               </Link>
             ))}
             {!b.active && <span className="chip">{t("Retired")}</span>}
-            <span className="ms-auto flex gap-2"><ShareButton title={t.name(b.name)} /><PrintButton /><WatchButton slug={b.slug} /></span>
+            <span className="flex w-full gap-2 sm:ms-auto sm:w-auto"><ShareButton title={t.name(b.name)} /><PrintButton /><WatchButton slug={b.slug} /></span>
           </div>
           <h1 className="mt-3 font-display text-6xl font-extrabold uppercase leading-[.95] sm:text-7xl">{t.name(b.name)}</h1>
           {b.nickname && <div className="mt-1 font-serif text-3xl italic text-gold">“{t.name(b.nickname)}”</div>}
