@@ -22,7 +22,7 @@ export async function NavGroups({ id }: { id?: string }) {
                 <NavLink href={it.href} title={t(it.label)}
                   className="flex items-center gap-3 rounded-xl px-3.5 py-2 text-sm text-muted transition hover:bg-panel2 hover:text-ink aria-[current=page]:bg-panel2">
                   <Icon name={it.icon} />
-                  <span className="rail-collapsible whitespace-nowrap">{t(it.label)}</span>
+                  <span className="rail-collapsible min-w-0">{t(it.label)}</span>
                 </NavLink>
               </li>
             ))}

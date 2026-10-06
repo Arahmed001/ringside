@@ -6,6 +6,8 @@ import type { DatabaseSync } from "node:sqlite";
  * This is the one number that shows it.
  */
 export const STALE_DATA_DAYS = 2;
+/** How far ahead of now a stamp may be before it is not a clock that is a few minutes fast but a clock that was wrong when the update ran. */
+export const CLOCK_SLACK_HOURS = 6;
 
 /** Runs written by the money pipeline are not updates of the fights. */
 const NOT_SPORTS = ["money", "research"];
@@ -21,10 +23,15 @@ export function latestUpdate(db: DatabaseSync): Update | null {
   } catch { return null; }
 }
 
-/** Age in hours, and whether it is older than the daily job should ever leave it. */
+/**
+ * Age in hours, and whether it is older than the daily job should ever leave it. A stamp from the future (the machine's clock was wrong when the update ran) cannot be
+ * trusted to mean "fresh": it would hide a dead nightly job for as long as the wrong date lies ahead, so it is stale, and its age is negative to show why.
+ */
 export function dataAge(at: string, nowMs: number): { ageHours: number; stale: boolean } | null {
   const t = Date.parse(at);
   if (!Number.isFinite(t)) return null;
-  const ageHours = Math.max(0, (nowMs - t) / 3_600_000);
+  const hours = (nowMs - t) / 3_600_000;
+  if (hours < -CLOCK_SLACK_HOURS) return { ageHours: Math.round(hours * 10) / 10, stale: true };
+  const ageHours = Math.max(0, hours);
   return { ageHours: Math.round(ageHours * 10) / 10, stale: ageHours > STALE_DATA_DAYS * 24 };
 }

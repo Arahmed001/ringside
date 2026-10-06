@@ -13,7 +13,7 @@ import { httpsUrl, siteContact } from "./site-info";
 import { siteUrlIsPublic } from "./seo";
 import path from "node:path";
 import { assertPlausibleKey } from "./providers/boxing-data-api";
-import { STALE_DATA_DAYS } from "./freshness";
+import { CLOCK_SLACK_HOURS, STALE_DATA_DAYS } from "./freshness";
 
 export type Level = "fail" | "warn" | "info" | "ok";
 export interface Finding { level: Level; id: string; message: string; fix?: string }
@@ -176,7 +176,8 @@ export function fileFindings(env: Env, probe: Probe, o: { cwd?: string; now?: Da
       if (!Number.isFinite(at)) out.push(f("warn", "stale-data", "No load or update of the fights is recorded in this database.", "Run npm run vendor:backfill, then schedule `npm run vendor:backfill -- --update` daily."));
       else {
         const days = (now.getTime() - at) / 86_400_000;
-        if (days > STALE_DATA_DAYS) out.push(f("warn", "stale-data", `The fights were last updated ${Math.floor(days)} days ago (${sports.lastUpdate!.at.slice(0, 10)}): the daily update is probably not running, and the site is showing old results.`, "Check the scheduled `npm run vendor:backfill -- --update` and its log (docs/real-data-runbook.md)."));
+        if (days < -CLOCK_SLACK_HOURS / 24) out.push(f("warn", "stale-data", `The last update of the fights is dated ${sports.lastUpdate!.at.slice(0, 10)}, which has not happened yet: this machine's clock was wrong when the update ran (or is wrong now), so the age of the data cannot be told and a stopped daily update would not show.`, "Fix the machine's clock (turn on network time), then run the update once by hand: npm run vendor:backfill -- --update."));
+        else if (days > STALE_DATA_DAYS) out.push(f("warn", "stale-data", `The fights were last updated ${Math.floor(days)} days ago (${sports.lastUpdate!.at.slice(0, 10)}): the daily update is probably not running, and the site is showing old results.`, "Check the scheduled `npm run vendor:backfill -- --update` and its log (docs/real-data-runbook.md)."));
         else out.push(f("ok", "stale-data", `The fights were last updated ${sports.lastUpdate!.at.slice(0, 10)}.`));
       }
     }

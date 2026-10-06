@@ -59,9 +59,9 @@ export function CommandPalette() {
   if (!open) {
     return (
       <button type="button" onClick={show} aria-label={t("Search everything (Ctrl+K)")} aria-keyshortcuts="Control+K Meta+K"
-        className="flex shrink-0 items-center gap-2 rounded-xl border border-line bg-panel px-3 py-1.5 text-sm text-muted transition hover:border-gold/60 hover:text-ink">
+        className="flex shrink-0 items-center gap-2 rounded-xl border border-line bg-panel px-3 py-1.5 pointer-coarse:min-h-11 pointer-coarse:min-w-11 pointer-coarse:justify-center text-sm text-muted transition hover:border-gold/60 hover:text-ink">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-        <span className="hidden sm:inline">{t("Search")}</span><kbd className="hidden rounded border border-line px-1.5 text-xs sm:inline" dir="ltr">⌘K</kbd>
+        <span className="hidden sm:inline">{t("Search")}</span><kbd className="hidden rounded border border-line px-1.5 font-sans text-xs sm:inline" dir="ltr">⌘K</kbd>
       </button>
     );
   }

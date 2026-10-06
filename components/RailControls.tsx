@@ -51,7 +51,7 @@ export function MobileMenu({ children, logo }: { children: ReactNode; logo: Reac
   return (
     <>
       <button type="button" onClick={() => dialog.current?.showModal()} aria-label={t("Menu")} aria-haspopup="dialog"
-        className="grid h-9 w-9 place-items-center rounded-xl border border-line bg-panel text-ink transition hover:border-gold/60 lg:hidden">
+        className="grid h-9 w-9 pointer-coarse:h-11 pointer-coarse:w-11 place-items-center rounded-xl border border-line bg-panel text-ink transition hover:border-gold/60 lg:hidden">
         <Icon name="menu" />
       </button>
       <dialog ref={dialog} aria-label={t("Menu")}
