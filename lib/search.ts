@@ -39,6 +39,7 @@ export const PAGES: { href: string; label: string; words: string }[] = [
   { href: "/accountability", label: msg("Track record"), words: "track record accountability accuracy calibration backtest model predictions how good" },
   { href: "/map", label: msg("Style map"), words: "style map" },
   { href: "/data", label: msg("Data"), words: "data model coverage sources" },
+  { href: "/developers", label: msg("For developers"), words: "developers api embed widget public api builder integrate" },
   { href: "/privacy", label: msg("Privacy"), words: "privacy data cookies delete account export personal information storage tracking gdpr" },
   { href: "/terms", label: msg("Terms"), words: "terms conditions small print use betting advice affiliated removal correction legal" },
 ];

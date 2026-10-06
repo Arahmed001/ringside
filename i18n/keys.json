@@ -43,6 +43,13 @@
   ]
  },
  {
+  "key": "[removed]",
+  "files": [
+   "app/[locale]/forum/[id]/page.tsx",
+   "app/[locale]/forum/page.tsx"
+  ]
+ },
+ {
   "key": "{a} ({sa}) meets {b} ({sb}).",
   "files": [
    "lib/preview.ts"
@@ -6025,7 +6032,7 @@
   "key": "For developers",
   "files": [
    "app/[locale]/developers/page.tsx",
-   "app/[locale]/layout.tsx"
+   "lib/search.ts"
   ]
  },
  {
@@ -9700,7 +9707,6 @@
  {
   "key": "Privacy",
   "files": [
-   "app/[locale]/layout.tsx",
    "app/[locale]/privacy/page.tsx",
    "components/AccountPanel.tsx",
    "lib/search.ts"
@@ -10523,12 +10529,6 @@
   "key": "Ringside adds its own ratings, rankings and predictions on top of this data; those are Ringside’s, not the supplier’s.",
   "files": [
    "app/[locale]/data/page.tsx"
-  ]
- },
- {
-  "key": "Ringside demo build · All fighters, fights and events shown are <b>fictional, simulated data</b>. Ratings are Elo-style and unofficial.",
-  "files": [
-   "app/[locale]/layout.tsx"
   ]
  },
  {

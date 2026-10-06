@@ -3,7 +3,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { accountsDb, audit } from "../accounts/store";
 import { limits } from "../accounts/guard";
 import type { User } from "../accounts/users";
-import { AUTO_HIDE_REPORTS, EDIT_WINDOW_MS, NEW_ACCOUNT_AGE_MS, NEW_ACCOUNT_DAILY, NEW_ACCOUNT_WAIT_MS, PAGE_SIZE, THREADS_PAGE, TITLE_MAX, TITLE_MIN, checkText, normalizedWords, type PostProblem, REPORT_REASONS } from "./rules";
+import { AUTO_HIDE_MIN_AGE_MS, AUTO_HIDE_REPORTS, NOTE_MAX, REASON_MAX, EDIT_WINDOW_MS, NEW_ACCOUNT_AGE_MS, NEW_ACCOUNT_DAILY, NEW_ACCOUNT_WAIT_MS, PAGE_SIZE, THREADS_PAGE, TITLE_MAX, TITLE_MIN, checkText, cleanText, normalizedWords, type PostProblem, REPORT_REASONS } from "./rules";
 
 /**
  * The forum (round 125): discussion under each fighter and each fight (one thread per subject, made when the first post is written) and a general board where
@@ -36,7 +36,14 @@ const threadOf = (r: Record<string, unknown>): ThreadRow => ({
   id: r.id as number, kind: r.kind as Kind, subject: (r.subject_ext as string | null) ?? null, title: (r.title as string | null) ?? null, author: (r.author as string | null) ?? null,
   createdAt: r.created_at as string, lastPostAt: r.last_post_at as string, postCount: r.post_count as number, locked: !!r.locked,
 });
-const THREAD_SQL = "SELECT t.*, u.username AS author FROM forum_threads t LEFT JOIN users u ON u.id = t.user_id";
+/**
+ * A general thread's title and starter are words of its first post: while that post is hidden or withdrawn (or its author's account is gone) the title and the name are
+ * not shown either, so a title cannot outlive the moderation or the deletion of the post it belongs to. (Threads under a fighter or a fight have no title.)
+ */
+const THREAD_SQL = `SELECT t.id, t.kind, t.subject_ext, t.user_id, t.created_at, t.last_post_at, t.post_count, t.locked, t.hidden,
+  CASE WHEN t.kind <> 'general' OR (SELECT status FROM forum_posts f WHERE f.thread_id = t.id ORDER BY f.id LIMIT 1) = 'visible' THEN t.title ELSE NULL END AS title,
+  CASE WHEN (SELECT status FROM forum_posts f WHERE f.thread_id = t.id ORDER BY f.id LIMIT 1) = 'visible' THEN u.username ELSE NULL END AS author
+  FROM forum_threads t LEFT JOIN users u ON u.id = t.user_id`;
 
 /** The thread under a fighter or a fight, if anyone has written there yet (nothing is created by looking). */
 export function findSubjectThread(main: DatabaseSync, kind: "boxer" | "bout", subject: string, acc: DatabaseSync = accountsDb()): ThreadRow | null {
@@ -154,6 +161,7 @@ export function editPost(user: User, id: number, body: unknown, acc: DatabaseSyn
   if (p.user_id !== user.id || p.status !== "visible") return no("forbidden");
   if (now - Date.parse(p.created_at as string) > EDIT_WINDOW_MS) return no("edit_window_over");
   const c = checkText(body); if (c.problem) return no(c.problem);
+  if (!limits().forumEdit.take(`u${user.id}`)) return no("rate_limited"); // spent only by an edit that is otherwise acceptable
   acc.prepare("UPDATE forum_posts SET body = ?, fingerprint = ?, edited_at = ? WHERE id = ?").run(c.text, fingerprint(c.text), new Date(now).toISOString(), id);
   return { ok: true };
 }
@@ -174,9 +182,10 @@ export function reportPost(user: User, id: number, reason: unknown, note: unknow
   if (p.user_id === user.id) return no("own_post");
   if (acc.prepare("SELECT 1 x FROM forum_reports WHERE post_id = ? AND user_id = ?").get(id, user.id)) return no("already_reported");
   if (!limits().forumReport.take(`u${user.id}`)) return no("rate_limited");
-  const n = typeof note === "string" ? checkText(note, { min: 0, max: 300 }).text : "";
+  const n = typeof note === "string" ? [...cleanText(note)].slice(0, NOTE_MAX).join("") : "";
   acc.prepare("INSERT INTO forum_reports (post_id, user_id, reason, note, created_at) VALUES (?,?,?,?,?)").run(id, user.id, reason, n || null, new Date(now).toISOString());
-  const open = (acc.prepare("SELECT COUNT(DISTINCT user_id) c FROM forum_reports WHERE post_id = ? AND status = 'open'").get(id) as { c: number }).c;
+  // only reporters whose account is a day old count toward the automatic hide: a handful of accounts made a minute ago must not be able to silence anyone (their reports are kept for an editor)
+  const open = (acc.prepare("SELECT COUNT(DISTINCT r.user_id) c FROM forum_reports r JOIN users u ON u.id = r.user_id WHERE r.post_id = ? AND r.status = 'open' AND u.disabled = 0 AND u.created_at <= ?").get(id, new Date(now - AUTO_HIDE_MIN_AGE_MS).toISOString()) as { c: number }).c;
   let hidden = false;
   if (open >= AUTO_HIDE_REPORTS && p.status === "visible") {
     acc.prepare("UPDATE forum_posts SET status = 'hidden', hidden_by = NULL, hidden_at = ?, hidden_reason = ? WHERE id = ?").run(new Date(now).toISOString(), `auto: ${open} reports`, id);
@@ -193,7 +202,7 @@ export function moderatePost(editor: User, id: number, action: "hide" | "restore
   if (!isEditor(editor)) return no("forbidden");
   const p = postRow(acc, id);
   if (!p || p.status === "deleted") return no("not_found");
-  const why = typeof reason === "string" ? checkText(reason, { min: 0, max: 200 }).text : "";
+  const why = typeof reason === "string" ? [...cleanText(reason)].slice(0, REASON_MAX).join("") : "";
   const at = new Date(now).toISOString();
   if (action === "hide") acc.prepare("UPDATE forum_posts SET status = 'hidden', hidden_by = ?, hidden_at = ?, hidden_reason = ? WHERE id = ?").run(editor.id, at, why || "hidden by a moderator", id);
   else acc.prepare("UPDATE forum_posts SET status = 'visible', hidden_by = NULL, hidden_at = NULL, hidden_reason = NULL WHERE id = ?").run(id);
@@ -217,7 +226,7 @@ export function reportQueue(editor: User, acc: DatabaseSync = accountsDb()): { o
   if (!isEditor(editor)) return no("forbidden");
   const rows = acc.prepare(
     `SELECT p.id, p.thread_id, p.body, p.status, p.created_at, u.username AS author, COUNT(r.id) AS n, GROUP_CONCAT(DISTINCT r.reason) AS reasons
-     FROM forum_reports r JOIN forum_posts p ON p.id = r.post_id LEFT JOIN users u ON u.id = p.user_id WHERE r.status = 'open'
+     FROM forum_reports r JOIN forum_posts p ON p.id = r.post_id LEFT JOIN users u ON u.id = p.user_id WHERE r.status = 'open' AND p.status <> 'deleted'
      GROUP BY p.id ORDER BY n DESC, p.id LIMIT 100`).all() as { id: number; thread_id: number; body: string; status: string; created_at: string; author: string | null; n: number; reasons: string }[];
   return { ok: true, items: rows.map((r) => ({ postId: r.id, threadId: r.thread_id, body: r.body, author: r.author, status: r.status, reports: r.n, reasons: r.reasons.split(","), createdAt: r.created_at })) };
 }
