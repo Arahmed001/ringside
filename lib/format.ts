@@ -28,6 +28,7 @@ const ALIASES: Record<string, string> = {
   usa: "US", us: "US", "united states of america": "US", uk: "GB", "great britain": "GB", britain: "GB", "northern ireland": "GB", "republic of ireland": "IE",
   "russian federation": "RU", turkey: "TR", turkiye: "TR", "czech republic": "CZ", "ivory coast": "CI", "cape verde": "CV", swaziland: "SZ", macedonia: "MK",
   burma: "MM", myanmar: "MM", bosnia: "BA", "bosnia herzegovina": "BA", holland: "NL", uae: "AE", korea: "KR", "viet nam": "VN", "east timor": "TL",
+  serbia: "RS", /* the platform also names the retired code YU "Serbia", and the later one would win */
   "hong kong": "HK", macau: "MO", palestine: "PS", "democratic republic of congo": "CD", "dr congo": "CD", drc: "CD", congo: "CG", "republic of congo": "CG",
 };
 

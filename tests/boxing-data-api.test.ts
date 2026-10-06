@@ -100,6 +100,43 @@ test("a bout of an amateur or multi-sport event is not a professional fight: ski
   assert.ok(B.mapFight(fight("v", "A", "B", { venue: "Olympic Stadium", event: { id: "e3", title: "Heavyweight Night", date: "2024-12-21", venue: "Olympic Stadium" } }), n), "a pro card in an Olympic stadium stays");
 });
 
+test("a fighter's country: a name is spelled one way, a demonym is read through the feed's code, the home nations stay themselves, the rest is kept and counted (round 101)", () => {
+  const n = notes();
+  const of = (a: string | null, c: string | null) => B.nationOf(a, c, n);
+  assert.equal(of("Mexico", "MX"), "Mexico"); assert.equal(of("USA", "US"), "United States");
+  assert.equal(n.nationalityFromCode, 0, "a name the app can place needs no code");
+  assert.equal(of("Croatia (Hrvatska)", "HR"), "Croatia"); assert.equal(n.nationalityFromCode, 1, "a spelling the app cannot place is read through the code");
+  assert.equal(of("Mexican", "MX"), "Mexico"); assert.equal(of("Ghanaian", "GH"), "Ghana"); assert.equal(of("Slovak Republic", "SK"), "Slovakia");
+  assert.equal(of("Serbian", "RS"), "Serbia"); assert.equal(of("British", "GB"), "United Kingdom"); assert.equal(of("Irish", "IE"), "Ireland");
+  assert.equal(n.nationalityFromCode, 7);
+  for (const [a, c, want] of [["English", "EN", "England"], ["English", "GB", "England"], ["Scottish", "SC", "Scotland"], ["Welsh", "GB", "Wales"], ["Northern Irish", "NN", "Northern Ireland"], ["Northern Ireland, United Kingdom", "NN", "Northern Ireland"]] as const) assert.equal(of(a, c), want, `${a}|${c}`);
+  assert.equal(of("Kurdistan", "KD"), "Kurdistan"); assert.equal(n.nationalityUnplaced, 1);
+  assert.equal(of("Mexican", null), "Mexican"); assert.equal(of("Mexican", "Q1"), "Mexican", "no code, no guess"); assert.equal(n.nationalityUnplaced, 3);
+  assert.equal(of(null, null), "Unknown"); assert.equal(of("Unknown", "YC"), "Unknown"); assert.equal(n.nationalityUnplaced, 3, "Unknown is not counted");
+  const boxer = B.mapFighter(fighter("Z1", "Zed Zed", { nationality: "Ghanaian", nationality_code: "GH" }), n)!;
+  assert.equal(boxer.country, "Ghana");
+});
+
+test("a belt belongs to the body its title name starts with, and the load carries those bodies and no others (round 101)", async () => {
+  const n = notes();
+  const body = (t: string | null) => B.titleBody(t)?.name ?? null;
+  assert.equal(body("WBC World Super Welterweight Champion"), "World Boxing Council"); assert.equal(body("IBF Interim World Lightweight Champion"), "International Boxing Federation");
+  assert.equal(body("WBA Super World Welterweight Champion"), "World Boxing Association"); assert.equal(body("WBO World Junior Welterweight Champion"), "World Boxing Organization");
+  assert.equal(body("The Ring Heavyweight Champion"), "The Ring"); assert.equal(body("WBA, WBC, WBO"), "World Boxing Association");
+  assert.equal(body("OPBF Welterweight Champion"), null); assert.equal(body("Unsanctioned"), null); assert.equal(body("WBCX World"), null, "the code is a whole word"); assert.equal(body(null), null);
+  const both: Record<string, B.ApiFighter> = { A1: fighter("A1", "Alpha One"), B1: fighter("B1", "Bravo One"), C1: fighter("C1", "Charlie One") };
+  const day2 = "2024-12-22T21:00:00+00:00";
+  const ev2 = { id: "ev-b", title: "Second", date: day2, location: "Riyadh, Saudi Arabia", venue: "Kingdom Arena" };
+  const fights = [fight("1", "A1", "B1", { titles: [{ name: "WBC World Heavyweight Champion", id: "t1" }] }), fight("2", "A1", "C1", { date: day2, event: ev2, titles: [{ name: "OPBF Heavyweight Champion", id: "t2" }] }), fight("3", "B1", "C1", { date: "2024-12-23T21:00:00+00:00", event: { ...ev2, id: "ev-c", date: "2024-12-23T21:00:00+00:00" }, titles: [] })];
+  const { impl } = mockFetch((path) => path === "/v2/fights/" ? { body: env(fights) } : path === "/v2/fights/schedule" ? { body: env([]) } : { body: env(both[path.split("/").pop()!]) });
+  const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0 });
+  const bouts = await p.fetchBouts(), orgs = await p.fetchOrgs!();
+  assert.deepEqual(bouts.map((b) => b.titleOrgExternalId ?? null), ["bda-o-wbc", null, null]);
+  assert.deepEqual(orgs.map((o) => [o.externalId, o.name, o.kind]), [["bda-o-wbc", "World Boxing Council", "sanctioning_body"]]);
+  assert.equal(p.notes().titleBodyUnknown, 1);
+  void n;
+});
+
 test("rows that cannot be used are skipped and counted, not half-mapped", () => {
   const n = notes();
   assert.equal(B.mapFight(fight("x1", "A", "B", { date: null, event: { id: "e", date: null } }), n), null);

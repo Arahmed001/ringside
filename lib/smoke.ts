@@ -330,9 +330,39 @@ export function flippedRecords(html: string): string[] {
   return [...new Set(out)];
 }
 
-export function arabicLeaks(html: string): string[] {
+/**
+ * The proper nouns a real league carries in the supplier's spelling (fighters, nicknames, events, venues, cities, belts, people, organisations), lower-cased. On a real
+ * league there is no Arabic form of most of them until the enrichment step finds one, so a Latin-script name on an Arabic page is expected there, and listing every one
+ * would bury the text that really is untranslated. The demo league has an Arabic form for every name, so its check stays strict (no names are passed).
+ */
+export function knownNames(w: World): Set<string> {
+  const out = new Set<string>();
+  const add = (v: string | null | undefined) => { if (v && v.trim()) out.add(v.trim().toLowerCase()); };
+  for (const b of w.boxers) { add(b.name); add((b as { nickname?: string | null }).nickname); }
+  for (const e of w.events) { add(e.name); add(e.venue); add(e.city); }
+  for (const b of w.bouts) add(b.title);
+  for (const p of w.people.values()) add(p.name);
+  for (const o of w.orgs.values()) add(o.name);
+  return out;
+}
+
+/** Blanks every run of up to 14 words that is one of the known names (matched without case and without edge punctuation). */
+function blankKnown(text: string, known: Set<string>): string {
+  const words = [...text.matchAll(/\S+/g)].map((m) => ({ w: m[0], at: m.index ?? 0 }));
+  const edge = (s: string) => s.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}.]+$/gu, "").toLowerCase();
+  const keep = new Array<boolean>(words.length).fill(true);
+  for (let i = 0; i < words.length; i++) {
+    for (let n = Math.min(14, words.length - i); n >= 1; n--) {
+      const phrase = edge(words.slice(i, i + n).map((x) => x.w).join(" "));
+      if (phrase && known.has(phrase)) { for (let k = i; k < i + n; k++) keep[k] = false; i += n - 1; break; }
+    }
+  }
+  return words.map((x, i) => (keep[i] ? x.w : " ")).join(" ");
+}
+
+export function arabicLeaks(html: string, known?: Set<string>): string[] {
   const out: string[] = [];
-  const clean = (s: string) => LATIN_OK.reduce((t, re) => t.replace(re, " "), decode(s).replace(/\bR\s+Ring\s*side\b/g, " ")).replace(/\b[A-Z]{2,5}\b/g, " ");
+  const clean = (s: string) => LATIN_OK.reduce((t, re) => t.replace(re, " "), (known ? blankKnown(decode(s), known) : decode(s)).replace(/\bR\s+Ring\s*side\b/g, " ")).replace(/\b[A-Z]{2,5}\b/g, " ");
   const head = [...html.matchAll(/<title[^>]*>([^<]*)<\/title>/gi), ...html.matchAll(/<meta[^>]+(?:name|property)="(?:description|og:title|og:description|twitter:title|twitter:description)"[^>]+content="([^"]*)"/gi)].map((m) => m[1]);
   const body = withoutEnglishIslands(html.replace(/<head[\s\S]*?<\/head>/i, "")).replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ");
   const blocks = [...head.map((h) => ["head", h] as const), ...body.split(/<[^>]+>/).map((t) => ["text", t] as const)];

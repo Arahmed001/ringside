@@ -47,3 +47,14 @@ test("English islands are removed whole: nested, repeated, self-closing and uncl
   assert.equal(withoutEnglishIslands('<p>a<span lang="en">never closed</p>').includes("never closed"), false, "an unclosed island takes the rest with it rather than leaking");
   assert.equal(withoutEnglishIslands("<p>no islands</p>"), "<p>no islands</p>");
 });
+
+test("on a real league the supplier's names are not leaks, but the text around them still is (round 101)", () => {
+  const known = new Set(["ryo mandokoro", "tirana boxing night: hysa vs. chvarkou", "stadttheater bern", "bern", "jr."]);
+  const p = (b: string) => `<html lang="ar"><head><title>ريسايد</title></head><body>${b}</body></html>`;
+  assert.deepEqual(arabicLeaks(p("<p>Ryo Mandokoro</p>"), known), []);
+  assert.deepEqual(arabicLeaks(p("<p>فوز Ryo Mandokoro على خصمه · Tirana Boxing Night: Hysa vs. Chvarkou</p>"), known), []);
+  assert.deepEqual(arabicLeaks(p("<p>STADTTHEATER BERN · BERN</p>"), known), []);
+  assert.equal(arabicLeaks(p("<p>Longest title reigns with Ryo Mandokoro</p>"), known).length, 1, "English around a name is still English");
+  assert.equal(arabicLeaks(p("<p>Ryo Mandokoro</p>")).length, 1, "with no names given (the demo league) the check stays strict");
+  assert.equal(arabicLeaks(p("<p>Ryo Mandoko</p>"), known).length, 1, "a name that is not known is not blanked");
+});

@@ -63,3 +63,9 @@ test("the sitemap lists the index and every country page", () => {
   assert.ok(paths.includes("/countries"));
   for (const s of ["mexico", "japan", "cote-d-ivoire"]) assert.ok(paths.includes(`/countries/${s}`), s);
 });
+
+test("Serbia has its own flag and code (the platform also names the retired code YU 'Serbia', which must not win) (round 101)", async () => {
+  const { flag, countryCode, canonicalCountry, countryName } = await import("../lib/format");
+  assert.equal(countryCode("Serbia"), "RS"); assert.equal(countryCode("RS"), "RS"); assert.equal(flag("Serbia"), "🇷🇸"); assert.equal(canonicalCountry("RS"), "Serbia");
+  assert.notEqual(countryName("Serbia", "ar"), "Serbia");
+});

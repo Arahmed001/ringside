@@ -98,6 +98,8 @@ async function main() {
   const { smokeRoutes, crawlRoutes, problemsIn, arabicLeaks, flippedRecords } = await import("../lib/smoke");
   const { securityProblems, STATIC_HEADERS } = await import("../lib/security");
   const world = await getWorld();
+  // a real league (--database) has the supplier's names with no Arabic form yet: they are not leaks there (see knownNames)
+  const names = existing ? (await import("../lib/smoke")).knownNames(world) : undefined;
   // `--facts unknown` makes a real feed's gaps real: two fighters in three lose height, reach, birth year, stance and debut year, and a further third lose
   // reach and birth year, so every page that shows or uses those facts is rendered with some of them missing (no page may fail, show "null" or a made-up value)
   if (arg("facts") === "unknown") {
@@ -141,7 +143,7 @@ async function main() {
       if (/text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...securityProblems(res.headers, body));
       if (feedName === "hostile" && /text\/html/.test(res.headers.get("content-type") ?? "") && body.includes(HOSTILE_MARKUP)) bad.push("hostile markup from a fighter's name is on the page as markup, not escaped");
       if (locale === "ar" && /text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...flippedRecords(body).map((l) => `a record shown backwards on the Arabic page: ${l}`));
-      if (locale === "ar" && (feedName === undefined || feedName === "empty") && scale === 1 && /text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...arabicLeaks(body).map((l) => `English on the Arabic page: ${l}`));
+      if (locale === "ar" && (feedName === undefined || feedName === "empty") && scale === 1 && /text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...arabicLeaks(body, names).map((l) => `English on the Arabic page: ${l}`));
       else for (const h of STATIC_HEADERS) if (res.headers.get(h.key) !== h.value) bad.push(`header ${h.key} is ${res.headers.get(h.key) ?? "missing"}`);
       checked++;
       const ms = Math.round(performance.now() - t0);

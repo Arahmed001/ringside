@@ -1,11 +1,12 @@
 import { chooseByMode, previewModes, previewSelection, rankByRecency, selectionSizes, type ModePreview, type SelectionMode, type SelectionPreview } from "../vendor-selection";
-import type { DataProvider, ProviderBoxer, ProviderBout, ProviderEvent, ProviderOfficialRanking, RankingBody } from "./index";
+import type { DataProvider, ProviderBoxer, ProviderBout, ProviderEvent, ProviderOfficialRanking, ProviderOrg, RankingBody } from "./index";
 import fs from "node:fs";
 import path from "node:path";
 import type { Method, Stance } from "../types";
 import { DIVISIONS, normalizeDivision } from "../divisions";
 import { hasScorecards, hasWinner, normalizeMethod } from "../methods";
 import { currentYear, nowMs, todayIso } from "../clock";
+import { canonicalCountry, flag } from "../format";
 
 /**
  * Adapter for the Boxing Data API (boxing-data.com, via RapidAPI), written against its published docs
@@ -27,7 +28,7 @@ export interface ApiFighter {
   id: string; name?: string | null; nickname?: string | null; alias?: string | null; gender?: string | null;
   /** the docs' example has `age`; the real records have `birth_year` (seen on the first free-tier sample) */
   age?: number | null; birth_year?: number | null;
-  nationality?: string | null; stance?: string | null; debut?: string | null;
+  nationality?: string | null; nationality_code?: string | null; stance?: string | null; debut?: string | null;
   /** the real records give height and reach in several forms, and often only one of them */
   height_cm?: number | null; height_in?: number | null; height_ft?: string | null; height?: string | null;
   reach_cm?: number | null; reach_in?: number | null; reach?: string | null;
@@ -96,12 +97,12 @@ export const divisionOf = (raw: string): string | null => normalizeDivision(raw)
 
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
-  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "cancelledFights" | "resultMissingOld" | "cancelledCardsLeftOut" | "amateurBoutsSkipped" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter" | "duplicateFightsMerged" | "duplicateFightsDisagree" | "duplicateFightsAcrossProfiles" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
+  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "cancelledFights" | "resultMissingOld" | "cancelledCardsLeftOut" | "amateurBoutsSkipped" | "nationalityFromCode" | "nationalityUnplaced" | "titleBodyUnknown" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter" | "duplicateFightsMerged" | "duplicateFightsDisagree" | "duplicateFightsAcrossProfiles" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
   | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "outcomeMapped" | "outcomeUnreadable" | "roundUnreadable" | "bothMarkedWinner" | "eventsWithoutFights" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, cancelledFights: 0, resultMissingOld: 0, cancelledCardsLeftOut: 0, amateurBoutsSkipped: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, fightsSkippedNoId: 0, fightsSkippedNoFighter: 0, fightsSkippedNoDate: 0, fightsSkippedSameFighter: 0, duplicateFightsMerged: 0, duplicateFightsDisagree: 0, duplicateFightsAcrossProfiles: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
+  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, cancelledFights: 0, resultMissingOld: 0, cancelledCardsLeftOut: 0, amateurBoutsSkipped: 0, nationalityFromCode: 0, nationalityUnplaced: 0, titleBodyUnknown: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, fightsSkippedNoId: 0, fightsSkippedNoFighter: 0, fightsSkippedNoDate: 0, fightsSkippedSameFighter: 0, duplicateFightsMerged: 0, duplicateFightsDisagree: 0, duplicateFightsAcrossProfiles: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, outcomeMapped: 0, outcomeUnreadable: 0, roundUnreadable: 0, bothMarkedWinner: 0, eventsWithoutFights: 0, windowTooBig: 0,
 });
 
@@ -216,6 +217,7 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
     ...(cancelled ? { status: "cancelled" as const } : {}),
     title: f.titles?.[0]?.name ?? null, position: index, // card order is not in the feed: the order the fights came back in
   };
+  if (bout.title) { const body = titleBody(bout.title); if (body) bout.titleOrgExternalId = body.ext; else notes.titleBodyUnknown++; }
   const scores = finished && hasScorecards(method) ? cleanScores(f.scores) : []; // only a fight that went to the cards has scores: a stoppage with scores attached is a feed slip, not a result
   if (scores.length) bout.scores = scores;
   return { bout, event, fighterIds: [a.fighter_id, b.fighter_id] };
@@ -238,6 +240,40 @@ export function lengthCm(cm: number | null | undefined, inches: number | null | 
 }
 
 /**
+ * The body that issues a belt, read from the start of the feed's title name ("WBC World Super Welterweight Champion", "IBF Interim World ... Champion", "The Ring Heavyweight
+ * Champion"). Without it every belt of a real league belongs to no body, and the Titles pages call it "Unsanctioned". The full names are the ones the picture and Wikidata
+ * steps look for (lib/bodies.ts). The Ring is a magazine, not a sanctioning body, but its belt has a lineage of its own and is kept as a body of its own.
+ */
+const TITLE_BODIES: { re: RegExp; ext: string; name: string }[] = [
+  { re: /^WBA\b/i, ext: "bda-o-wba", name: "World Boxing Association" }, { re: /^WBC\b/i, ext: "bda-o-wbc", name: "World Boxing Council" },
+  { re: /^IBF\b/i, ext: "bda-o-ibf", name: "International Boxing Federation" }, { re: /^WBO\b/i, ext: "bda-o-wbo", name: "World Boxing Organization" },
+  { re: /^The Ring\b/i, ext: "bda-o-ring", name: "The Ring" },
+];
+export const titleBody = (title: string | null | undefined) => TITLE_BODIES.find((b) => b.re.test((title ?? "").trim()));
+
+const WHITE_FLAG = "🏳️";
+/** The home nations the app keeps apart from the United Kingdom, by the way the feed spells them (a name or a demonym). */
+const HOME_NATIONS: [RegExp, string][] = [
+  [/^(?:england|english)$/i, "England"], [/^(?:scotland|scottish|scots)$/i, "Scotland"], [/^(?:wales|welsh)$/i, "Wales"], [/^northern ir(?:eland|ish)\b/i, "Northern Ireland"],
+];
+/**
+ * The country a fighter belongs to. The feed's `nationality` is a country name for most ("Mexico", "USA") and a demonym for about 6% ("Mexican", "Ghanaian", "Slovak
+ * Republic"), so left as written one country becomes two on the Countries page and the demonym gets a white flag and no Arabic name. A name the app can place is spelled
+ * its one way; one it cannot is read through the feed's own two-letter `nationality_code` when that is a real country; the home nations stay themselves; anything else is
+ * kept exactly as given and counted (nothing is guessed).
+ */
+export function nationOf(nationality: string | null | undefined, code: string | null | undefined, notes: Notes): string {
+  const n = (nationality ?? "").trim();
+  if (!n) return "Unknown";
+  for (const [re, name] of HOME_NATIONS) if (re.test(n)) return name;
+  if (flag(n) !== WHITE_FLAG) return canonicalCountry(n);
+  const k = (code ?? "").trim().toUpperCase();
+  if (/^[A-Z]{2}$/.test(k) && flag(k) !== WHITE_FLAG) { const c = canonicalCountry(k); if (c && c !== k) { notes.nationalityFromCode++; return c; } }
+  if (!/^unknown$/i.test(n)) notes.nationalityUnplaced++;
+  return n;
+}
+
+/**
  * A fighter -> a boxer. A fact the feed does not give is null, never a guess: no birth year from an age (it can be a year out), no stance, height or reach
  * filled in from a median, no debut year taken from the first fight we happen to hold. Each is counted in the notes, so the load says how much is unknown.
  */
@@ -256,7 +292,7 @@ export function mapFighter(f: ApiFighter, notes: Notes): ProviderBoxer | null {
   const div = f.division?.name ?? "";
   return {
     externalId: fighterId(f.id), name: f.name, ...(f.nickname || f.alias ? { nickname: (f.nickname ?? f.alias)! } : {}),
-    country: f.nationality ?? "Unknown", birthYear, stance, sex: (f.gender ?? "").toLowerCase().startsWith("f") ? "female" : "male",
+    country: nationOf(f.nationality, f.nationality_code, notes), birthYear, stance, sex: (f.gender ?? "").toLowerCase().startsWith("f") ? "female" : "male",
     heightCm, reachCm, weightClass: divisionOf(div) ?? (div || "Unknown"),
     turnedPro, active: false, // settled in `finishBoxers`, which can see the fights
   };
@@ -805,6 +841,10 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
   return {
     name: "boxing-data-api",
     fetchOfficialRankings: () => (rankingsCache ??= loadRankings()),
+    fetchOrgs: async (): Promise<ProviderOrg[]> => { // only the bodies a loaded belt names: an unlinked one would be an orphan
+      const used = new Set((await once()).bouts.map((b) => b.titleOrgExternalId).filter(Boolean));
+      return TITLE_BODIES.filter((b) => used.has(b.ext)).map((b) => ({ externalId: b.ext, name: b.name, kind: "sanctioning_body" as const }));
+    },
     fetchBoxers: async () => (await once()).boxers, fetchEvents: async () => (await once()).events, fetchBouts: async () => (await once()).bouts,
     notes: () => ({ ...notes }), requests: () => used, cacheHits: () => hits, bytes: () => downloaded, vendorRecords: () => new Map(careers),
     async plan() {
