@@ -40,6 +40,7 @@ export const PAGES: { href: string; label: string; words: string }[] = [
   { href: "/map", label: msg("Style map"), words: "style map" },
   { href: "/data", label: msg("Data"), words: "data model coverage sources" },
   { href: "/privacy", label: msg("Privacy"), words: "privacy data cookies delete account export personal information storage tracking gdpr" },
+  { href: "/terms", label: msg("Terms"), words: "terms conditions small print use betting advice affiliated removal correction legal" },
 ];
 
 const ROLE_ORDER = ["trainer", "manager", "judge", "referee"] as const;
