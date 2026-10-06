@@ -29,7 +29,7 @@ test("the page picks the video for its own language, never starts it by itself, 
   assert.match(page, /tour-\$\{ar \? "ar" : "en"\}\.webm/);
   assert.match(page, /poster-\$\{ar \? "ar" : "en"\}\.jpg/);
   assert.ok(!/autoPlay|autoplay/i.test(page), "no autoplay");
-  assert.match(page, /<video\b[^>]*\bcontrols\b/s);
+  assert.match(page, /<video\b[^>]*\bcontrols\b/);
   assert.match(page, /aria-label=\{t\("Ringside tour video, with captions"\)\}/);
   assert.match(page, /<ol\b/, "the list of what the tour shows");
 });
