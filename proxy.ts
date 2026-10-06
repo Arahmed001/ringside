@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { DEFAULT_LOCALE, LOCALES } from "@/lib/i18n/config";
+import { hasSearchQuery } from "@/lib/seo";
 import { HSTS, contentSecurityPolicy, isEmbedPath, isHttps, makeNonce } from "@/lib/security";
 
 /**
@@ -13,6 +14,10 @@ export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const first = pathname.split("/")[1];
   const https = isHttps(process.env.SITE_URL, req.headers.get("x-forwarded-proto") ?? req.nextUrl.protocol.replace(":", ""));
+
+  // a share image is fetched by link-preview robots at the address the page's own tags name, which for English is /en/.../opengraph-image: serve it there
+  // rather than redirect (several scrapers do not follow a redirect for an image)
+  if (first === DEFAULT_LOCALE && pathname.endsWith("/opengraph-image")) return NextResponse.next();
 
   if (first === DEFAULT_LOCALE) {
     const url = req.nextUrl.clone();
@@ -53,6 +58,7 @@ export function proxy(req: NextRequest) {
   }
   res.headers.set("Content-Security-Policy", csp);
   if (https) res.headers.set("Strict-Transport-Security", HSTS);
+  if (hasSearchQuery(req.nextUrl.searchParams)) res.headers.set("X-Robots-Tag", "noindex, follow"); // search results are not pages to list; the links on them are still followed
   return res;
 }
 

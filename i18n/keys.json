@@ -100,9 +100,11 @@
    "app/[locale]/compare/page.tsx",
    "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/events/[id]/opengraph-image.tsx",
+   "app/[locale]/fight-of-the-year/[year]/page.tsx",
    "app/[locale]/money/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/previews/[id]/opengraph-image.tsx",
+   "app/[locale]/previews/[id]/page.tsx",
    "app/api/og/compare/route.tsx",
    "components/LiveLedger.tsx",
    "components/MyPicks.tsx",
@@ -368,6 +370,12 @@
   "key": "{lb} lb catchweight",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "{list}, all-time: {blurb}",
+  "files": [
+   "app/[locale]/all-time/[list]/page.tsx"
   ]
  },
  {
@@ -4114,6 +4122,7 @@
   "key": "Corners & officials",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx"
   ]
  },
@@ -5076,6 +5085,8 @@
  {
   "key": "Events",
   "files": [
+   "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/events/page.tsx",
    "app/[locale]/orgs/[slug]/page.tsx",
    "lib/nav.ts",
@@ -5499,6 +5510,7 @@
   "key": "Fight previews",
   "files": [
    "app/[locale]/events/page.tsx",
+   "app/[locale]/previews/[id]/page.tsx",
    "app/[locale]/previews/page.tsx",
    "app/[locale]/upset-watch/page.tsx",
    "lib/nav.ts",
@@ -5660,6 +5672,7 @@
   "key": "Fighters",
   "files": [
    "app/[locale]/analytics/page.tsx",
+   "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/boxers/page.tsx",
    "app/[locale]/countries/[slug]/opengraph-image.tsx",
    "app/[locale]/countries/[slug]/page.tsx",
@@ -6268,6 +6281,7 @@
  {
   "key": "Gyms, promotions & bodies",
   "files": [
+   "app/[locale]/orgs/[slug]/page.tsx",
    "app/[locale]/orgs/page.tsx",
    "lib/nav.ts",
    "lib/search.ts",
@@ -9922,6 +9936,7 @@
   "key": "Rankings",
   "files": [
    "app/[locale]/rankings/[division]/opengraph-image.tsx",
+   "app/[locale]/rankings/[division]/page.tsx",
    "app/[locale]/rankings/page.tsx",
    "app/[locale]/titles/page.tsx",
    "app/[locale]/tour/page.tsx",

@@ -2315,6 +2315,7 @@
  "{lb} lb": "{lb} رطل",
  "{lb} lb catchweight": "وزن متفق عليه {lb} رطل",
  "{lb} lb · {kg} kg": "{lb} رطل · {kg} كجم",
+ "{list}, all-time: {blurb}": "{list} في كل الأوقات: {blurb}",
  "{list}: {name} leads with {value}.": "{list}: يتصدّر {name} بـ {value}.",
  "{lo}–{hi}% confidence: right {o}% of {n} fights": "ثقة {lo}–{hi}%: أصاب في {o}% من {n} نزالًا",
  "{m} R{r}": "{m} ج{r}",

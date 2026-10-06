@@ -36,7 +36,7 @@ export default async function FightOfTheYearPage({ params }: { params: Promise<{
     <div className="space-y-10">
       <JsonLd data={{
         "@type": "ItemList", name: t("Fight of the year {year}", { year }), url: abs(localePath(t.locale, `/fight-of-the-year/${year}`)),
-        itemListElement: list.slice(0, 10).map((s, i) => ({ "@type": "ListItem", position: i + 1, url: abs(localePath(t.locale, `/bouts/${s.bout.id}`)), name: `${t.name(s.bout.redName)} vs ${t.name(s.bout.blueName)}` })),
+        itemListElement: list.slice(0, 10).map((s, i) => ({ "@type": "ListItem", position: i + 1, url: abs(localePath(t.locale, `/bouts/${s.bout.id}`)), name: t("{a} vs {b}", { a: t.name(s.bout.redName), b: t.name(s.bout.blueName) }) })),
       }} />
       <div>
         <div className="eyebrow mb-2"><Link href="/fight-of-the-year" className="inline-block py-1 hover:text-ink">{t("Fight of the year")}</Link></div>

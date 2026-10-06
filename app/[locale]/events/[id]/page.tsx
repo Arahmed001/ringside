@@ -1,7 +1,8 @@
 import Link from "@/components/L";
 import { localePath } from "@/lib/i18n/config";
 import { abs } from "@/lib/seo";
-import { JsonLd } from "@/components/JsonLd";
+import { BreadcrumbLd, JsonLd } from "@/components/JsonLd";
+import { isListedEvent } from "@/lib/sitemap";
 import { CreditedPicture } from "@/components/CreditedPicture";
 import { EventMoney } from "@/components/Money";
 import { notFound } from "next/navigation";
@@ -25,7 +26,7 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string;
   const view = e && eventWithMain(w, e);
   if (!e || !view) notFound();
   return {
-    path: `/events/${id}`, title: t.name(e.name),
+    path: `/events/${id}`, title: t.name(e.name), noindex: !isListedEvent(e),
     description: t("Fight card for {event} on {date} at {venue}, {city}. {red} vs {blue} headlines, with predictions and results for every bout.", {
       event: t.name(e.name), date: fmtDate(e.date, undefined, t.locale), venue: t.name(e.venue), city: t.name(e.city), red: t.name(view.red.name), blue: t.name(view.blue.name),
     }),
@@ -46,6 +47,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const nightText = night ? nightLines(night, w, t) : [];
   return (
     <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
+      <BreadcrumbLd locale={t.locale} trail={[{ name: t("Events"), path: "/events" }, { name: t.name(e.name), path: `/events/${e.id}` }]} />
       <JsonLd data={{
         "@type": "SportsEvent", name: t.name(e.name), sport: "Boxing", startDate: e.date, url: abs(localePath(t.locale, `/events/${e.id}`)), inLanguage: t.locale,
         eventStatus: e.status === "cancelled" ? "https://schema.org/EventCancelled" : e.status === "postponed" ? "https://schema.org/EventPostponed" : "https://schema.org/EventScheduled",

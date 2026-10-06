@@ -2,7 +2,7 @@ import { ScrollRegion } from "@/components/ScrollRegion";
 import Link from "@/components/L";
 import { localePath } from "@/lib/i18n/config";
 import { abs } from "@/lib/seo";
-import { JsonLd } from "@/components/JsonLd";
+import { BreadcrumbLd, JsonLd } from "@/components/JsonLd";
 import { notFound } from "next/navigation";
 import { getWorld } from "@/lib/world";
 import { personStable } from "@/lib/team";
@@ -86,6 +86,7 @@ export default async function PersonPage({ params, searchParams }: { params: Pro
 
   return (
     <div className="space-y-10">
+      <BreadcrumbLd locale={t.locale} trail={[{ name: t("Corners & officials"), path: "/people" }, { name: t.name(p.name), path: `/people/${p.slug}` }]} />
       <JsonLd data={{ "@type": "Person", name: t.name(p.name), jobTitle: roles.map((r) => ROLE_NAME[r] ?? r).join(", "), ...(p.country ? { nationality: { "@type": "Country", name: p.country } } : {}), url: abs(localePath(t.locale, `/people/${p.slug}`)), inLanguage: t.locale }} />
       <section className="rise">
         <div className="flex flex-wrap items-center gap-2">{roles.map((r) => <span key={r} className="chip !border-gold/40 !text-gold">{t(ROLE_NAME[r] ?? r)}</span>)}</div>

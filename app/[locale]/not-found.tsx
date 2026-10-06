@@ -8,6 +8,9 @@ import { searchFighters } from "@/lib/fighter-search";
 import { nameFromPath } from "@/lib/not-found";
 import { BoxerCard } from "@/components/ui";
 
+// Next adds its own noindex to a not-found page; the layout's "index, follow" must not be sent beside it (two robots tags that disagree)
+export const metadata = { robots: { index: false, follow: false } };
+
 export default async function NotFound() {
   const t = await getT();
   // an address that looked like a fighter's: offer the nearest names (the search forgives a slip, a missing letter, a changed slug)
