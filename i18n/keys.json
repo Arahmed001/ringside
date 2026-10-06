@@ -2314,6 +2314,12 @@
   ]
  },
  {
+  "key": "Accounts and contributions",
+  "files": [
+   "app/[locale]/terms/page.tsx"
+  ]
+ },
+ {
   "key": "Accuracy",
   "files": [
    "components/PunchStats.tsx"
@@ -2613,6 +2619,12 @@
   "key": "Amount",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "An account keeps your picks and watchlist. If you propose an edit, you confirm that you may share the source you give; an editor decides whether it is published. An account used to abuse the site may be closed.",
+  "files": [
+   "app/[locale]/terms/page.tsx"
   ]
  },
  {
@@ -4062,6 +4074,12 @@
   ]
  },
  {
+  "key": "Corrections and removal",
+  "files": [
+   "app/[locale]/terms/page.tsx"
+  ]
+ },
+ {
   "key": "Corrections and trainer/manager history with sources",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -4663,6 +4681,12 @@
   "key": "Each judge scores every round with the 10-point must system: the fighter who won the round gets 10 points and the other gets 9 or fewer. A knockdown usually costs the fighter who went down an extra point, and the referee can take a point for a foul. A round that is exactly level is scored {level}, which is rare.",
   "files": [
    "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
+  "key": "Each request is considered.",
+  "files": [
+   "app/[locale]/terms/page.tsx"
   ]
  },
  {
@@ -5405,6 +5429,12 @@
   "key": "Fight-night weight edge",
   "files": [
    "lib/fit.ts"
+  ]
+ },
+ {
+  "key": "Fight, fighter and event data comes from the suppliers listed on the Data page and may be incomplete or wrong. Where a record is known to be partial or disputed, the page says so. Please do not copy the data in bulk; where the site offers a public API, use that, within its limits.",
+  "files": [
+   "app/[locale]/terms/page.tsx"
   ]
  },
  {
@@ -8081,7 +8111,8 @@
  {
   "key": "No contact address has been set for this site. Ask whoever runs it.",
   "files": [
-   "app/[locale]/privacy/page.tsx"
+   "app/[locale]/privacy/page.tsx",
+   "app/[locale]/terms/page.tsx"
   ]
  },
  {
@@ -8220,6 +8251,12 @@
   "key": "No fit yet. Run <c>{cmd}</c> to learn weights from the bouts in the database.",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "No guarantee",
+  "files": [
+   "app/[locale]/terms/page.tsx"
   ]
  },
  {
@@ -10242,6 +10279,18 @@
   ]
  },
  {
+  "key": "Ringside is a boxing statistics site. Its ratings and win probabilities are the site’s own calculations from public results: they are estimates for information and entertainment, not betting, financial or any other advice, and they are not official rankings.",
+  "files": [
+   "app/[locale]/terms/page.tsx"
+  ]
+ },
+ {
+  "key": "Ringside is independent. It is not affiliated with, endorsed by or sponsored by any sanctioning body, promoter, broadcaster, fighter or data supplier named on it. Their names and marks belong to them.",
+  "files": [
+   "app/[locale]/terms/page.tsx"
+  ]
+ },
+ {
   "key": "Ringside rating",
   "files": [
    "app/[locale]/rankings/[division]/page.tsx"
@@ -11524,6 +11573,14 @@
   ]
  },
  {
+  "key": "Terms",
+  "files": [
+   "app/[locale]/layout.tsx",
+   "app/[locale]/terms/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
   "key": "Thank you. An administrator will read this and get back to you if you left a contact.",
   "files": [
    "components/ReportForm.tsx"
@@ -11761,6 +11818,12 @@
   "key": "The current year can still change until its last fight. The numbers of fights considered: {counts}.",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
+  "key": "The data",
+  "files": [
+   "app/[locale]/terms/page.tsx"
   ]
  },
  {
@@ -12299,6 +12362,12 @@
   ]
  },
  {
+  "key": "The site is provided as it is, and may be unavailable or wrong at times.",
+  "files": [
+   "app/[locale]/terms/page.tsx"
+  ]
+ },
+ {
   "key": "The site sees your network address when you make a request. It is used in memory to limit how fast one visitor can ask for things (and how often the AI features are used) and is not written down by this software. Whoever hosts the site may keep ordinary access logs of their own.",
   "files": [
    "app/[locale]/privacy/page.tsx"
@@ -12326,6 +12395,18 @@
   "key": "The site’s default predictions use the standard Elo scale.",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "The small print",
+  "files": [
+   "app/[locale]/terms/page.tsx"
+  ]
+ },
+ {
+  "key": "The small print: what the ratings and data are and are not, how accounts and contributions work, and where to write about a correction.",
+  "files": [
+   "app/[locale]/terms/page.tsx"
   ]
  },
  {
@@ -12772,6 +12853,12 @@
   "key": "To ask about your data, write to",
   "files": [
    "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "To ask for a correction, or for personal details about you to be reviewed for removal, write to",
+  "files": [
+   "app/[locale]/terms/page.tsx"
   ]
  },
  {
@@ -13329,6 +13416,12 @@
   ]
  },
  {
+  "key": "Using Ringside",
+  "files": [
+   "app/[locale]/terms/page.tsx"
+  ]
+ },
+ {
   "key": "Usual rehydration",
   "files": [
    "lib/fit.ts"
@@ -13661,6 +13754,12 @@
   "key": "What the data says each factor is worth ({n} fights, {from} to {to})",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "What the site keeps about people who make an account is on the <a>Privacy</a> page.",
+  "files": [
+   "app/[locale]/terms/page.tsx"
   ]
  },
  {

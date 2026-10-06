@@ -18,8 +18,8 @@ Written 2026-10-06 from reading the site, not from legal advice. The wording bel
 ## What was missing, and what this change does about it
 
 1. **"Not betting advice" and "not affiliated"** appeared nowhere, on a site that shows win probabilities and odds sliders and the names and belts of the four sanctioning bodies. **Done:** one sentence in the footer of a real-data site ("Ratings and predictions are Elo-style, unofficial and not betting advice. Ringside is independent: it is not affiliated with any sanctioning body, promoter or broadcaster."), in English and Arabic. The demo build's footer is unchanged. The Arabic is unreviewed, like the rest.
-2. **Terms of use: none.** Drafted below; not added, because it is the owner's to decide.
-3. **A fighter who asks to be corrected or removed.** Corrections have a route (`/report`, `SITE_CONTACT`). Removal has no stated policy. Drafted below as a decision, not code.
+2. **Terms of use: none.** Decided 2026-10-06 and built: a `/terms` page in small type, linked from the footer next to Privacy, with the terms drafted below and the corrections-and-removal line.
+3. **A fighter who asks to be corrected or removed.** Corrections have a route (`/report`, `SITE_CONTACT`). **Decided 2026-10-06: removal is not advertised on the pages people read; it is mentioned only in small print on the Terms page**, in words that promise no outcome ("to ask for a correction, or for personal details about you to be reviewed for removal, write to <contact>. Each request is considered."). `tests/terms.test.ts` fails if that wording appears on any other page. The options below stay for when a request actually arrives; none of them is built.
 
 ## Draft: terms of use (short)
 
@@ -29,9 +29,9 @@ Written 2026-10-06 from reading the site, not from legal advice. The wording bel
 > **No guarantee.** The site is provided as it is. We do not promise it will always be available or correct.
 > **Contact.** `<SITE_CONTACT>`.
 
-Decide: whether to publish it as `/terms` (a new page, linked from the footer next to Privacy), and who reviews it.
+Published as `/terms` (small type, linked from the footer). Still worth having someone who can advise on the law where the site is run read it.
 
-## Decision: asking to be removed or corrected
+## Asking to be removed or corrected: the options, if a request arrives
 
 A boxing record is public, but the site also shows a birth date and place for people who may not want them. Choose a stance and write it on `/data` next to the corrections text:
 
