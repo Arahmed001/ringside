@@ -1,6 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 
 /**
  * Consistent copies of the databases that cannot be rebuilt: the sports database (it holds the live prediction ledger) and the accounts
@@ -10,6 +11,10 @@ import path from "node:path";
  */
 /** How many dated backup folders are kept (the oldest are removed) when nothing else is asked for. */
 export const DEFAULT_BACKUPS_KEPT = 14;
+
+/** The list of fingerprints written into every backup folder: one line per file, `<sha256>  <name>`, like `sha256sum` prints. */
+export const MANIFEST = "checksums.sha256";
+export const sha256File = (file: string) => crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 
 export interface BackupFile { name: string; path: string; private?: boolean }
 export interface BackupResult { dir: string; files: { name: string; bytes: number; integrity: string }[]; skipped: string[]; pruned: string[] }
@@ -34,6 +39,8 @@ export function backupDatabases(opts: { root: string; files: BackupFile[]; keep?
     result.files.push({ name: f.name, bytes: fs.statSync(out).size, integrity });
   }
   for (const f of opts.extra ?? []) if (fs.existsSync(f.path)) fs.copyFileSync(f.path, path.join(dir, path.basename(f.path)));
+  const manifest = fs.readdirSync(dir).filter((n) => n !== MANIFEST).sort().map((n) => `${sha256File(path.join(dir, n))}  ${n}`);
+  fs.writeFileSync(path.join(dir, MANIFEST), manifest.join("\n") + "\n", { mode: 0o600 });
   const keep = Math.max(1, opts.keep ?? DEFAULT_BACKUPS_KEPT);
   const old = fs.readdirSync(opts.root).filter((n) => STAMP.test(n) && fs.statSync(path.join(opts.root, n)).isDirectory()).sort();
   for (const n of old.slice(0, Math.max(0, old.length - keep))) { fs.rmSync(path.join(opts.root, n), { recursive: true, force: true }); result.pruned.push(n); }
@@ -41,8 +48,19 @@ export function backupDatabases(opts: { root: string; files: BackupFile[]; keep?
 }
 
 /** Opens every database in a backup folder and checks it: the tables are there and `integrity_check` says ok. Returns problems (empty = good). */
-export function verifyBackup(dir: string): string[] {
+export function verifyBackup(dir: string, opts: { requireChecksums?: boolean } = {}): string[] {
   const problems: string[] = [];
+  const manifestFile = path.join(dir, MANIFEST);
+  if (fs.existsSync(manifestFile)) {
+    const listed = new Map<string, string>();
+    for (const line of fs.readFileSync(manifestFile, "utf8").split("\n")) { const m = /^([0-9a-f]{64})  (.+)$/.exec(line); if (m) listed.set(m[2], m[1]); }
+    for (const [name, hash] of listed) {
+      const f = path.join(dir, path.basename(name));
+      if (!fs.existsSync(f)) problems.push(`${name}: listed in ${MANIFEST} but missing`);
+      else if (sha256File(f) !== hash) problems.push(`${name}: checksum does not match (the file changed or was cut short after the backup was made)`);
+    }
+    for (const n of fs.readdirSync(dir)) if (n.endsWith(".db") && !listed.has(n)) problems.push(`${n}: not listed in ${MANIFEST} (added after the backup was made)`);
+  } else if (opts.requireChecksums && fs.existsSync(dir)) problems.push(`no ${MANIFEST} in ${dir}: a backup made before checksums were written cannot be checked for damage in transit`);
   const must: Record<string, string[]> = { ringside: ["boxers", "bouts", "events", "prediction_snapshots"], accounts: ["users", "picks", "contributions"] };
   const present = fs.existsSync(dir) ? fs.readdirSync(dir).filter((n) => n.endsWith(".db")) : [];
   if (!present.length) return [`no database files in ${dir}`];
