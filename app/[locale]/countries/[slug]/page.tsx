@@ -9,6 +9,7 @@ import { countryName, flag, fmtDate } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
 import { ShareButton } from "@/components/ShareButton";
 import { metaFor } from "@/lib/seo-server";
+import { BreadcrumbLd } from "@/components/JsonLd";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; slug: string }> }) =>
   metaFor(params, async ({ slug }, t) => {
@@ -30,6 +31,7 @@ export default async function Country({ params }: { params: Promise<{ slug: stri
   const name = countryName(v.name, t.locale);
   return (
     <div className="space-y-12">
+      <BreadcrumbLd locale={t.locale} trail={[{ name: t("Boxing by country"), path: "/countries" }, { name, path: `/countries/${v.slug}` }]} />
       <div className="rise">
         <div className="eyebrow mb-2"><Link href="/countries" className="hover:text-ink">{t("Boxing by country")}</Link></div>
         <h1 className="font-display text-6xl font-extrabold uppercase leading-[.95] sm:text-7xl">{flag(v.name)} {name}</h1>

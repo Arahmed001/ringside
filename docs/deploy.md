@@ -37,7 +37,7 @@ All optional; see `.env.example` for the full list.
 - `SITE_URL`: the public origin, used for canonical URLs, sitemaps and share images. **Set it.**
 - `SITE_CONTACT`: where someone who is not signed in can report a mistake, an email address or an `https://` page, published as written on the Data and Report pages (a role address like `corrections@…`, never a personal one). No default; the doctor warns when `BOXING_PROVIDER=licensed` and it is unset.
 - `VENDOR_TERMS_URL`: the `https://` link to the data vendor's licence terms (or the page that states the written agreement). The Data page credits the vendor whenever `BOXING_PROVIDER=licensed` and links the terms once this is set; every page's footer carries the credit too ("Fight, fighter and event data: Boxing Data API"), because the vendor was told it would be credited wherever its data appears (where it is and how to remove it: `docs/vendor-credit.md`).
-- `BOXING_PROVIDER`: while it is `demo` the site is `noindex`, so a demo deployment never competes with real sites in search. Set `INDEXABLE=1` only to override that on purpose.
+- `BOXING_PROVIDER`: while it is `demo` the site is `noindex`, so a demo deployment never competes with real sites in search. Set `INDEXABLE=1` only to override that on purpose. Either way the site is indexable only when `SITE_URL` is also a public address (not localhost): without it everything stays `noindex` and no sitemap is served. What was checked before launch: `docs/seo-audit.md`.
 - `ANTHROPIC_API_KEY`, `AI_DAILY_BUDGET`, `AI_CLIENT_LIMIT`, `AI_CLIENT_WINDOW_MS`: the AI features and what visitors can spend. Without a key everything falls back to rules.
 - `DATABASE_PATH`: defaults to `/data/ringside.db` in the image.
 
@@ -139,7 +139,18 @@ docker exec ringside npm run backup -- verify /data/backups/2026-10-03T12-00-00Z
 
 Snapshots land in `/data/backups/<timestamp>/` (`ringside.db`, `accounts.db`, `model-fit.json`); `--keep` sets how many are kept (default 14; only folders with that timestamp name are ever removed). Every copy is opened and checked with `integrity_check` as it is written, and `verify` repeats that later and checks the important tables are there (the ledger table included); the command exits non-zero if anything is wrong, so a scheduler can alert on it. The accounts copy is personal data and is written readable by its owner only. **A backup on the volume that dies is not a backup:** copy the newest folder off the machine (an object store, another host) on a schedule, for example a daily `docker exec ringside npm run backup` followed by an upload of the newest `/data/backups/*` folder.
 
-**Restoring:** stop the container, replace `ringside.db` and/or `accounts.db` in `/data` with the files from a snapshot (delete the old `-wal` and `-shm` files beside them), start it again. Run `verify` on the snapshot first. Restoring `ringside.db` rolls the ledger back to that day, so predictions locked since then are gone; restoring `accounts.db` rolls back sign-ups and picks the same way. A restore has not been rehearsed on a real host: do it once, on a copy, before you need it.
+**Every backup folder also holds `checksums.sha256`** (a SHA-256 for each file, in `sha256sum` format); `verify` checks it, so a copy that was cut short or altered in transit is caught even if SQLite can still open it. Backups made before this have no list: `verify` still checks them, and `restore` accepts one only with `--allow-unchecked`.
+
+**Restoring:** stop the container, then in a throwaway container on the same volume run
+
+```bash
+docker stop ringside
+docker run --rm -v ringside-data:/data ringside npm run backup -- restore /data/backups/2026-10-03T12-00-00Z --dry-run   # changes nothing
+docker run --rm -v ringside-data:/data ringside npm run backup -- restore /data/backups/2026-10-03T12-00-00Z
+docker start ringside
+```
+
+`restore` (in `lib/restore.ts`) does these in order and stops, changing nothing, at the first that fails: (1) the backup must verify, integrity and checksums; (2) it refuses if the site might be running (a process has the database open where `/proc` can be read, or something answers on port 3000 (`--port N` if the site uses another), or on a platform without `/proc` a leftover `-wal`/`-shm`; `--even-if-running` overrides, for a copy or when you are sure); (3) it saves the current data, checked, to `<data dir>/backups/before-restore/<timestamp>/` (folded WAL included); (4) it writes the new files beside the old ones (`*.restore-tmp`), flushes them and checks them again; (5) it renames them into place, removes the old `-wal`/`-shm`, and puts the files already swapped back if anything fails. Both files are restored together; a backup without `accounts.db` leaves the current accounts as they are, and `accounts.db` stays mode 0600. A `*.restore-old` file means an earlier restore was killed mid-swap: the next run refuses and tells you to look at it, since it holds the old data. **Undo** is the same command on the `before-restore` folder it printed. It prints paths, sizes and counts only, never rows. Restoring `ringside.db` rolls the ledger back to that day, so predictions locked since then are gone; restoring `accounts.db` rolls back sign-ups and picks the same way. Rehearsed on a copy of the demo league (PLAN.md section 209); not yet on a real host: do the `--dry-run` once before you need it.
 
 ## Before the first visitor: `npm run doctor`
 

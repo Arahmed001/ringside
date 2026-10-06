@@ -25,7 +25,7 @@ export default async function Thread({ params }: { params: Promise<{ id: string 
     <div className="space-y-6">
       <div>
         <Link href="/forum" className="text-sm text-muted underline decoration-dotted hover:text-ink">{t("← All threads")}</Link>
-        <h1 className="mt-3 font-display text-4xl font-extrabold uppercase" dir="auto">{th.title}</h1>
+        <h1 className="mt-3 font-display text-4xl font-extrabold uppercase" dir="auto">{th.title ?? t("[removed]")}</h1>
         <p className="mt-1 text-sm text-muted">{th.author ?? t("deleted account")} · {fmtDate(th.createdAt.slice(0, 10), { month: "short", day: "numeric", year: "numeric" }, t.locale)}</p>
       </div>
       <ThreadTools id={th.id} locked={th.locked} />

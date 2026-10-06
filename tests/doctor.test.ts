@@ -158,7 +158,8 @@ test("no finding, start-up line or problem line ever contains a secret", () => {
 test("the start-up line says what the server will do, and lists only problem ids", () => {
   const l = JSON.parse(configLine({ NODE_ENV: "production", BOXING_PROVIDER: "demo", ANTHROPIC_API_KEY: "k", AI_DAILY_BUDGET: "0" }, NOW));
   assert.deepEqual([l.event, l.provider, l.indexable, l.ai, l.siteUrl, l.problems], ["config", "demo", false, false, null, ["site-url"]]);
-  assert.equal(JSON.parse(configLine({ BOXING_PROVIDER: "licensed", ANTHROPIC_API_KEY: "k" })).indexable, true);
+  assert.equal(JSON.parse(configLine({ BOXING_PROVIDER: "licensed", ANTHROPIC_API_KEY: "k", SITE_URL: "https://ringside.example" })).indexable, true);
+  assert.equal(JSON.parse(configLine({ BOXING_PROVIDER: "licensed", ANTHROPIC_API_KEY: "k" })).indexable, false, "real data but no public SITE_URL: not indexable");
   assert.equal(JSON.parse(configLine({ BOXING_PROVIDER: "licensed", ANTHROPIC_API_KEY: "k" })).ai, true);
   const lines = problemLines({ NODE_ENV: "production", SITE_URL: "http://x.example", BOXING_PROVIDER: "nope" }, NOW).map((x) => JSON.parse(x));
   assert.deepEqual(lines.map((x) => [x.level, x.id]).sort(), [["error", "provider"], ["warn", "site-url"]]);

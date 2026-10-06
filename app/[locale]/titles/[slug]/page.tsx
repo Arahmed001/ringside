@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
-import { beltBySlug, beltLabel, beltStats, type Reign } from "@/lib/lineage";
+import { beltBySlug, beltLabel, beltStats, type Belt, type Reign } from "@/lib/lineage";
 import { divisionLabel, slugifyDivision } from "@/lib/divisions";
 import { Headshot } from "@/components/Portrait";
 import { ReignTimeline } from "@/components/ReignTimeline";
@@ -10,7 +10,9 @@ import { fmtDate, methodLabel } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
 import { msg } from "@/lib/i18n/t";
 import { metaFor } from "@/lib/seo-server";
-import { JsonLd } from "@/components/JsonLd";
+import { BreadcrumbLd, JsonLd } from "@/components/JsonLd";
+import type { World } from "@/lib/world";
+import type { T } from "@/lib/i18n/t";
 import { CreditedPicture } from "@/components/CreditedPicture";
 import { bodyCode } from "@/lib/bodies";
 import { abs } from "@/lib/seo";
@@ -21,16 +23,18 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string;
     const w = await getWorld();
     const b = beltBySlug(w, slug);
     if (!b) return { path: `/titles/${slug}`, title: t("Title lineage"), description: t("The line of champions for one belt.") };
-    const s = beltStats(w, b);
-    const champ = b.current ? w.byId.get(b.current.boxerId) : undefined;
-    return {
-      path: `/titles/${b.slug}`, title: t("{belt}: {division} champions", { belt: beltLabel(b, t), division: divisionLabel(b.division, b.sex, t) }),
-      description: t("Every {division} champion of the {belt}: {n} reigns by {champions} fighters, {defences} title defences{current}.", {
-        division: divisionLabel(b.division, b.sex, t), belt: beltLabel(b, t), n: b.reigns.length, champions: s.champions, defences: s.totalDefenses,
-        current: champ && !b.stale ? t(", current champion {name}", { name: t.name(champ.name) }) : "",
-      }),
-    };
+    return { path: `/titles/${b.slug}`, title: t("{belt}: {division} champions", { belt: beltLabel(b, t), division: divisionLabel(b.division, b.sex, t) }), description: beltDescription(w, b, t) };
   });
+
+/** What the page is, in a sentence: the search snippet and the dataset's description say the same thing. */
+function beltDescription(w: World, b: Belt, t: T): string {
+  const s = beltStats(w, b);
+  const champ = b.current ? w.byId.get(b.current.boxerId) : undefined;
+  return t("Every {division} champion of the {belt}: {n} reigns by {champions} fighters, {defences} title defences{current}.", {
+    division: divisionLabel(b.division, b.sex, t), belt: beltLabel(b, t), n: b.reigns.length, champions: s.champions, defences: s.totalDefenses,
+    current: champ && !b.stale ? t(", current champion {name}", { name: t.name(champ.name) }) : "",
+  });
+}
 
 const HOW = { won: msg("Won the belt"), vacant: msg("Won the vacant belt"), first: msg("First champion on record"), inherited: msg("Took the belt when the holder was not in the fight") } as const;
 const ENDED = { lost: msg("Lost it in the ring"), vacated: msg("Belt vacated"), passed: msg("Belt passed on without the champion") } as const;
@@ -51,7 +55,8 @@ export default async function BeltPage({ params }: { params: Promise<{ slug: str
 
   return (
     <div className="space-y-10">
-      <JsonLd data={{ "@type": "Dataset", name: `${beltLabel(belt, t)} · ${divisionLabel(belt.division, belt.sex, t)}`, url: abs(localePath(t.locale, `/titles/${belt.slug}`)), inLanguage: t.locale, creator: { "@type": "Organization", name: "Ringside" } }} />
+      <BreadcrumbLd locale={t.locale} trail={[{ name: t("Title lineages"), path: "/titles" }, { name: beltLabel(belt, t), path: `/titles/${belt.slug}` }]} />
+      <JsonLd data={{ "@type": "Dataset", name: `${beltLabel(belt, t)} · ${divisionLabel(belt.division, belt.sex, t)}`, description: beltDescription(w, belt, t), url: abs(localePath(t.locale, `/titles/${belt.slug}`)), inLanguage: t.locale, creator: { "@type": "Organization", name: "Ringside" } }} />
       <div className="flex flex-wrap items-start justify-between gap-6">
        <div>
         <div className="eyebrow mb-2"><Link href="/titles" className="inline-block py-1 hover:text-ink">{t("Title lineages")}</Link> · {divisionLabel(belt.division, belt.sex, t)}</div>

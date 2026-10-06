@@ -31,7 +31,7 @@ export default async function Forum({ searchParams }: { searchParams: Promise<{ 
           <ul className="card divide-y divide-line/60">
             {list.threads.map((th) => (
               <li key={th.id} className="flex flex-wrap items-baseline justify-between gap-2 p-4">
-                <div className="min-w-0"><Link href={`/forum/${th.id}`} className="font-semibold hover:text-gold" dir="auto">{th.title}</Link>
+                <div className="min-w-0"><Link href={`/forum/${th.id}`} className="font-semibold hover:text-gold" dir="auto">{th.title ?? t("[removed]")}</Link>
                   <div className="text-xs text-muted">{th.author ?? t("deleted account")} · {fmtDate(th.createdAt.slice(0, 10), { month: "short", day: "numeric", year: "numeric" }, t.locale)}{th.locked ? ` · ${t("locked")}` : ""}</div></div>
                 <div className="text-xs text-muted tabular">{t.n(th.postCount, "{n} post", "{n} posts")}</div>
               </li>
