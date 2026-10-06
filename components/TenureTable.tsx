@@ -25,7 +25,7 @@ export async function TenureTable({ tenures, limit = 40, pager }: { tenures: Fig
               <td className="py-2"><Link href={`/boxers/${x.boxer.slug}`} className="flex items-center gap-3"><Headshot boxer={x.boxer} size={30} /><span><b>{t.name(x.boxer.name)}</b><span className="block text-xs text-muted">{t(x.boxer.weightClass)}</span></span></Link></td>
               <td className="whitespace-nowrap text-muted">{x.stint.start ? fmtDate(x.stint.start, { month: "short", year: "numeric" }, t.locale) : "?"} – {x.current ? <span className="text-win">{t("present")}</span> : x.stint.end ? fmtDate(x.stint.end, { month: "short", year: "numeric" }, t.locale) : "?"}</td>
               <td className="tabular">{x.record.wins}-{x.record.losses}-{x.record.draws}{x.record.bouts ? <span className="ms-1.5 text-xs text-muted">{Math.round(x.record.winRate * 100)}%</span> : null}</td>
-              <td className={`text-end tabular font-semibold ${x.ratingChange === null ? "text-muted" : x.ratingChange >= 0 ? "text-win" : "text-red-ink"}`}>{x.ratingChange === null ? "–" : `${x.ratingChange >= 0 ? "+" : ""}${Math.round(x.ratingChange)}`}</td>
+              <td className={`text-end tabular font-semibold ${x.ratingChange === null ? "text-muted" : x.ratingChange >= 0 ? "text-win" : "text-red-ink"}`}><bdi dir="ltr">{x.ratingChange === null ? "–" : `${x.ratingChange >= 0 ? "+" : ""}${Math.round(x.ratingChange)}`}</bdi></td>
             </tr>
           ))}
         </tbody>

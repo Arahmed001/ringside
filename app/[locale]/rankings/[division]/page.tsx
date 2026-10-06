@@ -124,7 +124,7 @@ export default async function DivisionRankings({ params, searchParams }: { param
                 <td className="hidden tabular text-muted md:table-cell">{Math.round(koView(r.boxer).rate * 100)}%</td>
                 <td className="hidden text-muted md:table-cell">{r.boxer.lastFight ? fmtDate(r.boxer.lastFight, { month: "short", year: "numeric" }, t.locale) : "—"}</td>
                 <td className="text-end font-semibold tabular">{Math.round(r.boxer.rating)}</td>
-                <td className="p-3 text-end"><div className="flex items-center justify-end gap-2"><span className={`tabular text-xs ${r.ratingChange >= 0 ? "text-win" : "text-red-ink"}`}>{r.ratingChange >= 0 ? "+" : ""}{Math.round(r.ratingChange)}</span><Delta d={r.delta} /></div></td>
+                <td className="p-3 text-end"><div className="flex items-center justify-end gap-2"><bdi dir="ltr" className={`tabular text-xs ${r.ratingChange >= 0 ? "text-win" : "text-red-ink"}`}>{r.ratingChange >= 0 ? "+" : ""}{Math.round(r.ratingChange)}</bdi><Delta d={r.delta} /></div></td>
               </tr>
             ))}
           </tbody>

@@ -11,7 +11,7 @@ function Inner({ locale, query }: { locale: Locale; query: string }) {
   const other = LOCALES.find((l) => l !== locale)!;
   return (
     <NextLink href={`${localePath(other, path)}${query}`} hrefLang={other} lang={other} prefetch={false}
-      className="shrink-0 rounded-lg border border-line px-2 py-1.5 text-sm text-ink transition hover:border-gold/60 hover:text-gold sm:px-3">
+      className="shrink-0 pointer-coarse:flex pointer-coarse:min-h-11 pointer-coarse:items-center rounded-lg border border-line px-2 py-1.5 text-sm text-ink transition hover:border-gold/60 hover:text-gold sm:px-3">
       {LOCALE_NAME[other]}
     </NextLink>
   );

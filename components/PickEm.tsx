@@ -16,7 +16,7 @@ export function PickEm({ bouts }: { bouts: PickBout[] }) {
   const made = bouts.filter((b) => picks[b.id]);
   const agree = made.filter((b) => picks[b.id] === b.modelPickId).length;
   return (
-    <div className="card p-5">
+    <div className="card @container p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div><div className="eyebrow">{t("Fight night pick’em")}</div><div className="font-display text-2xl font-bold uppercase">{t("Call the card")}</div></div>
         <div className="text-end text-xs text-muted">
@@ -24,17 +24,17 @@ export function PickEm({ bouts }: { bouts: PickBout[] }) {
           {made.length > 0 ? t.rich("you side with the model on <b>{n}</b>", { n: agree, b: (c) => <b className="text-gold">{c}</b> }) : t("picks made")}
         </div>
       </div>
-      <ul className="space-y-2">
+      <ul className="space-y-3">
         {bouts.map((b) => (
-          <li key={b.id} className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2">
+          <li key={b.id} className="ltr-fixed grid grid-cols-1 items-stretch gap-x-2 gap-y-1 @[17rem]:grid-cols-2">
             {[{ id: b.redId, n: b.red, c: "#e5322d" }, null, { id: b.blueId, n: b.blue, c: "#4a8cff" }].map((s, i) => s === null ? (
-              <span key="vs" className="text-xs uppercase tracking-widest text-muted">{b.label}</span>
+              <span key="vs" className="order-first text-center @[17rem]:col-span-2 text-xs uppercase tracking-widest text-muted">{b.label}</span>
             ) : (
               <button key={s.id} onClick={() => void choose(b.id, s.id)} aria-pressed={picks[b.id] === s.id}
-                className="rounded-xl border px-3 py-2 text-start text-sm transition hover:border-white/30"
+                className="min-h-11 w-full min-w-0 rounded-xl border px-3 py-2 text-start text-sm transition hover:border-white/30"
                 style={{ borderColor: picks[b.id] === s.id ? s.c : "var(--line)", background: picks[b.id] === s.id ? s.c + "22" : "var(--panel-2)", textAlign: i === 0 ? "left" : "right" }}>
                 <span className="font-semibold">{s.n}</span>
-                {b.modelPickId === s.id && <span className="ms-1.5 text-xs text-gold" title={t("Model: {pct}%", { pct: b.modelPct })}>✦ {b.modelPct}%</span>}
+                {b.modelPickId === s.id && <span className="block text-xs text-gold" title={t("Model: {pct}%", { pct: b.modelPct })}>✦ {b.modelPct}%</span>}
               </button>
             ))}
           </li>

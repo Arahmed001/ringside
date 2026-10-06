@@ -79,7 +79,7 @@ async function Trainers({ sort, w, list }: { sort: string; w: W; list: List }) {
                 <td className="tabular">{r.stable.record.wins}-{r.stable.record.losses}-{r.stable.record.draws}</td>
                 <td className="tabular">{Math.round(r.stable.record.winRate * 100)}%</td>
                 <td className="tabular">{r.stable.titleWins}</td>
-                <td className={`text-end tabular font-semibold ${(r.stable.avgRatingChange ?? 0) >= 0 ? "text-win" : "text-red-ink"}`}>{r.stable.avgRatingChange === null ? "–" : `${r.stable.avgRatingChange >= 0 ? "+" : ""}${Math.round(r.stable.avgRatingChange)}`}</td>
+                <td className={`text-end tabular font-semibold ${(r.stable.avgRatingChange ?? 0) >= 0 ? "text-win" : "text-red-ink"}`}><bdi dir="ltr">{r.stable.avgRatingChange === null ? "–" : `${r.stable.avgRatingChange >= 0 ? "+" : ""}${Math.round(r.stable.avgRatingChange)}`}</bdi></td>
               </tr>
             ))}
           </tbody>

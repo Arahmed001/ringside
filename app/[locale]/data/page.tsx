@@ -177,7 +177,7 @@ export default async function DataPage() {
                 <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th className="py-2">{t("Factor")}</th><th>{t("Effect on log-odds of winning")}</th><th>{t("± error")}</th><th>z</th><th className="text-end">{t("Clear signal?")}</th></tr></thead>
                 <tbody>{fit.features.map((f) => (
                   <tr key={f.key} className="border-t border-line/60">
-                    <td className="py-2">{t(f.label)}</td><td className="tabular">{f.effect >= 0 ? "+" : ""}{f.effect.toFixed(3)} <span className="text-xs text-muted">{t(f.unit)}</span></td>
+                    <td className="py-2">{t(f.label)}</td><td className="tabular"><bdi dir="ltr">{f.effect >= 0 ? "+" : ""}{f.effect.toFixed(3)}</bdi> <span className="text-xs text-muted">{t(f.unit)}</span></td>
                     <td className="tabular text-muted">{f.effectSe.toFixed(3)}</td><td className="tabular">{f.z.toFixed(1)}</td>
                     <td className="text-end">{f.selected ? <span className="chip !border-win/40 !text-win">{t("yes")}</span> : <span className="text-xs text-muted">{t("no")}</span>}</td>
                   </tr>

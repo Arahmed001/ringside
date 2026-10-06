@@ -87,7 +87,7 @@ export default async function OrgPage({ params, searchParams }: { params: Promis
         <div><div className="eyebrow mb-2">{t(KIND[o.kind])}</div><h1 className="font-display text-5xl font-extrabold uppercase leading-none">{t.name(o.name)}</h1>{(o.city || o.country) && <p className="mt-2 text-muted">{o.country && flag(o.country)} {o.city && o.country ? t("{city}, {country}", { city: t.name(o.city), country: countryName(o.country, t.locale) }) : o.city ? t.name(o.city) : countryName(o.country!, t.locale)}</p>}</div>
         {logo && <CreditedPicture picture={logo} alt={t("Logo of {name}", { name: t.name(o.name) })} imgClassName="max-h-24" />}
       </div>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label={o.kind === "gym" ? t("Training now") : t("Signed now")} value={stable.currentFighters} sub={t("{n} fighters ever", { n: stable.fighters })} />
         <Stat label={t("Combined record")} value={`${stable.record.wins}-${stable.record.losses}-${stable.record.draws}`} sub={t("{n}% wins", { n: Math.round(stable.record.winRate * 100) })} />
         <Stat label={t("Title wins")} value={stable.titleWins} />
