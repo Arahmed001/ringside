@@ -1,5 +1,6 @@
 import { getT } from "@/lib/i18n/server";
 import { getWorld } from "@/lib/world";
+import { PrintButton } from "@/components/PrintButton";
 import { metaFor } from "@/lib/seo-server";
 import { buildTonight } from "@/lib/tonight";
 import { fmtDate } from "@/lib/format";
@@ -18,7 +19,10 @@ export default async function Tonight() {
     <div className="space-y-8">
       <div>
         <div className="eyebrow mb-2">{t("Fight night")}</div>
-        <h1 className="font-display text-5xl font-extrabold uppercase">{t("Tonight")}</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="font-display text-5xl font-extrabold uppercase">{t("Tonight")}</h1>
+          {data.kind === "card" && <PrintButton />}
+        </div>
         {data.kind === "card" && (
           <p className="mt-2 max-w-2xl text-muted">
             <Link href={`/events/${data.event.id}`} className="inline-block py-1 text-ink underline decoration-dotted hover:text-gold">{data.event.name}</Link>

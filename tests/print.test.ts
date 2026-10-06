@@ -15,8 +15,8 @@ test("printing hides the menus and switches to white paper, and the screen theme
   assert.match(layout, /className="rail /, "the side menu is the .rail the print rule hides");
 });
 
-test("the fighter and bout pages carry the print button", () => {
-  for (const p of ["app/[locale]/boxers/[slug]/page.tsx", "app/[locale]/bouts/[id]/page.tsx"]) assert.match(read(p), /<PrintButton \/>/, p);
+test("the fighter, bout, tonight and rankings pages carry the print button", () => {
+  for (const p of ["app/[locale]/boxers/[slug]/page.tsx", "app/[locale]/bouts/[id]/page.tsx", "app/[locale]/tonight/page.tsx", "app/[locale]/rankings/page.tsx"]) assert.match(read(p), /<PrintButton \/>/, p);
 });
 
 test("the fighter page prints as a one-page sheet: the full profile is screen-only and the sheet is print-only", () => {

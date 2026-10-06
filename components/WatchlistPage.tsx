@@ -4,6 +4,8 @@ import { useWatchlist } from "@/lib/useWatchlist";
 import type { WatchEntry } from "@/lib/watch";
 import { flag } from "@/lib/format";
 import { useLocale, useT } from "@/components/i18n";
+import { WatchlistAdd } from "@/components/WatchlistAdd";
+import type { FighterHit } from "@/lib/fighter-search";
 import { useHref } from "@/components/L";
 import Link from "@/components/L";
 
@@ -12,7 +14,7 @@ const byNext = (a: WatchEntry, b: WatchEntry) =>
   a.nextDate && b.nextDate ? a.nextDate.localeCompare(b.nextDate) : a.nextDate ? -1 : b.nextDate ? 1 : a.name.localeCompare(b.name);
 
 /** The whole watchlist: every fighter starred in this browser, with the next fight, last result and rating. */
-export function WatchlistPage() {
+export function WatchlistPage({ suggestions }: { suggestions: FighterHit[] }) {
   const t = useT();
   const locale = useLocale();
   const href = useHref();
@@ -31,10 +33,13 @@ export function WatchlistPage() {
 
   if (loading) return <p className="text-sm text-muted">{t("Loading your watchlist…")}</p>;
   if (!key) return (
-    <div className="card p-6 text-center">
-      <p className="font-semibold">{t("You are not watching anyone yet.")}</p>
-      <p className="mx-auto mt-2 max-w-md text-sm text-muted">{t("Open any fighter’s profile and press ☆ Watch. Their next fight, last result and rating will show up here.")}</p>
-      <a href={href("/boxers")} className="chip mt-4 !border-gold/60 !text-gold hover:!bg-gold/10">{t("Browse fighters")}</a>
+    <div className="space-y-8">
+      <div className="card p-6 text-center">
+        <p className="font-semibold">{t("You are not watching anyone yet.")}</p>
+        <p className="mx-auto mt-2 max-w-md text-sm text-muted">{t("Open any fighter’s profile and press ☆ Watch. Their next fight, last result and rating will show up here.")}</p>
+        <a href={href("/boxers")} className="chip mt-4 !border-gold/60 !text-gold hover:!bg-gold/10">{t("Browse fighters")}</a>
+      </div>
+      <WatchlistAdd suggestions={suggestions} showSuggestions />
     </div>
   );
   if (loaded?.key !== key) return <p className="text-sm text-muted">{t("Loading your watchlist…")}</p>;
@@ -91,6 +96,7 @@ export function WatchlistPage() {
     <p className="text-xs text-muted">
       {mode === "account" ? t("Your watchlist is saved to your account.") : <>{t("Your watchlist is saved in this browser.")} <Link href="/account" className="inline-block py-1 text-ink underline decoration-dotted hover:text-gold">{t("Sign in to keep it on every device")}</Link></>}
     </p>
+    <WatchlistAdd suggestions={suggestions} showSuggestions={false} />
     </div>
   );
 }

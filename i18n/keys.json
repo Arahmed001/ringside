@@ -2345,6 +2345,12 @@
   ]
  },
  {
+  "key": "Add a fighter",
+  "files": [
+   "components/WatchlistAdd.tsx"
+  ]
+ },
+ {
   "key": "Add or correct who trains or manages a fighter, with a source an editor can check.",
   "files": [
    "app/[locale]/contribute/page.tsx"
@@ -7966,7 +7972,8 @@
  {
   "key": "No fighter matches that.",
   "files": [
-   "components/FighterPicker.tsx"
+   "components/FighterPicker.tsx",
+   "components/WatchlistAdd.tsx"
   ]
  },
  {
@@ -8650,6 +8657,12 @@
   "key": "Or start from the calendar",
   "files": [
    "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Or start with the top-rated fighters:",
+  "files": [
+   "components/WatchlistAdd.tsx"
   ]
  },
  {
@@ -10210,6 +10223,12 @@
   ]
  },
  {
+  "key": "Search by name…",
+  "files": [
+   "components/WatchlistAdd.tsx"
+  ]
+ },
+ {
   "key": "Search every fighter in the Ringside database in plain language, or filter by division and sex: records, ratings, knockouts and fighting styles.",
   "files": [
    "app/[locale]/boxers/page.tsx"
@@ -10239,6 +10258,12 @@
   "key": "Search fighters, trainers, events, gyms…",
   "files": [
    "components/CommandPalette.tsx"
+  ]
+ },
+ {
+  "key": "Search for a fighter to watch",
+  "files": [
+   "components/WatchlistAdd.tsx"
   ]
  },
  {

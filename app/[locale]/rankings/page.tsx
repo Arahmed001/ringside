@@ -8,6 +8,7 @@ import { recordStr } from "@/lib/world";
 import type { Sex } from "@/lib/types";
 import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
+import { PrintButton } from "@/components/PrintButton";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({ path: "/rankings", title: t("Rankings"), description: t("Current boxing rankings for every weight class and pound for pound, rated by an Elo-style system and updated after every fight.") }));
 
@@ -25,9 +26,10 @@ export default async function Rankings({ searchParams }: { searchParams: Promise
         <h1 className="font-display text-5xl font-extrabold uppercase">{sex === "female" ? t("Women’s rankings") : t("Current rankings")}</h1>
         <p className="mt-2 max-w-2xl text-muted">{t("Every division ranked by Elo-style rating. Active fighters with five or more bouts, a winning record and a fight in the last 24 months qualify. Arrows show movement over the last 90 days.")}</p>
         {thin && <p className="mt-3 max-w-2xl text-sm text-gold">{t("These rankings count only the fights Ringside holds. Most fighters here have only their most recent fights on record so far, so few reach the five fights a ranking needs; more qualify as the history is added.")}</p>}
-        <div className="mt-4 flex gap-2">
-          <Link href="/rankings" className={`chip ${sex === "male" ? "!border-gold/50 !text-gold" : ""}`}>{t("Men")}</Link>
-          <Link href="/rankings?sex=female" className={`chip ${sex === "female" ? "!border-gold/50 !text-gold" : ""}`}>{t("Women")}</Link>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link href="/rankings" className={`chip ${sex === "male" ? "!border-gold/50 !text-gold" : "no-print"}`}>{t("Men")}</Link>
+          <Link href="/rankings?sex=female" className={`chip ${sex === "female" ? "!border-gold/50 !text-gold" : "no-print"}`}>{t("Women")}</Link>
+          <span className="ms-auto"><PrintButton /></span>
         </div>
       </div>
       <section>
