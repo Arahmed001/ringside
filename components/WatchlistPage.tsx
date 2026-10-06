@@ -1,10 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useWatchlist } from "@/lib/useWatchlist";
 import type { WatchEntry } from "@/lib/watch";
 import { flag } from "@/lib/format";
 import { useLocale, useT } from "@/components/i18n";
 import { WatchlistAdd } from "@/components/WatchlistAdd";
+import { calendarPath } from "@/lib/calendar-link";
 import type { FighterHit } from "@/lib/fighter-search";
 import { useHref } from "@/components/L";
 import Link from "@/components/L";
@@ -12,6 +13,20 @@ import Link from "@/components/L";
 /** Soonest next fight first, then fighters with nothing booked (by name). */
 const byNext = (a: WatchEntry, b: WatchEntry) =>
   a.nextDate && b.nextDate ? a.nextDate.localeCompare(b.nextDate) : a.nextDate ? -1 : b.nextDate ? 1 : a.name.localeCompare(b.name);
+
+/** The upcoming fights of everyone on the list as a calendar: a file to add once, or an address a calendar app subscribes to and keeps up to date. */
+function CalendarLinks({ slugs, locale }: { slugs: string[]; locale: string }) {
+  const t = useT();
+  const host = useSyncExternalStore(() => () => {}, () => window.location.host, () => ""); // the address only exists in the browser: nothing on the server, so the link appears after the page is up
+  const path = calendarPath({ slugs, days: 180 }, locale);
+  return (
+    <div className="card flex flex-wrap items-center gap-3 p-4">
+      <p className="min-w-0 flex-1 text-sm text-muted">{t("Your fights as a calendar: the upcoming fights of everyone you follow, updated as cards change.")}</p>
+      <a href={path} download className="chip transition hover:!text-gold"><span aria-hidden="true">📅 </span>{t("Add to calendar")}</a>
+      {host ? <a href={`webcal://${host}${path}`} className="chip transition hover:!text-gold">{t("Subscribe in your calendar app")}</a> : null}
+    </div>
+  );
+}
 
 /** The whole watchlist: every fighter starred in this browser, with the next fight, last result and rating. */
 export function WatchlistPage({ suggestions }: { suggestions: FighterHit[] }) {
@@ -96,6 +111,7 @@ export function WatchlistPage({ suggestions }: { suggestions: FighterHit[] }) {
     <p className="text-xs text-muted">
       {mode === "account" ? t("Your watchlist is saved to your account.") : <>{t("Your watchlist is saved in this browser.")} <Link href="/account" className="inline-block py-1 text-ink underline decoration-dotted hover:text-gold">{t("Sign in to keep it on every device")}</Link></>}
     </p>
+    <CalendarLinks slugs={list} locale={locale} />
     <WatchlistAdd suggestions={suggestions} showSuggestions={false} />
     </div>
   );

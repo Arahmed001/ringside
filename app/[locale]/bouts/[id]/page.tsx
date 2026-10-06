@@ -19,6 +19,7 @@ import { METHOD_NAME, endsEarly } from "@/lib/methods";
 import { divisionLabel } from "@/lib/divisions";
 import { BoutScore } from "@/components/Awards";
 import { PrintButton } from "@/components/PrintButton";
+import { AddToCalendar } from "@/components/AddToCalendar";
 import type { PunchLine } from "@/lib/types";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; id: string }> }) => metaFor(params, async ({ id }, t) => {
@@ -98,7 +99,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
           <span className="ms-auto"><PrintButton /></span>
         </div>
 
-        {b.upcoming && b.status !== "cancelled" && <p className="mt-4 flex flex-wrap items-center gap-2 text-sm"><Link href={`/previews/${b.id}`} className="chip !border-gold/40 hover:!text-gold">{t("Read the preview")}</Link>{locked && <Link href="/accountability" className="chip hover:!text-gold">{t("Prediction on file since {date}: {a} / {b}", { date: fmtDate(locked.lockedOn, undefined, t.locale), a: pct(locked.pRed), b: pct(1 - locked.pRed) })}</Link>}</p>}
+        {b.upcoming && b.status !== "cancelled" && <p className="mt-4 flex flex-wrap items-center gap-2 text-sm"><Link href={`/previews/${b.id}`} className="chip !border-gold/40 hover:!text-gold">{t("Read the preview")}</Link><AddToCalendar kind="bout" id={b.id} />{locked && <Link href="/accountability" className="chip hover:!text-gold">{t("Prediction on file since {date}: {a} / {b}", { date: fmtDate(locked.lockedOn, undefined, t.locale), a: pct(locked.pRed), b: pct(1 - locked.pRed) })}</Link>}</p>}
         <div className="card mt-5 p-4 sm:p-6">
           <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-4">
             <Side f={red} color="#e5322d" win={winner?.id === red.id} />

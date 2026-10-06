@@ -19,7 +19,7 @@ import { ORGS_PAGE, PEOPLE_PAGE } from "./people-list";
 import { countryList } from "./countries";
 
 export type Locale = "en" | "ar";
-export interface SmokeRoute { path: string; kind: "page" | "api" | "svg" | "png" | "missing"; label: string; /** text the page must show (a search that has to find someone) */ mustShow?: string; /** not requested on the Arabic site: the path carries English the person typed, which the page rightly echoes */ englishOnly?: boolean }
+export interface SmokeRoute { path: string; kind: "page" | "api" | "svg" | "png" | "ics" | "missing"; label: string; /** text the page must show (a search that has to find someone) */ mustShow?: string; /** not requested on the Arabic site: the path carries English the person typed, which the page rightly echoes */ englishOnly?: boolean }
 
 /** Directories under app/[locale] whose URL has a parameter: every one must have a sampler below, or a new page escapes the check. */
 export const DYNAMIC_PAGES = ["all-time/[list]", "bouts/[id]", "boxers/[slug]", "countries/[slug]", "events/[id]", "fight-of-the-year/[year]", "orgs/[slug]", "people/[slug]", "previews/[id]", "rankings/[division]", "titles/[slug]"] as const;
@@ -156,6 +156,11 @@ export function smokeRoutes(w: World): SmokeRoute[] {
     out.push({ path: `/api/fighters?q=${q(star.name.slice(0, 4))}`, kind: "api", label: "api: fighter search" });
     out.push({ path: `/api/search?q=${q(star.name.slice(0, 4))}`, kind: "api", label: "api: search" });
     out.push({ path: `/api/watch?slugs=${star.slug}`, kind: "api", label: "api: watchlist" });
+    const card = [...w.events].reverse().find((e) => e.upcoming) ?? w.events[w.events.length - 1], fight = w.bouts[w.bouts.length - 1];
+    out.push({ path: "/feeds/calendar.ics", kind: "ics", label: "calendar: the next cards" });
+    out.push({ path: `/feeds/calendar.ics?slugs=${star.slug}&days=365&lang=ar`, kind: "ics", label: "calendar: a watchlist, in Arabic" });
+    if (card) out.push({ path: `/feeds/calendar.ics?event=${card.id}`, kind: "ics", label: "calendar: one card" });
+    if (fight) out.push({ path: `/feeds/calendar.ics?bout=${fight.id}&lang=ar`, kind: "ics", label: "calendar: one fight, in Arabic" });
     out.push({ path: `/api/scout/${star.slug}`, kind: "api", label: "api: scouting report" });
     out.push({ path: `/api/art/portrait/${star.slug}.svg`, kind: "svg", label: "portrait image" });
   }
@@ -245,6 +250,15 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
   if (route.kind === "api") {
     if (!/json/.test(contentType)) bad.push(`not JSON (${contentType})`);
     else { try { JSON.parse(body); } catch { bad.push("invalid JSON"); } }
+    return bad;
+  }
+  if (route.kind === "ics") { // a calendar a calendar app will read: the right type, whole, CRLF lines, none over 75 octets
+    if (!/text\/calendar/.test(contentType)) bad.push(`not a calendar (${contentType})`);
+    if (!body.startsWith("BEGIN:VCALENDAR\r\n") || !body.endsWith("END:VCALENDAR\r\n")) bad.push("not a whole VCALENDAR");
+    if (/[^\r]\n/.test(body)) bad.push("a line break that is not CRLF");
+    const long = body.split("\r\n").find((l) => new TextEncoder().encode(l).length > 75);
+    if (long) bad.push(`a line over 75 octets: ${long.slice(0, 40)}…`);
+    if ((body.match(/BEGIN:VEVENT/g) ?? []).length !== (body.match(/END:VEVENT/g) ?? []).length) bad.push("an event that does not end");
     return bad;
   }
   if (route.kind === "png") { // a share card: a real image, not an error page that happens to be 200

@@ -16,6 +16,7 @@ import { fmtDate, flag, methodLabel, daysUntil } from "@/lib/format";
 import { divisionLabel } from "@/lib/divisions";
 import { getT } from "@/lib/i18n/server";
 import { ShareButton } from "@/components/ShareButton";
+import { AddToCalendar } from "@/components/AddToCalendar";
 import { metaFor } from "@/lib/seo-server";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; id: string }> }) => metaFor(params, async ({ id }, t) => {
@@ -58,7 +59,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
       <div className="min-w-0">
         <div className="eyebrow mb-2">{e.status === "cancelled" ? t("Cancelled") : e.status === "postponed" ? t.n(daysUntil(e.date), "Postponed · now {n} day away", "Postponed · now {n} days away") : e.upcoming ? t.n(daysUntil(e.date), "In {n} day", "In {n} days") : t("Final results")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase leading-none">{t.name(e.name)}</h1>
-        <div className="mt-3"><ShareButton title={t.name(e.name)} /></div>
+        <div className="mt-3 flex flex-wrap items-center gap-2"><ShareButton title={t.name(e.name)} />{e.upcoming && e.status !== "cancelled" && <AddToCalendar kind="event" id={e.id} />}</div>
         <div className="mt-2 text-muted">{fmtDate(e.date, { weekday: "long", month: "long", day: "numeric", year: "numeric" }, t.locale)} · {t.name(e.venue)}, {t.name(e.city)} {flag(e.country)}</div>
         {venue && (venue.capacity || venue.lat !== null) && (
           <div className="mt-1 text-xs text-muted">

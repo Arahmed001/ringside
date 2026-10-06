@@ -282,6 +282,12 @@
   ]
  },
  {
+  "key": "{event}: {fight}",
+  "files": [
+   "lib/calendar.ts"
+  ]
+ },
+ {
   "key": "{events} events · {fighters} fighters signed · {w}-{l} combined",
   "files": [
    "app/[locale]/orgs/page.tsx"
@@ -791,7 +797,8 @@
   "plural": "{n} round",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
-   "app/[locale]/previews/[id]/page.tsx"
+   "app/[locale]/previews/[id]/page.tsx",
+   "lib/calendar.ts"
   ]
  },
  {
@@ -1592,7 +1599,8 @@
    "app/[locale]/bouts/[id]/page.tsx",
    "app/[locale]/orgs/[slug]/page.tsx",
    "app/[locale]/page.tsx",
-   "app/[locale]/people/[slug]/page.tsx"
+   "app/[locale]/people/[slug]/page.tsx",
+   "lib/calendar.ts"
   ]
  },
  {
@@ -1743,7 +1751,8 @@
  {
   "key": "+{n} more",
   "files": [
-   "app/[locale]/boxers/[slug]/page.tsx"
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "lib/calendar.ts"
   ]
  },
  {
@@ -2354,6 +2363,13 @@
   "key": "Add or correct who trains or manages a fighter, with a source an editor can check.",
   "files": [
    "app/[locale]/contribute/page.tsx"
+  ]
+ },
+ {
+  "key": "Add to calendar",
+  "files": [
+   "components/AddToCalendar.tsx",
+   "components/WatchlistPage.tsx"
   ]
  },
  {
@@ -5534,6 +5550,12 @@
   "key": "Fights ≥ {n}",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Fights I follow",
+  "files": [
+   "lib/calendar.ts"
   ]
  },
  {
@@ -10002,6 +10024,12 @@
   ]
  },
  {
+  "key": "Ringside fight calendar",
+  "files": [
+   "lib/calendar.ts"
+  ]
+ },
+ {
   "key": "Ringside rating",
   "files": [
    "app/[locale]/rankings/[division]/page.tsx"
@@ -11053,6 +11081,12 @@
   ]
  },
  {
+  "key": "Subscribe in your calendar app",
+  "files": [
+   "components/WatchlistPage.tsx"
+  ]
+ },
+ {
   "key": "subscription TV",
   "files": [
    "app/[locale]/money/page.tsx"
@@ -12088,6 +12122,12 @@
   ]
  },
  {
+  "key": "The upcoming fights of the fighters I follow on Ringside",
+  "files": [
+   "lib/calendar.ts"
+  ]
+ },
+ {
   "key": "The vacant {belt} is on the line.",
   "files": [
    "lib/preview.ts"
@@ -12963,6 +13003,12 @@
   "files": [
    "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Upcoming fights from Ringside",
+  "files": [
+   "lib/calendar.ts"
   ]
  },
  {
@@ -14175,6 +14221,12 @@
   "key": "Your fight-night picks, graded against the results and against the Ringside model’s call before the bell.",
   "files": [
    "app/[locale]/picks/page.tsx"
+  ]
+ },
+ {
+  "key": "Your fights as a calendar: the upcoming fights of everyone you follow, updated as cards change.",
+  "files": [
+   "components/WatchlistPage.tsx"
   ]
  },
  {
