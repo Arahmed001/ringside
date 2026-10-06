@@ -11,7 +11,8 @@ import { divisionLabel } from "@/lib/divisions";
 import { Headshot } from "@/components/Portrait";
 import { ProbBar } from "@/components/charts";
 import { PreviewArticle } from "@/components/PreviewArticle";
-import { JsonLd } from "@/components/JsonLd";
+import { BreadcrumbLd, JsonLd } from "@/components/JsonLd";
+import { isListedPreview } from "@/lib/sitemap";
 import { SectionTitle } from "@/components/ui";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; id: string }> }) => metaFor(params, async ({ id }, t) => {
@@ -20,8 +21,8 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string;
   if (!b) notFound();
   const pv = buildPreview(w, b, t);
   return {
-    path: `/previews/${id}`, type: "article" as const, title: pv.headline,
-    description: t("{standfirst} The model favours {name} at {pct}%.", { standfirst: pv.standfirst, name: t.name(pv.pick.favourite.name), pct: Math.round(Math.max(pv.pick.pA, pv.pick.pB) * 100) }).slice(0, 300),
+    path: `/previews/${id}`, type: "article" as const, title: pv.headline, noindex: !isListedPreview(w, b),
+    description: t("{standfirst} The model favours {name} at {pct}%.", { standfirst: pv.standfirst, name: t.name(pv.pick.favourite.name), pct: Math.round(Math.max(pv.pick.pA, pv.pick.pB) * 100) }),
   };
 });
 
@@ -36,11 +37,13 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
   const { red, blue, event } = pv;
   const days = Math.max(0, daysUntil(event.date));
   const name = (b: typeof red) => t.name(b.name);
+  const matchup = t("{a} vs {b}", { a: name(red), b: name(blue) });
 
   return (
     <div className="space-y-12">
+      <BreadcrumbLd locale={t.locale} trail={[{ name: t("Fight previews"), path: "/previews" }, { name: matchup, path: `/previews/${bout.id}` }]} />
       <JsonLd data={{
-        "@type": "SportsEvent", name: `${name(red)} vs ${name(blue)}`, sport: "Boxing", startDate: event.date, url: abs(localePath(t.locale, `/previews/${bout.id}`)), inLanguage: t.locale,
+        "@type": "SportsEvent", name: matchup, sport: "Boxing", startDate: event.date, url: abs(localePath(t.locale, `/previews/${bout.id}`)), inLanguage: t.locale,
         location: { "@type": "Place", name: t.name(event.venue), address: { "@type": "PostalAddress", addressLocality: t.name(event.city), addressCountry: event.country } },
         competitor: [red, blue].map((f) => ({ "@type": "Person", name: name(f), url: abs(localePath(t.locale, `/boxers/${f.slug}`)) })),
         eventStatus: bout.status === "cancelled" ? "https://schema.org/EventCancelled" : "https://schema.org/EventScheduled",

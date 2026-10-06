@@ -26,6 +26,8 @@ import { daysUntil, fmtDate, methodLabel } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
 import { localePath } from "@/lib/i18n/config";
+import { abs } from "@/lib/seo";
+import { JsonLd } from "@/components/JsonLd";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({ path: "/", title: t("Boxing ratings, rankings and predictions"), description: t("Every fighter, every fight, every number. Ratings, rankings, predictions and scouting reports for professional boxing.") }));
 
@@ -62,6 +64,11 @@ export default async function Home() {
 
   return (
     <div className="space-y-16 overflow-x-clip">
+      <JsonLd data={{
+        "@type": "WebSite", name: "Ringside", url: abs(localePath(t.locale, "/")), inLanguage: t.locale,
+        potentialAction: { "@type": "SearchAction", target: `${abs(localePath(t.locale, "/boxers"))}?q={search_term_string}`, "query-input": "required name=search_term_string" },
+      }} />
+      <JsonLd data={{ "@type": "Organization", name: "Ringside", url: abs("/") }} />
       {/* Hero: the next fight is the page (direction A) */}
       {next && p ? (
         <section className="rise grid items-end gap-10 md:grid-cols-[minmax(0,15rem)_1fr] lg:grid-cols-[minmax(0,27rem)_1fr]">

@@ -8,7 +8,7 @@ import { CommandPalette } from "@/components/CommandPalette";
 import { AccountMenu } from "@/components/AccountMenu";
 import { dirOf, isLocale, localePath } from "@/lib/i18n/config";
 import { clientDict, tFor } from "@/lib/i18n/dicts";
-import { abs, indexable, isDemoData, jsonLd, siteUrl } from "@/lib/seo";
+import { indexable, isDemoData, siteUrl } from "@/lib/seo";
 import { vendorCredit } from "@/lib/site-info";
 import { NavGroups, Logo } from "@/components/SideNav";
 import { NavProgress } from "@/components/NavProgress";
@@ -53,10 +53,6 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
   const t = tFor(locale);
   const nonce = (await headers()).get("x-nonce") ?? undefined; // set per request by proxy.ts: the content security policy only lets scripts with it run
   const ar = locale === "ar";
-  const site = {
-    "@type": "WebSite", name: "Ringside", url: abs(localePath(locale, "/")), inLanguage: locale,
-    potentialAction: { "@type": "SearchAction", target: `${abs(localePath(locale, "/boxers"))}?q={search_term_string}`, "query-input": "required name=search_term_string" },
-  };
   return (
     <html lang={locale} dir={dirOf(locale)} suppressHydrationWarning className={ar ? `${bodyAr.variable} ${displayAr.variable} ${serifAr.variable}` : `${body.variable} ${display.variable} ${serif.variable}`}>
       <body className="min-h-screen">
@@ -96,7 +92,6 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
             </div>
           </div>
         </I18nProvider>
-        {indexable() && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(site) }} />}
       </body>
     </html>
   );

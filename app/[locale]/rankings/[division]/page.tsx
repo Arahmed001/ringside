@@ -20,6 +20,7 @@ import { OfficialListView } from "@/components/OfficialList";
 import { officialKey } from "@/lib/official";
 import { RANKING_BODIES } from "@/lib/providers";
 import { metaFor, pagedTitle, type SearchParams } from "@/lib/seo-server";
+import { BreadcrumbLd } from "@/components/JsonLd";
 
 export const generateMetadata = ({ params, searchParams }: { params: Promise<{ locale: string; division: string }>; searchParams: Promise<SearchParams> }) => metaFor(params, async (p, t, sp) => {
   const d = divisionFromSlug(p.division);
@@ -72,6 +73,7 @@ export default async function DivisionRankings({ params, searchParams }: { param
 
   return (
     <div>
+      <BreadcrumbLd locale={t.locale} trail={[{ name: t("Rankings"), path: "/rankings" }, { name: t("{division} rankings", { division: t(d.name) }), path: `/rankings/${slugifyDivision(d.name)}` }]} />
       <div className="flex flex-wrap gap-1.5">
         {DIVISIONS_HEAVIEST_FIRST.map((x) => <Link key={x.name} href={`/rankings/${slugifyDivision(x.name)}${sexQ}`} className={`chip transition hover:text-ink ${x.name === d.name ? "!border-gold/50 !text-gold" : ""}`}>{t(x.short)}</Link>)}
       </div>

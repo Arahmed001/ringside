@@ -4,7 +4,8 @@ import { ScrollRegion } from "@/components/ScrollRegion";
 import Link from "@/components/L";
 import { localePath } from "@/lib/i18n/config";
 import { abs } from "@/lib/seo";
-import { JsonLd } from "@/components/JsonLd";
+import { BreadcrumbLd, JsonLd } from "@/components/JsonLd";
+import { isListedBoxer } from "@/lib/sitemap";
 import { CareerMoneyCard } from "@/components/Money";
 import { TitlesCard, NextFightCard } from "@/components/TitlesCard";
 import { BoxerRecords } from "@/components/Awards";
@@ -48,7 +49,7 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string;
     const b = (await getWorld()).bySlug.get(slug);
     if (!b) return { path: `/boxers/${slug}`, title: t("Fighter"), description: t("Fighter profile on Ringside: record, ratings, team and fight history.") };
     return {
-      path: `/boxers/${b.slug}`, type: "profile" as const, title: t.name(b.name),
+      path: `/boxers/${b.slug}`, type: "profile" as const, title: t.name(b.name), noindex: !isListedBoxer(b), // a fighter with no fights on record is a name and nothing else
       description: t("{name}: {division} boxer from {country}. Record {record} with {kos} KOs and a {rating} Elo rating. Fight history, team, weigh-ins and scouting report.", {
         name: t.name(b.name), division: divisionLabel(b.weightClass, b.sex, t), country: countryName(b.country, t.locale), record: recordStr(b), kos: koView(b).kos, rating: Math.round(b.rating),
       }),
@@ -164,6 +165,7 @@ const HONOURS_SHOWN = 8;
   return (
     <>
     <div className="space-y-10 no-print">
+      <BreadcrumbLd locale={t.locale} trail={[{ name: t("Fighters"), path: "/boxers" }, { name: t.name(b.name), path: `/boxers/${b.slug}` }]} />
       <JsonLd data={{
         "@type": "Person", name: t.name(b.name), ...(t.name(b.name) !== b.name ? { alternateName: [b.name] } : {}), jobTitle: "Professional boxer",
         nationality: { "@type": "Country", name: b.country }, ...(b.birthDate ? { birthDate: b.birthDate } : {}), ...(b.photoUrl ? { image: b.photoUrl } : {}),
