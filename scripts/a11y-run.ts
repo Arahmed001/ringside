@@ -9,6 +9,7 @@
 import { spawn, execSync, type ChildProcess } from "node:child_process";
 import { createRequire } from "node:module";
 import fs from "node:fs";
+import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -26,13 +27,14 @@ const db = path.resolve(arg("db") ?? path.join(tmp, "demo.db"));
 let child: ChildProcess | null = null;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const killPort = () => { try { for (const pid of execSync(`lsof -tiTCP:${port} -sTCP:LISTEN`, { encoding: "utf8" }).split("\n").filter(Boolean)) process.kill(Number(pid)); } catch { /* nothing listening */ } };
-const portBusy = () => { try { return execSync(`lsof -tiTCP:${port} -sTCP:LISTEN`, { encoding: "utf8" }).trim().length > 0; } catch { return false; } };
+/** Asks the port itself (lsof does not always see a server started from another shell): is anything answering there? */
+const portBusy = () => new Promise<boolean>((resolve) => { const c = net.connect({ port, host: "127.0.0.1" }); c.once("connect", () => { c.destroy(); resolve(true); }); c.once("error", () => resolve(false)); });
 const stop = () => { child?.kill(); killPort(); child = null; };
 
 async function boot() {
   killPort();
-  for (let i = 0; i < 40 && portBusy(); i++) await sleep(250); // a server that is still shutting down would answer the health check and hold the port
-  if (portBusy()) throw new Error(`port ${port} is in use by something that would not stop: pick another with --port`);
+  for (let i = 0; i < 40 && (await portBusy()); i++) await sleep(250); // a server that is still shutting down would answer the health check and hold the port
+  if (await portBusy()) throw new Error(`port ${port} is in use by a server this script cannot stop (a leftover?): stop it, or pick another port with --port`);
   child = spawn("npx", ["next", "start", "-p", String(port)], {
     env: { ...process.env, NODE_ENV: "production", DATABASE_PATH: db, ACCOUNTS_DB_PATH: path.join(tmp, "accounts.db"), RINGSIDE_NOW: "2026-10-03", NEXT_TELEMETRY_DISABLED: "1" }, stdio: "ignore",
   });

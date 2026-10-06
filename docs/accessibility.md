@@ -25,6 +25,12 @@ Target: WCAG 2.2 AA, English and Arabic. This is what was measured, what changed
 - **Arabic strings** added here (skip link, list view, chart summary) are machine translations awaiting native review, like the rest.
 - Colour contrast was measured on the dark theme only; there is no light theme.
 
+## Running the sweep for every page: `npm run a11y`
+`npm run build`, then `npm run a11y`. It starts its own production server on a throwaway demo league (or `--db FILE`), opens every page in a real browser in both languages at 375 and 1280 px, injects axe-core and `scripts/a11y-sweep.js`, and prints `BAD` with the details for any page that is not clean (exit 1). Options: `--paths /a,/b`, `--widths 375`, `--langs ar`, `--port N`, `--headed`. It needs Playwright with a browser (`npm i -g playwright && npx playwright install chromium`, or `PLAYWRIGHT_MODULE=/path/to/playwright`); the site does not depend on it. A full run is about eight minutes.
+- A leftover server on the port stops the run with a message (it would otherwise answer with an older build's pages): stop it first.
+- Counted as accepted, not as failures: text cut by `.truncate` or a two-line `line-clamp` (long fighter and fight names in dense lists). With WCAG 1.4.12 text spacing forced on, a clamped name loses its last words; the full name is the link's destination and its page title. If that is ever judged not enough, remove the exemption in `a11y-sweep.js` and the sweep will list every clamp.
+- Only headings that are rendered count towards "exactly one h1" (the print-only summary has its own, hidden on screen).
+
 ## Re-running the sweep
 The iframe method this section used to describe stopped working in round 22 (the security headers forbid framing the site), so pages are checked one at a time:
 
