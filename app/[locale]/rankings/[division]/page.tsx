@@ -1,7 +1,7 @@
 import Link from "@/components/L";
 import { notFound } from "next/navigation";
 import { getWorld, koView, recordStr } from "@/lib/world";
-import { DIVISIONS, divisionFromSlug, divisionLabel, limitLabel, slugifyDivision } from "@/lib/divisions";
+import { DIVISIONS_HEAVIEST_FIRST, divisionFromSlug, divisionLabel, limitLabel, slugifyDivision } from "@/lib/divisions";
 import { rankDivision, rankedBoxers, rankRow, rankingDepth } from "@/lib/rankings";
 import { pageRows } from "@/lib/people-list";
 import { ListFinder } from "@/components/ListFinder";
@@ -56,7 +56,7 @@ export default async function DivisionRankings({ params, searchParams }: { param
   return (
     <div>
       <div className="flex flex-wrap gap-1.5">
-        {DIVISIONS.map((x) => <Link key={x.name} href={`/rankings/${slugifyDivision(x.name)}${sexQ}`} className={`chip transition hover:text-ink ${x.name === d.name ? "!border-gold/50 !text-gold" : ""}`}>{t(x.short)}</Link>)}
+        {DIVISIONS_HEAVIEST_FIRST.map((x) => <Link key={x.name} href={`/rankings/${slugifyDivision(x.name)}${sexQ}`} className={`chip transition hover:text-ink ${x.name === d.name ? "!border-gold/50 !text-gold" : ""}`}>{t(x.short)}</Link>)}
       </div>
       <div className="eyebrow mb-2 mt-8">{limitLabel(d, t)}</div>
       <h1 className="font-display text-6xl font-extrabold uppercase leading-none">{divisionLabel(d.name, sex, t)}</h1>

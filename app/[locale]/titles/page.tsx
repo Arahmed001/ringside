@@ -1,7 +1,7 @@
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
 import { belts, beltLabel } from "@/lib/lineage";
-import { DIVISIONS, divisionLabel, slugifyDivision } from "@/lib/divisions";
+import { DIVISIONS_HEAVIEST_FIRST, divisionLabel, slugifyDivision } from "@/lib/divisions";
 import { Headshot } from "@/components/Portrait";
 import { SectionTitle, Stat } from "@/components/ui";
 import { fmtDate } from "@/lib/format";
@@ -45,10 +45,10 @@ export default async function Titles({ searchParams }: { searchParams: Promise<{
       </section>
 
       <nav aria-label={t("Jump to a division")} className="-mt-6 flex flex-wrap gap-1.5">
-        {DIVISIONS.filter((d) => mine.some((b) => b.division === d.name)).map((d) => <a key={d.name} href={`#div-${slugifyDivision(d.name)}`} className="chip hover:!text-ink">{divisionLabel(d.name, sex, t)}</a>)}
+        {DIVISIONS_HEAVIEST_FIRST.filter((d) => mine.some((b) => b.division === d.name)).map((d) => <a key={d.name} href={`#div-${slugifyDivision(d.name)}`} className="chip hover:!text-ink">{divisionLabel(d.name, sex, t)}</a>)}
       </nav>
 
-      {DIVISIONS.map((d) => {
+      {DIVISIONS_HEAVIEST_FIRST.map((d) => {
         const list = mine.filter((b) => b.division === d.name);
         if (!list.length) return null;
         return (
