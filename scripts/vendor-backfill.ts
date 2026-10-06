@@ -33,7 +33,7 @@ import { loadFeed } from "../lib/feed";
 import type { DataProvider } from "../lib/providers";
 import { countBySeverity, groupIssues, sanitizeFeed } from "../lib/validate";
 import { todayIso } from "../lib/clock";
-import { acquireBackfillLock, describePlan, lagDays, foreignFighters, releaseBackfillLock, updateSince } from "../lib/vendor-backfill";
+import { CheckRefusedError, acquireBackfillLock, describeNothingToUpdate, describePlan, exitCodeFor, skippedSummary, lagDays, foreignFighters, releaseBackfillLock, updateSince } from "../lib/vendor-backfill";
 import { coherentCore, describeConflictReport, dropConflicted, describeReconciliation, explainConflicts, reconcileDb, reconcileFeed, recordGate, restrictFeed } from "../lib/vendor-verify";
 
 /** how many days the vendor's career totals may trail a result before a surplus counts as a contradiction: one setting for the daily update audit, a longer one for a load */
@@ -89,7 +89,7 @@ async function main() {
     if (f.foreign > 0 && !flag("into-existing")) throw new Error(`This database already holds ${f.foreign} fighter(s) that did not come from this feed${f.example ? ` (for example ${f.example})` : ""}. Loading real fighters next to them would mix the two. Point DATABASE_PATH at a new file, or pass --into-existing if you mean it.`);
     if (update) {
       const since = updateSince(db, todayIso());
-      if (!since) throw new Error("There is nothing to update yet: the database has no completed card. Run the backfill first.");
+      if (!since) throw new Error(describeNothingToUpdate(db, todayIso()));
       base.since = arg("since") ?? since;
       log(`updating from ${base.since}`);
     } else if (f.fromFeed > 0) log(`the database already holds ${f.fromFeed} fighters from this feed: this load updates them in place`);
@@ -109,7 +109,7 @@ async function main() {
   log(`fetched: ${raw.boxers.length} fighters, ${raw.events.length} events, ${raw.bouts.length} bouts; ${provider.requests()} request(s) made, ${provider.cacheHits()} answered from the cache, ${(provider.bytes() / 1_048_576).toFixed(1)} MB downloaded, ${Math.round((Date.now() - started) / 1000)} s`);
   if (notes.length) console.log(`approximated or skipped:\n${notes.map(([k, v]) => `  ${k.padEnd(28)} ${v}`).join("\n")}`);
   if (provider.notes().boutsDroppedUnknownFighter > 0 && !flag("allow-incomplete")) {
-    throw new Error(`${provider.notes().boutsDroppedUnknownFighter} fight(s) were left out because a fighter could not be fetched (see the "skipped" lines above). Run the same command again: what already succeeded is cached, so it only retries the rest. --allow-incomplete loads without them.`);
+    throw new CheckRefusedError(`${provider.notes().boutsDroppedUnknownFighter} fight(s) were left out because a fighter could not be fetched (see the "skipped" lines above). Run the same command again: what already succeeded is cached, so it only retries the rest. --allow-incomplete loads without them.`);
   }
 
   let source: DataProvider = provider;
@@ -177,8 +177,8 @@ async function main() {
     console.log("\n--check: the database was not touched.");
     return;
   }
-  if (!gate.ok) throw new Error(`Nothing was loaded, because ${gate.reasons.join(" Also, ")}`);
-  if (sev.errors > 0 && !flag("allow-errors")) throw new Error(`The validator found ${sev.errors} error(s); nothing was loaded. Fix the cause (or pass --allow-errors to drop those rows and load the rest).`);
+  if (!gate.ok) throw new CheckRefusedError(`Nothing was loaded, because ${gate.reasons.join(" Also, ")}`);
+  if (sev.errors > 0 && !flag("allow-errors")) throw new CheckRefusedError(`The validator found ${sev.errors} error(s); nothing was loaded. Fix the cause (or pass --allow-errors to drop those rows and load the rest).`);
 
   const { ingest } = await import("../lib/ingest");
   if (db && foreignFighters(db).total > 0 && !flag("no-backup")) {
@@ -201,5 +201,6 @@ async function main() {
     for (const line of describeReconciliation(rec)) console.log(line);
   }
   console.log("\nRatings were recomputed. A running app notices the change by itself: its next request rebuilds the world (no restart).");
+  if (update) { const line = skippedSummary(provider.notes()); if (line) console.log(line); } // last, so `tail -n 3` of the log finds it
 }
-main().catch((e) => { console.error(`\n${e instanceof Error ? e.message : e}`); process.exit(1); });
+main().catch((e) => { console.error(`\n${e instanceof Error ? e.message : e}`); process.exit(exitCodeFor(e)); });
