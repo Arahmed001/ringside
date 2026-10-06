@@ -82,7 +82,7 @@ Do this only when the current data is wrong or lost (a bad load, a deleted accou
 6. **Start the site.** `docker start ringside`, then open `https://your-address/api/health` (`"status":"ok"` and the fighter count), sign in with a test account and open `/watchlist`.
 7. **Undo, if it was the wrong backup.** `docker stop ringside`, then the `To undo` line it printed (it runs this same command on the folder `before-restore/<date and time>`), then `docker start ringside`. The data is back as it was before step 4. The `before-restore` folders are kept on the volume (the last 50); delete old ones when you no longer need them.
 
-How it was checked: the command was rehearsed end to end on a copy of the demo league (no real data touched), including a damaged backup, a site still running, a dry run and the undo; the record is in PLAN.md section 205. It has not yet been run against your host's volume, so do step 3 once on a quiet day.
+How it was checked: the command was rehearsed end to end on a copy of the demo league (no real data touched), including a damaged backup, a site still running, a dry run and the undo; the record is in PLAN.md section 209. It has not yet been run against your host's volume, so do step 3 once on a quiet day.
 
 ## 6. Know when the overnight update stops (once the real league is live)
 
