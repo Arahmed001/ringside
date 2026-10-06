@@ -73,6 +73,14 @@ body::before {
   * { transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
 
+/* A row of cards that always fills its width: a last row with fewer cards stretches them instead of leaving a gap.
+   --cols is how many fit in a row. .fill-4 is 2 across on a phone and 4 from 768 px; .fill-3 is 1 across and 3. */
+.fill-row { display: flex; flex-wrap: wrap; gap: .75rem; }
+.fill-row > * { flex: 1 1 calc((100% - (var(--cols) - 1) * .75rem) / var(--cols)); min-width: 0; }
+.fill-4 { --cols: 2; }
+.fill-3 { --cols: 1; }
+@media (min-width: 768px) { .fill-4 { --cols: 4; } .fill-3 { --cols: 3; } }
+
 /* A hint or value too long for its box ends in an ellipsis instead of being cut mid-word. */
 input { text-overflow: ellipsis; }
 
