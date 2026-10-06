@@ -70,3 +70,25 @@ test("every list of weight classes shown on a page starts with heavyweight (roun
   }
   assert.match(fs.readFileSync(path.join(root, "app/[locale]/weights/page.tsx"), "utf8"), /\.reverse\(\)/);
 });
+
+test("the count-up: starts at 80 % of the figure, eases out, whole numbers, exactly the figure at the end; the page carries the final figure from the first byte (round 120)", async () => {
+  const { countAt, COUNT_MS } = await import("../lib/count-up");
+  assert.equal(countAt(1600, 0), 1280, "starts at 80 %");
+  assert.equal(countAt(1600, COUNT_MS), 1600); assert.equal(countAt(1600, COUNT_MS + 500), 1600);
+  let prev = 0;
+  for (let ms = 0; ms <= COUNT_MS; ms += 25) { const n = countAt(1600, ms); assert.ok(Number.isInteger(n) && n >= prev && n <= 1600, `${ms} ms: ${n}`); prev = n; }
+  assert.ok(countAt(1600, COUNT_MS / 2) > 1280 + 0.6 * 320, "eased out: past half the distance at half the time");
+  assert.equal(countAt(NaN, 100), NaN);
+  const src = fs.readFileSync(path.join(root, "components/CountUp.tsx"), "utf8");
+  assert.match(src, /return <span ref=\{el\}>\{value\}\{suffix\}<\/span>/, "the rendered text is the final figure");
+  assert.match(src, /prefers-reduced-motion: reduce/, "reduced motion: nothing moves");
+  assert.match(src, /node\.textContent = `\$\{value\}\$\{suffix\}`/, "the real text is put back");
+  for (const [f, needle] of [["app/[locale]/rankings/[division]/page.tsx", "<CountUp value="], ["components/ChartI18n.tsx", "<CountUp value="], ["app/[locale]/boxers/[slug]/page.tsx", " countUp />"]] as const) assert.ok(fs.readFileSync(path.join(root, f), "utf8").includes(needle), `${f} uses the count-up`);
+});
+
+test("the watch star pops only when the visitor starts watching, and tables mark the row under the pointer (round 120)", () => {
+  const w = fs.readFileSync(path.join(root, "components/Watch.tsx"), "utf8");
+  assert.match(w, /setPopped\(!on\)/); assert.match(w, /on && popped \? "star-pop"/, "not on a page load that finds the star already on");
+  assert.match(css, /\.row-hl:hover > :first-child/); assert.match(css, /html\[dir="rtl"\] \.row-hl:hover/, "the marker is on the reading-start edge in Arabic too");
+  assert.match(fs.readFileSync(path.join(root, "app/[locale]/rankings/[division]/page.tsx"), "utf8"), /className="row-hl /);
+});

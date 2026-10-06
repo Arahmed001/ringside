@@ -186,8 +186,15 @@ html[dir="rtl"] .nav-progress { transform-origin: right; }
 .nav-progress[data-phase="run"] { opacity: 1; transform: scaleX(.7); transition: transform 8s cubic-bezier(.1,.6,.2,1); }
 .nav-progress[data-phase="done"] { opacity: 0; transform: scaleX(1); transition: transform .2s ease-out, opacity .3s ease-out .2s; }
 @media (prefers-reduced-motion: reduce) {
-  .fade-in, .pop-in, .drawer[open], .drawer[open]::backdrop { animation: none; }
+  .fade-in, .pop-in, .drawer[open], .drawer[open]::backdrop, .star-pop, .growx-end { animation: none; }
   button:not(:disabled):active, .chip[role="button"]:active, [role="tab"]:active, summary:active { transform: none; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
+/* Round 120: the details on the pages. */
+@keyframes star-pop { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
+.star-pop { animation: star-pop .32s var(--ease-out); }
+.growx-end { transform-origin: right; animation: growx .9s cubic-bezier(.2,.8,.2,1) both; }
+/* A table row under the pointer or with focus inside it gets a gold marker on its starting edge (the first cell), so the eye keeps its line across a wide table. */
+.row-hl:hover > :first-child, .row-hl:focus-within > :first-child { box-shadow: inset 3px 0 0 var(--gold); }
+html[dir="rtl"] .row-hl:hover > :first-child, html[dir="rtl"] .row-hl:focus-within > :first-child { box-shadow: inset -3px 0 0 var(--gold); }
 @media print { .nav-progress { display: none; } }

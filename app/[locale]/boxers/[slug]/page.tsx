@@ -198,7 +198,7 @@ const HONOURS_SHOWN = 8;
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Stat label={t("Record")} value={recordStr(b)} sub={career.source !== "loaded" ? t.n(career.total, "{n} fight in all", "{n} fights in all") : t.n(b.bouts, "{n} fight", "{n} fights")} />
             <Stat label={t("Knockouts")} value={ko.kos} sub={t("{p} of wins", { p: pct(ko.rate) })} />
-            <Stat label={t("Rating")} value={Math.round(b.rating)} sub={t("Elo-style")} />
+            <Stat label={t("Rating")} value={Math.round(b.rating)} sub={t("Elo-style")} countUp />
             <Stat label={t("Reach")} value={orDash(b.reachCm, (n) => t("{n}cm", { n }))} sub={isKnown(b.heightCm) ? t("{h}cm tall · {limit}", { h: b.heightCm, limit: limitLabel(div, t) }) : limitLabel(div, t)} />
           </div>
           {recent.length > 0 && (

@@ -1,6 +1,7 @@
 import Link from "@/components/L";
 import type { BoxerFull, BoutRow } from "@/lib/types";
 import { Headshot } from "./Portrait";
+import { CountUp } from "./CountUp";
 import { archetype, ARCH_COLOR } from "@/lib/style";
 import { countryName, flag, fmtDate, methodLabel } from "@/lib/format";
 import { divisionLabel } from "@/lib/divisions";
@@ -81,12 +82,12 @@ export async function BoutLine({ bout, focusId, context }: { bout: BoutRow; focu
   );
 }
 
-export function Stat({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
+export function Stat({ label, value, sub, countUp }: { label: string; value: string | number; sub?: string; /** a whole-number figure that counts up once on load (components/CountUp.tsx) */ countUp?: boolean }) {
   return (
     <div className="card p-4">
       <div className="text-xs uppercase tracking-widest text-muted">{label}</div>
       {/* a long figure (a combined record, "660-575-59") is set smaller on phones and never broken at its hyphens; a value with spaces ("56% vs 40%") may wrap at them */}
-      <div className={`${/\s/.test(String(value)) ? "text-balance" : "whitespace-nowrap"} font-display font-bold leading-tight tabular sm:text-4xl ${String(value).length >= 9 ? "text-2xl" : String(value).length >= 7 ? "text-3xl" : "text-4xl"}`}>{value}</div>
+      <div className={`${/\s/.test(String(value)) ? "text-balance" : "whitespace-nowrap"} font-display font-bold leading-tight tabular sm:text-4xl ${String(value).length >= 9 ? "text-2xl" : String(value).length >= 7 ? "text-3xl" : "text-4xl"}`}>{countUp && typeof value === "number" ? <CountUp value={value} /> : value}</div>
       {sub && <div className="text-xs text-muted">{sub}</div>}
     </div>
   );
