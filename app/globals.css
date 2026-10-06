@@ -52,7 +52,7 @@ body::before {
 .card { background: linear-gradient(180deg, var(--panel), #101015); border: 1px solid var(--line); border-radius: 18px; }
 .card-hover { transition: transform .25s cubic-bezier(.2,.8,.2,1), border-color .25s, box-shadow .25s; }
 .card-hover:hover { transform: translateY(-3px); border-color: #3a3a46; box-shadow: 0 18px 40px -18px rgba(0,0,0,.8); }
-.eyebrow { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .18em; font-size: .72rem; color: var(--gold); font-weight: 600; }
+.eyebrow { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .18em; font-size: .75rem; color: var(--gold); font-weight: 600; }
 .chip { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid var(--line); background: var(--panel-2); padding: .22rem .65rem; border-radius: 999px; font-size: .75rem; color: var(--muted); }
 .tabular { font-variant-numeric: tabular-nums; }
 

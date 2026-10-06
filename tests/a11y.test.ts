@@ -36,6 +36,12 @@ test("small red text uses the text-safe red, and red buttons use the darker fill
   }
 });
 
+test("no text under 12px in the stylesheet either: every font-size in app/globals.css that is a plain length is 12px or more (found in the overnight phone sweep: .eyebrow was .72rem, 11.5px, on every page, and neither axe nor the class scan below looks at a stylesheet rule)", () => {
+  const sizes = [...css.matchAll(/font-size:\s*([\d.]+)(px|rem)/g)].map((m) => ({ at: m[0], px: m[2] === "rem" ? Number(m[1]) * 16 : Number(m[1]) }));
+  assert.ok(sizes.length >= 3, "the scan found the sizes");
+  assert.deepEqual(sizes.filter((x) => x.px < 12).map((x) => x.at), []);
+});
+
 test("no text under 12px", () => {
   for (const f of sources) assert.ok(!/text-\[(9|10|11)px\]/.test(read(f)), `${f} has text under 12px`);
 });
