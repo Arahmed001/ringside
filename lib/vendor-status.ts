@@ -30,10 +30,10 @@ export function keyState(key: string | undefined): { set: boolean; length: numbe
   return { set: k.length > 0, length: k.length, placeholder: k.length > 0 && (k.length < 30 || /\s|…|\.\.\./.test(k) || looksLikePlaceholder(k)) };
 }
 
-export interface CacheState { fighters: number; listPages: number; rankingPages: number; staleTemp: number; newest: Date | null; fightersLastHour: number; fightersLast6Hours: number }
+export interface CacheState { fighters: number; listPages: number; rankingPages: number; staleTemp: number; newest: Date | null; fightersLastHour: number; fightersLast6Hours: number; /** fighter answers newer than the `since` the count was asked for (the start of the fetch now running) */ fightersSince?: number }
 /** The cache directory counted: fighter answers, fight-list pages, rankings pages, leftover temp files, and how many fighter answers arrived in the last hour and six hours. */
-export function cacheState(dir: string, now = Date.now()): CacheState {
-  const s: CacheState = { fighters: 0, listPages: 0, rankingPages: 0, staleTemp: 0, newest: null, fightersLastHour: 0, fightersLast6Hours: 0 };
+export function cacheState(dir: string, now = Date.now(), since?: number): CacheState {
+  const s: CacheState = { fighters: 0, listPages: 0, rankingPages: 0, staleTemp: 0, newest: null, fightersLastHour: 0, fightersLast6Hours: 0, ...(since !== undefined ? { fightersSince: 0 } : {}) };
   let names: string[] = [];
   try { names = fs.readdirSync(dir); } catch { return s; }
   for (const f of names) {
@@ -41,7 +41,7 @@ export function cacheState(dir: string, now = Date.now()): CacheState {
     try { m = fs.statSync(path.join(dir, f)).mtimeMs; } catch { continue; }
     if (!s.newest || m > s.newest.getTime()) s.newest = new Date(m);
     if (f.endsWith(".tmp")) { s.staleTemp++; continue; }
-    if (f.startsWith("v2-fighters-")) { s.fighters++; if (now - m <= 3_600_000) s.fightersLastHour++; if (now - m <= 6 * 3_600_000) s.fightersLast6Hours++; }
+    if (f.startsWith("v2-fighters-")) { s.fighters++; if (now - m <= 3_600_000) s.fightersLastHour++; if (now - m <= 6 * 3_600_000) s.fightersLast6Hours++; if (since !== undefined && m >= since) s.fightersSince = (s.fightersSince ?? 0) + 1; }
     else if (f.startsWith("v2-fights")) s.listPages++;
     else if (f.startsWith("v2-rankings")) s.rankingPages++;
   }
@@ -62,10 +62,22 @@ export function describeStatus(i: StatusInput): string[] {
   out.push(`  ${fmt(c.fighters)} fighters${i.total ? ` of ${fmt(i.total)} (${((100 * c.fighters) / i.total).toFixed(1)}%)` : ""}, ${fmt(c.listPages)} fight-list pages, ${c.rankingPages} rankings pages${c.staleTemp ? `, ${c.staleTemp} stale temp file(s) (harmless: a kill left them)` : ""}`);
   if (c.newest) out.push(`  newest answer ${c.newest.toISOString().replace("T", " ").slice(0, 19)} UTC; ${c.fightersLastHour} fighters in the last hour, ${c.fightersLast6Hours} in the last six`);
   const left = i.total ? Math.max(0, i.total - c.fighters) : null;
-  // the six-hour average is steadier than the last hour (a short outage or a sleep makes one hour look like a crawl)
-  const perHour = c.fightersLast6Hours >= 300 ? c.fightersLast6Hours / 6 : c.fightersLastHour >= 50 ? c.fightersLastHour : 400;
-  const slowed = i.running.length > 0 && c.fightersLast6Hours >= 300 && c.fightersLastHour < 0.5 * (c.fightersLast6Hours / 6);
-  if (left !== null) out.push(left ? `  ${fmt(left)} to fetch: about ${hours(left / perHour)} at ${Math.round(perHour)} an hour` : "  every fighter in the fight list is in the cache");
+  // a fetch started in the last six hours has no six-hour pace to speak of: its own work since it started is the pace (a fetch that has run four minutes is not at "119 an hour",
+  // and the six-hour count would include an earlier run and the gap before this one). Too soon to tell, the plan's 400 an hour is assumed and the line says so.
+  const started = Math.min(...i.running.map((r) => Date.parse(r.startedAt)).filter(Number.isFinite));
+  const sinceH = Number.isFinite(started) ? Math.max(0, (i.now?.getTime() ?? Date.now()) - started) / 3_600_000 : Infinity;
+  const recentRun = i.running.length > 0 && sinceH < 6;
+  let basis = "";
+  let perHour: number;
+  if (recentRun) {
+    if (sinceH >= 5 / 60 && (c.fightersSince ?? 0) >= 10) perHour = (c.fightersSince as number) / sinceH;
+    else { perHour = 400; basis = ` (it started ${sinceH < 1 ? `${Math.max(1, Math.round(sinceH * 60))} minutes` : `${sinceH.toFixed(1)} hours`} ago: too soon to measure, the plan's 400 an hour assumed)`; }
+  } else {
+    // the six-hour average is steadier than the last hour (a short outage or a sleep makes one hour look like a crawl)
+    perHour = c.fightersLast6Hours >= 300 ? c.fightersLast6Hours / 6 : c.fightersLastHour >= 50 ? c.fightersLastHour : 400;
+  }
+  const slowed = !recentRun && i.running.length > 0 && c.fightersLast6Hours >= 300 && c.fightersLastHour < 0.5 * (c.fightersLast6Hours / 6);
+  if (left !== null) out.push(left ? `  ${fmt(left)} to fetch: about ${hours(left / perHour)} at ${Math.round(perHour)} an hour${basis}` : "  every fighter in the fight list is in the cache");
   if (slowed) out.push(`  SLOWED: ${c.fightersLastHour} fighters in the last hour against ${Math.round(c.fightersLast6Hours / 6)} an hour over six. Look at the fetch's own terminal for "network error" or "rate limit" lines: a network that dropped (or a laptop that slept) stalls it, and a fighter skipped for it is fetched again the next time the same command is run.`);
   const note = i.log && i.log.tail.length ? `  log ${i.log.path} (${i.log.ageMinutes < 1 ? "just now" : i.log.ageMinutes < 120 ? `${Math.round(i.log.ageMinutes)} min ago` : `${(i.log.ageMinutes / 60).toFixed(1)} hours ago`}), last line: ${i.log.tail[i.log.tail.length - 1].slice(0, 150)}` : null;
   out.push(i.running.length ? `fetch: RUNNING (${i.running.map((r) => `process ${r.pid} since ${r.startedAt.slice(0, 19).replace("T", " ")} UTC${r.command ? `: ${r.command}` : ""}`).join("; ")})` : "fetch: not running");

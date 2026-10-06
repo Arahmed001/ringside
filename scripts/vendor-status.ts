@@ -15,7 +15,8 @@ const arg = (k: string) => { const i = argv.indexOf(`--${k}`); return i > -1 ? a
 
 async function main() {
   const cacheDir = path.resolve(arg("cache-dir") ?? path.join(process.cwd(), "data", "vendor-cache", "boxing-data-api"));
-  const cache = cacheState(cacheDir);
+  const runStart = Math.min(...runningBackfills().map((r) => Date.parse(r.startedAt)).filter(Number.isFinite));
+  const cache = cacheState(cacheDir, Date.now(), Number.isFinite(runStart) ? runStart : undefined);
   let total: number | null = null;
   if (!argv.includes("--no-total") && cache.listPages > 0) {
     try {

@@ -60,3 +60,28 @@ test("the report says how long is left from the recent pace, and the next comman
   assert.match(describeStatus({ ...base, cache, total: null }).join("\n"), /11,000 fighters, 477 fight-list pages/);
   assert.match(describeStatus({ ...base, cache, total: 35000, storageConfirmed: undefined, databasePath: undefined }).join("\n"), /not set \(storing is on[\s\S]*database: not set/);
 });
+
+test("a fetch that has only just started is not read at a pace of minutes-an-hour: its own work since it started is the pace (round 104)", () => {
+  const started = Date.parse("2026-10-06T04:20:43Z"), at = (min: number) => new Date(started + min * 60_000);
+  const cache = (over: object) => ({ fighters: 15800, listPages: 477, rankingPages: 0, staleTemp: 0, newest: new Date(started), fightersLastHour: 140, fightersLast6Hours: 140, fightersSince: 30, ...over });
+  const run = [{ pid: 7, startedAt: new Date(started).toISOString(), command: "--check" }];
+  const say = (min: number, over: object) => describeStatus({ ...base, cache: cache(over), total: 35000, running: run, now: at(min) }).join("\n");
+  // two minutes in: too soon to measure, and the line says so instead of reporting "119 an hour"
+  assert.match(say(2, { fightersSince: 12 }), /at 400 an hour \(it started 2 minutes ago: too soon to measure/);
+  // thirty minutes in, 190 fighters of its own: 380 an hour, whatever the last hour (which holds an earlier run) says
+  assert.match(say(30, { fightersSince: 190, fightersLastHour: 900 }), /at 380 an hour/); assert.doesNotMatch(say(30, { fightersSince: 190 }), /too soon/);
+  // thirty minutes in and almost nothing arrived: a slow pace is reported as slow, not hidden behind the plan's figure
+  assert.match(say(30, { fightersSince: 14 }), /at 28 an hour/);
+  // an hour and a half in, still inside six hours: the six-hour count (with the earlier run in it) is not the pace
+  assert.match(say(90, { fightersSince: 570, fightersLast6Hours: 3000 }), /at 380 an hour/);
+  // never "SLOWED" for a fetch younger than six hours (nothing to compare against); an old one is judged as before
+  assert.doesNotMatch(say(120, { fightersSince: 100, fightersLastHour: 30, fightersLast6Hours: 2400 }), /SLOWED/);
+  const old = describeStatus({ ...base, cache: cache({ fightersLastHour: 81, fightersLast6Hours: 1429, fightersSince: 1429 }), total: 35000, running: run, now: at(60 * 8) }).join("\n");
+  assert.match(old, /SLOWED/);
+  // and the cache count: answers newer than the fetch's start are counted apart from the last hour
+  const d = fs.mkdtempSync(path.join(os.tmpdir(), "ringside-status-"));
+  for (const [name, ageMin] of [["a", 5], ["b", 20], ["c", 50]] as const) { const f = path.join(d, `v2-fighters-${name}.json`); fs.writeFileSync(f, "{}"); const t = new Date(Date.now() - ageMin * 60_000); fs.utimesSync(f, t, t); }
+  const cs = cacheState(d, Date.now(), Date.now() - 30 * 60_000);
+  assert.equal(cs.fightersLastHour, 3); assert.equal(cs.fightersSince, 2);
+  assert.equal(cacheState(d).fightersSince, undefined, "no start given, no count");
+});
