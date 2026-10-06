@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
+import { eraseForumFor } from "../forum/posts";
 import { accountsDb, audit, auditMentioning, nameWord, nowIso } from "./store";
 import { dummyHash, hashPassword, needsRehash, passwordProblems, verifyPassword } from "./password";
 
@@ -121,6 +122,7 @@ export async function deleteUser(userId: number, password: string, db: DatabaseS
   // What outlives the account's own rows must not name the person: the contact left on a report, and the activity log, where the name is in
   // `actor` (they did something), `target` ("alice -> boxer", an operator acted on them) or `detail` (a decision about something of theirs).
   db.prepare("UPDATE reports SET contact = NULL WHERE user_id = ?").run(userId);
+  eraseForumFor(userId, db); // what they wrote in the forum: the words are wiped, the places stay
   scrubName(db, row.username as string);
   db.prepare("DELETE FROM users WHERE id = ?").run(userId); // cascades to sessions, resets, picks, watchlist; contributions and reports keep their rows with user_id NULL
   audit(db, null, "account_deleted", `user#${userId}`);

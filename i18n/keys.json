@@ -12027,6 +12027,18 @@
   ]
  },
  {
+  "key": "the forum posts you reported and why, with any note you added (the note is cleared if you delete your account)",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
+  "key": "the forum threads you started: the title (on the general board), the fighter or fight it is about, and when; the thread under a fighter or a fight is made by the first post written there",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
   "key": "The full top ten",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
@@ -13816,6 +13828,12 @@
   "key": "What you want to tell us",
   "files": [
    "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "what you wrote in the forum: the words, when, any edit, and a hash of the words that is used to refuse the same post twice in a day; deleting your account wipes the words and leaves the empty place, so the replies still read",
+  "files": [
+   "lib/privacy.ts"
   ]
  },
  {
