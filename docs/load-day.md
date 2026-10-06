@@ -43,6 +43,14 @@ npm run vendor:load -- --storage-confirmed   # asks you to type LOAD; --storage-
 
 It writes `~/ringside-real/real.db` (new), `disputed.csv` beside it, and a backup if there was a database. Undo: delete `real.db` and its `-wal` and `-shm` files and load again; the cache is the source and costs nothing.
 
+## 4b. Check the load, in a second
+
+```bash
+npm run vendor:audit                     # PASS / WARN / FAIL per check; exit 1 if any FAILS; reads the database read-only
+```
+
+It looks for what went wrong on the first real load: every belt with a sanctioning body, every country placed and spelled once, no card of only cancelled fights, no Olympic or amateur bouts, records the fights contradict marked disputed, no result for a fight not yet held, every bout with its fighters and event. A FAIL means something in the load is wrong: send back the whole output. WARNs are worth a read (a few double-booked fighters is normal).
+
 ## 5. Look at it, then run the site on it
 
 To look at what was loaded, on your own machine (port 3480; detached, so closing the tab does not stop it):

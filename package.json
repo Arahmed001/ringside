@@ -17,6 +17,7 @@
     "vendor:fetch": "tsx scripts/vendor-fetch.ts",
     "vendor:load": "tsx scripts/vendor-load.ts",
     "vendor:site": "tsx scripts/vendor-site.ts",
+    "vendor:audit": "tsx scripts/vendor-audit.ts",
     "vendor:enrich": "tsx scripts/vendor-enrich.ts",
     "vendor:explain": "tsx scripts/vendor-explain.ts",
     "venues:resolve": "tsx scripts/resolve-venues.ts",

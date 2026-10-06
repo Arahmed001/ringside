@@ -51,7 +51,7 @@ async function main() {
   }
   console.log("\nstep 2: the load\n");
   const code = await run(plan.loadArgs, env);
-  console.log(code === 0 ? `\nLoaded into ${plan.database}. Next: docs/real-data-runbook.md section 4 (check the result by hand), run the site with DATABASE_PATH=${plan.database}, then the daily update (section 5).` : `\nThe load failed (exit ${code}). Read why above; the database file is the only thing it writes.`);
+  console.log(code === 0 ? `\nLoaded into ${plan.database}. Next: check it in a second with  npm run vendor:audit  (FAIL lines mean something in this load is wrong), then docs/real-data-runbook.md section 4 (check the result by hand), run the site with DATABASE_PATH=${plan.database}, then the daily update (section 5).` : `\nThe load failed (exit ${code}). Read why above; the database file is the only thing it writes.`);
   process.exit(code);
 }
 main().catch((e) => { console.error(e instanceof Error ? e.message : e); process.exit(1); });
