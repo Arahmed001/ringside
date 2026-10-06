@@ -68,7 +68,7 @@ test("end to end on a stand-in vendor: the check is shown, nothing is written wi
     const noTty = await run([...base, "--storage-confirmed"], env);
     assert.equal(noTty.code, 1); assert.match(noTty.out, /not an interactive terminal.*--yes.*Nothing was loaded/); assert.ok(!fs.existsSync(db));
     const loaded = await run([...base, "--storage-confirmed", "--yes"], env);
-    assert.equal(loaded.code, 0, loaded.out.slice(-800)); assert.match(loaded.out, /step 2: the load/); assert.match(loaded.out, /Loaded into .*real\.db\. Next: docs\/real-data-runbook\.md section 4/);
+    assert.equal(loaded.code, 0, loaded.out.slice(-800)); assert.match(loaded.out, /step 2: the load/); assert.match(loaded.out, /Loaded into .*real\.db\. Next: check it in a second with  npm run vendor:audit .*docs\/real-data-runbook\.md section 4/);
     assert.ok(fs.existsSync(db), "the database exists");
     const { DatabaseSync } = await import("node:sqlite");
     const x = new DatabaseSync(db, { readOnly: true });

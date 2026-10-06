@@ -54,6 +54,10 @@ npm run vendor:backfill -- --plan --per-hour 450 --cache-dir $HOME/ringside-real
 
 the list pages are kept there (that is storing, so it says "provisional" until `BOXING_API_STORAGE_CONFIRMED=1`, and `=0` refuses it before anything is created), Ctrl-C is safe, and the `--check` or load that follows, with the same `--cache-dir`, asks for no list page at all. Still no database is touched.
 
+### Checking a load: `npm run vendor:audit`
+
+`npm run vendor:audit [-- --database FILE]` (default `~/ringside-real/real.db`) opens the database read-only and prints PASS / info / WARN / FAIL for each thing a good load must satisfy; it exits 1 when a check fails. The record check is judged from the day of the load, with the same lag window the loader used (`VENDOR_LOAD_LAG_DAYS`, 14 by default): a fighter whose last fight was that recent is left unmarked on purpose and is reported as lagging, not as a failure.
+
 ### Looking at the loaded league: `npm run vendor:site`
 
 `npm run vendor:site -- --start --build` serves the real database (`~/ringside-real/real.db`, or `DATABASE_PATH`) on port 3480 (`--port N`), detached from the terminal, with `site.log` and `site.pid` beside the database; `--stop`, `--restart` and a bare `npm run vendor:site` (status) do what they say. It refuses a missing database and a port something else holds, and touches only a process it started. It never sets the vendor key or the storage statement.
