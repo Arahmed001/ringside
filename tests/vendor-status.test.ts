@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { cacheState, describeStatus, keyState, runningBackfills } from "../lib/vendor-status";
+import { cacheState, chooseCacheDir, describeStatus, keyState, runningBackfills } from "../lib/vendor-status";
 
 /** `npm run vendor:status` (round 83): where a long fetch stands, from files on this machine only. */
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "vstatus-"));
@@ -84,4 +84,15 @@ test("a fetch that has only just started is not read at a pace of minutes-an-hou
   const cs = cacheState(d, Date.now(), Date.now() - 30 * 60_000);
   assert.equal(cs.fightersLastHour, 3); assert.equal(cs.fightersSince, 2);
   assert.equal(cacheState(d).fightersSince, undefined, "no start given, no count");
+});
+
+test("vendor:status reports on the cache a running fetch uses, not the empty default of whatever folder it was run from (round 113)", () => {
+  const run = (command: string) => ({ pid: 1, startedAt: "2026-10-06T04:20:43Z", command });
+  const fb = "/work/data/vendor-cache/boxing-data-api";
+  assert.deepEqual(chooseCacheDir("/named", [run("x --cache-dir /run")], fb), { dir: "/named", from: "named" });
+  assert.deepEqual(chooseCacheDir(undefined, [run("--check --per-hour 400 --cache-dir /Users/a/ringside-real/vendor-cache")], fb), { dir: "/Users/a/ringside-real/vendor-cache", from: "running fetch" });
+  assert.deepEqual(chooseCacheDir(undefined, [run('--cache-dir "/Users/a/my cache"')], fb), { dir: "/Users/a/my cache", from: "running fetch" });
+  assert.deepEqual(chooseCacheDir(undefined, [run("--cache-dir=/eq")], fb), { dir: "/eq", from: "running fetch" });
+  assert.deepEqual(chooseCacheDir(undefined, [run("--check")], fb), { dir: fb, from: "default" });
+  assert.deepEqual(chooseCacheDir(undefined, [], fb), { dir: fb, from: "default" });
 });
