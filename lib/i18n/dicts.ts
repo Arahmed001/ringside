@@ -1,3 +1,4 @@
+import { deriveName } from "./belts";
 import type { Locale } from "./config";
 import { makeT, type Dict, type T } from "./t";
 import { getNames } from "./names";
@@ -8,11 +9,11 @@ import clientKeys from "../../i18n/client-keys.json";
 const DICTS: Record<Locale, Dict> = { en: {}, ar: ar as Dict };
 
 export const dictOf = (locale: Locale): Dict => DICTS[locale];
-export const tFor = (locale: Locale): T => makeT(locale, DICTS[locale]);
+export const tFor = (locale: Locale): T => makeT(locale, DICTS[locale], {}, deriveName);
 
 /** Translator for a locale you already have (route handlers, generateMetadata, scripts), with the proper-name table loaded (`t.name`). */
 export async function getTFor(locale: Locale): Promise<T> {
-  return makeT(locale, DICTS[locale], await getNames(locale));
+  return makeT(locale, DICTS[locale], await getNames(locale), deriveName);
 }
 
 /** Only the entries client components use, so the browser never downloads the whole dictionary. */

@@ -40,12 +40,13 @@ const fill = (s: string, vars?: Vars, locale: Locale = "en") => (vars ? s.replac
 
 export type Names = Record<string, string>;
 
-export function makeT(locale: Locale, dict: Dict = {}, names: Names = {}): T {
+export function makeT(locale: Locale, dict: Dict = {}, names: Names = {}, derive?: (en: string, t: T) => string | null): T {
   const lookup = (key: string): string => { const v = dict[key]; return typeof v === "string" && v ? v : key; };
   const t = ((text: string, vars?: Vars) => fill(lookup(text), vars, locale)) as T;
   t.locale = locale;
   // a function's own `name` is read-only, hence defineProperty (the API reads best as t.name(...))
-  Object.defineProperty(t, "name", { value: (en: string) => names[en] ?? en });
+  // a stored translation always wins; `derive` (belt names, sanctioning bodies) only fills a name that has none
+  Object.defineProperty(t, "name", { value: (en: string) => names[en] ?? derive?.(en, t) ?? en });
   t.n = (count, one, other, vars) => {
     const v = { n: count.toLocaleString("en-US"), ...vars };
     const entry = dict[other];
