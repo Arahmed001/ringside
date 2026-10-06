@@ -16,7 +16,7 @@ test("every test file that reaches the world or the database isolates its databa
     if (f === "db-isolation-guard.test.ts") continue;
     const reaches = /\bgetWorld\(|\bgetDb\(|\bingest\(/.test(src); // opens a database (importing a pure helper such as lib/smoke opens nothing)
     if (!reaches) continue;
-    const uses = /tempDb\(|db-isolation/.test(src);
+    const uses = /tempDb\(|db-isolation|process\.env\.DATABASE_PATH\s*=/.test(src); // tempDb, the shared import, or setting the path to the file's own folder by hand
     if (!uses) { bad.push(`${f}: reaches the world or the database and never isolates it`); continue; }
     // a static import of an app module that reaches lib/db, above the isolation, is too early
     const lines = src.split("\n"), iso = lines.findIndex((l) => l.startsWith("import") && /db-isolation/.test(l));
