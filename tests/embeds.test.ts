@@ -75,6 +75,8 @@ const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ringside-emb-"));
 after(() => { cleanup(); fs.rmSync(dir, { recursive: true, force: true }); });
 type Page = (a: { params: Promise<Record<string, string>>; searchParams: Promise<Record<string, string | undefined>> }) => Promise<unknown>;
 let fighterPage: Page, rankingsPage: Page;
+type Meta = (a: { params: Promise<Record<string, string>> }) => Promise<{ title?: string; robots?: { index?: boolean; follow?: boolean } }>;
+let fighterMeta: Meta, rankingsMeta: Meta;
 const render = async (page: Page, params: Record<string, string>, search: Record<string, string> = {}) => renderToStaticMarkup((await page({ params: Promise.resolve(params), searchParams: Promise.resolve(search) })) as never);
 const withEnv = async <T,>(env: Record<string, string>, fn: () => Promise<T>): Promise<T> => { const saved = { ...process.env }; Object.assign(process.env, env); try { return await fn(); } finally { for (const k of Object.keys(process.env)) if (!(k in saved)) delete process.env[k]; Object.assign(process.env, saved); } };
 const isNotFound = async (fn: () => Promise<unknown>) => { try { await fn(); return false; } catch (e) { return /NEXT_HTTP_ERROR_FALLBACK;404|NEXT_NOT_FOUND/.test(String((e as { digest?: string }).digest ?? e)); } };
@@ -96,6 +98,8 @@ before(async () => {
   process.env.BOXING_PROVIDER = "file"; process.env.BOXING_FILE = file; process.env.SITE_URL = "https://ringside.test";
   fighterPage = (await import("../app/embed/[locale]/fighter/[slug]/page")).default as unknown as Page;
   rankingsPage = (await import("../app/embed/[locale]/rankings/[division]/page")).default as unknown as Page;
+  fighterMeta = (await import("../app/embed/[locale]/fighter/[slug]/page")).generateMetadata as unknown as Meta;
+  rankingsMeta = (await import("../app/embed/[locale]/rankings/[division]/page")).generateMetadata as unknown as Meta;
 });
 
 test("a fighter card: the name, record, knockouts, rating and rank, the last fights and the next one, a link back that opens in a new tab, and no script", async () => {
@@ -153,12 +157,14 @@ test("crawlers are told to stay out of /embed/", async () => {
 test("the smoke check for an embed: bare HTML with a link back that opens in a new tab and a noindex, and each way it can go wrong is reported", async () => {
   const { problemsIn } = await import("../lib/smoke");
   const route = { path: "/embed/en/fighter/x", kind: "embed" as const, label: "embed", mustShow: "Alma Ruiz" };
-  const good = `<html lang="en"><head><meta name="robots" content="noindex, nofollow"/></head><body><div><h1>Alma Ruiz</h1><a href="https://ringside.test/boxers/x" target="_blank" rel="noopener">View on Ringside</a></div></body></html>`;
+  const good = `<html lang="en"><head><title>Alma Ruiz · Ringside</title><meta name="robots" content="noindex, nofollow"/></head><body><main><h1>Alma Ruiz</h1><a href="https://ringside.test/boxers/x" target="_blank" rel="noopener">View on Ringside</a></main></body></html>`;
   assert.deepEqual(problemsIn(route, "en", 200, "text/html; charset=utf-8", good), []);
   assert.match(problemsIn(route, "en", 200, "text/html", good.replace(' rel="noopener"', "")).join(), /no link back/);
-  assert.match(problemsIn(route, "en", 200, "text/html", good.replace("<div>", "<nav>menu</nav><div>")).join(), /site chrome/);
+  assert.match(problemsIn(route, "en", 200, "text/html", good.replace("<main>", "<nav>menu</nav><main>")).join(), /site chrome/);
+  assert.match(problemsIn(route, "en", 200, "text/html", good.replace("<title>Alma Ruiz · Ringside</title>", "")).join(), /no title/);
+  assert.match(problemsIn(route, "en", 200, "text/html", good.replace("<main>", "<div>").replace("</main>", "</div>")).join(), /no main landmark/);
   assert.match(problemsIn(route, "en", 200, "text/html", good.replace('content="noindex, nofollow"', 'content="index"')).join(), /search engines may list/);
-  assert.match(problemsIn(route, "en", 200, "text/html", good.replace("Alma Ruiz</h1>", "Someone</h1>")).join(), /does not show "Alma Ruiz"/);
+  assert.match(problemsIn(route, "en", 200, "text/html", good.replaceAll("Alma Ruiz", "Someone")).join(), /does not show "Alma Ruiz"/);
   assert.match(problemsIn(route, "en", 200, "application/json", good).join(), /not HTML/);
   assert.deepEqual(problemsIn(route, "en", 404, "text/html", good), ["status 404"]);
   // a name that has to be escaped on the page is found as the person reads it (the hostile league's fighter), and a name that is NOT escaped is not what the check looks for
@@ -189,4 +195,18 @@ test("what the builder produces is served: the paths it builds are paths the emb
   const [, , locale1, , slug] = fighter.split("?")[0].split("/"), [, , locale2, , division] = ranking.split("?")[0].split("/");
   assert.ok((await render(fighterPage, { locale: locale1, slug }, { theme: "light" })).includes("5-0-0"));
   assert.ok((await render(rankingsPage, { locale: locale2, division }, { limit: "2", theme: "dark" })).includes("Lightweight rankings"));
+});
+
+test("a card is a page a screen reader can use (axe found three problems on every embed): a title for the frame, and the content inside a main landmark; and it is still not for search engines", async () => {
+  const meta = (m: Meta, params: Record<string, string>) => m({ params: Promise.resolve(params) });
+  assert.equal((await meta(fighterMeta, { locale: "en", slug: "alma-ruiz" })).title, "Alma Ruiz · Ringside");
+  assert.equal((await meta(rankingsMeta, { locale: "en", division: "lightweight" })).title, "Lightweight rankings · Ringside");
+  assert.equal((await meta(rankingsMeta, { locale: "ar", division: "lightweight" })).title, "تصنيفات الوزن الخفيف · Ringside", "in the card's own language");
+  for (const m of [await meta(fighterMeta, { locale: "en", slug: "alma-ruiz" }), await meta(rankingsMeta, { locale: "en", division: "lightweight" })]) assert.deepEqual(m.robots, { index: false, follow: false });
+  assert.equal((await meta(fighterMeta, { locale: "en", slug: "nobody-here" })).title, "Ringside", "an unknown fighter: a plain title, never a crash");
+  assert.equal((await meta(fighterMeta, { locale: "xx", slug: "alma-ruiz" })).title, "Ringside"); assert.equal((await meta(rankingsMeta, { locale: "en", division: "catchweight" })).title, "Ringside");
+  for (const html of [await render(fighterPage, { locale: "en", slug: "alma-ruiz" }), await render(rankingsPage, { locale: "ar", division: "lightweight" }, { theme: "light" })]) {
+    assert.equal((html.match(/<main\b/g) ?? []).length, 1, "one main landmark");
+    assert.ok(html.indexOf("<main") < html.indexOf("<h1") && html.lastIndexOf("</main>") > html.lastIndexOf("</a>"), "the heading and the footer link are inside it");
+  }
 });

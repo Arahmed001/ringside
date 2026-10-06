@@ -286,6 +286,8 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
     if (!/target="_blank"[^>]*rel="noopener"/.test(body)) bad.push("no link back to Ringside that opens in a new tab");
     if (/<nav\b|<header\b|id="side-nav"|class="skip-link"/.test(body)) bad.push("site chrome inside an embed");
     if (!/name="robots" content="noindex/.test(body)) bad.push("an embed that search engines may list");
+    if (!/<title>[^<]+<\/title>/.test(body)) bad.push("an embed with no title for its frame");
+    if (!/<main\b/.test(body)) bad.push("an embed with no main landmark");
     if (route.mustShow && locale === "en" && !decode(body.replace(/<[^>]*>/g, " ")).includes(route.mustShow)) bad.push(`the embed does not show "${route.mustShow}"`);
     return bad;
   }

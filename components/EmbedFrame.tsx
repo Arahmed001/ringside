@@ -13,7 +13,7 @@ export const parseTheme = (v: string | string[] | undefined): EmbedTheme => (v =
 export function EmbedFrame({ theme, locale, t, path, children }: { theme: EmbedTheme; locale: Locale; t: T; path: string; children: ReactNode }) {
   const credit = vendorCredit();
   return (
-    <div className="mx-auto w-full max-w-xl p-2" style={theme === "light" ? { ...LIGHT, background: "var(--bg)", color: "var(--text)", colorScheme: "light" } as React.CSSProperties : undefined}>
+    <main className="mx-auto w-full max-w-xl p-2" style={theme === "light" ? { ...LIGHT, background: "var(--bg)", color: "var(--text)", colorScheme: "light" } as React.CSSProperties : undefined}>
       <div className="card overflow-hidden" style={theme === "light" ? { background: "var(--panel)" } : undefined}>
         <div className="p-4">{children}</div>
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-line px-4 py-2.5 text-xs text-muted">
@@ -23,6 +23,6 @@ export function EmbedFrame({ theme, locale, t, path, children }: { theme: EmbedT
           </span>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

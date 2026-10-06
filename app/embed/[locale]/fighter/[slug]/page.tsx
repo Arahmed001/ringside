@@ -10,7 +10,12 @@ import { abs } from "@/lib/seo";
 import { getWorld } from "@/lib/world";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { robots: { index: false, follow: false }, referrer: "origin" }; // a widget is not a page to find in search
+// a widget is not a page to find in search, but a frame needs a title (screen readers announce it): the fighter's name
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const b = isLocale(locale) ? (await getWorld()).bySlug.get(slug) : undefined;
+  return { title: b ? `${(await getTFor(locale as "en" | "ar")).name(b.name)} · Ringside` : "Ringside", robots: { index: false, follow: false }, referrer: "origin" };
+}
 
 type Fighter = { name: string; nickname: string | null; country: string; division: string; active: boolean; record: { wins: number; losses: number; draws: number; source: string; held: number; total: number };
   knockouts: { wins: number }; rating: number; divisionRank: number | null; lastFights: { id: number; result: { forFighter: string } }[]; nextFight: { id: number; date: string; red: { slug: string; name: string }; blue: { slug: string; name: string } } | null };

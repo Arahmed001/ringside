@@ -9,7 +9,12 @@ import { abs } from "@/lib/seo";
 import { getWorld } from "@/lib/world";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { robots: { index: false, follow: false }, referrer: "origin" };
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; division: string }> }): Promise<Metadata> {
+  const { locale, division } = await params;
+  const d = divisionFromSlug(division);
+  const t = isLocale(locale) ? await getTFor(locale) : null;
+  return { title: d && t ? `${t("{division} rankings", { division: t(d.name) })} · Ringside` : "Ringside", robots: { index: false, follow: false }, referrer: "origin" };
+}
 
 type Row = { rank: number; slug: string; name: string; country: string; rating: number; record: { wins: number; losses: number; draws: number } };
 
