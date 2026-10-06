@@ -1,5 +1,7 @@
 # Deploying Ringside
 
+> New to deploying? [go-live.md](go-live.md) is the same material as plain, numbered steps.
+
 Ringside is one Node process with one SQLite file. That shapes the deployment: **run exactly one instance, with a persistent volume.** Two instances would each hold their own copy of the database, the live ledger and visitors' cached AI answers.
 
 This was written without a hosting provider chosen. Nothing here is specific to one; the container is the unit.
