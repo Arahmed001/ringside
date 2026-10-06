@@ -23,6 +23,9 @@ On the first run over all 1,533 strings: one hard check (a Latin statistics term
 ## Names
 Fighter, trainer, gym, event, venue and city names are kept in the committed file `i18n/names.ar.json` and loaded into the `name_translations` table whenever the database opens (see `docs/i18n.md`). The sheet's *Names* tab reads that file; names a reviewer approves or edits are written back to it by the import, with the review flag, so reviewed names survive a rebuilt database and show up in a diff. Most current names belong to fictional demo fighters, so reviewing them is low value until real data arrives.
 
+## A first pass of an hour: `--first N`
+The full sheet is 2,300 strings and 1,800 names, which is too much to ask of a volunteer. `npm run i18n:review -- export review/arabic-review-first-150.html --first 150` builds a sheet of only the 150 most-seen strings (navigation, header, footer, home page, the top of fighter pages; strings that are the English unchanged, like `{date} · {city}`, are left out) with no names tab (`--names` adds it). Its build tag is the full sheet's, so the file a reviewer sends back imports exactly like any other, and what they did not see stays machine-written. `docs/arabic-reviewer-brief.md` is the message to send with it.
+
 ## Where to start
 
 `docs/arabic-review-queue.md` lists the strings written most recently, grouped by page, with their Arabic beside the English: the part a reader meets first and that no person has seen. It is a snapshot (dated in its title), regenerated from `i18n/keys.json` against an earlier state; the offline sheet from `npm run i18n:review -- export` is always the complete, current set.

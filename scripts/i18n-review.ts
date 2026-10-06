@@ -3,6 +3,8 @@
  *   npm run i18n:review -- qa [--json]      mechanical checks over every string, grouped by what they found
  *   npm run i18n:review -- status           how much is reviewed, by group, and the names
  *   npm run i18n:review -- export [file]    build the offline review sheet (default review/arabic-review.html) to send to a reviewer
+ *   npm run i18n:review -- export [file] --first 150   only the 150 most-seen strings (the order of the full sheet), and no names tab: a first pass of about an hour
+ *                                                       (--names adds the names back). What the reviewer does not touch stays machine-written; import works the same.
  *   npm run i18n:review -- import file.json apply the file a reviewer downloaded from the sheet (validated; nothing is applied blindly)
  */
 import fs from "node:fs";
@@ -71,7 +73,11 @@ async function main() {
     const db = dbHandle();
     if (db) { const n = db.prepare("SELECT COUNT(*) c, SUM(reviewed) r FROM name_translations WHERE locale = 'ar'").get() as { c: number; r: number | null }; console.log(`Names: ${n.c}, reviewed by a person ${n.r ?? 0}`); }
   } else if (cmd === "export") {
-    const out = arg ?? path.join(OUT, "arabic-review.html");
+    const argv = process.argv.slice(2);
+    const flagValue = (name: string) => { const i = argv.indexOf(`--${name}`); return i > -1 ? argv[i + 1] : undefined; };
+    const first = flagValue("first") === undefined ? undefined : Number(flagValue("first"));
+    if (first !== undefined && !(Number.isInteger(first) && first > 0)) { console.error("--first needs a whole number above 0, such as --first 150"); process.exit(2); }
+    const out = arg && !arg.startsWith("--") ? arg : path.join(OUT, "arabic-review.html");
     const db = dbHandle();
     // the committed file is the source of truth for names; a database that has not loaded it yet is only the fallback
     const file = readNamesFile();
@@ -84,10 +90,13 @@ async function main() {
       return { key: k, group: groupOf(f.files), files: f.files.slice(0, 3), plural: f.plural ?? null, ar: dict[k], status: statusOf(k, dict, meta), flags: qaEntry(k, dict[k], { plural: f.plural !== undefined, glossary }) };
     });
     const build = hashOf(dict as never);
-    const html = buildSheet({ build, generatedAt: new Date().toISOString(), entries, groups: GROUP_ORDER, glossary: glossaryReport(dict, glossary).map((r) => ({ term: r.term, ar: r.arabic, strings: r.strings, missing: r.missing })), names, questions: QUESTIONS });
+    // the order is the full sheet's (navigation, home, fighter pages first); a first pass leaves out strings that are the English unchanged ("{date} · {city}"), which have nothing to judge
+    const shown = first === undefined ? entries : entries.filter((e) => !(typeof e.ar === "string" && e.ar === e.key)).slice(0, first);
+    const shownNames = first !== undefined && !argv.includes("--names") ? [] : names;
+    const html = buildSheet({ build, generatedAt: new Date().toISOString(), entries: shown, groups: GROUP_ORDER, glossary: glossaryReport(dict, glossary).map((r) => ({ term: r.term, ar: r.arabic, strings: r.strings, missing: r.missing })), names: shownNames, questions: QUESTIONS });
     fs.mkdirSync(path.dirname(out), { recursive: true });
     fs.writeFileSync(out, html);
-    console.log(`wrote ${out}: ${entries.length} strings, ${names.length} names, ${(html.length / 1024).toFixed(0)} KB, build ${build}. Open it in a browser (no server needed) or send it to the reviewer.`);
+    console.log(`wrote ${out}: ${shown.length} of ${entries.length} strings, ${shownNames.length} names, ${(html.length / 1024).toFixed(0)} KB, build ${build}. Open it in a browser (no server needed) or send it to the reviewer.`);
   } else if (cmd === "import") {
     if (!arg) { console.error("usage: i18n-review import <file.json>"); process.exit(2); }
     const file = JSON.parse(fs.readFileSync(arg, "utf8")) as ReviewFile;
