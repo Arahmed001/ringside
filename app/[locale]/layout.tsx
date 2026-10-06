@@ -64,7 +64,6 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
         <I18nProvider locale={locale} dict={clientDict(locale)}>
           <a href="#main" className="skip-link">{t("Skip to content")}</a>
           <NavProgress />
-          <HoverPreview />
           <div className="lg:flex">
             <aside className="rail sticky top-0 z-30 hidden h-screen shrink-0 flex-col border-e border-line/70 bg-bg/60 backdrop-blur-xl lg:flex">
               <div className="px-3.5 py-3"><Logo collapsible /></div>
@@ -86,7 +85,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
                   </div>
                 </div>
               </header>
-              <main id="main" tabIndex={-1} className="mx-auto max-w-7xl px-5 py-8 outline-none">{children}</main>
+              <main id="main" tabIndex={-1} className="mx-auto max-w-7xl px-5 py-8 outline-none">{children}<HoverPreview /></main>
               <footer className="mx-auto max-w-7xl px-5 pb-12 pt-6 text-xs text-muted">
                 {isDemoData()
                   ? t.rich("Ringside demo build · All fighters, fights and events shown are <b>fictional, simulated data</b>. Ratings are Elo-style and unofficial.", { b: (c) => <b className="text-ink/80">{c}</b> })

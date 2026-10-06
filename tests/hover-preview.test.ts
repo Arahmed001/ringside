@@ -43,7 +43,7 @@ test("the preview is only where a pointer can hover, is a tooltip the visitor ca
   assert.match(c, /onPointerEnter=\{\(\) => \{ overCard\.current = true/, "the card stays while the pointer is on it (WCAG 1.4.13)");
   assert.ok(!/from "@\/lib\/(world|fighter-card|rankings|career)"/.test(c.replace(/import type[^\n]*\n/g, "")), "only types and the pure link helper come from lib");
   assert.ok(!/from "node:|sqlite/.test(read("lib/fighter-link.ts")));
-  assert.match(read("app/[locale]/layout.tsx"), /<HoverPreview \/>/);
+  assert.match(read("app/[locale]/layout.tsx"), /\{children\}<HoverPreview \/><\/main>/, "inside <main>: a card outside every landmark is flagged by axe (the region rule), found in the round 124 sweep");
   assert.ok(!/<HoverPreview/.test(read("app/embed/[locale]/layout.tsx")), "not inside an embed");
   assert.match(read("app/api/fighter-card/[slug]/route.ts"), /status: 404/);
 });
