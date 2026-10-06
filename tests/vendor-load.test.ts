@@ -7,6 +7,8 @@ import { spawn } from "node:child_process";
 import { DEFAULT_DATABASE, isConfirmation, loadPlan } from "../lib/vendor-load";
 import { writeKeyFile } from "../lib/vendor-fetch";
 import { degradeWorld, makeWorld, serveMockVendor } from "../lib/vendor-mock";
+/** This file's own folder for the key locks: the lock is a file in the temp folder named by the key, so two test runs at once (two terminals, a watcher beside a run) would otherwise meet in it and refuse each other. */
+const LOCKS = fs.mkdtempSync(path.join(os.tmpdir(), "vlocks-"));
 
 /** `npm run vendor:load` (round 88): the load, guided: the check first, a typed confirmation, then the load. */
 test("the plan: the real cache's policy by default, replaced by the other answers, and the owner's storage statement is never assumed", () => {
@@ -32,7 +34,7 @@ test("the plan: the real cache's policy by default, replaced by the other answer
 });
 
 const run = (args: string[], env: Record<string, string>) => new Promise<{ code: number | null; out: string }>((resolve) => {
-  const c = spawn(process.execPath, ["--import", "tsx", "scripts/vendor-load.ts", ...args], { cwd: path.resolve(__dirname, ".."), env: { ...process.env, BOXING_API_KEY: "", BOXING_API_STORAGE_CONFIRMED: "", RINGSIDE_NO_SEED: "1", ...env }, stdio: ["ignore", "pipe", "pipe"] });
+  const c = spawn(process.execPath, ["--import", "tsx", "scripts/vendor-load.ts", ...args], { cwd: path.resolve(__dirname, ".."), env: { ...process.env, RINGSIDE_LOCK_DIR: LOCKS, BOXING_API_KEY: "", BOXING_API_STORAGE_CONFIRMED: "", RINGSIDE_NO_SEED: "1", ...env }, stdio: ["ignore", "pipe", "pipe"] });
   let out = ""; c.stdout.on("data", (d) => (out += d)); c.stderr.on("data", (d) => (out += d));
   c.on("close", (code) => resolve({ code, out }));
 });
@@ -53,7 +55,7 @@ test("end to end on a stand-in vendor: the check is shown, nothing is written wi
     assert.match(empty.out, /key:      \(not needed: a dry run reads only the cache and makes no request\)/); assert.match(empty.out, /is not in the cache \(--cached-only makes no request\)/); assert.ok(!fs.existsSync(db));
     assert.equal(vendor.stats.requests, 0, "the dry run on an empty cache asked the vendor for nothing");
     // fill the cache the way the owner does (the fetch wrapper), then the dry run shows the whole report from it
-    const filled = await new Promise<number | null>((resolve) => { const c = spawn(process.execPath, ["--import", "tsx", "scripts/vendor-fetch.ts", "--key-file", keyFile, "--cache-dir", cache, "--gap-ms", "0", "--per-hour", "3600000", "--no-caffeinate"], { cwd: path.resolve(__dirname, ".."), env: { ...process.env, BOXING_API_URL: vendor.url, RINGSIDE_NO_SEED: "1" }, stdio: "ignore" }); c.on("close", resolve); });
+    const filled = await new Promise<number | null>((resolve) => { const c = spawn(process.execPath, ["--import", "tsx", "scripts/vendor-fetch.ts", "--key-file", keyFile, "--cache-dir", cache, "--gap-ms", "0", "--per-hour", "3600000", "--no-caffeinate"], { cwd: path.resolve(__dirname, ".."), env: { ...process.env, RINGSIDE_LOCK_DIR: LOCKS, BOXING_API_URL: vendor.url, RINGSIDE_NO_SEED: "1" }, stdio: "ignore" }); c.on("close", resolve); });
     assert.ok(filled === 0 || filled === 1, `the fetch ends with the check's verdict (1: this league has conflicts the gate would refuse): ${filled}`);
     assert.ok(fs.readdirSync(cache).filter((f) => f.startsWith("v2-fighters-")).length > 300, "the cache holds the fighters");
     const before = vendor.stats.requests;

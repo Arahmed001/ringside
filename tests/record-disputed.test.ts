@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { tempDb } from "./helpers";
+import fs from "node:fs";
+import os from "node:os";
 
 process.env.RINGSIDE_NO_SEED = "1";
 process.env.BOXING_API_STORAGE_CONFIRMED = "1";
@@ -62,7 +64,7 @@ test("end to end: --keep-disputed marks survive the database and the world, a re
 });
 
 test("--keep-disputed does not combine with the other answers to a conflict", () => {
-  const bad = (extra: string[]) => spawnSync(process.execPath, ["--import", "tsx", "scripts/vendor-backfill.ts", "--check", "--keep-disputed", ...extra], { cwd: path.resolve(__dirname, ".."), env: { ...process.env, BOXING_API_KEY: "k".repeat(40), RINGSIDE_NO_SEED: "1", RINGSIDE_LOCK_DIR: path.join(process.cwd(), "data") }, encoding: "utf8" });
+  const bad = (extra: string[]) => spawnSync(process.execPath, ["--import", "tsx", "scripts/vendor-backfill.ts", "--check", "--keep-disputed", ...extra], { cwd: path.resolve(__dirname, ".."), env: { ...process.env, BOXING_API_KEY: "k".repeat(40), RINGSIDE_NO_SEED: "1", RINGSIDE_LOCK_DIR: fs.mkdtempSync(path.join(os.tmpdir(), "rd-locks-")) }, encoding: "utf8" });
   for (const other of ["--drop-conflicts", "--allow-conflicts", "--complete-only"]) {
     const r = bad([other]);
     assert.notEqual(r.status, 0, other); assert.match(r.stdout + r.stderr, /--keep-disputed keeps the fighters whose records contradict the feed and marks them: not with/, other);

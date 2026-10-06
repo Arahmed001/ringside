@@ -67,9 +67,11 @@ test("vendor:status points at the key file: set it up, or start the fetch from i
 
 import { spawnSync, spawn } from "node:child_process";
 import { makeWorld, serveMockVendor } from "../lib/vendor-mock";
+/** This file's own folder for the key locks: the lock is a file in the temp folder named by the key, so two test runs at once (two terminals, a watcher beside a run) would otherwise meet in it and refuse each other. */
+const LOCKS = fs.mkdtempSync(path.join(os.tmpdir(), "vlocks-"));
 
 const runFetch = (args: string[], env: Record<string, string> = {}) => new Promise<{ code: number | null; out: string }>((resolve) => {
-  const c = spawn(process.execPath, ["--import", "tsx", "scripts/vendor-fetch.ts", ...args], { cwd: path.resolve(__dirname, ".."), env: { ...process.env, BOXING_API_KEY: "", ...env, RINGSIDE_NO_SEED: "1" }, stdio: ["ignore", "pipe", "pipe"] });
+  const c = spawn(process.execPath, ["--import", "tsx", "scripts/vendor-fetch.ts", ...args], { cwd: path.resolve(__dirname, ".."), env: { ...process.env, RINGSIDE_LOCK_DIR: LOCKS, BOXING_API_KEY: "", ...env, RINGSIDE_NO_SEED: "1" }, stdio: ["ignore", "pipe", "pipe"] });
   let out = ""; c.stdout.on("data", (d) => (out += d)); c.stderr.on("data", (d) => (out += d));
   c.on("close", (code) => resolve({ code, out }));
 });

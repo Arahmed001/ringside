@@ -8,6 +8,8 @@ import { DatabaseSync } from "node:sqlite";
 import { writeKeyFile } from "../lib/vendor-fetch";
 import { addQuirks, degradeWorld, makeWorld, serveMockVendor } from "../lib/vendor-mock";
 import { auditDatabase, describeAudit, failed } from "../lib/vendor-audit";
+/** This file's own folder for the key locks: the lock is a file in the temp folder named by the key, so two test runs at once (two terminals, a watcher beside a run) would otherwise meet in it and refuse each other. */
+const LOCKS = fs.mkdtempSync(path.join(os.tmpdir(), "vlocks-"));
 
 /**
  * Everything the first real load taught the importer, in one league and one run (round 111): a vendor that lists cancelled fights and cards, Olympic and games bouts, nationalities
@@ -16,7 +18,7 @@ import { auditDatabase, describeAudit, failed } from "../lib/vendor-audit";
  */
 const root = path.resolve(__dirname, "..");
 const go = (script: string, args: string[], env: Record<string, string>) => new Promise<{ code: number | null; out: string }>((resolve) => {
-  const c = spawn(process.execPath, ["--import", "tsx", script, ...args], { cwd: root, env: { ...process.env, BOXING_API_KEY: "", BOXING_API_STORAGE_CONFIRMED: "", RINGSIDE_NO_SEED: "1", RINGSIDE_NOW: "2026-10-03", ...env }, stdio: ["ignore", "pipe", "pipe"] });
+  const c = spawn(process.execPath, ["--import", "tsx", script, ...args], { cwd: root, env: { ...process.env, RINGSIDE_LOCK_DIR: LOCKS, BOXING_API_KEY: "", BOXING_API_STORAGE_CONFIRMED: "", RINGSIDE_NO_SEED: "1", RINGSIDE_NOW: "2026-10-03", ...env }, stdio: ["ignore", "pipe", "pipe"] });
   let out = ""; c.stdout.on("data", (d) => (out += d)); c.stderr.on("data", (d) => (out += d));
   c.on("close", (code) => resolve({ code, out }));
 });
