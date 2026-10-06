@@ -63,7 +63,7 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
   const { boxers, events, bouts, people, orgs, stints, weighIns, officials, scorecards, corners, punches, financials, purses, broadcasts, earnings, officialRankings } = feed;
   const src = (s?: string) => s ?? `provider:${provider.name}`;
 
-  db.exec("BEGIN");
+  db.exec("BEGIN IMMEDIATE"); // the write lock first, so another writer is waited for (busy_timeout) rather than failing on a snapshot that went stale while this one read
   try {
     // ----- organisations & people -----
     const orgSlug = slugger(db, "orgs");
@@ -121,14 +121,19 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
     const insBo = db.prepare(`INSERT INTO bouts (external_id, event_id, red_id, blue_id, weight_class, rounds, winner_id, method, end_round, title, position,
         round_time, kd_red, kd_blue, odds_red, odds_blue, contract_lb, title_org_id, title_vacant, status, vendor_scores)
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-      ON CONFLICT(external_id) DO UPDATE SET title=excluded.title, winner_id=excluded.winner_id, method=excluded.method, end_round=excluded.end_round,
+      ON CONFLICT(external_id) DO UPDATE SET title=excluded.title,
+        -- a feed that flags a fight's result unsettled (a word for it the importer cannot read, a status it does not know, two listings that disagree: ?22 = 1) does not erase a stored
+        -- result: it stays until the feed names another one. A feed with plainly no result still clears it, and a cancelled fight takes what the feed says.
+        winner_id = CASE WHEN ?22 = 1 AND excluded.method IS NULL AND COALESCE(excluded.status, '') <> 'cancelled' THEN bouts.winner_id ELSE excluded.winner_id END,
+        method = CASE WHEN ?22 = 1 AND excluded.method IS NULL AND COALESCE(excluded.status, '') <> 'cancelled' THEN bouts.method ELSE excluded.method END,
+        end_round = CASE WHEN ?22 = 1 AND excluded.method IS NULL AND COALESCE(excluded.status, '') <> 'cancelled' THEN bouts.end_round ELSE excluded.end_round END,
         round_time=excluded.round_time, kd_red=excluded.kd_red, kd_blue=excluded.kd_blue, odds_red=excluded.odds_red, odds_blue=excluded.odds_blue,
         contract_lb=excluded.contract_lb, title_org_id=excluded.title_org_id, title_vacant=excluded.title_vacant, status=excluded.status, vendor_scores=COALESCE(excluded.vendor_scores, bouts.vendor_scores) RETURNING id`);
     for (const b of bouts) {
       bo.set(b.externalId, (insBo.get(b.externalId, ev.get(b.eventExternalId)!, bx.get(b.redExternalId)!, bx.get(b.blueExternalId)!, division(b.weightClass), b.rounds,
         b.winnerExternalId ? bx.get(b.winnerExternalId)! : null, b.method, b.endRound, b.title, b.position,
         b.roundTime ?? null, num(b.kdRed), num(b.kdBlue), num(b.oddsRed), num(b.oddsBlue), num(b.contractLb),
-        b.titleOrgExternalId ? og.get(b.titleOrgExternalId) ?? null : null, b.titleVacant === undefined ? null : b.titleVacant ? 1 : 0, b.status ?? null, b.scores?.length ? JSON.stringify(b.scores) : null) as { id: number }).id);
+        b.titleOrgExternalId ? og.get(b.titleOrgExternalId) ?? null : null, b.titleVacant === undefined ? null : b.titleVacant ? 1 : 0, b.status ?? null, b.scores?.length ? JSON.stringify(b.scores) : null, b.resultUnsettled ? 1 : 0) as { id: number }).id);
     }
 
     // ----- detail rows: replaced per source / per bout so a re-ingest never duplicates, and other sources' rows survive -----
@@ -183,7 +188,8 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
     writeMoney(db, { ev, bo, bx }, { financials, purses, broadcasts, earnings });
     db.exec("COMMIT");
   } catch (e) {
-    db.exec("ROLLBACK");
+    // a full disk makes SQLite roll the transaction back itself, so this ROLLBACK can fail ("no transaction is active"): that must not hide the error that matters
+    try { db.exec("ROLLBACK"); } catch { /* already rolled back */ }
     throw e;
   }
   // sourced corrections that editors accepted are put back over what the vendor just wrote (they would otherwise be undone by every daily update);
@@ -196,7 +202,7 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
   const runId = Number((db.prepare("INSERT INTO ingest_runs (at, provider, errors, warnings, infos, counts, dropped) VALUES (?,?,?,?,?,?,?)").run(new Date().toISOString(), provider.name, sev.errors, sev.warnings, sev.infos, JSON.stringify(counts), JSON.stringify(dropped)) as { lastInsertRowid: number | bigint }).lastInsertRowid);
   const keep = [...issues].sort((a, b) => ({ error: 0, warning: 1, info: 2 }[a.severity] - { error: 0, warning: 1, info: 2 }[b.severity])).slice(0, 400);
   const insI = db.prepare("INSERT INTO ingest_issues (run_id, severity, code, entity, ref, message) VALUES (?,?,?,?,?,?)");
-  db.exec("BEGIN");
+  db.exec("BEGIN IMMEDIATE");
   for (const i of keep) insI.run(runId, i.severity, i.code, i.entity, i.ref, i.message);
   db.exec("COMMIT");
   if (sev.errors || sev.warnings) console.warn(`[ingest] ${provider.name}: ${sev.errors} error(s), ${sev.warnings} warning(s); dropped ${JSON.stringify(dropped)}. Run \`npm run data:check\` for details.`);
@@ -216,19 +222,25 @@ export function recomputeRatings(db: DatabaseSync) {
     { id: number; date: string; r: number; u: number; w: number | null; m: string }[];
   const rating = new Map<number, number>();
   const get = (id: number) => rating.get(id) ?? 1500;
-  db.exec("BEGIN; DELETE FROM rating_history; UPDATE boxers SET rating = 1500;");
-  const ins = db.prepare("INSERT INTO rating_history (boxer_id, bout_id, date, rating, opp_rating) VALUES (?,?,?,?,?)");
-  for (const x of rows) {
-    const ra = get(x.r), rb = get(x.u);
-    const ea = 1 / (1 + Math.pow(10, (rb - ra) / 400));
-    const sa = x.w === x.r ? 1 : x.w === x.u ? 0 : 0.5;
-    const k = K * (isStoppage(x.m) ? 1.15 : 1);
-    const na = ra + k * (sa - ea), nb = rb + k * (1 - sa - (1 - ea));
-    rating.set(x.r, na); rating.set(x.u, nb);
-    ins.run(x.r, x.id, x.date, na, rb);
-    ins.run(x.u, x.id, x.date, nb, ra);
+  db.exec("BEGIN IMMEDIATE; DELETE FROM rating_history; UPDATE boxers SET rating = 1500;");
+  try {
+    const ins = db.prepare("INSERT INTO rating_history (boxer_id, bout_id, date, rating, opp_rating) VALUES (?,?,?,?,?)");
+    for (const x of rows) {
+      const ra = get(x.r), rb = get(x.u);
+      const ea = 1 / (1 + Math.pow(10, (rb - ra) / 400));
+      const sa = x.w === x.r ? 1 : x.w === x.u ? 0 : 0.5;
+      const k = K * (isStoppage(x.m) ? 1.15 : 1);
+      const na = ra + k * (sa - ea), nb = rb + k * (1 - sa - (1 - ea));
+      rating.set(x.r, na); rating.set(x.u, nb);
+      ins.run(x.r, x.id, x.date, na, rb);
+      ins.run(x.u, x.id, x.date, nb, ra);
+    }
+    const upd = db.prepare("UPDATE boxers SET rating=? WHERE id=?");
+    for (const [id, r] of rating) upd.run(r, id);
+    db.exec("COMMIT");
+  } catch (e) {
+    // an error half way (a full disk) must leave the old ratings whole and the connection outside a transaction: the site's connection lives on after it
+    try { db.exec("ROLLBACK"); } catch { /* already rolled back */ }
+    throw e;
   }
-  const upd = db.prepare("UPDATE boxers SET rating=? WHERE id=?");
-  for (const [id, r] of rating) upd.run(r, id);
-  db.exec("COMMIT");
 }
