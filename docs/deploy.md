@@ -161,3 +161,7 @@ A licensed feed is loaded and kept current by `npm run vendor:backfill` (first l
 - **Email.** Accounts have no email (nothing to verify, nothing to leak), so a forgotten password is reset by the operator with `npm run accounts -- reset NAME`. Add email and a mailer if that becomes a burden. See `docs/accounts.md`.
 - **Monitoring and alerting.** The health endpoint is the hook; wire it to whatever your host offers.
 - **The container has been built and run only in CI**, not on a particular host. Check the first deploy end to end.
+
+### Behind a proxy: the client address
+
+The public API limits each address to 60 requests a minute (`docs/public-api.md`). The address is read from `X-Forwarded-For` (first entry) or `X-Real-IP`, which the proxy in front of the site must set; the app never trusts a socket it cannot see. With neither header every visitor falls into one shared bucket (600 a minute), so the limit protects the server but a busy site would be throttled as a whole: configure the proxy to pass the client's address.

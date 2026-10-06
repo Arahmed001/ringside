@@ -186,3 +186,16 @@ test("the OpenAPI description is the API: its paths are exactly the routes that 
   for (const [, op] of Object.entries(spec.paths)) for (const p of op.get.parameters) if (p.in === "query") assert.ok(new RegExp(`["'\`]${p.name}["'\`]`).test(code), `the code reads ${p.name}`);
   assert.equal(openApiSpec("https://x.test").openapi, "3.0.3");
 });
+
+test("a request with no address to tell it apart (no proxy header) shares one bucket with everybody, so that bucket's ceiling is ten times higher: a few people cannot shut the API for all (round 110)", async () => {
+  const { API_LIMIT, API_SHARED_LIMIT, clientKey } = await import("../lib/public-api-http");
+  assert.equal(API_SHARED_LIMIT, API_LIMIT * 10);
+  assert.equal(clientKey(new Request("https://ringside.test/x")), "unknown"); assert.equal(clientKey(new Request("https://ringside.test/x", { headers: { "x-real-ip": "5.5.5.5" } })), "5.5.5.5");
+  const per = makeLimiter({ limit: 2, windowMs: 60_000, now: () => 1 }), shared = makeLimiter({ limit: 5, windowMs: 60_000, now: () => 1, maxKeys: 1 });
+  const ask = (headers: Record<string, string> = {}) => respond(new Request("https://ringside.test/api/v1/divisions", { headers }), () => ({ data: [] }), undefined, per, shared);
+  const codes = async (n: number, headers?: Record<string, string>) => { const out: number[] = []; for (let i = 0; i < n; i++) out.push((await ask(headers)).status); return out; };
+  assert.deepEqual(await codes(5), [200, 200, 200, 200, 200], "five with no address are fine where an address would be stopped at two");
+  const busy = await ask(); assert.equal(busy.status, 429); assert.match((await busy.json()).error.message, /busy/); assert.equal(busy.headers.get("x-ratelimit-limit"), String(API_SHARED_LIMIT));
+  assert.deepEqual(await codes(3, { "x-forwarded-for": "9.9.9.9" }), [200, 200, 429], "an address of its own is held to its own, smaller limit, whatever the shared bucket is doing");
+  const ok = await ask({ "x-forwarded-for": "8.8.8.8" }); assert.equal(ok.headers.get("x-ratelimit-limit"), String(API_LIMIT));
+});

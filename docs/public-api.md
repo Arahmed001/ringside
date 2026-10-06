@@ -13,7 +13,7 @@
 
 Every call takes `lang=ar` for Arabic names, belts and links. Every answer is `{ "data": ..., "meta": { "updated": "2026-10-03", "source": "Ringside", ... } }`; an error is `{ "error": { "status": 404, "message": "..." } }`. `limit` is 1 to 50 (default 20).
 
-**Behaviour.** CORS is open for GET, so a browser on another site can call it. Answers are cached for five minutes. There are 60 requests a minute per address (the first address in `X-Forwarded-For`, so put it behind a proxy that sets it); past that, 429 with `Retry-After`. An unexpected error is a 500 with a fixed message, never the exception's text.
+**Behaviour.** CORS is open for GET, so a browser on another site can call it. Answers are cached for five minutes. There are 60 requests a minute per address (the first address in `X-Forwarded-For`, then `X-Real-IP`); past that, 429 with `Retry-After`. **Put the site behind a proxy that sets one of those headers.** Without it a request has no address to tell it from another, so everybody shares a single bucket, which then allows 600 a minute (ten times the per-address limit, because it stands for everyone); the answer is a 429 "The API is busy" past that. `X-RateLimit-Limit` and `X-RateLimit-Remaining` say which limit applies. An unexpected error is a 500 with a fixed message, never the exception's text.
 
 **The record.** A fighter's `record` is what the page shows: `source` is `loaded` (the fights held add up to it), `supplier` (the data supplier's career total, because only part of the career is held; `held` of `total` fights are in the list) or `disputed` (the supplier's total and its own fight list disagree). Ratings are Ringside's own.
 
@@ -27,5 +27,7 @@ Showing a data vendor's records on your own site is one thing; handing them to o
 | **licensed** feed | **off** (404 with the reason) | **both** `PUBLIC_API=1` and `VENDOR_REDISTRIBUTION_CONFIRMED=1` |
 
 `VENDOR_REDISTRIBUTION_CONFIRMED=1` is the owner's statement that the vendor's terms allow other sites to receive its data, like the storage statement (`BOXING_API_STORAGE_CONFIRMED`): it is never set for you, and one without the other is not enough. When it is on for a licensed feed, every answer's `meta.credit` names the supplier and the `/embed` widgets show it. The doctor (`npm run doctor`) reports a half-set switch. The embeds use the same switch.
+
+**At size.** Measured on a league of 19,360 fighters and 159,296 bouts (twenty times the demo): every endpoint answers in 12 ms or less, a 100-fighter calendar or digest in under 10 ms, an embed in under 10 ms.
 
 Code: `lib/public-api.ts` (the data and the switch), `lib/public-api-http.ts` (CORS, cache, limit, errors), `lib/rate-limit.ts`, the routes under `app/api/v1/`. Tests: `tests/public-api.test.ts`.
