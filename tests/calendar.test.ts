@@ -26,7 +26,7 @@ const unescape = (s: string) => s.replace(/\\n/g, "\n").replace(/\\([,;\\])/g, "
 const octets = (s: string) => new TextEncoder().encode(s).length;
 
 test("text is escaped as the format requires, and a long line is folded between characters at 75 octets", () => {
-  assert.equal(escapeText("a,b;c\\d\ne"), "a\\,b\;c\\\\d\\ne");
+  assert.equal(escapeText("a,b;c\\d\ne"), "a\\,b\\;c\\\\d\\ne", "a comma, a semicolon, a backslash and a line break are each escaped (RFC 5545 3.3.11); the semicolon was not, because the source had \"\\;\" which JavaScript reads as a plain semicolon");
   const ascii = "SUMMARY:" + "x".repeat(200);
   const folded = foldLine(ascii);
   assert.ok(folded.length > 2 && folded.every((l) => octets(l) <= 75), "no physical line over 75 octets");

@@ -12,7 +12,7 @@ export interface IcsCalendar { name: string; description?: string; /** IANA-styl
 
 const encoder = new TextEncoder();
 /** Text as a property value: backslash, semicolon and comma escaped, line breaks as `\n`. */
-export const escapeText = (s: string): string => s.replace(/\\/g, "\\\\").replace(/;/g, "\;").replace(/,/g, "\\,").replace(/\r\n|\r|\n/g, "\\n");
+export const escapeText = (s: string): string => s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r\n|\r|\n/g, "\\n");
 
 /** One content line as physical lines of at most 75 octets (the continuation lines start with a space, which counts), cut between characters, never inside one. */
 export function foldLine(line: string): string[] {
@@ -30,6 +30,9 @@ const compact = (isoDate: string) => isoDate.replaceAll("-", "");
 const nextDay = (isoDate: string) => new Date(Date.parse(`${isoDate}T12:00:00Z`) + 86400000).toISOString().slice(0, 10);
 const stampOf = (iso: string) => new Date(iso).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
 
+/** A value that is not text (an id, an address): control characters and line separators removed, so nothing in it can end the line and start another property or event. */
+export const plainValue = (s: string): string => s.replace(/[\u0000-\u001f\u007f\u0085\u2028\u2029]/g, "");
+
 export function icsText(cal: IcsCalendar, prodId = "-//Ringside//Fight calendar//EN"): string {
   const stamp = stampOf(cal.stamp);
   const lines: string[] = ["BEGIN:VCALENDAR", "VERSION:2.0", `PRODID:${prodId}`, "CALSCALE:GREGORIAN", "METHOD:PUBLISH", `X-WR-CALNAME:${escapeText(cal.name)}`];
@@ -37,10 +40,10 @@ export function icsText(cal: IcsCalendar, prodId = "-//Ringside//Fight calendar/
   lines.push("REFRESH-INTERVAL;VALUE=DURATION:PT12H", "X-PUBLISHED-TTL:PT12H");
   const events = [...cal.events].sort((a, b) => a.date.localeCompare(b.date) || a.uid.localeCompare(b.uid));
   for (const e of events) {
-    lines.push("BEGIN:VEVENT", `UID:${e.uid}`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${compact(e.date)}`, `DTEND;VALUE=DATE:${compact(nextDay(e.date))}`, `SUMMARY;LANGUAGE=${cal.lang}:${escapeText(e.summary)}`);
+    lines.push("BEGIN:VEVENT", `UID:${plainValue(e.uid)}`, `DTSTAMP:${stamp}`, `DTSTART;VALUE=DATE:${compact(e.date)}`, `DTEND;VALUE=DATE:${compact(nextDay(e.date))}`, `SUMMARY;LANGUAGE=${cal.lang}:${escapeText(e.summary)}`);
     if (e.description) lines.push(`DESCRIPTION;LANGUAGE=${cal.lang}:${escapeText(e.description)}`);
     if (e.location) lines.push(`LOCATION;LANGUAGE=${cal.lang}:${escapeText(e.location)}`);
-    if (e.url) lines.push(`URL:${e.url}`);
+    if (e.url) lines.push(`URL:${plainValue(e.url)}`);
     lines.push(`STATUS:${e.status ?? "CONFIRMED"}`, "TRANSP:TRANSPARENT", "END:VEVENT");
   }
   lines.push("END:VCALENDAR");
