@@ -58,3 +58,16 @@ test("on a real league the supplier's names are not leaks, but the text around t
   assert.equal(arabicLeaks(p("<p>Ryo Mandokoro</p>")).length, 1, "with no names given (the demo league) the check stays strict");
   assert.equal(arabicLeaks(p("<p>Ryo Mandoko</p>"), known).length, 1, "a name that is not known is not blanked");
 });
+
+test("on a real league a name is found however the sentence around it is punctuated: a full stop, a closing bracket that belongs to it, an Arabic prefix glued to it, a surname on its own (round 108)", () => {
+  const known = new Set(["san luis rio colorado", "tepic", "fury vs. joshua (postponed)", "hi-tech satoford", "seung hwi lee", "hata", "amazon prime ppv", "casino el padrino"]);
+  const p = (b: string) => `<html lang="ar"><head><title>ريسايد</title></head><body>${b}</body></html>`;
+  assert.deepEqual(arabicLeaks(p("<p>في San Luis Rio Colorado، San Luis Rio Colorado.</p>"), known), [], "a full stop after the last word, an Arabic comma after the first");
+  assert.deepEqual(arabicLeaks(p("<p>في Casino El Padrino، Tepic.</p>"), known), []);
+  assert.deepEqual(arabicLeaks(p("<p>Fury vs. Joshua (Postponed) · ريسايد</p>"), known), [], "a bracket that is part of the title");
+  assert.deepEqual(arabicLeaks(p("<p>مواجهة بين Seung Hwi Lee (0-1-0) وHi-Tech Satoford (1-5-0)</p>"), known), [], "و glued to a name");
+  assert.deepEqual(arabicLeaks(p("<p>Hata</p>"), known), [], "a surname alone");
+  assert.deepEqual(arabicLeaks(p("<p>Amazon Prime PPV</p>"), known), []);
+  assert.equal(arabicLeaks(p("<p>في Casino El Padrino، Tepic. Longest title reigns</p>"), known).length, 1, "English that is not a name is still found beside names");
+  assert.equal(arabicLeaks(p("<p>وLongest title</p>"), known).length, 1, "an Arabic letter in front does not make English a name");
+});

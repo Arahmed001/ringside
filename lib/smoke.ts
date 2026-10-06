@@ -380,23 +380,33 @@ export function flippedRecords(html: string): string[] {
 export function knownNames(w: World): Set<string> {
   const out = new Set<string>();
   const add = (v: string | null | undefined) => { if (v && v.trim()) out.add(v.trim().toLowerCase()); };
-  for (const b of w.boxers) { add(b.name); add((b as { nickname?: string | null }).nickname); }
-  for (const e of w.events) { add(e.name); add(e.venue); add(e.city); }
+  for (const b of w.boxers) {
+    add(b.name); add(b.nickname);
+    // a page that is short of room shows a surname (or a first name) on its own
+    for (const part of b.name.split(/[\s]+/)) if (part.length >= 4) add(part);
+  }
+  for (const e of w.events) { add(e.name); add(e.venue); add(e.city); add(e.broadcaster); }
   for (const b of w.bouts) add(b.title);
   for (const p of w.people.values()) add(p.name);
   for (const o of w.orgs.values()) add(o.name);
   return out;
 }
 
-/** Blanks every run of up to 14 words that is one of the known names (matched without case and without edge punctuation). */
+/**
+ * Blanks every run of up to 14 words that is one of the known names, however the sentence around it is punctuated: a trailing full stop or Arabic comma ("Colorado."),
+ * a closing bracket that belongs to the name ("(Postponed)"), the separators a title is set between, and an Arabic prefix letter glued to a Latin name ("وHi-Tech Satoford").
+ */
 function blankKnown(text: string, known: Set<string>): string {
   const words = [...text.matchAll(/\S+/g)].map((m) => ({ w: m[0], at: m.index ?? 0 }));
   const edge = (s: string) => s.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}.]+$/gu, "").toLowerCase();
+  const outer = (s: string) => s.replace(/^[\s·،,;:|—–"“”«»]+|[\s·،,;:|—–"“”«»]+$/g, "").toLowerCase();
+  const prefixless = (s: string) => s.replace(/^[\u0600-\u06ff]{1,2}(?=[A-Za-z])/, "");
   const keep = new Array<boolean>(words.length).fill(true);
   for (let i = 0; i < words.length; i++) {
     for (let n = Math.min(14, words.length - i); n >= 1; n--) {
-      const phrase = edge(words.slice(i, i + n).map((x) => x.w).join(" "));
-      if (phrase && known.has(phrase)) { for (let k = i; k < i + n; k++) keep[k] = false; i += n - 1; break; }
+      const phrase = prefixless(words.slice(i, i + n).map((x) => x.w).join(" "));
+      const hit = [outer(phrase), edge(phrase), edge(phrase).replace(/\.+$/, "")].some((c) => c && known.has(c));
+      if (hit) { for (let k = i; k < i + n; k++) keep[k] = false; i += n - 1; break; }
     }
   }
   return words.map((x, i) => (keep[i] ? x.w : " ")).join(" ");

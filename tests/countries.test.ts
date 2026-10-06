@@ -69,3 +69,11 @@ test("Serbia has its own flag and code (the platform also names the retired code
   assert.equal(countryCode("Serbia"), "RS"); assert.equal(countryCode("RS"), "RS"); assert.equal(flag("Serbia"), "🇷🇸"); assert.equal(canonicalCountry("RS"), "Serbia");
   assert.notEqual(countryName("Serbia", "ar"), "Serbia");
 });
+
+test("the home nations have Arabic names (they are not ISO countries, so the platform has none), and Northern Ireland is not 'the United Kingdom' in Arabic (round 108)", async () => {
+  const { countryName } = await import("../lib/format");
+  assert.deepEqual(["England", "Scotland", "Wales", "Northern Ireland"].map((c) => countryName(c, "ar")), ["إنجلترا", "اسكتلندا", "ويلز", "أيرلندا الشمالية"]);
+  assert.deepEqual(["england", " Wales ", "NORTHERN IRELAND"].map((c) => countryName(c, "ar")), ["إنجلترا", "ويلز", "أيرلندا الشمالية"], "however it is written");
+  assert.equal(countryName("England", "en"), "England"); assert.equal(countryName("Northern Ireland", "en"), "Northern Ireland");
+  assert.equal(countryName("Mexico", "ar"), "المكسيك"); assert.notEqual(countryName("United Kingdom", "ar"), "أيرلندا الشمالية");
+});

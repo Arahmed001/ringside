@@ -68,7 +68,13 @@ export function canonicalCountry(c: string): string {
   }
   return nameOf.get(code) ?? c.trim();
 }
+/**
+ * England, Scotland, Wales and Northern Ireland are nations a boxing fan counts as their own, but they are not ISO countries, so the platform's region names have no Arabic for
+ * them (and Northern Ireland, which `countryCode` folds into the United Kingdom, came out as "the United Kingdom"). Their Arabic names are written here.
+ */
+const HOME_NATIONS_AR: Record<string, string> = { england: "إنجلترا", scotland: "اسكتلندا", wales: "ويلز", "northern ireland": "أيرلندا الشمالية" };
 export function countryName(c: string, locale: Locale = "en"): string {
+  if (locale === "ar") { const home = HOME_NATIONS_AR[norm(c)]; if (home) return home; }
   const code = countryCode(c);
   if (!code || locale === "en") return c;
   let dn = regionNames.get(locale);

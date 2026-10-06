@@ -141,3 +141,18 @@ test("two routes to one page each keep what they ask the page to show: the merge
   assert.match(problemsIn(route, "en", 200, "text/html", page("24-1-2")).join(), /does not show "Fights held by year"/);
   assert.match(problemsIn(route, "en", 200, "text/html", page("Fights held by year")).join(), /does not show "24-1-2"/);
 });
+
+test("the names a real league prints in the supplier's spelling: full names, nicknames, events, venues, cities, broadcasters, and the surnames and first names a short page shows alone (round 108)", async () => {
+  const { knownNames } = await import("../lib/smoke");
+  // a league made by hand, so that a short part of a name (Al, Lee) and a long one (Rahman, Ruiz) are both there
+  const fake = {
+    boxers: [{ name: "Al Rahman Lee", nickname: "The Bomb" }, { name: "Jo Ruiz", nickname: null }], bouts: [{ title: "WBC World Welterweight Champion" }],
+    events: [{ name: "Fury vs. Joshua (Postponed)", venue: "Copper Box Arena", city: "London", broadcaster: "Amazon Prime PPV" }], people: new Map([[1, { name: "Dr. Kwame Boateng" }]]), orgs: new Map([[1, { name: "Test Gym" }]]),
+  } as unknown as Parameters<typeof knownNames>[0];
+  const k = knownNames(fake);
+  for (const v of ["al rahman lee", "the bomb", "jo ruiz", "fury vs. joshua (postponed)", "copper box arena", "london", "amazon prime ppv", "wbc world welterweight champion", "dr. kwame boateng", "test gym"]) assert.ok(k.has(v), v);
+  for (const part of ["rahman", "ruiz"]) assert.ok(k.has(part), `${part}: a part of four letters or more is a name on its own`);
+  for (const part of ["al", "lee", "jo"]) assert.ok(!k.has(part), `${part}: a shorter part could be an English word, so it is not`);
+  assert.ok(!k.has(""), "no empty name");
+  assert.ok(knownNames(w).size > 100, "and from a real world: a good many");
+});
