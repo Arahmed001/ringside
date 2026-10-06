@@ -6,7 +6,8 @@
  */
 import path from "node:path";
 import { boxingDataApiProvider } from "../lib/providers/boxing-data-api";
-import { DEFAULT_KEY_FILE, keyFileState } from "../lib/vendor-fetch";
+import fs from "node:fs";
+import { DEFAULT_KEY_FILE, backgroundFiles, keyFileState, logTail } from "../lib/vendor-fetch";
 import { cacheState, describeStatus, keyState, runningBackfills } from "../lib/vendor-status";
 
 const argv = process.argv.slice(2);
@@ -23,6 +24,8 @@ async function main() {
       total = (await p.plan()).fighters;
     } catch { console.log("(the fight list could not be read from the cache, so the total is unknown; run the fetch once to read it)\n"); }
   }
-  for (const line of describeStatus({ cacheDir, cache, total, running: runningBackfills(), key: keyState(process.env.BOXING_API_KEY), keyFile: keyFileState(process.env.RINGSIDE_KEY_FILE ?? DEFAULT_KEY_FILE), storageConfirmed: process.env.BOXING_API_STORAGE_CONFIRMED, databasePath: process.env.DATABASE_PATH })) console.log(line);
+  const logPath = backgroundFiles(cacheDir).log, logStat = fs.existsSync(logPath) ? fs.statSync(logPath) : null;
+  const log = logStat ? { path: logPath, tail: logTail(logPath, 3), ageMinutes: (Date.now() - logStat.mtimeMs) / 60000 } : undefined;
+  for (const line of describeStatus({ cacheDir, log, cache, total, running: runningBackfills(), key: keyState(process.env.BOXING_API_KEY), keyFile: keyFileState(process.env.RINGSIDE_KEY_FILE ?? DEFAULT_KEY_FILE), storageConfirmed: process.env.BOXING_API_STORAGE_CONFIRMED, databasePath: process.env.DATABASE_PATH })) console.log(line);
 }
 main().catch((e) => { console.error(e instanceof Error ? e.message : e); process.exit(1); });

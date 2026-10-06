@@ -19,7 +19,9 @@ export WIKIMEDIA_CONTACT=you@example.org # an email address or a web page Wikime
 
 ```bash
 npm run vendor:status                    # how much of the league is in the cache, whether a fetch is running, how long is left, the next command
-npm run vendor:fetch                     # starts or resumes the paced fetch (one at a time: Ctrl-C stops it; nothing fetched is lost)
+npm run vendor:fetch -- --background    # starts or resumes the paced fetch DETACHED from the terminal: closing the tab or the panel does not end it (log: ~/ringside-real/fetch.log)
+npm run vendor:fetch -- --stop          # ends the background fetch (nothing fetched is lost)
+npm run vendor:fetch                     # the same fetch in this tab (Ctrl-C stops it; closing the tab does too, which is how a run ended overnight)
 npm run vendor:load -- --dry-run         # what the load would do with what is cached today: sends nothing, needs no key, writes nothing
 ```
 

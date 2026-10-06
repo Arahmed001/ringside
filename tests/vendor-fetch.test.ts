@@ -95,3 +95,39 @@ test("the wrapper end to end on a stand-in vendor: it reads the key from the fil
   assert.equal(setup.code, 1); assert.match(setup.out, /--setup needs a real terminal tab/); assert.ok(!fs.existsSync(path.join(d, "never")), "nothing is written");
   void spawnSync;
 });
+
+test("--background: the fetch runs detached with its output in a log beside the cache; --stop ends only a live backfill; the status shows the log (round 102)", async () => {
+  const { backgroundFiles, backgroundPid, logTail } = await import("../lib/vendor-fetch");
+  const { describeStatus } = await import("../lib/vendor-status");
+  const d = dir(), keyFile = path.join(d, ".key"), cache = path.join(d, "cache");
+  const secret = "background-test-key-" + "q".repeat(30);
+  writeKeyFile(keyFile, secret);
+  assert.deepEqual(backgroundFiles(cache), { log: path.join(d, "fetch.log"), pid: path.join(d, "fetch.pid") });
+  // a quick fetch on a stand-in vendor: the command returns at once with its log written, the key is nowhere in what it says or logs
+  const vendor = await serveMockVendor(makeWorld({ fighters: 20, fights: 40, upcoming: 0, seed: 6 }), { key: secret, offsetLimit: 10_000, beyond: "reject" });
+  try {
+    const r = await runFetch(["--background", "--key-file", keyFile, "--cache-dir", cache, "--gap-ms", "0", "--per-hour", "3600000", "--no-caffeinate", "--bg-check-ms", "15000"], { BOXING_API_URL: vendor.url });
+    assert.equal(r.code, 0, r.out.slice(-500)); assert.match(r.out, /already finished|Started in the background/);
+    assert.ok(!r.out.includes(secret));
+    const log = fs.readFileSync(backgroundFiles(cache).log, "utf8");
+    assert.match(log, /background fetch started: vendor:backfill --check/); assert.ok(!log.includes(secret), "the key is not in the log");
+    assert.ok(fs.readdirSync(cache).some((f) => f.startsWith("v2-fighters-")), "the fetch ran");
+    assert.equal(logTail(backgroundFiles(cache).log, 2).length, 2);
+  } finally { await vendor.close(); }
+  // --stop: nothing running; a live process that is not a backfill is never touched; a live backfill is ended
+  const pidFile = backgroundFiles(cache).pid;
+  fs.writeFileSync(pidFile, "999999\n"); assert.equal(backgroundPid(pidFile), undefined);
+  fs.writeFileSync(pidFile, `${process.pid}\n`); assert.equal(backgroundPid(pidFile), undefined, "this process is alive but is not a backfill");
+  const none = await runFetch(["--stop", "--cache-dir", cache]); assert.equal(none.code, 0); assert.match(none.out, /No background fetch is running/);
+  const fake = spawn(process.execPath, ["-e", "setInterval(()=>{},1000)", "vendor-backfill.fake"], { stdio: "ignore", detached: true });
+  try {
+    fs.writeFileSync(pidFile, `${fake.pid}\n`);
+    assert.equal(backgroundPid(pidFile), fake.pid);
+    const stopped = await runFetch(["--stop", "--cache-dir", cache]); assert.equal(stopped.code, 0); assert.match(stopped.out, new RegExp(`Stopped the background fetch \\(process ${fake.pid}\\)`));
+    await new Promise((r) => setTimeout(r, 500)); assert.equal(backgroundPid(pidFile), undefined, "it is gone");
+  } finally { try { process.kill(fake.pid!, "SIGKILL"); } catch { /* already gone */ } }
+  // the status shows the log's last line and points at --background
+  const base = { cacheDir: cache, cache: { fighters: 5, listPages: 1, rankingPages: 0, staleTemp: 0, newest: new Date(), fightersLastHour: 0, fightersLast6Hours: 0 }, total: 100, running: [], key: { set: false, length: 0, placeholder: false }, keyFile: { exists: true, private: true, length: 50, placeholder: false }, storageConfirmed: undefined, databasePath: undefined } as unknown as Parameters<typeof describeStatus>[0];
+  const lines = describeStatus({ ...base, log: { path: "/x/fetch.log", tail: ["a", "network error: wait"], ageMinutes: 480 } }).join("\n");
+  assert.match(lines, /log \/x\/fetch\.log \(8\.0 hours ago\), last line: network error: wait/); assert.match(lines, /vendor:fetch -- --background/);
+});

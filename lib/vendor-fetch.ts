@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -62,4 +63,28 @@ export function fetchArgs(user: string[], cacheDir?: string): string[] {
   if (!has("--patience-min")) out.push("--patience-min", "240");
   if (!has("--cache-dir") && cacheDir) out.push("--cache-dir", cacheDir);
   return [...out, ...rest];
+}
+
+/**
+ * `--background` (round 102): the fetch takes days, and one run in a terminal tab died with the tab (closing the panel ended it overnight, with 20,000 fighters to go). In the
+ * background it is its own process group, its output goes to a log file next to the cache, and its process id to a file, so a closed tab, a closed panel or a new
+ * session cannot end it. A Mac that sleeps or restarts still stops it (the same command starts it again; nothing fetched is lost).
+ */
+export function backgroundFiles(cacheDir?: string): { log: string; pid: string } {
+  const dir = cacheDir ? path.dirname(path.resolve(cacheDir)) : path.dirname(path.join(os.homedir(), "ringside-real/vendor-cache"));
+  return { log: path.join(dir, "fetch.log"), pid: path.join(dir, "fetch.pid") };
+}
+
+/** The process id in `pidFile` when that process is alive AND is a backfill (a recycled id belonging to something else is not touched); otherwise undefined. */
+export function backgroundPid(pidFile: string): number | undefined {
+  let pid: number;
+  try { pid = Number(fs.readFileSync(pidFile, "utf8").trim()); } catch { return undefined; }
+  if (!Number.isInteger(pid) || pid <= 1) return undefined;
+  try { process.kill(pid, 0); } catch { return undefined; }
+  try { return /vendor-backfill/.test(execFileSync("ps", ["-p", String(pid), "-o", "command="], { encoding: "utf8" })) ? pid : undefined; } catch { return undefined; }
+}
+
+/** The last `n` lines of a log (never the key: nothing here prints it, and the fetch does not either). */
+export function logTail(file: string, n = 5): string[] {
+  try { return fs.readFileSync(file, "utf8").split("\n").filter(Boolean).slice(-n); } catch { return []; }
 }

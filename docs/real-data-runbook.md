@@ -60,7 +60,9 @@ The key kept ending up in the wrong place (typed into a chat box, missing from t
 
 ```bash
 npm run vendor:fetch -- --setup     # once, in a real terminal tab: a hidden prompt, saved to ~/.ringside-key (mode 600)
-npm run vendor:fetch                # the paced fetch: --check --per-hour 400 --patience-min 240, into ~/ringside-real/vendor-cache
+npm run vendor:fetch                # the paced fetch: --check --per-hour 400 --patience-min 240, into ~/ringside-real/vendor-cache (ends if the tab is closed)
+npm run vendor:fetch -- --background   # the same, detached: it survives closing the tab or the panel; output in ~/ringside-real/fetch.log, `vendor:status` shows it
+npm run vendor:fetch -- --stop         # ends a background fetch; nothing fetched is lost
 ```
 
 `--setup` refuses to run anywhere that is not a real terminal (a chat box or a pipe), because it could not hide what you type. The fetch reads the key from the file, puts it in the fetch's environment only (never on a command line, never printed), and on a Mac keeps the machine awake while it runs. A key file that other users can read is refused with the `chmod 600` that fixes it. Extra options go through and win over the same default (`npm run vendor:fetch -- --per-hour 450`); `--no-check` drops `--check` for the load itself; `--key-file PATH` and `--cache-dir DIR` choose the files. One fetch runs at a time per key: stop the first with Ctrl-C in its tab. `npm run vendor:status` says whether the key file is ready.
