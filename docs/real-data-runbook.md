@@ -77,6 +77,17 @@ npm run vendor:fetch -- --stop         # ends a background fetch; nothing fetche
 
 `--setup` refuses to run anywhere that is not a real terminal (a chat box or a pipe), because it could not hide what you type. The fetch reads the key from the file, puts it in the fetch's environment only (never on a command line, never printed), and on a Mac keeps the machine awake while it runs. A key file that other users can read is refused with the `chmod 600` that fixes it. Extra options go through and win over the same default (`npm run vendor:fetch -- --per-hour 450`); `--no-check` drops `--check` for the load itself; `--key-file PATH` and `--cache-dir DIR` choose the files. One fetch runs at a time per key: stop the first with Ctrl-C in its tab. `npm run vendor:status` says whether the key file is ready.
 
+### Seeing the part-way cache on current code, beside the old site (a preview)
+
+The site you looked at earlier was loaded by older code, so it shows what the fixes since then remove (a country list full of "Mexican" and "Croatia (Hrvatska)", cancelled and games bouts). To see the cache as it stands now, with today's importer, without touching `real.db` or the fetch, load it into a **second database file** and serve that on another port. All of it reads the cache only (`--cached-only`, so the running fetch's lock is not in the way, and no request or hourly allowance is used); you type LOAD and state the storage confirmation yourself, as for the real load:
+
+```bash
+DATABASE_PATH=~/ringside-real/preview.db npm run vendor:load -- --storage-confirmed --cached-only
+npm run vendor:site -- --start --build --database ~/ringside-real/preview.db --port 3490
+```
+
+The load prints the audit at its end (step 3). Open http://localhost:3490. The part-way league has the fighters fetched so far (the most recently active first), so careers are shorter than the finished load's. Throw it away when you are done: `npm run vendor:site -- --stop --port 3490` and delete `preview.db` with its `-wal` and `-shm`. The real load after the fetch ends goes to `real.db` as in section 3a.
+
 ### Where does it stand? `npm run vendor:status`
 
 ```bash

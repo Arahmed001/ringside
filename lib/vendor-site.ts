@@ -12,13 +12,13 @@ export const DEFAULT_PORT = 3480;
 
 export interface SitePlan { port: number; database: string; log: string; pid: string; env: Record<string, string> }
 
-/** Where the site runs: DATABASE_PATH (default ~/ringside-real/real.db), `--port` (default 3480), the log and process-id files beside the database. */
+/** Where the site runs: DATABASE_PATH (default ~/ringside-real/real.db), `--port` (default 3480), the log and process-id files beside the database (`site.log`/`site.pid` on the default port, `site-PORT.log`/`site-PORT.pid` on another, so a second site on the same folder, a preview, does not take over the first one's files). */
 export function sitePlan(opts: { port?: string; database?: string }, env: Record<string, string | undefined> = process.env): SitePlan {
   const port = Number(opts.port ?? DEFAULT_PORT);
   if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error(`--port ${opts.port} is not a port number between 1024 and 65535.`);
   const database = path.resolve(opts.database ?? env.DATABASE_PATH ?? DEFAULT_DATABASE);
-  const dir = path.dirname(database);
-  return { port, database, log: path.join(dir, "site.log"), pid: path.join(dir, "site.pid"), env: { DATABASE_PATH: database, BOXING_PROVIDER: "licensed", PORT: String(port), NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1" } };
+  const dir = path.dirname(database), tag = port === DEFAULT_PORT ? "site" : `site-${port}`;
+  return { port, database, log: path.join(dir, `${tag}.log`), pid: path.join(dir, `${tag}.pid`), env: { DATABASE_PATH: database, BOXING_PROVIDER: "licensed", PORT: String(port), NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1" } };
 }
 
 /** Whether something already accepts connections on the port. */

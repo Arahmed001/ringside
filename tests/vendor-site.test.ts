@@ -24,7 +24,8 @@ test("the plan: the real database and port 3480 by default, files beside the dat
   assert.equal(p.env.BOXING_PROVIDER, "licensed"); assert.equal(p.env.PORT, "3480"); assert.equal(p.env.DATABASE_PATH, p.database);
   assert.ok(!("BOXING_API_KEY" in p.env) && !("BOXING_API_STORAGE_CONFIRMED" in p.env), "serving a database needs neither");
   const q = sitePlan({ port: "3490", database: "/tmp/x/other.db" }, { DATABASE_PATH: "/tmp/ignored.db" });
-  assert.equal(q.port, 3490); assert.equal(q.database, "/tmp/x/other.db"); assert.equal(q.log, "/tmp/x/site.log");
+  assert.equal(q.port, 3490); assert.equal(q.database, "/tmp/x/other.db"); assert.equal(q.log, "/tmp/x/site-3490.log"); assert.equal(q.pid, "/tmp/x/site-3490.pid", "a second site in the same folder has files of its own: a preview must not take over the real site's pid file (round 117)");
+  assert.equal(sitePlan({ port: "3480", database: "/tmp/x/other.db" }, {}).pid, "/tmp/x/site.pid", "the default port keeps the old names");
   assert.equal(sitePlan({}, { DATABASE_PATH: "/tmp/env.db" }).database, "/tmp/env.db");
   for (const bad of ["80", "abc", "70000", "3480.5"]) assert.throws(() => sitePlan({ port: bad }, {}), /not a port number/, bad);
 });

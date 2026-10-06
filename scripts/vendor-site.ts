@@ -2,7 +2,7 @@
  * npm run vendor:site                       what is running: the process, the address, how many fighters and bouts it serves
  * npm run vendor:site -- --start [--build]  start the site on the real database (~/ringside-real/real.db, or DATABASE_PATH) on port 3480 (--port N), detached: closing
  *                                           the tab or the panel does not stop it. `--build` runs the production build first (needed after the code changed; done
- *                                           on its own when there is no build yet). Log: site.log beside the database.
+ *                                           on its own when there is no build yet). Log: site.log beside the database (site-PORT.log for a port other than 3480).
  * npm run vendor:site -- --stop             stop it (only the process this command started)
  * npm run vendor:site -- --restart [--build]  stop, then start (after a new load the running site notices the change by itself; a restart is for new code)
  * Run it in the project folder. It never sets the vendor key or the storage statement.
