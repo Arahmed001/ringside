@@ -73,6 +73,14 @@ body::before {
   * { transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
 
+/* A row of cards that always fills its width: a last row with fewer cards stretches them instead of leaving a gap.
+   --cols is how many fit in a row. .fill-4 is 2 across on a phone and 4 from 768 px; .fill-3 is 1 across and 3. */
+.fill-row { display: flex; flex-wrap: wrap; gap: .75rem; }
+.fill-row > * { flex: 1 1 calc((100% - (var(--cols) - 1) * .75rem) / var(--cols)); min-width: 0; }
+.fill-4 { --cols: 2; }
+.fill-3 { --cols: 1; }
+@media (min-width: 768px) { .fill-4 { --cols: 4; } .fill-3 { --cols: 3; } }
+
 /* Keyboard focus: one visible ring everywhere (gold, 3:1 on every surface), only for keyboard users. */
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .skip-link { position: absolute; inset-inline-start: 12px; top: -64px; z-index: 100; background: var(--gold); color: #09090b; padding: .6rem 1rem; border-radius: 10px; font-weight: 700; transition: top .15s; }

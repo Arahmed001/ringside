@@ -230,7 +230,7 @@ const HONOURS_SHOWN = 8;
       {numbers && numbers.fights >= 5 && (
         <section>
           <SectionTitle eyebrow={t("By the numbers")} title={t("Counted from every fight we hold")} />
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="fill-row fill-4">
             {numbers.rounds !== null && <Stat label={t("Rounds boxed")} value={numbers.rounds} sub={t.n(numbers.fights, "{n} fight", "{n} fights")} />}
             <Stat label={t("Went the distance")} value={pct(numbers.distance.n / numbers.distance.of)} sub={t("{n} of {of} fights", { n: numbers.distance.n, of: numbers.distance.of })} />
             {numbers.quick !== null && numbers.quick > 0 && <Stat label={t("Quick wins")} value={numbers.quick} sub={t("Stopped an opponent in three rounds or fewer")} />}
@@ -245,7 +245,7 @@ const HONOURS_SHOWN = 8;
       {hasHighlights && (
         <section>
           <SectionTitle eyebrow={t("Career highlights")} title={t("The best of the fights we hold")} />
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="fill-row fill-3">
             {highlights.bestWin && (() => { const o = w.byId.get(highlights.bestWin!.opponentId); return o ? (
               <Link href={`/bouts/${highlights.bestWin.boutId}`} className="card card-hover p-4">
                 <div className="eyebrow mb-1">{t("Best win")}</div>
