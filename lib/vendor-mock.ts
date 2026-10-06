@@ -32,9 +32,9 @@ export interface MockOptions {
 }
 
 export interface MockFight {
-  id: string; date: string; a: string; b: string; status: "FINISHED" | "NOT_STARTED"; winner: "a" | "b" | null; outcome: string | null; round: number | null; division: string; event: string;
+  id: string; date: string; a: string; b: string; status: "FINISHED" | "NOT_STARTED" | "CANCELLED"; /** the event's own title, when it is not the plain "Card x" (an Olympic card, say) */ eventTitle?: string; /** belt names on the line, as the feed spells them */ titles?: string[]; winner: "a" | "b" | null; outcome: string | null; round: number | null; division: string; event: string;
 }
-export interface MockFighter { id: string; name: string; birthYear: number; division: string; country: string }
+export interface MockFighter { id: string; name: string; birthYear: number; division: string; country: string; /** what the feed's `nationality` says when it is not the country's name (a demonym, a home nation), with its own `nationality_code` */ nationality?: string; code?: string }
 export interface MockWorld { today: string; fighters: Map<string, MockFighter>; fights: MockFight[]; careers: Map<string, { wins: number; losses: number; draws: number }>; /** set by `degradeWorld`: the fighters whose vendor totals were made too low */ faults?: { wrongTotals: string[] } }
 
 const DIVISIONS = ["Heavyweight", "Cruiserweight", "Light Heavyweight", "Super Middleweight", "Middleweight", "Super Welterweight", "Welterweight", "Super Lightweight", "Lightweight", "Super Featherweight", "Featherweight", "Super Bantamweight", "Bantamweight", "Super Flyweight", "Flyweight", "Light Flyweight", "Minimumweight"];
@@ -117,6 +117,49 @@ export function degradeWorld(w: MockWorld, o: { seed?: number; priorShare?: numb
   return w;
 }
 
+/**
+ * The things the real feed does that a clean league does not, laid over a league (in place, deterministic for a seed). Every one of them is something the importer had to learn
+ * from the first real cache, so this is the league to prove the whole load-and-audit path on:
+ * - `cancelled`: this many decided fights are listed as CANCELLED (no result; the vendor's totals do not count them); every other one shares the card of a fight that went ahead, so half of them are on a card that stays and half are a card of their own;
+ * - `cancelledCards`: this many whole cards of nothing but CANCELLED fights;
+ * - `amateur`: this many decided fights sit on an Olympic or games card (the vendor's totals leave them out; the fight list has them as ordinary fights);
+ * - `demonyms`: fighters whose nationality is a demonym with its ISO code ("Mexican"/MX), a home nation ("Scottish"/SC) or a spelling with a note ("Croatia (Hrvatska)"/HR);
+ * - `belts`: this many decided fights carry a belt, in the feed's spelling (a body, a modifier, "World", a division, "Champion").
+ */
+const DEMONYM: Record<string, [string, string]> = { Mexico: ["Mexican", "MX"], Japan: ["Japanese", "JP"], "United States": ["American", "US"], Ukraine: ["Ukrainian", "UA"], Philippines: ["Filipino", "PH"], Nigeria: ["Nigerian", "NG"], Argentina: ["Argentine", "AR"], Germany: ["German", "DE"], Cuba: ["Cuban", "CU"], "United Kingdom": ["British", "GB"] };
+const BELTS = ["WBC World Welterweight Champion", "WBA Super World Lightweight Champion", "IBF Interim World Heavyweight Champion", "The Ring Middleweight Champion", "WBO World Junior Welterweight Champion", "WBA World Minimumweight"];
+export function addQuirks(w: MockWorld, o: { seed?: number; cancelled?: number; cancelledCards?: number; amateur?: number; demonyms?: boolean; belts?: number }): MockWorld {
+  const rand = mulberry32(o.seed ?? 5);
+  const career = (id: string) => w.careers.get(id) ?? w.careers.set(id, { wins: 0, losses: 0, draws: 0 }).get(id)!;
+  const drop = (f: MockFight) => { if (f.winner === "a") { career(f.a).wins--; career(f.b).losses--; } else if (f.winner === "b") { career(f.b).wins--; career(f.a).losses--; } else { career(f.a).draws--; career(f.b).draws--; } };
+  const decided = w.fights.filter((f) => f.status === "FINISHED" && f.winner !== null && !f.id.startsWith("d") && !f.id.startsWith("g"));
+  const used = new Set<string>();
+  const pick = () => { for (let k = 0; k < 30; k++) { const f = decided[Math.floor(rand() * decided.length)]; if (f && !used.has(f.id)) { used.add(f.id); return f; } } return null; };
+  // every other cancelled fight is put on a card that went ahead (a card with one fight cancelled stays); the rest keep their own card, which is then nothing but a cancelled fight
+  for (let i = 0; i < (o.cancelled ?? 0); i++) {
+    const f = pick(); if (!f) break;
+    drop(f); f.status = "CANCELLED"; f.winner = null; f.outcome = null; f.round = null;
+    if (i % 2 === 0) { const host = pick(); if (host) { f.event = host.event; f.date = host.date; } }
+  }
+  for (let i = 0; i < (o.amateur ?? 0); i++) { const f = pick(); if (!f) break; drop(f); f.eventTitle = i % 2 ? `2016 Rio Olympics: Boxing Day ${1 + (i % 11)}` : `2014 Glasgow Commonwealth Games: Boxing Day ${1 + (i % 7)}`; }
+  for (let i = 0; i < (o.belts ?? 0); i++) { const f = pick(); if (!f) break; f.titles = [BELTS[i % BELTS.length]]; }
+  const ids = [...w.fighters.keys()];
+  for (let i = 0; i < (o.cancelledCards ?? 0); i++) {
+    const a = ids[Math.floor(rand() * ids.length)], A = w.fighters.get(a)!;
+    const b = ids.find((id) => id !== a && w.fighters.get(id)!.division === A.division); if (!b) continue;
+    const date = new Date(Date.parse(`${w.today}T00:00:00Z`) - (30 + i * 11) * 86400000).toISOString().slice(0, 10);
+    for (let k = 0; k < 2; k++) w.fights.push({ id: `cc${i}-${k}`, date, a, b, status: "CANCELLED", winner: null, outcome: null, round: null, division: A.division, event: `cc${i}` });
+  }
+  if (o.demonyms) {
+    [...w.fighters.values()].forEach((f, i) => {
+      if (i % 9 === 0) { f.nationality = "Scottish"; f.code = "SC"; }
+      else if (i % 11 === 0) { f.nationality = "Croatia (Hrvatska)"; f.code = "HR"; }
+      else if (i % 3 === 0 && DEMONYM[f.country]) [f.nationality, f.code] = DEMONYM[f.country];
+    });
+  }
+  return w;
+}
+
 const side = (id: string, name: string, winner: boolean) => ({ fighter_id: id, name, full_name: name, winner });
 function apiFight(w: MockWorld, f: MockFight) {
   const A = w.fighters.get(f.a)!, B = w.fighters.get(f.b)!, done = f.status === "FINISHED";
@@ -126,8 +169,8 @@ function apiFight(w: MockWorld, f: MockFight) {
     fighters: { fighter_1: side(f.a, A.name, f.winner === "a"), fighter_2: side(f.b, B.name, f.winner === "b") },
     results: done ? { outcome: f.outcome, outcome_long: f.outcome, round: f.round } : null,
     scores: done && f.outcome === "UD" ? ["116-112", "115-113", "117-111"] : null,
-    event: { id: f.event, title: `Card ${f.event}`, date: `${f.date}T00:00:00`, location: city, venue: "Arena" },
-    division: { name: f.division }, titles: [],
+    event: { id: f.event, title: f.eventTitle ?? `Card ${f.event}`, date: `${f.date}T00:00:00`, location: city, venue: "Arena" },
+    division: { name: f.division }, titles: (f.titles ?? []).map((name, i) => ({ name, id: `t${i}` })),
   };
 }
 /** A fighter's knockouts and times stopped, counted from the league's own fights (so they agree with the career record the mock states). */
@@ -166,7 +209,7 @@ function apiRankings(w: MockWorld, page: number) {
 function apiFighter(w: MockWorld, id: string) {
   const p = w.fighters.get(id)!, c = w.careers.get(id) ?? { wins: 0, losses: 0, draws: 0 };
   return {
-    id, name: p.name, alias: null, gender: "m", birth_year: p.birthYear, height: null, height_cm: 160 + (p.birthYear % 30), height_in: null, nationality: p.country, nationality_code: "XX", nickname: null,
+    id, name: p.name, alias: null, gender: "m", birth_year: p.birthYear, height: null, height_cm: 160 + (p.birthYear % 30), height_in: null, nationality: p.nationality ?? p.country, nationality_code: p.code ?? "XX", nickname: null,
     reach: null, reach_cm: null, reach_in: 66 + (p.birthYear % 10), stance: p.birthYear % 3 ? "orthodox" : "southpaw", stats: { ...c, total_bouts: c.wins + c.losses + c.draws, ...knockouts(w, id), total_rounds: 0 },
     debut: null, division: { id: "d", name: p.division, weight_lb: 147 }, titles: [], updated_at: "2026-09-29T18:04:12.400000",
   };
