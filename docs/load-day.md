@@ -93,3 +93,5 @@ It fetches the recent fights and the coming weeks (tens of requests) and reports
 ## What to send back when something looks wrong
 
 The whole output of the command, from its first line to its last (not the cache files, not the key file). Each step above prints enough to say what happened.
+
+The guided `vendor:load` now runs the audit itself as its step 3, so a separate `npm run vendor:audit` is only needed to look again later. Exit code 4 means the load worked but a check FAILED: nothing was undone; send back the whole output.

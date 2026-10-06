@@ -1,3 +1,4 @@
+import { describeAudit, failed, type Check } from "./vendor-audit";
 import os from "node:os";
 import path from "node:path";
 
@@ -41,6 +42,24 @@ export function loadPlan(user: string[], env: Record<string, string | undefined>
       : confirmed ? null
       : "The vendor's written confirmation that its data may be stored has not been stated. Say it, as the owner, when it is true: BOXING_API_STORAGE_CONFIRMED=1 in the environment, or add --storage-confirmed to this command (docs/real-data-runbook.md, section 0).",
   };
+}
+
+/** The exit code of `vendor:load` when the league was loaded but the audit of it found a failing check (a failed load keeps the code of the load itself). */
+export const AUDIT_FAILED_EXIT = 4;
+
+/**
+ * Step 3 of the guided load: what the audit (`lib/vendor-audit.ts`) found in the database just written, as the lines to print and the exit code. The load itself worked either way
+ * (nothing is undone); a FAIL means something in what was loaded is wrong, which is why it gets its own exit code and says how to load again.
+ */
+export function auditStep(checks: Check[], database: string): { lines: string[]; code: number } {
+  const bad = failed(checks);
+  const lines = ["", "step 3: the audit of what was loaded (a second; it reads the database only)", "", ...describeAudit(checks), ""];
+  if (bad.length) {
+    lines.push(`The load worked, but the audit found ${bad.length} failing check${bad.length === 1 ? "" : "s"} (the FAIL lines above): something in what was loaded is wrong. Nothing was undone. Send back the whole output; to load again from the cache, delete ${database} and its -wal and -shm files and run this command again.`);
+    return { lines, code: AUDIT_FAILED_EXIT };
+  }
+  lines.push(`Loaded into ${database}. The audit passed. Next: docs/real-data-runbook.md section 4 (check the result by hand), look at it with  npm run vendor:site -- --start --build , then the daily update (section 5).`);
+  return { lines, code: 0 };
 }
 
 /** Whether a typed answer is the confirmation: exactly LOAD, nothing else counts. */
