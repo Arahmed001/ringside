@@ -147,12 +147,25 @@ test("the names a real league prints in the supplier's spelling: full names, nic
   // a league made by hand, so that a short part of a name (Al, Lee) and a long one (Rahman, Ruiz) are both there
   const fake = {
     boxers: [{ name: "Al Rahman Lee", nickname: "The Bomb" }, { name: "Jo Ruiz", nickname: null }], bouts: [{ title: "WBC World Welterweight Champion" }],
-    events: [{ name: "Fury vs. Joshua (Postponed)", venue: "Copper Box Arena", city: "London", broadcaster: "Amazon Prime PPV" }], people: new Map([[1, { name: "Dr. Kwame Boateng" }]]), orgs: new Map([[1, { name: "Test Gym" }]]),
+    events: [{ name: "Fury vs. Joshua (Postponed)", venue: "Copper Box Arena", city: "London", broadcaster: "Amazon Prime PPV" }], people: new Map([[1, { name: "Dr. Kwame Boateng" }]]), official: { byDivision: new Map([["male|heavyweight", [{ champions: [{ name: "Unranked Visitor" }], contenders: [{ name: null }, { name: "Second Visitor" }] }]]]) }, orgs: new Map([[1, { name: "Test Gym" }]]),
   } as unknown as Parameters<typeof knownNames>[0];
   const k = knownNames(fake);
   for (const v of ["al rahman lee", "the bomb", "jo ruiz", "fury vs. joshua (postponed)", "copper box arena", "london", "amazon prime ppv", "wbc world welterweight champion", "dr. kwame boateng", "test gym"]) assert.ok(k.has(v), v);
   for (const part of ["rahman", "ruiz"]) assert.ok(k.has(part), `${part}: a part of four letters or more is a name on its own`);
   for (const part of ["al", "lee", "jo"]) assert.ok(!k.has(part), `${part}: a shorter part could be an English word, so it is not`);
   assert.ok(!k.has(""), "no empty name");
+  assert.ok(k.has("unranked visitor") && k.has("second visitor"), "a name only a body's list carries (a ranked fighter who is not in the league) is a name too (round 116)");
   assert.ok(knownNames(w).size > 100, "and from a real world: a good many");
+});
+
+
+test("the mistyped-link check never lands on another fighter's real address, and the brands an official list names are not English leaks (round 116)", async () => {
+  const { mistypeTarget, arabicLeaks } = await import("../lib/smoke");
+  // fighter-1414 is cut from fighter-14144 and is itself a fighter: the next one down is used
+  const best = [{ slug: "fighter-14144" }, { slug: "fighter-1414" }, { slug: "fighter-2" }];
+  assert.equal(mistypeTarget(best)?.slug, "fighter-1414", "fighter-14144 is skipped (its cut is a real fighter); fighter-1414 cut is fighter-141, nobody's");
+  assert.equal(mistypeTarget([{ slug: "a" }, { slug: "fighter-7" }, { slug: "xy" }])?.slug, "xy", "an empty cut and one that ends in a dash (fighter-) are not mistypes anyone makes");
+  assert.equal(mistypeTarget([{ slug: "fighter-7" }]), undefined, "none: no check rather than a poor one");
+  const arabic = "هذه ترتيبات الهيئة نفسها، تنقلها Boxing Data API عن BoxingScene. وهي ليست تصنيف رينغسايد.";
+  assert.deepEqual(arabicLeaks(`<p>${arabic}</p>`).filter((l) => /Boxing/.test(l)), []);
 });
