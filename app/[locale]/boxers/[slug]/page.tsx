@@ -4,7 +4,8 @@ import { ScrollRegion } from "@/components/ScrollRegion";
 import Link from "@/components/L";
 import { localePath } from "@/lib/i18n/config";
 import { abs } from "@/lib/seo";
-import { JsonLd } from "@/components/JsonLd";
+import { BreadcrumbLd, JsonLd } from "@/components/JsonLd";
+import { isListedBoxer } from "@/lib/sitemap";
 import { CareerMoneyCard } from "@/components/Money";
 import { TitlesCard, NextFightCard } from "@/components/TitlesCard";
 import { BoxerRecords } from "@/components/Awards";
@@ -29,6 +30,7 @@ import { PrintButton } from "@/components/PrintButton";
 import { FighterPrintSheet, type PrintRow } from "@/components/FighterPrintSheet";
 import { BoutLine, BoxerCard, ResultPill, SectionTitle, Stat } from "@/components/ui";
 import { JumpNav } from "@/components/JumpNav";
+import { Discussion } from "@/components/Discussion";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
@@ -48,7 +50,7 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string;
     const b = (await getWorld()).bySlug.get(slug);
     if (!b) return { path: `/boxers/${slug}`, title: t("Fighter"), description: t("Fighter profile on Ringside: record, ratings, team and fight history.") };
     return {
-      path: `/boxers/${b.slug}`, type: "profile" as const, title: t.name(b.name),
+      path: `/boxers/${b.slug}`, type: "profile" as const, title: t.name(b.name), noindex: !isListedBoxer(b), // a fighter with no fights on record is a name and nothing else
       description: t("{name}: {division} boxer from {country}. Record {record} with {kos} KOs and a {rating} Elo rating. Fight history, team, weigh-ins and scouting report.", {
         name: t.name(b.name), division: divisionLabel(b.weightClass, b.sex, t), country: countryName(b.country, t.locale), record: recordStr(b), kos: koView(b).kos, rating: Math.round(b.rating),
       }),
@@ -164,6 +166,7 @@ const HONOURS_SHOWN = 8;
   return (
     <>
     <div className="space-y-10 no-print">
+      <BreadcrumbLd locale={t.locale} trail={[{ name: t("Fighters"), path: "/boxers" }, { name: t.name(b.name), path: `/boxers/${b.slug}` }]} />
       <JsonLd data={{
         "@type": "Person", name: t.name(b.name), ...(t.name(b.name) !== b.name ? { alternateName: [b.name] } : {}), jobTitle: "Professional boxer",
         nationality: { "@type": "Country", name: b.country }, ...(b.birthDate ? { birthDate: b.birthDate } : {}), ...(b.photoUrl ? { image: b.photoUrl } : {}),
@@ -232,13 +235,13 @@ const HONOURS_SHOWN = 8;
         ...(numbers && numbers.fights >= 5 ? [{ id: "numbers", label: t("By the numbers") }] : []),
         ...(hasHighlights ? [{ id: "highlights", label: t("Career highlights") }] : []),
         { id: "profile", label: t("Profile") }, { id: "scouting", label: t("Scouting report") }, { id: "form", label: t("Rating history") },
-        { id: "similar", label: t("Style similarity") }, { id: "record", label: t("Fight record") },
+        { id: "similar", label: t("Style similarity") }, { id: "record", label: t("Fight record") }, { id: "discussion", label: t("Discussion") },
       ]} />
 
       {numbers && numbers.fights >= 5 && (
         <section id="numbers" className="scroll-mt-32">
           <SectionTitle eyebrow={t("By the numbers")} title={t("Counted from every fight we hold")} />
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="fill-row fill-4">
             {numbers.rounds !== null && <Stat label={t("Rounds boxed")} value={numbers.rounds} sub={t.n(numbers.fights, "{n} fight", "{n} fights")} />}
             <Stat label={t("Went the distance")} value={pct(numbers.distance.n / numbers.distance.of)} sub={t("{n} of {of} fights", { n: numbers.distance.n, of: numbers.distance.of })} />
             {numbers.quick !== null && numbers.quick > 0 && <Stat label={t("Quick wins")} value={numbers.quick} sub={t("Stopped an opponent in three rounds or fewer")} />}
@@ -253,7 +256,7 @@ const HONOURS_SHOWN = 8;
       {hasHighlights && (
         <section id="highlights" className="scroll-mt-32">
           <SectionTitle eyebrow={t("Career highlights")} title={t("The best of the fights we hold")} />
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="fill-row fill-3">
             {highlights.bestWin && (() => { const o = w.byId.get(highlights.bestWin!.opponentId); return o ? (
               <Link href={`/bouts/${highlights.bestWin.boutId}`} className="card card-hover p-4">
                 <div className="eyebrow mb-1">{t("Best win")}</div>
@@ -418,6 +421,10 @@ const HONOURS_SHOWN = 8;
         <ScrollRegion className="card p-4" label={t("Fight record")}>
           <table className="w-full" aria-label={t("Fight record")}><tbody>{(upcoming ? [upcoming, ...done] : done).map((x) => <BoutLine key={x.id} bout={x} focusId={b.id} context={opponentThen.get(x.id)} />)}</tbody></table>
         </ScrollRegion>
+      </section>
+      <section id="discussion" className="scroll-mt-32">
+        <SectionTitle eyebrow={t("Community")} title={t("Discussion")} href="/forum" cta={t("The general board")} />
+        <Discussion target={{ kind: "boxer", subject: b.slug }} />
       </section>
     </div>
     <FighterPrintSheet

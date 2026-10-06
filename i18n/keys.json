@@ -100,9 +100,11 @@
    "app/[locale]/compare/page.tsx",
    "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/events/[id]/opengraph-image.tsx",
+   "app/[locale]/fight-of-the-year/[year]/page.tsx",
    "app/[locale]/money/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/previews/[id]/opengraph-image.tsx",
+   "app/[locale]/previews/[id]/page.tsx",
    "app/api/og/compare/route.tsx",
    "components/LiveLedger.tsx",
    "components/MyPicks.tsx",
@@ -368,6 +370,12 @@
   "key": "{lb} lb catchweight",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "{list}, all-time: {blurb}",
+  "files": [
+   "app/[locale]/all-time/[list]/page.tsx"
   ]
  },
  {
@@ -738,10 +746,23 @@
   ]
  },
  {
+  "key": "{n} open reports",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "{n} points",
   "plural": "{n} point",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "{n} posts",
+  "plural": "{n} post",
+  "files": [
+   "app/[locale]/forum/page.tsx"
   ]
  },
  {
@@ -1758,6 +1779,12 @@
   ]
  },
  {
+  "key": "← All threads",
+  "files": [
+   "app/[locale]/forum/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "+{n} lb",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
@@ -2131,6 +2158,12 @@
   ]
  },
  {
+  "key": "A note (optional)",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "a one-time sign-in code the operator issued you, as a hash, if you asked for one",
   "files": [
    "lib/privacy.ts"
@@ -2140,6 +2173,12 @@
   "key": "A plain comparison. Rating change over the next six fights for fighters who changed head trainer, against the same measure for fighters who stayed put.",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "A post can be edited for 15 minutes after it is written.",
+  "files": [
+   "lib/forum/text.ts"
   ]
  },
  {
@@ -2203,6 +2242,12 @@
   ]
  },
  {
+  "key": "A thread on the Ringside forum.",
+  "files": [
+   "app/[locale]/forum/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "A title fight, but the belt did not change hands.",
   "files": [
    "lib/recap.ts"
@@ -2218,6 +2263,12 @@
   "key": "A title fight: a champion against a top-5 contender",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "A title is 5 to 100 characters on one line, with no links.",
+  "files": [
+   "lib/forum/text.ts"
   ]
  },
  {
@@ -2274,6 +2325,12 @@
   "files": [
    "components/ReportForm.tsx",
    "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Abuse or harassment",
+  "files": [
+   "components/Discussion.tsx"
   ]
  },
  {
@@ -2412,6 +2469,12 @@
   "files": [
    "components/AddToCalendar.tsx",
    "components/WatchlistPage.tsx"
+  ]
+ },
+ {
+  "key": "Add to the discussion",
+  "files": [
+   "components/Discussion.tsx"
   ]
  },
  {
@@ -3538,6 +3601,12 @@
   ]
  },
  {
+  "key": "Cancel",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "cancelled",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -3913,6 +3982,14 @@
   ]
  },
  {
+  "key": "Community",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/forum/page.tsx"
+  ]
+ },
+ {
   "key": "Community edits, checked by an editor",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -4045,6 +4122,7 @@
   "key": "Corners & officials",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx"
   ]
  },
@@ -4090,6 +4168,12 @@
   "key": "Could not reach the server. Check your connection and try again.",
   "files": [
    "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "Could not reach the server. Try again.",
+  "files": [
+   "lib/forum/text.ts"
   ]
  },
  {
@@ -4378,6 +4462,12 @@
   ]
  },
  {
+  "key": "Delete",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "Delete for good",
   "files": [
    "components/AccountPanel.tsx"
@@ -4387,6 +4477,20 @@
   "key": "Delete my account",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "deleted account",
+  "files": [
+   "app/[locale]/forum/[id]/page.tsx",
+   "app/[locale]/forum/page.tsx",
+   "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "Deleted.",
+  "files": [
+   "components/Discussion.tsx"
   ]
  },
  {
@@ -4453,6 +4557,13 @@
   "key": "Discover",
   "files": [
    "lib/nav.ts"
+  ]
+ },
+ {
+  "key": "Discussion",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -4727,6 +4838,24 @@
   ]
  },
  {
+  "key": "Edit",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "Edit your post",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "edited",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "Editor",
   "files": [
    "components/AccountPanel.tsx"
@@ -4956,6 +5085,8 @@
  {
   "key": "Events",
   "files": [
+   "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/events/page.tsx",
    "app/[locale]/orgs/[slug]/page.tsx",
    "lib/nav.ts",
@@ -5379,6 +5510,7 @@
   "key": "Fight previews",
   "files": [
    "app/[locale]/events/page.tsx",
+   "app/[locale]/previews/[id]/page.tsx",
    "app/[locale]/previews/page.tsx",
    "app/[locale]/upset-watch/page.tsx",
    "lib/nav.ts",
@@ -5540,6 +5672,7 @@
   "key": "Fighters",
   "files": [
    "app/[locale]/analytics/page.tsx",
+   "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/boxers/page.tsx",
    "app/[locale]/countries/[slug]/opengraph-image.tsx",
    "app/[locale]/countries/[slug]/page.tsx",
@@ -5926,6 +6059,13 @@
   ]
  },
  {
+  "key": "Forum",
+  "files": [
+   "app/[locale]/forum/[id]/page.tsx",
+   "app/[locale]/forum/page.tsx"
+  ]
+ },
+ {
   "key": "Fought in",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -6141,6 +6281,7 @@
  {
   "key": "Gyms, promotions & bodies",
   "files": [
+   "app/[locale]/orgs/[slug]/page.tsx",
    "app/[locale]/orgs/page.tsx",
    "lib/nav.ts",
    "lib/search.ts",
@@ -6325,6 +6466,18 @@
   "key": "Held in part: an opponent missing here may be a fight Ringside does not hold.",
   "files": [
    "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Hidden.",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "Hide",
+  "files": [
+   "components/Discussion.tsx"
   ]
  },
  {
@@ -7241,6 +7394,12 @@
   ]
  },
  {
+  "key": "Links are not allowed in posts.",
+  "files": [
+   "lib/forum/text.ts"
+  ]
+ },
+ {
   "key": "Live from the database",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -7289,6 +7448,12 @@
   ]
  },
  {
+  "key": "Loading the discussion…",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "Loading your picks…",
   "files": [
    "components/MyPicks.tsx"
@@ -7309,6 +7474,12 @@
    "components/ReportForm.tsx",
    "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "locked",
+  "files": [
+   "app/[locale]/forum/page.tsx"
   ]
  },
  {
@@ -7333,6 +7504,12 @@
   "key": "Logo of {name}",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Long numbers, like phone numbers, are not allowed in posts.",
+  "files": [
+   "lib/forum/text.ts"
   ]
  },
  {
@@ -7969,6 +8146,12 @@
   ]
  },
  {
+  "key": "New accounts can post after a few minutes. Try again soon.",
+  "files": [
+   "lib/forum/text.ts"
+  ]
+ },
+ {
   "key": "New champion: {name}, {belt}.",
   "files": [
    "lib/night.ts"
@@ -8287,6 +8470,12 @@
   ]
  },
  {
+  "key": "No one has written here yet.",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "No one in this list has that name.",
   "files": [
    "components/ListFinder.tsx"
@@ -8338,6 +8527,12 @@
   "key": "No team history on record yet.",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "No threads yet. Start the first one.",
+  "files": [
+   "app/[locale]/forum/page.tsx"
   ]
  },
  {
@@ -8667,6 +8862,12 @@
   "key": "of the venues matched to Wikidata",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Off topic",
+  "files": [
+   "components/Discussion.tsx"
   ]
  },
  {
@@ -9287,6 +9488,19 @@
   ]
  },
  {
+  "key": "Plain text. No links. Be decent: posts can be reported, and an editor can hide them.",
+  "files": [
+   "components/Discussion.tsx",
+   "components/StartThread.tsx"
+  ]
+ },
+ {
+  "key": "Please do not repeat one character over and over.",
+  "files": [
+   "lib/forum/text.ts"
+  ]
+ },
+ {
   "key": "points",
   "files": [
    "app/[locale]/people/[slug]/page.tsx"
@@ -9302,6 +9516,18 @@
   "key": "Portrait of {name}",
   "files": [
    "components/Portrait.tsx"
+  ]
+ },
+ {
+  "key": "Post",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "Posted.",
+  "files": [
+   "components/Discussion.tsx"
   ]
  },
  {
@@ -9710,6 +9936,7 @@
   "key": "Rankings",
   "files": [
    "app/[locale]/rankings/[division]/opengraph-image.tsx",
+   "app/[locale]/rankings/[division]/page.tsx",
    "app/[locale]/rankings/page.tsx",
    "app/[locale]/titles/page.tsx",
    "app/[locale]/tour/page.tsx",
@@ -10089,6 +10316,12 @@
   ]
  },
  {
+  "key": "Report",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "Report a mistake",
   "files": [
    "app/[locale]/report/page.tsx",
@@ -10118,6 +10351,12 @@
   "key": "Reported by {name}",
   "files": [
    "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Reported. Thank you.",
+  "files": [
+   "components/Discussion.tsx"
   ]
  },
  {
@@ -10161,6 +10400,18 @@
   "key": "rest are reported or estimated",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Restore",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "Restored.",
+  "files": [
+   "components/Discussion.tsx"
   ]
  },
  {
@@ -10427,6 +10678,18 @@
   ]
  },
  {
+  "key": "Save",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "Saved.",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "Say a little more (at least a couple of sentences).",
   "files": [
    "lib/account-text.ts"
@@ -10436,6 +10699,12 @@
   "key": "Say how the fight ended.",
   "files": [
    "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "Say something about the fighter or the fight…",
+  "files": [
+   "components/Discussion.tsx"
   ]
  },
  {
@@ -10660,6 +10929,12 @@
   ]
  },
  {
+  "key": "Send report",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "Set new password",
   "files": [
    "components/AccountPanel.tsx"
@@ -10762,6 +11037,12 @@
   ]
  },
  {
+  "key": "Show more",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "Show the map",
   "files": [
    "components/StyleMap.tsx"
@@ -10852,14 +11133,23 @@
  {
   "key": "Sign in first.",
   "files": [
-   "lib/account-text.ts"
+   "lib/account-text.ts",
+   "lib/forum/text.ts"
   ]
  },
  {
   "key": "Sign in or create an account",
   "files": [
    "components/ContributeForm.tsx",
-   "components/ReportForm.tsx"
+   "components/Discussion.tsx",
+   "components/ReportForm.tsx",
+   "components/StartThread.tsx"
+  ]
+ },
+ {
+  "key": "Sign in to join the discussion.",
+  "files": [
+   "components/Discussion.tsx"
   ]
  },
  {
@@ -10890,6 +11180,12 @@
   "key": "Sign in to report a mistake. Every report goes to an editor, who checks the source before anything changes.",
   "files": [
    "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "Sign in to start a thread.",
+  "files": [
+   "components/StartThread.tsx"
   ]
  },
  {
@@ -11043,6 +11339,7 @@
  {
   "key": "Something else",
   "files": [
+   "components/Discussion.tsx",
    "lib/correction-text.ts"
   ]
  },
@@ -11055,7 +11352,8 @@
  {
   "key": "Something went wrong. Try again.",
   "files": [
-   "lib/account-text.ts"
+   "lib/account-text.ts",
+   "lib/forum/text.ts"
   ]
  },
  {
@@ -11135,6 +11433,12 @@
   ]
  },
  {
+  "key": "Spam",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "Split",
   "files": [
    "app/[locale]/analytics/page.tsx"
@@ -11201,6 +11505,18 @@
   "key": "Star a fighter (☆ Watch on any profile) and their next fight shows up here.",
   "files": [
    "components/Watch.tsx"
+  ]
+ },
+ {
+  "key": "Start a thread",
+  "files": [
+   "components/StartThread.tsx"
+  ]
+ },
+ {
+  "key": "Start the thread",
+  "files": [
+   "components/StartThread.tsx"
   ]
  },
  {
@@ -11483,6 +11799,18 @@
   ]
  },
  {
+  "key": "Talk boxing with other fans: any topic, on the general board; and under every fighter and every fight.",
+  "files": [
+   "app/[locale]/forum/page.tsx"
+  ]
+ },
+ {
+  "key": "Talk boxing with other fans. This is the general board. Every fighter and every fight also has its own discussion at the bottom of its page.",
+  "files": [
+   "app/[locale]/forum/page.tsx"
+  ]
+ },
+ {
   "key": "Tap Watch to follow a fighter",
   "files": [
    "app/[locale]/tour/page.tsx"
@@ -11637,9 +11965,21 @@
   ]
  },
  {
+  "key": "That is not there any more.",
+  "files": [
+   "lib/forum/text.ts"
+  ]
+ },
+ {
   "key": "That is this device: use Sign out.",
   "files": [
    "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "That is too long: {max} characters at most.",
+  "files": [
+   "lib/forum/text.ts"
   ]
  },
  {
@@ -11901,6 +12241,12 @@
   ]
  },
  {
+  "key": "The discussion could not be loaded.",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "The dot is the estimate and the line its 95% range; the centre mark is the average trainer. A line that crosses the centre cannot be told from average.",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -12042,6 +12388,13 @@
   "key": "The full top ten",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
+  "key": "The general board",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx",
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -12737,6 +13090,18 @@
   ]
  },
  {
+  "key": "This post was deleted.",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "This post was hidden.",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "This removes your name, your picks and your sign-ins for good. Edits you proposed stay in the record without your name. Enter your password to confirm.",
   "files": [
    "components/AccountPanel.tsx"
@@ -12761,9 +13126,22 @@
   ]
  },
  {
+  "key": "This thread is locked.",
+  "files": [
+   "components/Discussion.tsx",
+   "lib/forum/text.ts"
+  ]
+ },
+ {
   "key": "Those lists cover all of boxing history, not one year, so there is nothing to show for a single year. Try “best fight of 2025” or “knockouts in 2025” instead.",
   "files": [
    "components/AskResults.tsx"
+  ]
+ },
+ {
+  "key": "Threads",
+  "files": [
+   "app/[locale]/forum/page.tsx"
   ]
  },
  {
@@ -12794,6 +13172,12 @@
   "key": "Times stopped",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Title",
+  "files": [
+   "components/StartThread.tsx"
   ]
  },
  {
@@ -13152,6 +13536,7 @@
  {
   "key": "Try again",
   "files": [
+   "components/Discussion.tsx",
    "components/ErrorView.tsx"
   ]
  },
@@ -13717,6 +14102,12 @@
   ]
  },
  {
+  "key": "What do you want to talk about?",
+  "files": [
+   "components/StartThread.tsx"
+  ]
+ },
+ {
   "key": "What is at stake",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
@@ -14098,6 +14489,12 @@
   ]
  },
  {
+  "key": "Why?",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "Widest disagreement between judges",
   "files": [
    "app/[locale]/people/page.tsx"
@@ -14423,6 +14820,18 @@
   ]
  },
  {
+  "key": "Write a little more.",
+  "files": [
+   "lib/forum/text.ts"
+  ]
+ },
+ {
+  "key": "Write something first.",
+  "files": [
+   "lib/forum/text.ts"
+  ]
+ },
+ {
   "key": "Written by a machine",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -14462,9 +14871,33 @@
   ]
  },
  {
+  "key": "Yes, delete it",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "you",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "You against the model",
   "files": [
    "components/MyPicks.tsx"
+  ]
+ },
+ {
+  "key": "You already reported this post.",
+  "files": [
+   "lib/forum/text.ts"
+  ]
+ },
+ {
+  "key": "You already said that.",
+  "files": [
+   "lib/forum/text.ts"
   ]
  },
  {
@@ -14482,13 +14915,20 @@
  {
   "key": "You are not allowed to do that.",
   "files": [
-   "lib/account-text.ts"
+   "lib/account-text.ts",
+   "lib/forum/text.ts"
   ]
  },
  {
   "key": "You are not watching anyone yet.",
   "files": [
    "components/WatchlistPage.tsx"
+  ]
+ },
+ {
+  "key": "You are posting too fast. Wait a few minutes.",
+  "files": [
+   "lib/forum/text.ts"
   ]
  },
  {
@@ -14513,6 +14953,12 @@
   "key": "You cannot decide your own proposal.",
   "files": [
    "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "You cannot report your own post.",
+  "files": [
+   "lib/forum/text.ts"
   ]
  },
  {
@@ -14629,6 +15075,12 @@
   "key": "Your fights as a calendar: the upcoming fights of everyone you follow, updated as cards change.",
   "files": [
    "components/WatchlistPage.tsx"
+  ]
+ },
+ {
+  "key": "Your first post",
+  "files": [
+   "components/StartThread.tsx"
   ]
  },
  {

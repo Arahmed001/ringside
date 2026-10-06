@@ -11,7 +11,7 @@ const page = read("app/[locale]/boxers/[slug]/page.tsx");
 test("every section the strip links to exists on the page, once, with room above it for the strip", () => {
   const strip = page.slice(page.indexOf("<JumpNav sections={["), page.indexOf("]} />", page.indexOf("<JumpNav sections={[")));
   const ids = [...strip.matchAll(/id: "([a-z]+)"/g)].map((m) => m[1]);
-  assert.deepEqual(ids, ["numbers", "highlights", "profile", "scouting", "form", "similar", "record"], "in page order");
+  assert.deepEqual(ids, ["numbers", "highlights", "profile", "scouting", "form", "similar", "record", "discussion"], "in page order");
   for (const id of ids) {
     const found = [...page.matchAll(new RegExp(`<section id="${id}" className="[^"]*scroll-mt-32`, "g"))];
     assert.equal(found.length, 1, `#${id}: one section carries it, with scroll-mt-32 (the strip is about 107 px under the top of the window)`);

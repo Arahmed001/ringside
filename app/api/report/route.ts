@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   if (r instanceof Response) return r;
   const user = userOf(req);
   if (!user) return fail("unauthorized", 401);
-  if (!limits().report.take(`u${user.id}`)) return fail("rate_limited", 429, { "retry-after": "86400" });
+  if (limits().report.left(`u${user.id}`) < 1) return fail("rate_limited", 429, { "retry-after": "86400" }); // spent only by a report that is accepted (below)
   const b = r.body, db = await getDb();
   const slug = str(b.boxerSlug, 120), bout = str(b.boutId, 120);
   const targetType = bout ? "bout" : "boxer";
@@ -33,7 +33,8 @@ export async function POST(req: Request) {
     sourceUrl: str(b.sourceUrl, 600) || undefined, quote: str(b.quote, 400) || undefined, note: str(b.note, 1600) || undefined, contact: str(b.contact, 240) || undefined,
   };
   const res = submitReport(user, p, db);
-  if (!res.ok) { limits().report.clear(`u${user.id}`); return fail(res.error, 400); } // a refused report does not use up the day's allowance
+  if (!res.ok) return fail(res.error, 400); // a refused report does not use up the day's allowance (it was never taken; clearing would also forgive the accepted ones)
+  limits().report.take(`u${user.id}`);
   if (res.applied) { if (res.applied.boutsChanged) recomputeRatings(db); bumpDbVersion(); } // the fighter's own correction is in place: pages show it at once
   return json({ id: res.id, applied: !!res.applied }, 201);
 }

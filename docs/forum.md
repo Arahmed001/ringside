@@ -1,10 +1,12 @@
-# The community forum (in progress: round 125 is the foundation, no pages yet)
+# The community forum (in progress: rounds 125 and 126 done; round 127 is the editors' queue page, the rules page, the privacy and terms text)
 
 Decided with the owner, 2026-10-06: **discussion on fighters and fights** (one thread under each fighter and each fight, made by the first post written there, plus a general board where people start threads), **post first, report and hide** (people post at once; anyone signed in can report; an editor hides or restores), **public to read, not indexed** (every forum answer carries `X-Robots-Tag: noindex, nofollow`, and the forum's text will be loaded by the page after it opens, never written into the HTML of a fighter's page, which search engines do index).
 
-## What exists (round 125)
+## What exists
 
-Storage, rules, limits, reporting, moderation, export and deletion, and the web endpoints. No page shows it yet (round 126: the pages and the composer; round 127: the editors' queue page, the rules page and the privacy and terms text).
+**Round 125:** storage, rules, limits, reporting, moderation, export and deletion, and the web endpoints. **Round 126:** the pages. A *Discussion* section at the bottom of every fighter page and every fight page (`components/Discussion.tsx`, linked from the jump strip), loaded by the browser after the page opens, so what people write is never in the HTML of a page search engines index; `/forum` (the general board and the form that starts a thread, `components/StartThread.tsx`) and `/forum/<id>` (a general thread). The forum pages are `noindex`, are not in the sitemap, and are not in the menu yet (round 127). Reading is open to everyone; posting, editing your post (15 minutes), deleting it, and reporting need an account; editors see Hide and Restore on every post and the number of open reports.
+
+To try it locally: create an account at `/account`, wait five minutes (or age the account in `accounts.db`), and write under any fighter.
 
 | Endpoint | Who | What |
 |---|---|---|

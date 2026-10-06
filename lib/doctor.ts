@@ -10,6 +10,7 @@
  * about; `ok` = checked and fine.
  */
 import { httpsUrl, siteContact } from "./site-info";
+import { siteUrlIsPublic } from "./seo";
 import path from "node:path";
 import { assertPlausibleKey } from "./providers/boxing-data-api";
 import { STALE_DATA_DAYS } from "./freshness";
@@ -79,7 +80,7 @@ export function envFindings(env: Env, nodeVersion = process.versions.node, produ
 
   const site = (env.SITE_URL ?? "").trim();
   if (!site) {
-    if (production) out.push(f("warn", "site-url", "SITE_URL is not set: canonical links, sitemaps, share images and the sign-in origin check will use http://localhost:3000.", "Set SITE_URL to the public origin, e.g. https://ringside.example."));
+    if (production) out.push(f("warn", "site-url", "SITE_URL is not set: canonical links, sitemaps, share images and the sign-in origin check would use http://localhost:3000, so the site stays noindex (robots.txt disallows everything, no sitemap) until it is set.", "Set SITE_URL to the public origin, e.g. https://ringside.example."));
   } else {
     let u: URL | null = null;
     try { u = new URL(site); } catch { /* reported below */ }
@@ -87,7 +88,7 @@ export function envFindings(env: Env, nodeVersion = process.versions.node, produ
     else {
       if (production && u.protocol !== "https:") out.push(f("warn", "site-url", "SITE_URL is not https: the session cookie is not marked Secure and HSTS is not sent.", "Put TLS in front and use the https address."));
       if (u.pathname !== "/" || u.search || u.hash) out.push(f("warn", "site-url", "SITE_URL has a path, query or fragment; it should be only the origin (scheme, host, port).", `Use ${u.origin}`));
-      if (production && /^(localhost|127\.|\[::1\])/.test(u.hostname)) out.push(f("warn", "site-url", "SITE_URL points at this machine: shared links and canonical URLs will not work for anyone else."));
+      if (production && /^(localhost|127\.|\[::1\])/.test(u.hostname)) out.push(f("warn", "site-url", "SITE_URL points at this machine: shared links and canonical URLs will not work for anyone else, and the site stays noindex."));
     }
   }
 
@@ -223,7 +224,7 @@ export function configLine(env: Env, at = new Date()): string {
   const fs = envFindings(env, process.versions.node, isProduction(env));
   return JSON.stringify({
     at: at.toISOString(), level: "info", event: "config", node: process.versions.node, env: env.NODE_ENV ?? "development", provider: provider(env),
-    siteUrl: origin(env.SITE_URL), indexable: env.INDEXABLE === "1" || provider(env) !== "demo",
+    siteUrl: origin(env.SITE_URL), indexable: (env.INDEXABLE === "1" || provider(env) !== "demo") && siteUrlIsPublic(env.SITE_URL),
     ai: set(env, "ANTHROPIC_API_KEY") && env.AI_DAILY_BUDGET !== "0", problems: fs.filter((x) => x.level === "fail" || x.level === "warn").map((x) => x.id),
   });
 }

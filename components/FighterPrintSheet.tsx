@@ -13,7 +13,7 @@ export async function FighterPrintSheet(p: PrintSheetProps) {
   return (
     <section className="print-only" aria-hidden="true">
       <div className="text-xs uppercase tracking-widest">{p.division}{p.rankLine ? ` · ${p.rankLine}` : ""}</div>
-      <h1 className="font-display text-5xl font-extrabold uppercase leading-none">{p.name}</h1>
+      <div className="font-display text-5xl font-extrabold uppercase leading-none">{p.name}</div>
       {p.nickname && <div className="mt-1 font-serif text-2xl italic">“{p.nickname}”</div>}
       <div className="mt-2 text-sm">{p.line}</div>
       {p.belts.length > 0 && <ul className="mt-2 text-sm font-semibold">{p.belts.map((b) => <li key={b}>{b}</li>)}</ul>}

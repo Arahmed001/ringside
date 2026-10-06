@@ -8,12 +8,17 @@ import { Headshot } from "@/components/Portrait";
 import { ScoreCards } from "@/components/ScoreCards";
 import { PunchStats } from "@/components/PunchStats";
 import { SectionTitle } from "@/components/ui";
+import { Discussion } from "@/components/Discussion";
 import { flag, fmtDate, methodLabel, pct } from "@/lib/format";
 import { callOf } from "@/lib/accountability";
 import { lockedFor } from "@/lib/ledger";
 import { buildRecap, recapLines } from "@/lib/recap";
 import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
+import { abs } from "@/lib/seo";
+import { localePath } from "@/lib/i18n/config";
+import { BreadcrumbLd, JsonLd } from "@/components/JsonLd";
+import { isListedBout } from "@/lib/sitemap";
 import type { T } from "@/lib/i18n/t";
 import { METHOD_NAME, endsEarly } from "@/lib/methods";
 import { divisionLabel } from "@/lib/divisions";
@@ -29,7 +34,7 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string;
   const red = w.byId.get(b.redId)!, blue = w.byId.get(b.blueId)!, ev = w.eventById.get(b.eventId)!;
   const v = { red: t.name(red.name), blue: t.name(blue.name), division: divisionLabel(b.weightClass, red.sex, t), event: t.name(ev.name), city: t.name(ev.city), date: fmtDate(ev.date, undefined, t.locale), rounds: b.rounds };
   return {
-    path: `/bouts/${id}`, title: t("{red} vs {blue}", v),
+    path: `/bouts/${id}`, title: t("{red} vs {blue}", v), noindex: !isListedBout(w, b), // the sitemap's own rule: title fights and main events; the rest is one line on the card's page
     description: b.method
       ? t("{red} vs {blue}, a {rounds}-round {division} bout at {event} in {city} on {date}. Result: {result}, with scorecards, weigh-ins and punch stats.", { ...v, result: methodLabel(b.method, b.endRound, t) })
       : t("{red} vs {blue}, a {rounds}-round {division} bout at {event} in {city} on {date}. Win probability, weigh-ins and head-to-head on Ringside.", v),
@@ -83,6 +88,14 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="space-y-10">
+      <BreadcrumbLd locale={t.locale} trail={[{ name: t("Events"), path: "/events" }, { name: t.name(ev.name), path: `/events/${ev.id}` }, { name: t("{a} vs {b}", { a: t.name(red.name), b: t.name(blue.name) }), path: `/bouts/${b.id}` }]} />
+      <JsonLd data={{
+        "@type": "SportsEvent", name: t("{a} vs {b}", { a: t.name(red.name), b: t.name(blue.name) }), sport: "Boxing", startDate: ev.date, url: abs(localePath(t.locale, `/bouts/${b.id}`)), inLanguage: t.locale,
+        eventStatus: b.status === "cancelled" ? "https://schema.org/EventCancelled" : "https://schema.org/EventScheduled",
+        location: { "@type": "Place", name: t.name(ev.venue), address: { "@type": "PostalAddress", addressLocality: t.name(ev.city), addressCountry: ev.country } },
+        competitor: [red, blue].map((f) => ({ "@type": "Person", name: t.name(f.name), url: abs(localePath(t.locale, `/boxers/${f.slug}`)) })),
+        superEvent: { "@type": "SportsEvent", name: t.name(ev.name), url: abs(localePath(t.locale, `/events/${ev.id}`)) },
+      }} />
       <section className="rise">
         <h1 className="sr-only">{t("{a} vs {b}", { a: t.name(red.name), b: t.name(blue.name) })}</h1>
         <div className="eyebrow mb-2">
@@ -205,6 +218,10 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
       {punches.length > 0 && (
         <section><SectionTitle eyebrow={t("Fight stats")} title={t("Punch statistics")} /><div className="card p-5"><PunchStats lines={punches} redId={red.id} blueId={blue.id} redName={t.name(red.name)} blueName={t.name(blue.name)} /></div></section>
       )}
+      <section id="discussion" className="scroll-mt-32">
+        <SectionTitle eyebrow={t("Community")} title={t("Discussion")} href="/forum" cta={t("The general board")} />
+        <Discussion target={{ kind: "bout", subject: String(b.id) }} />
+      </section>
     </div>
   );
 }

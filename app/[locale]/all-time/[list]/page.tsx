@@ -15,7 +15,9 @@ import { metaFor } from "@/lib/seo-server";
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; list: string }> }) => metaFor(params, ({ list }, t) => {
   const def = listDef(list);
   if (!def) notFound();
-  return { path: `/all-time/${list}`, title: t(def.title), description: t(def.blurb).slice(0, 300) };
+  // a one-line definition ("Wins on record, by any method.") is no description of a page: name the list in front of it
+  const blurb = t(def.blurb);
+  return { path: `/all-time/${list}`, title: t(def.title), description: blurb.length < 80 ? t("{list}, all-time: {blurb}", { list: t(def.title), blurb }) : blurb };
 });
 
 export default async function AllTimeList({ params, searchParams }: { params: Promise<{ list: string }>; searchParams: Promise<{ sex?: string; division?: string }> }) {

@@ -1,7 +1,7 @@
 import Link from "@/components/L";
 import { localePath } from "@/lib/i18n/config";
 import { abs } from "@/lib/seo";
-import { JsonLd } from "@/components/JsonLd";
+import { BreadcrumbLd, JsonLd } from "@/components/JsonLd";
 import { notFound } from "next/navigation";
 import { getWorld } from "@/lib/world";
 import { orgStable } from "@/lib/team";
@@ -81,6 +81,7 @@ export default async function OrgPage({ params, searchParams }: { params: Promis
   const eventsPg = paginate(events.length, first(query.events), EVENTS_PAGE);
   return (
     <div className="space-y-10">
+      <BreadcrumbLd locale={t.locale} trail={[{ name: t("Gyms, promotions & bodies"), path: "/orgs" }, { name: t.name(o.name), path: `/orgs/${o.slug}` }]} />
       <JsonLd data={{ "@type": "Organization", name: t.name(o.name), url: abs(localePath(t.locale, `/orgs/${o.slug}`)), inLanguage: t.locale, ...(o.city || o.country ? { address: { "@type": "PostalAddress", ...(o.city ? { addressLocality: t.name(o.city) } : {}), ...(o.country ? { addressCountry: o.country } : {}) } } : {}) }} />
       <div className="flex flex-wrap items-start justify-between gap-6">
         <div><div className="eyebrow mb-2">{t(KIND[o.kind])}</div><h1 className="font-display text-5xl font-extrabold uppercase leading-none">{t.name(o.name)}</h1>{(o.city || o.country) && <p className="mt-2 text-muted">{o.country && flag(o.country)} {o.city && o.country ? t("{city}, {country}", { city: t.name(o.city), country: countryName(o.country, t.locale) }) : o.city ? t.name(o.city) : countryName(o.country!, t.locale)}</p>}</div>
