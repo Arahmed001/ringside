@@ -28,7 +28,7 @@ export { STALE_DATA_DAYS };
 /** Every setting the app, its scripts and its docs know about. The drift test (tests/config-docs.test.ts) keeps this, the code and .env.example in step. */
 export const KNOWN_ENV = [
   "ANTHROPIC_API_KEY", "ANTHROPIC_MODEL", "ANTHROPIC_MODEL_TRANSLATE", "AI_DAILY_BUDGET", "AI_CLIENT_LIMIT", "AI_CLIENT_WINDOW_MS",
-  "BOXING_PROVIDER", "BOXING_FILE", "BOXING_API_URL", "BOXING_API_KEY", "BOXING_API_MAX_REQUESTS", "BOXING_API_PER_HOUR", "BOXING_API_SINCE", "BOXING_API_STORAGE_CONFIRMED",
+  "BOXING_PROVIDER", "BOXING_FILE", "BOXING_API_URL", "BOXING_API_KEY", "BOXING_API_MAX_REQUESTS", "BOXING_API_PER_HOUR", "BOXING_API_SINCE", "BOXING_API_STORAGE_CONFIRMED", "PUBLIC_API", "VENDOR_REDISTRIBUTION_CONFIRMED",
   "VENDOR_LAG_DAYS", "VENDOR_LOAD_LAG_DAYS", "RINGSIDE_KEY_FILE", "WIKIMEDIA_CONTACT", "WIKIMEDIA_GAP_MS", "WIKIDATA_GAP_MS", "MEDIA_RESOLVER", "MEDIA_RESOLVER_BATCH",
   "RESEARCH_CONTACT", "SITE_CONTACT", "VENDOR_TERMS_URL", "RESEARCH_DELAY_MS", "RESEARCH_BLOCKLIST", "SITE_URL", "INDEXABLE", "DATABASE_PATH", "ACCOUNTS_DB_PATH",
   "RINGSIDE_NOW",
@@ -109,6 +109,9 @@ export function envFindings(env: Env, nodeVersion = process.versions.node, produ
   if (p === "licensed") {
     if (!set(env, "VENDOR_TERMS_URL")) out.push(f("info", "vendor-terms", "VENDOR_TERMS_URL is not set: the Data page credits the vendor but links no licence terms. Set it once the vendor's terms (or its written agreement) are public."));
     else if (!httpsUrl(env.VENDOR_TERMS_URL)) out.push(f("warn", "vendor-terms", "VENDOR_TERMS_URL is not an https:// address, so it is not shown.", "Use the https:// link to the vendor's terms."));
+    // the public API and the embeds hand the vendor's records to other sites: off for a licensed feed until the owner has both asked for them and stated that the terms allow it
+    if (env.PUBLIC_API === "1" && env.VENDOR_REDISTRIBUTION_CONFIRMED !== "1") out.push(f("warn", "public-api", "PUBLIC_API=1, but the public API and the embeds stay off for a licensed feed until you state that the vendor's terms allow redistribution.", "Set VENDOR_REDISTRIBUTION_CONFIRMED=1 only when that is true (docs/public-api.md)."));
+    else if (env.PUBLIC_API !== "1" && env.VENDOR_REDISTRIBUTION_CONFIRMED === "1") out.push(f("info", "public-api", "VENDOR_REDISTRIBUTION_CONFIRMED=1 is set but PUBLIC_API is not, so the public API and the embeds are off.", "Set PUBLIC_API=1 to turn them on."));
   }
   if (set(env, "PORT") && !(Number.isInteger(Number(env.PORT)) && Number(env.PORT) > 0 && Number(env.PORT) < 65536)) out.push(f("fail", "port", "PORT is not a port number."));
 
