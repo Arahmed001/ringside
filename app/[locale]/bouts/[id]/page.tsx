@@ -8,6 +8,7 @@ import { Headshot } from "@/components/Portrait";
 import { ScoreCards } from "@/components/ScoreCards";
 import { PunchStats } from "@/components/PunchStats";
 import { SectionTitle } from "@/components/ui";
+import { Discussion } from "@/components/Discussion";
 import { flag, fmtDate, methodLabel, pct } from "@/lib/format";
 import { callOf } from "@/lib/accountability";
 import { lockedFor } from "@/lib/ledger";
@@ -217,6 +218,10 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
       {punches.length > 0 && (
         <section><SectionTitle eyebrow={t("Fight stats")} title={t("Punch statistics")} /><div className="card p-5"><PunchStats lines={punches} redId={red.id} blueId={blue.id} redName={t.name(red.name)} blueName={t.name(blue.name)} /></div></section>
       )}
+      <section id="discussion" className="scroll-mt-32">
+        <SectionTitle eyebrow={t("Community")} title={t("Discussion")} href="/forum" cta={t("The general board")} />
+        <Discussion target={{ kind: "bout", subject: String(b.id) }} />
+      </section>
     </div>
   );
 }

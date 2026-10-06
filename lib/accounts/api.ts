@@ -26,13 +26,33 @@ export const canReview = (u: User | null): u is User => !!u && (u.role === "edit
 export const isRole = (u: User | null, ...roles: Role[]): u is User => !!u && roles.includes(u.role);
 
 const MAX_BODY = 16 * 1024;
-/** Same-origin check, then the body as a JSON object (at most 16 KB), or a ready-made error response. */
+
+/** The body as text, read no further than `max` bytes: a request that says (or turns out) to be larger is refused without buffering the rest. */
+async function readBodyCapped(req: Request, max: number): Promise<string | "too_large" | "bad"> {
+  const declared = Number(req.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > max) return "too_large";
+  if (!req.body) return "";
+  const reader = req.body.getReader(), dec = new TextDecoder("utf-8", { fatal: false });
+  let out = "", bytes = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > max) { await reader.cancel().catch(() => {}); return "too_large"; }
+      out += dec.decode(value, { stream: true });
+    }
+  } catch { return "bad"; }
+  return out + dec.decode();
+}
+
+/** Same-origin check, then the body as a JSON object (at most 16 KB, counted in bytes as it arrives), or a ready-made error response. */
 export async function postBody(req: Request): Promise<{ body: Record<string, unknown>; ip: string } | Response> {
   if (!sameOrigin(req)) return fail("forbidden", 403);
   const ip = clientId(req.headers);
-  let text: string;
-  try { text = await req.text(); } catch { return fail("bad_request"); }
-  if (text.length > MAX_BODY) return fail("too_large", 413);
+  const text = await readBodyCapped(req, MAX_BODY);
+  if (text === "too_large") return fail("too_large", 413);
+  if (text === "bad") return fail("bad_request");
   if (!text.trim()) return { body: {}, ip };
   try {
     const body = JSON.parse(text);

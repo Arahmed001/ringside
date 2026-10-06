@@ -30,6 +30,7 @@ import { PrintButton } from "@/components/PrintButton";
 import { FighterPrintSheet, type PrintRow } from "@/components/FighterPrintSheet";
 import { BoutLine, BoxerCard, ResultPill, SectionTitle, Stat } from "@/components/ui";
 import { JumpNav } from "@/components/JumpNav";
+import { Discussion } from "@/components/Discussion";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
@@ -234,7 +235,7 @@ const HONOURS_SHOWN = 8;
         ...(numbers && numbers.fights >= 5 ? [{ id: "numbers", label: t("By the numbers") }] : []),
         ...(hasHighlights ? [{ id: "highlights", label: t("Career highlights") }] : []),
         { id: "profile", label: t("Profile") }, { id: "scouting", label: t("Scouting report") }, { id: "form", label: t("Rating history") },
-        { id: "similar", label: t("Style similarity") }, { id: "record", label: t("Fight record") },
+        { id: "similar", label: t("Style similarity") }, { id: "record", label: t("Fight record") }, { id: "discussion", label: t("Discussion") },
       ]} />
 
       {numbers && numbers.fights >= 5 && (
@@ -420,6 +421,10 @@ const HONOURS_SHOWN = 8;
         <ScrollRegion className="card p-4" label={t("Fight record")}>
           <table className="w-full" aria-label={t("Fight record")}><tbody>{(upcoming ? [upcoming, ...done] : done).map((x) => <BoutLine key={x.id} bout={x} focusId={b.id} context={opponentThen.get(x.id)} />)}</tbody></table>
         </ScrollRegion>
+      </section>
+      <section id="discussion" className="scroll-mt-32">
+        <SectionTitle eyebrow={t("Community")} title={t("Discussion")} href="/forum" cta={t("The general board")} />
+        <Discussion target={{ kind: "boxer", subject: b.slug }} />
       </section>
     </div>
     <FighterPrintSheet
