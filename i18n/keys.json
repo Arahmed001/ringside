@@ -43,6 +43,13 @@
   ]
  },
  {
+  "key": "[removed]",
+  "files": [
+   "app/[locale]/forum/[id]/page.tsx",
+   "app/[locale]/forum/page.tsx"
+  ]
+ },
+ {
   "key": "{a} ({sa}) meets {b} ({sb}).",
   "files": [
    "lib/preview.ts"
