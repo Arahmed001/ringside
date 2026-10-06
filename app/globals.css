@@ -73,6 +73,9 @@ body::before {
   * { transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
 
+/* A hint or value too long for its box ends in an ellipsis instead of being cut mid-word. */
+input { text-overflow: ellipsis; }
+
 /* Keyboard focus: one visible ring everywhere (gold, 3:1 on every surface), only for keyboard users. */
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .skip-link { position: absolute; inset-inline-start: 12px; top: -64px; z-index: 100; background: var(--gold); color: #09090b; padding: .6rem 1rem; border-radius: 10px; font-weight: 700; transition: top .15s; }
