@@ -45,3 +45,6 @@ export function predictFeatures(a: Features, b: Features, weights: Weights = act
 }
 
 export const predict = (a: BoxerFull, b: BoxerFull, t: T = tEn): Prediction => predictFeatures(featuresOf(a), featuresOf(b), activeWeights(), t);
+
+/** Only the win probabilities `predictFeatures` gives for these features (the same call), without the factor notes: for code that scores many pairings and shows few. */
+export const winChances = (a: Features, b: Features): { pA: number; pB: number } => { const r = winProbability(a, b, activeWeights()); return { pA: r.pA, pB: r.pB }; };

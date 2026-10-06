@@ -2,7 +2,7 @@ import type { World } from "./world";
 import type { BoxerFull, BoutRow } from "./types";
 import { DIVISIONS, divisionLabel } from "./divisions";
 import { archetype } from "./style";
-import { predict } from "./predict";
+import { featuresOf, predict, winChances } from "./predict";
 import { rankDivision } from "./rankings";
 import { belts, beltsHeld } from "./lineage";
 import { countryName } from "./format";
@@ -79,8 +79,16 @@ function stakes(w: World, a: BoxerFull, b: BoxerFull): { v: number; kind: "unifi
 /** Scores a possible fight between two fighters. Symmetric: pairing(a, b) and pairing(b, a) agree. */
 export function pairing(w: World, a: BoxerFull, b: BoxerFull, t: T = tEn, opts: { subjectIsA?: boolean } = {}): Pairing {
   const p = predict(a, b, t);
+  return explain(w, a, b, t, p, evaluate(w, a, b, p.pA, p.pB, opts), opts);
+}
+
+/**
+ * The numbers of a pairing, with none of the words: the score and its parts. `pairing` is this plus the sentences, and `suggestOpponents` scores every
+ * candidate with this alone (a fighter page used to write the sentences, and a prediction's factor notes, for thousands of candidates it then threw away).
+ */
+function evaluate(w: World, a: BoxerFull, b: BoxerFull, pA: number, pB: number, opts: { subjectIsA?: boolean }) {
   const meetings = meetingsOf(w, a, b);
-  const competitive = clamp(1 - Math.abs(p.pA - p.pB));
+  const competitive = clamp(1 - Math.abs(pA - pB));
   const gap = Math.abs(a.rating - b.rating);
   const ra = topRank(w, a), rb = topRank(w, b);
   const relevance = clamp(1 - gap / 320 + (ra !== null && ra <= 10 && rb !== null && rb <= 10 ? 0.2 : 0));
@@ -92,7 +100,11 @@ export function pairing(w: World, a: BoxerFull, b: BoxerFull, t: T = tEn, opts: 
   const st = stakes(w, a, b);
   const parts: Parts = { competitive, relevance, style, availability, novelty, stakes: st.v };
   const score = Math.round(100 * (Object.keys(WEIGHTS) as (keyof Parts)[]).reduce((s, k) => s + WEIGHTS[k] * parts[k], 0));
+  return { meetings, competitive, ra, rb, style, fa, fb, availability, st, parts, score };
+}
 
+function explain(w: World, a: BoxerFull, b: BoxerFull, t: T, p: ReturnType<typeof predict>, e: ReturnType<typeof evaluate>, opts: { subjectIsA?: boolean }): Pairing {
+  const { meetings, competitive, ra, rb, style, fa, fb, availability, st, parts, score } = e;
   const reasons: string[] = [];
   const tagged: Pairing["tagged"] = [];
   const say = (kind: Pairing["tagged"][number]["kind"], text: string) => { reasons.push(text); tagged.push({ kind, text }); };
@@ -118,7 +130,9 @@ export function pairing(w: World, a: BoxerFull, b: BoxerFull, t: T = tEn, opts: 
   return { a, b, score, parts, pA: p.pA, pB: p.pB, pDraw: p.pDraw, koProb: p.koProb, reasons, tagged, meetings };
 }
 
-const booked = (w: World, id: number) => (w.boutsByBoxer.get(id) ?? []).some((x) => x.upcoming && x.status !== "cancelled");
+/** Fighters with a live upcoming bout, once per world: `booked` is asked of every candidate (34,000 at real size) on each fighter page. */
+const bookedIds = (w: World) => memo(w, "bookedIds", () => { const s = new Set<number>(); for (const [id, list] of w.boutsByBoxer) if (list.some((x) => x.upcoming && x.status !== "cancelled")) s.add(id); return s; });
+const booked = (w: World, id: number) => bookedIds(w).has(id);
 
 /**
  * Who `boxer` should fight next. Candidates are active fighters of the same sex in the same division or one either side
@@ -127,15 +141,18 @@ const booked = (w: World, id: number) => (w.boutsByBoxer.get(id) ?? []).some((x)
 export function suggestOpponents(w: World, boxer: BoxerFull, n = 6, t: T = tEn): Pairing[] {
   const di = divIndex.get(boxer.weightClass) ?? 0;
   const gym = currentOrg(w, boxer.id, "gym");
-  const out: Pairing[] = [];
+  const out: { b: BoxerFull; score: number }[] = [];
+  const mine = featuresOf(boxer), opts = { subjectIsA: true };
   for (const c of w.boxers) {
     if (c.id === boxer.id || c.sex !== boxer.sex || !c.active || c.bouts < 4 || booked(w, c.id)) continue;
     if (Math.abs((divIndex.get(c.weightClass) ?? -9) - di) > 1) continue;
     if (gym !== null && currentOrg(w, c.id, "gym") === gym) continue;
     if (Math.abs(c.rating - boxer.rating) > 260) continue; // a fight nobody would sign
-    out.push(pairing(w, boxer, c, t, { subjectIsA: true }));
+    const { pA, pB } = winChances(mine, featuresOf(c));
+    out.push({ b: c, score: evaluate(w, boxer, c, pA, pB, opts).score });
   }
-  return out.sort((x, y) => y.score - x.score || y.b.rating - x.b.rating).slice(0, n);
+  // the order sorting finished pairings gave (score, then the opponent's rating, ties in league order); only the few shown are written out in full
+  return out.sort((x, y) => y.score - x.score || y.b.rating - x.b.rating).slice(0, n).map((x) => pairing(w, boxer, x.b, t, opts));
 }
 
 export interface FightToMake extends Pairing { division: string }
