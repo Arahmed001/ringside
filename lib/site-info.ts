@@ -26,6 +26,14 @@ export function siteContact(env?: Record<string, string | undefined>): Contact |
   return url ? { label: v.replace(/^https:\/\//, "").replace(/\/$/, ""), href: url } : null;
 }
 
+/**
+ * The sanctioning bodies' official lists reach us through the vendor "sourced from BoxingScene", so whether they may be stored and shown is a separate question from the
+ * fight and fighter data (docs/boxing-data-api-rankings-enquiry.md). On a licensed feed they are left out, neither requested nor shown, until the owner states in
+ * `VENDOR_RANKINGS_CONFIRMED=1` that the vendor's answer allows it. The demo league and a file feed are not affected.
+ */
+export const rankingsConfirmed = (env?: Record<string, string | undefined>): boolean => ((env ? env.VENDOR_RANKINGS_CONFIRMED : process.env.VENDOR_RANKINGS_CONFIRMED) ?? "").trim() === "1";
+export const officialRankingsShown = (env?: Record<string, string | undefined>): boolean => ((env ? env.BOXING_PROVIDER : process.env.BOXING_PROVIDER) ?? "demo").trim() !== "licensed" || rankingsConfirmed(env);
+
 export interface VendorCredit { name: string; url: string; termsUrl: string | null }
 
 /** The vendor behind the configured feed, or null for the demo league and a file feed (which have none to credit). */

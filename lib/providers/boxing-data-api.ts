@@ -98,11 +98,11 @@ export const divisionOf = (raw: string): string | null => normalizeDivision(raw)
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
   | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "cancelledFights" | "resultMissingOld" | "cancelledCardsLeftOut" | "amateurBoutsSkipped" | "nationalityFromCode" | "nationalityUnplaced" | "titleBodyUnknown" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter" | "duplicateFightsMerged" | "duplicateFightsDisagree" | "duplicateFightsAcrossProfiles" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
-  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "outcomeMapped" | "outcomeUnreadable" | "roundUnreadable" | "bothMarkedWinner" | "eventsWithoutFights" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
+  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsHeldBack" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "outcomeMapped" | "outcomeUnreadable" | "roundUnreadable" | "bothMarkedWinner" | "eventsWithoutFights" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, cancelledFights: 0, resultMissingOld: 0, cancelledCardsLeftOut: 0, amateurBoutsSkipped: 0, nationalityFromCode: 0, nationalityUnplaced: 0, titleBodyUnknown: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, fightsSkippedNoId: 0, fightsSkippedNoFighter: 0, fightsSkippedNoDate: 0, fightsSkippedSameFighter: 0, duplicateFightsMerged: 0, duplicateFightsDisagree: 0, duplicateFightsAcrossProfiles: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
+  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsHeldBack: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, cancelledFights: 0, resultMissingOld: 0, cancelledCardsLeftOut: 0, amateurBoutsSkipped: 0, nationalityFromCode: 0, nationalityUnplaced: 0, titleBodyUnknown: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, fightsSkippedNoId: 0, fightsSkippedNoFighter: 0, fightsSkippedNoDate: 0, fightsSkippedSameFighter: 0, duplicateFightsMerged: 0, duplicateFightsDisagree: 0, duplicateFightsAcrossProfiles: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, outcomeMapped: 0, outcomeUnreadable: 0, roundUnreadable: 0, bothMarkedWinner: 0, eventsWithoutFights: 0, windowTooBig: 0,
 });
 
@@ -431,6 +431,8 @@ export function replayFetch(dir: string): typeof fetch {
 export class HttpError extends Error { constructor(message: string, readonly status: number) { super(message); } }
 export interface BoxingDataApiOptions {
   key: string; baseUrl?: string; fetchImpl?: typeof fetch;
+  /** false: do not ask for the official sanctioning-body lists at all (the real entry points pass `rankingsConfirmed()`: see lib/site-info.ts). Default: ask. */
+  rankings?: boolean;
   /** Hard cap on requests per load (the free tier is 100 a month). Default 90. A retry counts as a request, as it does for the vendor. */
   maxRequests?: number; pageSize?: number; since?: string; /** documents reachable by page number (the docs say 10,000): a list longer than that is read in date windows. Default 10,000. */ offsetLimit?: number; maxFights?: number; /** days of upcoming fights to include (default 60; 0 for none) */ scheduleDays?: number; gapMs?: number; /** save every raw response here, so a mapping can be fixed offline without spending more requests */ rawDir?: string; log?: (m: string) => void;
   /**
@@ -840,7 +842,10 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
   }
   return {
     name: "boxing-data-api",
-    fetchOfficialRankings: () => (rankingsCache ??= loadRankings()),
+    fetchOfficialRankings: () => {
+      if (o.rankings === false) { notes.rankingsHeldBack++; log("official rankings: left out until VENDOR_RANKINGS_CONFIRMED=1 (the vendor's answer on storing and showing them); no request made"); return Promise.resolve([]); }
+      return (rankingsCache ??= loadRankings());
+    },
     fetchOrgs: async (): Promise<ProviderOrg[]> => { // only the bodies a loaded belt names: an unlinked one would be an orphan
       const used = new Set((await once()).bouts.map((b) => b.titleOrgExternalId).filter(Boolean));
       return TITLE_BODIES.filter((b) => used.has(b.ext)).map((b) => ({ externalId: b.ext, name: b.name, kind: "sanctioning_body" as const }));

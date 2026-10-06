@@ -30,7 +30,7 @@ export const KNOWN_ENV = [
   "ANTHROPIC_API_KEY", "ANTHROPIC_MODEL", "ANTHROPIC_MODEL_TRANSLATE", "AI_DAILY_BUDGET", "AI_CLIENT_LIMIT", "AI_CLIENT_WINDOW_MS",
   "BOXING_PROVIDER", "BOXING_FILE", "BOXING_API_URL", "BOXING_API_KEY", "BOXING_API_MAX_REQUESTS", "BOXING_API_PER_HOUR", "BOXING_API_SINCE", "BOXING_API_STORAGE_CONFIRMED", "PUBLIC_API", "VENDOR_REDISTRIBUTION_CONFIRMED",
   "VENDOR_LAG_DAYS", "VENDOR_LOAD_LAG_DAYS", "RINGSIDE_KEY_FILE", "WIKIMEDIA_CONTACT", "WIKIMEDIA_GAP_MS", "WIKIDATA_GAP_MS", "MEDIA_RESOLVER", "MEDIA_RESOLVER_BATCH",
-  "RESEARCH_CONTACT", "SITE_CONTACT", "VENDOR_TERMS_URL", "RESEARCH_DELAY_MS", "RESEARCH_BLOCKLIST", "SITE_URL", "INDEXABLE", "DATABASE_PATH", "ACCOUNTS_DB_PATH",
+  "RESEARCH_CONTACT", "SITE_CONTACT", "VENDOR_TERMS_URL", "VENDOR_RANKINGS_CONFIRMED", "RESEARCH_DELAY_MS", "RESEARCH_BLOCKLIST", "SITE_URL", "INDEXABLE", "DATABASE_PATH", "ACCOUNTS_DB_PATH",
   "RINGSIDE_NOW",
 ] as const;
 /** Settings that exist for tests and tooling and are deliberately not in .env.example. */
@@ -107,6 +107,9 @@ export function envFindings(env: Env, nodeVersion = process.versions.node, produ
   if (!set(env, "SITE_CONTACT")) { if (p === "licensed") out.push(f("warn", "site-contact", "SITE_CONTACT is not set, so people who are not signed in have nowhere to report a mistake about a real person.", "Set it to a role address or an https:// page you are happy to publish (it is shown on the Data and Report pages).")); }
   else if (!siteContact(env)) out.push(f("warn", "site-contact", "SITE_CONTACT is neither an email address nor an https:// address, so the site shows no contact.", "Use an address like corrections@example.com, or an https:// page."));
   if (p === "licensed") {
+    // the sanctioning bodies' lists come "from BoxingScene" through the vendor: left out until the owner says the vendor's answer allows them
+    if (env.VENDOR_RANKINGS_CONFIRMED?.trim() === "1") out.push(f("info", "official-rankings", "VENDOR_RANKINGS_CONFIRMED=1: the official IBF, WBA, WBC and WBO lists are fetched, stored and shown, credited to the vendor and BoxingScene. This is your statement that the vendor's written answer allows it."));
+    else out.push(f("info", "official-rankings", "The official IBF, WBA, WBC and WBO lists are left out (not fetched, and not shown even if stored) until you set VENDOR_RANKINGS_CONFIRMED=1, your statement that the vendor's answer on storing and showing them (docs/boxing-data-api-rankings-enquiry.md) allows it."));
     if (!set(env, "VENDOR_TERMS_URL")) out.push(f("info", "vendor-terms", "VENDOR_TERMS_URL is not set: the Data page credits the vendor but links no licence terms. Set it once the vendor's terms (or its written agreement) are public."));
     else if (!httpsUrl(env.VENDOR_TERMS_URL)) out.push(f("warn", "vendor-terms", "VENDOR_TERMS_URL is not an https:// address, so it is not shown.", "Use the https:// link to the vendor's terms."));
     // the public API and the embeds hand the vendor's records to other sites: off for a licensed feed until the owner has both asked for them and stated that the terms allow it
