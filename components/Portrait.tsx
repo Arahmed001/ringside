@@ -1,5 +1,6 @@
 import { getT } from "@/lib/i18n/server";
 import { portraitUrl } from "@/lib/art-url";
+import { isDemoData } from "@/lib/seo";
 import type { Boxer } from "@/lib/types";
 
 type P = Pick<Boxer, "id" | "slug" | "weightClass" | "stance">;
@@ -14,6 +15,7 @@ export async function Headshot({ boxer, size = 64, className = "", rounded = tru
     return <img src={boxer.photoUrl} alt={t.name(boxer.name)} width={size} height={size * 1.25} {...load} decoding="async" referrerPolicy="no-referrer" className={`${r} object-cover object-top ${className}`} style={{ width: size, height: size * 1.25 }} />;
   }
   // The generated art is served as a cacheable image (see lib/art.ts) instead of being inlined into every page.
+  // a real person's placeholder is decoration (their name is beside it); an illustrated demo portrait is a picture, so it is described
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={portraitUrl(boxer.slug)} alt={t("Portrait of {name}", { name: t.name(boxer.name) })} width={size} height={size * 1.25} {...load} decoding="async" className={`${r} ${className} shrink-0`} style={{ width: size, height: size * 1.25 }} />;
+  return <img src={portraitUrl(boxer.slug)} alt={isDemoData() ? t("Portrait of {name}", { name: t.name(boxer.name) }) : ""} width={size} height={size * 1.25} {...load} decoding="async" className={`${r} ${className} shrink-0`} style={{ width: size, height: size * 1.25 }} />;
 }
