@@ -66,6 +66,8 @@ CREATE TABLE IF NOT EXISTS forum_threads (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS uq_forum_subject ON forum_threads(kind, subject_ext) WHERE kind <> 'general';
 CREATE INDEX IF NOT EXISTS idx_forum_threads_recent ON forum_threads(kind, hidden, last_post_at);
+-- the thread under a fighter or a fight is found by (kind, subject): the partial unique index above cannot serve a lookup whose kind is a parameter, so without this one every page view scans every thread of that kind
+CREATE INDEX IF NOT EXISTS idx_forum_subject ON forum_threads(kind, subject_ext);
 CREATE TABLE IF NOT EXISTS forum_posts (
   id INTEGER PRIMARY KEY, thread_id INTEGER NOT NULL REFERENCES forum_threads(id) ON DELETE CASCADE, user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
   body TEXT NOT NULL, fingerprint TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, edited_at TEXT,
@@ -74,6 +76,7 @@ CREATE TABLE IF NOT EXISTS forum_posts (
 );
 CREATE INDEX IF NOT EXISTS idx_forum_posts_thread ON forum_posts(thread_id, id);
 CREATE INDEX IF NOT EXISTS idx_forum_posts_user ON forum_posts(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_forum_posts_fp ON forum_posts(fingerprint, created_at);
 CREATE TABLE IF NOT EXISTS forum_reports (
   id INTEGER PRIMARY KEY, post_id INTEGER NOT NULL REFERENCES forum_posts(id) ON DELETE CASCADE, user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
   reason TEXT NOT NULL CHECK (reason IN ('spam','abuse','off_topic','other')), note TEXT,

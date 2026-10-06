@@ -13,6 +13,8 @@ export const POSTS_PER_USER = { max: 10, windowMs: 10 * 60_000 }, POSTS_PER_ADDR
 export const EDIT_WINDOW_MS = 15 * 60_000;
 /** This many different people reporting a post hides it (an editor can put it back), so one bad post does not wait for a moderator. */
 export const AUTO_HIDE_REPORTS = 4;
+/** The same long post (its words, not its spelling) from this many OTHER people within a day is a copy-and-paste wave, and is refused. Short posts ("Agreed", "Great fight") are exempt: many people really do write those. */
+export const WAVE_OTHERS = 2, WAVE_MIN_CHARS = 30;
 export const PAGE_SIZE = 30, THREADS_PAGE = 20;
 export const REPORT_REASONS = ["spam", "abuse", "off_topic", "other"] as const;
 export type ReportReason = (typeof REPORT_REASONS)[number];

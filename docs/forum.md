@@ -28,6 +28,7 @@ Every state-changing call needs a matching `Origin` (the same guard as the rest 
 - **No links of any kind**, no ten-digit numbers (phone numbers; dates are fine), no run of twelve of one character. Links are where nearly all forum spam is; they can be allowed later, tightening after a flood is harder.
 - **Who may write:** a signed-in account at least five minutes old; accounts under a day old at most ten posts a day; a disabled account never. Ten posts in ten minutes per person, thirty per address. A refused post uses none of the allowance. Three new threads a day.
 - **The same words twice in a day** (ignoring case, accents, spacing and punctuation) are refused; only a hash of the words is kept for this, wiped with the post.
+- **A wave of copies:** the same long post (30 letters or more, ignoring case, accents and punctuation) from two other people within a day is refused for the third and every later person; short posts such as "Great fight" are exempt. One person cannot repeat themselves in a day either way.
 - **Reports:** not your own post, once per person, one of four reasons. **Four different people hide a post** until an editor looks (hidden: the place stays, the words and the name do not). An editor can hide, restore or lock; every action is in the activity log with the editor's reason.
 - **Your own words:** editable for 15 minutes; withdrawable at any time; withdrawing (or deleting your account) wipes the words and leaves an empty place so replies still read. The data export includes everything you wrote and reported.
 
@@ -50,3 +51,10 @@ No notifications, no mentions, no search of posts, no pictures, no replies-to-a-
 3. **Search engines.** Every forum page and answer is `noindex`. Leave it until the forum has some history and an editor has used the queue; indexing would be a deliberate change in `generateMetadata` of the forum pages and the answers' header in `lib/forum/http.ts`.
 4. **Who moderates.** `npm run accounts -- role <name> editor` (the existing command for making an editor). With no editor, the only protection is the automatic hiding at four reports.
 5. **Links.** Not allowed at all for now. If you want them, the change is the `LINK` rule in `lib/forum/rules.ts` (and the sentence on the rules page); nothing else.
+
+
+## How it behaves when it is large (measured, `npm run forum:bench`)
+
+A throwaway database of 5,000 accounts, 32,000 threads, 200,000 posts (5,000 in one thread) and 6,000 reports, in process: every read under 5 ms (a page of a thread 0.1 ms, the board 0.1 ms, a fighter's thread 0.02 ms, the editors' queue of 3,000 reported posts 5 ms, the newest 50 posts 1.3 ms) and every write under a quarter of a millisecond. The first run found the one slow thing: looking up the thread under a fighter or a fight scanned every thread of its kind (2.6 ms at 32,000 threads, and 4 ms to add a post), because the partial unique index cannot serve a lookup whose kind is a parameter; `idx_forum_subject` fixed it (0.02 ms and 0.15 ms). A test pins the plans of the queries that matter.
+
+Spam waves, simulated: sixty young accounts behind one address get 30 posts in all; forty young accounts on forty addresses get ten each; fifty established accounts pasting the same advert get two copies through and are refused after that.

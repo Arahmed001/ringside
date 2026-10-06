@@ -3,7 +3,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { accountsDb, audit } from "../accounts/store";
 import { limits } from "../accounts/guard";
 import type { User } from "../accounts/users";
-import { AUTO_HIDE_REPORTS, EDIT_WINDOW_MS, NEW_ACCOUNT_AGE_MS, NEW_ACCOUNT_DAILY, NEW_ACCOUNT_WAIT_MS, PAGE_SIZE, THREADS_PAGE, TITLE_MAX, TITLE_MIN, checkText, normalizedWords, type PostProblem, REPORT_REASONS } from "./rules";
+import { AUTO_HIDE_REPORTS, EDIT_WINDOW_MS, WAVE_MIN_CHARS, WAVE_OTHERS, NEW_ACCOUNT_AGE_MS, NEW_ACCOUNT_DAILY, NEW_ACCOUNT_WAIT_MS, PAGE_SIZE, THREADS_PAGE, TITLE_MAX, TITLE_MIN, checkText, normalizedWords, type PostProblem, REPORT_REASONS } from "./rules";
 
 /**
  * The forum (round 125): discussion under each fighter and each fight (one thread per subject, made when the first post is written) and a general board where
@@ -100,8 +100,14 @@ function insertPost(acc: DatabaseSync, threadId: number, user: User, text: strin
   acc.prepare("UPDATE forum_threads SET post_count = post_count + 1, last_post_at = ? WHERE id = ?").run(at, threadId);
   return id;
 }
-const isDuplicate = (acc: DatabaseSync, user: User, text: string, now: number) =>
-  !!acc.prepare("SELECT 1 x FROM forum_posts WHERE user_id = ? AND fingerprint = ? AND created_at > ? AND status <> 'deleted'").get(user.id, fingerprint(text), new Date(now - 24 * 60 * 60_000).toISOString());
+/** The same words twice by one person in a day, or the same long post from two other people already (a wave of copies from many accounts). */
+function isDuplicate(acc: DatabaseSync, user: User, text: string, now: number): boolean {
+  const fp = fingerprint(text), since = new Date(now - 24 * 60 * 60_000).toISOString();
+  if (acc.prepare("SELECT 1 x FROM forum_posts WHERE user_id = ? AND fingerprint = ? AND created_at > ? AND status <> 'deleted'").get(user.id, fp, since)) return true;
+  if (normalizedWords(text).length < WAVE_MIN_CHARS) return false;
+  const others = (acc.prepare("SELECT COUNT(DISTINCT user_id) c FROM forum_posts WHERE fingerprint = ? AND created_at > ? AND user_id <> ? AND status <> 'deleted'").get(fp, since, user.id) as { c: number }).c;
+  return others >= WAVE_OTHERS;
+}
 
 /** Writes under a fighter or a fight (made on the first post), or into an existing thread by id. */
 export function addPost(user: User, target: { kind: "boxer" | "bout"; subject: string } | { threadId: number }, body: unknown, ip: string, main: DatabaseSync, acc: DatabaseSync = accountsDb(), now = Date.now()): { ok: true; id: number; threadId: number } | Fail {

@@ -36,6 +36,7 @@
     "research": "tsx scripts/research.ts",
     "i18n:review": "tsx scripts/i18n-review.ts",
     "accounts": "tsx scripts/accounts.ts",
+    "forum:bench": "tsx scripts/forum-bench.ts",
     "backup": "tsx scripts/backup.ts",
     "loadtest": "tsx scripts/loadtest.ts",
     "doctor": "tsx scripts/doctor.ts",

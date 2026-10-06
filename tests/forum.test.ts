@@ -248,3 +248,43 @@ test("what an editor sees (round 127): reported posts most reported first, the n
   c.F.deleteOwnPost(alice, bout.id, c.acc);
   assert.ok(!(c.F.recentForEditors(eddie, c.acc) as { posts: { postId: number }[] }).posts.some((p) => p.postId === bout.id), "a withdrawn post is not listed (its words are gone)");
 });
+
+test("a spam wave: many young accounts from one address, from many addresses, and the same advert copied by many accounts (round 127, overnight)", async () => {
+  const spamText = (i: number, tag: string) => `Wave ${tag} message ${i} from an account that wants to be heard a lot today`;
+  // 1. sixty young accounts behind ONE address, each trying twenty different posts: the address allows thirty in ten minutes, however many accounts
+  const young = await Promise.all(Array.from({ length: 60 }, (_, i) => c.mk(`wave1_${n}_${i}`, "user", 60)));
+  let ok1 = 0;
+  for (let k = 0; k < 20; k++) for (const u of young) { if (c.F.addPost(u, { kind: "boxer", subject: c.slug }, spamText(k * 100 + u.id, "one"), "203.0.113.9", c.main, c.acc, T0).ok) ok1++; }
+  assert.equal(ok1, 30, "one address, sixty accounts: thirty posts");
+  // 2. forty young accounts, each from its own address, thirty tries each: ten a day each (young), and ten in ten minutes
+  c.limits().forumPost.reset(); c.limits().forumPostIp.reset();
+  const spread = await Promise.all(Array.from({ length: 40 }, (_, i) => c.mk(`wave2_${n}_${i}`, "user", 60)));
+  const per = new Map<number, number>();
+  for (let k = 0; k < 30; k++) for (const u of spread) { if (c.F.addPost(u, { kind: "boxer", subject: c.slug }, spamText(k * 1000 + u.id, "two"), `198.51.100.${u.id % 250}-${u.id}`, c.main, c.acc, T0 + k).ok) per.set(u.id, (per.get(u.id) ?? 0) + 1); }
+  assert.deepEqual([...new Set(per.values())], [10], "each young account gets ten, no more");
+  assert.equal([...per.values()].reduce((a, b) => a + b, 0), 400);
+  // 3. the same long advert from fifty established accounts, each from its own address: the third copy and after are refused
+  c.limits().forumPost.reset(); c.limits().forumPostIp.reset();
+  const old = await Promise.all(Array.from({ length: 50 }, (_, i) => c.mk(`wave3_${n}_${i}`, "user")));
+  const ad = "Visit my amazing offer today and win big every single week without any risk at all";
+  const results = old.map((u, i) => c.F.addPost(u, { kind: "boxer", subject: c.slug }, `${ad}${i % 2 ? "!" : ""}`, `192.0.2.${i}`, c.main, c.acc, T0 + 1000 + i));
+  assert.equal(results.filter((r) => r.ok).length, 2, "two copies get through, the rest are refused as a wave");
+  assert.deepEqual([...new Set(results.filter((r) => !r.ok).map((r) => (r as { error: string }).error))], ["duplicate"]);
+  // short common posts are not a wave
+  const shorts = old.slice(0, 10).map((u, i) => c.F.addPost(u, { kind: "boxer", subject: c.slug }, "Great fight, well done", `192.0.2.${100 + i}`, c.main, c.acc, T0 + 2000 + i));
+  assert.equal(shorts.filter((r) => r.ok).length, 10, "ten people saying 'Great fight, well done' is a conversation");
+  // a day later the advert may be tried again
+  c.limits().forumPost.reset(); c.limits().forumPostIp.reset();
+  assert.ok(c.F.addPost(old[5], { kind: "boxer", subject: c.slug }, ad, "192.0.2.200", c.main, c.acc, T0 + 26 * 60 * MIN).ok, "after a day the window has moved on");
+});
+
+test("the forum's reads and its checks use indexes, so they stay fast when the forum is large (measured overnight: a lookup scanned every thread of its kind until idx_forum_subject)", () => {
+  const plan = (sql: string, ...args: (string | number)[]) => (c.acc.prepare(`EXPLAIN QUERY PLAN ${sql}`).all(...args) as { detail: string }[]).map((r) => r.detail).join(" | ");
+  assert.match(plan("SELECT * FROM forum_threads WHERE kind = ? AND subject_ext = ? AND hidden = 0", "boxer", "x"), /idx_forum_subject \(kind=\? AND subject_ext=\?\)/, "the thread under a fighter or a fight");
+  assert.match(plan("SELECT * FROM forum_posts WHERE thread_id = ? AND id > ? ORDER BY id LIMIT 31", 1, 0), /idx_forum_posts_thread/, "a page of a thread");
+  assert.match(plan("SELECT 1 FROM forum_posts WHERE user_id = ? AND fingerprint = ? AND created_at > ?", 1, "f", "2026"), /idx_forum_posts_(user|fp)/, "the same words by one person");
+  assert.match(plan("SELECT COUNT(DISTINCT user_id) FROM forum_posts WHERE fingerprint = ? AND created_at > ? AND user_id <> ?", "f", "2026", 1), /idx_forum_posts_fp \(fingerprint=\? AND created_at>\?\)/, "the same words by others (a wave)");
+  assert.match(plan("SELECT COUNT(*) FROM forum_posts WHERE user_id = ? AND created_at > ?", 1, "2026"), /idx_forum_posts_user/, "a young account's day");
+  assert.match(plan("SELECT * FROM forum_threads WHERE kind = 'general' AND hidden = 0 ORDER BY last_post_at DESC LIMIT 20"), /idx_forum_threads_recent/, "the board");
+  assert.match(plan("SELECT COUNT(DISTINCT user_id) FROM forum_reports WHERE post_id = ? AND status = 'open'", 1), /idx_forum_reports_open/, "reports of a post");
+});
