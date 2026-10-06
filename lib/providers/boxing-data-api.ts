@@ -7,6 +7,7 @@ import { DIVISIONS, normalizeDivision } from "../divisions";
 import { hasScorecards, hasWinner, normalizeMethod } from "../methods";
 import { currentYear, nowMs, todayIso } from "../clock";
 import { canonicalCountry, flag } from "../format";
+import { MAX_SCHEDULED_ROUNDS } from "../validate";
 
 /**
  * Adapter for the Boxing Data API (boxing-data.com, via RapidAPI), written against its published docs
@@ -98,12 +99,12 @@ export const divisionOf = (raw: string): string | null => normalizeDivision(raw)
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
   | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "cancelledFights" | "resultMissingOld" | "cancelledCardsLeftOut" | "amateurBoutsSkipped" | "nationalityFromCode" | "nationalityUnplaced" | "titleBodyUnknown" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter" | "duplicateFightsMerged" | "duplicateFightsDisagree" | "duplicateFightsAcrossProfiles" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
-  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsHeldBack" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "outcomeMapped" | "outcomeUnreadable" | "roundUnreadable" | "bothMarkedWinner" | "eventsWithoutFights" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig",
+  | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsHeldBack" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "outcomeMapped" | "outcomeUnreadable" | "roundUnreadable" | "bothMarkedWinner" | "eventsWithoutFights" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig" | "textCleaned" | "statusUnknown" | "finishedInFuture" | "fightsSkippedUnreadable" | "careerTotalImplausible" | "physicalsImplausible",
   number
 >;
 const emptyNotes = (): Notes => ({
   ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsHeldBack: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, cancelledFights: 0, resultMissingOld: 0, cancelledCardsLeftOut: 0, amateurBoutsSkipped: 0, nationalityFromCode: 0, nationalityUnplaced: 0, titleBodyUnknown: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, fightsSkippedNoId: 0, fightsSkippedNoFighter: 0, fightsSkippedNoDate: 0, fightsSkippedSameFighter: 0, duplicateFightsMerged: 0, duplicateFightsDisagree: 0, duplicateFightsAcrossProfiles: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
-  birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, outcomeMapped: 0, outcomeUnreadable: 0, roundUnreadable: 0, bothMarkedWinner: 0, eventsWithoutFights: 0, windowTooBig: 0,
+  birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, textCleaned: 0, statusUnknown: 0, finishedInFuture: 0, fightsSkippedUnreadable: 0, careerTotalImplausible: 0, physicalsImplausible: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, outcomeMapped: 0, outcomeUnreadable: 0, roundUnreadable: 0, bothMarkedWinner: 0, eventsWithoutFights: 0, windowTooBig: 0,
 });
 
 export const fighterId = (id: string) => `bda-f-${id}`;
@@ -123,9 +124,25 @@ region("Australia", "New South Wales, Victoria, Queensland, Western Australia, S
 region("Mexico", "Aguascalientes, Baja California, Baja California Sur, Campeche, Chiapas, Chihuahua, Coahuila, Colima, Durango, Guanajuato, Guerrero, Hidalgo, Jalisco, Michoacán, Morelos, Nayarit, Nuevo León, Oaxaca, Puebla, Querétaro, Quintana Roo, San Luis Potosí, Sinaloa, Sonora, Tabasco, Tamaulipas, Tlaxcala, Veracruz, Yucatán, Zacatecas, Ciudad de México, Estado de México");
 const AMBIGUOUS_REGIONS = new Set(["georgia"]);
 
+/** Characters that must not reach a page: controls, zero-width characters, and the bidirectional overrides, embeddings and isolates (which make one name read as another). */
+const UNSAFE_TEXT = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u200b\u2060\u202a-\u202e\u2066-\u2069\ufeff]/g;
+/** The longest name, nickname, title or place the site will store: no real one comes near it, and a feed that sends a megabyte is cut, not stored. */
+export const MAX_TEXT = 200;
+/**
+ * Text from the feed as it may be stored and shown: unsafe characters removed, line breaks and runs of spaces made one space, cut at `max` characters. Anything that is not text
+ * (a number, an object, null) is null: it is never turned into a name. A string that had to be changed is counted in the notes.
+ */
+export function cleanText(raw: unknown, notes: Notes, max = MAX_TEXT): string | null {
+  if (typeof raw !== "string") return null;
+  const t = raw.slice(0, max * 4).replace(/[\t\n\r\u2028\u2029]/g, " ").replace(UNSAFE_TEXT, "").replace(/\s+/g, " ").trim();
+  const out = t.length > max ? Array.from(t).slice(0, max).join("").trim() : t;
+  if (raw.length > max || raw.search(UNSAFE_TEXT) >= 0) notes.textCleaned++;
+  return out || null;
+}
+
 /** "Quebec City, Quebec" -> city "Quebec City", country Canada; "Las Vegas, Nevada, United States" -> "Las Vegas", "United States". The feed's text is "City, Region" or "City, Country", so the last part is looked up as a region first; anything else is taken as the country, and what cannot be split is counted. */
 export function parseLocation(raw: string | null | undefined, notes: Notes): { city: string; country: string } {
-  const parts = (raw ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const parts = (cleanText(raw, notes) ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   if (parts.length < 2) { notes.locationUnparsed++; return { city: parts[0] ?? "Unknown", country: "Unknown" }; }
   const last = parts[parts.length - 1], key = last.toLowerCase();
   if (AMBIGUOUS_REGIONS.has(key)) notes.locationRegionAmbiguous++;
@@ -153,13 +170,14 @@ export function careerTotals(s: NonNullable<ApiFighter["stats"]>): { koWins?: nu
 /** One fight -> a bout, the event it belongs to, and the two fighter ids to fetch. Null when it has no date or fewer than two fighters. */
 export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: ProviderBout; event: ProviderEvent; fighterIds: [string, string] } | null {
   const a = f.fighters?.fighter_1, b = f.fighters?.fighter_2;
-  const date = (f.event?.date ?? f.date ?? "").slice(0, 10); // a UTC calendar date: an evening card in the Americas can land a day late (see the readiness doc)
+  const day = (x: unknown) => (typeof x === "string" ? x.slice(0, 10) : "");
+  const date = day(f.event?.date) || day(f.date); // a UTC calendar date: an evening card in the Americas can land a day late (see the readiness doc); a date that is not text is no date
   // each skipped fight is counted once under its first reason (and in the total): a fight with a fighter who has no profile id is one thing, a row with no date another
   const skip = (why: "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter") => { notes.fightsSkipped++; notes[why]++; return null; };
   if (!f.id) return skip("fightsSkippedNoId");
   // an amateur or multi-sport bout is not a professional fight and the vendor's career totals leave it out: it would put a loss on an Olympic champion's pro record. The vendor's own event
   // title says so ("Rio Olympics: Boxing Day 4", "Glasgow Commonwealth Games", "Russian National Amateur Boxing Championships"): only the event title is read, never the venue
-  if (AMATEUR_EVENT.test(f.event?.title ?? "")) { notes.amateurBoutsSkipped++; return null; }
+  if (typeof f.event?.title === "string" && AMATEUR_EVENT.test(f.event.title)) { notes.amateurBoutsSkipped++; return null; }
   if (!a?.fighter_id || !b?.fighter_id) return skip("fightsSkippedNoFighter");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return skip("fightsSkippedNoDate");
   if (a.fighter_id === b.fighter_id) return skip("fightsSkippedSameFighter"); // a fighter cannot fight himself: a feed slip, not a fight
@@ -167,19 +185,24 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
   const loc = parseLocation(f.event?.location ?? f.location, notes);
   const eId = f.event?.id ? eventId(f.event.id) : `bda-e-fight-${f.id}`;
   const event: ProviderEvent = {
-    externalId: eId, name: f.event?.title ?? f.title ?? "Boxing card", date, venue: f.event?.venue ?? f.venue ?? loc.city, city: loc.city, country: loc.country,
+    externalId: eId, name: cleanText(f.event?.title, notes) ?? cleanText(f.title, notes) ?? "Boxing card", date, venue: cleanText(f.event?.venue, notes) ?? cleanText(f.venue, notes) ?? loc.city, city: loc.city, country: loc.country,
     ...(f.event?.poster_image_url ? { posterUrl: f.event.poster_image_url } : {}),
     ...(f.event?.broadcasters?.length ? { broadcaster: Object.values(f.event.broadcasters[0])[0] } : {}),
   };
 
-  const finished = f.status === "FINISHED";
+  // a result for a fight dated more than a day after today (a day's slack for a card that is already tomorrow where it was held) is a feed slip: the fight stays one to come, and the result is not shown
+  const inFuture = f.status === "FINISHED" && date > addDays(todayIso(), 1);
+  if (inFuture) notes.finishedInFuture++;
+  const finished = f.status === "FINISHED" && !inFuture;
+  let unsettled = false; // the feed gave no usable result (as against none yet): an ingest keeps a stored one
+  if (typeof f.status === "string" && !["FINISHED", "NOT_STARTED", "LIVE", "CANCELLED"].includes(f.status)) { unsettled = true; notes.statusUnknown++; }
   if (f.status === "LIVE") notes.liveTreatedAsUpcoming++;
   const cancelled = f.status === "CANCELLED"; // fell off the card: kept as a cancelled bout (it counts for nothing in a record, a form line or a rating), not read as a fight with no result
   if (cancelled) notes.cancelledFights++;
-  const outcome = finished ? (f.results?.outcome ?? null) : null;
+  const outcome = finished && typeof f.results?.outcome === "string" ? f.results.outcome : null;
   // both fighters marked the winner: a feed slip. Neither is picked (that would be inventing a result) and the fight is left "no result yet", not read as a draw
   const bothMarked = finished && !!a.winner && !!b.winner;
-  if (bothMarked) notes.bothMarkedWinner++;
+  if (bothMarked) { notes.bothMarkedWinner++; unsettled = true; }
   const winner = finished && !bothMarked ? (a.winner ? a : b.winner ? b : null) : null;
   let method: Method | null = null;
   if (finished && outcome && !bothMarked) {
@@ -190,32 +213,34 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
   // a decision with no winner is a draw; a finished fight with neither a winner nor an outcome is left "no result yet" rather than guessed
   if (finished && !bothMarked && !winner && outcome && DECISIONS.has(outcome)) { method = "DRAW"; notes.drawInferred++; }
   // a result that needs a winner and has none (a knockout, a disqualification...) is a feed slip (the validator rejects it): left as no result rather than a winner guessed
-  if (finished && !winner && method && hasWinner(method)) { method = null; notes.stoppageWithoutWinner++; }
+  if (finished && !winner && method && hasWinner(method)) { method = null; notes.stoppageWithoutWinner++; unsettled = true; }
   if (finished && !bothMarked && !winner && !method) {
-    notes.resultMissing++;
+    notes.resultMissing++; unsettled = true;
     // a result the vendor has had a month and not entered is not lag: counted apart, so a load says how much of "no result yet" is simply recent
     if (date < addDays(todayIso(), -RESULT_LAG_DAYS)) notes.resultMissingOld++;
   }
   // the other way round: a winner with an outcome the feed gave no readable word for, or one that says there was no winner (a draw, a no-contest). The validator would reject the
   // fight and both fighters would lose a real result; it stays in their history as "no result yet", with no winner named, and is counted
   let winnerOf = winner;
-  if (winner && (!method || !hasWinner(method))) { winnerOf = null; method = null; notes.outcomeUnreadable++; }
+  if (winner && (!method || !hasWinner(method))) { winnerOf = null; method = null; notes.outcomeUnreadable++; unsettled = true; }
   const rawRound = f.results?.round === null || f.results?.round === undefined ? NaN : parseInt(String(f.results.round), 10);
-  const round = Number.isFinite(rawRound) && rawRound >= 1 ? rawRound : NaN; // round 0 or below is not a round (the validator rejects the fight): the end round is unknown
+  const round = Number.isFinite(rawRound) && rawRound >= 1 && rawRound <= MAX_SCHEDULED_ROUNDS ? rawRound : NaN; // round 0 or below, or past what any fight ran, is not a round (the validator rejects the fight): the end round is unknown
   if (Number.isFinite(rawRound) && !Number.isFinite(round)) notes.roundUnreadable++;
-  let rounds = f.scheduled_rounds && f.scheduled_rounds > 0 ? f.scheduled_rounds : 10;
+  const sched = Number(f.scheduled_rounds);
+  let rounds = Number.isInteger(sched) && sched >= 1 && sched <= MAX_SCHEDULED_ROUNDS ? sched : 10;
+  if (f.scheduled_rounds !== null && f.scheduled_rounds !== undefined && f.scheduled_rounds !== 0 && rounds === 10 && sched !== 10) notes.roundUnreadable++; // a number of rounds nobody ever scheduled (or no number): ten, counted
   const endRound = !method ? null : method === "KO" || method === "TKO" ? (Number.isFinite(round) ? round : null) : Number.isFinite(round) ? round : rounds;
 
   // a fight that ended after its scheduled rounds ("round 12 of 10") had more rounds scheduled than the feed says
   if (endRound !== null && endRound > rounds) { rounds = endRound; notes.roundsRaisedToEnd++; }
-  const divName = f.division?.name ?? "";
+  const divName = typeof f.division?.name === "string" ? f.division.name : "";
   const weightClass = divisionOf(divName) ?? (divName || "Unknown");
   if (!divisionOf(divName)) notes.divisionUnknown++;
   const bout: ProviderBout = {
     externalId: boutId(f.id), eventExternalId: eId, redExternalId: fighterId(a.fighter_id), blueExternalId: fighterId(b.fighter_id), // no corner colours in the feed: fighter_1 is "red"
     weightClass, rounds, winnerExternalId: winnerOf ? fighterId(winnerOf.fighter_id!) : null, method, endRound,
-    ...(cancelled ? { status: "cancelled" as const } : {}),
-    title: f.titles?.[0]?.name ?? null, position: index, // card order is not in the feed: the order the fights came back in
+    ...(cancelled ? { status: "cancelled" as const } : {}), ...(unsettled ? { resultUnsettled: true } : {}),
+    title: cleanText(f.titles?.[0]?.name, notes), position: index, // card order is not in the feed: the order the fights came back in
   };
   if (bout.title) { const body = titleBody(bout.title); if (body) bout.titleOrgExternalId = body.ext; else notes.titleBodyUnknown++; }
   const scores = finished && hasScorecards(method) ? cleanScores(f.scores) : []; // only a fight that went to the cards has scores: a stoppage with scores attached is a feed slip, not a result
@@ -227,9 +252,15 @@ const STANCES: Record<string, Stance> = { orthodox: "Orthodox", southpaw: "South
 
 /** Centimetres from whichever form the feed gave: cm, inches, a feet-and-inches string like 6'1", or the docs' combined text like `6' 9" / 206 cm`. */
 export function lengthCm(cm: number | null | undefined, inches: number | null | undefined, text: string | null | undefined, notes: Notes): number | null {
+  const v = lengthRaw(cm, inches, text, notes);
+  if (v !== null && (v < MIN_LENGTH_CM || v > MAX_LENGTH_CM)) { notes.physicalsImplausible++; return null; } // nobody is 3 cm or 3 km tall: not a height or a reach, so none is shown
+  return v;
+}
+const MIN_LENGTH_CM = 50, MAX_LENGTH_CM = 300;
+function lengthRaw(cm: number | null | undefined, inches: number | null | undefined, text: string | null | undefined, notes: Notes): number | null {
   if (typeof cm === "number" && cm > 0) return Math.round(cm);
   if (typeof inches === "number" && inches > 0) { notes.physicalsConverted++; return Math.round(inches * 2.54); }
-  const t = text ?? "";
+  const t = typeof text === "string" ? text : "";
   const metric = t.match(/(\d{2,3}(?:\.\d+)?)\s*cm/i);
   if (metric) { notes.physicalsConverted++; return Math.round(Number(metric[1])); }
   const ft = t.match(/(\d)\s*'\s*(\d{1,2})?/);
@@ -263,11 +294,11 @@ const HOME_NATIONS: [RegExp, string][] = [
  * kept exactly as given and counted (nothing is guessed).
  */
 export function nationOf(nationality: string | null | undefined, code: string | null | undefined, notes: Notes): string {
-  const n = (nationality ?? "").trim();
+  const n = (cleanText(nationality, notes, 80) ?? "").trim();
   if (!n) return "Unknown";
   for (const [re, name] of HOME_NATIONS) if (re.test(n)) return name;
   if (flag(n) !== WHITE_FLAG) return canonicalCountry(n);
-  const k = (code ?? "").trim().toUpperCase();
+  const k = (typeof code === "string" ? code : "").trim().toUpperCase();
   if (/^[A-Z]{2}$/.test(k) && flag(k) !== WHITE_FLAG) { const c = canonicalCountry(k); if (c && c !== k) { notes.nationalityFromCode++; return c; } }
   if (!/^unknown$/i.test(n)) notes.nationalityUnplaced++;
   return n;
@@ -278,21 +309,23 @@ export function nationOf(nationality: string | null | undefined, code: string | 
  * filled in from a median, no debut year taken from the first fight we happen to hold. Each is counted in the notes, so the load says how much is unknown.
  */
 export function mapFighter(f: ApiFighter, notes: Notes): ProviderBoxer | null {
-  if (!f.id || !f.name) return null;
+  const name = cleanText(f.name, notes); // text only, without controls or direction overrides, cut at 200: a number or an object is no name
+  if (!f.id || !name) return null;
   let birthYear: number | null = null;
   if (Number.isInteger(f.birth_year) && f.birth_year! >= 1900 && f.birth_year! <= currentYear() - 10) birthYear = f.birth_year!; // the feed's own birth year
   else notes.birthYearUnknown++;
-  const stance = STANCES[(f.stance ?? "").toLowerCase()] ?? null;
+  const stance = STANCES[(typeof f.stance === "string" ? f.stance : "").toLowerCase()] ?? null;
   if (!stance) notes.stanceUnknown++;
   const debut = parseInt(String(f.debut ?? ""), 10);
   const turnedPro = Number.isFinite(debut) && debut >= 1900 && debut <= currentYear() ? debut : null;
   if (turnedPro === null) notes.debutUnknown++;
   const heightCm = lengthCm(f.height_cm, f.height_in, f.height_ft ?? f.height, notes), reachCm = lengthCm(f.reach_cm, f.reach_in, f.reach, notes);
   if (heightCm === null || reachCm === null) notes.physicalsUnknown++;
-  const div = f.division?.name ?? "";
+  const div = typeof f.division?.name === "string" ? f.division.name : "";
+  const nick = cleanText(f.nickname, notes) ?? cleanText(f.alias, notes);
   return {
-    externalId: fighterId(f.id), name: f.name, ...(f.nickname || f.alias ? { nickname: (f.nickname ?? f.alias)! } : {}),
-    country: nationOf(f.nationality, f.nationality_code, notes), birthYear, stance, sex: (f.gender ?? "").toLowerCase().startsWith("f") ? "female" : "male",
+    externalId: fighterId(f.id), name, ...(nick ? { nickname: nick } : {}),
+    country: nationOf(f.nationality, f.nationality_code, notes), birthYear, stance, sex: (typeof f.gender === "string" ? f.gender : "").toLowerCase().startsWith("f") ? "female" : "male",
     heightCm, reachCm, weightClass: divisionOf(div) ?? (div || "Unknown"),
     turnedPro, active: false, // settled in `finishBoxers`, which can see the fights
   };
@@ -380,7 +413,7 @@ export function mergeDuplicateFights(bouts: ProviderBout[], eventDates: Map<stri
     if (drop.has(i)) return [];
     if (!blank.has(i)) return [b];
     const { scores: _scores, ...rest } = b; void _scores;
-    return [{ ...rest, winnerExternalId: null, method: null, endRound: null }];
+    return [{ ...rest, winnerExternalId: null, method: null, endRound: null, resultUnsettled: true }];
   });
 }
 
@@ -470,6 +503,8 @@ export interface BoxingDataApiOptions {
    * the run at once with the vendor's own words. Default 0 (give up after `retries`). Everything fetched so far is in the cache either way.
    */
   patienceMs?: number;
+  /** How long one request may take, answer and body together, before it counts as a network failure (waited out or retried like any other). Default 60 s: the vendor answers in a second or two, and without a limit a vendor that accepts and never answers would hold the night for as long as the HTTP library waits (five minutes a request). */
+  timeoutMs?: number;
   /** replaces the real wait, for tests */
   sleep?: (ms: number) => Promise<void>;
   /** "evaluation" fetches a sample for `npm run data:check`; "ingest" fills the database (refused only when BOXING_API_STORAGE_CONFIRMED=0). */
@@ -491,6 +526,8 @@ export interface BackfillPlan {
   /** set when `maxFighters` is in force: fighters, fighterRequests and fightersCached then count only the chosen ones, and this is how many the list holds */
   allFighters?: number;
 }
+/** The most wins, losses or draws a career total may state: bigger is a slip in the feed, not a record. */
+const MAX_CAREER_COUNT = 1000;
 /** A fighter's career record as the vendor states it (wins, losses, draws): the only independent figure in the feed to check the loaded fights against. */
 export interface CareerRecord { wins: number; losses: number; draws: number }
 export interface BoxingDataApiProvider extends DataProvider {
@@ -505,6 +542,13 @@ export interface BoxingDataApiProvider extends DataProvider {
 
 /** the pace a run adopts after a rate-limit refusal when it was given no `perHour`: under the Mega plan's 500 an hour, with room for what else was asked in the same hour */
 const AUTO_PER_HOUR = 400;
+/** A failed request in words: the HTTP library's own ("fetch failed", "terminated") hides the reason in its `cause` (ECONNREFUSED, ECONNRESET, a timeout), so the reason is added. */
+function describeFailure(e: unknown): string {
+  if (!(e instanceof Error)) return String(e);
+  const c = (e as { cause?: { code?: unknown; message?: unknown } }).cause;
+  const why = typeof c?.code === 'string' ? c.code : typeof c?.message === 'string' ? c.message : '';
+  return why && !e.message.includes(why) ? `${e.message} (${why})` : e.message;
+}
 const backoff = (attempt: number) => Math.min(30_000, 1000 * 2 ** attempt);
 /** how long to wait after the 1st, 2nd, 3rd ... rate-limit refusal of one request when the gateway names no time (the last step repeats) */
 const RATE_STEPS_MS = [60_000, 120_000, 300_000, 600_000];
@@ -589,10 +633,14 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
       if (used >= max) throw new BudgetError(`Stopped after ${used} requests (limit ${max}; raise BOXING_API_MAX_REQUESTS only if your plan allows it).`);
       used++;
       if (used > 1 && spacing) await sleep(spacing);
-      let res: Response;
-      try { res = await doFetch(`${base}${p}${qs ? `?${qs}` : ""}`, { headers: { "x-rapidapi-key": o.key, "x-rapidapi-host": host, accept: "application/json" } }); }
+      let res: Response, text: string | undefined;
+      try {
+        res = await doFetch(`${base}${p}${qs ? `?${qs}` : ""}`, { headers: { "x-rapidapi-key": o.key, "x-rapidapi-host": host, accept: "application/json" }, signal: AbortSignal.timeout(o.timeoutMs ?? 60_000) });
+        // the body is read here, inside the same handling: a connection that dies half way through a page is a network failure like one that dies before it, not a crash with the HTTP library's own words
+        if (res.ok) text = await res.text();
+      }
       catch (e) {
-        const why = e instanceof Error ? e.message : String(e);
+        const why = describeFailure(e);
         // a run with patience treats a network failure as an outage to wait out (10 s, 30 s, 1, 2, 5, 10 minutes), not as a fighter to skip: a laptop that woke up with no network
         // skipped hundreds of fighters one at a time (and a skipped fighter is a hole the check then refuses). Without patience: the quick retries, then skip, as before.
         if ((o.patienceMs ?? 0) > 0) {
@@ -604,7 +652,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
           continue;
         }
         if (attempt + 1 < attempts) { log(`network error on ${p} (${why}); retrying`); await sleep(backoff(attempt)); continue; }
-        throw new Error(`Boxing Data API unreachable on ${p}: ${e instanceof Error ? e.message : e}`);
+        throw new Error(`Boxing Data API unreachable on ${p}: ${why}`);
       }
       if (res.status === 429) {
         const said = await explain(res);
@@ -634,10 +682,11 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
         continue;
       }
       if (!res.ok) throw new HttpError(`Boxing Data API ${res.status} on ${p}: ${await explain(res)}`, res.status);
-      const raw = await res.text();
+      const raw = text ?? "";
       downloaded += Buffer.byteLength(raw);
       let body: Envelope<T>;
       try { body = JSON.parse(raw) as Envelope<T>; } catch { throw new Error(`Boxing Data API sent something that is not JSON on ${p}: ${raw.slice(0, 120).split(o.key).join("***")}`); }
+      if (body === null || typeof body !== "object" || Array.isArray(body)) throw new Error(`Boxing Data API sent an unexpected answer on ${p}: expected a JSON object with a "data" field, got ${body === null ? "null" : Array.isArray(body) ? "a list" : typeof body}. The vendor may have changed its format.`);
       if (o.rawDir) { fs.mkdirSync(o.rawDir, { recursive: true }); fs.writeFileSync(path.join(o.rawDir, `${String(used).padStart(3, "0")}-${p.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "")}.json`), JSON.stringify(body, null, 2)); }
       if (body.error && Object.keys(body.error).length) throw new Error(`Boxing Data API error on ${p}: ${JSON.stringify(body.error).slice(0, 200).split(o.key).join("***")}`);
       if (file) toCache(file, body); // only a good answer is kept: an error body is never a checkpoint
@@ -658,6 +707,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     notes = emptyNotes();
     const limit = o.maxFights ?? Infinity;
     const events = new Map<string, ProviderEvent>(), bouts: ProviderBout[] = [], ids = new Set<string>(), seen = new Set<string>();
+    let rowsListed = 0;
     // the list endpoint (newest first) and the schedule endpoint (the coming weeks); a fight in both is taken once
     const collect = async (endpoint: string, params: Record<string, string | number | undefined>, cap: number) => {
       let taken = 0;
@@ -665,10 +715,15 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
       const LIMIT = o.offsetLimit ?? 10_000;
       const reachable = Math.max(1, Math.floor(LIMIT / size)); // pages a page number can reach
       const consume = (r: Envelope<ApiFight[]>) => {
+        if (r.data !== undefined && r.data !== null && !Array.isArray(r.data)) throw new Error(`Boxing Data API changed shape on ${endpoint}: "data" should be a list of fights but is ${typeof r.data}. The vendor may have changed its format.`);
         for (const f of r.data ?? []) {
           if (taken >= cap) break;
-          if (f.id && seen.has(f.id)) continue;
-          const m = mapFight(f, notes, bouts.length);
+          rowsListed++;
+          if (f && f.id && seen.has(f.id)) continue;
+          // one row the mapping cannot read (a field of a kind nobody expected) must not stop the night for every other row: it is skipped, counted and named once
+          let m: ReturnType<typeof mapFight>;
+          try { m = mapFight(f, notes, bouts.length); }
+          catch (e) { if (!notes.fightsSkippedUnreadable++) log(`a fight could not be read and is skipped (${e instanceof Error ? e.message : e}); it is counted under fightsSkippedUnreadable`); notes.fightsSkipped++; continue; }
           if (!m) continue;
           seen.add(f.id); taken++;
           events.set(m.event.externalId, m.event); bouts.push(m.bout); m.fighterIds.forEach((i) => ids.add(i));
@@ -717,6 +772,9 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     };
     // the API rejects date_from without date_to ("InvalidDateRange"), so a start date always comes with an end
     await collect("/v2/fights/", { date_from: o.since, date_to: o.since ? todayIso() : undefined, date_sort: "DESC" }, limit);
+    // an update's window starts 14 days before the newest card the database already holds, so it always contains that card: a window with no fight that can be read is not a quiet week,
+    // it is a vendor that answered empty or in a shape the mapping cannot read. Said here, it stops the run before anything is written, and before the data is stamped as freshly updated.
+    if (o.since && !o.cachedOnly && bouts.length === 0) throw new Error(`Boxing Data API returned no usable fights for ${o.since} to ${todayIso()} (${rowsListed} listed, ${notes.fightsSkipped} unreadable). A window that starts at a card the database already holds is never empty, so the vendor's answer is empty or has changed shape. Nothing was loaded; run the same command again later, and if it repeats send back the whole output.`);
     // the list endpoint already includes coming (NOT_STARTED) fights on the free plan, which makes the schedule endpoint redundant there; ask for it only when the list showed none
     const comingInList = bouts.some((b) => (events.get(b.eventExternalId)?.date ?? "") >= todayIso());
     if (o.scheduleDays !== 0 && !comingInList) {
@@ -779,7 +837,11 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
         const m = mapFighter(raw, notes);
         if (m) {
           const s = raw.stats;
-          const career = s && [s.wins, s.losses, s.draws].every((x) => typeof x === "number" && x >= 0) ? { wins: s.wins!, losses: s.losses!, draws: s.draws!, ...careerTotals(s) } : null;
+          // a career total is a whole number from 0 to a thousand (the busiest career ever is a few hundred bouts): anything else is no total, and the fighter has none to check against
+          const count = (x: unknown): x is number => typeof x === "number" && Number.isInteger(x) && x >= 0 && x <= MAX_CAREER_COUNT;
+          const stated = s ? [s.wins, s.losses, s.draws] : [];
+          if (stated.length && stated.every((x) => typeof x === "number") && !stated.every(count)) notes.careerTotalImplausible++;
+          const career = s && [s.wins, s.losses, s.draws].every(count) ? { wins: s.wins!, losses: s.losses!, draws: s.draws!, ...careerTotals(s) } : null;
           rows.push(career ? { ...m, careerRecord: career } : m);
           if (career) careers.set(m.externalId, career);
         }
