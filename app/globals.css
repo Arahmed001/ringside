@@ -198,3 +198,5 @@ html[dir="rtl"] .nav-progress { transform-origin: right; }
 .row-hl:hover > :first-child, .row-hl:focus-within > :first-child { box-shadow: inset 3px 0 0 var(--gold); }
 html[dir="rtl"] .row-hl:hover > :first-child, html[dir="rtl"] .row-hl:focus-within > :first-child { box-shadow: inset -3px 0 0 var(--gold); }
 @media print { .nav-progress { display: none; } }
+/* Jumping to a section (components/JumpNav.tsx): a short glide, only for visitors who have not asked for reduced motion. */
+@media (prefers-reduced-motion: no-preference) { html:has(.jump-nav) { scroll-behavior: smooth; } }

@@ -8790,7 +8790,8 @@
  {
   "key": "On this page",
   "files": [
-   "app/[locale]/learn/page.tsx"
+   "app/[locale]/learn/page.tsx",
+   "components/JumpNav.tsx"
   ]
  },
  {
