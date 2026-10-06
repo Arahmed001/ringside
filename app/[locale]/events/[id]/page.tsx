@@ -87,7 +87,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             const p = predict(r, u, t);
             const cancelled = b.status === "cancelled";
             return (
-              <div key={b.id} className="card p-4">
+              <div key={b.id} className={`card ${i === 0 ? "p-5 sm:p-6" : i === 1 ? "p-4" : "p-3"}`} style={i === 0 ? { backgroundImage: "linear-gradient(90deg, rgb(229 50 45 / .12), transparent 38%, transparent 62%, rgb(74 140 255 / .12))" } : undefined}>
                 <div className="mb-3 flex items-center justify-between text-xs text-muted">
                   <span className="uppercase tracking-widest">{i === 0 ? t("Main event") : i === 1 ? t("Co-main") : t("Undercard")} · {divisionLabel(b.weightClass, r.sex, t)} · {t.n(b.rounds, "{n} rd", "{n} rds")}</span>
                   {cancelled ? <span className="chip !border-red/40 !text-red-ink">{t("Cancelled")}</span> : b.title && <span className="chip !border-gold/40 !text-gold">{t.name(b.title)}</span>}
@@ -95,14 +95,14 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
                 <div className="ltr-fixed grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
                   {[r, u].map((f, k) => (
                     <Link key={f.id} href={`/boxers/${f.slug}`} className={`flex min-w-0 flex-col items-center gap-2 text-center sm:flex-row sm:gap-3 sm:text-start ${k === 1 ? "order-3 sm:flex-row-reverse sm:text-end" : ""}`}>
-                      <Headshot boxer={f} size={52} className={cancelled ? "opacity-60" : ""} />
+                      <Headshot boxer={f} size={i === 0 ? 72 : i === 1 ? 52 : 40} className={cancelled ? "opacity-60" : ""} />
                       <div className="min-w-0">
-                        <div className={`break-words font-display text-xl font-bold leading-tight ${b.winnerId === f.id ? "text-win" : ""}`}>{b.winnerId === f.id && "✓ "}{t.name(f.name)}</div>
+                        <div className={`break-words font-display font-bold leading-tight ${i === 0 ? "text-2xl sm:text-4xl" : i === 1 ? "text-xl" : "text-base sm:text-lg"} ${b.winnerId === f.id ? "text-win" : ""}`}>{b.winnerId === f.id && "✓ "}{t.name(f.name)}</div>
                         <div className="text-xs text-muted">{recordStr(f)} · {Math.round(f.rating)}</div>
                       </div>
                     </Link>
                   ))}
-                  <Link href={`/bouts/${b.id}`} className="order-2 min-w-6 py-1 text-center transition hover:opacity-80" title={t("Full bout details")}><div className="font-display text-xl font-bold text-gold">{t("VS")}</div>{b.method && <div className="text-xs tabular text-muted">{methodLabel(b.method, b.endRound, t)}</div>}</Link>
+                  <Link href={`/bouts/${b.id}`} className="order-2 min-w-6 py-1 text-center transition hover:opacity-80" title={t("Full bout details")}><div className={`font-display font-bold text-gold ${i === 0 ? "text-2xl sm:text-3xl" : "text-xl"}`}>{t("VS")}</div>{b.method && <div className="text-xs tabular text-muted">{methodLabel(b.method, b.endRound, t)}</div>}</Link>
                 </div>
                 {b.upcoming && !cancelled && <div className="mt-3 text-end"><Link href={`/previews/${b.id}`} className="inline-block py-1 text-sm text-muted hover:text-gold">{t("Read the preview")} <span className="inline-block rtl:rotate-180">→</span></Link></div>}
                 {b.upcoming && !cancelled && <div className="mt-4"><ProbBar a={t.name(r.name)} b={t.name(u.name)} pA={p.pA} pB={p.pB} pDraw={p.pDraw} /></div>}
