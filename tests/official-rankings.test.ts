@@ -119,3 +119,43 @@ test("a feed file carries the lists too (that is how the smoke run's partial lea
   fs.writeFileSync(file, JSON.stringify({}));
   try { assert.deepEqual((await loadFeed(fileProvider(file))).officialRankings, [], "a file without them has none"); } finally { fs.rmSync(file, { force: true }); }
 });
+
+test("rankings: false asks for nothing: no request to the endpoint, no lists, and it says so in the notes", async () => {
+  const v = mockVendor(league);
+  const held = boxingDataApiProvider({ key: "k".repeat(40), purpose: "evaluation", fetchImpl: v.fetchImpl, scheduleDays: 0, maxRequests: 1e6, retries: 0, gapMs: 0, log: () => {}, rankings: false });
+  assert.deepEqual(await held.fetchOfficialRankings!(), []);
+  assert.equal(v.stats.byPath["/v2/rankings/"] ?? 0, 0, "not one request");
+  assert.equal(held.notes().rankingsHeldBack, 1);
+  assert.equal(held.notes().rankingsUnavailable, 0, "it is a decision, not a refusal by the plan");
+});
+
+test("a licensed site shows the official lists only once the owner has confirmed them; the demo league and a file feed always do", async () => {
+  const { rankingsConfirmed, officialRankingsShown } = await import("../lib/site-info");
+  assert.equal(officialRankingsShown({}), true, "no provider named: the demo league");
+  assert.equal(officialRankingsShown({ BOXING_PROVIDER: "file" }), true);
+  assert.equal(officialRankingsShown({ BOXING_PROVIDER: "licensed" }), false, "licensed and not confirmed: left out");
+  assert.equal(officialRankingsShown({ BOXING_PROVIDER: "licensed", VENDOR_RANKINGS_CONFIRMED: "0" }), false);
+  assert.equal(officialRankingsShown({ BOXING_PROVIDER: "licensed", VENDOR_RANKINGS_CONFIRMED: "true" }), false, "only the exact 1 counts as a statement");
+  assert.equal(officialRankingsShown({ BOXING_PROVIDER: "licensed", VENDOR_RANKINGS_CONFIRMED: "1" }), true);
+  assert.equal(rankingsConfirmed({ VENDOR_RANKINGS_CONFIRMED: " 1 " }), true);
+});
+
+test("end to end: lists already stored are not shown by a licensed site that has not confirmed them, and are once it has", async () => {
+  const { getDb } = await import("../lib/db");
+  const { ingest } = await import("../lib/ingest");
+  const { getWorld, invalidateWorld } = await import("../lib/world").then((m) => ({ getWorld: m.getWorld, invalidateWorld: (m as { invalidateWorld?: () => void }).invalidateWorld }));
+  const db = await getDb();
+  await ingest(db, providerOf(mockVendor(league)), { strict: false });
+  const was = { p: process.env.BOXING_PROVIDER, c: process.env.VENDOR_RANKINGS_CONFIRMED };
+  try {
+    delete process.env.VENDOR_RANKINGS_CONFIRMED; process.env.BOXING_PROVIDER = "licensed";
+    invalidateWorld?.();
+    assert.equal((await getWorld()).official.byDivision.size, 0, "stored, and hidden");
+    process.env.VENDOR_RANKINGS_CONFIRMED = "1";
+    invalidateWorld?.();
+    assert.ok((await getWorld()).official.byDivision.size > 0, "shown once confirmed");
+  } finally {
+    if (was.p === undefined) delete process.env.BOXING_PROVIDER; else process.env.BOXING_PROVIDER = was.p;
+    if (was.c === undefined) delete process.env.VENDOR_RANKINGS_CONFIRMED; else process.env.VENDOR_RANKINGS_CONFIRMED = was.c;
+  }
+});

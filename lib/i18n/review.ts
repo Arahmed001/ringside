@@ -50,7 +50,7 @@ const NOTE_CODES = new Set<FlagCode>(["glossary", "numbers", "gender"]);
 /** Latin-letter words that are meant to stay Latin in Arabic text (brands, rating names, bodies, formats). */
 export const KEEP_LATIN = new Set(["elo", "ko", "kos", "tko", "rtd", "dq", "ud", "md", "sd", "td", "ringside", "boxrec", "wikidata", "wikimedia", "commons", "api", "ai", "url", "cc0", "cc",
   "ppv", "id", "compubox", "csv", "json", "html", "rss", "atom", "wba", "wbc", "ibf", "wbo", "gbc", "wpa", "iba", "by", "sa", "lb", "kg", "cm", "mo", "pts", "olympedia", "hall", "fame", "ibhof", "claude",
-  "anthropic", "pca", "xml", "js", "css", "r1", "p4p", "vs", "mg", "ctrl", "ko/tko"]);
+  "anthropic", "pca", "xml", "js", "css", "r1", "p4p", "vs", "mg", "ctrl", "ko/tko", "openapi", "https", "lang", "chrome", "macos"]);
 
 const PLURAL_FORMS = ["zero", "one", "two", "few", "many", "other"] as const;
 const AR = /[؀-ۿ]/;
@@ -87,7 +87,8 @@ export function qaEntry(key: string, value: Value, opts: { plural?: boolean; glo
       if (a !== b) add("placeholders", `placeholders {${b}} should be {${a}}${label}`);
       if (tg(english).join(",") !== tg(text).join(",")) add("placeholders", `tags <${tg(text).join(",")}> should be <${tg(english).join(",")}>${label}`);
     }
-    const bare = stripSyntax(text);
+    // the supplier's and the source's names are proper names and stay Latin (blanked, not removed, so the positions of the other words do not move)
+    const bare = stripSyntax(text).replace(/Boxing Data API|BoxingScene/g, (m) => " ".repeat(m.length));
     // a Latin word is fine when it is a brand or format, part of a code path (lib/providers, docs/research.md) or an ALL_CAPS abbreviation or setting name (whether abbreviations should be Arabic is one of the reviewer's questions)
     const isKept = (w: string, at: number) => KEEP_LATIN.has(w.toLowerCase().replace(/['’-].*$/, "")) || /^[A-Z][A-Z0-9_]+$/.test(w) || /[/.]/.test(bare.slice(Math.max(0, at - 1), at)) || /[/.]/.test(bare.slice(at + w.length, at + w.length + 1));
     const words = [...bare.matchAll(/[A-Za-z][A-Za-z'’-]{2,}/g)].map((m) => ({ w: m[0], at: m.index! }));

@@ -25,6 +25,7 @@
  * Point DATABASE_PATH at a NEW file for the real league; never at the demo database.
  */
 process.env.RINGSIDE_NO_SEED = "1"; // an empty database is what we are here to fill: the app's own first-request seeding must not start
+import { rankingsConfirmed } from "../lib/site-info";
 import fs from "node:fs";
 import path from "node:path";
 import { boxingDataApiProvider, storageStatus, type BoxingDataApiOptions } from "../lib/providers/boxing-data-api";
@@ -94,7 +95,7 @@ async function main() {
     } else if (f.fromFeed > 0) log(`the database already holds ${f.fromFeed} fighters from this feed: this load updates them in place`);
   }
 
-  const provider = boxingDataApiProvider(base);
+  const provider = boxingDataApiProvider({ ...base, rankings: rankingsConfirmed() });
   const started = Date.now();
 
   if (plan) {
