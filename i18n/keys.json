@@ -11064,6 +11064,12 @@
   ]
  },
  {
+  "key": "Sort by {column}",
+  "files": [
+   "components/SortTh.tsx"
+  ]
+ },
+ {
   "key": "Sorted by {sort}",
   "files": [
    "lib/ai.ts"
