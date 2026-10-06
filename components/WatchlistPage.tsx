@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { readSeen, useWatchlist, writeSeen } from "@/lib/useWatchlist";
 import type { WatchEntry } from "@/lib/watch";
-import { flag } from "@/lib/format";
+import { flag, fmtDate } from "@/lib/format";
 import { useLocale, useT } from "@/components/i18n";
 import { WatchlistAdd } from "@/components/WatchlistAdd";
 import { WatchDigest } from "@/components/WatchDigest";
@@ -123,7 +123,7 @@ export function WatchlistPage({ suggestions }: { suggestions: FighterHit[] }) {
                   <a href={href(`/bouts/${f.last.boutId}`)} className="inline-flex flex-wrap items-center gap-x-2 py-0.5 hover:underline">
                     <span className={`grid h-6 min-w-6 place-items-center rounded-md px-1 text-xs font-bold ${tone[f.last.result]}`}>{res[f.last.result]}</span>
                     <span>{t("{opponent}, {how}", { opponent: f.last.opponent, how: f.last.how })}</span>
-                    <span className="text-xs text-muted">{f.last.date}</span>
+                    <span className="text-xs text-muted">{fmtDate(f.last.date, { month: "short", day: "numeric", year: "numeric" }, locale)}</span>
                   </a>
                 ) : <span className="text-muted">{t("No fights on record")}</span>}
               </dd>

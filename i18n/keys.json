@@ -4964,7 +4964,6 @@
  {
   "key": "Elo change",
   "files": [
-   "app/[locale]/people/page.tsx",
    "components/TenureTable.tsx"
   ]
  },
@@ -5728,7 +5727,6 @@
    "app/[locale]/countries/[slug]/opengraph-image.tsx",
    "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/people/[slug]/page.tsx",
-   "app/[locale]/people/page.tsx",
    "components/TenureTable.tsx",
    "lib/ask/tools.ts",
    "lib/coverage.ts",
@@ -11548,8 +11546,7 @@
  {
   "key": "Sort by",
   "files": [
-   "app/[locale]/boxers/page.tsx",
-   "app/[locale]/people/page.tsx"
+   "app/[locale]/boxers/page.tsx"
   ]
  },
  {
@@ -14768,12 +14765,6 @@
   "key": "win rate",
   "files": [
    "lib/ask/tools.ts"
-  ]
- },
- {
-  "key": "Win rate",
-  "files": [
-   "app/[locale]/people/page.tsx"
   ]
  },
  {

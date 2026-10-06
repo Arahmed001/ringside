@@ -65,3 +65,15 @@ test("the division table has sortable headings, whole-division sorting and a cle
   const th = fs.readFileSync(path.join(root, "components/SortTh.tsx"), "utf8");
   assert.match(th, /aria-sort=/); assert.match(th, /aria-hidden/); assert.match(th, /Sort by \{column\}/);
 });
+
+test("the corners and officials leaderboards sort by column too: four tables, one rule, the old trainer chips' addresses still work (round 127, overnight)", () => {
+  const root = path.resolve(__dirname, "..");
+  const page = fs.readFileSync(path.join(root, "app/[locale]/people/page.tsx"), "utf8");
+  assert.equal((page.match(/<SortTh /g) ?? []).length, 7 + 5 + 6 + 6, "every data column of the four tables is a sorting heading");
+  assert.equal((page.match(/pageOf\(/g) ?? []).length, 4, "each of the four tables goes through the one helper"); assert.match(page, /function pageOf<R>\(/);
+  assert.match(page, /sortRanked\(ranked\(rows\), sort,/, "the whole board is sorted before it is paged");
+  assert.match(page, /\.\.\.sortQ, \.\.\.\(list\.q/, "the pager keeps the sort"); assert.match(page, /hidden=\{hiddenOf\(list, pg\.sortQ\)\}/, "the name filter keeps the sort");
+  assert.ok(!/Sort by/.test(page), "the trainers' separate row of sort chips is gone: the headings are the control");
+  for (const legacy of ["elo", "win", "fighters", "titles"]) assert.match(page, new RegExp(`${legacy}: \\{ textual: false`), `?sort=${legacy} still names a column`);
+  assert.match(page, /\{ key: "elo", dir: "desc" \}/, "the trainers' default is as it was (average Elo change, highest first), with a clean address");
+});

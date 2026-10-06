@@ -111,6 +111,7 @@ export function smokeRoutes(w: World): SmokeRoute[] {
     out.push({ path: `/people?role=judge&q=${q(`${p.slice(0, -1).join(" ")} ${last.slice(0, 2)}${last.slice(3)}`)}`, kind: "page", label: "judge search with a letter missing", mustShow: judge.person.name, englishOnly: true });
   }
   page("/people?role=trainer&page=9999", "trainer leaderboard page beyond the end");
+  for (const q of ["role=trainer&sort=win", "role=trainer&sort=name&dir=desc", "role=manager&sort=titles", "role=judge&sort=majority&dir=asc", "role=judge&sort=home", "role=referee&sort=rate", "role=referee&sort=avg&dir=asc&q=a", "role=trainer&sort=nonsense&dir=sideways"]) page(`/people?${q}`, `corners and officials sorted (${q})`);
   // gyms and promotions are paged and filterable too: a gym below the first page must be on the second, and a promotion spelt with a letter missing must be found
   const { gyms: rankedGyms, promos: rankedPromos } = orgsRanking(w);
   if (rankedGyms.length > ORGS_PAGE) out.push({ path: "/orgs?kind=gym&page=2", kind: "page", label: "second page of the gyms", mustShow: rankedGyms[ORGS_PAGE].o.name });
