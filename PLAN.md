@@ -1258,7 +1258,7 @@ The real league is loaded twice into one database (a partial load, then the comp
 - Accepted corrections are still put back over all of this after every ingest, as before. Ratings are recomputed after each load.
 - Test: `tests/reload-updates-fighters.test.ts` (fails if any of the five fields is made sticky again, or if "Unknown" is allowed to overwrite a country).
 
-## 185. What a real-data site must say before the first visitor (2026-10-06)
+## 188. What a real-data site must say before the first visitor (2026-10-06)
 A read of the public pages found most of it in place (privacy, the Data page, the report form, the vendor credit, the doctor's `SITE_CONTACT` warning) and three gaps. Done: the footer of a real-data site now says the ratings and predictions are not betting advice and that Ringside is not affiliated with any sanctioning body, promoter or broadcaster (English and Arabic; the demo footer is unchanged). Drafted, not built, because they are the owner's to decide: a short terms of use, and a stance on a fighter asking for their details to be removed. Both, with the settings to check on the day, are in `docs/launch-pages.md`.
 
 ## 110. The next main event, counts of coming cards, and a belt's kind (round 62, 2026-10-04)
