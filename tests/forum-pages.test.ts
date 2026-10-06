@@ -69,3 +69,16 @@ test("the rules page reads its numbers from the rules the server enforces, the e
   assert.match(read("app/[locale]/forum/[id]/page.tsx"), /<ThreadTools id=\{th\.id\} locked=\{th\.locked\} \/>/);
   assert.match(read("components/Discussion.tsx"), /href="\/forum\/rules"/, "the composer links the rules");
 });
+
+test("keyboard focus in the discussion is looked after: opening Edit, Report or Delete moves focus into what opened and back when it closes; after Hide, Restore or Delete the post takes focus (task 3, overnight)", () => {
+  const d = read("components/Discussion.tsx");
+  assert.match(d, /if \(mode === "edit"\) draftBox\.current\?\.focus\(\)/); assert.match(d, /else if \(mode === "report"\) reasonBox\.current\?\.focus\(\)/); assert.match(d, /else if \(mode === "delete"\) cancelDelete\.current\?\.focus\(\)/, "the safe choice first");
+  assert.match(d, /opener\.current = null/, "and back to the button that opened it");
+  assert.match(d, /<li ref=\{li\} tabIndex=\{-1\}/, "a post can take focus without being a tab stop");
+  assert.equal((d.match(/void settle\(act\(/g) ?? []).length, 3, "Hide, Restore and Delete each put focus on the post afterwards");
+  const q = read("components/ForumQueue.tsx");
+  assert.match(q, /statusLine\.current\?\.focus\(\)/, "in the queue, where the item is gone, focus goes to the line that says what happened");
+  assert.match(q, /aria-pressed=\{tab === k\}/); assert.ok(!/role="tab"|role="tablist"/.test(q), "two toggle buttons are not the tabs pattern (which needs arrow keys and panels)");
+  for (const f of ["components/Discussion.tsx", "components/StartThread.tsx"]) assert.ok(/<label htmlFor=/.test(read(f)) || /className="sr-only"/.test(read(f)), `${f}: every text box has a label`);
+  assert.match(d, /role="status"/); assert.match(d, /role="alert"/);
+});

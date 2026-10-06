@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "@/components/L";
 import { useT } from "@/components/i18n";
 import { api, useAccount } from "@/lib/useAccount";
@@ -16,6 +16,7 @@ export function ForumQueue() {
   const [tab, setTab] = useState<Tab>("reported");
   const [data, setData] = useState<{ tab: Tab; items: Item[]; hidden: Hidden[] } | null>(null);
   const [msg, setMsg] = useState<{ text: string; bad: boolean } | null>(null);
+  const statusLine = useRef<HTMLParagraphElement>(null);
   const isEditor = me?.role === "editor" || me?.role === "admin";
   const reasonLabel = (r: string) => r === "spam" ? t("Spam") : r === "abuse" ? t("Abuse or harassment") : r === "off_topic" ? t("Off topic") : t("Something else");
 
@@ -35,18 +36,19 @@ export function ForumQueue() {
     const r = await api(path, "POST", body);
     setMsg({ text: r.ok ? done : forumExplain(t, r.data.error), bad: !r.ok });
     if (r.ok) load(tab);
+    statusLine.current?.focus(); // the button that was pressed is gone with its item: focus goes to the line that says what happened
   }
   const items = data?.tab === tab ? data.items : null;
   const btn = "chip cursor-pointer py-1.5 text-xs transition hover:!text-ink";
 
   return (
     <div className="space-y-4">
-      <div role="tablist" aria-label={t("What to look at")} className="flex gap-2">
+      <div role="group" aria-label={t("What to look at")} className="flex gap-2">
         {([["reported", t("Reported posts")], ["recent", t("Newest posts")]] as const).map(([k, label]) => (
-          <button key={k} type="button" role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`chip cursor-pointer ${tab === k ? "!border-gold/50 !text-gold" : ""}`}>{label}</button>
+          <button key={k} type="button" aria-pressed={tab === k} onClick={() => setTab(k)} className={`chip cursor-pointer ${tab === k ? "!border-gold/50 !text-gold" : ""}`}>{label}</button>
         ))}
       </div>
-      <p role="status" className={`min-h-5 text-sm ${msg?.bad ? "text-red-ink" : "text-win"}`}>{msg?.text}</p>
+      <p ref={statusLine} tabIndex={-1} role="status" className={`min-h-5 text-sm outline-none ${msg?.bad ? "text-red-ink" : "text-win"}`}>{msg?.text}</p>
       {items === null ? <p className="text-sm text-muted">{t("Loading…")}</p> : items.length === 0 ? <p className="text-sm text-muted">{tab === "reported" ? t("Nothing is waiting: no post has an open report.") : t("No posts yet.")}</p> : (
         <ol className="space-y-3">
           {items.map((i) => (

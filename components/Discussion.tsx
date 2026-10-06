@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "@/components/L";
 import { useLocale, useT } from "@/components/i18n";
 import { api } from "@/lib/useAccount";
@@ -90,12 +90,27 @@ export function Discussion({ target }: { target: Target }) {
   );
 }
 
+/**
+ * One post. Keyboard focus is looked after: pressing Edit, Report or Delete removes the button that was pressed, so focus goes to the first thing in what opened (the text box, the
+ * reason, the safe choice) and comes back to the button that opened it when that closes; after Hide, Restore or Delete the post itself takes focus (it is made focusable, not a tab stop).
+ */
 function PostItem({ p, editor, signedIn, locale, act }: { p: Post; editor: boolean; signedIn: boolean; locale: string; act: (path: string, method: string, body: unknown, okText: string) => Promise<boolean> }) {
   const t = useT();
   const [mode, setMode] = useState<"view" | "edit" | "report" | "delete">("view");
   const [draft, setDraft] = useState(p.body ?? "");
   const [reason, setReason] = useState<string>(REPORT_REASONS[0]);
   const [note, setNote] = useState("");
+  const li = useRef<HTMLLIElement>(null), draftBox = useRef<HTMLTextAreaElement>(null), reasonBox = useRef<HTMLSelectElement>(null), cancelDelete = useRef<HTMLButtonElement>(null);
+  const editBtn = useRef<HTMLButtonElement>(null), reportBtn = useRef<HTMLButtonElement>(null), deleteBtn = useRef<HTMLButtonElement>(null);
+  const opener = useRef<"edit" | "report" | "delete" | null>(null);
+  useEffect(() => { // focus follows the mode
+    if (mode === "edit") draftBox.current?.focus();
+    else if (mode === "report") reasonBox.current?.focus();
+    else if (mode === "delete") cancelDelete.current?.focus();
+    else if (opener.current) { const b = { edit: editBtn, report: reportBtn, delete: deleteBtn }[opener.current].current; (b ?? li.current)?.focus(); opener.current = null; }
+  }, [mode]);
+  const open = (m: "edit" | "report" | "delete") => { opener.current = m; setMode(m); };
+  const settle = async (work: Promise<unknown>) => { await work; li.current?.focus(); }; // the post changed under the pointer: put focus on it
   const when = new Date(p.createdAt);
   const [now] = useState(() => Date.now()); // when the page was opened: an edit button is offered while the quarter hour lasts
   const stamp = when.toLocaleString(locale === "ar" ? "ar-u-nu-latn" : "en", { dateStyle: "medium", timeStyle: "short" });
@@ -103,7 +118,7 @@ function PostItem({ p, editor, signedIn, locale, act }: { p: Post; editor: boole
   const reasonLabel = (r: string) => r === "spam" ? t("Spam") : r === "abuse" ? t("Abuse or harassment") : r === "off_topic" ? t("Off topic") : t("Something else");
 
   return (
-    <li className="card p-4" id={`post-${p.id}`}>
+    <li ref={li} tabIndex={-1} className="card p-4 outline-none focus-visible:ring-2 focus-visible:ring-gold/60" id={`post-${p.id}`}>
       <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-muted">
         <span>{p.status === "visible" ? <b className="text-ink">{p.author ?? t("deleted account")}</b> : null}{p.mine && p.status === "visible" ? <span> · {t("you")}</span> : null}</span>
         <span><time dateTime={p.createdAt}>{stamp}</time>{p.editedAt ? ` · ${t("edited")}` : ""}</span>
@@ -112,7 +127,7 @@ function PostItem({ p, editor, signedIn, locale, act }: { p: Post; editor: boole
         mode === "edit" ? (
           <form className="mt-2 space-y-2" onSubmit={async (e) => { e.preventDefault(); if (await act(`/api/forum/posts/${p.id}`, "PATCH", { body: draft }, t("Saved."))) setMode("view"); }}>
             <label htmlFor={`edit-${p.id}`} className="sr-only">{t("Edit your post")}</label>
-            <textarea id={`edit-${p.id}`} value={draft} onChange={(e) => setDraft(e.target.value)} rows={3} dir="auto" className={input} />
+            <textarea ref={draftBox} id={`edit-${p.id}`} value={draft} onChange={(e) => setDraft(e.target.value)} rows={3} dir="auto" className={input} />
             <div className="flex gap-2"><button type="submit" className={btn}>{t("Save")}</button><button type="button" className={btn} onClick={() => setMode("view")}>{t("Cancel")}</button></div>
           </form>
         ) : <p className="mt-2 whitespace-pre-wrap break-words text-sm" dir="auto">{p.body}</p>
@@ -123,20 +138,20 @@ function PostItem({ p, editor, signedIn, locale, act }: { p: Post; editor: boole
       {mode === "report" && (
         <form className="mt-3 flex flex-wrap items-end gap-2 text-sm" onSubmit={async (e) => { e.preventDefault(); if (await act(`/api/forum/posts/${p.id}/report`, "POST", { reason, note }, t("Reported. Thank you."))) setMode("view"); }}>
           <label className="block"><span className="mb-1 block text-xs uppercase tracking-widest text-muted">{t("Why?")}</span>
-            <select value={reason} onChange={(e) => setReason(e.target.value)} className={input}>{REPORT_REASONS.map((r) => <option key={r} value={r}>{reasonLabel(r)}</option>)}</select></label>
+            <select ref={reasonBox} value={reason} onChange={(e) => setReason(e.target.value)} className={input}>{REPORT_REASONS.map((r) => <option key={r} value={r}>{reasonLabel(r)}</option>)}</select></label>
           <label className="block grow"><span className="mb-1 block text-xs uppercase tracking-widest text-muted">{t("A note (optional)")}</span><input value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} dir="auto" className={input} /></label>
           <button type="submit" className={btn}>{t("Send report")}</button><button type="button" className={btn} onClick={() => setMode("view")}>{t("Cancel")}</button>
         </form>
       )}
       {mode === "view" || mode === "delete" ? (
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
-          {canEdit && <button type="button" className={btn} onClick={() => { setDraft(p.body ?? ""); setMode("edit"); }}>{t("Edit")}</button>}
+          {canEdit && <button ref={editBtn} type="button" className={btn} onClick={() => { setDraft(p.body ?? ""); open("edit"); }}>{t("Edit")}</button>}
           {p.mine && p.status === "visible" && (mode === "delete"
-            ? <><button type="button" className={`${btn} !border-red-ink/50 !text-red-ink`} onClick={async () => { await act(`/api/forum/posts/${p.id}`, "DELETE", undefined, t("Deleted.")); setMode("view"); }}>{t("Yes, delete it")}</button><button type="button" className={btn} onClick={() => setMode("view")}>{t("Cancel")}</button></>
-            : <button type="button" className={btn} onClick={() => setMode("delete")}>{t("Delete")}</button>)}
-          {signedIn && !p.mine && p.status === "visible" && <button type="button" className={btn} onClick={() => setMode("report")}>{t("Report")}</button>}
-          {editor && p.status === "visible" && <button type="button" className={btn} onClick={() => void act(`/api/forum/posts/${p.id}/moderate`, "POST", { action: "hide", reason: "" }, t("Hidden."))}>{t("Hide")}</button>}
-          {editor && p.status === "hidden" && <button type="button" className={btn} onClick={() => void act(`/api/forum/posts/${p.id}/moderate`, "POST", { action: "restore" }, t("Restored."))}>{t("Restore")}</button>}
+            ? <><button type="button" className={`${btn} !border-red-ink/50 !text-red-ink`} onClick={() => void settle(act(`/api/forum/posts/${p.id}`, "DELETE", undefined, t("Deleted.")))}>{t("Yes, delete it")}</button><button ref={cancelDelete} type="button" className={btn} onClick={() => setMode("view")}>{t("Cancel")}</button></>
+            : <button ref={deleteBtn} type="button" className={btn} onClick={() => open("delete")}>{t("Delete")}</button>)}
+          {signedIn && !p.mine && p.status === "visible" && <button ref={reportBtn} type="button" className={btn} onClick={() => open("report")}>{t("Report")}</button>}
+          {editor && p.status === "visible" && <button type="button" className={btn} onClick={() => void settle(act(`/api/forum/posts/${p.id}/moderate`, "POST", { action: "hide", reason: "" }, t("Hidden.")))}>{t("Hide")}</button>}
+          {editor && p.status === "hidden" && <button type="button" className={btn} onClick={() => void settle(act(`/api/forum/posts/${p.id}/moderate`, "POST", { action: "restore" }, t("Restored.")))}>{t("Restore")}</button>}
         </div>
       ) : null}
     </li>
