@@ -62,9 +62,9 @@ Every choice below serves that. The risk is turning drama into noise, so drama i
 - Respect `prefers-reduced-motion` (already in `globals.css`). Do not animate on scroll.
 
 ## Imagery
-- **Headshots:** 4:5 portrait, `object-position: top`. Real photos only with a visible licence credit. Otherwise the generated portrait.
+- **Headshots:** 4:5 portrait, `object-position: top`. Real photos only with a visible licence credit. Otherwise: the demo league's (fictional) fighters get the generated illustrated portrait; a real-data site gets a plain head-and-shoulders silhouette on the division's colour, which depends on nothing about the person (decided 2026-10-06).
 - **Posters:** 5:7 portrait. Red fighter on the left, blue on the right, divided by a diagonal. A feed `posterUrl` always wins over the generated one.
-- **Generated art is illustration, not photography,** and must never look like a real person's likeness. Demo fighters are fictional.
+- **Generated art is illustration, not photography,** and must never look like a real person's likeness. Demo fighters are fictional, which is why only they are drawn with faces.
 
 ## Components to keep consistent
 - `ProbBar` and `MatchupLab` bars: red left, blue right, draw in grey.
