@@ -38,6 +38,7 @@
     "accounts": "tsx scripts/accounts.ts",
     "backup": "tsx scripts/backup.ts",
     "loadtest": "tsx scripts/loadtest.ts",
+    "capacity": "tsx scripts/capacity.ts",
     "doctor": "tsx scripts/doctor.ts",
     "coldcheck": "tsx scripts/coldcheck.ts",
     "a11y": "tsx scripts/a11y-run.ts",
