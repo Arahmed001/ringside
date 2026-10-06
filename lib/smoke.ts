@@ -202,7 +202,9 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   if (m1 && m2) { png(`/api/og/compare?a=${m1.slug}&b=${m2.slug}&lang=en`, "matchup"); png(`/api/og/compare?a=${m1.slug}&b=${m2.slug}&lang=ar`, "matchup (Arabic)"); }
   out.push({ path: "/this-page-does-not-exist", kind: "missing", label: "unknown page" });
   // an old or mistyped fighter link: a real 404 that offers the fighter they meant (English only: the Arabic page offers the name in Arabic)
-  if (star) out.push({ path: `/boxers/${star.slug.slice(0, -1)}`, kind: "missing", label: "mistyped fighter link (offers the fighter they meant)", ...(star.name.length <= 60 && /^[\p{L}\p{N} .'’-]+$/u.test(star.name) ? { mustShow: star.name } : {}) }); // a name of 60 letters or more is not a mistype anyone makes (the hostile league's 300-letter name, whose address is cut at 100), and a name with markup characters reaches the page JSON-escaped twice: the route is still checked to be a real 404, and the hostile run checks the markup is not on the page
+  // the mistyped address must not be another fighter's real one: in a league of numbered names (fighter-1414 and fighter-14144) cutting one letter can land on a fighter
+  const mistyped = mistypeTarget(boxers);
+  if (mistyped) out.push({ path: `/boxers/${mistyped.slug.slice(0, -1)}`, kind: "missing", label: "mistyped fighter link (offers the fighter they meant)", ...(mistyped.name.length <= 60 && /^[\p{L}\p{N} .'’-]+$/u.test(mistyped.name) ? { mustShow: mistyped.name } : {}) }); // a name of 60 letters or more is not a mistype anyone makes (the hostile league's 300-letter name, whose address is cut at 100), and a name with markup characters reaches the page JSON-escaped twice: the route is still checked to be a real 404, and the hostile run checks the markup is not on the page
   // one request per path, but a later route's "must show" is not lost when an earlier one (the nav) took the path first
   const seen = new Map<string, SmokeRoute>();
   return out.filter((r) => { const first = seen.get(r.path); if (!first) { seen.set(r.path, r); return true; } if (r.mustShow) { if (!first.mustShow) first.mustShow = r.mustShow; else if (!shows(first).includes(r.mustShow)) (first.alsoShow ??= []).push(r.mustShow); first.label = `${first.label}; ${r.label}`; } return false; });
@@ -333,7 +335,7 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
  * Only meaningful for the demo league, whose names are all transliterated; a real feed's untransliterated names would be flagged.
  */
 export const LATIN_OK = [/\bRingside\b/g, /\bElo\b/g, /\bPCA\b/g, /\bClaude\b/g, /\bEnglish\b/g /* the language switch names the other language in itself */, /\bnpm run [\w:-]+/g, /\bhttps?\b/g /* a protocol name, written as it is in Arabic prose too */, /\bsample\.json\b/g, /\bdata:check\b/g, /Demo earnings list \(simulated\)/g /* the demo provider's own source label */,
-  /\b(?:Olympedia|BoxRec|CompuBox|Wikidata|Wikimedia|Commons|Forbes|Sportico|ESPN)\b/g /* other organisations' names */, /\blib\/providers\b/g, /\bPLAN\.md\b/g, /\bdemo\b/g /* the demo provider's name, shown as a data source */,
+  /\b(?:Olympedia|BoxRec|CompuBox|Wikidata|Wikimedia|Commons|Forbes|Sportico|ESPN|BoxingScene|Boxing Data API)\b/g /* other organisations' names */, /\blib\/providers\b/g, /\bPLAN\.md\b/g, /\bdemo\b/g /* the demo provider's name, shown as a data source */,
   /\blog-loss\b/g, /\bBrier\b/g /* statistics terms the Data page keeps in Latin until a native reviewer decides on an Arabic wording */];
 const decode = (s: string) => s.replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#x27;|&#39;/g, "'").replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
 /** Removes every element that matches `open` (an opening tag, tag name in group 1), with whatever is inside it (nested elements of the same name included). */
@@ -379,6 +381,12 @@ export function flippedRecords(html: string): string[] {
  * league there is no Arabic form of most of them until the enrichment step finds one, so a Latin-script name on an Arabic page is expected there, and listing every one
  * would bury the text that really is untranslated. The demo league has an Arabic form for every name, so its check stays strict (no names are passed).
  */
+/** The first fighter (best first) whose address with its last letter cut is nobody's real address and still ends in a letter or digit (a league of numbered names may have none: then there is no such check). */
+export function mistypeTarget<B extends { slug: string }>(boxersBestFirst: B[]): B | undefined {
+  const slugs = new Set(boxersBestFirst.map((b) => b.slug));
+  return boxersBestFirst.find((b) => { const cut = b.slug.slice(0, -1); return /[a-z0-9]$/i.test(cut) && !slugs.has(cut); });
+}
+
 export function knownNames(w: World): Set<string> {
   const out = new Set<string>();
   const add = (v: string | null | undefined) => { if (v && v.trim()) out.add(v.trim().toLowerCase()); };
@@ -391,6 +399,8 @@ export function knownNames(w: World): Set<string> {
   for (const b of w.bouts) add(b.title);
   for (const p of w.people.values()) add(p.name);
   for (const o of w.orgs.values()) add(o.name);
+  // a body's list names fighters who are not in the league (shown without a link, as the supplier spells them)
+  for (const lists of w.official.byDivision.values()) for (const l of lists) for (const e of [...l.champions, ...l.contenders]) add(e.name);
   return out;
 }
 
