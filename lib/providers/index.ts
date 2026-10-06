@@ -53,6 +53,8 @@ export interface ProviderEvent {
 }
 
 export interface ProviderBout {
+  /** The feed gave no USABLE result for this fight (a word the importer cannot read, a status it does not know, copies that disagree), as against "no result yet": an ingest keeps a result already stored instead of erasing it. */
+  resultUnsettled?: boolean;
   /** the judges' scores as the feed gave them ("116-109"), in the feed's order, without judges or corners: shown as given and never assigned to a fighter */
   scores?: string[];
   externalId: string;
