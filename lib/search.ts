@@ -8,6 +8,7 @@ import { countryName, fmtDate } from "./format";
 import { recordStr } from "./world";
 import { msg, type Names, type T } from "./i18n/t";
 import { ROLE_LABEL } from "./team";
+import { sharedWeakMap } from "./memo";
 
 export type HitKind = "page" | "fighter" | "person" | "event" | "org";
 export interface SearchHit { kind: HitKind; title: string; subtitle?: string; href: string }
@@ -52,8 +53,8 @@ void ROLE_LABEL;
 /** The other things the palette finds, as lists with an index of their words, per world and per table of translated names, for the near-spelling guesses. */
 interface NearGroup<T> { items: T[]; vocab: Map<string, number[]> }
 interface Near { people: NearGroup<Person>; events: NearGroup<EventRow>; orgs: NearGroup<Org> }
-const nearCache = new WeakMap<World, WeakMap<Names, Near>>();
-const NO_TABLE: Names = {};
+const nearCache = sharedWeakMap<World, WeakMap<Names, Near>>("search.ts:near"); // shared between bundles, like the fighter index: a module-level cache is a different one in the start-up hook and the pages
+const NO_TABLE: Names = ((globalThis as unknown as { __ringsideNoNames?: Names }).__ringsideNoNames ??= Object.freeze({}) as Names); // the one empty table every bundle shares (lib/i18n/names.ts)
 /** Exported so a test can see that the index is built once per world and table, not once per keystroke. */
 export function nearOf(w: World, names: Names): Near {
   if (isEmptyTable(names)) names = NO_TABLE;
@@ -73,7 +74,7 @@ export function nearOf(w: World, names: Names): Near {
 }
 /** What the exact match reads, folded once per world and table of translated names instead of once per keystroke: each person, event and organisation's searchable text. */
 interface Exact { people: { p: Person; hay: string }[]; orgs: { o: Org; hay: string }[]; /** newest first, called-off events left out */ events: { e: EventRow; hay: string }[] }
-const exactCache = new WeakMap<World, WeakMap<Names, Exact>>();
+const exactCache = sharedWeakMap<World, WeakMap<Names, Exact>>("search.ts:exact");
 /** Exported so a test can see that the index is built once per world and table, not once per keystroke. */
 export function exactOf(w: World, names: Names): Exact {
   if (isEmptyTable(names)) names = NO_TABLE;

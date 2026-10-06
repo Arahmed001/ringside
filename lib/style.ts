@@ -1,5 +1,6 @@
 import type { BoxerFull } from "./types";
 import type { World } from "./world";
+import { memo } from "./memo";
 
 export const ARCHETYPES = ["Knockout Artist", "Volume Boxer", "Technician", "Iron-Chin Brawler", "Counter-Puncher", "Journeyman", "Prospect"] as const;
 export type Archetype = (typeof ARCHETYPES)[number];
@@ -25,7 +26,7 @@ export const ARCH_COLOR: Record<Archetype, string> = {
   Prospect: "#9a9aa6",
 };
 
-function vector(b: BoxerFull, w: World): number[] {
+export function vector(b: BoxerFull, w: World): number[] {
   const hist = w.history.get(b.id) ?? [];
   return [
     b.koRate, b.winRate,
@@ -40,16 +41,35 @@ function vector(b: BoxerFull, w: World): number[] {
   ];
 }
 
-const dist = (x: number[], y: number[]) => Math.sqrt(x.reduce((s, v, i) => s + (v - y[i]) ** 2, 0));
+/**
+ * The style vector of every fighter with five or more bouts, laid end to end, once per world. `similarTo` used to build all of them again for each
+ * fighter page viewed (34,000 vectors at real size, about 40% of the page's time).
+ */
+const stylePool = (w: World) => memo(w, "stylePool", () => {
+  const boxers = w.boxers.filter((o) => o.bouts >= 5);
+  const dim = boxers.length ? vector(boxers[0], w).length : 0;
+  const flat = new Float64Array(boxers.length * dim);
+  boxers.forEach((o, i) => flat.set(vector(o, w), i * dim));
+  return { boxers, flat, dim };
+});
 
 export function similarTo(b: BoxerFull, w: World, n = 5) {
-  const vb = vector(b, w);
-  return w.boxers
-    .filter((o) => o.id !== b.id && o.bouts >= 5)
-    .map((o) => ({ boxer: o, d: dist(vb, vector(o, w)) }))
-    .sort((x, y) => x.d - y.d)
-    .slice(0, n)
-    .map((x) => ({ boxer: x.boxer, match: Math.max(0, Math.round(100 - x.d * 38)) }));
+  const vb = vector(b, w), { boxers, flat, dim } = stylePool(w);
+  // the n nearest, in the order a stable sort by distance would give (ties in league order), without sorting everybody
+  const best: { boxer: BoxerFull; d: number }[] = [];
+  for (let i = 0; i < boxers.length && n > 0; i++) {
+    const o = boxers[i];
+    if (o.id === b.id) continue;
+    let s = 0;
+    for (let j = 0; j < dim; j++) s += (vb[j] - flat[i * dim + j]) ** 2;
+    const d = Math.sqrt(s);
+    if (best.length >= n && !(d < best[best.length - 1].d)) continue;
+    let at = best.length;
+    while (at > 0 && best[at - 1].d > d) at--;
+    best.splice(at, 0, { boxer: o, d });
+    if (best.length > n) best.pop();
+  }
+  return best.map((x) => ({ boxer: x.boxer, match: Math.max(0, Math.round(100 - x.d * 38)) }));
 }
 
 /** Projects all fighters to 2-D with PCA (power iteration) for the style map. */

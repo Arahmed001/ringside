@@ -199,7 +199,7 @@ const HONOURS_SHOWN = 8;
           <h1 className="mt-3 font-display text-6xl font-extrabold uppercase leading-[.95] sm:text-7xl">{t.name(b.name)}</h1>
           {b.nickname && <div className="mt-1 font-serif text-3xl italic text-gold">“{t.name(b.nickname)}”</div>}
           <div className="mt-2 text-muted">{flag(b.country)} <Link href={`/countries/${countrySlug(b.country)}`} className="hover:text-ink">{countryName(b.country, t.locale)}</Link>{[b.age !== null ? t("Age {age}", { age: b.age }) : null, b.stance ? t(b.stance) : null, b.turnedPro !== null ? t("Pro since {year}", { year: b.turnedPro }) : null].filter(Boolean).map((x) => ` · ${x}`).join("")}</div>
-          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Stat label={t("Record")} value={recordStr(b)} sub={career.source !== "loaded" ? t.n(career.total, "{n} fight in all", "{n} fights in all") : t.n(b.bouts, "{n} fight", "{n} fights")} />
             <Stat label={t("Knockouts")} value={ko.kos} sub={t("{p} of wins", { p: pct(ko.rate) })} />
             <Stat label={t("Rating")} value={Math.round(b.rating)} sub={t("Elo-style")} countUp />
@@ -409,7 +409,7 @@ const HONOURS_SHOWN = 8;
 
       <section id="similar" className="scroll-mt-32">
         <SectionTitle eyebrow={t("Style similarity")} title={b.sex === "female" ? t("Fighters like her") : t("Fighters like him")} href="/map" cta={t("Style map")} />
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 min-[1536px]:grid-cols-4">
           {similar.map((s) => (
             <BoxerCard key={s.boxer.id} b={s.boxer} badge={t("{n}% match", { n: s.match })} />
           ))}

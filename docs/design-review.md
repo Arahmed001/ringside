@@ -1,0 +1,64 @@
+# Design review against DESIGN.md (2026-10-06)
+
+The review DESIGN.md's "Still to do" lists as item 3: every page type, English and Arabic, three widths, looked at in a real browser and checked against the contract. DESIGN.md itself was not changed.
+
+## Method
+- Production build (`npm run build`, `next start`) on the throwaway demo league (`RINGSIDE_NOW=2026-10-03`), Chromium through Playwright (the same loader as `scripts/a11y-run.ts`).
+- **Pages:** every route under `app/[locale]` plus the dynamic ones from `lib/sitemap.ts` (a fighter, an event past and cancelled, a bout, a preview, a belt, a country, a person, an organisation, an all-time list, fight of the year, a forum thread) and the 404 variants: 58 URLs. Each was shot full-page at **375, 768 and 1280 px, in English and Arabic** (348 shots), and the account, picks, watchlist, forum, contribute and report pages again **signed in** (54 more). Pages were scrolled first so lazy images were loaded.
+- **Light and dark:** the site is dark only (`color-scheme: dark`, DESIGN.md "the only mode for now"); the only light styling is the print sheet. Nothing to compare.
+- **Looked at** (not only measured): the screenshots, cut into column sheets so a phone page can be read at full size, plus hover preview, sortable headers, keyboard focus ring and the phone drawer in separate shots.
+- **Measured on every page and width:** horizontal overflow of the page; images that failed to load; boxes whose content is wider than the box (not a scroller); the computed font family and text colour of every text node (all were Geist, Barlow Condensed, Instrument Serif, IBM Plex Sans Arabic, Tajawal, Amiri, and the palette's colours, plus the archetype set of `lib/style.ts`); links and buttons smaller than 44 px.
+- **Code:** grep for hard-coded colours, fonts, default-palette and arbitrary colour classes and px font sizes (below).
+- Screenshots live under `review/` (git-ignored). Findings name the shot as `lang-width/page.png`.
+- **Not done:** no real device (touch, pinch, a phone's own font scaling); no screen reader; the licensed-photo case is not in the demo, so the placeholder silhouettes were checked on their own, beside an illustrated portrait, not beside real photos; Arabic wording was not judged (only layout and mirroring).
+
+## Checked and fine
+- No page scrolls sideways on any of the 58 URLs at the three widths in either language; no broken image; every status was as expected (the 404s are 404).
+- Type: Barlow Condensed for headings and numbers, Geist for body and tables, Instrument Serif italic only on nicknames (gold), Plex Arabic / Tajawal / Amiri in Arabic. No Arabic letter-spacing or uppercase. No text under 12 px.
+- Colour: text, muted, red-ink, gold, blue, green and the archetype colours only; red is first-listed and left on posters, bars and the matchup lab in both languages; the blue is the second fighter in every matchup view.
+- Gold ring on focus (`:focus-visible`), skip link, `aria-current` in the rail; the drawer, the hover preview (card with record, rating, rank, last fight; opens after the pointer rests, covers the row above, never the one it describes) and sorted headers (gold ▲ on the active column) look right in both languages.
+- Radius hierarchy (chips full, cards 18, inner panels 12-16), 48-64 px between sections, empty states (no picks, empty watchlist, no search results, 404, no thread posts) are tidy and say what to do next.
+- Source: no Tailwind default-palette class, no arbitrary colour class, no literal font-family outside the last-resort error page, no `text-[Npx]` under 15.
+
+## Findings
+Severity: **High** = content unreadable or lost on a main page; **Medium** = visibly broken or against an explicit DESIGN.md rule; **Low** = polish.
+
+### Fixed in this change
+| # | Sev | Where | Finding | Fix |
+|---|---|---|---|---|
+| D1 | High | Home, pick'em (`en-1280/home.png`, `ar-375/home.png`) | Two names and the division label shared one row: in the narrow column beside "Coming up" the buttons were uneven, names ran past the button edge ("Castellan", "Zamor"), and the model-pick mark was cut | Division label above the pair, buttons full width, 44 px tall; the pair stacks when the card is under 17rem wide (container query), the mark sits on its own line |
+| D2 | Medium | Rankings 90d column, people, tenure table, data page, Arabic (`ar-1280/rank-hw.png`) | `+12` and `-12` read `12+` and `12-` in Arabic (the sign moved to the wrong side of the digits) | The figure is a `<bdi dir="ltr">`, as the watchlist already did |
+| D3 | Medium | Fighter page "Fighters like him" at 1024-1535 px with the rail open (`en-1280/boxer.png`) | Four cards in about 240 px each: names broke inside words ("Raka/n Al-/Qaht/ani"), records wrapped | Two across until 1536 px, four after |
+| D4 | Medium | Fighter hero stat tiles at 640-1023 px, organisation "Combined record" at 768 (`en-768/boxer.png`) | `30-0-0` and `519-545-44` (36 px, no wrap) were wider than their tile | Two across until `lg` (1024), four after |
+| D5 | Medium | Header, every page on a phone | Menu 36x36, search 40x28, sign in 36x36: under 44 px | `pointer-coarse:` minimum 44 px on the four header controls (a mouse keeps the compact bar) |
+| D6 | Low | Fight record table at 375 (`en-375/boxer.png`) | A no-wrap date squeezed the opponent column to 70 px: names broke over three lines | The date may wrap on phones ("Mar 20," over "2024") |
+| D7 | Low | Event card, long Arabic name at 375 (`ar-375/event-past.png`) | "ماكسيميليان ليندكفيست" ran into the neighbouring column | `min-w-0` and `break-words` on the fighter link and name |
+| D8 | Low | Arabic rail, "الصالات وجهات التنظيم والهيئات" (`rail`) | Label ran 6 px past the rail's edge | The label may wrap (collapsed rail unchanged: it is clipped to 1 px by its own rule) |
+| D9 | Low | Search button's "⌘K" | Rendered in the browser's monospace: a fourth family DESIGN.md does not have | `font-sans` |
+| D10 | Low | Account, "Show me on the leaderboard" (`en-375-in/account.png`) | The tick box used the browser's bright blue, which DESIGN.md reserves for the second fighter | `accent-color: var(--red-btn)` on checkboxes and radios |
+| D11 | Low | Forum thread, Arabic (`ar-375-in/thread.png`) | "← All threads" kept a left-pointing arrow on the right-hand start of a back link | `→ كل المواضيع` in `i18n/ar.json` |
+
+`tests/design-tokens.test.ts` (new) keeps the source rules: the token values, no default-palette or arbitrary colour class, a hex colour in a component is a token or the file is on a reviewed list (counts may fall, never rise), no literal font-family. Broken on purpose to confirm it fails.
+
+### Left for the owner (not changed: each needs a design decision)
+| # | Sev | Where | Finding | Recommended option |
+|---|---|---|---|---|
+| O1 | Medium | Fighter "Corner and camp" (`en-375/boxer.png`); analytics "How fights end" donut (`en-375/analytics.png`) | Blue is used for gyms, for "split decision", and the archetype oranges, greens, purples and pinks are reused for fight methods. DESIGN.md: blue only for the second fighter; archetype colours not reused elsewhere | Roles: head trainer gold (an honour), the rest muted or a neutral outline with the role named in text. Methods: red for KO/TKO family, a ramp of muted greys and gold for decisions, no blue |
+| O2 | Medium | Team timeline at 375 and 1280 (`en-375/boxer.png`, `ar-375/boxer.png`) | Stint labels are cut to "Ro…", "Je…", and in Arabic "…-0": names unreadable | Under 768 px list the stints under the chart (name, dates, record); keep the bars as the overview |
+| O3 | Medium | Rankings division table at 375 (`en-375/rank-hw.png`) | Five columns scroll sideways inside the card and the rating column is cut ("161", "RATIN") with no hint it scrolls | Drop Record below 480 px (it is on the profile) or add an edge fade on the scroller |
+| O4 | Medium | Every chip that is a button or link (Share, Print, Watch, division and sort chips) | 24-30 px tall: allowed by WCAG 2.2 AA (24 px) but under the 44 px the review looked for | Add `pointer-coarse:min-h-11` to interactive `.chip`s; filters wrap onto more rows on phones |
+| O5 | Low | Sortable table headers (`review/i-sortfocus.png`) | A sortable column looks like a plain label until it is sorted; the only cue is the pointer | A muted ▲▼ on every sortable header (gold when active) |
+| O6 | Low | Real-data placeholder silhouette (`review/sil.png`) | Dim on its division colour (red, blue, gold, green, purple, orange): beside real photos it will look empty, and the red and blue tints echo the corner colours | One neutral `--panel-2` background for every silhouette; keep the silhouette as it is |
+| O7 | Low | Home at 1024+ (`en-1280/home.png`) | "Coming up" is one row of four posters beside a tall pick'em: a large empty block under the posters | Put the pick'em under the posters at full width (two columns of bouts), or add a second poster row |
+| O8 | Low | Matchup lab and preview cards (`en-375/compare-ab.png`) | Card titles ("What's driving the number", "Model weights") and fighter names are mixed case in the display face; every other heading is uppercase | Uppercase them, or write the exception into DESIGN.md |
+| O9 | Low | DESIGN.md "Layout" | "4 columns at 1280 for card lists": with the open rail the content is about 1000 px, so four across is too tight for fighter cards (D3) | Change the line to "4 at 1536" |
+| O10 | Low | Draw bars (`#444`, `#666`), calibration and weigh-in chart greys, reign timeline golds (`tests/design-tokens.test.ts` list) | Greys and gold tints written as hex that are not tokens | Add `--draw` and `--chart-grey` tokens; the test list then shrinks |
+
+### Counts
+21 findings: **1 High, 8 Medium, 12 Low**. Fixed 11 (1 High, 4 Medium, 6 Low). Left for the owner 10 (0 High, 4 Medium, 6 Low).
+
+## Code scan
+- Hex colours in components: all tokens, or SVG art and charts (`PortraitArt`, `Poster`), the light embed theme (`EmbedFrame`), the share image and the last-resort error page; the exceptions are in `OFF_TOKEN_ALLOWED` in the test, with O1 and O10.
+- `.card` ends its gradient in `#101015` and `.card-hover` borders in `#3a3a46` (globals.css): not tokens, but they are the card's own shading; listed under O10.
+- No `font-family` with a literal face outside `app/global-error.tsx`, `lib/og.tsx` (the share image loads its own font) and the printed review sheet.
+- Not reproduced: the hover preview staying open after the pointer left in one scripted run; a real pointer closes it (Esc, scroll and leaving are covered by its own code).

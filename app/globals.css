@@ -83,6 +83,8 @@ body::before {
 
 /* A hint or value too long for its box ends in an ellipsis instead of being cut mid-word. */
 input { text-overflow: ellipsis; }
+/* A tick box is a control, not a corner: the browser's default accent is a bright blue, which DESIGN.md reserves for the second fighter. It takes the call-to-action red (white tick, 5.5:1). */
+input[type="checkbox"], input[type="radio"] { accent-color: var(--red-btn); }
 
 /* Keyboard focus: one visible ring everywhere (gold, 3:1 on every surface), only for keyboard users. */
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
