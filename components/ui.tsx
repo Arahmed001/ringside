@@ -72,7 +72,7 @@ export async function BoutLine({ bout, focusId, context }: { bout: BoutRow; focu
   const r = bout.method === "NC" ? "NC" : bout.winnerId === null ? "D" : bout.winnerId === focusId ? "W" : "L";
   return (
     <tr className="border-t border-line/60 text-sm">
-      <td className="whitespace-nowrap py-2.5 pe-3 tabular text-muted">{fmtDate(bout.date, { month: "short", year: "numeric", day: "numeric" }, t.locale)}</td>
+      <td className="py-2.5 pe-3 tabular text-muted max-sm:w-[4.5rem] sm:whitespace-nowrap">{fmtDate(bout.date, { month: "short", year: "numeric", day: "numeric" }, t.locale)}</td>
       <td className="pe-3">{bout.method ? <Link href={`/bouts/${bout.id}`} title={t("Full bout details")}><ResultPill r={r} /></Link> : <Link href={`/bouts/${bout.id}`} className={`chip ${bout.status === "cancelled" ? "!border-red/40 !text-red-ink" : ""}`}>{bout.status === "cancelled" ? t("Cancelled") : t("TBA")}</Link>}</td>
       <td className="pe-3"><Link href={`/boxers/${opp.s}`} className="hover:text-gold">{t.name(opp.n)}</Link>{context && <div className="tabular text-xs text-muted">{context}</div>}</td>
       <td className="whitespace-nowrap pe-3 tabular text-muted">{methodLabel(bout.method, bout.endRound, t)}</td>
