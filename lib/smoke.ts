@@ -158,6 +158,8 @@ export function smokeRoutes(w: World): SmokeRoute[] {
     out.push({ path: `/api/fighters?q=${q(star.name.slice(0, 4))}`, kind: "api", label: "api: fighter search" });
     out.push({ path: `/api/search?q=${q(star.name.slice(0, 4))}`, kind: "api", label: "api: search" });
     out.push({ path: `/api/watch?slugs=${star.slug}`, kind: "api", label: "api: watchlist" });
+    out.push({ path: `/api/watch/digest?slugs=${star.slug}&since=2000-01-01&lang=ar`, kind: "api", label: "api: watchlist digest, in Arabic" });
+    out.push({ path: `/api/watch/digest?slugs=${star.slug}`, kind: "api", label: "api: watchlist digest, a first visit" });
     const card = [...w.events].reverse().find((e) => e.upcoming) ?? w.events[w.events.length - 1], fight = w.bouts[w.bouts.length - 1];
     out.push({ path: "/feeds/calendar.ics", kind: "ics", label: "calendar: the next cards" });
     out.push({ path: `/feeds/calendar.ics?slugs=${star.slug}&days=365&lang=ar`, kind: "ics", label: "calendar: a watchlist, in Arabic" });

@@ -1,10 +1,12 @@
 "use client";
-import { useEffect, useState, useSyncExternalStore } from "react";
-import { useWatchlist } from "@/lib/useWatchlist";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { readSeen, useWatchlist, writeSeen } from "@/lib/useWatchlist";
 import type { WatchEntry } from "@/lib/watch";
 import { flag } from "@/lib/format";
 import { useLocale, useT } from "@/components/i18n";
 import { WatchlistAdd } from "@/components/WatchlistAdd";
+import { WatchDigest } from "@/components/WatchDigest";
+import type { Digest } from "@/lib/watch-digest";
 import { calendarPath } from "@/lib/calendar-link";
 import type { FighterHit } from "@/lib/fighter-search";
 import { useHref } from "@/components/L";
@@ -46,6 +48,30 @@ export function WatchlistPage({ suggestions }: { suggestions: FighterHit[] }) {
     return () => ctl.abort();
   }, [key, locale, loading]);
 
+  // "since you last looked": ask for what is newer than the day last seen; a first visit only learns the data's day. The day is brought up to date when the page is left
+  // (not at once, so a reload still shows it), or by "Mark as seen"
+  const [digest, setDigest] = useState<{ key: string; data: Digest | null } | null>(null);
+  const [dismissed, setDismissed] = useState(false);
+  const leaving = useRef<string | null>(null);
+  useEffect(() => {
+    if (!key || loading) return;
+    const ctl = new AbortController(), since = readSeen();
+    fetch(`/api/watch/digest?slugs=${encodeURIComponent(key)}${since ? `&since=${since}` : ""}&lang=${locale}`, { signal: ctl.signal })
+      .then((r) => (r.ok ? (r.json() as Promise<Digest>) : null))
+      .then((data) => {
+        if (data && !since) writeSeen(data.today); // first visit: nothing to show, remember from now
+        else if (data) leaving.current = data.today;
+        setDigest({ key, data: since ? data : null });
+      })
+      .catch((e) => { if (e?.name !== "AbortError") setDigest({ key, data: null }); });
+    return () => ctl.abort();
+  }, [key, locale, loading]);
+  useEffect(() => {
+    const mark = () => { if (leaving.current) writeSeen(leaving.current); };
+    window.addEventListener("pagehide", mark);
+    return () => { window.removeEventListener("pagehide", mark); mark(); };
+  }, []);
+
   if (loading) return <p className="text-sm text-muted">{t("Loading your watchlist…")}</p>;
   if (!key) return (
     <div className="space-y-8">
@@ -64,6 +90,7 @@ export function WatchlistPage({ suggestions }: { suggestions: FighterHit[] }) {
   const tone = { W: "bg-win/15 text-win", L: "bg-red/15 text-red-ink", D: "bg-white/10 text-muted", NC: "bg-white/10 text-muted" };
   return (
     <div className="space-y-4">
+    {!dismissed && digest?.key === key && digest.data ? <WatchDigest digest={digest.data} onSeen={() => { if (leaving.current) writeSeen(leaving.current); leaving.current = null; setDismissed(true); }} /> : null}
     <ul className="grid gap-3 md:grid-cols-2">
       {rows.map((f) => (
         <li key={f.slug} className="card flex flex-col gap-3 p-4">

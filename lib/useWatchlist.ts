@@ -6,6 +6,12 @@ import { api, useAccount } from "./useAccount";
 export const WATCH_KEY = "ringside:watchlist";
 const EMPTY: string[] = [];
 
+const SEEN_KEY = "ringside:watchseen";
+const isDay = (v: unknown): v is string => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+/** The data's day this browser last looked at the watchlist ("since you last looked"): one day, on this device only, or null on a first visit or when storage is unavailable. */
+export const readSeen = (): string | null => { try { const v = localStorage.getItem(SEEN_KEY); return isDay(v) ? v : null; } catch { return null; } };
+export const writeSeen = (day: string): void => { try { localStorage.setItem(SEEN_KEY, day); } catch { /* storage unavailable: the digest simply starts again next time */ } };
+
 /** Whatever is in this browser's storage, as a list of slugs: anything else (an edited, truncated or foreign value) is treated as no list at all. */
 export function cleanList(raw: unknown): string[] {
   if (!Array.isArray(raw)) return EMPTY;

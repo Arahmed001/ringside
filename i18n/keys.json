@@ -227,6 +227,7 @@
   "key": "{date} vs {name}",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
+   "components/WatchDigest.tsx",
    "lib/watch.ts"
   ]
  },
@@ -1530,6 +1531,7 @@
  {
   "key": "{opponent}, {how}",
   "files": [
+   "components/WatchDigest.tsx",
    "components/WatchlistPage.tsx"
   ]
  },
@@ -1764,6 +1766,7 @@
   "key": "+{n} more",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
+   "components/WatchDigest.tsx",
    "lib/calendar.ts"
   ]
  },
@@ -2388,6 +2391,12 @@
   "key": "Admin",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "After {date}",
+  "files": [
+   "components/WatchDigest.tsx"
   ]
  },
  {
@@ -4192,6 +4201,7 @@
   "key": "D",
   "files": [
    "components/FighterPrintSheet.tsx",
+   "components/WatchDigest.tsx",
    "components/WatchlistPage.tsx",
    "components/ui.tsx",
    "lib/ask/tools.ts"
@@ -6468,7 +6478,8 @@
    "app/[locale]/events/[id]/page.tsx",
    "app/[locale]/page.tsx",
    "app/[locale]/previews/[id]/page.tsx",
-   "app/[locale]/tonight/page.tsx"
+   "app/[locale]/tonight/page.tsx",
+   "components/WatchDigest.tsx"
   ]
  },
  {
@@ -6783,6 +6794,7 @@
    "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
    "components/FighterPrintSheet.tsx",
+   "components/WatchDigest.tsx",
    "components/WatchlistPage.tsx",
    "components/ui.tsx",
    "lib/ask/tools.ts"
@@ -7363,6 +7375,12 @@
   ]
  },
  {
+  "key": "Mark as seen",
+  "files": [
+   "components/WatchDigest.tsx"
+  ]
+ },
+ {
   "key": "Marked as handled.",
   "files": [
    "components/ReportQueue.tsx"
@@ -7780,6 +7798,7 @@
   "key": "NC",
   "files": [
    "components/FighterPrintSheet.tsx",
+   "components/WatchDigest.tsx",
    "components/WatchlistPage.tsx",
    "components/ui.tsx",
    "lib/i18n/dynamic-keys.ts"
@@ -7893,6 +7912,7 @@
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
    "components/FighterPrintSheet.tsx",
+   "components/WatchDigest.tsx",
    "components/WatchlistPage.tsx"
   ]
  },
@@ -8449,6 +8469,12 @@
   "key": "Nothing needs a second look.",
   "files": [
    "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Nothing new since {date}.",
+  "files": [
+   "components/WatchDigest.tsx"
   ]
  },
  {
@@ -9550,8 +9576,15 @@
    "app/[locale]/rankings/[division]/page.tsx",
    "components/MatchupLab.tsx",
    "components/TrainerImpactCard.tsx",
+   "components/WatchDigest.tsx",
    "lib/ask/tools.ts",
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Rating {from} to {to}",
+  "files": [
+   "components/WatchDigest.tsx"
   ]
  },
  {
@@ -10706,7 +10739,8 @@
  {
   "key": "Since you last looked",
   "files": [
-   "components/PickStanding.tsx"
+   "components/PickStanding.tsx",
+   "components/WatchDigest.tsx"
   ]
  },
  {
@@ -11601,6 +11635,12 @@
   "key": "The data supplier's career total ({total} fights) and its own fight list disagree: the list holds {held} fights, with more wins, losses or draws than that total allows. The record shown is the supplier's total; the fight list, rating and rates on this page are built from the fights held.",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "the day you last looked at your watchlist, so it can show what is new since (on this device only, never sent anywhere)",
+  "files": [
+   "lib/privacy.ts"
   ]
  },
  {
@@ -13202,6 +13242,7 @@
    "app/[locale]/compare/page.tsx",
    "app/[locale]/matchmaking/page.tsx",
    "components/FighterPrintSheet.tsx",
+   "components/WatchDigest.tsx",
    "components/WatchlistPage.tsx",
    "components/ui.tsx",
    "lib/ask/tools.ts"

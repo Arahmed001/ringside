@@ -12,6 +12,7 @@ import { msg } from "./i18n/t";
 export const STORAGE_KEYS: { key: string; what: string }[] = [
   { key: "ringside:picks", what: msg("your pick’em picks, until you sign in (then they move to your account)") },
   { key: "ringside:watchlist", what: msg("the fighters on your watchlist, until you sign in (then they move to your account)") },
+  { key: "ringside:watchseen", what: msg("the day you last looked at your watchlist, so it can show what is new since (on this device only, never sent anywhere)") },
   { key: "ringside-nav", what: msg("whether the side menu is open or collapsed") },
 ];
 
