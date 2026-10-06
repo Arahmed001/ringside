@@ -1594,3 +1594,7 @@ Each thing the first real cache taught the importer (cancelled fights, cards of 
 ## 184. `vendor:status` finds the running fetch's cache (round 113, 2026-10-06)
 
 Run from a worktree without `--cache-dir`, `vendor:status` looked at the default cache under that folder and said "0 fighters" while a fetch was filling `~/ringside-real/vendor-cache`, which reads as a lost cache. `chooseCacheDir` (`lib/vendor-status.ts`) now takes the named directory first, else the `--cache-dir` in the command of a running fetch (plain, quoted with spaces, or `=`), else the default; when it took the running fetch's, the output says so. Checked against the real machine (counts only: 18,083 fighters in the running fetch's cache). Test: six cases in one; one mutation killed (the named directory ignored).
+
+## 185. The audit note sits where the audit is described (round 114, 2026-10-06)
+
+Round 112's note that `vendor:load` runs the audit was appended to the end of `docs/real-data-runbook.md`, 280 lines from the audit's own section. It now sits under "Checking a load: `npm run vendor:audit`", where an owner reading section 4 will see it. Docs only; the config-docs test passes.
