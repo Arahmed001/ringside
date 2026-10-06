@@ -2,7 +2,7 @@ import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { tempDb } from "./helpers";
+import { cleanupIsolatedDb } from "./db-isolation"; // FIRST of the imports that reach lib/db: see that file
 import { NAV_GROUPS } from "../lib/nav";
 import { DYNAMIC_PAGES, crawlRoutes, problemsIn, smokeRoutes, visibleText, type SmokeRoute } from "../lib/smoke";
 
@@ -10,8 +10,7 @@ import { DYNAMIC_PAGES, crawlRoutes, problemsIn, smokeRoutes, visibleText, type 
  * The smoke check (npm run smoke, run in CI against a production server) is only as good as what it inspects and what
  * it covers. These tests pin down both: every slip it looks for is caught, healthy pages pass, and no page kind escapes.
  */
-const cleanup = tempDb("smoke");
-after(cleanup);
+after(cleanupIsolatedDb);
 
 const page: SmokeRoute = { path: "/x", kind: "page", label: "x" };
 const html = (body: string, lang = "en", dir = "ltr") => `<!doctype html><html lang="${lang}" dir="${dir}"><head><title>t</title><style>.a{color:red}</style></head><body><h1>Title</h1>${body}<script>self.__next_f.push(["undefined NaN {name}"])</script></body></html>`;

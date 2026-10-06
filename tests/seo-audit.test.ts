@@ -1,12 +1,16 @@
-import test from "node:test";
+import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { NextRequest } from "next/server";
+import { tempDb } from "./helpers";
 
 /**
  * Regression tests for the pre-launch search-engine and link-sharing audit (docs/seo-audit.md). Each test names the defect it keeps fixed.
  */
+// its own throwaway demo database, like every other test that reads the world: the repository's `data/ringside.db` does not exist in a fresh clone (CI), and several processes creating it at once gave "database is locked"
+const cleanup = tempDb("seoaudit");
+after(cleanup);
 const root = process.cwd();
 const env = (set: Record<string, string | undefined>, fn: () => void | Promise<void>) => async () => {
   const keys = ["BOXING_PROVIDER", "INDEXABLE", "SITE_URL"];
