@@ -336,3 +336,5 @@ In a container, run it with the container's own environment: `docker exec ringsi
 | `data/vendor-cache/` or `--cache-dir` | Every API answer, as received | The vendor's data on disk: counts as storage under their terms (confirmed by the vendor, 2026-10-03). Gitignored; never commit it |
 | The database | The league, ratings, the live ledger | The ledger cannot be rebuilt: back it up and copy the backups off the volume |
 | `backups/` beside the database | Rolling copies (14) | Made before every load into a database with data |
+
+Note: `npm run vendor:load` runs `vendor:audit` as its last step (exit 4 if a check fails), so section 4 starts from an audited database.

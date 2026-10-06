@@ -12,7 +12,9 @@ import path from "node:path";
 import readline from "node:readline";
 import { cacheState } from "../lib/vendor-status";
 import { DEFAULT_KEY_FILE, defaultCacheDir, readKeyFile } from "../lib/vendor-fetch";
-import { isConfirmation, loadPlan } from "../lib/vendor-load";
+import { todayIso } from "../lib/clock";
+import { auditDatabase } from "../lib/vendor-audit";
+import { auditStep, isConfirmation, loadPlan } from "../lib/vendor-load";
 
 const argv = process.argv.slice(2);
 const take = (flag: string): string | undefined => { const i = argv.indexOf(flag); if (i < 0) return undefined; const v = argv[i + 1]; argv.splice(i, v === undefined || v.startsWith("--") ? 1 : 2); return v; };
@@ -51,7 +53,17 @@ async function main() {
   }
   console.log("\nstep 2: the load\n");
   const code = await run(plan.loadArgs, env);
-  console.log(code === 0 ? `\nLoaded into ${plan.database}. Next: check it in a second with  npm run vendor:audit  (FAIL lines mean something in this load is wrong), then docs/real-data-runbook.md section 4 (check the result by hand), run the site with DATABASE_PATH=${plan.database}, then the daily update (section 5).` : `\nThe load failed (exit ${code}). Read why above; the database file is the only thing it writes.`);
+  if (code === 0) {
+    // step 3: the audit of the database just written (read-only, a second): the verdict is shown here, not left to be asked for
+    const { DatabaseSync } = await import("node:sqlite");
+    const x = new DatabaseSync(plan.database, { readOnly: true });
+    let checks;
+    try { checks = auditDatabase(x, todayIso()); } finally { x.close(); }
+    const step = auditStep(checks, plan.database);
+    for (const l of step.lines) console.log(l);
+    process.exit(step.code);
+  }
+  console.log(`\nThe load failed (exit ${code}). Read why above; the database file is the only thing it writes.`);
   process.exit(code);
 }
 main().catch((e) => { console.error(e instanceof Error ? e.message : e); process.exit(1); });

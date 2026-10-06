@@ -68,7 +68,7 @@ test("end to end on a stand-in vendor: the check is shown, nothing is written wi
     const noTty = await run([...base, "--storage-confirmed"], env);
     assert.equal(noTty.code, 1); assert.match(noTty.out, /not an interactive terminal.*--yes.*Nothing was loaded/); assert.ok(!fs.existsSync(db));
     const loaded = await run([...base, "--storage-confirmed", "--yes"], env);
-    assert.equal(loaded.code, 0, loaded.out.slice(-800)); assert.match(loaded.out, /step 2: the load/); assert.match(loaded.out, /Loaded into .*real\.db\. Next: check it in a second with  npm run vendor:audit .*docs\/real-data-runbook\.md section 4/);
+    assert.equal(loaded.code, 0, loaded.out.slice(-800)); assert.match(loaded.out, /step 2: the load/); assert.match(loaded.out, /step 3: the audit of what was loaded[\s\S]*All checks passed[\s\S]*Loaded into .*real\.db\. The audit passed\. Next: docs\/real-data-runbook\.md section 4 .*npm run vendor:site -- --start --build/);
     assert.ok(fs.existsSync(db), "the database exists");
     const { DatabaseSync } = await import("node:sqlite");
     const x = new DatabaseSync(db, { readOnly: true });
@@ -79,4 +79,22 @@ test("end to end on a stand-in vendor: the check is shown, nothing is written wi
     assert.equal(marked, listed, "every listed fighter is marked in the database, and nobody else");
     assert.ok(!fs.existsSync(path.join(d, "dropped.csv")), "nobody was dropped");
   } finally { await vendor.close(); }
+});
+
+
+test("step 3 of the guided load: the audit's verdict, in lines to print and an exit code of its own; the load worked either way and nothing is undone (round 112)", async () => {
+  const { AUDIT_FAILED_EXIT, auditStep } = await import("../lib/vendor-load");
+  const pass = { id: "belt-bodies", level: "pass" as const, title: "every belt has a sanctioning body", detail: "952 title bouts, 5 bodies" };
+  const warn = { id: "double-booked", level: "warn" as const, title: "no fighter is on two bouts one night", detail: "18 fighter-night(s)" };
+  const fail = { id: "no-amateur-events", level: "fail" as const, title: "no amateur or multi-sport event is on the record", detail: "35 event(s): 2016 Rio Olympics: Boxing Day 4" };
+  const ok = auditStep([pass, warn], "/x/real.db");
+  assert.equal(ok.code, 0); const okText = ok.lines.join("\n");
+  assert.match(okText, /step 3: the audit of what was loaded/); assert.match(okText, /PASS  every belt has a sanctioning body/); assert.match(okText, /WARN  no fighter is on two bouts one night/); assert.match(okText, /All checks passed, 1 warning/);
+  assert.match(okText, /Loaded into \/x\/real\.db\. The audit passed\. Next:/); assert.ok(!/failing check/.test(okText));
+  const bad = auditStep([pass, fail], "/x/real.db"), badText = bad.lines.join("\n");
+  assert.equal(bad.code, AUDIT_FAILED_EXIT); assert.equal(AUDIT_FAILED_EXIT, 4, "its own code: not the load's (0 or its own failure) and not the check's (1)");
+  assert.match(badText, /FAIL  no amateur or multi-sport event is on the record/); assert.match(badText, /35 event\(s\)/);
+  assert.match(badText, /The load worked, but the audit found 1 failing check \(the FAIL lines above\)/); assert.match(badText, /Nothing was undone/); assert.match(badText, /delete \/x\/real\.db and its -wal and -shm files/);
+  assert.ok(!/The audit passed/.test(badText), "a failed audit is never said to have passed");
+  assert.match(auditStep([fail, { ...fail, id: "x" }], "/x/real.db").lines.join("\n"), /found 2 failing checks/);
 });
