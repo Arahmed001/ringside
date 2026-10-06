@@ -1,4 +1,7 @@
+import zlib from "node:zlib";
+import { promisify } from "node:util";
 import type { World } from "./world";
+import { ByteLru, budgetMb } from "./byte-lru";
 import type { BoutRow, EventRow } from "./types";
 import { LOCALES, localePath } from "./i18n/config";
 import { slugifyDivision, DIVISIONS } from "./divisions";
@@ -10,6 +13,8 @@ import { currentYear } from "./clock";
 import { abs } from "./seo";
 import { countryList } from "./countries";
 import { publicApiGate } from "./public-api";
+
+const gzipAsync = promisify(zlib.gzip);
 
 export interface SitemapPath { path: string; lastmod: string }
 
@@ -81,4 +86,37 @@ export function sitemapFileXml(paths: readonly SitemapPath[], index: number): st
 export function sitemapIndexXml(w: World): string {
   const files = Array.from({ length: sitemapCount(w) }, (_, i) => `<sitemap><loc>${esc(abs(`/sitemaps/${i}.xml`))}</loc><lastmod>${w.today}</lastmod></sitemap>`);
   return `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${files.join("")}</sitemapindex>\n`;
+}
+
+// ----- the files as sent: built once per world, kept compressed -----
+// A sitemap file is up to 8.6 MB of XML at 35,000 fighters and took 95 ms of the one thread to write out on every request (docs/capacity.md). XML this repetitive
+// compresses about twenty to one, so what is kept is the gzipped file: all nineteen fit in a few MB, and a crawler (which always sends Accept-Encoding: gzip) is
+// sent 400 KB instead of 8.6 MB. The XML itself is exactly `sitemapXml`'s, so the limits from PLAN 208 (10,000 paths a file, 50,000 URLs, 50 MB) are untouched.
+const files = globalThis as unknown as { __ringsideSitemapCache?: ByteLru<string, Buffer>; __ringsideSitemapInflight?: Map<string, Promise<Buffer | null>>; __ringsideWorldIds?: WeakMap<World, number>; __ringsideWorldSeq?: number };
+const worldId = (w: World): number => {
+  const ids = (files.__ringsideWorldIds ??= new WeakMap());
+  let id = ids.get(w);
+  if (id === undefined) { id = files.__ringsideWorldSeq = (files.__ringsideWorldSeq ?? 0) + 1; ids.set(w, id); }
+  return id;
+};
+
+/** The gzipped XML of sitemap file `index` of this world, or null when there is no such file. Kept per world (a rebuilt world is a new key) in a cache bounded by bytes (RINGSIDE_SITEMAP_CACHE_MB, default 32). */
+export async function sitemapGzip(w: World, index: number): Promise<Buffer | null> {
+  const cache = (files.__ringsideSitemapCache ??= new ByteLru<string, Buffer>(budgetMb(process.env.RINGSIDE_SITEMAP_CACHE_MB, 32)));
+  const inflight = (files.__ringsideSitemapInflight ??= new Map());
+  const key = `${worldId(w)}|${index}`;
+  const hit = cache.get(key);
+  if (hit) return hit;
+  let p = inflight.get(key);
+  if (!p) {
+    p = (async () => {
+      const xml = sitemapXml(w, index);
+      if (xml === null) return null;
+      const gz = await gzipAsync(xml); // on the thread pool: the main thread is not held for it
+      cache.set(key, gz);
+      return gz;
+    })().finally(() => inflight.delete(key));
+    inflight.set(key, p);
+  }
+  return p;
 }

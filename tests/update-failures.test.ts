@@ -19,6 +19,7 @@ import {
  */
 const work = tmp("root");
 process.env.RINGSIDE_NOW = DAY1;
+process.env.RINGSIDE_WORLD_SETTLE_MS = "100"; // the running site settles for 100 ms, not 5 s, before it shows an update (lib/world.ts)
 process.env.ACCOUNTS_DB_PATH = path.join(work, "accounts.db");
 process.env.DATABASE_PATH = path.join(work, "site.db"); // read by lib/db when the site test imports it
 process.env.RINGSIDE_NO_SEED = "1";
@@ -500,7 +501,9 @@ test("the running site keeps answering while the update runs (old data, then new
     assert.equal(r.code, 0, r.out);
     assert.ok(probes > 3, `the site was asked ${probes} times while the update ran`);
     assert.ok([...seen].every((n) => n === old.bouts || n === old.bouts + 1), `only the old or the new count was ever served: ${[...seen]}`);
-    const fresh = await health();
+    // the site keeps showing the old data until the update has settled (lib/world.ts, RINGSIDE_WORLD_SETTLE_MS), then shows the new, with no restart
+    let fresh = await health();
+    for (const t0 = Date.now(); fresh.bouts !== old.bouts + 1 && Date.now() - t0 < 60_000; ) { await nap(50); fresh = await health(); }
     assert.equal(fresh.bouts, old.bouts + 1, "the new data is picked up without a restart");
     assert.notEqual(dbVersion(db), version0, "because the version changed");
     assert.deepEqual(errors, [], "and nothing was logged as an error");

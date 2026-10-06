@@ -1,5 +1,5 @@
 import type { DatabaseSync } from "node:sqlite";
-import { getDb, dbVersion } from "./db";
+import { getDb, dbVersion, openSnapshot } from "./db";
 import { applyFittedWeights } from "./model-fit";
 import { snapshotUpcomingSafe } from "./ledger";
 import { currentYear, todayIso } from "./clock";
@@ -70,43 +70,168 @@ export interface World {
   punchTotals: () => Map<number, PunchTotals>;
 }
 
-const g = globalThis as unknown as { __world?: World; __worldKey?: string };
+interface Refresh {
+  /** the newest version seen while the served world was behind it, and when it first and last moved */
+  seen?: string; lastChange: number; firstChange: number;
+  timer?: ReturnType<typeof setTimeout>;
+  /** a background rebuild in progress */
+  building?: Promise<void>;
+  /** the version a rebuild failed on (logged once), and when to try again */
+  failedKey?: string; retryAt: number;
+}
+const g = globalThis as unknown as { __world?: World; __worldKey?: string; __worldBuild?: Promise<World>; __worldGen?: number; __worldRefresh?: Refresh };
 
 /**
  * A world stays valid until something it was built from changes: the calendar day (upcoming vs past, ages and
  * ranking windows all hang off "today") or the database itself (see `dbVersion`). Checking is a pair of one-row
- * lookups; the rebuild is not (about 3.6 s, blocking, at 160k bouts), which is why it no longer runs on a timer.
+ * lookups; the rebuild is not (about 4.7 s at 160k bouts), which is why it no longer runs on a timer.
  */
 const worldKey = (db: DatabaseSync) => `${todayIso()}|${dbVersion(db)}`;
+/** "day|dataVersion.run.bump": the day and our own bump decide whether an old world may still be shown; only the first two parts move for another process's commits */
+const keyParts = (k: string) => { const [day, v] = k.split("|"); const [dv, run, bump] = v.split("."); return { day, ext: `${dv}.${run}`, bump }; };
 
 export function invalidateWorld() {
   g.__world = undefined;
   g.__worldKey = undefined;
+  g.__worldGen = (g.__worldGen ?? 0) + 1;
+  const r = g.__worldRefresh;
+  if (r?.timer) clearTimeout(r.timer);
+  g.__worldRefresh = undefined;
+}
+
+/**
+ * How long the data must stay unchanged before the world is rebuilt (RINGSIDE_WORLD_SETTLE_MS, default 5 s). One update by another process commits several
+ * times (its fights, then its recomputed ratings, then its run record), each of which moves `dbVersion`; waiting for quiet turns them into one rebuild.
+ */
+const settleMs = () => {
+  const raw = process.env.RINGSIDE_WORLD_SETTLE_MS;
+  const n = raw === undefined || raw === "" ? NaN : Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : 5000;
+};
+/** A writer that never goes quiet must not keep the site on an old world for ever: rebuild after this long whatever happens. */
+const MAX_WAIT_MS = 60_000;
+const RETRY_AFTER_FAIL_MS = 60_000;
+
+/**
+ * Lets the event loop answer the requests that are waiting: called from inside the build, so a rebuild runs in slices of about 25 ms, not as one block of
+ * seconds (a 4.7 s block was what visitors waited behind). A slice that has run 25 ms yields once.
+ */
+let sliceStart = 0;
+/** Above zero while a rebuild runs in the background: nobody is waiting for it, so it gives way for longer (see `pause`). */
+let gentle = 0;
+export async function pause(): Promise<void> {
+  const now = performance.now();
+  if (now - sliceStart < 25) return;
+  // A request takes several turns of the event loop to answer (the database, the render, the stream), and the build gets a turn between each. Giving way for one
+  // turn per slice made a request wait for a dozen slices; a background rebuild sleeps a little instead, so a request gets whole stretches of the thread between slices.
+  await new Promise<void>((r) => (gentle > 0 ? setTimeout(r, 15) : setImmediate(r)));
+  sliceStart = performance.now();
 }
 
 export async function getWorld(): Promise<World> {
   const db = await getDb();
   const key = worldKey(db);
   if (g.__world && g.__worldKey === key) return g.__world;
-  // The build below is synchronous, so a request that was already waiting on getDb() when another one built the
-  // world sees the fresh cache here instead of building a second copy (4 simultaneous callers used to build 4).
+  // The data changed under a world we hold, by another process's commit and not our own bump or the calendar: keep answering from the world we have
+  // and rebuild in the background once the commits have stopped (stale while revalidate), instead of making every visitor wait for the build.
+  if (g.__world && g.__worldKey) {
+    const have = keyParts(g.__worldKey), want = keyParts(key);
+    if (have.day === want.day && have.bump === want.bump) { noteChange(db, key); return g.__world; }
+  }
+  // Nothing to show (first build, a new day, our own write, invalidateWorld): visitors wait, and they all wait for the same build.
+  return buildShared(db, key);
+}
+
+function buildShared(db: DatabaseSync, key: string): Promise<World> {
+  if (!g.__worldBuild) {
+    const gen = g.__worldGen ?? 0;
+    const p: Promise<World> = buildAndPublish(db, key, gen).finally(() => { if (g.__worldBuild === p) g.__worldBuild = undefined; });
+    g.__worldBuild = p;
+  }
+  return g.__worldBuild;
+}
+
+async function buildAndPublish(db: DatabaseSync, key: string, gen: number, beforePublish?: (w: World) => Promise<void>): Promise<World> {
   const previous = g.__worldKey;
   const t0 = performance.now();
-  const built = buildWorld(db, key);
-  // a rebuild is a four-second event at scale and discards everything computed on the old world: say when and why (the key is "day|data version")
+  const built = await buildWorld(db, key);
+  // a rebuild is a several-second event at scale and discards everything computed on the old world: say when and why (the key is "day|data version")
   if (process.env.NODE_ENV === "production" || process.env.RINGSIDE_MEMO_LOG === "1") console.log(JSON.stringify({ event: "world_built", ms: Math.round(performance.now() - t0), key, previous: previous ?? null, bouts: built.bouts.length }));
+  if (beforePublish) await beforePublish(built);
+  if ((g.__worldGen ?? 0) !== gen) return built; // invalidated while it was building: it is not shown, and whoever asks next builds again
+  g.__world = built; g.__worldKey = key; // the swap: one assignment, so a request sees the whole old world or the whole new one
+  if (beforePublish && (process.env.NODE_ENV === "production" || process.env.RINGSIDE_MEMO_LOG === "1")) console.log(JSON.stringify({ event: "world_swapped", ms: Math.round(performance.now() - t0), key })); // build and warm-up together: how long the data waited to be shown
   snapshotUpcomingSafe(db, built); // write today's pre-fight predictions down (lib/ledger.ts); never fails a page
   return built;
+}
+
+/** Called by a request that found the data newer than the world: starts the settle timer if it is not running. Cheap; many requests call it. */
+function noteChange(db: DatabaseSync, key: string) {
+  const now = Date.now();
+  const r = (g.__worldRefresh ??= { lastChange: now, firstChange: now, retryAt: 0 });
+  if (r.seen !== key) { if (r.seen === undefined) r.firstChange = now; r.seen = key; r.lastChange = now; }
+  if (r.timer || r.building) return;
+  const arm = (ms: number) => { r.timer = setTimeout(check, ms); r.timer.unref(); };
+  const check = () => {
+    r.timer = undefined;
+    const t = Date.now(), settle = settleMs();
+    let cur: string;
+    try { cur = worldKey(db); } catch { return arm(1000); }
+    if (g.__world && g.__worldKey === cur) { r.seen = undefined; return; } // changed back, or somebody rebuilt: nothing to do
+    if (cur !== r.seen) { r.seen = cur; r.lastChange = t; }
+    const quiet = t - r.lastChange >= settle, waited = t - r.firstChange >= MAX_WAIT_MS;
+    if (!quiet && !waited) return arm(Math.max(20, Math.min(settle - (t - r.lastChange), 1000)));
+    if (r.failedKey === cur && t < r.retryAt) return; // it failed on this very data a moment ago: the next request that finds it still behind starts the wait again, and a repair (a new version) goes ahead at once
+    void rebuildInBackground(db, cur, r);
+  };
+  arm(settleMs());
+}
+
+async function rebuildInBackground(db: DatabaseSync, key: string, r: Refresh) {
+  const gen = g.__worldGen ?? 0;
+  r.building = (async () => {
+    try {
+      // the aggregates the pages share are computed on the NEW world before it is shown, so the first visitors after the swap do not pay for them
+      gentle++;
+      await buildAndPublish(db, key, gen, async (w) => { const { warmAggregates } = await import("./warm"); await warmAggregates(w, { gentle: true }); });
+      r.failedKey = undefined;
+    } catch (e) {
+      // keep serving the old world; say so once per version of the data, and try again later
+      if (r.failedKey !== key) console.error(`[ringside] world rebuild failed (${e instanceof Error ? e.message : String(e)}); still showing the previous data, will retry`);
+      r.failedKey = key; r.retryAt = Date.now() + RETRY_AFTER_FAIL_MS;
+    } finally { gentle--; r.building = undefined; r.seen = undefined; r.firstChange = Date.now(); }
+  })();
+  await r.building;
+}
+
+/** `a.map(f)` that lets the event loop answer requests every 1,024 items (see `pause`). */
+async function mapSlices<T, U>(a: readonly T[], f: (x: T) => U): Promise<U[]> {
+  const out = new Array<U>(a.length);
+  for (let i = 0; i < a.length; i++) { out[i] = f(a[i]); if ((i & 1023) === 1023) await pause(); }
+  return out;
 }
 
 /** A stored number that is really there: NULL, and the 0 an older load wrote for "unknown", are both unknown. */
 const known = (v: unknown): number | null => (typeof v === "number" && v > 0 ? v : null);
 
-function buildWorld(db: DatabaseSync, key: string): World {
+/**
+ * Builds from a read snapshot on a connection of its own, so the build can give way to requests between steps (`pause`) and still see one consistent
+ * state of the data (another process's update may commit meanwhile; the next check then sees a newer version and builds again). `main` is kept for
+ * what the world reads later, on demand (punch totals).
+ */
+async function buildWorld(main: DatabaseSync, key: string): Promise<World> {
+  let snap: DatabaseSync | null = null;
+  try { snap = openSnapshot(); } catch { snap = null; } // no second connection (a read-only volume, say): read from the shared one
+  try { return await buildWorldFrom(snap ?? main, main, key); } finally { try { snap?.exec("ROLLBACK"); snap?.close(); } catch { /* closing is best effort */ } }
+}
+
+async function buildWorldFrom(db: DatabaseSync, main: DatabaseSync, key: string): Promise<World> {
+  void key;
   const today = todayIso();
 
   const rawBoxers = db.prepare("SELECT * FROM boxers").all() as Record<string, unknown>[];
-  const boxersBase: Boxer[] = rawBoxers.map((r) => ({
+  await pause();
+  const boxersBase: Boxer[] = await mapSlices(rawBoxers, (r) => ({
     id: r.id as number, slug: r.slug as string, name: r.name as string, nickname: (r.nickname as string) ?? null,
     country: r.country as string, birthYear: known(r.birth_year), stance: (r.stance as Boxer["stance"]) || null, sex: ((r.sex as string) === "female" ? "female" : "male"),
     heightCm: known(r.height_cm), reachCm: known(r.reach_cm), weightClass: r.weight_class as string,
@@ -134,8 +259,10 @@ function buildWorld(db: DatabaseSync, key: string): World {
 
   const nameOf = new Map(boxersBase.map((b) => [b.id, b]));
   const evOf = new Map(events.map((e) => [e.id, e]));
-  const bouts = (db.prepare("SELECT * FROM bouts").all() as Record<string, unknown>[])
-    .map((b): BoutRow => {
+  await pause();
+  const rawBouts = db.prepare("SELECT * FROM bouts").all() as Record<string, unknown>[];
+  await pause();
+  const bouts = (await mapSlices(rawBouts, (b): BoutRow => {
       const ev = evOf.get(b.event_id as number)!;
       const red = nameOf.get(b.red_id as number)!, blue = nameOf.get(b.blue_id as number)!;
       return {
@@ -150,14 +277,16 @@ function buildWorld(db: DatabaseSync, key: string): World {
         oddsRed: (b.odds_red as number) ?? null, oddsBlue: (b.odds_blue as number) ?? null, contractLb: (b.contract_lb as number) ?? null,
         titleOrgId: (b.title_org_id as number) ?? null, titleVacant: !!b.title_vacant,
       };
-    })
+    }))
     .sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id);
+  await pause();
 
   const boutsByBoxer = new Map<number, BoutRow[]>();
   for (const b of bouts) for (const id of [b.redId, b.blueId]) {
     if (!boutsByBoxer.has(id)) boutsByBoxer.set(id, []);
     boutsByBoxer.get(id)!.push(b);
   }
+  await pause();
 
   // ----- people, organisations, team history, weigh-ins, officials -----
   const people = new Map<number, Person>(), orgs = new Map<number, Org>();
@@ -251,12 +380,18 @@ function buildWorld(db: DatabaseSync, key: string): World {
   const boutPre = new Map<number, { red: number; blue: number }>();
   const hrows = db.prepare("SELECT boxer_id, bout_id, date, rating, opp_rating FROM rating_history ORDER BY date, bout_id").all() as
     { boxer_id: number; bout_id: number; date: string; rating: number; opp_rating: number }[];
+  await pause();
   const redOf = new Map(bouts.map((b) => [b.id, b.redId]));
-  for (const h of hrows) {
+  for (let i = 0; i < hrows.length; i++) {
+    const h = hrows[i];
     if (!history.has(h.boxer_id)) history.set(h.boxer_id, []);
     history.get(h.boxer_id)!.push({ date: h.date, rating: h.rating, boutId: h.bout_id, opp: h.opp_rating });
+    if ((i & 4095) === 4095) await pause();
   }
+  await pause();
+  let pre_i = 0;
   for (const [id, hs] of history) {
+    if ((++pre_i & 255) === 0) await pause();
     let prev = 1500;
     for (const h of hs) {
       const pre = boutPre.get(h.boutId) ?? { red: 1500, blue: 1500 };
@@ -267,7 +402,8 @@ function buildWorld(db: DatabaseSync, key: string): World {
   }
 
   const year = currentYear();
-  const boxers = boxersBase.map((b): BoxerFull => {
+  await pause();
+  const boxers = await mapSlices(boxersBase, (b): BoxerFull => {
     const list = (boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming && countsInRecord(x.method));
     let wins = 0, losses = 0, draws = 0, kos = 0, koLosses = 0, rounds = 0;
     for (const x of list) {
@@ -293,8 +429,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
 
   applyFittedWeights();
   let punchTotals: Map<number, PunchTotals> | null = null;
-  g.__worldKey = key;
-  g.__world = {
+  const world: World = {
     today, boxers, byId: new Map(boxers.map((b) => [b.id, b])), bySlug: new Map(boxers.map((b) => [b.slug, b])),
     bouts, events, boutById: new Map(bouts.map((b) => [b.id, b])), eventById: evOf, boutsByBoxer, boutsByEvent, history, boutPre,
     people, peopleBySlug: new Map([...people.values()].map((p) => [p.slug, p])), roles,
@@ -306,7 +441,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
       if (punchTotals) return punchTotals;
       punchTotals = new Map();
       // round 0 is the whole-fight total when a feed has one; otherwise the rounds are added up
-      const rows = db.prepare(`SELECT bout_id, boxer_id,
+      const rows = main.prepare(`SELECT bout_id, boxer_id,
           SUM(CASE WHEN round = 0 THEN landed END) AS l0, SUM(CASE WHEN round = 0 THEN thrown END) AS t0,
           SUM(CASE WHEN round > 0 THEN landed END) AS lr, SUM(CASE WHEN round > 0 THEN thrown END) AS tr,
           COUNT(CASE WHEN round > 0 THEN 1 END) AS r
@@ -318,7 +453,7 @@ function buildWorld(db: DatabaseSync, key: string): World {
       return punchTotals;
     },
   };
-  return g.__world;
+  return world;
 }
 
 export { careerView, careerCounts, knockouts, koView, recordStr, type CareerView, type KoView } from "./career";

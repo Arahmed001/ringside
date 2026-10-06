@@ -11,6 +11,7 @@ import { loadFeed } from "./feed";
 import { countBySeverity, sanitizeFeed, type Issue } from "./validate";
 import { writeMoney } from "./ingest-money";
 import { slugify } from "./slug";
+import { bumpDbVersion } from "./db";
 
 const K = 24;
 
@@ -212,6 +213,7 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
     const { resolveMissingMedia } = await import("./media/resolve");
     await resolveMissingMedia(db, { limit: Number(process.env.MEDIA_RESOLVER_BATCH ?? 100), log: (m) => console.log("[media]", m) });
   }
+  bumpDbVersion(); // a change made by this process shows at once: only another process's change waits for the world to settle (lib/world.ts)
   return { runId, counts, dropped, issues, errors: sev.errors, warnings: sev.warnings };
 }
 
