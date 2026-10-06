@@ -1,6 +1,6 @@
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
-import { DIVISIONS, slugifyDivision, limitLabel } from "@/lib/divisions";
+import { DIVISIONS_HEAVIEST_FIRST, slugifyDivision, limitLabel } from "@/lib/divisions";
 import { rankDivision, pound4pound, rankingDepth } from "@/lib/rankings";
 import { Headshot } from "@/components/Portrait";
 import { BoxerCard, SectionTitle } from "@/components/ui";
@@ -18,7 +18,7 @@ export default async function Rankings({ searchParams }: { searchParams: Promise
   const w = await getWorld();
   const p4p = pound4pound(w, 10, sex);
   const thin = rankingDepth(w).partialShare > 0.5;
-  const divisions = DIVISIONS.map((d) => ({ d, top: rankDivision(w, d.name, 5, sex) })).filter((x) => sex === "male" || x.top.length > 0);
+  const divisions = DIVISIONS_HEAVIEST_FIRST.map((d) => ({ d, top: rankDivision(w, d.name, 5, sex) })).filter((x) => sex === "male" || x.top.length > 0);
   return (
     <div className="space-y-12">
       <div>

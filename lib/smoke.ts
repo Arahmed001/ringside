@@ -25,7 +25,7 @@ const shows = (r: { mustShow?: string; alsoShow?: string[] }): string[] => [...(
 export interface SmokeRoute { path: string; kind: "page" | "api" | "svg" | "png" | "ics" | "embed" | "missing"; label: string; /** text the page must show (a search that has to find someone) */ mustShow?: string; /** more text it must show, when two routes to the same page each ask for something */ alsoShow?: string[]; /** not requested on the Arabic site: the path carries English the person typed, which the page rightly echoes */ englishOnly?: boolean }
 
 /** Directories under app/[locale] whose URL has a parameter: every one must have a sampler below, or a new page escapes the check. */
-export const DYNAMIC_PAGES = ["all-time/[list]", "bouts/[id]", "boxers/[slug]", "countries/[slug]", "events/[id]", "fight-of-the-year/[year]", "orgs/[slug]", "people/[slug]", "previews/[id]", "rankings/[division]", "titles/[slug]"] as const;
+export const DYNAMIC_PAGES = ["all-time/[list]", "bouts/[id]", "boxers/[slug]", "countries/[slug]", "events/[id]", "fight-of-the-year/[year]", "forum/[id]", "orgs/[slug]", "people/[slug]", "previews/[id]", "rankings/[division]", "titles/[slug]"] as const;
 
 const first = <T,>(xs: T[]): T | undefined => xs[0];
 const q = (s: string) => encodeURIComponent(s);
@@ -145,7 +145,9 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   for (const b of belts(w).slice(0, 2)) page(`/titles/${b.slug}`, `belt: ${b.title}`);
 
   const div = boxers.find((b) => b.sex === "male")?.weightClass;
+  page("/forum", "the forum board (empty, until someone writes)");
   if (div) page(`/rankings/${slugifyDivision(div)}`, "division ranking");
+  if (div) { for (const q of ["sort=ko&dir=desc", "sort=name", "sort=rank&dir=desc", "sort=last&dir=asc&q=a", "sort=nonsense&dir=sideways"]) page(`/rankings/${slugifyDivision(div)}?${q}`, `division ranking sorted (${q})`); }
   if (woman) page(`/rankings/${slugifyDivision(woman.weightClass)}?sex=female`, "women's division ranking");
   for (const l of [LISTS.find((x) => x.subject === "boxer"), LISTS.find((x) => x.subject === "bout"), LISTS.find((x) => x.subject === "reign")]) if (l) page(`/all-time/${l.id}`, `all-time: ${l.id}`);
   const y = fightYears(w)[0];
@@ -163,6 +165,7 @@ export function smokeRoutes(w: World): SmokeRoute[] {
     out.push({ path: `/api/fighters?q=${q(star.name.slice(0, 4))}`, kind: "api", label: "api: fighter search" });
     out.push({ path: `/api/search?q=${q(star.name.slice(0, 4))}`, kind: "api", label: "api: search" });
     out.push({ path: `/api/watch?slugs=${star.slug}`, kind: "api", label: "api: watchlist" });
+    out.push({ path: `/api/fighter-card/${star.slug}?lang=ar`, kind: "api", label: "api: fighter hover card, in Arabic" });
     out.push({ path: `/api/watch/digest?slugs=${star.slug}&since=2000-01-01&lang=ar`, kind: "api", label: "api: watchlist digest, in Arabic" });
     const topDivision = slugifyDivision(star.weightClass);
     out.push({ path: "/api/v1/divisions", kind: "api", label: "public api: divisions" });
@@ -201,6 +204,7 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   const [m1, m2] = boxers.filter((b) => b.bouts >= 5);
   if (m1 && m2) { png(`/api/og/compare?a=${m1.slug}&b=${m2.slug}&lang=en`, "matchup"); png(`/api/og/compare?a=${m1.slug}&b=${m2.slug}&lang=ar`, "matchup (Arabic)"); }
   out.push({ path: "/this-page-does-not-exist", kind: "missing", label: "unknown page" });
+  out.push({ path: "/forum/99999", kind: "missing", label: "a forum thread that does not exist (the sample of forum/[id]: a thread needs an account database, which a smoke league has none of)" });
   // an old or mistyped fighter link: a real 404 that offers the fighter they meant (English only: the Arabic page offers the name in Arabic)
   // the mistyped address must not be another fighter's real one: in a league of numbered names (fighter-1414 and fighter-14144) cutting one letter can land on a fighter
   const mistyped = mistypeTarget(boxers);

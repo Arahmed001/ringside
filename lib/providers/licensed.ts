@@ -1,3 +1,4 @@
+import { rankingsConfirmed } from "../site-info";
 import type { DataProvider } from "./index";
 import { boxingDataApiProvider } from "./boxing-data-api";
 
@@ -16,6 +17,6 @@ export function licensedProvider(): DataProvider {
   return boxingDataApiProvider({
     key, baseUrl: process.env.BOXING_API_URL || undefined, purpose: "ingest", gapMs: 250, log: console.log,
     maxRequests: process.env.BOXING_API_MAX_REQUESTS ? Number(process.env.BOXING_API_MAX_REQUESTS) : undefined,
-    since: process.env.BOXING_API_SINCE || undefined,
+    since: process.env.BOXING_API_SINCE || undefined, rankings: rankingsConfirmed(),
   });
 }

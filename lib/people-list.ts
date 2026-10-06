@@ -30,8 +30,13 @@ export function filterByName<T>(rows: Ranked<T>[], nameOf: (row: T) => string, q
 
 /** One leaderboard as the page shows it: filtered by the name typed, then cut to the page asked for (a bad page number lands on a real one). */
 export function pageRows<T>(rows: T[], nameOf: (row: T) => string, opts: { q?: string; page?: string; names: Names; /** rows per page (default 50) */ size?: number }) {
+  return pageRanked(ranked(rows), nameOf, opts);
+}
+
+/** The same for rows that already carry their places (a table sorted by a column: lib/table-sort.ts), so each row keeps the place it holds in the whole ranking. */
+export function pageRanked<T>(all: Ranked<T>[], nameOf: (row: T) => string, opts: { q?: string; page?: string; names: Names; size?: number }) {
   const size = opts.size ?? PEOPLE_PAGE;
-  const found = filterByName(ranked(rows), nameOf, opts.q, opts.names);
+  const found = filterByName(all, nameOf, opts.q, opts.names);
   const { page, pages, first } = paginate(found.rows.length, opts.page, size);
-  return { shown: found.rows.slice(first, first + size), total: found.rows.length, of: rows.length, close: found.close, page, pages };
+  return { shown: found.rows.slice(first, first + size), total: found.rows.length, of: all.length, close: found.close, page, pages };
 }

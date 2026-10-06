@@ -59,7 +59,8 @@ Every choice below serves that. The risk is turning drama into noise, so drama i
 - **Approach:** intentional. Things that *draw* or *grow* when data appears (rating line, bars), small lifts on hover, and live number transitions in the matchup lab.
 - **Easing:** enter `cubic-bezier(.2,.8,.2,1)`, exit ease-in, move ease-in-out.
 - **Duration:** micro 100ms · short 200–300ms (hover, probability bar) · medium 600ms (page rise) · long 900–1400ms (chart draw).
-- Respect `prefers-reduced-motion` (already in `globals.css`). Do not animate on scroll.
+- Respect `prefers-reduced-motion` (already in `globals.css`). Do not animate on scroll (tests/motion.test.ts fails on scroll-driven CSS and on IntersectionObserver).
+- **Between pages (2026-10-06):** `app/[locale]/template.tsx` wraps each page in React's `<ViewTransition>`: the old page leaves in 120 ms, the new one fades in over 200 ms with an 8px rise; the rail and top bar stay put. A thin gold bar (`components/NavProgress.tsx`) runs along the top while a page loads. Dialogs and the phone drawer slide or pop in (160-220 ms); buttons sink 3 % when pressed. On a desktop with a real pointer, a link to a fighter's page shows a small card (record, rating, rank, last fight) after the pointer rests on it for 0.45 s or keyboard focus does (`components/HoverPreview.tsx`; Esc, scrolling or leaving closes it; never on touch). A fighter's page, which is long, has a strip of jump links under the top bar (`components/JumpNav.tsx`; plain anchors, no script, so the current section is deliberately not highlighted). Every one of these is off under reduced motion (tests/motion.test.ts checks that each animated rule is listed there).
 
 ## Imagery
 - **Headshots:** 4:5 portrait, `object-position: top`. Real photos only with a visible licence credit. Otherwise: the demo league's (fictional) fighters get the generated illustrated portrait; a real-data site gets a plain head-and-shoulders silhouette on the division's colour, which depends on nothing about the person (decided 2026-10-06).
@@ -75,6 +76,7 @@ Every choice below serves that. The risk is turning drama into noise, so drama i
 ## Decisions Log
 | Date | Decision | Rationale |
 |---|---|---|
+| 2026-10-06 | Weight classes are listed heaviest first everywhere they are shown as a list (`DIVISIONS_HEAVIEST_FIRST`) | The owner's call; the canonical order in `DIVISIONS` stays lightest to heaviest because the logic indexes it |
 | 2026-10-03 | Dark editorial direction, red/blue corner semantics | Boxing's own visual language (corners, ring lights) doubles as a data encoding |
 | 2026-10-03 | Replaced Inter with Geist for body text | Inter is the converged default; Geist is as legible, and has tabular numerals |
 | 2026-10-03 | Arabic edition: mirrored layout, fixed red/blue corners, Plex Arabic + Tajawal + Amiri | Reading order flips, data encoding does not |

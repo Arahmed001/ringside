@@ -28,6 +28,8 @@ import { ShareButton } from "@/components/ShareButton";
 import { PrintButton } from "@/components/PrintButton";
 import { FighterPrintSheet, type PrintRow } from "@/components/FighterPrintSheet";
 import { BoutLine, BoxerCard, ResultPill, SectionTitle, Stat } from "@/components/ui";
+import { JumpNav } from "@/components/JumpNav";
+import { Discussion } from "@/components/Discussion";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
@@ -198,7 +200,7 @@ const HONOURS_SHOWN = 8;
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Stat label={t("Record")} value={recordStr(b)} sub={career.source !== "loaded" ? t.n(career.total, "{n} fight in all", "{n} fights in all") : t.n(b.bouts, "{n} fight", "{n} fights")} />
             <Stat label={t("Knockouts")} value={ko.kos} sub={t("{p} of wins", { p: pct(ko.rate) })} />
-            <Stat label={t("Rating")} value={Math.round(b.rating)} sub={t("Elo-style")} />
+            <Stat label={t("Rating")} value={Math.round(b.rating)} sub={t("Elo-style")} countUp />
             <Stat label={t("Reach")} value={orDash(b.reachCm, (n) => t("{n}cm", { n }))} sub={isKnown(b.heightCm) ? t("{h}cm tall · {limit}", { h: b.heightCm, limit: limitLabel(div, t) }) : limitLabel(div, t)} />
           </div>
           {recent.length > 0 && (
@@ -227,8 +229,15 @@ const HONOURS_SHOWN = 8;
         </div>
       </section>
 
+      <JumpNav sections={[
+        ...(numbers && numbers.fights >= 5 ? [{ id: "numbers", label: t("By the numbers") }] : []),
+        ...(hasHighlights ? [{ id: "highlights", label: t("Career highlights") }] : []),
+        { id: "profile", label: t("Profile") }, { id: "scouting", label: t("Scouting report") }, { id: "form", label: t("Rating history") },
+        { id: "similar", label: t("Style similarity") }, { id: "record", label: t("Fight record") }, { id: "discussion", label: t("Discussion") },
+      ]} />
+
       {numbers && numbers.fights >= 5 && (
-        <section>
+        <section id="numbers" className="scroll-mt-32">
           <SectionTitle eyebrow={t("By the numbers")} title={t("Counted from every fight we hold")} />
           <div className="fill-row fill-4">
             {numbers.rounds !== null && <Stat label={t("Rounds boxed")} value={numbers.rounds} sub={t.n(numbers.fights, "{n} fight", "{n} fights")} />}
@@ -243,7 +252,7 @@ const HONOURS_SHOWN = 8;
       )}
 
       {hasHighlights && (
-        <section>
+        <section id="highlights" className="scroll-mt-32">
           <SectionTitle eyebrow={t("Career highlights")} title={t("The best of the fights we hold")} />
           <div className="fill-row fill-3">
             {highlights.bestWin && (() => { const o = w.byId.get(highlights.bestWin!.opponentId); return o ? (
@@ -270,7 +279,7 @@ const HONOURS_SHOWN = 8;
         </section>
       )}
 
-      <section className="grid gap-5 lg:grid-cols-[1fr_1.3fr]">
+      <section id="profile" className="grid scroll-mt-32 gap-5 lg:grid-cols-[1fr_1.3fr]">
         <div className="card p-5">
           <div className="eyebrow mb-3">{t("Profile")}</div>
           <dl className="space-y-2.5 text-sm">
@@ -377,7 +386,7 @@ const HONOURS_SHOWN = 8;
 
       <CareerMoneyCard w={w} boxer={b} />
 
-      <section className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+      <section id="scouting" className="grid scroll-mt-32 gap-5 lg:grid-cols-[1.4fr_1fr]">
         <div className="card p-5">
           <div className="eyebrow mb-1">{t("Scouting report")}</div>
           <ScoutingReport slug={b.slug} initial={rulesReport(b, w, t)} />
@@ -385,7 +394,7 @@ const HONOURS_SHOWN = 8;
         <div className="card flex items-center justify-center p-5"><Radar axes={radar} /></div>
       </section>
 
-      <section className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+      <section id="form" className="grid scroll-mt-32 gap-5 lg:grid-cols-[1.4fr_1fr]">
         <div className="card p-5">
           <div className="eyebrow mb-3">{t("Rating history")}</div>
           <Sparkline data={history.map((h) => h.rating)} labels={history.length ? [fmtDate(history[0].date, { month: "short", year: "numeric" }, t.locale), fmtDate(history[history.length - 1].date, { month: "short", year: "numeric" }, t.locale)] : undefined} />
@@ -396,7 +405,7 @@ const HONOURS_SHOWN = 8;
         </div>
       </section>
 
-      <section>
+      <section id="similar" className="scroll-mt-32">
         <SectionTitle eyebrow={t("Style similarity")} title={b.sex === "female" ? t("Fighters like her") : t("Fighters like him")} href="/map" cta={t("Style map")} />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {similar.map((s) => (
@@ -405,11 +414,15 @@ const HONOURS_SHOWN = 8;
         </div>
       </section>
 
-      <section>
+      <section id="record" className="scroll-mt-32">
         <SectionTitle eyebrow={t("Fight record")} title={t.n(completed.length, "{n} bout", "{n} bouts")} />
         <ScrollRegion className="card p-4" label={t("Fight record")}>
           <table className="w-full" aria-label={t("Fight record")}><tbody>{(upcoming ? [upcoming, ...done] : done).map((x) => <BoutLine key={x.id} bout={x} focusId={b.id} context={opponentThen.get(x.id)} />)}</tbody></table>
         </ScrollRegion>
+      </section>
+      <section id="discussion" className="scroll-mt-32">
+        <SectionTitle eyebrow={t("Community")} title={t("Discussion")} href="/forum" cta={t("The general board")} />
+        <Discussion target={{ kind: "boxer", subject: b.slug }} />
       </section>
     </div>
     <FighterPrintSheet

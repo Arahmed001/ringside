@@ -81,6 +81,9 @@ body::before {
 .fill-3 { --cols: 1; }
 @media (min-width: 768px) { .fill-4 { --cols: 4; } .fill-3 { --cols: 3; } }
 
+/* A hint or value too long for its box ends in an ellipsis instead of being cut mid-word. */
+input { text-overflow: ellipsis; }
+
 /* Keyboard focus: one visible ring everywhere (gold, 3:1 on every surface), only for keyboard users. */
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .skip-link { position: absolute; inset-inline-start: 12px; top: -64px; z-index: 100; background: var(--gold); color: #09090b; padding: .6rem 1rem; border-radius: 10px; font-weight: 700; transition: top .15s; }
@@ -169,3 +172,42 @@ body:has(dialog[open]) { overflow: hidden; }
 /* The one-page fighter sheet exists only for the printer. */
 .print-only { display: none; }
 @media print { .print-only { display: block; } }
+
+/* ---- Motion, round 119 (DESIGN.md "Motion": intentional, nothing animates on scroll, reduced motion switches all of it off) ---- */
+:root { --ease-out: cubic-bezier(.2,.8,.2,1); }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes drawer-in { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes drawer-in-rtl { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes page-rise { from { transform: translateY(8px); } to { transform: none; } }
+.fade-in { animation: fade-in .15s ease-out both; }
+.pop-in { animation: pop-in .18s var(--ease-out) both; }
+.drawer[open] { animation: drawer-in .22s var(--ease-out) both; }
+html[dir="rtl"] .drawer[open] { animation-name: drawer-in-rtl; }
+.drawer[open]::backdrop { animation: fade-in .22s ease-out both; }
+/* Between pages: the old page leaves quickly, the new one arrives a touch later with a small rise (the rail and the top bar are not part of it). */
+::view-transition-old(.page-out) { animation: 120ms ease-in both fade-in reverse; }
+::view-transition-new(.page-in) { animation: 200ms ease-out 100ms both fade-in, 300ms var(--ease-out) 100ms both page-rise; }
+/* Pressing a control gives a little: buttons and chips that do something sink slightly. */
+button:not(:disabled):active, .chip[role="button"]:active, [role="tab"]:active, summary:active { transform: scale(.97); }
+button, summary { transition-property: color, background-color, border-color, box-shadow, opacity, transform; transition-duration: .15s; }
+/* The thin bar along the top while a page is on its way (components/NavProgress.tsx). */
+.nav-progress { position: fixed; inset-inline: 0; top: 0; z-index: 70; height: 2px; background: var(--gold); transform: scaleX(0); transform-origin: left; opacity: 0; pointer-events: none; }
+html[dir="rtl"] .nav-progress { transform-origin: right; }
+.nav-progress[data-phase="run"] { opacity: 1; transform: scaleX(.7); transition: transform 8s cubic-bezier(.1,.6,.2,1); }
+.nav-progress[data-phase="done"] { opacity: 0; transform: scaleX(1); transition: transform .2s ease-out, opacity .3s ease-out .2s; }
+@media (prefers-reduced-motion: reduce) {
+  .fade-in, .pop-in, .drawer[open], .drawer[open]::backdrop, .star-pop, .growx-end { animation: none; }
+  button:not(:disabled):active, .chip[role="button"]:active, [role="tab"]:active, summary:active { transform: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+/* Round 120: the details on the pages. */
+@keyframes star-pop { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
+.star-pop { animation: star-pop .32s var(--ease-out); }
+.growx-end { transform-origin: right; animation: growx .9s cubic-bezier(.2,.8,.2,1) both; }
+/* A table row under the pointer or with focus inside it gets a gold marker on its starting edge (the first cell), so the eye keeps its line across a wide table. */
+.row-hl:hover > :first-child, .row-hl:focus-within > :first-child { box-shadow: inset 3px 0 0 var(--gold); }
+html[dir="rtl"] .row-hl:hover > :first-child, html[dir="rtl"] .row-hl:focus-within > :first-child { box-shadow: inset -3px 0 0 var(--gold); }
+@media print { .nav-progress { display: none; } }
+/* Jumping to a section (components/JumpNav.tsx): a short glide, only for visitors who have not asked for reduced motion. */
+@media (prefers-reduced-motion: no-preference) { html:has(.jump-nav) { scroll-behavior: smooth; } }

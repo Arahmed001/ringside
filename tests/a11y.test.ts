@@ -52,7 +52,7 @@ test("no text under 12px inside a chart either: SVG text sizes are 12 or more (t
 
 test("a box that scrolls sideways is a ScrollRegion (focusable, so a keyboard can scroll it), unless everything in it is a link", () => {
   // The only places that may scroll sideways without one: rows of links, which a keyboard already reaches with Tab.
-  const OK = [/components\/ScrollRegion\.tsx$/, /rankings\/\[division\]\/page\.tsx$/, /components\/TenureTable\.tsx$/, /components\/TrainerImpactCard\.tsx$/, /\[locale\]\/page\.tsx$/];
+  const OK = [/components\/ScrollRegion\.tsx$/, /rankings\/\[division\]\/page\.tsx$/, /components\/TenureTable\.tsx$/, /components\/TrainerImpactCard\.tsx$/, /\[locale\]\/page\.tsx$/, /components\/JumpNav\.tsx$/ /* a row of links */];
   const bad = sources.filter((f) => /overflow-x-auto/.test(read(f)) && !OK.some((re) => re.test(f)));
   assert.deepEqual(bad, [], "wrap the table in <ScrollRegion label=…> (components/ScrollRegion.tsx), or add the file here if every cell in it is a link");
 });

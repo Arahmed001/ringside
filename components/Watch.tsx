@@ -9,9 +9,10 @@ export function WatchButton({ slug }: { slug: string }) {
   const t = useT();
   const { list, loading, add, remove } = useWatchlist();
   const on = list.includes(slug);
+  const [popped, setPopped] = useState(false); // the star pops when the visitor starts watching, not on every page load that finds it already on
   return (
-    <button onClick={() => void (on ? remove(slug) : add(slug))} disabled={loading}
-      className={`chip cursor-pointer transition disabled:cursor-wait disabled:opacity-60 ${on ? "!border-gold/60 !bg-gold/10 !text-gold" : "hover:text-ink"}`} aria-pressed={on}>
+    <button onClick={() => { setPopped(!on); void (on ? remove(slug) : add(slug)); }} disabled={loading}
+      className={`chip cursor-pointer transition disabled:cursor-wait disabled:opacity-60 ${on ? "!border-gold/60 !bg-gold/10 !text-gold" : "hover:text-ink"} ${on && popped ? "star-pop" : ""}`} aria-pressed={on}>
       {on ? t("★ Watching") : t("☆ Watch")}
     </button>
   );

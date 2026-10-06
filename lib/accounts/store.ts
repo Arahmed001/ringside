@@ -59,6 +59,29 @@ CREATE TABLE IF NOT EXISTS boxer_owners (
 CREATE INDEX IF NOT EXISTS idx_owners_boxer ON boxer_owners(boxer_ext);
 CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status, kind);
 CREATE INDEX IF NOT EXISTS idx_reports_target ON reports(target_type, target_ext);
+CREATE TABLE IF NOT EXISTS forum_threads (
+  id INTEGER PRIMARY KEY, kind TEXT NOT NULL CHECK (kind IN ('boxer','bout','general')), subject_ext TEXT, title TEXT,
+  user_id INTEGER REFERENCES users(id) ON DELETE SET NULL, created_at TEXT NOT NULL, last_post_at TEXT NOT NULL, post_count INTEGER NOT NULL DEFAULT 0,
+  locked INTEGER NOT NULL DEFAULT 0, hidden INTEGER NOT NULL DEFAULT 0
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_forum_subject ON forum_threads(kind, subject_ext) WHERE kind <> 'general';
+CREATE INDEX IF NOT EXISTS idx_forum_threads_recent ON forum_threads(kind, hidden, last_post_at);
+CREATE TABLE IF NOT EXISTS forum_posts (
+  id INTEGER PRIMARY KEY, thread_id INTEGER NOT NULL REFERENCES forum_threads(id) ON DELETE CASCADE, user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  body TEXT NOT NULL, fingerprint TEXT NOT NULL DEFAULT '', created_at TEXT NOT NULL, edited_at TEXT,
+  status TEXT NOT NULL DEFAULT 'visible' CHECK (status IN ('visible','hidden','deleted')),
+  hidden_by INTEGER REFERENCES users(id) ON DELETE SET NULL, hidden_at TEXT, hidden_reason TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_forum_posts_thread ON forum_posts(thread_id, id);
+CREATE INDEX IF NOT EXISTS idx_forum_posts_user ON forum_posts(user_id, created_at);
+CREATE TABLE IF NOT EXISTS forum_reports (
+  id INTEGER PRIMARY KEY, post_id INTEGER NOT NULL REFERENCES forum_posts(id) ON DELETE CASCADE, user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  reason TEXT NOT NULL CHECK (reason IN ('spam','abuse','off_topic','other')), note TEXT,
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','upheld','dismissed')), created_at TEXT NOT NULL,
+  reviewed_by INTEGER REFERENCES users(id) ON DELETE SET NULL, reviewed_at TEXT
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_forum_report_once ON forum_reports(post_id, user_id) WHERE user_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_forum_reports_open ON forum_reports(status, post_id);
 CREATE TABLE IF NOT EXISTS audit (
   id INTEGER PRIMARY KEY, at TEXT NOT NULL, actor TEXT, action TEXT NOT NULL, target TEXT, detail TEXT
 );

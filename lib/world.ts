@@ -5,6 +5,7 @@ import { snapshotUpcomingSafe } from "./ledger";
 import { currentYear, todayIso } from "./clock";
 import { countsInRecord, isStoppage } from "./methods";
 import { buildOfficial, type OfficialIndex, type OfficialRow } from "./official";
+import { officialRankingsShown } from "./site-info";
 import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, Honour, TitleReign, Venue, EventFinancials, EventRow, Purse, Method, Official, Org, Person, Picture, Scorecard, Status, TeamStint, WeighIn } from "./types";
 
 /** Punches over a whole bout, one entry per fighter (in the order the rows were stored; match by `boxers`). */
@@ -228,7 +229,8 @@ function buildWorld(db: DatabaseSync, key: string): World {
   for (const r of db.prepare("SELECT * FROM title_reigns WHERE boxer_id IS NOT NULL ORDER BY start_date, org, division").all() as Record<string, unknown>[])
     push(reignsByBoxer, r.boxer_id as number, { boxerId: r.boxer_id as number, org: r.org as string, division: r.division as string, category: r.category as string, status: (r.status as string | null) ?? null, start: (r.start_date as string | null) ?? null, end: (r.end_date as string | null) ?? null, current: r.current === 1, defences: n0(r.defences), endNote: (r.end_note as string | null) ?? null, source: r.source as string });
 
-  const official = buildOfficial(db.prepare("SELECT * FROM official_rankings").all() as unknown as OfficialRow[]);
+  // on a licensed feed the official lists are shown only once the owner has confirmed the vendor allows it (lib/site-info.ts), whatever the database holds
+  const official = buildOfficial(officialRankingsShown() ? (db.prepare("SELECT * FROM official_rankings").all() as unknown as OfficialRow[]) : []);
 
   // pictures of things that are not fighters: only the ones that passed the licence rules, with the credit each carries
   const pictures = { org_logo: new Map<string, Picture>(), belt: new Map<string, Picture>(), venue: new Map<string, Picture>() };

@@ -6,7 +6,7 @@ import { pound4pound } from "@/lib/rankings";
 import { eventViews, isLive, upcomingEvents, recentEvents } from "@/lib/events";
 import { currentYear } from "@/lib/clock";
 import { predict } from "@/lib/predict";
-import { DIVISIONS, slugifyDivision, divisionLabel } from "@/lib/divisions";
+import { DIVISIONS_HEAVIEST_FIRST, slugifyDivision, divisionLabel } from "@/lib/divisions";
 import { Poster } from "@/components/Poster";
 import { Headshot } from "@/components/Portrait";
 import { ProbBar } from "@/components/charts";
@@ -141,7 +141,7 @@ export default async function Home() {
         <div>
           <SectionTitle eyebrow={t("Official names & limits")} title={t("Divisions")} />
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {DIVISIONS.map((d) => (
+            {DIVISIONS_HEAVIEST_FIRST.map((d) => (
               <Link key={d.name} href={`/rankings/${slugifyDivision(d.name)}`} className="card card-hover px-3 py-2.5">
                 <div className="text-sm font-semibold leading-tight">{t(d.name)}</div>
                 <div className="text-xs text-muted">{d.lb ? t("{lb} lb", { lb: d.lb }) : t("200+ lb")}</div>

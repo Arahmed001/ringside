@@ -11,6 +11,8 @@ import { clientDict, tFor } from "@/lib/i18n/dicts";
 import { abs, indexable, isDemoData, jsonLd, siteUrl } from "@/lib/seo";
 import { vendorCredit } from "@/lib/site-info";
 import { NavGroups, Logo } from "@/components/SideNav";
+import { NavProgress } from "@/components/NavProgress";
+import { HoverPreview } from "@/components/HoverPreview";
 import { MobileMenu, RailToggle } from "@/components/RailControls";
 import { InlineScript } from "@/components/InlineScript";
 import { NAV_KEY } from "@/lib/nav";
@@ -61,6 +63,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
         <InlineScript nonce={nonce} html={`try{var n=localStorage.getItem("${NAV_KEY}");if(n==="expanded"||n==="collapsed")document.documentElement.dataset.nav=n}catch(e){}`} />
         <I18nProvider locale={locale} dict={clientDict(locale)}>
           <a href="#main" className="skip-link">{t("Skip to content")}</a>
+          <NavProgress />
           <div className="lg:flex">
             <aside className="rail sticky top-0 z-30 hidden h-screen shrink-0 flex-col border-e border-line/70 bg-bg/60 backdrop-blur-xl lg:flex">
               <div className="px-3.5 py-3"><Logo collapsible /></div>
@@ -82,13 +85,13 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
                   </div>
                 </div>
               </header>
-              <main id="main" tabIndex={-1} className="mx-auto max-w-7xl px-5 py-8 outline-none">{children}</main>
+              <main id="main" tabIndex={-1} className="mx-auto max-w-7xl px-5 py-8 outline-none">{children}<HoverPreview /></main>
               <footer className="mx-auto max-w-7xl px-5 pb-12 pt-6 text-xs text-muted">
                 {isDemoData()
                   ? t.rich("Ringside demo build · All fighters, fights and events shown are <b>fictional, simulated data</b>. Ratings are Elo-style and unofficial.", { b: (c) => <b className="text-ink/80">{c}</b> })
                   : t("Ringside · Ratings and predictions are Elo-style, unofficial and not betting advice. Ringside is independent: it is not affiliated with any sanctioning body, promoter or broadcaster. Data sources and their licences are listed on the Data page.")}
                 {vendorCredit() && <>{" "}{t.rich("Fight, fighter and event data: <a>{name}</a>.", { name: vendorCredit()!.name, a: (c) => <a href={vendorCredit()!.url} lang="en" dir="ltr" target="_blank" rel="noopener noreferrer" className="inline-block py-1 underline decoration-dotted hover:text-ink">{c}</a> })}</>}
-                {" "}<Link href="/privacy" className="inline-block py-1 underline decoration-dotted hover:text-ink">{t("Privacy")}</Link>{" "}<Link href="/developers" className="inline-block py-1 underline decoration-dotted hover:text-ink">{t("For developers")}</Link>
+                {" "}<Link href="/privacy" className="inline-block py-1 underline decoration-dotted hover:text-ink">{t("Privacy")}</Link>{" "}<Link href="/terms" className="inline-block py-1 underline decoration-dotted hover:text-ink">{t("Terms")}</Link>{" "}<Link href="/developers" className="inline-block py-1 underline decoration-dotted hover:text-ink">{t("For developers")}</Link>
               </footer>
             </div>
           </div>

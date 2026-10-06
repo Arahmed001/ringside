@@ -86,7 +86,7 @@ type Out = { code: number | null; out: string };
 function run(args: string[], env: Record<string, string | undefined>): Promise<Out> {
   return new Promise((resolve) => {
     const child = spawn(process.execPath, ["--import", "tsx", "scripts/vendor-backfill.ts", "--gap-ms", "0", ...args], {
-      env: { ...process.env, BOXING_API_KEY: KEY, BOXING_API_URL: url, RINGSIDE_NOW: TODAY, BOXING_API_STORAGE_CONFIRMED: undefined, BOXING_PROVIDER: undefined, ...env }, cwd: process.cwd(),
+      env: { ...process.env, BOXING_API_KEY: KEY, BOXING_API_URL: url, RINGSIDE_NOW: TODAY, BOXING_API_STORAGE_CONFIRMED: undefined, BOXING_PROVIDER: undefined, VENDOR_RANKINGS_CONFIRMED: "1", ...env }, cwd: process.cwd(),
     });
     let out = "";
     child.stdout.on("data", (d) => (out += d)); child.stderr.on("data", (d) => (out += d));
@@ -148,6 +148,19 @@ test("by default it stores provisionally and says so; once confirmed (=1) the wa
   assert.equal(confirmed.code, 0, confirmed.out);
   assert.doesNotMatch(confirmed.out, /PROVISIONALLY/);
   fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test("without VENDOR_RANKINGS_CONFIRMED the official lists are not asked for: no request to the endpoint, and the run says so", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ringside-held-"));
+  try {
+    const m = mark();
+    const r = await run(["--check", "--cache-dir", dir], { ...live, VENDOR_RANKINGS_CONFIRMED: undefined });
+    assert.equal(r.code, 0, r.out);
+    assert.ok(!since(m).includes("/v2/rankings/"), "the endpoint was never asked");
+    assert.match(r.out, /official rankings: left out until VENDOR_RANKINGS_CONFIRMED=1/);
+    assert.match(r.out, /rankingsHeldBack\s+1/);
+    assert.match(r.out, /8 request\(s\) made/, "one request fewer than with the lists");
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
 test("--check fetches into the cache and reports the validator, and never opens the database", async () => {

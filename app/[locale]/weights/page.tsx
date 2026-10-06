@@ -17,7 +17,7 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string 
 export default async function Weights() {
   const t = await getT();
   const w = await getWorld();
-  const divs = divisionWeights(w).filter((d) => d.n > 0);
+  const divs = divisionWeights(w).filter((d) => d.n > 0).reverse(); // heavyweight first
   const edge = fightNightEdge(w);
   const { misses, total, winRate } = missedWeights(w, 12);
   const all = divs.reduce((s, d) => s + d.n, 0);

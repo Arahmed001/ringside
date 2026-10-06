@@ -68,8 +68,8 @@ export function CommandPalette() {
 
   let shown = 0;
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 px-4 pt-[12vh] backdrop-blur-sm" onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}>
-      <div role="dialog" aria-modal="true" aria-label={t("Search everything")} className="card w-full max-w-xl overflow-hidden shadow-[0_30px_80px_-20px_rgba(0,0,0,.9)]">
+    <div className="fade-in fixed inset-0 z-50 flex items-start justify-center bg-black/60 px-4 pt-[12vh] backdrop-blur-sm" onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}>
+      <div role="dialog" aria-modal="true" aria-label={t("Search everything")} className="card pop-in w-full max-w-xl overflow-hidden shadow-[0_30px_80px_-20px_rgba(0,0,0,.9)]">
         <input ref={input} value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Search fighters, trainers, events, gyms…")} aria-label={t("Search")}
           role="combobox" aria-expanded aria-controls={`${id}-list`} aria-activedescendant={hits[active] ? `${id}-${active}` : undefined} autoComplete="off" spellCheck={false}
           onKeyDown={(e) => {

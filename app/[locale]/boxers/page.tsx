@@ -3,7 +3,7 @@ import { clientId } from "@/lib/ai-guard";
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
 import { parseQuery, applyFilters, describeFilters } from "@/lib/ai";
-import { DIVISION_NAMES } from "@/lib/divisions";
+import { DIVISION_NAMES_HEAVIEST_FIRST } from "@/lib/divisions";
 import { BoxerCard, Pager } from "@/components/ui";
 import { paginate } from "@/lib/paging";
 import { getT } from "@/lib/i18n/server";
@@ -61,7 +61,7 @@ export default async function Boxers({ searchParams }: { searchParams: Promise<{
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         <Link href={qs({ wc: undefined })} className={`chip ${!wc ? "!border-gold/50 !text-gold" : ""}`}>{t("All divisions")}</Link>
-        {DIVISION_NAMES.map((d) => <Link key={d} href={qs({ wc: d })} className={`chip ${wc === d ? "!border-gold/50 !text-gold" : ""}`}>{t(d)}</Link>)}
+        {DIVISION_NAMES_HEAVIEST_FIRST.map((d) => <Link key={d} href={qs({ wc: d })} className={`chip ${wc === d ? "!border-gold/50 !text-gold" : ""}`}>{t(d)}</Link>)}
       </div>
       <form className="mt-4 flex flex-wrap items-end gap-3 text-sm">
         {q && <input type="hidden" name="q" value={q} />}
