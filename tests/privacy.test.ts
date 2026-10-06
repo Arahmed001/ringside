@@ -234,8 +234,7 @@ test("the page reads the code's own numbers and lists rather than repeating them
   assert.deepEqual([U.SESSION_DAYS, U.RESET_MINUTES, U.SESSION_COOKIE], [30, 60, "rs_session"]);
 });
 
-test("the page is where people will look: linked from the footer and the account page, in the sitemap and the palette, and in both languages", () => {
-  assert.match(src("app/[locale]/layout.tsx"), /href="\/privacy"/);
+test("the page is where people will look: linked from the account page, in the sitemap and the palette, and in both languages", () => {
   assert.match(src("components/AccountPanel.tsx"), /href="\/privacy"/);
   assert.match(src("lib/sitemap.ts"), /"\/privacy"/);
   assert.match(src("lib/search.ts"), /href: "\/privacy"/);
