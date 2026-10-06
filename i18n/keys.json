@@ -10218,7 +10218,7 @@
   ]
  },
  {
-  "key": "Ringside · Ratings are Elo-style and unofficial. Data sources and their licences are listed on the Data page.",
+  "key": "Ringside · Ratings and predictions are Elo-style, unofficial and not betting advice. Ringside is independent: it is not affiliated with any sanctioning body, promoter or broadcaster. Data sources and their licences are listed on the Data page.",
   "files": [
    "app/[locale]/layout.tsx"
   ]

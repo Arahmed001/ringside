@@ -86,7 +86,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
               <footer className="mx-auto max-w-7xl px-5 pb-12 pt-6 text-xs text-muted">
                 {isDemoData()
                   ? t.rich("Ringside demo build · All fighters, fights and events shown are <b>fictional, simulated data</b>. Ratings are Elo-style and unofficial.", { b: (c) => <b className="text-ink/80">{c}</b> })
-                  : t("Ringside · Ratings are Elo-style and unofficial. Data sources and their licences are listed on the Data page.")}
+                  : t("Ringside · Ratings and predictions are Elo-style, unofficial and not betting advice. Ringside is independent: it is not affiliated with any sanctioning body, promoter or broadcaster. Data sources and their licences are listed on the Data page.")}
                 {vendorCredit() && <>{" "}{t.rich("Fight, fighter and event data: <a>{name}</a>.", { name: vendorCredit()!.name, a: (c) => <a href={vendorCredit()!.url} lang="en" dir="ltr" target="_blank" rel="noopener noreferrer" className="inline-block py-1 underline decoration-dotted hover:text-ink">{c}</a> })}</>}
                 {" "}<Link href="/privacy" className="inline-block py-1 underline decoration-dotted hover:text-ink">{t("Privacy")}</Link>{" "}<Link href="/developers" className="inline-block py-1 underline decoration-dotted hover:text-ink">{t("For developers")}</Link>
               </footer>
