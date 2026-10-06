@@ -75,7 +75,7 @@ The real league is kept current by one nightly job (`vendor:fetch -- --update`, 
 - `https://your-address/api/health` contains `"stale":true` when the last successful update is more than two days old (`"updatedAt"` and `"ageHours"` are in the same answer). The page itself still answers normally; it never turns into an error for this.
 - `npm run doctor` prints a warning with the date of the last update.
 
-So make something look for you. Any uptime monitor that can **alert when a page contains some text** will do (several have a free plan; I have not tried any against your host, so choose one you trust): point it at `https://your-address/api/health` and alert on the text `"stale":true`, and also on the page not answering at all. Send the alert to an address you read daily. Two days is the threshold, so a missed night alerts you about a day after the second miss, not at once.
+So make something look for you. Any uptime monitor that can **alert when a page contains some text** will do (several have a free plan; I have not tried any against your host, so choose one you trust): point it at `https://your-address/api/health` and alert on the text `"stale":true`, and also on the page not answering at all. Send the alert to an address you read daily. The threshold is two days: one missed night leaves the data about a day old and does not alert; a second miss does, as soon as that night's job should have finished.
 
 When it fires:
 1. Open the log the job writes to (the `>> .../update.log` in the cron line): its last lines say what stopped it.
