@@ -29,7 +29,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const killPort = () => { try { for (const pid of execSync(`lsof -tiTCP:${port} -sTCP:LISTEN`, { encoding: "utf8" }).split("\n").filter(Boolean)) process.kill(Number(pid)); } catch { /* nothing listening */ } };
 /** Asks the port itself (lsof does not always see a server started from another shell): is anything answering there? */
 const portBusy = () => new Promise<boolean>((resolve) => { const c = net.connect({ port, host: "127.0.0.1" }); c.once("connect", () => { c.destroy(); resolve(true); }); c.once("error", () => resolve(false)); });
-const stop = () => { child?.kill(); killPort(); child = null; };
+const stop = () => { if (child?.pid) { try { process.kill(-child.pid, "SIGTERM"); } catch { child.kill(); } } killPort(); child = null; };
 
 async function boot() {
   killPort();
@@ -37,6 +37,7 @@ async function boot() {
   if (await portBusy()) throw new Error(`port ${port} is in use by a server this script cannot stop (a leftover?): stop it, or pick another port with --port`);
   child = spawn("npx", ["next", "start", "-p", String(port)], {
     env: { ...process.env, NODE_ENV: "production", DATABASE_PATH: db, ACCOUNTS_DB_PATH: path.join(tmp, "accounts.db"), RINGSIDE_NOW: "2026-10-03", NEXT_TELEMETRY_DISABLED: "1" }, stdio: "ignore",
+    detached: true, // its own process group, so stop() can end the server under the npx wrapper too
   });
   for (let i = 0; i < 600; i++) {
     if (child?.exitCode !== null && child?.exitCode !== undefined) throw new Error("the server stopped while starting");
