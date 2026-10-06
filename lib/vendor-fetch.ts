@@ -75,14 +75,17 @@ export function backgroundFiles(cacheDir?: string): { log: string; pid: string }
   return { log: path.join(dir, "fetch.log"), pid: path.join(dir, "fetch.pid") };
 }
 
-/** The process id in `pidFile` when that process is alive AND is a backfill (a recycled id belonging to something else is not touched); otherwise undefined. */
-export function backgroundPid(pidFile: string): number | undefined {
+/** The process id in `pidFile` when that process is alive AND its command matches `kind` (a recycled id belonging to something else is not touched); otherwise undefined. */
+export function livePid(pidFile: string, kind: RegExp): number | undefined {
   let pid: number;
   try { pid = Number(fs.readFileSync(pidFile, "utf8").trim()); } catch { return undefined; }
   if (!Number.isInteger(pid) || pid <= 1) return undefined;
   try { process.kill(pid, 0); } catch { return undefined; }
-  try { return /vendor-backfill/.test(execFileSync("ps", ["-p", String(pid), "-o", "command="], { encoding: "utf8" })) ? pid : undefined; } catch { return undefined; }
+  try { return kind.test(execFileSync("ps", ["-p", String(pid), "-o", "command="], { encoding: "utf8" })) ? pid : undefined; } catch { return undefined; }
 }
+
+/** The process id of a live background fetch (see `livePid`). */
+export const backgroundPid = (pidFile: string): number | undefined => livePid(pidFile, /vendor-backfill/);
 
 /** The last `n` lines of a log (never the key: nothing here prints it, and the fetch does not either). */
 export function logTail(file: string, n = 5): string[] {

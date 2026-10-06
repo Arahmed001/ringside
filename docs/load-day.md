@@ -43,7 +43,18 @@ npm run vendor:load -- --storage-confirmed   # asks you to type LOAD; --storage-
 
 It writes `~/ringside-real/real.db` (new), `disputed.csv` beside it, and a backup if there was a database. Undo: delete `real.db` and its `-wal` and `-shm` files and load again; the cache is the source and costs nothing.
 
-## 5. Run the site on it
+## 5. Look at it, then run the site on it
+
+To look at what was loaded, on your own machine (port 3480; detached, so closing the tab does not stop it):
+
+```bash
+npm run vendor:site -- --start --build   # builds, starts on the real database, says when it is up and how many fighters it serves
+npm run vendor:site                      # what is running
+npm run vendor:site -- --restart --build # after the code changed (a new load needs no restart: the running site notices it)
+npm run vendor:site -- --stop
+```
+
+It checks the port and the database first and says what is wrong in one line. It is for looking: it sets no site address, so do not expose it beyond your machine. For a public site, the doctor first:
 
 ```bash
 DATABASE_PATH=$HOME/ringside-real/real.db BOXING_PROVIDER=licensed SITE_URL=https://your-site SITE_CONTACT=corrections@your-site VENDOR_TERMS_URL=https://the-vendors-terms npm run doctor -- --production
