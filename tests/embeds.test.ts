@@ -161,6 +161,11 @@ test("the smoke check for an embed: bare HTML with a link back that opens in a n
   assert.match(problemsIn(route, "en", 200, "text/html", good.replace("Alma Ruiz</h1>", "Someone</h1>")).join(), /does not show "Alma Ruiz"/);
   assert.match(problemsIn(route, "en", 200, "application/json", good).join(), /not HTML/);
   assert.deepEqual(problemsIn(route, "en", 404, "text/html", good), ["status 404"]);
+  // a name that has to be escaped on the page is found as the person reads it (the hostile league's fighter), and a name that is NOT escaped is not what the check looks for
+  const hostile = { ...route, mustShow: `<script>alert(1)</script> O'Brien "The Bomb" & Sons` };
+  const escaped = good.replace("Alma Ruiz", "&lt;script&gt;alert(1)&lt;/script&gt; O&#x27;Brien &quot;The Bomb&quot; &amp; Sons");
+  assert.deepEqual(problemsIn(hostile, "en", 200, "text/html", escaped), []);
+  assert.match(problemsIn(hostile, "en", 200, "text/html", good).join(), /does not show/);
 });
 
 test("the code to paste: the address of each card, the language and theme in it, the rows held to what the card accepts, and everything in the HTML escaped", async () => {

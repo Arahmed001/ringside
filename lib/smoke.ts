@@ -6,6 +6,8 @@
  */
 import { countOn, shiftDay } from "./on-this-day";
 import { careerView, recordStr, type World } from "./world";
+import { careerStrip } from "./career-strip";
+import { countsInRecord } from "./methods";
 import { NAV_GROUPS, OFF_NAV } from "./nav";
 import { DIVISIONS, slugifyDivision } from "./divisions";
 import { rankedBoxers, rankingDepth } from "./rankings";
@@ -43,7 +45,9 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   // a fighter whose history Ringside holds only in part: the page shows the supplier's career total, and says so (a partial load; none in the demo league)
   const partial = boxers.find((b) => careerView(b).source === "supplier");
   if (partial) out.push({ path: `/boxers/${partial.slug}`, kind: "page", label: "fighter with a partial history (the supplier's career total shown)", mustShow: recordStr(partial) });
-  if (partial) out.push({ path: `/boxers/${partial.slug}`, kind: "page", label: "fighter with a partial history: the years held are drawn on the career strip", mustShow: "Fights held by year" });
+  // the strip is drawn only for a career held in part with at least one fight counted (a fighter with a supplier total and nothing held, or more held than the total, has none to draw)
+  const stripped = boxers.find((b) => { const c = careerView(b); return c.source !== "loaded" && careerStrip({ dates: (w.boutsByBoxer.get(b.id) ?? []).filter((x) => !x.upcoming && countsInRecord(x.method)).map((x) => x.date), total: c.total, turnedPro: b.turnedPro, debutDate: b.debutDate }) !== null; });
+  if (stripped) out.push({ path: `/boxers/${stripped.slug}`, kind: "page", label: "fighter with a partial history: the years held are drawn on the career strip", mustShow: "Fights held by year" });
   // a fighter the load kept although the supplier's own fight list contradicts its career total: the page shows the total and says the two disagree
   const disputed = boxers.find((b) => careerView(b).source === "disputed");
   if (disputed) out.push({ path: `/boxers/${disputed.slug}`, kind: "page", label: "fighter whose record the supplier's own fight list contradicts", mustShow: "disagree", englishOnly: true });
@@ -282,7 +286,7 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
     if (!/target="_blank"[^>]*rel="noopener"/.test(body)) bad.push("no link back to Ringside that opens in a new tab");
     if (/<nav\b|<header\b|id="side-nav"|class="skip-link"/.test(body)) bad.push("site chrome inside an embed");
     if (!/name="robots" content="noindex/.test(body)) bad.push("an embed that search engines may list");
-    if (route.mustShow && locale === "en" && !body.includes(route.mustShow)) bad.push(`the embed does not show "${route.mustShow}"`);
+    if (route.mustShow && locale === "en" && !decode(body.replace(/<[^>]*>/g, " ")).includes(route.mustShow)) bad.push(`the embed does not show "${route.mustShow}"`);
     return bad;
   }
   if (route.kind === "png") { // a share card: a real image, not an error page that happens to be 200
