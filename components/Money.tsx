@@ -62,7 +62,7 @@ export async function EventMoney({ w, event }: { w: World; event: EventRow }) {
           <div className="mb-2 text-xs uppercase tracking-widest text-muted">{t("Where it aired")}</div>
           <ul className="flex flex-wrap gap-2">
             {broadcasts.map((b) => (
-              <li key={`${b.broadcaster}|${b.region}`} className="flex items-center gap-2 rounded-xl bg-panel2/60 px-3 py-2 text-sm">
+              <li key={`${b.broadcaster}|${b.region}`} className="flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 rounded-xl bg-panel2/60 px-3 py-2 text-sm">
                 <b>{t.name(b.broadcaster)}</b>
                 <span className="text-xs text-muted">{b.region ? `${countryName(b.region, t.locale) !== b.region ? countryName(b.region, t.locale) : t.name(b.region)} · ` : ""}{t(b.platform === "ppv" ? "pay-per-view" : b.platform === "streaming" ? "streaming" : b.platform === "subscription" ? "subscription TV" : "free TV")}</span>
                 {b.viewersAvg && <span className="tabular text-xs text-gold">{t("{n} avg viewers", { n: compact(b.viewersAvg) })}</span>}
