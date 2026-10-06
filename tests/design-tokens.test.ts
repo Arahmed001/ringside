@@ -18,7 +18,7 @@ const rootBlock = css.match(/:root\s*\{([^}]*)\}/)![1];
 const TOKENS = new Set([...rootBlock.matchAll(/--[\w-]+:\s*(#[0-9a-fA-F]{6})/g)].map((m) => m[1].toLowerCase()));
 
 test("the colour tokens in globals.css are the ones DESIGN.md names", () => {
-  for (const hex of ["#09090b", "#131318", "#1a1a21", "#26262f", "#ecebe6", "#8d8d99", "#e5322d", "#4a8cff", "#d9b25f", "#3ecf8e", "#ff5a54", "#c9261f"]) assert.ok(TOKENS.has(hex), `${hex} is no longer a token`);
+  for (const hex of ["#09090b", "#131318", "#1a1a21", "#26262f", "#ecebe6", "#8d8d99", "#e5322d", "#4a8cff", "#d9b25f", "#3ecf8e", "#ff5a54", "#c9261f", "#555560", "#c9c9d1", "#15151b", "#b8923f", "#e8c97d", "#a67f30"]) assert.ok(TOKENS.has(hex), `${hex} is no longer a token`);
 });
 
 test("no Tailwind default-palette colour (text-gray-500, bg-zinc-900 ...) and no arbitrary colour class (bg-[#123456]): colours are tokens", () => {
@@ -34,20 +34,13 @@ test("no Tailwind default-palette colour (text-gray-500, bg-zinc-900 ...) and no
 /**
  * Hex colours written straight into a component. Charts and art have to (an SVG attribute cannot take a Tailwind class), and most of those are the tokens
  * themselves. These are the files that still carry a colour that is NOT a token, with how many: the number may go down, never up, and a new file may not
- * join. Each is listed in docs/design-review.md for the owner to decide (archetype palette reuse, the print/embed light theme, the generated art).
+ * join. What is left is the generated art, the light embed theme and the last-resort error page (docs/design-review.md, O1 and O10: the greys, gold tints and archetype reuse that were on this list are now tokens or token colours).
  */
 const OFF_TOKEN_ALLOWED: Record<string, number> = {
-  "app/[locale]/analytics/page.tsx": 5,
-  "app/[locale]/boxers/[slug]/page.tsx": 2,
-  "app/[locale]/previews/[id]/page.tsx": 1,
   "app/global-error.tsx": 4,
-  "components/CalibrationChart.tsx": 2,
-  "components/ChartI18n.tsx": 1,
   "components/EmbedFrame.tsx": 9,
   "components/PortraitArt.tsx": 999, // generated illustration: skin, hair and background palettes
   "components/Poster.tsx": 999, // generated poster art
-  "components/ReignTimeline.tsx": 3,
-  "components/charts.tsx": 1,
 };
 test("a hex colour in a component is a design token, or the file is on the reviewed list", () => {
   const hexes = /#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b/g;

@@ -121,7 +121,7 @@ export default async function Home() {
       </section>
 
       {next && (
-      <section className={`grid gap-5 ${ups.length > 1 ? "lg:grid-cols-[1.4fr_1fr]" : "max-w-xl"}`}>
+      <section className={`grid gap-8 ${ups.length > 1 ? "" : "max-w-xl"}`}>
         {ups.length > 1 && (
         <div>
           <SectionTitle eyebrow={t("Fight calendar")} title={t("Coming up")} href="/events" cta={upcoming.length > STRIP + 1 ? t.n(upcoming.length, "All {n} upcoming card", "All {n} upcoming cards") : undefined} />

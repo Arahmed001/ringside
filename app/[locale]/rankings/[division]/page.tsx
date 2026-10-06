@@ -112,7 +112,7 @@ export default async function DivisionRankings({ params, searchParams }: { param
         )}
         {rows.length > 0 && <table className="w-full text-sm" aria-label={t("{division} rankings", { division: divisionLabel(d.name, sex, t) })}>
           <thead><tr className="text-start text-xs uppercase tracking-widest text-muted">
-            <SortTh label="#" column="rank" textual className="p-3" {...th} /><SortTh label={t("Fighter")} column="name" textual {...th} /><th className="hidden sm:table-cell">{t("Style")}</th><SortTh label={t("Record")} column="record" {...th} /><SortTh label={t("KO%")} column="ko" className="hidden md:table-cell" {...th} /><SortTh label={t("Last fight")} column="last" className="hidden md:table-cell" {...th} /><SortTh label={t("Rating")} column="rating" end className="text-end" {...th} /><th className="p-3 text-end">{t("90d")}</th>
+            <SortTh label="#" column="rank" textual className="p-3" {...th} /><SortTh label={t("Fighter")} column="name" textual {...th} /><th className="hidden sm:table-cell">{t("Style")}</th><SortTh label={t("Record")} column="record" className="hidden min-[480px]:table-cell" {...th} /><SortTh label={t("KO%")} column="ko" className="hidden md:table-cell" {...th} /><SortTh label={t("Last fight")} column="last" className="hidden md:table-cell" {...th} /><SortTh label={t("Rating")} column="rating" end className="text-end" {...th} /><th className="p-3 text-end">{t("90d")}</th>
           </tr></thead>
           <tbody>
             {rows.map((r) => (
@@ -120,7 +120,7 @@ export default async function DivisionRankings({ params, searchParams }: { param
                 <td className={`p-3 font-display text-xl font-bold ${r.rank === 1 ? "text-gold" : ""}`}>{r.rank}</td>
                 <td><Link href={`/boxers/${r.boxer.slug}`} className="flex items-center gap-3 py-2"><Headshot boxer={r.boxer} size={36} /><span><b>{t.name(r.boxer.name)}</b><span className="block text-xs text-muted">{flag(r.boxer.country)} {countryName(r.boxer.country, t.locale)} · {r.boxer.age}</span></span></Link></td>
                 <td className="hidden sm:table-cell"><ArchBadge b={r.boxer} /></td>
-                <td className="tabular">{recordStr(r.boxer)}</td>
+                <td className="hidden tabular min-[480px]:table-cell">{recordStr(r.boxer)}</td>
                 <td className="hidden tabular text-muted md:table-cell">{Math.round(koView(r.boxer).rate * 100)}%</td>
                 <td className="hidden text-muted md:table-cell">{r.boxer.lastFight ? fmtDate(r.boxer.lastFight, { month: "short", year: "numeric" }, t.locale) : "—"}</td>
                 <td className="text-end font-semibold tabular">{Math.round(r.boxer.rating)}</td>

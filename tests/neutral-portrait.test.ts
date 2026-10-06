@@ -39,10 +39,9 @@ test("a real-data site serves a neutral silhouette: no skin tone, no face, nothi
     assert.ok(svg.length < 1200, `${svg.length} bytes`);
     bySlug.set(b.slug, svg);
   }
-  // it depends on the division and on nothing else about the fighter
-  const sameDivision = w.boxers.filter((b) => b.weightClass === w.boxers[0].weightClass).slice(0, 5).map((b) => art.portraitSvg(b));
-  assert.equal(new Set(sameDivision).size, 1, "two fighters in one division get the identical image");
-  assert.ok(new Set(bySlug.values()).size > 1 && new Set(bySlug.values()).size <= 6, "the divisions are told apart by colour, in a handful of tones");
+  // it depends on nothing about the fighter, not even the division: one neutral background (`--panel-2`) for all
+  assert.equal(new Set(bySlug.values()).size, 1, "every fighter, in every division, gets the identical image");
+  assert.match([...bySlug.values()][0], /fill="#1a1a21"/, "the background is the panel-2 token");
 });
 
 test("the endpoint serves the neutral image on a real-data site, still cacheable", async () => {

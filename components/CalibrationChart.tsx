@@ -30,8 +30,8 @@ export function CalibrationChart({ bins, label, desc, xLabel, yLabel, perfect }:
       {shown.map((b) => (
         <circle key={b.lo} cx={x(b.predicted)} cy={y(Math.max(lo, b.observed))} r={4 + 9 * Math.sqrt(b.n / maxN)} fill="#d9b25f" fillOpacity=".85" stroke="#09090b" strokeWidth="1.5" />
       ))}
-      <text x={(L + W - R) / 2} y={H - 6} textAnchor="middle" fontSize="13.5" fill="#c9c9d1">{xLabel}</text>
-      <text x={12} y={(T + H - B) / 2} textAnchor="middle" fontSize="13.5" fill="#c9c9d1" transform={`rotate(-90 12 ${(T + H - B) / 2})`}>{yLabel}</text>
+      <text x={(L + W - R) / 2} y={H - 6} textAnchor="middle" fontSize="13.5" fill="var(--chart-grey)">{xLabel}</text>
+      <text x={12} y={(T + H - B) / 2} textAnchor="middle" fontSize="13.5" fill="var(--chart-grey)" transform={`rotate(-90 12 ${(T + H - B) / 2})`}>{yLabel}</text>
     </Svg>
   );
 }
