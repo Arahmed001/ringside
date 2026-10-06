@@ -20,12 +20,12 @@ window.__sweep = async () => {
   const clipped = [];
   for (const el of document.querySelectorAll("main *")) {
     const cs = getComputedStyle(el);
-    if ((cs.overflow === "hidden" || cs.overflowX === "hidden") && !el.classList.contains("truncate") && !el.classList.contains("sr-only") && !el.closest(".truncate") && el.scrollWidth > el.clientWidth + 1 && el.textContent.trim()) clipped.push(el.tagName + "." + String(el.className).slice(0, 30) + ":" + el.textContent.trim().slice(0, 25));
+    if ((cs.overflow === "hidden" || cs.overflowX === "hidden") && !el.classList.contains("truncate") && !el.classList.contains("sr-only") && !el.closest(".truncate") && !/(^|\s)line-clamp-/.test(String(el.className)) && !el.closest("[class*=line-clamp-]") && el.scrollWidth > el.clientWidth + 1 && el.textContent.trim()) clipped.push(el.tagName + "." + String(el.className).slice(0, 30) + ":" + el.textContent.trim().slice(0, 25));
     if (clipped.length > 4) break;
   }
   st.remove();
   const small = [...document.querySelectorAll("main *")].filter((el) => el.children.length === 0 && el.textContent.trim() && parseFloat(getComputedStyle(el).fontSize) < 11.5 && getComputedStyle(el).display !== "none" && el.textContent.trim() !== el.textContent.trim().toUpperCase()).length;
-  return `${location.pathname}${location.search} w${innerWidth} h1=${document.querySelectorAll("h1").length} axe=[${r.violations.map((v) => v.id + ":" + v.nodes.length).join(",")}] overflow=${over1} spaced=${over2} clipped=[${clipped.join(" | ")}] tiny=${small}`;
+  return `${location.pathname}${location.search} w${innerWidth} h1=${[...document.querySelectorAll("h1")].filter((h) => h.getClientRects().length > 0).length} axe=[${r.violations.map((v) => v.id + ":" + v.nodes.length).join(",")}] overflow=${over1} spaced=${over2} clipped=[${clipped.join(" | ")}] tiny=${small}`;
 };
 // the rendered size of every piece of text inside an SVG chart (font size in the SVG's own units times how much the SVG is scaled); posters are art and are left out
 window.__svgText = () => {

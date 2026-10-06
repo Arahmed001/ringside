@@ -1,5 +1,7 @@
 # Deploying Ringside
 
+> New to deploying? [go-live.md](go-live.md) is the same material as plain, numbered steps.
+
 Ringside is one Node process with one SQLite file. That shapes the deployment: **run exactly one instance, with a persistent volume.** Two instances would each hold their own copy of the database, the live ledger and visitors' cached AI answers.
 
 This was written without a hosting provider chosen. Nothing here is specific to one; the container is the unit.
@@ -75,6 +77,8 @@ Measured on a production build with the demo league (968 fighters, 7,466 bouts; 
 | throughput | about 105 pages a second on one core, flat from 10 to 50 at a time (it queues rather than degrading); at 50 at a time p50 460 ms, p95 520 ms, no failures in 12,000 requests |
 | memory | 200 MB when it starts, **about 600 MB resident under sustained load** (it settles there; no leak over 12,000 requests). The same demo ran at 350 MB with the heap capped at 160 MB (`NODE_OPTIONS=--max-old-space-size=160`) with no change in speed, so most of the 600 is garbage not yet collected |
 | client JavaScript | about 220 KB gzipped for the whole site (React and Next are most of it); a page is 12-47 KB of gzipped HTML |
+
+Re-measured 2026-10-06 on the 20x test world (`npm run bench -- --scale 20`: 19,360 fighters, 159,296 bouts, 1.1 million punch rows): the world builds cold in 18 s and holds about **541 MB of heap** (2.4 GB resident while the benchmark also holds its own data). That is above the 460 MB noted below from the earlier run, because the site now computes more per fighter; the real feed, with far fewer bouts and no punch rows, is the smaller case measured further down. Re-run it before sizing a host for a league much bigger than the real one.
 
 What to do with it: give the container **at least 768 MB**, or cap the heap (`NODE_OPTIONS=--max-old-space-size=...`) and leave 200 MB for everything else. The heap needed grows with the data: the 20x test world (159,000 bouts) needed about 460 MB of heap, so a real feed's size matters more than traffic does. It is one core's worth of work per instance, and PLAN.md explains why there should be one instance; if you need more than about 100 pages a second, put a CDN or page cache in front rather than a second instance.
 
