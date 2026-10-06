@@ -86,6 +86,9 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
       ON CONFLICT(external_id) DO UPDATE SET name=excluded.name, active=excluded.active, reach_cm=excluded.reach_cm, height_cm=excluded.height_cm,
         stance=excluded.stance, sex=excluded.sex,
+        weight_class=excluded.weight_class,
+        country = CASE WHEN excluded.country IS NOT NULL AND excluded.country NOT IN ('', 'Unknown') THEN excluded.country ELSE boxers.country END,
+        birth_year = COALESCE(excluded.birth_year, boxers.birth_year), turned_pro = COALESCE(excluded.turned_pro, boxers.turned_pro), nickname = COALESCE(excluded.nickname, boxers.nickname),
         photo_credit = CASE WHEN excluded.photo_url IS NOT NULL THEN NULL ELSE boxers.photo_credit END,
         photo_url = COALESCE(excluded.photo_url, boxers.photo_url),
         birth_date = COALESCE(excluded.birth_date, boxers.birth_date), birth_place = COALESCE(excluded.birth_place, boxers.birth_place),
