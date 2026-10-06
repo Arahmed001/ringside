@@ -236,3 +236,33 @@ test("a licensed site without the vendor's terms link says so (info); a link tha
   assert.deepEqual(levels(envFindings({ ...lic, VENDOR_TERMS_URL: "https://boxing-data.com/terms" }), "vendor-terms"), []);
   assert.deepEqual(levels(envFindings({}), "vendor-terms"), []);
 });
+
+test("the forum: posts with nobody to moderate them is a warning with the command that fixes it; with an editor it is fine; no posts, nothing to say (round 128)", () => {
+  const acc = (db: DbFacts) => fileFindings({}, probe({ accounts: db }), { now: NOW, cwd: "/srv/app" });
+  const withForum = (posts: number, editors: number | undefined): DbFacts => ({ ...goodDb({ users: 40, sessions: 3, picks: 10, forum_posts: posts }), editors });
+  assert.deepEqual(levels(acc(withForum(0, 0)), "forum-no-editor"), [], "an empty forum needs no editor yet");
+  assert.deepEqual(levels(acc(withForum(12, 0)), "forum-no-editor"), ["warn"]);
+  assert.deepEqual(levels(acc(withForum(12, undefined)), "forum-no-editor"), ["warn"], "an editor count that could not be read is not assumed to be there");
+  assert.match(by(acc(withForum(12, 0)), "forum-no-editor")[0].fix ?? "", /npm run accounts -- role NAME editor/);
+  assert.match(by(acc(withForum(1, 0)), "forum-no-editor")[0].message, /has 1 post and/, "singular");
+  assert.deepEqual(levels(acc(withForum(12, 2)), "forum-no-editor"), ["ok"]);
+  assert.match(by(acc(withForum(12, 1)), "forum-no-editor")[0].message, /12 posts and 1 editor or admin to moderate/);
+  assert.deepEqual(levels(acc({ exists: false }), "forum-no-editor"), [], "no accounts file, no forum");
+});
+
+test("npm run doctor on a real accounts file with forum posts: a warning with no editor, ok with one (round 128)", async () => {
+  const fs = await import("node:fs"), os = await import("node:os"), pathMod = await import("node:path"), { spawnSync } = await import("node:child_process"), { DatabaseSync } = await import("node:sqlite");
+  const dir = fs.mkdtempSync(pathMod.join(os.tmpdir(), "doctor-forum-"));
+  const sports = new DatabaseSync(pathMod.join(dir, "ringside.db")); sports.exec("CREATE TABLE boxers (id INTEGER); CREATE TABLE events (id INTEGER); CREATE TABLE bouts (id INTEGER); INSERT INTO boxers VALUES (1); INSERT INTO events VALUES (1); INSERT INTO bouts VALUES (1);"); sports.close();
+  const accFile = pathMod.join(dir, "accounts.db"), db = new DatabaseSync(accFile);
+  db.exec("CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT, role TEXT NOT NULL DEFAULT 'user', disabled INTEGER NOT NULL DEFAULT 0); CREATE TABLE sessions (token_hash TEXT); CREATE TABLE picks (user_id INTEGER); CREATE TABLE forum_posts (id INTEGER PRIMARY KEY, body TEXT);");
+  db.exec("INSERT INTO users (username, role) VALUES ('fan', 'user'), ('gone_editor', 'editor'); UPDATE users SET disabled = 1 WHERE username = 'gone_editor'; INSERT INTO forum_posts (body) VALUES ('a post'), ('another');");
+  db.close(); fs.chmodSync(accFile, 0o600);
+  const run = () => spawnSync(process.execPath, ["--import", "tsx", "scripts/doctor.ts"], { cwd: pathMod.resolve(__dirname, ".."), env: { ...process.env, DATABASE_PATH: pathMod.join(dir, "ringside.db"), ACCOUNTS_DB_PATH: accFile, BOXING_PROVIDER: "", RINGSIDE_NO_SEED: "1" }, encoding: "utf8" });
+  let out = run().stdout;
+  assert.match(out, /WARN\s+The forum has 2 posts and no account is an editor or admin/, "the only editor is disabled: the same as none");
+  const w = new DatabaseSync(accFile); w.exec("UPDATE users SET disabled = 0 WHERE username = 'gone_editor'"); w.close();
+  out = run().stdout;
+  assert.match(out, /ok\s+The forum has 2 posts and 1 editor or admin to moderate them/);
+  fs.rmSync(dir, { recursive: true, force: true });
+});

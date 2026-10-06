@@ -130,7 +130,7 @@ export function envFindings(env: Env, nodeVersion = process.versions.node, produ
   return out;
 }
 
-export interface DbFacts { exists: boolean; bytes?: number; mode?: number; quickCheck?: string; tables?: string[]; rows?: Record<string, number>; error?: string; /** the newest load or update of the sports data (lib/freshness.ts) */ lastUpdate?: { at: string; provider: string } | null }
+export interface DbFacts { exists: boolean; bytes?: number; mode?: number; quickCheck?: string; tables?: string[]; rows?: Record<string, number>; /** accounts database only: how many accounts are editors or admins */ editors?: number; error?: string; /** the newest load or update of the sports data (lib/freshness.ts) */ lastUpdate?: { at: string; provider: string } | null }
 export interface Probe {
   dir(p: string): { exists: boolean; writable: boolean };
   db(p: string, tables: string[]): DbFacts;
@@ -140,7 +140,7 @@ export interface Probe {
   freeBytes(p: string): number | null;
 }
 
-export const SPORTS_TABLES = ["boxers", "events", "bouts"], ACCOUNT_TABLES = ["users", "sessions", "picks"];
+export const SPORTS_TABLES = ["boxers", "events", "bouts"], ACCOUNT_TABLES = ["users", "sessions", "picks", "forum_posts"];
 
 const paths = (env: Env, cwd: string) => {
   const db = env.DATABASE_PATH?.trim() || path.join(cwd, "data", "ringside.db");
@@ -188,6 +188,12 @@ export function fileFindings(env: Env, probe: Probe, o: { cwd?: string; now?: Da
   else if (acc.error || (acc.quickCheck && acc.quickCheck !== "ok")) out.push(f("fail", "accounts-db", `${p.accounts} cannot be read cleanly (${acc.error ?? acc.quickCheck}).`, "Restore the newest verified backup."));
   else {
     out.push(f("ok", "accounts-db", `${p.accounts}: ${acc.rows?.users ?? 0} accounts, integrity ok.`));
+    // a forum with posts and nobody who can hide one: the only protection left is the automatic hide at four reports
+    const posts = acc.rows?.forum_posts ?? 0;
+    if (posts > 0) {
+      if ((acc.editors ?? 0) === 0) out.push(f("warn", "forum-no-editor", `The forum has ${posts} post${posts === 1 ? "" : "s"} and no account is an editor or admin: nobody can hide a post, lock a thread or read the reports queue.`, "Make someone an editor: npm run accounts -- role NAME editor (the account must exist; docs/forum.md)."));
+      else out.push(f("ok", "forum-no-editor", `The forum has ${posts} post${posts === 1 ? "" : "s"} and ${acc.editors} editor${acc.editors === 1 ? "" : "s"} or admin${acc.editors === 1 ? "" : "s"} to moderate them.`));
+    }
     if (acc.mode !== undefined && (acc.mode & 0o077) !== 0) out.push(f("warn", "accounts-perms", `${p.accounts} is readable by other users on this machine (mode ${(acc.mode & 0o777).toString(8)}); it holds password hashes and people's picks.`, `chmod 600 ${p.accounts}`));
   }
   if (acc.exists && path.dirname(p.accounts) !== path.dirname(p.db) && !env.ACCOUNTS_DB_PATH) out.push(f("info", "accounts-dir", "Accounts are in a different folder from the sports database."));

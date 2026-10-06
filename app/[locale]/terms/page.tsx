@@ -35,6 +35,12 @@ export default async function Terms() {
         <h2 id="t-acc" className={h}>{t("Accounts and contributions")}</h2>
         <p>{t("An account keeps your picks and watchlist. If you propose an edit, you confirm that you may share the source you give; an editor decides whether it is published. An account used to abuse the site may be closed.")}</p>
       </section>
+      <section aria-labelledby="t-forum" className="space-y-1.5">
+        <h2 id="t-forum" className={h}>{t("Forum posts")}</h2>
+        <p>{t("The forum is for talking about boxing. Posts are written by the people who sign in, not by Ringside, and each author is responsible for what they write. Do not post anything unlawful or abusive, or anything you have no right to post.")}</p>
+        <p>{t("By posting you allow Ringside to show your post on the site for as long as it is there. Editors can hide or remove posts, and anyone with an account can report one. You can delete your own posts at any time, and deleting your account removes them.")}</p>
+        <p>{t.rich("The <a>forum rules</a> say what is allowed and how often.", { a: (c) => <Link href="/forum/rules" className="underline decoration-dotted hover:text-gold">{c}</Link> })}</p>
+      </section>
       <section aria-labelledby="t-none" className="space-y-1.5">
         <h2 id="t-none" className={h}>{t("No guarantee")}</h2>
         <p>{t("The site is provided as it is, and may be unavailable or wrong at times.")}</p>

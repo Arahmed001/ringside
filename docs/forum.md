@@ -46,10 +46,10 @@ No notifications, no mentions, no search of posts, no pictures, no replies-to-a-
 
 ## Opening it to the public: the owner's decisions
 
-1. **A clause for the Terms page** (the Terms page is another session's; this is a draft for the owner or a lawyer, not legal advice): *"Posts in the forum are written by their authors. You are responsible for what you write, and you must not post anything unlawful, abusive, or that you have no right to post. By posting you allow Ringside to show your post on the site for as long as it is there. Editors may hide or remove posts. You can delete your own posts at any time, and deleting your account removes them."*
+1. **The Terms clause** is on the Terms page now ("Forum posts", in the same small print, linked to the rules; the draft wording below is what it says). It is a plain-language draft, not legal advice: have the owner or a lawyer read it before the forum is announced. The draft:
 2. **The menu.** The forum is reachable (from every fighter and fight page, which end with its discussion, and by address) but is off the menu and the footer. To put it in the menu, move `"/forum"` from `OFF_NAV` into a group of `NAV_GROUPS` in `lib/nav.ts` (a test keeps menu entries and the smoke list in step).
 3. **Search engines.** Every forum page and answer is `noindex`. Leave it until the forum has some history and an editor has used the queue; indexing would be a deliberate change in `generateMetadata` of the forum pages and the answers' header in `lib/forum/http.ts`.
-4. **Who moderates.** `npm run accounts -- role <name> editor` (the existing command for making an editor). With no editor, the only protection is the automatic hiding at four reports.
+4. **Who moderates.** `npm run accounts -- role <name> editor` (the existing command for making an editor). With no editor, the only protection is the automatic hiding at four reports. `npm run doctor` now says so: once the forum has a post and no editor or admin account that is enabled, it warns, with that command as the fix.
 5. **Links.** Not allowed at all for now. If you want them, the change is the `LINK` rule in `lib/forum/rules.ts` (and the sentence on the rules page); nothing else.
 
 

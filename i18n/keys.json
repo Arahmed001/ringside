@@ -3566,6 +3566,12 @@
   ]
  },
  {
+  "key": "By posting you allow Ringside to show your post on the site for as long as it is there. Editors can hide or remove posts, and anyone with an account can report one. You can delete your own posts at any time, and deleting your account removes them.",
+  "files": [
+   "app/[locale]/terms/page.tsx"
+  ]
+ },
+ {
   "key": "By rating gap",
   "files": [
    "app/[locale]/analytics/page.tsx"
@@ -6139,6 +6145,12 @@
   "files": [
    "app/[locale]/review/forum/page.tsx",
    "app/[locale]/review/reports/page.tsx"
+  ]
+ },
+ {
+  "key": "Forum posts",
+  "files": [
+   "app/[locale]/terms/page.tsx"
   ]
  },
  {
@@ -12288,6 +12300,12 @@
   ]
  },
  {
+  "key": "The <a>forum rules</a> say what is allowed and how often.",
+  "files": [
+   "app/[locale]/terms/page.tsx"
+  ]
+ },
+ {
   "key": "The <c>OpenAPI</c> description",
   "files": [
    "app/[locale]/developers/page.tsx"
@@ -12573,6 +12591,12 @@
   "key": "The first time {name} has been stopped in {n} fights.",
   "files": [
    "lib/recap.ts"
+  ]
+ },
+ {
+  "key": "The forum is for talking about boxing. Posts are written by the people who sign in, not by Ringside, and each author is responsible for what they write. Do not post anything unlawful or abusive, or anything you have no right to post.",
+  "files": [
+   "app/[locale]/terms/page.tsx"
   ]
  },
  {

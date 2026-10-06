@@ -30,7 +30,9 @@ const probe: Probe = {
         const have = (db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all() as { name: string }[]).map((r) => r.name);
         const rows: Record<string, number> = {};
         for (const t of tables) if (have.includes(t)) rows[t] = (db.prepare(`SELECT COUNT(*) c FROM "${t}"`).get() as { c: number }).c;
-        return { exists: true, bytes: st.size, mode: st.mode, quickCheck, tables: have, rows, lastUpdate: have.includes("ingest_runs") ? latestUpdate(db) : null };
+        let editors: number | undefined; // optional: an older or minimal accounts file without these columns is still a readable file
+        try { editors = (db.prepare("SELECT COUNT(*) c FROM users WHERE role IN ('editor','admin') AND disabled = 0").get() as { c: number }).c; } catch { /* no such column */ }
+        return { exists: true, bytes: st.size, mode: st.mode, quickCheck, tables: have, rows, editors, lastUpdate: have.includes("ingest_runs") ? latestUpdate(db) : null };
       } finally { db.close(); }
     } catch (e) { return { exists: true, error: (e as Error).message.slice(0, 120) }; }
   },

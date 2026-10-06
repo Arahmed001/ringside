@@ -33,3 +33,13 @@ test("the footer links to it, the sitemap lists it, and it is a known page outsi
   assert.match(fs.readFileSync(path.join(root, "lib", "sitemap.ts"), "utf8"), /"\/terms"/);
   assert.ok(OFF_NAV.includes("/terms"));
 });
+
+test("the Terms page has a forum clause: authors are responsible, what posting allows, editors, deletion, and a link to the rules; in small print like the rest (round 128)", () => {
+  const src = fs.readFileSync(path.join(root, TERMS), "utf8");
+  assert.match(src, /<h2 id="t-forum"/); assert.match(src, /aria-labelledby="t-forum"/);
+  for (const phrase of ["each author is responsible for what they write", "By posting you allow Ringside to show your post", "Editors can hide or remove posts", "deleting your account removes them"]) assert.ok(src.includes(phrase), phrase);
+  assert.match(src, /href="\/forum\/rules"/, "the rules are one click away");
+  assert.ok(src.indexOf('id="t-forum"') > src.indexOf('id="t-acc"') && src.indexOf('id="t-forum"') < src.indexOf('id="t-none"'), "after accounts and contributions, before the disclaimer");
+  const forumRules = fs.readFileSync(path.join(root, "app", "[locale]", "forum", "rules", "page.tsx"), "utf8");
+  assert.match(forumRules, /href="\/privacy"/, "and the rules point back at what is kept (privacy)");
+});
