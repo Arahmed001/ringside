@@ -186,7 +186,8 @@ export async function getDb(): Promise<DatabaseSync> {
   if (!g.__ringsideDb) {
     fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
     const db = new DatabaseSync(DB_PATH);
-    db.exec("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
+    // busy_timeout: a writer that meets another (the nightly update and the site both write now and then) waits a few seconds for it instead of failing at once with "database is locked"
+    db.exec("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;");
     db.exec(SCHEMA);
     // Tiny forward-only migration for databases created before a column existed.
     const cols = (db.prepare("PRAGMA table_info(boxers)").all() as { name: string }[]).map((c) => c.name);
