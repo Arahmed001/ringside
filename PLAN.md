@@ -1258,7 +1258,7 @@ The real league is loaded twice into one database (a partial load, then the comp
 - Accepted corrections are still put back over all of this after every ingest, as before. Ratings are recomputed after each load.
 - Test: `tests/reload-updates-fighters.test.ts` (fails if any of the five fields is made sticky again, or if "Unknown" is allowed to overwrite a country).
 
-## 186. Real fighters without a photo get a silhouette, not an invented face (2026-10-06)
+## 189. Real fighters without a photo get a silhouette, not an invented face (2026-10-06)
 The illustrated portraits take their skin tone, hair, beard, age and facial features from a hash of the fighter's name. That is harmless for the fictional demo league and wrong for real people: about 80% of a real league has no free-licensed photo (18% of the 19,641 staged Wikidata boxers have one), and each would have been shown an invented face, captioned "Portrait of {name}", against DESIGN.md's rule that generated art must never look like a real person's likeness.
 - `portraitSvg()` in `lib/art.ts` (the one place every generated portrait comes from) now returns a neutral silhouette when the site is not on the demo provider: head and shoulders, white at 16% on the division's background, the same 120×150 box, nothing that varies with the person. The demo keeps its illustrations.
 - `components/Portrait.tsx`: the placeholder has an empty `alt` (decoration: the name is beside it); the illustration is still described; a real photo is still described by the name.
