@@ -1,5 +1,5 @@
 import { EmbedBuilder } from "@/components/EmbedBuilder";
-import { DIVISIONS, slugifyDivision } from "@/lib/divisions";
+import { DIVISIONS_HEAVIEST_FIRST, slugifyDivision } from "@/lib/divisions";
 import { getT } from "@/lib/i18n/server";
 import { msg } from "@/lib/i18n/t";
 import { API_DEFAULT_LIMIT, API_MAX_LIMIT, publicApiGate } from "@/lib/public-api";
@@ -36,7 +36,7 @@ export default async function Developers() {
   );
   // technical words stay English in both languages: marked as such, so a screen reader says them in English and the Arabic page is not flagged for them
   const c = (chunks: React.ReactNode) => <code lang="en" dir="ltr" className="rounded bg-panel2 px-1 py-0.5 text-xs">{chunks}</code>;
-  const divisions = DIVISIONS.map((d) => ({ slug: slugifyDivision(d.name), label: t(d.name) }));
+  const divisions = DIVISIONS_HEAVIEST_FIRST.map((d) => ({ slug: slugifyDivision(d.name), label: t(d.name) }));
   return (
     <div className="max-w-3xl space-y-10">
       <div>

@@ -32,6 +32,9 @@ export const DIVISIONS: Division[] = [
 ];
 
 export const DIVISION_NAMES = DIVISIONS.map((d) => d.name);
+/** For anything shown as a list of weight classes: heavyweight first, down to minimumweight (DIVISIONS itself stays lightest to heaviest, which the logic indexes). */
+export const DIVISIONS_HEAVIEST_FIRST: Division[] = [...DIVISIONS].reverse();
+export const DIVISION_NAMES_HEAVIEST_FIRST = DIVISIONS_HEAVIEST_FIRST.map((d) => d.name);
 const byName = new Map(DIVISIONS.map((d) => [d.name.toLowerCase(), d]));
 const byAlias = new Map<string, Division>();
 for (const d of DIVISIONS) for (const a of d.aliases) byAlias.set(a, d);

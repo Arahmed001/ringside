@@ -11,6 +11,7 @@ import { clientDict, tFor } from "@/lib/i18n/dicts";
 import { abs, indexable, isDemoData, jsonLd, siteUrl } from "@/lib/seo";
 import { vendorCredit } from "@/lib/site-info";
 import { NavGroups, Logo } from "@/components/SideNav";
+import { NavProgress } from "@/components/NavProgress";
 import { MobileMenu, RailToggle } from "@/components/RailControls";
 import { InlineScript } from "@/components/InlineScript";
 import { NAV_KEY } from "@/lib/nav";
@@ -61,6 +62,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
         <InlineScript nonce={nonce} html={`try{var n=localStorage.getItem("${NAV_KEY}");if(n==="expanded"||n==="collapsed")document.documentElement.dataset.nav=n}catch(e){}`} />
         <I18nProvider locale={locale} dict={clientDict(locale)}>
           <a href="#main" className="skip-link">{t("Skip to content")}</a>
+          <NavProgress />
           <div className="lg:flex">
             <aside className="rail sticky top-0 z-30 hidden h-screen shrink-0 flex-col border-e border-line/70 bg-bg/60 backdrop-blur-xl lg:flex">
               <div className="px-3.5 py-3"><Logo collapsible /></div>
