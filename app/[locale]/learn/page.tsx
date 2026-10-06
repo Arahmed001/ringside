@@ -37,7 +37,7 @@ export default async function Learn() {
         <div className="eyebrow mb-2">{t("New to boxing?")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase">{t("Boxing, explained")}</h1>
         <p className="mt-3 text-lg text-muted">{t("The few things this site’s numbers take for granted: how a fight is won, how to read a record and what a belt means.")}</p>
-        <p className="mt-3"><Link href="/tour" className="underline decoration-dotted hover:text-gold">{t("New to Ringside? Watch the 70-second tour")}</Link></p>
+        <p className="mt-3"><Link href="/tour" className="chip !border-gold/50 !px-3.5 !py-1.5 !text-sm !text-gold hover:!bg-gold/10"><span aria-hidden="true">▶</span>{t("New to Ringside? Watch the 70-second tour")}</Link></p>
         <nav aria-label={t("On this page")} className="mt-5 flex flex-wrap gap-2">
           {toc.map(([id, label]) => <a key={id} href={`#${id}`} className="chip transition hover:text-ink">{label}</a>)}
         </nav>
