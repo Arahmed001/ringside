@@ -76,7 +76,7 @@ export function Discussion({ target }: { target: Target }) {
           <textarea id="forum-text" value={text} onChange={(e) => setText(e.target.value)} rows={4} maxLength={POST_MAX + 200} dir="auto" className={input}
             placeholder={t("Say something about the fighter or the fight…")} aria-describedby="forum-help" />
           <div id="forum-help" className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-            <span>{t("Plain text. No links. Be decent: posts can be reported, and an editor can hide them.")}</span>
+            <span>{t("Plain text. No links. Be decent: posts can be reported, and an editor can hide them.")} <Link href="/forum/rules" className="underline decoration-dotted hover:text-ink">{t("Forum rules")}</Link></span>
             <span className="tabular" aria-hidden>{[...text].length} / {POST_MAX}</span>
           </div>
           {check?.problem && check.problem !== "too_short" && <p className="text-xs text-red-ink" role="alert">{forumExplain(t, check.problem)}</p>}

@@ -6,6 +6,7 @@ import { fmtDate } from "@/lib/format";
 import { accountsDbIfAny } from "@/lib/accounts/store";
 import { getThread } from "@/lib/forum/posts";
 import { Discussion } from "@/components/Discussion";
+import { ThreadTools } from "@/components/ThreadTools";
 
 const threadOf = (id: string) => { const acc = accountsDbIfAny(); const n = /^\d{1,9}$/.test(id) ? Number(id) : 0; const th = acc && n ? getThread(n, acc) : null; return th && th.kind === "general" ? th : null; };
 
@@ -27,6 +28,7 @@ export default async function Thread({ params }: { params: Promise<{ id: string 
         <h1 className="mt-3 font-display text-4xl font-extrabold uppercase" dir="auto">{th.title}</h1>
         <p className="mt-1 text-sm text-muted">{th.author ?? t("deleted account")} · {fmtDate(th.createdAt.slice(0, 10), { month: "short", day: "numeric", year: "numeric" }, t.locale)}</p>
       </div>
+      <ThreadTools id={th.id} locked={th.locked} />
       <Discussion target={{ threadId: th.id }} />
     </div>
   );

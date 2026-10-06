@@ -56,3 +56,16 @@ test("every refusal the forum can make has words, in English and in Arabic, and 
   const all = [...union.matchAll(/"([a-z_]+)"/g)].map((m) => m[1]).filter((c) => c !== "bad_reason");
   for (const c of all) assert.ok(codes.includes(c), `${c} can be returned by the server but the page has no words for it`);
 });
+
+test("the rules page reads its numbers from the rules the server enforces, the editors' page and tools are for editors, and the pages are reachable but not in the menu (round 127)", () => {
+  const rules = read("app/[locale]/forum/rules/page.tsx");
+  for (const used of ["POST_MAX", "NEW_ACCOUNT_WAIT_MS", "NEW_ACCOUNT_DAILY", "POSTS_PER_USER", "THREADS_PER_USER", "AUTO_HIDE_REPORTS", "EDIT_WINDOW_MS"]) assert.ok(rules.includes(used), `the rules page does not use ${used}`);
+  assert.ok(!/\b(2000|2,000|15 minutes|5 minutes|four|ten posts)\b/i.test(rules.replace(/t\("[^"]*"/g, "")), "a number written into the page that the code owns");
+  assert.match(rules, /noindex: true/);
+  const q = read("components/ForumQueue.tsx"), tools = read("components/ThreadTools.tsx");
+  assert.match(q, /me\?\.role === "editor" \|\| me\?\.role === "admin"/); assert.match(tools, /me\?\.role !== "editor" && me\?\.role !== "admin"\) return null/, "the thread tools are not even drawn for anyone else");
+  assert.match(read("app/[locale]/review/forum/page.tsx"), /noindex: true/);
+  for (const p of ["/forum", "/forum/rules", "/review/forum"]) assert.ok(OFF_NAV.includes(p), `${p} is off the menu for now`);
+  assert.match(read("app/[locale]/forum/[id]/page.tsx"), /<ThreadTools id=\{th\.id\} locked=\{th\.locked\} \/>/);
+  assert.match(read("components/Discussion.tsx"), /href="\/forum\/rules"/, "the composer links the rules");
+});

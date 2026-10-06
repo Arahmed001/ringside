@@ -219,3 +219,32 @@ test("deleting an account wipes what the person wrote in the forum, keeps the pl
   assert.equal(c.F.listPosts(tid, null, 0, c.acc).posts.length, 2, "the reply that was theirs to answer is still there");
   assert.equal(JSON.stringify(c.acc.prepare("SELECT * FROM forum_reports").all()).includes("my private note"), true, "someone else's report note is untouched");
 });
+
+test("what an editor sees (round 127): reported posts most reported first, the newest posts with hidden ones' words, hidden threads, and where each belongs", async () => {
+  const r1 = await say(alice, "A post about the fighter that people will report."); const id1 = (r1 as { id: number }).id;
+  const g = c.F.startThread(bob, "Heavyweights of the decade", "Who deserves the top spot and why?", "10.0.0.2", c.acc, T0 + MIN) as { ok: true; threadId: number; postId: number };
+  const r3 = c.F.addPost(alice, { threadId: g.threadId }, "My choice is the one with the best jab.", "10.0.0.1", c.main, c.acc, T0 + 2 * MIN) as { ok: true; id: number };
+  const reporters = [await c.mk(`q1_${n}`, "user"), await c.mk(`q2_${n}`, "user")];
+  for (const u of reporters) c.F.reportPost(u, id1, "spam", null, c.acc, T0);
+  c.F.reportPost(reporters[0], r3.id, "off_topic", null, c.acc, T0);
+  assert.deepEqual(c.F.reportQueue(bob, c.acc), { ok: false, error: "forbidden" }); assert.deepEqual(c.F.recentForEditors(bob, c.acc), { ok: false, error: "forbidden" });
+  const q = c.F.reportQueue(eddie, c.acc); assert.ok(q.ok);
+  const items = (q as { items: { postId: number; reports: number; reasons: string[]; kind: "boxer" | "bout" | "general"; subject: string | null; threadTitle: string | null }[] }).items;
+  assert.deepEqual(items.map((i) => [i.postId, i.reports]), [[id1, 2], [r3.id, 1]], "most reported first");
+  assert.deepEqual(items[0].reasons, ["spam"]); assert.equal(items[0].kind, "boxer"); assert.ok(items[0].subject); assert.equal(items[1].kind, "general"); assert.equal(items[1].threadTitle, "Heavyweights of the decade");
+  const w0 = c.F.whereIs(c.main, { ...items[0], threadId: 1 }), w1 = c.F.whereIs(c.main, { ...items[1], threadId: g.threadId });
+  assert.equal(w0.path, `/boxers/${c.slug}`); assert.ok(w0.label.length > 0); assert.deepEqual(w1, { path: `/forum/${g.threadId}`, label: "Heavyweights of the decade" });
+  const bout = c.F.addPost(alice, { kind: "bout", subject: c.boutId }, "A fight with a lot to say about it.", "10.0.0.1", c.main, c.acc, T0 + 3 * MIN) as { ok: true; id: number; threadId: number };
+  const bq = c.F.recentForEditors(eddie, c.acc) as { ok: true; posts: { postId: number; kind: string; subject: string | null; threadId: number; threadTitle: string | null }[]; hiddenThreads: unknown[] };
+  assert.deepEqual(bq.posts.map((p) => p.postId), [bout.id, r3.id, (g as { postId: number }).postId, id1], "newest first");
+  const bw = c.F.whereIs(c.main, { ...bq.posts[0], kind: "bout" }); assert.equal(bw.path, `/bouts/${c.boutId}`);
+  c.F.moderatePost(eddie, id1, "hide", "Spam.", c.acc, T0 + 4 * MIN);
+  const after = c.F.recentForEditors(eddie, c.acc) as { ok: true; posts: { postId: number; body: string; status: string }[] };
+  const hid = after.posts.find((p) => p.postId === id1)!; assert.equal(hid.status, "hidden"); assert.equal(hid.body, "A post about the fighter that people will report.", "an editor reads what was hidden");
+  assert.equal(c.F.reportQueue(eddie, c.acc).ok && (c.F.reportQueue(eddie, c.acc) as { items: { postId: number }[] }).items.some((i) => i.postId === id1), false, "hiding settles its reports");
+  c.F.moderateThread(eddie, g.threadId, "hide", c.acc);
+  const th = (c.F.recentForEditors(eddie, c.acc) as { hiddenThreads: { id: number; title: string }[] }).hiddenThreads; assert.deepEqual(th.map((x) => [x.id, x.title]), [[g.threadId, "Heavyweights of the decade"]]);
+  c.F.moderateThread(eddie, g.threadId, "show", c.acc); assert.equal((c.F.recentForEditors(eddie, c.acc) as { hiddenThreads: unknown[] }).hiddenThreads.length, 0);
+  c.F.deleteOwnPost(alice, bout.id, c.acc);
+  assert.ok(!(c.F.recentForEditors(eddie, c.acc) as { posts: { postId: number }[] }).posts.some((p) => p.postId === bout.id), "a withdrawn post is not listed (its words are gone)");
+});

@@ -101,3 +101,13 @@ test("what is not offered: no forum page can be indexed by accident and the API 
   for (const f of files) { const s = fs.readFileSync(f, "utf8"); assert.ok(/forumFail|forumJson/.test(s) && !/return json\(|return fail\(/.test(s), `${path.relative(dir, f)} answers only through the noindex helpers`); }
   assert.match(fs.readFileSync(path.resolve(__dirname, "../lib/forum/http.ts"), "utf8"), /"x-robots-tag": "noindex, nofollow"/);
 });
+
+test("the editors' endpoints: the queue and the newest posts carry where each post belongs, for editors only (round 127)", async () => {
+  const { GET: recent } = await import("../app/api/forum/recent/route"), { GET: queue } = await import("../app/api/forum/reports/route");
+  assert.equal((await read(await recent(req("/api/forum/recent")))).status, 401); assert.equal((await read(await recent(req("/api/forum/recent", { cookie: cookieUser })))).status, 403);
+  const r = await read(await recent(req("/api/forum/recent", { cookie: cookieEditor }))); assert.equal(r.status, 200); assert.match(r.noindex ?? "", /noindex/);
+  const posts = r.body.posts as { where: { path: string; label: string }; body: string }[];
+  assert.ok(posts.length >= 1 && posts.every((p) => typeof p.where.path === "string" && p.where.path.startsWith("/")), "every post says where it is");
+  assert.ok(Array.isArray(r.body.hiddenThreads));
+  const q = await read(await queue(req("/api/forum/reports", { cookie: cookieEditor }))); assert.ok((q.body.items as { where: unknown }[]).every((i) => !!i.where));
+});

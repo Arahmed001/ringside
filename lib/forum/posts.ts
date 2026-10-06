@@ -212,14 +212,45 @@ export function moderateThread(editor: User, id: number, action: "lock" | "unloc
   return { ok: true };
 }
 
+export interface ModItem { postId: number; threadId: number; kind: Kind; subject: string | null; threadTitle: string | null; body: string; author: string | null; status: string; reports: number; reasons: string[]; createdAt: string }
+
 /** The editor's queue: posts with open reports, most reported first, with the words and who wrote them. */
-export function reportQueue(editor: User, acc: DatabaseSync = accountsDb()): { ok: true; items: { postId: number; threadId: number; body: string; author: string | null; status: string; reports: number; reasons: string[]; createdAt: string }[] } | Fail {
+export function reportQueue(editor: User, acc: DatabaseSync = accountsDb()): { ok: true; items: ModItem[] } | Fail {
   if (!isEditor(editor)) return no("forbidden");
   const rows = acc.prepare(
-    `SELECT p.id, p.thread_id, p.body, p.status, p.created_at, u.username AS author, COUNT(r.id) AS n, GROUP_CONCAT(DISTINCT r.reason) AS reasons
-     FROM forum_reports r JOIN forum_posts p ON p.id = r.post_id LEFT JOIN users u ON u.id = p.user_id WHERE r.status = 'open'
-     GROUP BY p.id ORDER BY n DESC, p.id LIMIT 100`).all() as { id: number; thread_id: number; body: string; status: string; created_at: string; author: string | null; n: number; reasons: string }[];
-  return { ok: true, items: rows.map((r) => ({ postId: r.id, threadId: r.thread_id, body: r.body, author: r.author, status: r.status, reports: r.n, reasons: r.reasons.split(","), createdAt: r.created_at })) };
+    `SELECT p.id, p.thread_id, p.body, p.status, p.created_at, u.username AS author, t.kind, t.subject_ext, t.title, COUNT(r.id) AS n, GROUP_CONCAT(DISTINCT r.reason) AS reasons
+     FROM forum_reports r JOIN forum_posts p ON p.id = r.post_id JOIN forum_threads t ON t.id = p.thread_id LEFT JOIN users u ON u.id = p.user_id WHERE r.status = 'open'
+     GROUP BY p.id ORDER BY n DESC, p.id LIMIT 100`).all() as Record<string, unknown>[];
+  return { ok: true, items: rows.map(modItem) };
+}
+const modItem = (r: Record<string, unknown>): ModItem => ({
+  postId: r.id as number, threadId: r.thread_id as number, kind: r.kind as Kind, subject: (r.subject_ext as string | null) ?? null, threadTitle: (r.title as string | null) ?? null, body: r.body as string,
+  author: (r.author as string | null) ?? null, status: r.status as string, reports: (r.n as number) ?? 0, reasons: typeof r.reasons === "string" && r.reasons ? r.reasons.split(",") : [], createdAt: r.created_at as string,
+});
+
+/** The newest posts, hidden ones included, for an editor who wants to look without waiting for a report; and the threads that are hidden, so they can be shown again. */
+export function recentForEditors(editor: User, acc: DatabaseSync = accountsDb(), limit = 50): { ok: true; posts: ModItem[]; hiddenThreads: { id: number; title: string | null; kind: Kind }[] } | Fail {
+  if (!isEditor(editor)) return no("forbidden");
+  const rows = acc.prepare(
+    `SELECT p.id, p.thread_id, p.body, p.status, p.created_at, u.username AS author, t.kind, t.subject_ext, t.title,
+       (SELECT COUNT(*) FROM forum_reports r WHERE r.post_id = p.id AND r.status = 'open') AS n,
+       (SELECT GROUP_CONCAT(DISTINCT r.reason) FROM forum_reports r WHERE r.post_id = p.id AND r.status = 'open') AS reasons
+     FROM forum_posts p JOIN forum_threads t ON t.id = p.thread_id LEFT JOIN users u ON u.id = p.user_id WHERE p.status <> 'deleted' ORDER BY p.id DESC LIMIT ?`).all(Math.min(200, Math.max(1, limit))) as Record<string, unknown>[];
+  const hidden = acc.prepare("SELECT id, title, kind FROM forum_threads WHERE hidden = 1 ORDER BY id DESC LIMIT 50").all() as { id: number; title: string | null; kind: Kind }[];
+  return { ok: true, posts: rows.map(modItem), hiddenThreads: hidden.map((h) => ({ ...h })) };
+}
+
+/** Where a thread belongs, for a link: the fighter's page, the fight's page, or the thread on the general board. */
+export function whereIs(main: DatabaseSync, item: { kind: Kind; subject: string | null; threadId: number; threadTitle: string | null }): { path: string; label: string } {
+  if (item.kind === "boxer" && item.subject) {
+    const b = main.prepare("SELECT slug, name FROM boxers WHERE external_id = ?").get(item.subject) as { slug: string; name: string } | undefined;
+    if (b) return { path: `/boxers/${b.slug}`, label: b.name };
+  }
+  if (item.kind === "bout" && item.subject) {
+    const b = main.prepare("SELECT id FROM bouts WHERE external_id = ?").get(item.subject) as { id: number } | undefined;
+    if (b) return { path: `/bouts/${b.id}`, label: `#${b.id}` };
+  }
+  return { path: `/forum/${item.threadId}`, label: item.threadTitle ?? "" };
 }
 
 /** What deleting an account does to what the person wrote: the words are wiped (the places stay, so replies still read), and notes on reports are cleared. */

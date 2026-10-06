@@ -740,7 +740,8 @@
  {
   "key": "{n} open reports",
   "files": [
-   "components/Discussion.tsx"
+   "components/Discussion.tsx",
+   "components/ForumQueue.tsx"
   ]
  },
  {
@@ -1777,6 +1778,12 @@
   ]
  },
  {
+  "key": "← The forum",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
+  ]
+ },
+ {
   "key": "+{n} lb",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
@@ -2322,7 +2329,8 @@
  {
   "key": "Abuse or harassment",
   "files": [
-   "components/Discussion.tsx"
+   "components/Discussion.tsx",
+   "components/ForumQueue.tsx"
   ]
  },
  {
@@ -2684,6 +2692,12 @@
   ]
  },
  {
+  "key": "An account under a day old can post {n} times a day.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
+  ]
+ },
+ {
   "key": "An administrator has confirmed that you are, or act for, these fighters. Your corrections to their own details (not to fights) are applied at once, without a source.",
   "files": [
    "components/ReportForm.tsx"
@@ -2762,6 +2776,12 @@
   "key": "Anyone signed in can suggest an edit with a source; an editor checks it first. Approved edits are marked as community edits with their link.",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Anyone with an account can report a post. When {n} different people report one, it is hidden until an editor looks at it.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
   ]
  },
  {
@@ -2931,6 +2951,12 @@
   ]
  },
  {
+  "key": "At most {posts} posts in {minutes} minutes, and {threads} new threads a day.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
+  ]
+ },
+ {
   "key": "At the heavier division’s limit",
   "files": [
    "lib/matchmaking.ts"
@@ -3059,6 +3085,12 @@
   "key": "Basis",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Be decent. Argue about the fight, not the person. No harassment, hate, threats, or other people’s private details.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
   ]
  },
  {
@@ -4475,13 +4507,20 @@
   "files": [
    "app/[locale]/forum/[id]/page.tsx",
    "app/[locale]/forum/page.tsx",
-   "components/Discussion.tsx"
+   "components/Discussion.tsx",
+   "components/ForumQueue.tsx"
   ]
  },
  {
   "key": "Deleted.",
   "files": [
    "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "Deleting your account wipes everything you wrote here. The privacy page says what is kept until then.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
   ]
  },
  {
@@ -4555,6 +4594,12 @@
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Dismiss the reports",
+  "files": [
+   "components/ForumQueue.tsx"
   ]
  },
  {
@@ -4853,6 +4898,12 @@
   ]
  },
  {
+  "key": "Editor tools",
+  "files": [
+   "components/ThreadTools.tsx"
+  ]
+ },
+ {
   "key": "Editor’s note: {note}",
   "files": [
    "components/ContributeForm.tsx",
@@ -4863,6 +4914,7 @@
   "key": "Editors",
   "files": [
    "app/[locale]/data/page.tsx",
+   "app/[locale]/review/forum/page.tsx",
    "app/[locale]/review/page.tsx",
    "app/[locale]/review/reports/page.tsx"
   ]
@@ -4871,6 +4923,12 @@
   "key": "Editors and administrators: proposals and reports you send, with your name and any contact you gave, so they can follow them up.",
   "files": [
    "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "Editors can hide or restore a post and lock or hide a thread. A hidden post keeps its place, but its words and its author are not shown. Every action is logged.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
   ]
  },
  {
@@ -4883,6 +4941,12 @@
   "key": "Editors check suggested team-history edits against their sources.",
   "files": [
    "app/[locale]/review/page.tsx"
+  ]
+ },
+ {
+  "key": "Editors look at reported forum posts and the newest posts, and hide or restore them.",
+  "files": [
+   "app/[locale]/review/forum/page.tsx"
   ]
  },
  {
@@ -6053,6 +6117,22 @@
   ]
  },
  {
+  "key": "Forum moderation",
+  "files": [
+   "app/[locale]/review/forum/page.tsx",
+   "app/[locale]/review/reports/page.tsx"
+  ]
+ },
+ {
+  "key": "Forum rules",
+  "files": [
+   "app/[locale]/forum/page.tsx",
+   "app/[locale]/forum/rules/page.tsx",
+   "app/[locale]/review/forum/page.tsx",
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "Fought in",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -6455,15 +6535,35 @@
   ]
  },
  {
+  "key": "hidden",
+  "files": [
+   "components/ForumQueue.tsx"
+  ]
+ },
+ {
+  "key": "Hidden threads",
+  "files": [
+   "components/ForumQueue.tsx"
+  ]
+ },
+ {
   "key": "Hidden.",
   "files": [
-   "components/Discussion.tsx"
+   "components/Discussion.tsx",
+   "components/ForumQueue.tsx"
   ]
  },
  {
   "key": "Hide",
   "files": [
-   "components/Discussion.tsx"
+   "components/Discussion.tsx",
+   "components/ForumQueue.tsx"
+  ]
+ },
+ {
+  "key": "Hide the thread",
+  "files": [
+   "components/ThreadTools.tsx"
   ]
  },
  {
@@ -7457,9 +7557,16 @@
   "files": [
    "components/AccountPanel.tsx",
    "components/ContributeForm.tsx",
+   "components/ForumQueue.tsx",
    "components/ReportForm.tsx",
    "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Lock the thread",
+  "files": [
+   "components/ThreadTools.tsx"
   ]
  },
  {
@@ -8205,6 +8312,12 @@
   ]
  },
  {
+  "key": "Newest posts",
+  "files": [
+   "components/ForumQueue.tsx"
+  ]
+ },
+ {
   "key": "Next card: {event}, {date}.",
   "files": [
    "app/[locale]/tonight/page.tsx"
@@ -8444,6 +8557,12 @@
   ]
  },
  {
+  "key": "No links, and no long numbers such as phone numbers. Most unwanted posts are links, so none are allowed for now.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
+  ]
+ },
+ {
   "key": "No live champions found there.",
   "files": [
    "lib/ask/tools.ts"
@@ -8477,6 +8596,12 @@
   "key": "No pick made",
   "files": [
    "components/TonightBoard.tsx"
+  ]
+ },
+ {
+  "key": "No posts yet.",
+  "files": [
+   "components/ForumQueue.tsx"
   ]
  },
  {
@@ -8789,6 +8914,12 @@
   ]
  },
  {
+  "key": "Nothing is waiting: no post has an open report.",
+  "files": [
+   "components/ForumQueue.tsx"
+  ]
+ },
+ {
   "key": "Nothing is waiting.",
   "files": [
    "components/ReportQueue.tsx",
@@ -8853,7 +8984,8 @@
  {
   "key": "Off topic",
   "files": [
-   "components/Discussion.tsx"
+   "components/Discussion.tsx",
+   "components/ForumQueue.tsx"
   ]
  },
  {
@@ -9021,6 +9153,12 @@
   "key": "Only cards with figures on file are counted, so a year can look small because data is thin, not because the money was.",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "Only editors can moderate the forum.",
+  "files": [
+   "components/ForumQueue.tsx"
   ]
  },
  {
@@ -9474,6 +9612,12 @@
   ]
  },
  {
+  "key": "Plain text, up to {n} characters. No formatting.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
+  ]
+ },
+ {
   "key": "Plain text. No links. Be decent: posts can be reported, and an editor can hide them.",
   "files": [
    "components/Discussion.tsx",
@@ -9539,6 +9683,18 @@
   "plural": "Postponed · now {n} day away",
   "files": [
    "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Posts are not shown to search engines.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
+  ]
+ },
+ {
+  "key": "Posts that people reported come first. Hiding a post keeps its place and removes its words and its author from view; restoring puts it back. Every action is written to the activity log.",
+  "files": [
+   "app/[locale]/review/forum/page.tsx"
   ]
  },
  {
@@ -9686,6 +9842,7 @@
  {
   "key": "Privacy",
   "files": [
+   "app/[locale]/forum/rules/page.tsx",
    "app/[locale]/layout.tsx",
    "app/[locale]/privacy/page.tsx",
    "components/AccountPanel.tsx",
@@ -10339,6 +10496,12 @@
   ]
  },
  {
+  "key": "Reported posts",
+  "files": [
+   "components/ForumQueue.tsx"
+  ]
+ },
+ {
   "key": "Reported. Thank you.",
   "files": [
    "components/Discussion.tsx"
@@ -10365,8 +10528,15 @@
  {
   "key": "Reports of mistakes",
   "files": [
+   "app/[locale]/review/forum/page.tsx",
    "app/[locale]/review/page.tsx",
    "app/[locale]/review/reports/page.tsx"
+  ]
+ },
+ {
+  "key": "Reports, hiding and your own posts",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
   ]
  },
  {
@@ -10390,13 +10560,15 @@
  {
   "key": "Restore",
   "files": [
-   "components/Discussion.tsx"
+   "components/Discussion.tsx",
+   "components/ForumQueue.tsx"
   ]
  },
  {
   "key": "Restored.",
   "files": [
-   "components/Discussion.tsx"
+   "components/Discussion.tsx",
+   "components/ForumQueue.tsx"
   ]
  },
  {
@@ -10992,6 +11164,12 @@
   ]
  },
  {
+  "key": "Short, so they can be kept. The forum is for talking about boxing, fighters and fights.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
+  ]
+ },
+ {
   "key": "Should be",
   "files": [
    "components/ReportQueue.tsx"
@@ -11001,6 +11179,12 @@
   "key": "Show",
   "files": [
    "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Show again",
+  "files": [
+   "components/ForumQueue.tsx"
   ]
  },
  {
@@ -11077,6 +11261,12 @@
   ]
  },
  {
+  "key": "Shown again.",
+  "files": [
+   "components/ForumQueue.tsx"
+  ]
+ },
+ {
   "key": "shown, labelled, when Ringside holds fewer fights than that",
   "files": [
    "lib/coverage.ts"
@@ -11104,6 +11294,12 @@
   ]
  },
  {
+  "key": "Sign in as an editor to moderate the forum.",
+  "files": [
+   "components/ForumQueue.tsx"
+  ]
+ },
+ {
   "key": "Sign in as an editor to review edits.",
   "files": [
    "components/ReviewQueue.tsx"
@@ -11127,6 +11323,7 @@
   "files": [
    "components/ContributeForm.tsx",
    "components/Discussion.tsx",
+   "components/ForumQueue.tsx",
    "components/ReportForm.tsx",
    "components/StartThread.tsx"
   ]
@@ -11325,6 +11522,7 @@
   "key": "Something else",
   "files": [
    "components/Discussion.tsx",
+   "components/ForumQueue.tsx",
    "lib/correction-text.ts"
   ]
  },
@@ -11420,7 +11618,8 @@
  {
   "key": "Spam",
   "files": [
-   "components/Discussion.tsx"
+   "components/Discussion.tsx",
+   "components/ForumQueue.tsx"
   ]
  },
  {
@@ -11515,6 +11714,12 @@
   "files": [
    "app/[locale]/boxers/page.tsx",
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Stay on boxing. Do not advertise, and do not post the same thing twice.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
   ]
  },
  {
@@ -11846,6 +12051,7 @@
  {
   "key": "Team-history edits",
   "files": [
+   "app/[locale]/review/forum/page.tsx",
    "app/[locale]/review/reports/page.tsx"
   ]
  },
@@ -13702,6 +13908,12 @@
   ]
  },
  {
+  "key": "Unlock the thread",
+  "files": [
+   "components/ThreadTools.tsx"
+  ]
+ },
+ {
   "key": "Unsupervised · PCA projection",
   "files": [
    "app/[locale]/map/page.tsx"
@@ -14195,9 +14407,27 @@
   ]
  },
  {
+  "key": "What to look at",
+  "files": [
+   "components/ForumQueue.tsx"
+  ]
+ },
+ {
   "key": "What to watch for",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "What you can write",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
+  ]
+ },
+ {
+  "key": "What you can write in the Ringside forum, how often, and what happens when a post is reported.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
   ]
  },
  {
@@ -14355,6 +14585,12 @@
   "key": "Who can see it",
   "files": [
    "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "Who can write, and how often",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
   ]
  },
  {
@@ -14929,6 +15165,12 @@
   ]
  },
  {
+  "key": "You can edit your own post for {n} minutes, and delete it at any time. Deleting wipes the words.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
+  ]
+ },
+ {
   "key": "You can propose corrections to a fighter’s team history, with a source an editor can check.",
   "files": [
    "components/AccountPanel.tsx"
@@ -14974,6 +15216,12 @@
   "key": "You have reached the limit.",
   "files": [
    "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "You need an account. A new account can post after {n} minutes.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
   ]
  },
  {

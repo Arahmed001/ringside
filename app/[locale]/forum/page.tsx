@@ -22,6 +22,7 @@ export default async function Forum({ searchParams }: { searchParams: Promise<{ 
         <div className="eyebrow mb-2">{t("Community")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase">{t("Forum")}</h1>
         <p className="mt-2 max-w-2xl text-muted">{t("Talk boxing with other fans. This is the general board. Every fighter and every fight also has its own discussion at the bottom of its page.")}</p>
+        <p className="mt-3 text-sm"><Link href="/forum/rules" className="underline decoration-dotted hover:text-ink">{t("Forum rules")}</Link></p>
       </div>
       <StartThread />
       <section>

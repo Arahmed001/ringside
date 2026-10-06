@@ -146,6 +146,8 @@ export function smokeRoutes(w: World): SmokeRoute[] {
 
   const div = boxers.find((b) => b.sex === "male")?.weightClass;
   page("/forum", "the forum board (empty, until someone writes)");
+  page("/forum/rules", "the forum rules");
+  page("/review/forum", "the forum moderation page, signed out");
   if (div) page(`/rankings/${slugifyDivision(div)}`, "division ranking");
   if (div) { for (const q of ["sort=ko&dir=desc", "sort=name", "sort=rank&dir=desc", "sort=last&dir=asc&q=a", "sort=nonsense&dir=sideways"]) page(`/rankings/${slugifyDivision(div)}?${q}`, `division ranking sorted (${q})`); }
   if (woman) page(`/rankings/${slugifyDivision(woman.weightClass)}?sex=female`, "women's division ranking");

@@ -1,4 +1,4 @@
-# The community forum (in progress: rounds 125 and 126 done; round 127 is the editors' queue page, the rules page, the privacy and terms text)
+# The community forum (built: rounds 125 to 127; not yet announced: see "Opening it to the public")
 
 Decided with the owner, 2026-10-06: **discussion on fighters and fights** (one thread under each fighter and each fight, made by the first post written there, plus a general board where people start threads), **post first, report and hide** (people post at once; anyone signed in can report; an editor hides or restores), **public to read, not indexed** (every forum answer carries `X-Robots-Tag: noindex, nofollow`, and the forum's text will be loaded by the page after it opens, never written into the HTML of a fighter's page, which search engines do index).
 
@@ -34,3 +34,19 @@ Every state-changing call needs a matching `Origin` (the same guard as the rest 
 ## Known limits, said plainly
 
 No notifications, no mentions, no search of posts, no pictures, no replies-to-a-reply (a thread is one flat list). The limits live in memory per process, like the sign-in limits. An editor is needed to deal with reports; with none, the only protection is the four-report auto-hide. The Terms page does not yet mention user posts (the owner's call: it is another session's page).
+
+
+## Round 127: the editors' side, the rules, and opening it
+
+- **`/review/forum`** (editors and admins; linked from the other review pages): *Reported posts* (most reported first, with the reasons) and *Newest posts* (hidden ones included, with their words, so an editor can judge), Hide / Restore / Dismiss the reports on each, a link to where the post is (the fighter, the fight or the thread), and the threads that are hidden with a *Show again* button. `GET /api/forum/recent` feeds the second tab.
+- **On a general thread's page** editors see *Lock / Unlock / Hide the thread*.
+- **`/forum/rules`** states the rules in words; every number on it is read from `lib/forum/rules.ts`, so it cannot drift from what the server enforces (a test fails if one is written into the page).
+- **Privacy:** the three tables are declared on the privacy page (with what deleting an account does), and the data export includes everything a person wrote and reported.
+
+## Opening it to the public: the owner's decisions
+
+1. **A clause for the Terms page** (the Terms page is another session's; this is a draft for the owner or a lawyer, not legal advice): *"Posts in the forum are written by their authors. You are responsible for what you write, and you must not post anything unlawful, abusive, or that you have no right to post. By posting you allow Ringside to show your post on the site for as long as it is there. Editors may hide or remove posts. You can delete your own posts at any time, and deleting your account removes them."*
+2. **The menu.** The forum is reachable (from every fighter and fight page, which end with its discussion, and by address) but is off the menu and the footer. To put it in the menu, move `"/forum"` from `OFF_NAV` into a group of `NAV_GROUPS` in `lib/nav.ts` (a test keeps menu entries and the smoke list in step).
+3. **Search engines.** Every forum page and answer is `noindex`. Leave it until the forum has some history and an editor has used the queue; indexing would be a deliberate change in `generateMetadata` of the forum pages and the answers' header in `lib/forum/http.ts`.
+4. **Who moderates.** `npm run accounts -- role <name> editor` (the existing command for making an editor). With no editor, the only protection is the automatic hiding at four reports.
+5. **Links.** Not allowed at all for now. If you want them, the change is the `LINK` rule in `lib/forum/rules.ts` (and the sentence on the rules page); nothing else.
