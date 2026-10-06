@@ -192,3 +192,38 @@ test("the real commands: export a sheet, import a reviewer's file, and the statu
     assert.ok(!fs.existsSync(path.join(root, "i18n", "ar.review.json")) || !JSON.parse(fs.readFileSync(path.join(root, "i18n", "ar.review.json"), "utf8")).reviews?.some((r: { by: string }) => r.by === "Test Reviewer"));
   } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
 });
+
+test("export --first N: only the N most-seen strings, in the full sheet's order, with no names unless asked for; an answer from it imports", () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "ringside-review-first-"));
+  try {
+    fs.cpSync(path.join(root, "i18n"), path.join(tmp, "i18n"), { recursive: true });
+    fs.rmSync(path.join(tmp, "i18n", "ar.review.json"), { force: true });
+    const env = { ...process.env, I18N_DIR: path.join(tmp, "i18n"), DATABASE_PATH: path.join(tmp, "none.db"), NODE_NO_WARNINGS: "1", REVIEW_OUT: path.join(tmp, "out") };
+    const run = (...a: string[]) => spawnSync("npx", ["tsx", "scripts/i18n-review.ts", ...a], { cwd: root, env, encoding: "utf8" });
+    const read = (f: string) => JSON.parse(/<script id="data" type="application\/json">([\s\S]*?)<\/script>/.exec(fs.readFileSync(f, "utf8"))![1]);
+    const full = path.join(tmp, "full.html"), part = path.join(tmp, "part.html"), withNames = path.join(tmp, "names.html");
+    assert.equal(run("export", full).status, 0);
+    const ex = run("export", part, "--first", "120");
+    assert.equal(ex.status, 0, ex.stderr);
+    assert.match(ex.stdout, /120 of \d+ strings, 0 names/);
+    const a = read(full), b = read(part);
+    assert.equal(b.entries.length, 120);
+    const needJudging = a.entries.filter((e: { key: string; ar: unknown }) => !(typeof e.ar === "string" && e.ar === e.key));
+    assert.deepEqual(b.entries.map((e: { key: string }) => e.key), needJudging.slice(0, 120).map((e: { key: string }) => e.key), "the same strings, in the same most-seen-first order, without those that are the English unchanged");
+    assert.ok(a.entries.some((e: { key: string; ar: unknown }) => typeof e.ar === "string" && e.ar === e.key), "(the full sheet does hold some of those)");
+    assert.ok(!b.entries.some((e: { key: string; ar: unknown }) => typeof e.ar === "string" && e.ar === e.key), "and the first pass holds none");
+    assert.equal(b.names.length, 0, "the names tab is left out of a first pass");
+    assert.equal(b.build, a.build, "one build tag, so an answer from either sheet imports the same way");
+    assert.equal(run("export", withNames, "--first", "120", "--names").status, 0);
+    assert.equal(read(withNames).names.length, a.names.length);
+    assert.notEqual(run("export", part, "--first", "0").status, 0, "a nonsense count is refused");
+    // an answer to the partial sheet imports like any other, and the strings it did not show stay machine-written
+    const k = b.entries.find((e: { plural: unknown; ar: unknown }) => e.plural === null && typeof e.ar === "string" && !/\{|</.test(e.ar)).key as string;
+    const f = path.join(tmp, "r.json");
+    fs.writeFileSync(f, JSON.stringify({ format: "ringside-arabic-review/1", reviewer: "T", at: "2026-10-06T09:00:00Z", build: b.build, entries: [{ key: k, status: "approved" }], names: [], glossary: [] }));
+    const im = run("import", f);
+    assert.equal(im.status, 0, im.stderr + im.stdout);
+    assert.match(im.stdout, /1 approved as they were, 0 edited, 0 flagged for discussion, 0 rejected/);
+    assert.match(run("status").stdout, new RegExp(`reviewed by a person 1, changed since review 0, machine-written ${a.entries.length - 1}`));
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
+});
