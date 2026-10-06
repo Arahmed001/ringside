@@ -25,6 +25,16 @@ export function runningBackfills(dir = process.env.RINGSIDE_LOCK_DIR ?? os.tmpdi
 function processAlive(pid: number): boolean { try { process.kill(pid, 0); return true; } catch (e) { return (e as NodeJS.ErrnoException).code === "EPERM"; } }
 
 /** What this terminal's BOXING_API_KEY looks like, never the key itself: set or not, how long, and whether it is plainly a placeholder. */
+/** Which cache to report on: the one named, else the one a running fetch was started with (its command carries --cache-dir), else the default under the current folder. */
+export function chooseCacheDir(explicit: string | undefined, running: RunningBackfill[], fallback: string): { dir: string; from: "named" | "running fetch" | "default" } {
+  if (explicit) return { dir: explicit, from: "named" };
+  for (const r of running) {
+    const m = /--cache-dir[ =]("[^"]+"|'[^']+'|\S+)/.exec(r.command);
+    if (m) return { dir: m[1].replace(/^["']|["']$/g, ""), from: "running fetch" };
+  }
+  return { dir: fallback, from: "default" };
+}
+
 export function keyState(key: string | undefined): { set: boolean; length: number; placeholder: boolean } {
   const k = key ?? "";
   return { set: k.length > 0, length: k.length, placeholder: k.length > 0 && (k.length < 30 || /\s|…|\.\.\./.test(k) || looksLikePlaceholder(k)) };

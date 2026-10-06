@@ -56,6 +56,8 @@ the list pages are kept there (that is storing, so it says "provisional" until `
 
 ### Checking a load: `npm run vendor:audit`
 
+The guided `npm run vendor:load` already runs this audit as its step 3 (exit code 4 if a check FAILS; the load itself is not undone), so you start section 4 from an audited database; run the command below to look again later.
+
 `npm run vendor:audit [-- --database FILE]` (default `~/ringside-real/real.db`) opens the database read-only and prints PASS / info / WARN / FAIL for each thing a good load must satisfy; it exits 1 when a check fails. The record check is judged from the day of the load, with the same lag window the loader used (`VENDOR_LOAD_LAG_DAYS`, 14 by default): a fighter whose last fight was that recent is left unmarked on purpose and is reported as lagging, not as a failure.
 
 ### Looking at the loaded league: `npm run vendor:site`
@@ -336,5 +338,3 @@ In a container, run it with the container's own environment: `docker exec ringsi
 | `data/vendor-cache/` or `--cache-dir` | Every API answer, as received | The vendor's data on disk: counts as storage under their terms (confirmed by the vendor, 2026-10-03). Gitignored; never commit it |
 | The database | The league, ratings, the live ledger | The ledger cannot be rebuilt: back it up and copy the backups off the volume |
 | `backups/` beside the database | Rolling copies (14) | Made before every load into a database with data |
-
-Note: `npm run vendor:load` runs `vendor:audit` as its last step (exit 4 if a check fails), so section 4 starts from an audited database.
