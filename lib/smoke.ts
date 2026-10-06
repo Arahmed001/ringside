@@ -164,6 +164,7 @@ export function smokeRoutes(w: World): SmokeRoute[] {
     out.push({ path: `/api/fighters?q=${q(star.name.slice(0, 4))}`, kind: "api", label: "api: fighter search" });
     out.push({ path: `/api/search?q=${q(star.name.slice(0, 4))}`, kind: "api", label: "api: search" });
     out.push({ path: `/api/watch?slugs=${star.slug}`, kind: "api", label: "api: watchlist" });
+    out.push({ path: `/api/fighter-card/${star.slug}?lang=ar`, kind: "api", label: "api: fighter hover card, in Arabic" });
     out.push({ path: `/api/watch/digest?slugs=${star.slug}&since=2000-01-01&lang=ar`, kind: "api", label: "api: watchlist digest, in Arabic" });
     const topDivision = slugifyDivision(star.weightClass);
     out.push({ path: "/api/v1/divisions", kind: "api", label: "public api: divisions" });

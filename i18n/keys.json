@@ -2367,7 +2367,8 @@
    "app/[locale]/boxers/page.tsx",
    "app/[locale]/countries/[slug]/opengraph-image.tsx",
    "app/[locale]/countries/[slug]/page.tsx",
-   "lib/ai.ts"
+   "lib/ai.ts",
+   "lib/fighter-card.ts"
   ]
  },
  {
@@ -6901,7 +6902,8 @@
  {
   "key": "KO%",
   "files": [
-   "app/[locale]/rankings/[division]/page.tsx"
+   "app/[locale]/rankings/[division]/page.tsx",
+   "components/HoverPreview.tsx"
   ]
  },
  {
@@ -6971,6 +6973,7 @@
   "key": "Last fight",
   "files": [
    "app/[locale]/rankings/[division]/page.tsx",
+   "components/HoverPreview.tsx",
    "components/WatchlistPage.tsx"
   ]
  },
@@ -9698,7 +9701,8 @@
  {
   "key": "Rank #{n}",
   "files": [
-   "app/embed/[locale]/fighter/[slug]/page.tsx"
+   "app/embed/[locale]/fighter/[slug]/page.tsx",
+   "components/HoverPreview.tsx"
   ]
  },
  {
@@ -9758,6 +9762,7 @@
    "app/[locale]/compare/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "app/embed/[locale]/fighter/[slug]/page.tsx",
+   "components/HoverPreview.tsx",
    "components/MatchupLab.tsx",
    "components/TrainerImpactCard.tsx",
    "components/WatchDigest.tsx",
@@ -9962,6 +9967,7 @@
    "app/[locale]/people/page.tsx",
    "app/[locale]/rankings/[division]/page.tsx",
    "app/embed/[locale]/fighter/[slug]/page.tsx",
+   "components/HoverPreview.tsx",
    "components/OfficialList.tsx",
    "components/StyleMap.tsx",
    "lib/ask/tools.ts",
@@ -10204,7 +10210,8 @@
    "app/[locale]/boxers/page.tsx",
    "app/embed/[locale]/fighter/[slug]/page.tsx",
    "components/WatchlistPage.tsx",
-   "lib/ai.ts"
+   "lib/ai.ts",
+   "lib/fighter-card.ts"
   ]
  },
  {
