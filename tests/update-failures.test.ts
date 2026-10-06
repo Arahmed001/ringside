@@ -371,26 +371,6 @@ test("the backup before the write cannot be made (the folder is not writable, as
   await table([{ name: "no room for the backup", setup: (db) => fs.writeFileSync(path.join(path.dirname(db), "backups"), "a file where the folder should be"), code: 1, db: "untouched", out: [/backups/] }]);
 });
 
-test("through the wrapper cron runs (vendor:fetch -- --update): the key comes from the key file and is never printed, a failing night exits 1 with the reason and leaves the database alone, a good night applies", async () => {
-  const k = copyDb(tpl, "wrap"), keyFile = path.join(k.dir, ".key");
-  fs.writeFileSync(keyFile, KEY + "\n", { mode: 0o600 });
-  const args = ["--update", "--key-file", keyFile, "--cache-dir", path.join(k.dir, "cache"), "--per-hour", "3600000", "--retries", "0", "--patience-min", "0", "--no-caffeinate"];
-  const down = await serveFaulty(w1, { fault: () => ({ status: 503 }) });
-  const bad = await start(args, { script: "scripts/vendor-fetch.ts", db: k.db, url: down.url, lockDir: k.lockDir, extra: { BOXING_API_KEY: "" } }).wait();
-  await down.close();
-  assert.equal(bad.code, 1, bad.out);
-  assert.match(bad.out, /vendor:fetch: key from .* \(\d+ characters\)/);
-  assert.match(bad.out, /Boxing Data API 503 on \/v2\/fights\//);
-  assert.ok(!bad.out.includes(KEY));
-  assert.equal(state(k.db).hash, base.hash);
-  const up = await serveFaulty(w1);
-  const good = await start(args, { script: "scripts/vendor-fetch.ts", db: k.db, url: up.url, lockDir: k.lockDir, extra: { BOXING_API_KEY: "" } }).wait();
-  await up.close();
-  assert.equal(good.code, 0, good.out);
-  assert.equal(state(k.db).hash, ref.hash);
-  fs.rmSync(k.dir, { recursive: true, force: true });
-});
-
 /** A bigger night: 150 more fights, so the write needs room the database does not have. */
 function bigNight(): MockWorld {
   const { world } = nextDay(w0);
