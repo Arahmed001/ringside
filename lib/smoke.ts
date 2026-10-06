@@ -19,7 +19,8 @@ import { ORGS_PAGE, PEOPLE_PAGE } from "./people-list";
 import { countryList } from "./countries";
 
 export type Locale = "en" | "ar";
-export interface SmokeRoute { path: string; kind: "page" | "api" | "svg" | "png" | "ics" | "missing"; label: string; /** text the page must show (a search that has to find someone) */ mustShow?: string; /** not requested on the Arabic site: the path carries English the person typed, which the page rightly echoes */ englishOnly?: boolean }
+const shows = (r: { mustShow?: string; alsoShow?: string[] }): string[] => [...(r.mustShow ? [r.mustShow] : []), ...(r.alsoShow ?? [])];
+export interface SmokeRoute { path: string; kind: "page" | "api" | "svg" | "png" | "ics" | "missing"; label: string; /** text the page must show (a search that has to find someone) */ mustShow?: string; /** more text it must show, when two routes to the same page each ask for something */ alsoShow?: string[]; /** not requested on the Arabic site: the path carries English the person typed, which the page rightly echoes */ englishOnly?: boolean }
 
 /** Directories under app/[locale] whose URL has a parameter: every one must have a sampler below, or a new page escapes the check. */
 export const DYNAMIC_PAGES = ["all-time/[list]", "bouts/[id]", "boxers/[slug]", "countries/[slug]", "events/[id]", "fight-of-the-year/[year]", "orgs/[slug]", "people/[slug]", "previews/[id]", "rankings/[division]", "titles/[slug]"] as const;
@@ -41,6 +42,7 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   // a fighter whose history Ringside holds only in part: the page shows the supplier's career total, and says so (a partial load; none in the demo league)
   const partial = boxers.find((b) => careerView(b).source === "supplier");
   if (partial) out.push({ path: `/boxers/${partial.slug}`, kind: "page", label: "fighter with a partial history (the supplier's career total shown)", mustShow: recordStr(partial) });
+  if (partial) out.push({ path: `/boxers/${partial.slug}`, kind: "page", label: "fighter with a partial history: the years held are drawn on the career strip", mustShow: "Fights held by year" });
   // a fighter the load kept although the supplier's own fight list contradicts its career total: the page shows the total and says the two disagree
   const disputed = boxers.find((b) => careerView(b).source === "disputed");
   if (disputed) out.push({ path: `/boxers/${disputed.slug}`, kind: "page", label: "fighter whose record the supplier's own fight list contradicts", mustShow: "disagree", englishOnly: true });
@@ -185,7 +187,7 @@ export function smokeRoutes(w: World): SmokeRoute[] {
   if (star) out.push({ path: `/boxers/${star.slug.slice(0, -1)}`, kind: "missing", label: "mistyped fighter link (offers the fighter they meant)", ...(star.name.length <= 60 && /^[\p{L}\p{N} .'’-]+$/u.test(star.name) ? { mustShow: star.name } : {}) }); // a name of 60 letters or more is not a mistype anyone makes (the hostile league's 300-letter name, whose address is cut at 100), and a name with markup characters reaches the page JSON-escaped twice: the route is still checked to be a real 404, and the hostile run checks the markup is not on the page
   // one request per path, but a later route's "must show" is not lost when an earlier one (the nav) took the path first
   const seen = new Map<string, SmokeRoute>();
-  return out.filter((r) => { const first = seen.get(r.path); if (!first) { seen.set(r.path, r); return true; } if (r.mustShow && !first.mustShow) { first.mustShow = r.mustShow; first.label = `${first.label}; ${r.label}`; } return false; });
+  return out.filter((r) => { const first = seen.get(r.path); if (!first) { seen.set(r.path, r); return true; } if (r.mustShow) { if (!first.mustShow) first.mustShow = r.mustShow; else if (!shows(first).includes(r.mustShow)) (first.alsoShow ??= []).push(r.mustShow); first.label = `${first.label}; ${r.label}`; } return false; });
 }
 
 /** `n` of the items, the same ones every time for a seed, in no particular order (all of them when `n` is as many as there are). */
@@ -243,7 +245,7 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
     if (status !== 404) bad.push(`expected 404, got ${status}`);
     if (!/noindex/.test(body)) bad.push("the 404 page is not marked noindex");
     if (!/<h1|\\?"h1\\?"/i.test(body)) bad.push("the 404 page has no heading anywhere in its response");
-    if (route.mustShow && locale === "en" && !body.includes(route.mustShow)) bad.push(`the 404 page does not offer "${route.mustShow}"`);
+    if (locale === "en") for (const m of shows(route)) if (!body.includes(m)) bad.push(`the 404 page does not offer "${m}"`);
     return bad;
   }
   if (status !== 200) return [`status ${status}`];
@@ -284,7 +286,7 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
     if (!new RegExp(`<form[^>]*\\saction="${locale === "ar" ? "/ar" : ""}/ask"`).test(body)) bad.push("the home page's question box does not go to /ask");
   }
   const text = visibleText(body);
-  if (route.mustShow && locale === "en" && !text.includes(route.mustShow)) bad.push(`the page does not show "${route.mustShow}"`);
+  if (locale === "en") for (const m of shows(route)) if (!text.includes(m)) bad.push(`the page does not show "${m}"`);
   const slips: [RegExp, string][] = [
     [/\bundefined\b/, "the word 'undefined'"], [/\bNaN\b/, "NaN"], [/\[object Object\]/, "[object Object]"], [/(?<![A-Za-z])-?Infinity\b/, "Infinity"],
     [/\{[a-zA-Z]+\}/, "an unfilled {placeholder}"], [/Application error|Internal Server Error|This page couldn.t load|digest:/i, "an error page"],

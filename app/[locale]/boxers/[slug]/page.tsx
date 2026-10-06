@@ -1,3 +1,5 @@
+import { careerStrip } from "@/lib/career-strip";
+import { CareerStrip } from "@/components/CareerStrip";
 import { ScrollRegion } from "@/components/ScrollRegion";
 import Link from "@/components/L";
 import { localePath } from "@/lib/i18n/config";
@@ -71,6 +73,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const lastFought = (x: Since) => x.n === 0 && x.unit === "days" ? t("Last fought today") : x.unit === "days" ? t.n(x.n, "Last fought {n} day ago", "Last fought {n} days ago") : x.unit === "months" ? t.n(x.n, "Last fought {n} month ago", "Last fought {n} months ago") : t.n(x.n, "Last fought {n} year ago", "Last fought {n} years ago");
   const highlights = highlightsOf(bouts, b.id, w.boutPre);
   // counted from every fight, so only for a career held whole (from part of one these would be wrong in a way that reads as right)
+  const careerStripOf = career.source !== "loaded" ? careerStrip({ dates: completed.map((x) => x.date), total: career.total, turnedPro: b.turnedPro, debutDate: b.debutDate }) : null;
   const numbers = career.source === "loaded" ? numbersOf(bouts, b.id, (id) => w.eventById.get(id)) : null;
   const duration = (days: number) => (days >= 730 ? t("{n} years", { n: (days / 365.25).toFixed(1) }) : days >= 60 ? t("{n} months", { n: Math.round(days / 30.4) }) : t.n(days, "{n} day", "{n} days"));
   const hl = (id: number) => { const x = w.boutById.get(id); return x ? fmtDate(x.date, { month: "short", year: "numeric" }, t.locale) : ""; };
@@ -219,6 +222,7 @@ const HONOURS_SHOWN = 8;
               {t("The data supplier's career total ({total} fights) and its own fight list disagree: the list holds {held} fights, with more wins, losses or draws than that total allows. The record shown is the supplier's total; the fight list, rating and rates on this page are built from the fights held.", { held: career.held, total: career.total })}
             </p>
           )}
+          {career.source !== "loaded" && careerStripOf && <CareerStrip strip={careerStripOf} />}
           {nextBlock}
         </div>
       </section>

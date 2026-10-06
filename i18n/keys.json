@@ -326,6 +326,18 @@
   ]
  },
  {
+  "key": "{held} of the {total} fights in this record are held, all in {year}.",
+  "files": [
+   "components/CareerStrip.tsx"
+  ]
+ },
+ {
+  "key": "{held} of the {total} fights in this record are held, from {from} to {to}.",
+  "files": [
+   "components/CareerStrip.tsx"
+  ]
+ },
+ {
   "key": "{kos} knockouts in {wins} wins",
   "files": [
    "lib/records.ts"
@@ -5553,6 +5565,12 @@
   ]
  },
  {
+  "key": "Fights held by year",
+  "files": [
+   "components/CareerStrip.tsx"
+  ]
+ },
+ {
   "key": "Fights I follow",
   "files": [
    "lib/calendar.ts"
@@ -8400,6 +8418,12 @@
   "files": [
    "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Nothing is held before {year}; the career began in {debut}.",
+  "files": [
+   "components/CareerStrip.tsx"
   ]
  },
  {

@@ -132,3 +132,12 @@ test("the crawl samples every kind of page with a parameter, the same pages ever
   assert.equal(new Set(everyone).size, everyone.length, "no page twice even when every bout is crawled (two bouts between the same pair give one head to head)");
   assert.ok(everyone.some((p) => p.includes("sex=female")), "women's divisions");
 });
+
+test("two routes to one page each keep what they ask the page to show: the merged route needs both, and names the one that is missing (round: career strip)", async () => {
+  const { problemsIn } = await import("../lib/smoke");
+  const route = { path: "/boxers/x", kind: "page" as const, label: "x", mustShow: "24-1-2", alsoShow: ["Fights held by year"] };
+  const page = (text: string) => `<html lang="en"><head><title>X · Ringside</title></head><body><main><h1>X</h1><p>${text}</p></main></body></html>`;
+  assert.ok(!problemsIn(route, "en", 200, "text/html", page("24-1-2 Fights held by year")).some((p) => /does not show/.test(p)));
+  assert.match(problemsIn(route, "en", 200, "text/html", page("24-1-2")).join(), /does not show "Fights held by year"/);
+  assert.match(problemsIn(route, "en", 200, "text/html", page("Fights held by year")).join(), /does not show "24-1-2"/);
+});
