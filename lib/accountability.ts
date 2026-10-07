@@ -36,9 +36,14 @@ export interface Call {
 interface State { bouts: number; wins: number; kos: number; koLosses: number; last: string | null }
 const months = (a: string, b: string) => (Date.parse(b) - Date.parse(a)) / (30.4 * 86400000);
 
-/** One Call per scored bout, chronological. */
-export function calls(w: World): Call[] {
-  return memo(w, "accountability.calls", () => {
+/**
+ * One Call per scored bout, chronological. `finishX` (the finish estimate's inputs, which only the model fitter and its tests read) is left off: an array of four
+ * numbers per call is some 12 MB kept for nothing at 160,000 fights. `callsForFit` has it.
+ */
+export const calls = (w: World): Call[] => callsOf(w, false);
+export const callsForFit = (w: World): Call[] => callsOf(w, true);
+function callsOf(w: World, withFinish: boolean): Call[] {
+  return memo(w, withFinish ? "accountability.calls+finishX" : "accountability.calls", () => {
     const st = new Map<number, State>();
     const get = (id: number) => st.get(id) ?? st.set(id, { bouts: 0, wins: 0, kos: 0, koLosses: 0, last: null }).get(id)!;
     const weights = activeWeights();
@@ -62,7 +67,7 @@ export function calls(w: World): Call[] {
         const pWinner = redWon ? pRed : 1 - pRed;
         out.push({
           boutId: b.id, date: b.date, division: b.weightClass, sex: red.sex, redId: b.redId, blueId: b.blueId,
-          pRed, eloPRed: 1 / (1 + Math.pow(10, (pre.blue - pre.red) / 400)), koProb: stoppageProbability(a, u), finishX: finishInputs(a, u),
+          pRed, eloPRed: 1 / (1 + Math.pow(10, (pre.blue - pre.red) / 400)), koProb: stoppageProbability(a, u), ...(withFinish ? { finishX: finishInputs(a, u) } : {}),
           redWon, finished: isStoppage(b.method), pickedRed: pRed >= 0.5, correct: (pRed >= 0.5) === redWon,
           pWinner, surprise: -Math.log2(Math.max(pWinner, 1e-6)), eloPick: (pre.red >= pre.blue) === redWon,
         });

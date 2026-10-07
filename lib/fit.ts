@@ -12,7 +12,7 @@
 import type { World } from "./world";
 import { msg } from "./i18n/t";
 import { countsInRecord, isStoppage } from "./methods";
-import { calls } from "./accountability";
+import { callsForFit } from "./accountability";
 import { FINISH_INPUTS, stoppageHeuristic, type FinishInput } from "./model";
 
 export const FEATURES = [
@@ -204,7 +204,7 @@ export function chooseModel(m: FitReport["test"]): FitReport["recommended"] {
 export const chooseFinish = (t: Pick<FinishFit["test"], "heuristic" | "fitted">): FinishFit["recommended"] => (t.fitted.logLoss < t.heuristic.logLoss - MIN_GAIN ? "fitted" : "heuristic");
 
 export function runFinishFit(w: World): FinishFit | null {
-  const cs = calls(w).filter((c) => c.finishX !== undefined);
+  const cs = callsForFit(w).filter((c) => c.finishX !== undefined);
   if (cs.length < 400) return null;
   const rows: Row[] = cs.map((c) => ({ date: c.date, boutId: c.boutId, x: c.finishX!, y: c.finished ? 1 : 0 }));
   const cut = Math.floor(rows.length * 0.75);

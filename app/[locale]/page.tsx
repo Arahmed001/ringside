@@ -21,7 +21,7 @@ import { BoxerCard, SectionTitle } from "@/components/ui";
 import { ScoreBadge } from "@/components/Awards";
 import { WatchCard } from "@/components/WatchCard";
 import { upsetWatch } from "@/lib/upsets";
-import { featuredYear, fightsOfYear, resultLine } from "@/lib/fight-score";
+import { featuredYear, topFightsOfYear, resultLine } from "@/lib/fight-score";
 import { daysUntil, fmtDate, methodLabel } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
@@ -48,7 +48,7 @@ export default async function Home() {
 
   const watchTop = upsetWatch(w, t).find((x) => x.tier === "live") ?? null;
   const fy = featuredYear(w);
-  const foty = fy ? { year: fy, top: fightsOfYear(w, fy)[0] } : null;
+  const foty = fy ? { year: fy, top: topFightsOfYear(w, fy, 1)[0] } : null;
 
   const pickBouts = (next?.bouts ?? []).filter(isLive).slice().reverse().map((b) => {
     const r = w.byId.get(b.redId)!, u = w.byId.get(b.blueId)!;

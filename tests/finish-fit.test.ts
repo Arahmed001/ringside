@@ -153,7 +153,7 @@ test("a finish model with mismatch and weight terms: bigger mismatch and heavier
 });
 
 test("the backtest uses each fight's own division and the ratings before it, and the fit keeps only inputs that clear |z| >= 2", () => {
-  const cs = A.calls(w);
+  const cs = A.callsForFit(w);
   const byBout = new Map(w.bouts.map((b) => [b.id, b]));
   assert.ok(cs.length > 400);
   const { divisionInfo } = D;

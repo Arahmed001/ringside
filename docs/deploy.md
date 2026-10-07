@@ -69,7 +69,7 @@ The reference on the error page is that `digest`, so a report of "reference 1624
 
 ## Sizing
 
-**At the real size (35,000 fighters, 160,000 fights), see [capacity.md](capacity.md):** what one instance serves (about 15 requests a second on one core, 21 on two, of a mixed workload), the memory it needs (1.7 GB under load, 2.2 GB while a data update rebuilds the world; 2 GB with the heap capped at 1 GB), the 10 to 16 second stall a data update used to cause (fixed: the old data keeps being served while the new is built; under a 1 GB heap cap it is shortened, not gone), and what to put in front. The older measurements below are of smaller leagues.
+**At the real size (35,000 fighters, 160,000 fights), see [capacity.md](capacity.md):** what one instance serves (about 15 requests a second on one core, 21 on two, of a mixed workload), the memory it needs (after the memory diet: 0.7 GB at start, 1.1 to 1.2 GB under load, 1.4 GB while a data update or a new day rebuilds the world, so **2 GB is enough with no heap cap**; before it was 1.5, 1.7 and 2.2 GB, a 4 GB host or a capped heap), the 10 to 16 second stall a data update used to cause, and the 15 second one at midnight (both fixed: the old data keeps being served while the new is built; under a 1 GB heap cap it is shortened, not gone), and what to put in front. The older measurements below are of smaller leagues.
 
 Measured on a production build with the demo league (968 fighters, 7,466 bouts; one Node process, one core, Apple laptop, a browser on the same machine, so network time is not in these numbers):
 

@@ -68,14 +68,14 @@ function index(w: World, names: Names): Entry[] {
 
 /** The words of a name, for the near-spelling match: a full name has at least two, and the words of one person are all there is to go on. */
 interface Near<T> { owner: T; words: string[] }
-interface NearIndex<T> { all: Near<T>[]; /** each distinct word with the names that have it and where in the name */ vocab: Map<string, [number, number][]>; byLength: Map<number, string[]>; /** words of questions already looked up: the same few come in every question */ closeTo: Map<string, string[]> }
+interface NearIndex<T> { all: Near<T>[]; /** each distinct word with the names that have it and where in the name */ vocab: Map<string, number[]>; /** (flat: name, position in it, name, position ...: a pair of numbers each in an array of its own was most of the index) */ byLength: Map<number, string[]>; /** words of questions already looked up: the same few come in every question */ closeTo: Map<string, string[]> }
 
 /** The words of a name or question for the near match: split at punctuation and hyphens, or, run together, with the hyphens taken out of a word ("Al-Otaibi" is "al-otaibi" in one word) as people often type them. */
 const HYPHEN = /-/;
 const nearWords = (s: string, joined: boolean) => (joined ? s.split(/[\s.,;:!?؟،()"“”'’]+/).filter(Boolean).map((x) => x.replace(/-/g, "")) : wordsOf(s));
 
 function buildNear<T>(people: { owner: T; names: string[] }[], joined = false): NearIndex<T> {
-  const all: Near<T>[] = [], vocab = new Map<string, [number, number][]>(), byLength = new Map<number, string[]>();
+  const all: Near<T>[] = [], vocab = new Map<string, number[]>(), byLength = new Map<number, string[]>();
   for (const p of people) for (const n of p.names) {
     if (joined && !HYPHEN.test(n)) continue; // the same words as the other index
     const words = nearWords(n, joined);
@@ -84,7 +84,7 @@ function buildNear<T>(people: { owner: T; names: string[] }[], joined = false): 
     words.forEach((word, j) => {
       let l = vocab.get(word);
       if (!l) { vocab.set(word, (l = [])); const b = byLength.get(word.length); if (b) b.push(word); else byLength.set(word.length, [word]); }
-      l.push([at, j]);
+      l.push(at, j);
     });
   }
   return { all, vocab, byLength, closeTo: new Map() };
@@ -153,7 +153,8 @@ function align<T>(idx: NearIndex<T>, toks: Tok[], anchors?: number[]): { owner: 
   const seen = new Set<number>(), hits: NearHit<T>[] = [];
   for (const i of anchors ?? toks.keys()) {
     const t = toks[i].t, close = wordsCloseTo(idx, t);
-    for (const v of close) for (const [at, j] of idx.vocab.get(v)!) {
+    for (const v of close) for (let pairs = idx.vocab.get(v)!, n = pairs.length, k = 0; k < n; k += 2) {
+      const at = pairs[k], j = pairs[k + 1];
       const first = i - j, words = idx.all[at].words;
       if (first < 0 || first + words.length > toks.length) continue;
       const key = at * 1e5 + first;
