@@ -42,6 +42,13 @@ async function setup() {
 type Ctx = Awaited<ReturnType<typeof setup>>;
 let c: Ctx, alice: Awaited<ReturnType<Ctx["mk"]>>, bob: typeof alice, eddie: typeof alice;
 let n = 0;
+/** An account that can count as a reporter: ten days old, with three posts of its own standing (each post unique in its letters). */
+async function established(name: string) {
+  const u = await c.mk(name, "user", 10 * 24 * 60);
+  const th = (c.acc.prepare("INSERT INTO forum_threads (kind, title, user_id, created_at, last_post_at) VALUES ('general', 'Elders', ?, ?, ?) RETURNING id").get(u.id, new Date(T0).toISOString(), new Date(T0).toISOString()) as { id: number }).id;
+  for (let k = 0; k < 3; k++) c.acc.prepare("INSERT INTO forum_posts (thread_id, user_id, body, created_at) VALUES (?,?,?,?)").run(th, u.id, `Standing post ${k} by ${u.username}`, new Date(T0 - (k + 1) * MIN).toISOString());
+  return u;
+}
 beforeEach(async () => {
   c ??= await setup();
   c.limits().forumPost.reset(); c.limits().forumPostIp.reset(); c.limits().forumThread.reset(); c.limits().forumReport.reset();
@@ -49,7 +56,9 @@ beforeEach(async () => {
   if (!alice) { alice = await c.mk("alice_forum", "user"); bob = await c.mk("bob_forum", "user"); eddie = await c.mk("eddie_forum", "editor"); }
   n++;
 });
-const say = (user: typeof alice, text = `A fair point number ${n}, and a long enough one.`, at = T0) => c.F.addPost(user, { kind: "boxer", subject: c.slug }, text, `10.0.0.${user.id}`, c.main, c.acc, at);
+/** A number as letters: the forum treats posts that differ only in digits as one post (PLAN 228), so tests that want different posts vary letters. */
+export const lett = (i: number) => [...Math.floor(i).toString(26)].map((ch) => String.fromCharCode(97 + parseInt(ch, 26))).join("");
+const say = (user: typeof alice, text = `A fair point from ${lett(user.id)} number ${lett(n)}, and a long enough one.`, at = T0) => c.F.addPost(user, { kind: "boxer", subject: c.slug }, text, `10.0.0.${user.id}`, c.main, c.acc, at);
 
 test("what a post may say: plain text of a sensible length; no links, no long numbers, no runs, no invisible tricks (round 125)", () => {
   assert.equal(checkText("Great fight, the jab won it.").problem, null);
@@ -116,7 +125,7 @@ test("how often: ten posts in ten minutes per person, thirty per address; a refu
   const ip = "198.51.100.7";
   const a1 = await c.mk(`ip1_${n}`, "user", 3 * 24 * 60), a2 = await c.mk(`ip2_${n}`, "user", 3 * 24 * 60), a3 = await c.mk(`ip3_${n}`, "user", 3 * 24 * 60);
   let ok = 0;
-  for (let i = 0; i < 40; i++) { const u = [a1, a2, a3][i % 3]; c.limits().forumPost.reset(); if (c.F.addPost(u, { kind: "boxer", subject: c.slug }, `Shared address post ${i} and some more words.`, ip, c.main, c.acc, T0).ok) ok++; }
+  for (let i = 0; i < 40; i++) { const u = [a1, a2, a3][i % 3]; c.limits().forumPost.reset(); if (c.F.addPost(u, { kind: "boxer", subject: c.slug }, `Shared address post ${lett(i)} and some more words.`, ip, c.main, c.acc, T0).ok) ok++; }
   assert.equal(ok, 30, "thirty from one address however many accounts");
 });
 
@@ -138,7 +147,7 @@ test("threads on the general board: a title and a first post, three a day, newes
 });
 
 test("reading: posts in order with a cursor, words and author only where the post is visible, an editor also sees the number of open reports", async () => {
-  for (let i = 0; i < 35; i++) { c.limits().forumPost.reset(); const u = i % 2 ? alice : bob; assert.ok(c.F.addPost(u, { kind: "boxer", subject: c.slug }, `Reading test post ${i}, all different words ${i * 7}.`, `10.0.1.${i}`, c.main, c.acc, T0 + i * 1000).ok, `post ${i}`); }
+  for (let i = 0; i < 35; i++) { c.limits().forumPost.reset(); const u = i % 2 ? alice : bob; assert.ok(c.F.addPost(u, { kind: "boxer", subject: c.slug }, `Reading test post ${lett(i)}, all different words ${lett(i * 7)}.`, `10.0.1.${i}`, c.main, c.acc, T0 + i * 1000).ok, `post ${i}`); }
   const t = c.F.findSubjectThread(c.main, "boxer", c.slug, c.acc)!;
   const p1 = c.F.listPosts(t.id, null, 0, c.acc); assert.equal(p1.posts.length, 30); assert.equal(p1.more, true);
   const p2 = c.F.listPosts(t.id, null, p1.posts.at(-1)!.id, c.acc); assert.ok(p2.posts.length >= 1 && !p2.more);
@@ -165,24 +174,25 @@ test("your own words: editable for fifteen minutes by you alone, withdrawable an
   assert.ok((await say(alice, "A second draft of an opinion.", T0 + 20 * MIN)).ok, "a withdrawn post does not count as said, so it can be said again");
 });
 
-test("reports: not your own, once each, a reason from the list; four different people hide a post until an editor looks; an editor hides or restores and it is logged", async () => {
+test("reports: not your own, once each, a reason from the list; enough different, established people hide a post until an editor looks; an editor hides or restores and it is logged", async () => {
   const r = await say(alice, "A post people will not like."); const id = (r as { id: number }).id;
   assert.deepEqual(c.F.reportPost(alice, id, "spam", null, c.acc), { ok: false, error: "own_post" });
   assert.deepEqual(c.F.reportPost(bob, id, "rude", null, c.acc), { ok: false, error: "bad_reason" });
   assert.deepEqual(c.F.reportPost(bob, 999999, "spam", null, c.acc), { ok: false, error: "not_found" });
   assert.deepEqual(c.F.reportPost(bob, id, "abuse", "  insulting  ", c.acc, T0), { ok: true, hidden: false });
   assert.deepEqual(c.F.reportPost(bob, id, "abuse", null, c.acc), { ok: false, error: "already_reported" }, "once per person");
-  const reporters = [await c.mk(`rep1_${n}`, "user"), await c.mk(`rep2_${n}`, "user"), await c.mk(`rep3_${n}`, "user")];
-  assert.deepEqual(c.F.reportPost(reporters[0], id, "spam", null, c.acc, T0), { ok: true, hidden: false }); assert.deepEqual(c.F.reportPost(reporters[1], id, "off_topic", null, c.acc, T0), { ok: true, hidden: false });
-  assert.deepEqual(c.F.reportPost(reporters[2], id, "other", null, c.acc, T0), { ok: true, hidden: true }, "the fourth different person hides it");
+  const reporters: Awaited<ReturnType<typeof c.mk>>[] = [];
+  for (let i = 0; i < 6; i++) reporters.push(await established(`rep${lett(i)}_${n}`));
+  for (let i = 0; i < 5; i++) assert.deepEqual(c.F.reportPost(reporters[i], id, ["spam", "off_topic", "other"][i % 3], null, c.acc, T0), { ok: true, hidden: false }, `report ${i + 1}: bob's (three days old: kept, not counted) and these five are not yet six established people`);
+  assert.deepEqual(c.F.reportPost(reporters[5], id, "other", null, c.acc, T0), { ok: true, hidden: true }, "the sixth different established person hides it");
   const t = c.F.findSubjectThread(c.main, "boxer", c.slug, c.acc)!;
   assert.deepEqual({ ...c.F.listPosts(t.id, null, 0, c.acc).posts[0] }, { id, author: null, body: null, status: "hidden", createdAt: c.F.listPosts(t.id, null, 0, c.acc).posts[0].createdAt, editedAt: null, mine: false }, "a hidden post shows no words and no name");
   assert.ok(c.acc.prepare("SELECT 1 x FROM audit WHERE action = 'forum_auto_hide'").get());
-  const q = c.F.reportQueue(eddie, c.acc); assert.ok(q.ok); assert.equal((q as { items: { reports: number }[] }).items[0].reports, 4);
+  const q = c.F.reportQueue(eddie, c.acc); assert.ok(q.ok); assert.equal((q as { items: { reports: number }[] }).items[0].reports, 7, "every report is kept, counted or not");
   assert.deepEqual(c.F.reportQueue(bob, c.acc), { ok: false, error: "forbidden" }); assert.deepEqual(c.F.moderatePost(bob, id, "restore", "", c.acc), { ok: false, error: "forbidden" });
   assert.deepEqual(c.F.moderatePost(eddie, id, "restore", "Reads fine to me.", c.acc, T0 + MIN), { ok: true });
   assert.equal(c.F.listPosts(t.id, null, 0, c.acc).posts[0].body, "A post people will not like.");
-  assert.deepEqual((c.acc.prepare("SELECT status FROM forum_reports WHERE post_id = ?").all(id) as { status: string }[]).map((x) => x.status), ["dismissed", "dismissed", "dismissed", "dismissed"], "restoring settles the reports as dismissed");
+  assert.deepEqual((c.acc.prepare("SELECT status FROM forum_reports WHERE post_id = ?").all(id) as { status: string }[]).map((x) => x.status), Array(7).fill("dismissed"), "restoring settles the reports as dismissed");
   assert.deepEqual(c.F.moderatePost(eddie, id, "hide", "Targeted insults.", c.acc, T0 + 2 * MIN), { ok: true });
   assert.equal(c.F.listPosts(t.id, null, 0, c.acc).posts[0].status, "hidden");
   const log = c.acc.prepare("SELECT actor, action, target, detail FROM audit WHERE action IN ('forum_hide','forum_restore') ORDER BY id").all();
@@ -250,7 +260,7 @@ test("what an editor sees (round 127): reported posts most reported first, the n
 });
 
 test("a spam wave: many young accounts from one address, from many addresses, and the same advert copied by many accounts (round 127, overnight)", async () => {
-  const spamText = (i: number, tag: string) => `Wave ${tag} message ${i} from an account that wants to be heard a lot today`;
+  const spamText = (i: number, tag: string) => `Wave ${tag} message ${lett(i)} from an account that wants to be heard a lot today`;
   // 1. sixty young accounts behind ONE address, each trying twenty different posts: the address allows thirty in ten minutes, however many accounts
   const young = await Promise.all(Array.from({ length: 60 }, (_, i) => c.mk(`wave1_${n}_${i}`, "user", 60)));
   let ok1 = 0;
@@ -268,8 +278,8 @@ test("a spam wave: many young accounts from one address, from many addresses, an
   const old = await Promise.all(Array.from({ length: 50 }, (_, i) => c.mk(`wave3_${n}_${i}`, "user")));
   const ad = "Visit my amazing offer today and win big every single week without any risk at all";
   const results = old.map((u, i) => c.F.addPost(u, { kind: "boxer", subject: c.slug }, `${ad}${i % 2 ? "!" : ""}`, `192.0.2.${i}`, c.main, c.acc, T0 + 1000 + i));
-  assert.equal(results.filter((r) => r.ok).length, 2, "two copies get through, the rest are refused as a wave");
-  assert.deepEqual([...new Set(results.filter((r) => !r.ok).map((r) => (r as { error: string }).error))], ["duplicate"]);
+  assert.equal(results.filter((r) => r.ok).length, 1, "one copy gets through, the rest are refused as a wave from other accounts (PLAN 228: it was two)");
+  assert.deepEqual([...new Set(results.filter((r) => !r.ok).map((r) => (r as { error: string }).error))], ["copied"]);
   // short common posts are not a wave
   const shorts = old.slice(0, 10).map((u, i) => c.F.addPost(u, { kind: "boxer", subject: c.slug }, "Great fight, well done", `192.0.2.${100 + i}`, c.main, c.acc, T0 + 2000 + i));
   assert.equal(shorts.filter((r) => r.ok).length, 10, "ten people saying 'Great fight, well done' is a conversation");

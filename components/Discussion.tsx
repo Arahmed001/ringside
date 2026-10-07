@@ -12,7 +12,7 @@ import { checkText, EDIT_WINDOW_MS, POST_MAX, REPORT_REASONS } from "@/lib/forum
  * text; the rules are checked as you type, and the server checks them again.
  */
 type Role = "user" | "editor" | "admin" | null;
-interface Post { id: number; author: string | null; body: string | null; status: "visible" | "hidden" | "deleted"; createdAt: string; editedAt: string | null; mine: boolean; reports?: number }
+interface Post { id: number; author: string | null; body: string | null; status: "visible" | "hidden" | "deleted"; createdAt: string; editedAt: string | null; mine: boolean; reports?: number; appeal?: "available" | "open" | "decided" }
 interface Loaded { thread: { id: number; locked: boolean; postCount: number } | null; posts: Post[]; more: boolean; signedIn: boolean; role: Role }
 type Target = { kind: "boxer" | "bout"; subject: string } | { threadId: number };
 
@@ -134,6 +134,9 @@ function PostItem({ p, editor, signedIn, locale, act }: { p: Post; editor: boole
       ) : (
         <p className="mt-2 text-sm italic text-muted">{p.status === "deleted" ? t("This post was deleted.") : t("This post was hidden.")}</p>
       )}
+      {p.mine && p.status === "hidden" && p.appeal && (
+        <p className="mt-1 text-sm text-muted">{p.appeal === "open" ? t("Your post is under review by the editors.") : p.appeal === "decided" ? t("An editor reviewed your post and it stays hidden.") : t("Your post was hidden after reports from other members. You can ask the editors to review it.")}</p>
+      )}
       {editor && typeof p.reports === "number" && p.reports > 0 && <p className="mt-2 text-xs text-gold">{t("{n} open reports", { n: p.reports })}</p>}
       {mode === "report" && (
         <form className="mt-3 flex flex-wrap items-end gap-2 text-sm" onSubmit={async (e) => { e.preventDefault(); if (await act(`/api/forum/posts/${p.id}/report`, "POST", { reason, note }, t("Reported. Thank you."))) setMode("view"); }}>
@@ -149,6 +152,7 @@ function PostItem({ p, editor, signedIn, locale, act }: { p: Post; editor: boole
           {p.mine && p.status === "visible" && (mode === "delete"
             ? <><button type="button" className={`${btn} !border-red-ink/50 !text-red-ink`} onClick={() => void settle(act(`/api/forum/posts/${p.id}`, "DELETE", undefined, t("Deleted.")))}>{t("Yes, delete it")}</button><button ref={cancelDelete} type="button" className={btn} onClick={() => setMode("view")}>{t("Cancel")}</button></>
             : <button ref={deleteBtn} type="button" className={btn} onClick={() => open("delete")}>{t("Delete")}</button>)}
+          {p.mine && p.status === "hidden" && p.appeal === "available" && <button type="button" className={btn} onClick={() => void settle(act(`/api/forum/posts/${p.id}/appeal`, "POST", {}, t("Sent for review.")))}>{t("Ask for a review")}</button>}
           {signedIn && !p.mine && p.status === "visible" && <button ref={reportBtn} type="button" className={btn} onClick={() => open("report")}>{t("Report")}</button>}
           {editor && p.status === "visible" && <button type="button" className={btn} onClick={() => void settle(act(`/api/forum/posts/${p.id}/moderate`, "POST", { action: "hide", reason: "" }, t("Hidden.")))}>{t("Hide")}</button>}
           {editor && p.status === "hidden" && <button type="button" className={btn} onClick={() => void settle(act(`/api/forum/posts/${p.id}/moderate`, "POST", { action: "restore" }, t("Restored.")))}>{t("Restore")}</button>}

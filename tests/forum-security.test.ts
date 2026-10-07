@@ -76,15 +76,23 @@ test("a report's note and an editor's reason are cut to their limits, not stored
   assert.ok(((c.acc.prepare("SELECT detail FROM audit WHERE action = 'forum_hide'").get() as { detail: string }).detail).length <= 200, "and so is the activity log");
 });
 
-test("four brand-new accounts cannot hide anyone's post: only reporters whose accounts are a day old count; the reports are kept for an editor", async () => {
+/** A reporter whose report counts toward the automatic hide: ten days old, with three posts of its own standing (PLAN 228). */
+async function established(name: string) {
+  const u = await c.mk(name, "user", 10 * 24 * 60), at = new Date(T0).toISOString();
+  const th = (c.acc.prepare("INSERT INTO forum_threads (kind, title, user_id, created_at, last_post_at) VALUES ('general', 'Elders', ?, ?, ?) RETURNING id").get(u.id, at, at) as { id: number }).id;
+  for (let k = 0; k < 3; k++) c.acc.prepare("INSERT INTO forum_posts (thread_id, user_id, body, created_at) VALUES (?,?,?,?)").run(th, u.id, `Standing post ${k} by ${u.username}`, at);
+  return u;
+}
+
+test("brand-new accounts cannot hide anyone's post, however many: only established reporters count; the reports are kept for an editor", async () => {
   const p = write(alice, `A post four fresh accounts dislike ${n}.`);
-  for (let i = 0; i < 4; i++) { const r = c.F.reportPost(await c.mk(`fresh_${n}_${i}`, "user", 30), p.id, "abuse", "", c.acc, T0); assert.ok(r.ok && !r.hidden, `fresh reporter ${i}`); }
+  for (let i = 0; i < 8; i++) { const r = c.F.reportPost(await c.mk(`fresh_${n}_${i}`, "user", 30), p.id, "abuse", "", c.acc, T0); assert.ok(r.ok && !r.hidden, `fresh reporter ${i}`); }
   assert.equal(c.F.listPosts(p.threadId, null, 0, c.acc).posts[0].status, "visible");
-  assert.equal((c.F.reportQueue(eddie, c.acc) as { items: { reports: number }[] }).items[0].reports, 4, "an editor still sees all four");
+  assert.equal((c.F.reportQueue(eddie, c.acc) as { items: { reports: number }[] }).items[0].reports, 8, "an editor still sees all eight");
   const q = write(alice, `A second post, reported by established accounts ${n}.`);
   let last = false;
-  for (let i = 0; i < 4; i++) { const r = c.F.reportPost(await c.mk(`aged_${n}_${i}`, "user", 3 * 24 * 60), q.id, "abuse", "", c.acc, T0); assert.ok(r.ok); last = r.hidden; }
-  assert.ok(last, "four established accounts still hide it");
+  for (let i = 0; i < 6; i++) { const r = c.F.reportPost(await established(`aged_${n}_${i}`), q.id, "abuse", "", c.acc, T0); assert.ok(r.ok); last = r.hidden; }
+  assert.ok(last, "six established accounts still hide it");
 });
 
 test("a thread's title and starter go with its first post: hidden, withdrawn or erased, the title is not shown on the board", async () => {

@@ -1,6 +1,8 @@
 import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs";
 import path from "node:path";
+import { waveFingerprint } from "../forum/fp";
+import { WAVE_MIN_CHARS, WAVE_WINDOW_MS } from "../forum/rules";
 
 /**
  * People's accounts live in their OWN SQLite file, not in ringside.db: the sports database is rebuilt, re-ingested and (for the demo)
@@ -92,6 +94,28 @@ CREATE TABLE IF NOT EXISTS audit (
 
 const g = globalThis as unknown as { __accountsDb?: { file: string; db: DatabaseSync } };
 
+/**
+ * Forward-only, additive migration of forum_posts (PLAN 228), safe to run on every open and on a file made by any earlier version: only columns and indexes are added,
+ * nothing is rewritten or dropped. `wave_fp` is a hash of a post's letters, to notice the same post from different accounts (posts of the last day are filled in from
+ * their words once, so the rule applies at once); `withdrawn_body` and `withdrawn_at` hold the words of a post withdrawn while hidden or reported, for editors only;
+ * `appeal_at` and `appeal_result` record an author's request for a review of an automatically hidden post, and its outcome.
+ */
+function migrateForumPosts(db: DatabaseSync) {
+  const have = new Set((db.prepare("PRAGMA table_info(forum_posts)").all() as { name: string }[]).map((c) => c.name));
+  const add = (name: string, ddl: string) => { if (!have.has(name)) { db.exec(`ALTER TABLE forum_posts ADD COLUMN ${name} ${ddl}`); have.add(name); return true; } return false; };
+  const fresh = add("wave_fp", "TEXT NOT NULL DEFAULT ''");
+  add("withdrawn_body", "TEXT"); add("withdrawn_at", "TEXT"); add("appeal_at", "TEXT"); add("appeal_result", "TEXT CHECK (appeal_result IS NULL OR appeal_result IN ('restored','confirmed'))");
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_forum_posts_wave ON forum_posts(wave_fp, created_at) WHERE wave_fp <> '';
+    CREATE INDEX IF NOT EXISTS idx_forum_posts_appeal ON forum_posts(appeal_at) WHERE appeal_at IS NOT NULL AND appeal_result IS NULL;
+    CREATE INDEX IF NOT EXISTS idx_forum_posts_withdrawn ON forum_posts(withdrawn_at) WHERE withdrawn_body IS NOT NULL;`);
+  if (fresh) {
+    const since = new Date(Date.now() - WAVE_WINDOW_MS).toISOString();
+    const rows = db.prepare("SELECT id, body FROM forum_posts WHERE created_at > ? AND status <> 'deleted' AND body <> ''").all(since) as { id: number; body: string }[];
+    const set = db.prepare("UPDATE forum_posts SET wave_fp = ? WHERE id = ?");
+    for (const r of rows) set.run(waveFingerprint(r.body, WAVE_MIN_CHARS), r.id);
+  }
+}
+
 /** Opens (creating on first use) the accounts database. Re-opens when the path changes (tests point it at a temp file). */
 export function accountsDb(): DatabaseSync {
   const file = accountsPath();
@@ -108,6 +132,7 @@ export function accountsDb(): DatabaseSync {
   // the date of the latest graded fight a person has been shown in their pick'em recap
   const ucols = (db.prepare("PRAGMA table_info(users)").all() as { name: string }[]).map((c) => c.name);
   if (!ucols.includes("picks_seen_through")) db.exec("ALTER TABLE users ADD COLUMN picks_seen_through TEXT");
+  migrateForumPosts(db);
   try { fs.chmodSync(file, 0o600); } catch { /* not supported on every filesystem */ }
   g.__accountsDb = { file, db };
   return db;

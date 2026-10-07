@@ -6,7 +6,7 @@ import { api, useAccount } from "@/lib/useAccount";
 import { forumExplain } from "@/lib/forum/text";
 
 /** The editors' view of the forum (round 127): the posts that people reported, most reported first, and the newest posts of all, with Hide and Restore on each, and the threads that are hidden. */
-interface Item { postId: number; threadId: number; body: string; author: string | null; status: string; reports: number; reasons: string[]; createdAt: string; where: { path: string; label: string } }
+interface Item { postId: number; threadId: number; body: string; author: string | null; status: string; reports: number; reasons: string[]; createdAt: string; appeal: boolean; withdrawn: boolean; where: { path: string; label: string } }
 interface Hidden { id: number; title: string | null; kind: string }
 type Tab = "reported" | "recent";
 
@@ -44,12 +44,12 @@ export function ForumQueue() {
   return (
     <div className="space-y-4">
       <div role="group" aria-label={t("What to look at")} className="flex gap-2">
-        {([["reported", t("Reported posts")], ["recent", t("Newest posts")]] as const).map(([k, label]) => (
+        {([["reported", t("Reported posts and appeals")], ["recent", t("Newest posts")]] as const).map(([k, label]) => (
           <button key={k} type="button" aria-pressed={tab === k} onClick={() => setTab(k)} className={`chip cursor-pointer ${tab === k ? "!border-gold/50 !text-gold" : ""}`}>{label}</button>
         ))}
       </div>
       <p ref={statusLine} tabIndex={-1} role="status" className={`min-h-5 text-sm outline-none ${msg?.bad ? "text-red-ink" : "text-win"}`}>{msg?.text}</p>
-      {items === null ? <p className="text-sm text-muted">{t("Loading…")}</p> : items.length === 0 ? <p className="text-sm text-muted">{tab === "reported" ? t("Nothing is waiting: no post has an open report.") : t("No posts yet.")}</p> : (
+      {items === null ? <p className="text-sm text-muted">{t("Loading…")}</p> : items.length === 0 ? <p className="text-sm text-muted">{tab === "reported" ? t("Nothing is waiting: no post has an open report or an appeal.") : t("No posts yet.")}</p> : (
         <ol className="space-y-3">
           {items.map((i) => (
             <li key={i.postId} className="card p-4">
@@ -60,9 +60,12 @@ export function ForumQueue() {
               <p className="mt-2 whitespace-pre-wrap break-words text-sm" dir="auto">{i.body}</p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 {i.reports > 0 && <span className="text-xs text-gold">{t("{n} open reports", { n: i.reports })}: {i.reasons.map(reasonLabel).join(", ")}</span>}
+                {i.appeal && <span className="chip !border-gold/50 !text-gold">{t("appeal: the author asks for a review")}</span>}
                 {i.status === "hidden" && <span className="chip !text-red-ink">{t("hidden")}</span>}
+                {i.withdrawn && <span className="chip">{t("withdrawn by the author; the words are kept for editors for a while")}</span>}
                 {i.status === "visible" && <button type="button" className={btn} onClick={() => void act(`/api/forum/posts/${i.postId}/moderate`, { action: "hide", reason: "" }, t("Hidden."))}>{t("Hide")}</button>}
                 {(i.status === "hidden" || i.reports > 0) && <button type="button" className={btn} onClick={() => void act(`/api/forum/posts/${i.postId}/moderate`, { action: "restore" }, t("Restored."))}>{i.status === "hidden" ? t("Restore") : t("Dismiss the reports")}</button>}
+                {i.appeal && <button type="button" className={btn} onClick={() => void act(`/api/forum/posts/${i.postId}/moderate`, { action: "confirm", reason: "" }, t("Kept hidden."))}>{t("Keep hidden")}</button>}
               </div>
             </li>
           ))}
