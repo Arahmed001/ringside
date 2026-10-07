@@ -240,18 +240,12 @@ Paste back: the whole output of `--check` (or the load), from the first line to 
 | `drawDemoted` | A draw dropped to "no result yet" because neither fighter's career total has a draw to spare | A few hundred in 150,000 is the vendor's own records disagreeing; thousands is a pattern to look at |
 | `stoppageWithoutWinner` | KO/TKO with no winner, stored as "no result yet" | Same as above |
 | `outcomeMapped` | An outcome word outside the feed's own list ("DQ", "RTD", "Corner Retirement", "Technical Decision", "No Contest") read through the importers' spelling table | Informational; a large count means the feed uses words worth adding to the list |
-| `outcomeUnreadable` | A winner with an outcome nobody can read: kept in both fighters' history as "no result yet", no winner named; a result already stored for that fight is kept, not erased In an update, a result already stored for that fight is kept, not erased. | Hundreds or more: paste ten examples of the outcome field |
+| `outcomeUnreadable` | A winner with an outcome nobody can read: kept in both fighters' history as "no result yet", no winner named; a result already stored for that fight is kept, not erased (in an update too). | Hundreds or more: paste ten examples of the outcome field |
 | `statusUnknown` | A fight status other than FINISHED, NOT_STARTED, LIVE or CANCELLED: read as a fight to come, and a stored result is kept | Any: paste the status word |
 | `finishedInFuture` | A FINISHED fight dated more than a day after today: its result is dropped, the fight stays one to come | A few: a feed slip, or this machine's clock is behind. Many: check `date` |
 | `fightsSkippedUnreadable` | A fight the mapping could not read at all (a field of a kind nobody expected): skipped, named once in the log | Any: paste the line; the night goes on without it |
 | `textCleaned` | A name, nickname, title, venue or place that had control or direction-override characters removed, or was cut at 200 characters | Informational; many means the vendor changed something |
 | `careerTotalImplausible`, `physicalsImplausible` | A career total that is not a whole number up to 1,000, or a height or reach outside 50 to 300 cm: not used | Informational; see docs/update-failure-modes.md |
-| `statusUnknown` | A fight whose status is none of FINISHED, NOT_STARTED, LIVE or CANCELLED: no result is read from it, and a result already stored for it is kept | A handful is a feed slip; many means the vendor added a status: paste the word |
-| `finishedInFuture` | A fight marked finished whose date is more than a day ahead: its result is not stored (a result cannot exist before the fight) | A few is a mistyped date; many suggests this machine's clock or the vendor's dates are wrong |
-| `fightsSkippedUnreadable` | A fight the importer could not read at all (a field of the wrong type): skipped, the rest of the night carries on; the first reason is logged | Any: paste the logged line. Before, one bad row stopped the whole night |
-| `careerTotalImplausible` | A career total that is not a whole number from 0 to 1000: not stored | Any: paste the fighter and the value |
-| `physicalsImplausible` | A height or reach outside 50 to 300 cm: shown as unknown, never invented | A few is a typo or a unit slip in the feed |
-| `textCleaned` | A name or other text cut at 200 characters or stripped of control and direction-override characters | Informational; thousands means the feed holds unusual text: paste ten examples |
 | `bothMarkedWinner` | Both fighters flagged as winner: neither picked | A handful is a feed slip; many means the winner flag is not what the adapter expects |
 | `roundUnreadable` | A result round of 0 or below, treated as unknown | Informational |
 | `eventsWithoutFights` | Events left out because none of their fights was kept | Informational (most small cards in a partial first load) |
@@ -352,7 +346,7 @@ In a container, run it with the container's own environment: `docker exec ringsi
 
 ## Undoing it
 
-- **Wrong data loaded:** restore the last backup (`npm run backup -- verify <dir>` first, then copy `ringside.db` back over the database with the app stopped), or delete the database file and load again from the cache (free).
+- **Wrong data loaded:** put back the last good backup with the restore command (`npm run backup -- verify <dir>` first, then `npm run backup -- restore <dir> --dry-run`, then without `--dry-run`, with the site stopped: it checks the backup, saves what is there so the restore can be undone, and swaps both data files; the steps are in `docs/go-live.md` section 5). Do not copy `ringside.db` back by hand. Or delete the database file and load again from the cache (free).
 - **The vendor says no (or the licence ends or asks):** delete the vendor's data. Stop the app, remove the cache directory, the real-league database file (with its `-wal` and `-shm`), and the `backups/` folder beside it: the cache is the vendor's data verbatim and the database and backups hold it in rows. This is why the real league lives in its own database file: nothing else has to be untangled. Then set `BOXING_API_STORAGE_CONFIRMED=0` so nothing stores again.
 
 ## What is stored where

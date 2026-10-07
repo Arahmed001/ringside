@@ -37,7 +37,7 @@ Every state-changing call needs a matching `Origin` (the same guard as the rest 
 
 ## Known limits, said plainly
 
-No notifications, no mentions, no search of posts, no pictures, no replies-to-a-reply (a thread is one flat list). The limits live in memory per process, like the sign-in limits. An editor is needed to deal with reports; with none, the only protection is the four-report auto-hide. The Terms page does not yet mention user posts (the owner's call: it is another session's page).
+No notifications, no mentions, no search of posts, no pictures, no replies-to-a-reply (a thread is one flat list). The limits live in memory per process, like the sign-in limits. An editor is needed to deal with reports; with none, the only protection is the automatic hide (six reports from established accounts, `FORUM_AUTO_HIDE_REPORTS`, PLAN 229). The Terms page mentions forum posts (a "Forum posts" clause, PLAN 227; see "Opening it to the public" below).
 
 
 ## Round 127: the editors' side, the rules, and opening it

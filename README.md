@@ -26,6 +26,8 @@ To regenerate the demo data, stop the server, delete `data/`, and start again.
 See `PLAN.md` §8 for what data exists, the data model, and what each script does.
 
 ## Deploying
+Running the site? `docs/operator-handbook.md` is the one page for the person who operates it: the timeline from launch to ongoing, the daily/weekly/monthly checklists, what to do when something goes wrong, the open decisions, and every setting.
+
 `docs/features.md` is a one-page map of what is in it and each feature's switch.
 
 A `Dockerfile` and `docs/deploy.md` cover running it as one container with a persistent volume, the health check at `/api/health`, settings, backups and updates.

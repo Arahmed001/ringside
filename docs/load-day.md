@@ -1,5 +1,7 @@
 # Load day: the short version
 
+> Running the site day to day? [operator-handbook.md](operator-handbook.md) is the one page with the timeline, the checklists, what to do when something goes wrong, and every setting.
+
 The commands, in order, with what to look at after each. Everything is explained in `real-data-runbook.md`; this is the page to keep open. Run every command in the project folder, in a real terminal tab:
 
 ```bash
@@ -89,6 +91,14 @@ Ten fighters you know (record, age, division, last fight); the top of the heavie
 # cron, on the machine that holds the database; the storage statement is yours, as in step 4
 17 6 * * *  cd /path/to/ringside && DATABASE_PATH=$HOME/ringside-real/real.db BOXING_API_STORAGE_CONFIRMED=1 npm run vendor:fetch -- --update >> $HOME/ringside-real/update.log 2>&1
 ```
+
+**On a host (a container) use this form instead.** `vendor:fetch` reads the key from a file in the home folder of the machine it runs on; a container has no such file, so the nightly job runs `vendor:backfill` directly (which `vendor:fetch` wraps), with the cache on the volume and the key, the storage statement and the database path in the container's own settings (the key as `BOXING_API_KEY`, its secret field; `BOXING_API_STORAGE_CONFIRMED` set to 1 once the vendor has confirmed; `DATABASE_PATH`). The host's cron runs:
+
+```bash
+17 6 * * *  docker exec ringside npm run vendor:backfill -- --update --cache-dir /data/vendor-cache >> /data/vendor-update.log 2>&1
+```
+
+The log path is on the machine where the cron line runs, so make sure that folder exists and that you read it (go-live section 6 says what to look for). Everything below, including the exit codes, applies to both forms. [real-data-runbook.md](real-data-runbook.md) section 5 has the same line.
 
 It fetches the recent fights and the coming weeks (tens of requests) and reports a career total that trails a result as lagging, not as a conflict. A mark set by the load stays until the next load.
 

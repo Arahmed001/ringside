@@ -26,7 +26,7 @@ docker run -d --name ringside -p 3000:3000 -v ringside-data:/data \
   ringside
 ```
 
-The first start seeds the demo league into an empty database (about 2 seconds) and builds the in-memory world before the server accepts traffic (about 1 second at demo size, about 4 seconds at 160,000 bouts), so nobody waits for it.
+The first start seeds the demo league into an empty database (about 2 seconds) and builds the in-memory world and warms the pages' shared computations before the server accepts traffic (about 1 second at demo size; at 160,000 bouts about 4 seconds for the world plus 7 to 10 more for the warm-up, so 11 to 16 seconds from launch to the first answer: `capacity.md`, "Start-up"), so no visitor waits for it. The health check fails during that time, and the image's `HEALTHCHECK` allows 120 seconds.
 
 `GET /api/health` returns `200 {"status":"ok","fighters":N,"bouts":N,"data":{"updatedAt":…,"ageHours":N,"stale":…}}` when the database is open and the world is built, and `503` otherwise. It reports counts and the age of the data only. `data.stale` is `true` when a licensed feed (`BOXING_PROVIDER=licensed`) has not been updated for more than two days, meaning the daily `vendor:backfill --update` has probably stopped and the site is serving old results; it is `null` for the demo league and a file feed. A stale feed never makes the answer a `503`: it is a reason to look at the cron, not to restart the container, so point an alert at `data.stale`, not at the status code. `npm run doctor` gives the same warning (`stale-data`). The image's `HEALTHCHECK` uses it; point a load balancer at it too.
 

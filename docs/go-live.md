@@ -1,5 +1,7 @@
 # Going live: the short, step-by-step version
 
+> Running the site day to day? [operator-handbook.md](operator-handbook.md) is the one page with the timeline, the checklists, what to do when something goes wrong, and every setting.
+
 This is the plain version of [deploy.md](deploy.md). Use it when you want to put Ringside on the internet, or put a new version on a site that is already live, and you would rather follow steps than read about options. Every step says what you should see when it worked. If you do not see it, stop and ask before doing the next step.
 
 Words used here:
@@ -62,7 +64,7 @@ Open each of these in a browser, in this order. All should load without an error
 4. Sign up with a test account, star a fighter, then reload `/watchlist`. The fighter should still be there. Sign out, sign in again, and check it is still there.
 5. On the host's terminal: `docker exec ringside npm run doctor`. It prints a list of problems with the fix beside each. Fix anything marked as a failure.
 
-If step 1 or 4 fails: use the host's rollback (or run the old container), then tell me exactly what you saw. Your data is safe: the update does not delete it, and you made a backup in section 2.
+If step 1 or 4 fails: use the host's rollback (or run the old container), then tell me exactly what you saw. Your data is safe: the update does not delete it, and you made a backup in section 2. If the old version will not start (the new one may have moved the data file's layout forward, and an older version on a newer file is not supported: `deploy.md`, "Updating"), put the section 2 backup back with the steps in section 5 below, then start the old version.
 
 ## 5. Afterwards
 
