@@ -55,7 +55,7 @@ export function Donut({ parts, size = 170, center }: { parts: { label: string; v
   return (
     <div className="flex flex-wrap items-center gap-6">
       <Svg viewBox="0 0 160 160" width={size} height={size} label={msg("Distribution")} decorative>
-        <circle cx="80" cy="80" r={r} fill="none" stroke="#1a1a21" strokeWidth="20" />
+        <circle cx="80" cy="80" r={r} fill="none" stroke="var(--panel-2)" strokeWidth="20" />
         {parts.map((p, i) => {
           const len = (p.value / total) * c;
           const off = offsets[i];
@@ -101,7 +101,7 @@ export function Heatmap({ label, rows, cols }: { label: string; rows: { label: s
           {rows.map((r) => (
             <tr key={r.label}>
               <th scope="row" className="whitespace-nowrap pe-2 text-end text-xs font-normal text-muted">{r.label}</th>
-              {r.cells.map((v, i) => <HeatCell key={i} label={r.label} round={i + 1} pct={Math.round(v * 100)} bg={v === 0 ? "#15151b" : `rgba(229,50,45,${0.12 + (v / max) * 0.88})`} />)}
+              {r.cells.map((v, i) => <HeatCell key={i} label={r.label} round={i + 1} pct={Math.round(v * 100)} bg={v === 0 ? "var(--chart-empty)" : `rgba(229,50,45,${0.12 + (v / max) * 0.88})`} />)}
             </tr>
           ))}
         </tbody>

@@ -118,7 +118,7 @@ async function Result({ A, B, w }: { A: BoxerFull; B: BoxerFull; w: Awaited<Retu
           {[A, B].map((f, i) => (
             <Link key={f.id} href={`/boxers/${f.slug}`} className={`flex flex-col items-center gap-2 text-center ${i === 1 ? "order-3" : ""}`}>
               <Headshot boxer={f} size={120} />
-              <div className="font-display text-3xl font-bold leading-tight">{t.name(f.name)}</div>
+              <div className="font-display text-3xl font-bold uppercase leading-tight">{t.name(f.name)}</div>
               <div className="text-xs text-muted">{flag(f.country)} {countryName(f.country, t.locale)}</div>
             </Link>
           ))}

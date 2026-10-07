@@ -114,7 +114,8 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const rehydration = avgRehydration(w, b.id);
   const misses = missCount(w, b.id);
   const monthsWithTrainer = monthsWithCurrentTrainer(w, b.id);
-  const ROLE_COLOR: Record<string, string> = { head_trainer: "#d9b25f", gym: "#4a8cff", manager: "#7ee0b4", promoter: "#c58bff", strength_coach: "#8d8d99" };
+  // the head trainer is the one honour (gold); every other role is muted and told apart by its lane label (DESIGN.md: blue is the second fighter, archetype colours are for the style map)
+  const ROLE_COLOR: Record<string, string> = { head_trainer: "#d9b25f", gym: "#8d8d99", manager: "#8d8d99", promoter: "#8d8d99", strength_coach: "#8d8d99" };
   const timelineRows: TimelineRow[] = (["head_trainer", "gym", "manager", "promoter", "strength_coach"] as const)
     .filter((r) => team.get(r)?.length)
     .map((r) => ({
