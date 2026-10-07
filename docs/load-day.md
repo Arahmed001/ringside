@@ -41,6 +41,8 @@ Read three things in it: the `records:` line (about 3% of fighters add up exactl
 npm run vendor:load -- --storage-confirmed   # asks you to type LOAD; --storage-confirmed is YOUR statement that the vendor confirmed in writing that its data may be stored
 ```
 
+**A database from an earlier load is in the way** (your first, smaller load, made by an older importer, is `~/ringside-real/real.db`): a re-load updates its fighters, fights and events in place but never removes a fight an earlier load took that the importer now leaves out (a card of cancelled fights, an Olympic or games bout), and an old spelling of a country stays, so the audit would fail. The load says so before it asks you to type LOAD. For the first full load, start clean: `rm ~/ringside-real/real.db ~/ringside-real/real.db-wal ~/ringside-real/real.db-shm` (stop a site serving it first: `npm run vendor:site -- --stop`), then run the command below.
+
 It writes `~/ringside-real/real.db` (new), `disputed.csv` beside it, and a backup if there was a database. Undo: delete `real.db` and its `-wal` and `-shm` files and load again; the cache is the source and costs nothing.
 
 ## 4b. Check the load, in a second
