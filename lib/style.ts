@@ -22,7 +22,7 @@ export const ARCH_COLOR: Record<Archetype, string> = {
   "Technician": "#d9b25f",
   "Iron-Chin Brawler": "#ff8a3d",
   "Counter-Puncher": "#7ee0b4",
-  Journeyman: "#6b6b78",
+  Journeyman: "#8e9bb0", // 6:1 on the panels; it was #6b6b78 (3.3:1), unseen on the demo league, which has no journeyman chip on the first fighter page
   Prospect: "#9a9aa6",
 };
 

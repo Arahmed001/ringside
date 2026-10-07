@@ -180,3 +180,8 @@ test("the rankings index never cuts a fighter's name or division off with an ell
   assert.match(read("components/SortTh.tsx"), /min-h-6 min-w-6/, "the narrow # heading was 24 px wide and 32 high: at the limit, now with a floor");
   for (const f of ["app/[locale]/bouts/[id]/page.tsx", "app/[locale]/previews/[id]/page.tsx"]) assert.match(read(f), /className="-my-1\.5 inline-block py-1\.5 hover:text-ink"/, `${f}: the event link in the heading line is 24 px high (it was 12)`);
 });
+
+test("every playing-style colour is text-safe on the panels it is drawn on (the Journeyman chip was 3.3:1: axe on a real fighter's page, round 133)", async () => {
+  const { ARCH_COLOR } = await import("../lib/style");
+  for (const [style, colour] of Object.entries(ARCH_COLOR)) for (const bg of ["panel", "panel-2", "bg"]) assert.ok(ratio(colour, token(bg)) >= 4.5, `${style} ${colour} on ${bg} is ${ratio(colour, token(bg)).toFixed(2)}:1`);
+});
