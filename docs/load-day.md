@@ -51,7 +51,7 @@ It writes `~/ringside-real/real.db` (new), `disputed.csv` beside it, and a backu
 npm run vendor:audit                     # PASS / WARN / FAIL per check; exit 1 if any FAILS; reads the database read-only
 ```
 
-It looks for what went wrong on the first real load: every belt with a sanctioning body, every country placed and spelled once, no card of only cancelled fights, no Olympic or amateur bouts, records the fights contradict marked disputed, no result for a fight not yet held, every bout with its fighters and event. A FAIL means something in the load is wrong: send back the whole output. WARNs are worth a read (a few double-booked fighters is normal).
+It looks for what went wrong on the first real load: every belt with a sanctioning body, every country (fighters' and cards') placed and spelled once, no card of only cancelled fights, no Olympic or amateur bouts, records the fights contradict marked disputed, no result for a fight not yet held, every bout with its fighters and event. A FAIL means something in the load is wrong: send back the whole output. WARNs are worth a read (a few double-booked fighters is normal).
 
 Two more checks that read the database and change nothing, both safe to paste back because they hold no fighter's name:
 
