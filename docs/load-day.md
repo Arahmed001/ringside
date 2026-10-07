@@ -53,6 +53,13 @@ npm run vendor:audit                     # PASS / WARN / FAIL per check; exit 1 
 
 It looks for what went wrong on the first real load: every belt with a sanctioning body, every country placed and spelled once, no card of only cancelled fights, no Olympic or amateur bouts, records the fights contradict marked disputed, no result for a fight not yet held, every bout with its fighters and event. A FAIL means something in the load is wrong: send back the whole output. WARNs are worth a read (a few double-booked fighters is normal).
 
+Two more checks that read the database and change nothing, both safe to paste back because they hold no fighter's name:
+
+```bash
+npm run first-look -- --database ~/ringside-real/real.db      # counts only: how big, how complete, which tables are empty and so which pages will have nothing to show
+npm run sweep -- --database ~/ringside-real/real.db --each 300 # every library calculation on a sample of your fighters, fights and cards; "no problems" or the list (a minute)
+```
+
 ## 5. Look at it, then run the site on it
 
 To look at what was loaded, on your own machine (port 3480; detached, so closing the tab does not stop it):
