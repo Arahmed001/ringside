@@ -4,6 +4,8 @@
  * placeholder or "undefined", lose their heading or come back in the wrong language or direction. Pure helpers here
  * (route list, page inspection) so they are tested without a server; scripts/smoke.ts drives the server.
  */
+import fs from "node:fs";
+import path from "node:path";
 import { countOn, shiftDay } from "./on-this-day";
 import { careerView, recordStr, type World } from "./world";
 import { careerStrip } from "./career-strip";
@@ -264,7 +266,7 @@ export const visibleText = (html: string): string => strip(html);
  * match the URL, exactly one-or-more h1, and no sign of a rendering slip in the text a reader sees (undefined, NaN,
  * [object Object], Infinity, an unfilled {placeholder}, a stack trace or Next's error page).
  */
-export function problemsIn(route: SmokeRoute, locale: Locale, status: number, contentType: string, body: string): string[] {
+export function problemsIn(route: SmokeRoute, locale: Locale, status: number, contentType: string, body: string, known?: Set<string>): string[] {
   const bad: string[] = [];
   if (route.kind === "missing") {
     // Next streams a not-found page's content as flight data that the browser renders (a visitor with JavaScript sees the page;
@@ -329,7 +331,9 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
     [/\{[a-zA-Z]+\}/, "an unfilled {placeholder}"], [/Application error|Internal Server Error|This page couldn.t load|digest:/i, "an error page"],
     [/\bnull\b(?! of)/, "the word 'null'"],
   ];
-  for (const [re, what] of slips) { const m = text.match(re); if (m) bad.push(`${what} in the page text: "…${text.slice(Math.max(0, (m.index ?? 0) - 40), (m.index ?? 0) + 40).trim()}…"`); }
+  // on a real league a name can contain a word the slips look for (an event called "Infinity Sun-Rise Boxing"): the names the league carries are blanked first
+  const slipText = known ? blankKnown(text, known) : text;
+  for (const [re, what] of slips) { const m = slipText.match(re); if (m) bad.push(`${what} in the page text: "…${slipText.slice(Math.max(0, (m.index ?? 0) - 40), (m.index ?? 0) + 40).trim()}…"`); }
   return bad;
 }
 
@@ -394,13 +398,30 @@ export function mistypeTarget<B extends { slug: string }>(boxersBestFirst: B[]):
   return boxersBestFirst.find((b) => { const cut = b.slug.slice(0, -1); return /[a-z0-9]$/i.test(cut) && !slugs.has(cut); });
 }
 
+/** Quote marks, straight and curly: a name with a nickname in quotes is the same name however the page quotes it. */
+const unquote = (s: string) => s.replace(/["“”„«»]/g, "");
+
+/** The words the site's own interface is made of (the English keys of the Arabic dictionary), three letters or more, lower-case: an untranslated sentence could only be made of these. */
+let uiWords: Set<string> | null = null;
+function uiVocabulary(): Set<string> {
+  if (uiWords) return uiWords;
+  const out = new Set<string>();
+  try {
+    const keys = Object.keys(JSON.parse(fs.readFileSync(path.join(process.cwd(), "i18n", "ar.json"), "utf8")) as Record<string, unknown>);
+    for (const k of keys) for (const m of k.toLowerCase().matchAll(/[a-z][a-z'’-]{2,}/g)) out.add(m[0]);
+  } catch { /* no dictionary beside this process: three-letter parts are then never taken as names */ }
+  return (uiWords = out);
+}
+
 export function knownNames(w: World): Set<string> {
   const out = new Set<string>();
-  const add = (v: string | null | undefined) => { if (v && v.trim()) out.add(v.trim().toLowerCase()); };
+  const add = (v: string | null | undefined) => { if (v && v.trim()) out.add(unquote(v.trim().toLowerCase())); };
+  const ui = uiVocabulary();
   for (const b of w.boxers) {
     add(b.name); add(b.nickname);
-    // a page that is short of room shows a surname (or a first name) on its own
-    for (const part of b.name.split(/[\s]+/)) if (part.length >= 4) add(part);
+    // a page that is short of room shows a surname (or a first name) on its own; a three-letter part ("Cao", "Tun") counts too unless it is one of the interface's own words, because an
+    // untranslated interface string is made only of those (found on the first real-sized league: two surnames were reported as English)
+    for (const part of b.name.split(/[\s]+/)) if (part.length >= 4 || (part.length === 3 && ui.size > 0 && !ui.has(part.toLowerCase()))) add(part);
   }
   for (const e of w.events) { add(e.name); add(e.venue); add(e.city); add(e.broadcaster); }
   for (const b of w.bouts) add(b.title);
@@ -415,14 +436,36 @@ export function knownNames(w: World): Set<string> {
  * Blanks every run of up to 14 words that is one of the known names, however the sentence around it is punctuated: a trailing full stop or Arabic comma ("Colorado."),
  * a closing bracket that belongs to the name ("(Postponed)"), the separators a title is set between, and an Arabic prefix letter glued to a Latin name ("وHi-Tech Satoford").
  */
-function blankKnown(text: string, known: Set<string>): string {
+/** Every run of three or more words that starts a longer known name ("Return of the Legends: Barrera vs."): a page description is cut at a length, and the name at its end goes with it. */
+const prefixCache = new WeakMap<Set<string>, Set<string>>();
+function knownPrefixes(known: Set<string>): Set<string> {
+  let p = prefixCache.get(known);
+  if (p) return p;
+  p = new Set<string>();
+  for (const name of known) {
+    const w = name.split(/\s+/);
+    if (w.length < 4) continue;
+    for (let k = 3; k < w.length; k++) { const s = w.slice(0, k).join(" "); if (s.length >= 12) p.add(s); }
+  }
+  prefixCache.set(known, p);
+  return p;
+}
+
+export function blankKnown(text: string, known: Set<string>): string {
   const words = [...text.matchAll(/\S+/g)].map((m) => ({ w: m[0], at: m.index ?? 0 }));
-  const edge = (s: string) => s.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}.]+$/gu, "").toLowerCase();
-  const outer = (s: string) => s.replace(/^[\s·،,;:|—–"“”«»]+|[\s·،,;:|—–"“”«»]+$/g, "").toLowerCase();
+  const edge = (s: string) => unquote(s.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}.]+$/gu, "").toLowerCase());
+  const outer = (s: string) => unquote(s.replace(/^[\s·،,;:|—–"“”«»]+|[\s·،,;:|—–"“”«»]+$/g, "").toLowerCase());
   const prefixless = (s: string) => s.replace(/^[\u0600-\u06ff]{1,2}(?=[A-Za-z])/, "");
   const keep = new Array<boolean>(words.length).fill(true);
+  // the end of the text first: a known name cut off where the page cut it (before its own words are taken as shorter names)
+  const prefixes = knownPrefixes(known);
+  for (let n = Math.min(24, words.length); n >= 3; n--) {
+    const phrase = edge(words.slice(words.length - n).map((x) => x.w).join(" ").replace(/[…]+$/u, ""));
+    if (prefixes.has(phrase)) { for (let k = words.length - n; k < words.length; k++) keep[k] = false; break; }
+  }
   for (let i = 0; i < words.length; i++) {
-    for (let n = Math.min(14, words.length - i); n >= 1; n--) {
+    if (!keep[i]) continue;
+    for (let n = Math.min(40, words.length - i); n >= 1; n--) {
       const phrase = prefixless(words.slice(i, i + n).map((x) => x.w).join(" "));
       const hit = [outer(phrase), edge(phrase), edge(phrase).replace(/\.+$/, "")].some((c) => c && known.has(c));
       if (hit) { for (let k = i; k < i + n; k++) keep[k] = false; i += n - 1; break; }

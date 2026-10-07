@@ -77,3 +77,10 @@ test("the home nations have Arabic names (they are not ISO countries, so the pla
   assert.equal(countryName("England", "en"), "England"); assert.equal(countryName("Northern Ireland", "en"), "Northern Ireland");
   assert.equal(countryName("Mexico", "ar"), "المكسيك"); assert.notEqual(countryName("United Kingdom", "ar"), "أيرلندا الشمالية");
 });
+
+test("regions that feeds write as a nationality (round 133, from the first real-sized league): Australian states are Australia; Kurdistan has its Arabic name and is not folded into another country", async () => {
+  const { canonicalCountry, countryCode, countryName } = await import("../lib/format");
+  for (const r of ["Western Australia", "New South Wales", "Queensland", "Tasmania", "South Australia"]) { assert.equal(countryCode(r), "AU", r); assert.equal(canonicalCountry(r), "Australia", r); }
+  assert.equal(countryName("Kurdistan", "ar"), "كردستان"); assert.equal(countryName("Kurdistan", "en"), "Kurdistan"); assert.equal(canonicalCountry("Kurdistan"), "Kurdistan", "kept as given");
+  assert.equal(countryCode("Victoria"), undefined, "a name that is also a city elsewhere is not guessed");
+});

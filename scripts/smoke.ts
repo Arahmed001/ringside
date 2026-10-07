@@ -138,7 +138,7 @@ async function main() {
     try {
       const res = await fetch(base + url, { redirect: "manual", signal: AbortSignal.timeout(60000) });
       const body = await res.text();
-      const bad = problemsIn(route, locale, res.status, res.headers.get("content-type") ?? "", body);
+      const bad = problemsIn(route, locale, res.status, res.headers.get("content-type") ?? "", body, names);
       // the browser-side contract: the policy and nonce on every page, the standing headers on everything (see lib/security.ts)
       if (/text\/html/.test(res.headers.get("content-type") ?? "")) bad.push(...securityProblems(res.headers, body, { embed: route.kind === "embed" }));
       if (feedName === "hostile" && /text\/html/.test(res.headers.get("content-type") ?? "") && body.includes(HOSTILE_MARKUP)) bad.push("hostile markup from a fighter's name is on the page as markup, not escaped");

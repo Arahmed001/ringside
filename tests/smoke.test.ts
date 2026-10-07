@@ -151,7 +151,8 @@ test("the names a real league prints in the supplier's spelling: full names, nic
   const k = knownNames(fake);
   for (const v of ["al rahman lee", "the bomb", "jo ruiz", "fury vs. joshua (postponed)", "copper box arena", "london", "amazon prime ppv", "wbc world welterweight champion", "dr. kwame boateng", "test gym"]) assert.ok(k.has(v), v);
   for (const part of ["rahman", "ruiz"]) assert.ok(k.has(part), `${part}: a part of four letters or more is a name on its own`);
-  for (const part of ["al", "lee", "jo"]) assert.ok(!k.has(part), `${part}: a shorter part could be an English word, so it is not`);
+  for (const part of ["al", "jo"]) assert.ok(!k.has(part), `${part}: a part of two letters could be an English word, so it is not`);
+  assert.ok(k.has("lee"), "a three-letter part is a name when it is not one of the interface's own words (an untranslated string is made only of those): found on the first real league, where 'Cao' and 'Tun' were reported as English");
   assert.ok(!k.has(""), "no empty name");
   assert.ok(k.has("unranked visitor") && k.has("second visitor"), "a name only a body's list carries (a ranked fighter who is not in the league) is a name too (round 116)");
   assert.ok(knownNames(w).size > 100, "and from a real world: a good many");
@@ -167,4 +168,25 @@ test("the mistyped-link check never lands on another fighter's real address, and
   assert.equal(mistypeTarget([{ slug: "fighter-7" }]), undefined, "none: no check rather than a poor one");
   const arabic = "هذه ترتيبات الهيئة نفسها، تنقلها Boxing Data API عن BoxingScene. وهي ليست تصنيف رينغسايد.";
   assert.deepEqual(arabicLeaks(`<p>${arabic}</p>`).filter((l) => /Boxing/.test(l)), []);
+});
+
+test("real-league names the checker must recognise: a very long event title, a nickname in quotes, an event name cut off by a description's length, and a name that contains a word the slips look for (round 133)", async () => {
+  const { blankKnown, knownNames, problemsIn } = await import("../lib/smoke");
+  const long = "Senrima Super Fight Vol. 75 x Fight to the Next Stage x Infinity Sun-Rise Boxing Gym Vol. 12";
+  const fake = { boxers: [{ name: "Jo Cao", nickname: "Shark Mama" }, { name: "Marco Antonio Barrera", nickname: null }, { name: "Dan Win", nickname: null }], bouts: [], events: [{ name: long, venue: "Art Center", city: "Kobe", broadcaster: null }, { name: "Return of the Legends: Barrera vs. Soto Karass", venue: null, city: null, broadcaster: null }, { name: 'Complex "Shark Mama"', venue: null, city: null, broadcaster: null }], people: new Map(), orgs: new Map(), official: { byDivision: new Map() } } as unknown as Parameters<typeof knownNames>[0];
+  const k = knownNames(fake);
+  const left = (t: string) => (blankKnown(t, k).match(/[A-Za-z][A-Za-z'’-]{2,}/g) ?? []).join(" ");
+  assert.equal(left(`بطاقة نزالات ${long} بتاريخ 5 أبريل`), "", "a seventeen-word event title (the old limit was fourteen words)");
+  assert.equal(left('مكان Complex "Shark Mama" هنا'), "", "a name with quotes inside it");
+  assert.equal(left("ضمن Return of the Legends: Barrera vs."), "", "a known name cut short where a page description was cut");
+  assert.equal(left("ضمن Return of the Legends: Barrera vs.…"), "", "with the ellipsis a cut leaves");
+  assert.equal(left("Cao"), "", "a three-letter surname alone"); assert.notEqual(left("the Legends of nothing"), "", "but a real leak that merely resembles the start of a name is still a leak"); assert.notEqual(left("Win"), "", "a three-letter part that is an interface word is not taken as a name");
+  assert.equal(left("ضمن Return of the Legends: Barrera vs."), "", "a cut that ends in a word which is also a fighter's surname (Barrera): the cut is read before the surname is taken alone");
+  assert.notEqual(left("ضمن Return of the Legends and more English words"), "", "a long run that goes past the cut name is not hidden");
+  // the slips check on an English page: a name that holds 'Infinity' is not a rendering slip, a bare one is
+  const route = { path: "/events/1", kind: "page" as const, label: "x" };
+  const page = (t: string) => `<!doctype html><html lang="en" dir="ltr"><head><title>t</title></head><body><main><h1>x</h1><p>${t}</p></main></body></html>`;
+  assert.deepEqual(problemsIn(route, "en", 200, "text/html", page(`Card: ${long}. Venue: Art Center`), k), [], "with the league's names");
+  assert.match(problemsIn(route, "en", 200, "text/html", page(`Card: ${long}.`)).join(), /Infinity/, "without them it is flagged, as before");
+  assert.match(problemsIn(route, "en", 200, "text/html", page("Rating: Infinity"), k).join(), /Infinity/, "and a real one still is");
 });

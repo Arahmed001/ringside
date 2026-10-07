@@ -30,6 +30,8 @@ const ALIASES: Record<string, string> = {
   burma: "MM", myanmar: "MM", bosnia: "BA", "bosnia herzegovina": "BA", holland: "NL", uae: "AE", korea: "KR", "viet nam": "VN", "east timor": "TL",
   serbia: "RS", /* the platform also names the retired code YU "Serbia", and the later one would win */
   "hong kong": "HK", macau: "MO", palestine: "PS", "democratic republic of congo": "CD", "dr congo": "CD", drc: "CD", congo: "CG", "republic of congo": "CG",
+  // regions of Australia that a feed writes as a nationality: one country page, not one each
+  "western australia": "AU", "new south wales": "AU", queensland: "AU", tasmania: "AU", "south australia": "AU",
 };
 
 let byName: Map<string, string> | null = null;
@@ -72,7 +74,7 @@ export function canonicalCountry(c: string): string {
  * England, Scotland, Wales and Northern Ireland are nations a boxing fan counts as their own, but they are not ISO countries, so the platform's region names have no Arabic for
  * them (and Northern Ireland, which `countryCode` folds into the United Kingdom, came out as "the United Kingdom"). Their Arabic names are written here.
  */
-const HOME_NATIONS_AR: Record<string, string> = { england: "إنجلترا", scotland: "اسكتلندا", wales: "ويلز", "northern ireland": "أيرلندا الشمالية" };
+const HOME_NATIONS_AR: Record<string, string> = { england: "إنجلترا", scotland: "اسكتلندا", wales: "ويلز", "northern ireland": "أيرلندا الشمالية", kurdistan: "كردستان" /* a region fighters list as their nation (found on the first real-sized league): no ISO code, so no Arabic name from the platform */ };
 export function countryName(c: string, locale: Locale = "en"): string {
   if (locale === "ar") { const home = HOME_NATIONS_AR[norm(c)]; if (home) return home; }
   const code = countryCode(c);
