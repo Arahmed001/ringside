@@ -1,0 +1,11 @@
+name,country,weight class,stance,sex,birth year,height cm,reach cm,turned pro,active,nickname
+Sample Boxer 01,Saudi Arabia,Welterweight,Orthodox,male,1994,178,183,2016,yes,The Example
+Sample Boxer 02,Saudi Arabia,Welterweight,Southpaw,male,1996,175,180,2018,yes,
+Sample Boxer 03,United Kingdom,Welterweight,Orthodox,male,1992,180,185,2014,yes,
+Sample Boxer 04,Mexico,Welterweight,Switch,male,1995,172,176,2017,yes,
+Sample Boxer 05,Philippines,Welterweight,Orthodox,male,1993,174,179,2015,yes,
+Sample Boxer 06,Germany,Welterweight,Southpaw,male,1990,181,186,2012,no,
+Sample Boxer 07,United States,Super Middleweight,Orthodox,male,1991,185,190,2013,yes,
+Sample Boxer 08,Ukraine,Super Middleweight,Orthodox,male,1997,183,188,2019,yes,
+Sample Boxer 09,Egypt,Super Middleweight,Southpaw,male,1995,184,187,2017,yes,
+Sample Boxer 10,Nigeria,Super Middleweight,Orthodox,male,1994,186,191,2016,yes,
