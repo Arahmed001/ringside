@@ -42,7 +42,7 @@ test("nothing a person writes is ever shown as markup", () => {
 test("every refusal the forum can make has words, in English and in Arabic, and they differ", async () => {
   const { forumExplain } = await import("../lib/forum/text"), { getTFor } = await import("../lib/i18n/dicts");
   const en = await getTFor("en"), ar = await getTFor("ar");
-  const codes = ["has_link", "has_number", "too_short", "empty", "too_long", "repetitive", "unauthorized", "forbidden", "too_new", "rate_limited", "duplicate", "locked", "title_invalid", "not_found", "no_such_subject", "edit_window_over", "own_post", "already_reported", "network"];
+  const codes = ["has_link", "has_number", "too_short", "empty", "too_long", "repetitive", "unauthorized", "forbidden", "too_new", "rate_limited", "duplicate", "locked", "title_invalid", "not_found", "no_such_subject", "edit_window_over", "own_post", "already_reported", "network", "copied", "already_appealed", "not_appealable"];
   const fallback = forumExplain(en, "no-such-code");
   const seen = new Set<string>();
   for (const c of codes) {
@@ -59,7 +59,7 @@ test("every refusal the forum can make has words, in English and in Arabic, and 
 
 test("the rules page reads its numbers from the rules the server enforces, the editors' page and tools are for editors, and the pages are reachable but not in the menu (round 127)", () => {
   const rules = read("app/[locale]/forum/rules/page.tsx");
-  for (const used of ["POST_MAX", "NEW_ACCOUNT_WAIT_MS", "NEW_ACCOUNT_DAILY", "POSTS_PER_USER", "THREADS_PER_USER", "AUTO_HIDE_REPORTS", "EDIT_WINDOW_MS"]) assert.ok(rules.includes(used), `the rules page does not use ${used}`);
+  for (const used of ["POST_MAX", "NEW_ACCOUNT_WAIT_MS", "NEW_ACCOUNT_DAILY", "POSTS_PER_USER", "THREADS_PER_USER", "autoHideReports", "EDIT_WINDOW_MS"]) assert.ok(rules.includes(used), `the rules page does not use ${used}`);
   assert.ok(!/\b(2000|2,000|15 minutes|5 minutes|four|ten posts)\b/i.test(rules.replace(/t\("[^"]*"/g, "")), "a number written into the page that the code owns");
   assert.match(rules, /noindex: true/);
   const q = read("components/ForumQueue.tsx"), tools = read("components/ThreadTools.tsx");
@@ -75,7 +75,7 @@ test("keyboard focus in the discussion is looked after: opening Edit, Report or 
   assert.match(d, /if \(mode === "edit"\) draftBox\.current\?\.focus\(\)/); assert.match(d, /else if \(mode === "report"\) reasonBox\.current\?\.focus\(\)/); assert.match(d, /else if \(mode === "delete"\) cancelDelete\.current\?\.focus\(\)/, "the safe choice first");
   assert.match(d, /opener\.current = null/, "and back to the button that opened it");
   assert.match(d, /<li ref=\{li\} tabIndex=\{-1\}/, "a post can take focus without being a tab stop");
-  assert.equal((d.match(/void settle\(act\(/g) ?? []).length, 3, "Hide, Restore and Delete each put focus on the post afterwards");
+  assert.equal((d.match(/void settle\(act\(/g) ?? []).length, 4, "Hide, Restore, Delete and Ask for a review each put focus on the post afterwards");
   const q = read("components/ForumQueue.tsx");
   assert.match(q, /statusLine\.current\?\.focus\(\)/, "in the queue, where the item is gone, focus goes to the line that says what happened");
   assert.match(q, /aria-pressed=\{tab === k\}/); assert.ok(!/role="tab"|role="tablist"/.test(q), "two toggle buttons are not the tabs pattern (which needs arrow keys and panels)");

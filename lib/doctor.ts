@@ -32,7 +32,7 @@ export const KNOWN_ENV = [
   "BOXING_PROVIDER", "BOXING_FILE", "BOXING_API_URL", "BOXING_API_KEY", "BOXING_API_MAX_REQUESTS", "BOXING_API_PER_HOUR", "BOXING_API_SINCE", "BOXING_API_STORAGE_CONFIRMED", "PUBLIC_API", "VENDOR_REDISTRIBUTION_CONFIRMED",
   "VENDOR_LAG_DAYS", "VENDOR_LOAD_LAG_DAYS", "RINGSIDE_KEY_FILE", "WIKIMEDIA_CONTACT", "WIKIMEDIA_GAP_MS", "WIKIDATA_GAP_MS", "MEDIA_RESOLVER", "MEDIA_RESOLVER_BATCH",
   "RESEARCH_CONTACT", "SITE_CONTACT", "VENDOR_TERMS_URL", "VENDOR_RANKINGS_CONFIRMED", "RESEARCH_DELAY_MS", "RESEARCH_BLOCKLIST", "SITE_URL", "INDEXABLE", "DATABASE_PATH", "ACCOUNTS_DB_PATH",
-  "RINGSIDE_NOW", "RINGSIDE_WORLD_SETTLE_MS", "RINGSIDE_OG_CACHE_MB", "RINGSIDE_OG_MAX_AGE", "RINGSIDE_SITEMAP_CACHE_MB",
+  "RINGSIDE_NOW", "RINGSIDE_WORLD_SETTLE_MS", "RINGSIDE_OG_CACHE_MB", "RINGSIDE_OG_MAX_AGE", "RINGSIDE_SITEMAP_CACHE_MB", "FORUM_AUTO_HIDE_REPORTS",
 ] as const;
 /** Settings that exist for tests and tooling and are deliberately not in .env.example. */
 export const INTERNAL_ENV = ["I18N_DIR", "REVIEW_OUT", "RINGSIDE_LOCK_DIR", "RINGSIDE_NO_SEED", "RINGSIDE_MEMO_LOG", "WIKIPEDIA_API_URL", "RESEARCH_DIR", "PLAYWRIGHT_MODULE"] as const;
@@ -95,7 +95,7 @@ export function envFindings(env: Env, nodeVersion = process.versions.node, produ
   if (set(env, "ANTHROPIC_API_KEY")) {
     out.push(f("ok", "ai", env.AI_DAILY_BUDGET === "0" ? "ANTHROPIC_API_KEY is set but AI_DAILY_BUDGET=0 turns the model off: the rule-based answers are used." : "ANTHROPIC_API_KEY is set: model-written answers are on, within AI_DAILY_BUDGET and the per-visitor limit."));
   } else out.push(f("info", "ai", "No ANTHROPIC_API_KEY: search, scouting reports, previews and /ask use the built-in rules. Everything works; the text is plainer."));
-  for (const k of ["AI_DAILY_BUDGET", "AI_CLIENT_LIMIT", "AI_CLIENT_WINDOW_MS", "RESEARCH_DELAY_MS", "WIKIMEDIA_GAP_MS", "WIKIDATA_GAP_MS", "BOXING_API_MAX_REQUESTS", "BOXING_API_PER_HOUR", "VENDOR_LAG_DAYS", "VENDOR_LOAD_LAG_DAYS", "MEDIA_RESOLVER_BATCH"]) {
+  for (const k of ["FORUM_AUTO_HIDE_REPORTS", "AI_DAILY_BUDGET", "AI_CLIENT_LIMIT", "AI_CLIENT_WINDOW_MS", "RESEARCH_DELAY_MS", "WIKIMEDIA_GAP_MS", "WIKIDATA_GAP_MS", "BOXING_API_MAX_REQUESTS", "BOXING_API_PER_HOUR", "VENDOR_LAG_DAYS", "VENDOR_LOAD_LAG_DAYS", "MEDIA_RESOLVER_BATCH"]) {
     if (set(env, k) && !(Number.isFinite(Number(env[k])) && Number(env[k]) >= 0)) out.push(f("fail", `number-${k}`, `${k} must be a number of 0 or more; the app ignores it and uses the default.`, `Fix or remove ${k}.`));
   }
   if (set(env, "BOXING_API_SINCE") && !/^\d{4}-\d{2}-\d{2}$/.test(env.BOXING_API_SINCE!.trim())) out.push(f("fail", "since", "BOXING_API_SINCE must be a date like 2000-01-01."));
@@ -188,7 +188,7 @@ export function fileFindings(env: Env, probe: Probe, o: { cwd?: string; now?: Da
   else if (acc.error || (acc.quickCheck && acc.quickCheck !== "ok")) out.push(f("fail", "accounts-db", `${p.accounts} cannot be read cleanly (${acc.error ?? acc.quickCheck}).`, "Restore the newest verified backup."));
   else {
     out.push(f("ok", "accounts-db", `${p.accounts}: ${acc.rows?.users ?? 0} accounts, integrity ok.`));
-    // a forum with posts and nobody who can hide one: the only protection left is the automatic hide at four reports
+    // a forum with posts and nobody who can hide one: the only protection left is the automatic hide (FORUM_AUTO_HIDE_REPORTS reports, default 6, from established accounts)
     const posts = acc.rows?.forum_posts ?? 0;
     if (posts > 0) {
       if ((acc.editors ?? 0) === 0) out.push(f("warn", "forum-no-editor", `The forum has ${posts} post${posts === 1 ? "" : "s"} and no account is an editor or admin: nobody can hide a post, lock a thread or read the reports queue.`, "Make someone an editor: npm run accounts -- role NAME editor (the account must exist; docs/forum.md)."));
