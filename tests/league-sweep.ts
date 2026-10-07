@@ -24,8 +24,10 @@ export async function league(kind: "empty" | "sparse") {
 type World = Awaited<ReturnType<typeof import("../lib/world").getWorld>>;
 
 /** Calls every aggregate that takes only the world (and a few that also take a language) and reports any that throw or return a NaN. */
-export async function sweepAggregates(w: World): Promise<string[]> {
+export async function sweepAggregates(w: World, opts: { each?: number; slow?: Map<string, number> } = {}): Promise<string[]> {
   const bad: string[] = [];
+  // at real size (tens of thousands of fighters) the per-card, per-bout and per-fighter views are taken at an even stride, `each` of every kind
+  const some = <T,>(a: T[]): T[] => !opts.each || a.length <= opts.each ? a : Array.from({ length: opts.each }, (_, i) => a[Math.floor((i * a.length) / opts.each!)]);
   const m = async (p: string) => (await import(p)) as Record<string, (...a: unknown[]) => unknown>;
   const [analytics, rankings, events, score, lineage, money, officials, style, upsets, records, accountability, matchmaking, weights, trainer, sitemap, recap, night] = await Promise.all([
     "../lib/analytics", "../lib/rankings", "../lib/events", "../lib/fight-score", "../lib/lineage", "../lib/money", "../lib/officials", "../lib/style", "../lib/upsets", "../lib/records",
@@ -51,19 +53,21 @@ export async function sweepAggregates(w: World): Promise<string[]> {
   ];
   // per-card, per-bout and per-fighter views: every one the league has
   const [predict, team, lineageMod, moneyMod] = await Promise.all(["../lib/predict", "../lib/team", "../lib/lineage", "../lib/money"].map(m));
-  for (const e of w.events) calls.push([`night(${e.name})`, () => { const n = night.buildNight(w, e.id) as unknown; return n ? [n, night.nightLines(n, w, tEn)] : null; }], [`eventMoney(${e.name})`, () => moneyMod.eventMoney(w, e.id)]);
-  for (const b of w.bouts) {
+  for (const e of some(w.events)) calls.push([`night(${e.name})`, () => { const n = night.buildNight(w, e.id) as unknown; return n ? [n, night.nightLines(n, w, tEn)] : null; }], [`eventMoney(${e.name})`, () => moneyMod.eventMoney(w, e.id)]);
+  for (const b of some(w.bouts)) {
     calls.push([`recap(bout ${b.id})`, () => { const r = recap.buildRecap(w, b.id) as unknown; return r ? [r, recap.recapLines(r, w, tEn)] : null; }], [`boutPurses(${b.id})`, () => moneyMod.boutPurses(w, b.id)]);
     const red = w.byId.get(b.redId), blue = w.byId.get(b.blueId);
     if (red && blue) calls.push([`predict(${b.id})`, () => predict.predict(red, blue, tEn)]);
   }
-  for (const x of w.boxers) calls.push([`similarTo(${x.name})`, () => style.similarTo(x, w)], [`boxerTeam(${x.name})`, () => team.boxerTeam(w, x.id)], [`careerMoney(${x.name})`, () => moneyMod.careerMoney(w, x.id)],
+  for (const x of some(w.boxers)) calls.push([`similarTo(${x.name})`, () => style.similarTo(x, w)], [`boxerTeam(${x.name})`, () => team.boxerTeam(w, x.id)], [`careerMoney(${x.name})`, () => moneyMod.careerMoney(w, x.id)],
     [`reignsOf(${x.name})`, () => lineageMod.reignsOf(w, x.id)], [`recordsOf(${x.name})`, () => records.recordsOf(w, x.id)]);
   const lists = (records as unknown as { LISTS: { id: string }[] }).LISTS;
   for (const l of lists) calls.push([`records.recordList(${l.id})`, () => records.recordList(w, l.id, {})]);
   for (const [name, fn] of calls) {
+    const t0 = performance.now();
     try { const out = fn(); for (const b of badNumbers(out)) bad.push(`${name}: ${b}`); }
     catch (e) { bad.push(`${name} threw: ${(e as Error).message}`); }
+    opts.slow?.set(name, performance.now() - t0);
   }
   return bad;
 }
