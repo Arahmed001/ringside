@@ -51,7 +51,21 @@ It writes `~/ringside-real/real.db` (new), `disputed.csv` beside it, and a backu
 npm run vendor:audit                     # PASS / WARN / FAIL per check; exit 1 if any FAILS; reads the database read-only
 ```
 
-It looks for what went wrong on the first real load: every belt with a sanctioning body, every country placed and spelled once, no card of only cancelled fights, no Olympic or amateur bouts, records the fights contradict marked disputed, no result for a fight not yet held, every bout with its fighters and event. A FAIL means something in the load is wrong: send back the whole output. WARNs are worth a read (a few double-booked fighters is normal).
+It looks for what went wrong on the first real load: every belt with a sanctioning body, every country placed and spelled once, no card of only cancelled fights, no Olympic or amateur bouts, records the fights contradict marked disputed, no result for a fight not yet held, every bout with its fighters and event. A FAIL means something in the load is wrong: send back the whole output. WARNs are worth a read (a few double-booked fighters is normal). The next step looks at the same database with much more.
+
+## 4c. The first real look, in one report: `npm run post-load`
+
+```bash
+npm run build                            # once, if the code changed since the last build (or add --build to the next command)
+npm run post-load                        # about ten minutes on 35,000 fighters; writes ~/ringside-real/post-load-report.html and prints a PASS / WARN / FAIL line per section
+npm run post-load -- --skip a11y,gallery # just the data checks, the sample and the timings (a few minutes); --quick shortens the browser and timing parts
+```
+
+It answers "does the real league look right, and does it run fast?" and gives you and Claude one page to look at (open the HTML file in a browser; the same summary is printed at its end, ready to paste). The sections: (1) the audit of step 4b plus the doctor, (2) counts and completeness (photos, Arabic names, Wikidata ids, full / partial / disputed records, fights and events per year with the holes marked), (3) a sample of 60 fighters (the 10 most active, 10 champions, 10 disputed, 10 longest careers, 10 fewest fights, 10 at random) rendered through the real pages in English and Arabic and in a real browser (record equals the database's, no `undefined` / `NaN` / `null`, no console errors, no broken images, a form strip, a sensible age), (4) speed at your machine's size (cold start, memory, p50 and p95 per kind of page, beside `docs/capacity.md`), (5) the accessibility sweep on about 20 real pages in English and Arabic at 375 and 1280 px, (6) a gallery of screenshots with photos and silhouettes, (7) surprises (duplicate fighters, one venue or country spelled two ways, results for fights not yet held, impossible records, small divisions, one-bout cards, swapped corners), (8) what to look at by hand, with the names filled in.
+
+**It never writes your database.** It copies `real.db` (and its `-wal`) into a temporary folder, analyses and serves the copy (the app writes when it opens a database), deletes the copy, and the report shows that the original's size, time and checksum are the same before and after. It makes no request to the vendor, reads no key, and sends nothing anywhere: the only traffic is to the site it starts on this machine. The report holds fighter names, records and dates (what the public site shows), `~` for your home folder and no setting's value, so it is safe to send. Run it after step 6 (`vendor:enrich`) too: before it, photos, Arabic names and Wikidata ids are 0% and that is expected.
+
+Needs Playwright with Chromium for sections 3 (the browser part), 5 and 6 (`docs/accessibility.md`: `npm i -g playwright && npx playwright install chromium`, or `PLAYWRIGHT_MODULE=/path/to/playwright`); without it those parts say SKIP and the verdict is a WARN, not a PASS. **Read the timings with care if anything else is running**: the report prints the machine's load beside them. Exit code 1 if any section FAILS (so it can sit in a script), 2 if there is no database or no build.
 
 ## 5. Look at it, then run the site on it
 
@@ -81,7 +95,7 @@ npm run vendor:enrich                    # lists them again and asks you to type
 
 ## 7. By hand, once
 
-Ten fighters you know (record, age, division, last fight); the top of the heaviest and lightest divisions; a fighter marked disputed (the note says what disagrees); an Arabic page; the Data page (the credit, the counts); `npm run model:fit`; `npm run backup`. The full list is section 4 of the runbook.
+(Section 8 of the post-load report is this list with the names filled in.) Ten fighters you know (record, age, division, last fight); the top of the heaviest and lightest divisions; a fighter marked disputed (the note says what disagrees); an Arabic page; the Data page (the credit, the counts); `npm run model:fit`; `npm run backup`. The full list is section 4 of the runbook.
 
 ## 8. Every day after
 
