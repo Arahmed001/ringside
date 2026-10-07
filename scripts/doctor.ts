@@ -11,6 +11,7 @@ import { DatabaseSync } from "node:sqlite";
 import { loadEnv } from "../lib/i18n/translate";
 import { diagnose, worst, type DbFacts, type Probe } from "../lib/doctor";
 import { latestUpdate } from "../lib/freshness";
+import { lastNightly } from "../lib/nightly-status";
 
 const argv = process.argv.slice(2);
 loadEnv();
@@ -37,6 +38,7 @@ const probe: Probe = {
     } catch (e) { return { exists: true, error: (e as Error).message.slice(0, 120) }; }
   },
   file: (p) => fs.existsSync(p),
+  nightly: (dir) => lastNightly({ DATABASE_PATH: path.join(dir, "ringside.db") }),
   newestBackup(dir) {
     try {
       const stamps = fs.readdirSync(dir).filter((n) => /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z$/.test(n) && fs.existsSync(path.join(dir, n, "ringside.db")))
