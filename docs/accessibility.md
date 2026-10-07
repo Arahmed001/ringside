@@ -25,6 +25,8 @@ Target: WCAG 2.2 AA, English and Arabic. This is what was measured, what changed
 - **Arabic strings** added here (skip link, list view, chart summary) are machine translations awaiting native review, like the rest.
 - Colour contrast was measured on the dark theme only; there is no light theme.
 
+> The keyboard-only checks (tab order and visible focus on the main pages, the palette, the phone drawer, the forum form, the hover cards, arrow keys in Arabic and English) and the end-to-end flows are in `docs/e2e.md` and run with `npm run e2e`; they found that Tab could leave a focused control under the sticky bars and that Escape from the search box could drop focus (PLAN 234).
+
 ## Running the sweep for every page: `npm run a11y`
 `npm run build`, then `npm run a11y`. It starts its own production server on a throwaway demo league (or `--db FILE`), opens every page in a real browser in both languages at 375 and 1280 px, injects axe-core and `scripts/a11y-sweep.js`, and prints `BAD` with the details for any page that is not clean (exit 1). Options: `--paths /a,/b`, `--widths 375`, `--langs ar`, `--port N`, `--headed`. It needs Playwright with a browser (`npm i -g playwright && npx playwright install chromium`, or `PLAYWRIGHT_MODULE=/path/to/playwright`); the site does not depend on it. A full run is about eight minutes.
 - A leftover server on the port stops the run with a message (it would otherwise answer with an older build's pages): stop it first.

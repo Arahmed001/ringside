@@ -240,7 +240,7 @@ const HONOURS_SHOWN = 8;
       ]} />
 
       {numbers && numbers.fights >= 5 && (
-        <section id="numbers" className="scroll-mt-32">
+        <section id="numbers">
           <SectionTitle eyebrow={t("By the numbers")} title={t("Counted from every fight we hold")} />
           <div className="fill-row fill-4">
             {numbers.rounds !== null && <Stat label={t("Rounds boxed")} value={numbers.rounds} sub={t.n(numbers.fights, "{n} fight", "{n} fights")} />}
@@ -255,7 +255,7 @@ const HONOURS_SHOWN = 8;
       )}
 
       {hasHighlights && (
-        <section id="highlights" className="scroll-mt-32">
+        <section id="highlights">
           <SectionTitle eyebrow={t("Career highlights")} title={t("The best of the fights we hold")} />
           <div className="fill-row fill-3">
             {highlights.bestWin && (() => { const o = w.byId.get(highlights.bestWin!.opponentId); return o ? (
@@ -282,7 +282,7 @@ const HONOURS_SHOWN = 8;
         </section>
       )}
 
-      <section id="profile" className="grid scroll-mt-32 gap-5 lg:grid-cols-[1fr_1.3fr]">
+      <section id="profile" className="grid gap-5 lg:grid-cols-[1fr_1.3fr]">
         <div className="card p-5">
           <div className="eyebrow mb-3">{t("Profile")}</div>
           <dl className="space-y-2.5 text-sm">
@@ -389,7 +389,7 @@ const HONOURS_SHOWN = 8;
 
       <CareerMoneyCard w={w} boxer={b} />
 
-      <section id="scouting" className="grid scroll-mt-32 gap-5 lg:grid-cols-[1.4fr_1fr]">
+      <section id="scouting" className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <div className="card p-5">
           <div className="eyebrow mb-1">{t("Scouting report")}</div>
           <ScoutingReport slug={b.slug} initial={rulesReport(b, w, t)} />
@@ -397,7 +397,7 @@ const HONOURS_SHOWN = 8;
         <div className="card flex items-center justify-center p-5"><Radar axes={radar} /></div>
       </section>
 
-      <section id="form" className="grid scroll-mt-32 gap-5 lg:grid-cols-[1.4fr_1fr]">
+      <section id="form" className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <div className="card p-5">
           <div className="eyebrow mb-3">{t("Rating history")}</div>
           <Sparkline data={history.map((h) => h.rating)} labels={history.length ? [fmtDate(history[0].date, { month: "short", year: "numeric" }, t.locale), fmtDate(history[history.length - 1].date, { month: "short", year: "numeric" }, t.locale)] : undefined} />
@@ -408,7 +408,7 @@ const HONOURS_SHOWN = 8;
         </div>
       </section>
 
-      <section id="similar" className="scroll-mt-32">
+      <section id="similar">
         <SectionTitle eyebrow={t("Style similarity")} title={b.sex === "female" ? t("Fighters like her") : t("Fighters like him")} href="/map" cta={t("Style map")} />
         <div className="grid gap-3 sm:grid-cols-2 min-[1536px]:grid-cols-4">
           {similar.map((s) => (
@@ -417,13 +417,13 @@ const HONOURS_SHOWN = 8;
         </div>
       </section>
 
-      <section id="record" className="scroll-mt-32">
+      <section id="record">
         <SectionTitle eyebrow={t("Fight record")} title={t.n(completed.length, "{n} bout", "{n} bouts")} />
         <ScrollRegion className="card p-4" label={t("Fight record")}>
           <table className="w-full" aria-label={t("Fight record")}><tbody>{(upcoming ? [upcoming, ...done] : done).map((x) => <BoutLine key={x.id} bout={x} focusId={b.id} context={opponentThen.get(x.id)} />)}</tbody></table>
         </ScrollRegion>
       </section>
-      <section id="discussion" className="scroll-mt-32">
+      <section id="discussion">
         <SectionTitle eyebrow={t("Community")} title={t("Discussion")} href="/forum" cta={t("The general board")} />
         <Discussion target={{ kind: "boxer", subject: b.slug }} />
       </section>

@@ -23,7 +23,7 @@ test("what people write is loaded by the browser after the page opens: no page t
     const s = read(f);
     assert.ok(!/@\/lib\/forum/.test(s), `${f} reads no forum data on the server`);
     assert.match(s, /<Discussion target=\{\{ kind: "(boxer|bout)"/, `${f} has the discussion box`);
-    assert.match(s, /<section id="discussion" className="scroll-mt-32">/);
+    assert.match(s, /<section id="discussion">/);
   }
   assert.match(read("components/Discussion.tsx"), /^"use client";/, "the discussion is a client component: its text is not part of the page's HTML");
 });
@@ -81,4 +81,8 @@ test("keyboard focus in the discussion is looked after: opening Edit, Report or 
   assert.match(q, /aria-pressed=\{tab === k\}/); assert.ok(!/role="tab"|role="tablist"/.test(q), "two toggle buttons are not the tabs pattern (which needs arrow keys and panels)");
   for (const f of ["components/Discussion.tsx", "components/StartThread.tsx"]) assert.ok(/<label htmlFor=/.test(read(f)) || /className="sr-only"/.test(read(f)), `${f}: every text box has a label`);
   assert.match(d, /role="status"/); assert.match(d, /role="alert"/);
+});
+
+test("after a post is sent, focus goes back to the box: the Post button turns off with the box empty, and a button that turns off drops focus to the top of the page (found by the browser suite, docs/e2e.md)", () => {
+  assert.match(read("components/Discussion.tsx"), /setText\(""\); await load\(\); document\.getElementById\("forum-text"\)\?\.focus\(\);/);
 });

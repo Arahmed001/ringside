@@ -21,9 +21,19 @@ export function CommandPalette() {
   const [active, setActive] = useState(0);
   const input = useRef<HTMLInputElement>(null);
   const opener = useRef<HTMLElement | null>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const restoreFocus = useRef(false);
   const id = useId();
 
-  const close = useCallback(() => { setOpen(false); opener.current?.focus(); }, []);
+  // Closing without choosing (Esc, the backdrop, the shortcut again) puts focus back where it was. When the box was opened with the search button in the bar, that button is not on the
+  // page while the box is open (it is replaced by the dialog), so the element remembered is gone by the time the box closes: focus goes to the button that takes its place.
+  const close = useCallback(() => { restoreFocus.current = true; setOpen(false); }, []);
+  useEffect(() => {
+    if (open || !restoreFocus.current) return;
+    restoreFocus.current = false;
+    const was = opener.current;
+    (was && was.isConnected && was !== document.body ? was : trigger.current)?.focus();
+  }, [open]);
   const show = useCallback(() => { opener.current = document.activeElement as HTMLElement; setOpen(true); }, []);
 
   useEffect(() => {
@@ -58,7 +68,7 @@ export function CommandPalette() {
 
   if (!open) {
     return (
-      <button type="button" onClick={show} aria-label={t("Search everything (Ctrl+K)")} aria-keyshortcuts="Control+K Meta+K"
+      <button ref={trigger} type="button" onClick={show} aria-label={t("Search everything (Ctrl+K)")} aria-keyshortcuts="Control+K Meta+K"
         className="flex shrink-0 items-center gap-2 rounded-xl border border-line bg-panel px-3 py-1.5 pointer-coarse:min-h-11 pointer-coarse:min-w-11 pointer-coarse:justify-center text-sm text-muted transition hover:border-gold/60 hover:text-ink">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
         <span className="hidden sm:inline">{t("Search")}</span><kbd className="hidden rounded border border-line px-1.5 font-sans text-xs sm:inline" dir="ltr">⌘K</kbd>

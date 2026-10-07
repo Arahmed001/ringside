@@ -4,6 +4,7 @@ import { fmtDate, methodLabel } from "./format";
 import { resultFor } from "./glance";
 import { tEn, type T } from "./i18n/t";
 
+/** `date` is the fight's day as the data has it (2026-10-03): the page formats it in the visitor's language (formatting it here as well made the page print "Invalid Date"). */
 export interface WatchLast { result: "W" | "L" | "D" | "NC"; opponent: string; how: string; date: string; boutId: number }
 /** `next` is the home strip's one-line text; the rest feeds the watchlist page. */
 export interface WatchEntry {
@@ -25,7 +26,7 @@ export function watchEntries(w: World, slugs: string[], t: T = tEn): WatchEntry[
     let last: WatchLast | undefined;
     for (let i = bouts.length - 1; i >= 0 && !last; i--) {
       const x = bouts[i], r = resultFor(x, b.id);
-      if (r) last = { result: r, opponent: t.name(x.redId === b.id ? x.blueName : x.redName), how: methodLabel(x.method, x.endRound, t), date: fmtDate(x.date, { month: "short", day: "numeric", year: "numeric" }, t.locale), boutId: x.id };
+      if (r) last = { result: r, opponent: t.name(x.redId === b.id ? x.blueName : x.redName), how: methodLabel(x.method, x.endRound, t), date: x.date, boutId: x.id };
     }
     const hist = w.history.get(b.id) ?? [];
     const ratingChange = hist.length >= 2 ? Math.round(hist[hist.length - 1].rating) - Math.round(hist[hist.length - 2].rating) : undefined;
