@@ -17,7 +17,7 @@ after(() => { cleanup(); fs.rmSync(dir, { recursive: true, force: true }); });
 const NAMES = [
   "Łukasz Różański", "Søren Østergaard", "Đorđe Petrović", "Mehmet Yıldız", "Jürgen Weiß", "Lê Văn Đức", "Conor O'Brien", "Dennis D'Amato",
   "Roy Jones Jr.", "Eddie Hearn III", "Carlos Sanchez Sr.", "Maria Elena Garcia", "Jose Luis Castillo", "Jose Antonio Castillo",
-  "Sven van der Berg", "Maria dos Santos", "Oscar De La Fuente", "Karim bin Hassan", "Rakan Al-Qahtani", "Anthony Joshua", "Jean-Pierre Fournier",
+  "Sven van der Berg", "Maria dos Santos", "Oscar De La Fuente", "Karim bin Hassan", "Rakan Al-Qahtani", "Anthony Joshua", "Jean-Pierre Fournier", "Junior Witter",
 ];
 
 type World = Awaited<ReturnType<typeof import("../lib/world").getWorld>>;
@@ -51,6 +51,11 @@ const ASK_ONLY: [string, string][] = [["Maria Garcia", "Maria Elena Garcia"], ["
 test("the palette's search finds each name as a fan types it", () => {
   const bad = BOTH.filter(([typed, name]) => !search(w, typed, { limit: 8, names: NO_NAMES }).some((b) => b.name === name)).map(([t, n]) => `"${t}" does not find ${n}`);
   assert.deepEqual(bad, []);
+});
+
+test("'Junior' as a first name (45 on the first real league) is found with a slip in it, though the index folds the written suffix to 'jr' (round 133)", () => {
+  for (const typed of ["Junor Witter", "Juniro Witter", "Junio Witter", "Jnior Witter", "Junior Witter", "junior witer"]) assert.ok(search(w, typed, { limit: 8, names: NO_NAMES }).some((b) => b.name === "Junior Witter"), typed);
+  assert.ok(search(w, "Roy Jones Junor", { limit: 8, names: NO_NAMES }).some((b) => b.name === "Roy Jones Jr."), "and a slip in the suffix word still finds the fighter who has it");
 });
 
 test("the Ask planner reads each name as a fan types it, from the question alone", () => {

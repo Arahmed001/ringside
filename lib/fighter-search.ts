@@ -38,7 +38,9 @@ function indexOf(w: World, names: Names): Index {
       const ar = names[b.name], arNick = b.nickname ? names[b.nickname] : undefined;
       return { b, name: normalize(ar ? `${b.name} ${ar}` : b.name), hay: normalize(`${b.name} ${ar ?? ""} ${b.nickname ?? ""} ${arNick ?? ""} ${b.aliases.join(" ")}`) };
     });
-    const words = buildWordIndex(entries.map((e) => e.hay));
+    // "Junior" is folded to "jr" so the written suffix and the word meet, but it is also a first name (Junior Witter): a slip in it ("Junor Witter") is near "junior", not near "jr"
+    const spelled = (hay: string) => { const long = hay.replace(/\bjr\b/g, "junior").replace(/\bsr\b/g, "senior"); return long === hay ? hay : `${hay} ${long}`; };
+    const words = buildWordIndex(entries.map((e) => spelled(e.hay)));
     idx = { entries, words, recent: new Lru(500) };
     per.set(names, idx);
   }
