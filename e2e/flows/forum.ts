@@ -127,12 +127,12 @@ export const forum: Flow[] = [
       await h.click(theirs.getByRole("button", { name: h.label("Report") }));
       const reason = theirs.locator("select");
       await reason.waitFor();
-      check(await reason.evaluate((el: Element) => el === document.activeElement), "focus moves into the report form");
+      await h.focused(reason, "focus moves into the report form");
       await reason.selectOption("spam");
       await theirs.locator("input").fill("looks like an advert");
       await theirs.locator("input").press("Enter");
       await C.page.locator("#discussion [role=status]", { hasText: h.tr("Reported. Thank you.") }).waitFor();
-      check(await theirs.getByRole("button", { name: h.label("Report") }).evaluate((el: Element) => el === document.activeElement), "focus returns to the Report button");
+      await h.focused(theirs.getByRole("button", { name: h.label("Report") }), "focus returns to the Report button");
       // one report from a new account hides nothing
       await A.page.reload(); await h.ready(A.page);
       await post(A.page, p1).waitFor();

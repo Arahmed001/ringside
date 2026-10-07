@@ -129,8 +129,8 @@ export const keyboard: Flow[] = [
       await page.keyboard.press("Control+k");
       await dialog.waitFor();
       const box = dialog.getByRole("combobox");
-      check(await box.evaluate((el: Element) => el === document.activeElement), "focus is in the search box");
-      for (const k of ["Tab", "Tab", "Shift+Tab", "Tab"]) { await page.keyboard.press(k); check(await box.evaluate((el: Element) => el === document.activeElement), `${k} leaves focus in the dialog`); }
+      await h.focused(box, "focus is in the search box");
+      for (const k of ["Tab", "Tab", "Shift+Tab", "Tab"]) { await page.keyboard.press(k); await h.focused(box, `${k} leaves focus in the dialog`); }
       const first = await box.getAttribute("aria-activedescendant");
       await box.press("ArrowDown");
       check((await box.getAttribute("aria-activedescendant")) !== first, "ArrowDown moves the highlight");
@@ -138,7 +138,7 @@ export const keyboard: Flow[] = [
       eq(await box.getAttribute("aria-activedescendant"), first, "ArrowUp moves it back");
       await page.keyboard.press("Escape");
       await dialog.waitFor({ state: "detached" });
-      check(await link.evaluate((el: Element) => el === document.activeElement), "focus returns to the link it came from");
+      await h.focused(link, "focus returns to the link it came from");
 
       // the other shortcut: "/" outside a text box; and it does not fire while typing in one
       await page.locator("body").click({ position: { x: 5, y: 5 } });
@@ -153,6 +153,7 @@ export const keyboard: Flow[] = [
       await dialog.waitFor();
       await page.keyboard.press("Escape");
       await dialog.waitFor({ state: "detached" });
+      await page.waitForFunction(() => document.activeElement?.tagName === "BUTTON", undefined, { timeout: 4000 }).catch(() => {}); // focus is put back by an effect, just after the dialog is gone
       const landed = await describeFocus(page);
       check(landed && landed.desc.includes(h.tr("Search everything (Ctrl+K)")) && landed.tag === "button", `after Escape, focus is on ${landed ? landed.desc : "nothing (the page body)"} instead of the search button it was opened from`);
       // and the button still works by keyboard
@@ -183,7 +184,7 @@ export const keyboard: Flow[] = [
       check(rtl(h) ? Math.abs(box.x + box.width - 375) < 2 : Math.abs(box.x) < 2, `the drawer is at the ${rtl(h) ? "right" : "left"} edge: ${JSON.stringify(box)}`);
       await page.keyboard.press("Escape");
       await page.waitForFunction(() => (document.querySelector("dialog.drawer") as HTMLDialogElement).open === false);
-      check(await menu.evaluate((el: Element) => el === document.activeElement), "focus returns to the menu button after Escape");
+      await h.focused(menu, "focus returns to the menu button after Escape");
       // a link inside it, chosen with Enter, goes there and the drawer is closed on the new page
       await page.keyboard.press("Enter");
       await page.waitForFunction(() => (document.querySelector("dialog.drawer") as HTMLDialogElement).open === true);
@@ -213,7 +214,7 @@ export const keyboard: Flow[] = [
       check(await tip.evaluate((el: Element) => el.querySelectorAll("a, button, input, select, textarea").length === 0), "the card holds no controls to trap focus");
       await page.keyboard.press("Escape");
       await tip.waitFor({ state: "detached" });
-      check(await link.evaluate((el: Element) => el === document.activeElement), "focus stays on the link after Escape");
+      await h.focused(link, "focus stays on the link after Escape");
       eq(await link.getAttribute("aria-describedby"), null, "the description is gone with the card");
       // it also goes when focus moves on
       await link.focus(); await page.keyboard.press("Shift+Tab"); await page.keyboard.press("Tab");
@@ -278,6 +279,8 @@ export const keyboard: Flow[] = [
       check(post?.tag === "button" && post.desc.includes(h.tr("Post")), `the Post button follows the rules link (got ${post?.desc})`);
       await page.keyboard.press("Enter");
       await page.locator("#discussion [role=status]", { hasText: h.tr("Posted.") }).waitFor();
+      // (the "Posted." line comes first, then the thread is reloaded, then focus goes to the box: wait for it, then say where it is if it never gets there)
+      await page.waitForFunction(() => document.activeElement?.id === "forum-text", undefined, { timeout: 5000 }).catch(() => {});
       const kept = await describeFocus(page);
       check(kept?.id === "forum-text", `after posting, focus goes back to the box (it is on ${kept ? kept.desc : "nothing: the top of the page"})`);
       const li = page.locator("li[id^=post-]", { hasText: mine });
@@ -289,24 +292,24 @@ export const keyboard: Flow[] = [
       await page.keyboard.press("Enter");
       const cancel = li.getByRole("button", { name: h.label("Cancel") });
       await cancel.waitFor();
-      check(await cancel.evaluate((el: Element) => el === document.activeElement), "focus moves to the safe choice (Cancel)");
+      await h.focused(cancel, "focus moves to the safe choice (Cancel)");
       await page.keyboard.press("Enter");
       await del.waitFor();
-      check(await del.evaluate((el: Element) => el === document.activeElement), "focus returns to Delete after Cancel");
+      await h.focused(del, "focus returns to Delete after Cancel");
       // and the edit box takes focus and Escape-free Cancel returns it
       await li.getByRole("button", { name: h.label("Edit") }).focus();
       await page.keyboard.press("Enter");
-      check(await li.locator("textarea").evaluate((el: Element) => el === document.activeElement), "Edit puts focus in the text box");
+      await h.focused(li.locator("textarea"), "Edit puts focus in the text box");
       await li.getByRole("button", { name: h.label("Cancel") }).focus();
       await page.keyboard.press("Enter");
-      check(await li.getByRole("button", { name: h.label("Edit") }).evaluate((el: Element) => el === document.activeElement), "focus returns to Edit");
+      await h.focused(li.getByRole("button", { name: h.label("Edit") }), "focus returns to Edit");
       // someone else's post: Report by keyboard, choose the reason with the arrow keys, Enter in the note sends it
       const t = page.locator("li[id^=post-]", { hasText: theirs });
       await t.waitFor();
       await t.getByRole("button", { name: h.label("Report") }).focus();
       await page.keyboard.press("Enter");
       const reason = t.locator("select");
-      check(await reason.evaluate((el: Element) => el === document.activeElement), "focus is in the reason list");
+      await h.focused(reason, "focus is in the reason list");
       await page.keyboard.press("ArrowDown");
       await page.keyboard.press("Tab");
       await page.keyboard.type("keyboard note");

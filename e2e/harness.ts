@@ -77,11 +77,12 @@ export class Harness {
     this.pages.push(page);
     const problem = (s: string) => this.problems.push(s);
     await page.exposeFunction("__csp", (s: string) => problem(`content security policy violation: ${s}`));
-    await page.addInitScript(() => {
-      // the clipboard is one for the whole browser, shared by flows running side by side: what the page copies is recorded here instead (read with `copied`)
-      Object.defineProperty(navigator, "clipboard", { value: { writeText: async (t: string) => { (window as any).__copied = t; }, readText: async () => (window as any).__copied ?? "" }, configurable: true });
-      document.addEventListener("securitypolicyviolation", (e) => { void (window as any).__csp(`${e.violatedDirective} blocked ${e.blockedURI || "inline"} (${e.sourceFile || ""}:${e.lineNumber})`); });
-    });
+    // Plain text, not a function: the runner is compiled by tsx, which wraps named functions in a helper (`__name`) that does not exist in the browser.
+    // The clipboard is one for the whole browser, shared by flows running side by side, so what the page copies is recorded on the page instead (read with `copied`).
+    await page.addInitScript(`
+      Object.defineProperty(navigator, "clipboard", { value: { writeText: async function (t) { window.__copied = t; }, readText: async function () { return window.__copied || ""; } }, configurable: true });
+      document.addEventListener("securitypolicyviolation", function (e) { window.__csp(e.violatedDirective + " blocked " + (e.blockedURI || "inline") + " (" + (e.sourceFile || "") + ":" + e.lineNumber + ")"); });
+    `);
     page.on("console", (m: any) => {
       if (m.type() !== "error") return;
       const loc = m.location()?.url ?? "";
@@ -129,6 +130,11 @@ export class Harness {
   async hydrated(loc: any) {
     const handle = await loc.first().elementHandle();
     await loc.page().waitForFunction((el: Element) => Object.keys(el).some((k) => k.startsWith("__reactProps")), handle);
+  }
+
+  /** Waits (up to 4 s) for this element to have keyboard focus: focus is moved by effects that run just after the render that shows the element, so reading it at once can be a frame early. */
+  async focused(loc: any, what: string) {
+    try { await this.until(what, () => loc.evaluate((el: Element) => el === document.activeElement), 4000); } catch { throw new Error(`${what} (focus is elsewhere)`); }
   }
 
   /** Polls a condition (a database row, an answer from the API) until it holds. */
