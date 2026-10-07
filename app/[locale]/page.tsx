@@ -79,7 +79,7 @@ export default async function Home() {
           <div>
             <div className="eyebrow mb-3">{t.n(daysUntil(next.event.date), "In {n} day", "In {n} days")} · {fmtDate(next.event.date, undefined, t.locale)} · {t.name(next.event.venue)}</div>
             <h1 className={`font-display font-extrabold uppercase ${t.locale === "ar" ? "text-6xl leading-[1.25] sm:text-8xl md:text-5xl lg:text-8xl" : "text-7xl leading-[.9] sm:text-9xl md:text-6xl lg:text-9xl"}`}>
-              <span>{surname(next.red.name)}</span><br /><span className="text-2xl font-bold text-gold sm:text-4xl">{t("VS")}</span><br /><span className="text-red-ink">{surname(next.blue.name)}</span>
+              <span className="block">{surname(next.red.name)}</span><span className="block py-1 text-2xl font-bold leading-none text-gold sm:py-2 sm:text-4xl">{t("VS")}</span><span className="block text-red-ink">{surname(next.blue.name)}</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg text-muted">{t("{a} vs {b}", { a: t.name(next.red.name), b: t.name(next.blue.name) })} · {next.main.title ? t.name(next.main.title) : divisionLabel(next.main.weightClass, next.red.sex, t)}</p>
             <div className="mt-6 max-w-xl"><ProbBar a={t.name(next.red.name)} b={t.name(next.blue.name)} pA={p.pA} pB={p.pB} pDraw={p.pDraw} /></div>
@@ -125,9 +125,9 @@ export default async function Home() {
         {ups.length > 1 && (
         <div>
           <SectionTitle eyebrow={t("Fight calendar")} title={t("Coming up")} href="/events" cta={upcoming.length > STRIP + 1 ? t.n(upcoming.length, "All {n} upcoming card", "All {n} upcoming cards") : undefined} />
-          <div className="-mx-5 flex gap-4 overflow-x-auto px-5 pb-3">
+          <div className="-mx-5 flex gap-4 overflow-x-auto px-5 pb-3 md:mx-0 md:grid md:grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] md:overflow-visible md:px-0">
             {ups.slice(1).map((e) => (
-              <Link key={e.event.id} href={`/events/${e.event.id}`} className="card-hover w-44 shrink-0">
+              <Link key={e.event.id} href={`/events/${e.event.id}`} className="card-hover w-44 shrink-0 md:w-auto">
                 <Poster event={e.event} main={e.main} red={e.red} blue={e.blue} />
               </Link>
             ))}
