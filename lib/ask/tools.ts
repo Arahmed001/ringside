@@ -8,7 +8,7 @@ import { LISTS, listDef, recordList, rowText, type ListId, type Scope } from "..
 import { rankDivision, pound4pound, rankOf } from "../rankings";
 import { belts, beltLabel, reignsOf } from "../lineage";
 import { eventViews, recentEvents, upcomingEvents } from "../events";
-import { fightsOfYear, fightOfTheYear, resultLine, fightReasons } from "../fight-score";
+import { topFightsOfYear, fightScoreOf, fightOfTheYear, resultLine, fightReasons } from "../fight-score";
 import { secondsIn } from "../records";
 import { countsInRecord, isDecision, isStoppage } from "../methods";
 import { upsetWatch, TIER_LABEL } from "../upsets";
@@ -346,7 +346,7 @@ const bouts: Tool = {
     const sort = str(args, "sort") ?? "recent";
     const total = list.length;
     if (sort === "fight score") {
-      const scored = list.map((b) => ({ b, s: (fightsOfYear(w, Number(b.date.slice(0, 4))).find((x) => x.bout.id === b.id)?.score ?? -1) })).filter((x) => x.s >= 0).sort((a, c) => c.s - a.s);
+      const scored = list.map((b) => ({ b, s: fightScoreOf(w, b) ?? -1 })).filter((x) => x.s >= 0).sort((a, c) => c.s - a.s);
       list = scored.map((x) => x.b);
     } else if (sort === "fastest") list = list.filter((b) => secondsIn(b) !== null && ["KO", "TKO", "RTD"].includes(b.method!)).sort((a, c) => secondsIn(a)! - secondsIn(c)!);
     else if (sort === "knockdowns") list = list.filter((b) => b.kdRed + b.kdBlue > 0).sort((a, c) => c.kdRed + c.kdBlue - (a.kdRed + a.kdBlue));
@@ -409,7 +409,7 @@ const fightOfYear: Tool = {
   run({ w, t }, args) {
     const n = take(args);
     if (typeof args.year === "number") {
-      const list = fightsOfYear(w, Math.round(args.year)).slice(0, n);
+      const list = topFightsOfYear(w, Math.round(args.year), n);
       if (!list.length) return empty("fight_of_the_year", args, t, t("No fights were scored for that year."));
       const top = list[0];
       const reasons = fightReasons(w, top, t, 3).map((r) => r.text);

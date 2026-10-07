@@ -1,5 +1,6 @@
 import { currentYear, nowMs } from "./clock";
-import { getWorld } from "./world";
+import { getWorld, whenRebuilt } from "./world";
+import { collectGarbage } from "./gc";
 import type { World } from "./world";
 import { signalLift, upsetRecord } from "./upsets";
 import { moves, switchStudy, trainerImpact, underdogLifters } from "./trainer-impact";
@@ -78,6 +79,7 @@ export const WARM_STEPS: [string, (w: World) => unknown][] = [
 /** Runs every step, returning how long each took and what went wrong with any that threw. */
 export async function warmAggregates(w: World, opts: { gentle?: boolean } = {}): Promise<{ step: string; ms: number; error?: string }[]> {
   const out: { step: string; ms: number; error?: string }[] = [];
+  let done = 0;
   for (const [step, run] of WARM_STEPS) {
     // between steps the requests that are waiting are answered (a step is 0.1 to 1 s of the one thread). At start-up that is a turn of the event loop; when the site is
     // serving and this is a rebuild's warm-up, the thread is given back for as long as the step took (at most a second), so visitors get half of it, not a turn in a dozen.
@@ -86,6 +88,8 @@ export async function warmAggregates(w: World, opts: { gentle?: boolean } = {}):
     try { await run(w); out.push({ step, ms: Math.round(performance.now() - t0) }); }
     catch (e) { out.push({ step, ms: Math.round(performance.now() - t0), error: e instanceof Error ? e.message : String(e) }); }
     if (opts.gentle) await new Promise<void>((r) => setTimeout(r, Math.min(1000, Math.round(performance.now() - t0))));
+    // while the old world is still being served and the new one grows beside it, the garbage the steps leave is what would take the process to its peak: collect it as we go
+    if (opts.gentle && ++done % 8 === 0) await collectGarbage();
   }
   return out;
 }
@@ -104,6 +108,7 @@ export async function warmWorld(log: (m: string) => void = console.log): Promise
     const steps = await warmAggregates(w);
     for (const s of steps) if (s.error) log(`[ringside] warm-up step "${s.step}" failed (${s.error}); its page will compute it on the first visit`);
     log(`[ringside] pages warmed in ${Math.round(performance.now() - t1)} ms`);
+    await collectGarbage(); // what the build and the warm-up left behind (lib/gc.ts)
   } catch (e) {
     // never keep the server from starting: the first request will try again and show the real error
     log(`[ringside] warm-up failed (${e instanceof Error ? e.message : String(e)}); the first request will retry`);
@@ -111,14 +116,30 @@ export async function warmWorld(log: (m: string) => void = console.log): Promise
 }
 
 /**
- * The world is valid for one calendar day, so it goes stale at midnight UTC and the next visitor would pay for the rebuild.
- * Rebuild just after midnight instead, when traffic is lowest. Not scheduled when the clock is pinned (tests, reproducible runs).
+ * The world is valid for one calendar day, so it goes stale at midnight UTC. Rebuild just after midnight, when traffic is lowest, and without making anyone wait:
+ * the tick asks for the world (which starts the rebuild behind the old one: lib/world.ts, `getWorld`) and then waits for the new one to be built, warmed and
+ * shown. Visitors in the meantime are answered from yesterday's world. Not scheduled when the clock is pinned (tests, reproducible runs), unless a clock is injected.
  */
-export function scheduleDailyWarm(log: (m: string) => void = console.log): void {
-  if (process.env.RINGSIDE_NOW) return;
+export function scheduleDailyWarm(log: (m: string) => void = console.log, clock: { now?: () => number; setTimer?: (fn: () => void, ms: number) => unknown } = {}): void {
+  if (process.env.RINGSIDE_NOW && !clock.now) return;
+  const now = clock.now ?? nowMs;
+  const timer = clock.setTimer ?? ((fn: () => void, ms: number) => { const t = setTimeout(fn, ms); t.unref(); /* a pending timer must never keep the process alive */ return t; });
   const tick = () => {
-    void warmWorld(log).finally(() => { const t = setTimeout(tick, msUntilNextDay(nowMs())); t.unref(); });
+    void dailyRebuild(log).finally(() => timer(tick, msUntilNextDay(now())));
   };
-  const t = setTimeout(tick, msUntilNextDay(nowMs()));
-  t.unref(); // a pending timer must never keep the process alive
+  timer(tick, msUntilNextDay(now()));
+}
+
+/** What the midnight tick does: ask for the world (a stale one starts its rebuild in the background and is returned), wait for the new one, then say so. */
+export async function dailyRebuild(log: (m: string) => void = console.log): Promise<void> {
+  const t0 = performance.now();
+  try {
+    const before = await getWorld();
+    await whenRebuilt();
+    const now = await getWorld();
+    if (now !== before) log(`[ringside] new day: world rebuilt and shown in ${Math.round(performance.now() - t0)} ms: ${now.boxers.length} fighters, ${now.bouts.length} bouts`);
+    else await warmWorld(log); // no background rebuild ran (the world was built at once, or the rebuild failed): warm what is there (memoised, so a no-op when it is already warm)
+  } catch (e) {
+    log(`[ringside] midnight rebuild failed (${e instanceof Error ? e.message : String(e)}); the next request will retry`);
+  }
 }
