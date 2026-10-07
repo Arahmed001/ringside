@@ -107,7 +107,7 @@ test("the command: --fighters says what it took and what is short; a partial loa
     assert.doesNotMatch(check.out, /left out because a fighter could not be fetched/);
     assert.equal(vendor.stats.fighterOrder.length, 20);
     const refused = await run(vendor.url, ["--fighters", "20", "--cache-dir", cache], { DATABASE_PATH: db });
-    assert.equal(refused.code, 1, refused.out);
+    assert.equal(refused.code, 3, refused.out);
     assert.match(refused.out, /Nothing was loaded, because only \d+\.\d% of fighters/);
     assert.ok(!fs.existsSync(db) || new DatabaseSync(db).prepare("SELECT COUNT(*) c FROM boxers").get()!.c === 0, "nothing was written");
     for (const bad of [["--fighters", "0"], ["--fighters", "abc"], ["--fighters", "2.5"]]) {

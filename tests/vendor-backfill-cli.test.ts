@@ -243,7 +243,7 @@ test("a fighter that cannot be fetched stops the load with the cure; the next ru
   const env = { DATABASE_PATH: db2, BOXING_API_STORAGE_CONFIRMED: "1" };
   state.failing.add("f4");
   const failed = await run(["--cache-dir", cache2, "--retries", "0"], env);
-  assert.equal(failed.code, 1);
+  assert.equal(failed.code, 3);
   assert.match(failed.out, /fighter f4 skipped: Boxing Data API 500/); assert.match(failed.out, /left out because a fighter could not be fetched/); assert.match(failed.out, /Run the same command again/);
   const empty = new DatabaseSync(db2, { readOnly: true });
   assert.equal(count(empty, "SELECT COUNT(*) c FROM boxers"), 0, "nothing was loaded");
@@ -303,7 +303,7 @@ test("--update on an empty database says to backfill first, and loads nothing", 
 
 test("a wrong key stops the run with the vendor's own message, and never prints the key", async () => {
   const r = await run(["--plan"], { BOXING_API_KEY: "wrong-key-value-xyz" });
-  assert.equal(r.code, 1);
+  assert.equal(r.code, 2);
   assert.match(r.out, /403 on \/v2\/fights\/: Invalid API key\./); assert.ok(!r.out.includes("wrong-key-value-xyz"));
 });
 
@@ -329,7 +329,7 @@ test("a career the loaded fights do not add up to is refused: a partial history 
     assert.match(check.out, /a load would be refused/);
 
     const refused = await run(["--cache-dir", cache4], env);
-    assert.equal(refused.code, 1);
+    assert.equal(refused.code, 3);
     assert.match(refused.out, /Nothing was loaded, because only 83\.3% of fighters \(5 of 6\) have loaded fights that add up to the vendor's career record; 90% is required/);
     assert.match(refused.out, /hold fewer fights than the vendor's career total/); assert.match(refused.out, /--allow-partial loads anyway; --min-complete changes the bar/);
     const empty = new DatabaseSync(db4, { readOnly: true });
@@ -355,7 +355,7 @@ test("a career LOWER than the loaded fights is a contradiction in the feed itsel
   const env = { DATABASE_PATH: db5, BOXING_API_STORAGE_CONFIRMED: "1" };
   try {
     const r = await run(["--cache-dir", cache5, "--min-complete", "0.5", "--allow-partial"], env);
-    assert.equal(r.code, 1, "allowing partial records does not allow conflicts");
+    assert.equal(r.code, 3, "allowing partial records does not allow conflicts");
     assert.match(r.out, /1 CONFLICT: more than the vendor's own career total, so the feed contradicts itself \(e\.g\. Ace One loaded 1-0-0 vs vendor 0-0-0\)/);
     assert.match(r.out, /Nothing was loaded, because 1 fighter\(s\) have MORE wins, losses or draws in the loaded fights than the vendor's own career total/);
     const ok = await run(["--cache-dir", cache5, "--allow-conflicts", "--min-complete", "0.5"], env);
@@ -378,12 +378,12 @@ test("a plan's own hourly limit: --plan prices a paced run in the plan's terms; 
   try {
     state.limited = "You have exceeded the rate limit per hour for your plan, MEGA, by the API provider";
     const hourly = await run(["--check", "--retries", "0", "--patience-min", "0", "--cache-dir", dir], { DATABASE_PATH: dbFile, BOXING_API_STORAGE_CONFIRMED: "1" });
-    assert.equal(hourly.code, 1, hourly.out);
+    assert.equal(hourly.code, 2, hourly.out);
     assert.match(hourly.out, /rate limit per hour for your plan, MEGA, by the API provider/); assert.match(hourly.out, /--patience-min/); assert.doesNotMatch(hourly.out, /retry after unknown s\)\.$/m);
     state.limited = "You have exceeded the MONTHLY quota for Requests on your current plan, MEGA.";
     const started = Date.now();
     const quota = await run(["--check", "--patience-min", "90", "--cache-dir", dir], { DATABASE_PATH: dbFile, BOXING_API_STORAGE_CONFIRMED: "1" });
-    assert.equal(quota.code, 1, quota.out);
+    assert.equal(quota.code, 2, quota.out);
     assert.match(quota.out, /quota used up/); assert.match(quota.out, /RapidAPI dashboard/);
     assert.doesNotMatch(quota.out, /waiting \d/);
     assert.ok(Date.now() - started < 60_000, "it did not wait");

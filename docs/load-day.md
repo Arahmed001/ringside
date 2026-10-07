@@ -90,6 +90,22 @@ Ten fighters you know (record, age, division, last fight); the top of the heavie
 
 It fetches the recent fights and the coming weeks (tens of requests) and reports a career total that trails a result as lagging, not as a conflict. A mark set by the load stays until the next load.
 
+**Exit codes** (of `vendor:fetch`, which passes through those of `vendor:backfill`; a cron job or a monitor can read them):
+
+| Code | Meaning | Examples |
+| --- | --- | --- |
+| 0 | Done (or `--plan`, `--check` that found nothing wrong). | |
+| 1 | Anything else: a missing key, a bad option, the clock message below, a backup folder that cannot be written, a database error such as "disk is full", `--check` that found errors or would refuse a load. | |
+| 2 | The vendor is unreachable or refused. | Network down or connection refused/reset/cut; 401, 403, 404 on the list; 5xx after the retries; 429 (rate limit still in force, or the quota used up); the request budget reached. |
+| 3 | A check refused the data (nothing was written). | The validator found errors; the records gate refused; fights were left out because a fighter could not be fetched; the vendor sent something that is not JSON, an unexpected shape or an error envelope, or no usable fights for the window. |
+| 75 | Another run holds the lock for this key (`EX_TEMPFAIL`: try again later). | A hand run while the nightly job runs. |
+| 130 | Stopped by SIGINT, SIGTERM or SIGHUP (the backfill catches them, gives the lock back and exits). | A cron timeout, Ctrl-C. |
+| 128 + n | `vendor:fetch` only: its child died by signal number n, which the child could not catch, and `vendor:fetch` says so ("vendor:backfill killed (SIGKILL)." / "stopped (SIGQUIT)."). | 137 for SIGKILL (the out-of-memory killer, `kill -9`), 131 for SIGQUIT. |
+
+`vendor:fetch` passes the backfill's code through unchanged. A cron wrapper can therefore tell the three kinds of failure apart without reading the log (`2` is worth a retry in an hour, `3` needs a look, `75` needs nothing). `vendor:load` passes the code through too.
+
+When an update skipped or ignored anything (fights it could not read, text it cleaned, results it kept as unsettled, values that cannot be true), its last line says so in one sentence ("update done, but 1 fight(s) skipped ..., see "approximated or skipped" above."); a clean night has no such line. When there is nothing to update, it says the newest card's date and today's and asks whether this machine's clock is right. What each failure of the nightly job does is in [update-failure-modes.md](update-failure-modes.md).
+
 ## What to send back when something looks wrong
 
 The whole output of the command, from its first line to its last (not the cache files, not the key file). Each step above prints enough to say what happened.

@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import type { BackfillPlan } from "./providers/boxing-data-api";
+import { BudgetError, HttpError, NetworkError, type BackfillPlan } from "./providers/boxing-data-api";
 
 /** Every fighter the Boxing Data API adapter creates has an external id starting with this (see fighterId in lib/providers/boxing-data-api.ts). */
 export const FEED_FIGHTER_PREFIX = "bda-f-";
@@ -28,6 +28,14 @@ export function updateSince(db: DatabaseSync, today: string, overlapDays = 14): 
   const row = db.prepare("SELECT MAX(date) d FROM events WHERE date <= ? AND COALESCE(status, '') != 'cancelled'").get(today) as { d: string | null };
   if (!row.d) return null;
   return new Date(Date.parse(row.d) - overlapDays * 86400000).toISOString().slice(0, 10);
+}
+
+/** Why an update has no starting date: the newest card the database holds (cancelled ones do not count) against today. An empty database, or a clock that is behind. */
+export function describeNothingToUpdate(db: DatabaseSync, today: string): string {
+  const newest = (db.prepare("SELECT MAX(date) d FROM events WHERE COALESCE(status, '') != 'cancelled'").get() as { d: string | null }).d;
+  if (!newest) return "There is nothing to update yet: the database has no completed card. Run the backfill first.";
+  const ahead = Math.round((Date.parse(newest) - Date.parse(today)) / 86400000);
+  return `There is nothing to update yet: the newest card in the database is dated ${newest} and today is ${today} on this machine${ahead > 0 ? `, so the newest card is ${ahead} day(s) in the future` : ""}. Is this machine's clock right? (\`date\` shows it.) If it is, the database holds no completed card: run the backfill first.`;
 }
 
 /** What `--plan` prints: the size of the job and a rough time for it. */
@@ -75,7 +83,7 @@ export function acquireBackfillLock(key: string, o: LockOptions = {}): string {
     let held: Partial<LockInfo> = {};
     try { held = JSON.parse(fs.readFileSync(file, "utf8")) as Partial<LockInfo>; } catch { /* unreadable: treat as stale */ }
     if (typeof held.pid === "number" && held.pid !== pid && alive(held.pid))
-      throw new Error(`Another backfill is already running with this API key (process ${held.pid}, started ${held.startedAt ?? "at an unknown time"}${held.command ? `: ${held.command}` : ""}). They share the plan's hourly allowance, so two runs make each other slow and a rate-limited one refuses most requests. Stop it first (Ctrl-C in its terminal; \`pgrep -fl vendor-backfill\` lists it). If it is not really running, delete ${file}.`);
+      throw new LockHeldError(`Another backfill is already running with this API key (process ${held.pid}, started ${held.startedAt ?? "at an unknown time"}${held.command ? `: ${held.command}` : ""}). They share the plan's hourly allowance, so two runs make each other slow and a rate-limited one refuses most requests. Stop it first (Ctrl-C in its terminal; \`pgrep -fl vendor-backfill\` lists it). If it is not really running, delete ${file}.`);
   }
   const info: LockInfo = { pid, startedAt: (o.now?.() ?? new Date()).toISOString(), command: (o.command ?? "").slice(0, 200) };
   fs.writeFileSync(file, JSON.stringify(info));
@@ -95,4 +103,39 @@ export function releaseBackfillLock(file: string, pid = process.pid): void {
 export function lagDays(kind: "update" | "load", env: Record<string, string | undefined> = { VENDOR_LAG_DAYS: process.env.VENDOR_LAG_DAYS, VENDOR_LOAD_LAG_DAYS: process.env.VENDOR_LOAD_LAG_DAYS }): number {
   const ok = (x: string | undefined) => { const n = Number(x); return x !== undefined && x !== "" && Number.isInteger(n) && n > 0 ? n : undefined; };
   return kind === "update" ? ok(env.VENDOR_LAG_DAYS) ?? 7 : ok(env.VENDOR_LOAD_LAG_DAYS) ?? ok(env.VENDOR_LAG_DAYS) ?? 14;
+}
+
+/** Exit codes of `vendor:backfill` (and so of `vendor:fetch`). Everything not listed is 1. */
+export const EXIT_VENDOR = 2, EXIT_REFUSED = 3, EXIT_LOCKED = 75;
+
+/** Thrown when another run holds the lock for this key (exit 75, EX_TEMPFAIL: try again later). */
+export class LockHeldError extends Error {}
+/** Thrown when a check refused the data: the validator, the record gate, a fighter that could not be fetched (exit 3). */
+export class CheckRefusedError extends Error {}
+
+/** The vendor sent something that is not an answer (not JSON, not the envelope, a changed shape, an empty window): a check on the data, not a failure of the network. */
+const RUBBISH = /^Boxing Data API (sent something that is not JSON|sent an unexpected answer|error on|changed shape|returned no usable fights)/;
+
+/** 2 the vendor is unreachable or refused (network down, 4xx/5xx, quota, rate limit, request budget); 3 a check refused the data; 75 the lock is held; otherwise 1. */
+export function exitCodeFor(e: unknown): number {
+  if (e instanceof LockHeldError) return EXIT_LOCKED;
+  if (e instanceof CheckRefusedError) return EXIT_REFUSED;
+  if (e instanceof HttpError || e instanceof NetworkError || e instanceof BudgetError) return EXIT_VENDOR;
+  const m = e instanceof Error ? e.message : String(e);
+  if (RUBBISH.test(m)) return EXIT_REFUSED;
+  if (/^Boxing Data API unreachable on /.test(m)) return EXIT_VENDOR;
+  return 1;
+}
+
+/** The notes that mean an update skipped or ignored something, and how each is said. */
+const SKIPPED: [string, string][] = [
+  ["fightsSkipped", "fight(s) skipped (a field missing)"], ["fightsSkippedUnreadable", "fight(s) skipped as unreadable"], ["boutsDroppedUnknownFighter", "fight(s) left out (a fighter could not be fetched)"],
+  ["textCleaned", "text(s) cleaned"], ["outcomeUnreadable", "result(s) kept as unsettled"], ["statusUnknown", "fight(s) with an unknown status kept as unsettled"],
+  ["finishedInFuture", "result(s) dropped (dated in the future)"], ["careerTotalImplausible", "implausible career total(s) ignored"], ["physicalsImplausible", "implausible height or reach value(s) ignored"],
+  ["roundUnreadable", "unreadable round count(s) read as ten"], ["duplicateFightsDisagree", "fight(s) listed twice that disagree"],
+];
+/** One line for the end of an update that skipped or ignored anything (from the provider's notes); null when every counter is zero. */
+export function skippedSummary(notes: Record<string, number>): string | null {
+  const parts = SKIPPED.filter(([k]) => (notes[k] ?? 0) > 0).map(([k, w]) => `${notes[k]} ${w}`);
+  return parts.length ? `update done, but ${parts.join(", ")}: see "approximated or skipped" above.` : null;
 }
