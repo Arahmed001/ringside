@@ -69,7 +69,16 @@ The reference on the error page is that `digest`, so a report of "reference 1624
 
 ## Sizing
 
-**At the real size (35,000 fighters, 160,000 fights), see [capacity.md](capacity.md):** what one instance serves (about 15 requests a second on one core, 21 on two, of a mixed workload), the memory it needs (after the memory diet: 0.7 GB at start, 1.1 to 1.2 GB under load, 1.4 GB while a data update or a new day rebuilds the world, so **2 GB is enough with no heap cap**; before it was 1.5, 1.7 and 2.2 GB, a 4 GB host or a capped heap), the 10 to 16 second stall a data update used to cause, and the 15 second one at midnight (both fixed: the old data keeps being served while the new is built; under a 1 GB heap cap it is shortened, not gone), and what to put in front. The older measurements below are of smaller leagues.
+**At the real size (35,000 fighters, 160,000 fights), see [capacity.md](capacity.md):** what one instance serves (about 15 requests a second on one core, 21 on two, of a mixed workload), the memory it needs (after the memory diet and the leftovers: 0.6 GB at start, 0.9 to 1.0 GB under load, 1.3 to 1.4 GB while a data update or a new day rebuilds the world, 1.1 to 1.2 GB with `MALLOC_ARENA_MAX=2`, so **2 GB is enough with no heap cap**; before it was 1.5, 1.7 and 2.2 GB, a 4 GB host or a capped heap), the 10 to 16 second stall a data update used to cause, and the 15 second one at midnight (both fixed: the old data keeps being served while the new is built; under a 1 GB heap cap it is shortened, not gone), and what to put in front. The older measurements below are of smaller leagues.
+
+**For a 2 GB host, set `MALLOC_ARENA_MAX=2` on the container and leave the heap uncapped** (measured at that size in a sandbox, [capacity.md](capacity.md) "The leftovers"; the base image is Debian, `node:22-slim`, so the allocator setting applies):
+
+```
+MALLOC_ARENA_MAX=2        # glibc keeps two allocation arenas, not one per thread: 135 to 210 MB less at the peak, no change in speed
+# NODE_OPTIONS=--max-old-space-size=1024   # only for a host below 2 GB; see below
+```
+
+`docker run -e MALLOC_ARENA_MAX=2 ...`, or `environment:` in compose. With it the process is about 0.6 GB after start, 0.8 to 0.9 GB under load and 1.1 to 1.2 GB at the worst moment (a data update or midnight, old and new world alive together); without it 0.65, 1.0 and 1.3 to 1.4 GB. **Do not cap the heap on a 2 GB host:** a 1 GB cap saved only another 90 MB at the peak, cost a few percent of the throughput, and the world's live heap at this size (about 0.57 GB, two worlds about 1 GB at a swap) leaves a cap of 896 MB or less no room (the update slowed down at 896 MB and did not finish at 768 MB). V8 does not read the container's limit (its default heap limit stayed at 8 GB inside a 2 GB container), so nothing but the working set keeps the process under 2 GB: keep a margin of 0.5 GB and watch resident memory (`What to watch` in capacity.md). If the host is below 2 GB (1.5 GB fits), use both settings, and raise the cap with the league (it must stay well above twice the live heap).
 
 Measured on a production build with the demo league (968 fighters, 7,466 bouts; one Node process, one core, Apple laptop, a browser on the same machine, so network time is not in these numbers):
 
