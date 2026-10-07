@@ -99,7 +99,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
       <section className="rise">
         <h1 className="sr-only">{t("{a} vs {b}", { a: t.name(red.name), b: t.name(blue.name) })}</h1>
         <div className="eyebrow mb-2">
-          <Link href={`/events/${ev.id}`} className="hover:text-ink">{t.name(ev.name)}</Link> · {fmtDate(ev.date, undefined, t.locale)} · {t.name(ev.venue)}, {t.name(ev.city)}
+          <Link href={`/events/${ev.id}`} className="-my-1.5 inline-block py-1.5 hover:text-ink">{t.name(ev.name)}</Link> · {fmtDate(ev.date, undefined, t.locale)} · {t.name(ev.venue)}, {t.name(ev.city)}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Link href={`/rankings/${b.weightClass.toLowerCase().replace(/\s+/g, "-")}${red.sex === "female" ? "?sex=female" : ""}`} className="chip">{divisionLabel(b.weightClass, red.sex, t)}</Link>

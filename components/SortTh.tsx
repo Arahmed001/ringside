@@ -15,7 +15,7 @@ export async function SortTh<K extends string>({ label, column, current, fallbac
   const href = `${path}${(() => { const q = new URLSearchParams({ ...keep, ...sortQuery(next, fallback) }).toString(); return q ? `?${q}` : ""; })()}`;
   return (
     <th scope="col" aria-sort={on ? (current.dir === "asc" ? "ascending" : "descending") : undefined} className={className}>
-      <Link href={href} title={t("Sort by {column}", { column: label })} className={`inline-flex items-center gap-1 py-2 uppercase tracking-widest transition hover:text-ink ${on ? "text-gold" : ""} ${end ? "flex-row-reverse" : ""}`}>
+      <Link href={href} title={t("Sort by {column}", { column: label })} className={`-mx-1.5 inline-flex min-h-6 min-w-6 items-center justify-center gap-1 px-1.5 py-2 uppercase tracking-widest transition hover:text-ink ${on ? "text-gold" : ""} ${end ? "flex-row-reverse" : ""}`}>
         {label}<span aria-hidden className={on ? "" : "tracking-[-0.15em]"}>{on ? (current.dir === "asc" ? "▲" : "▼") : "▲▼"}</span>
       </Link>
     </th>

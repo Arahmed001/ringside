@@ -49,7 +49,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
         eventStatus: bout.status === "cancelled" ? "https://schema.org/EventCancelled" : "https://schema.org/EventScheduled",
       }} />
       <header className="rise">
-        <div className="eyebrow mb-2">{t("Fight preview")} · <Link href={`/events/${event.id}`} className="hover:text-ink">{t.name(event.name)}</Link> · {t.n(Math.max(0, days), "In {n} day", "In {n} days")}</div>
+        <div className="eyebrow mb-2">{t("Fight preview")} · <Link href={`/events/${event.id}`} className="-my-1.5 inline-block py-1.5 hover:text-ink">{t.name(event.name)}</Link> · {t.n(Math.max(0, days), "In {n} day", "In {n} days")}</div>
         <h1 className="font-display text-4xl font-extrabold uppercase leading-[1.02] sm:text-6xl">{pv.headline}</h1>
         <div className="mt-4 flex flex-wrap gap-2 text-xs">
           <span className="chip">{divisionLabel(bout.weightClass, red.sex, t)}</span>
