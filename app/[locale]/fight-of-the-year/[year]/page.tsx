@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
-import { fightsOfYear, fightYears, resultLine } from "@/lib/fight-score";
+import { topFightsOfYear, fightCountOfYear, fightYears, resultLine } from "@/lib/fight-score";
 import { FightHero, FightList } from "@/components/Awards";
 import { JsonLd } from "@/components/JsonLd";
 import { currentYear } from "@/lib/clock";
@@ -12,7 +12,7 @@ import { metaFor } from "@/lib/seo-server";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; year: string }> }) => metaFor(params, async ({ year }, t) => {
   const w = await getWorld();
-  const top = fightsOfYear(w, Number(year))[0];
+  const top = topFightsOfYear(w, Number(year), 1)[0];
   if (!top) notFound();
   return {
     path: `/fight-of-the-year/${year}`, title: t("Fight of the year {year}: {a} vs {b}", { year, a: t.name(top.bout.redName), b: t.name(top.bout.blueName) }),
@@ -27,7 +27,8 @@ export default async function FightOfTheYearPage({ params }: { params: Promise<{
   const w = await getWorld();
   const years = fightYears(w);
   if (!/^\d{4}$/.test(y) || !years.includes(year)) notFound();
-  const list = fightsOfYear(w, year);
+  const count = fightCountOfYear(w, year);
+  const list = topFightsOfYear(w, year, 10); // the page shows ten; the number scored is `count`
   const [top, ...rest] = list;
   const live = year === currentYear();
   const newer = years[years.indexOf(year) - 1], older = years[years.indexOf(year) + 1];
@@ -41,7 +42,7 @@ export default async function FightOfTheYearPage({ params }: { params: Promise<{
       <div>
         <div className="eyebrow mb-2"><Link href="/fight-of-the-year" className="inline-block py-1 hover:text-ink">{t("Fight of the year")}</Link></div>
         <h1 className="font-display text-5xl font-extrabold uppercase">{year}</h1>
-        <p className="mt-2 max-w-3xl text-muted">{live ? t("The year so far: {n} fights of six rounds or more scored. This can still change.", { n: list.length }) : t("{n} fights of six rounds or more were scored.", { n: list.length })}</p>
+        <p className="mt-2 max-w-3xl text-muted">{live ? t("The year so far: {n} fights of six rounds or more scored. This can still change.", { n: count }) : t("{n} fights of six rounds or more were scored.", { n: count })}</p>
         <nav className="mt-3 flex flex-wrap gap-2" aria-label={t("Other years")}>
           {newer && <Link href={`/fight-of-the-year/${newer}`} className="chip hover:!text-ink"><span className="rtl:rotate-180" aria-hidden>←</span> {newer}</Link>}
           {older && <Link href={`/fight-of-the-year/${older}`} className="chip hover:!text-ink">{older} <span className="rtl:rotate-180" aria-hidden>→</span></Link>}

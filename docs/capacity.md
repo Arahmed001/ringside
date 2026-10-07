@@ -6,7 +6,7 @@ Ringside must run as exactly one copy (one Node process, one SQLite file; `docs/
 
 - **One instance is limited by one thread.** The site renders every page on request in one Node thread. On one core it served about **15 requests a second** of a realistic mix (a request is a page, an API call, an image); on two cores about **21**. A second core helps by 35 to 40% (garbage collection and compression run beside the main thread); a third or fourth core does nothing for one instance. Ask for **2 vCPUs**.
 - **In visitors** (calculation, with an assumption: 85% of requests in the mix are pages, and a reader looks at a new page every 30 seconds): one core carries about 380 people reading at once, two cores about 530. Look at a page every 60 seconds and the numbers double. These are the ceiling, not a comfortable load: at the ceiling a request waits behind the others (about 1 second at 20 requests in flight on two cores, 3.3 seconds at 50 on one).
-- **Memory: ask for 2 GB with the heap capped, or 4 GB without a cap.** The process is 1.29 GB right after start, 1.6 to 1.7 GB under load (it plateaus; no growth over 7,600 requests), and **2.2 GB at the moment a data update makes it rebuild its in-memory world** (old and new world are both alive). With `NODE_OPTIONS=--max-old-space-size=1024` it was 0.7 GB idle, 1.2 GB under load, 1.4 GB at the rebuild, at the price of about 10% of the throughput. A 700 MB cap costs 27%; a 500 MB cap started and then crashed out of memory under load.
+- **Memory: 2 GB is enough, with no heap cap (after the memory diet, "The memory diet and the midnight rebuild" below; the figures before it are kept in the tables further down, marked as before).** The process is **0.71 GB right after start, 1.1 to 1.2 GB under load, and 1.4 GB at the moment a data update makes it rebuild its in-memory world** (old and new world both alive; peak 1.38 to 1.42 GB in three runs), where it was 1.5, 1.6 to 1.9 and 2.2 GB. That is under the 1.5 GB target but not "comfortably": the margin on a 2 GB host is 0.6 GB. A 4 GB host is no longer needed; a 1 GB host is not enough.
 - **Disk is not a constraint:** the database for 35,000 fighters and 160,000 fights is 62 MB.
 - **A data update under traffic used to stall the site for 10 to 16 seconds; it no longer does (fixed, "Fixes after the first measurement" below).** The update commits three times, each moved `dbVersion`, and each move rebuilt the in-memory world (4.7 s each) on the one thread that serves visitors. Now one rebuild runs, in slices, behind the old world, which keeps answering; the new one is warmed and swapped in whole. Measured on the same machine, alternating runs: nothing answered for 6 to 13 s (before) against 1.3 to 1.7 s (after), the slowest answer 11 to 14 s against 1.9 to 2.2 s. The process still peaks at about 2.1 GB (two worlds alive together), and a start takes 11 to 16 seconds before it answers.
 - **Little sits in front of the server today that can take load off it:** pages are sent `Cache-Control: private, no-cache, no-store` (a decision, below), so a CDN with default rules caches none of them. Share images (`public, max-age=600, stale-while-revalidate=3600`) and sitemap files (`public, max-age=3600`, gzip) now can be cached, and the origin keeps a copy of both in memory. What a CDN can and cannot safely be told is in "What to put in front".
@@ -106,7 +106,7 @@ One visitor at a time on two cores, p50 in ms, with the number of requests behin
 
 What is left is spread evenly: a typical page is 40 to 80 ms of one thread, and the V8 profiles put the garbage collector at 14 to 16% of all CPU time under the mix. The share image is the dearest single request (it draws a picture), and the text search on the fighters list the slowest page: it normalised every fighter's name on each request (in `applyFilters`, `lib/ai.ts`). Both are fixed since (below); the table above is the measurement before those fixes.
 
-### Memory
+### Memory (before the memory diet; the numbers after it are in "The memory diet and the midnight rebuild")
 
 Resident memory of the server process, no heap cap, two cores, 1 MB = 1,048,576 bytes:
 
@@ -229,6 +229,61 @@ The 8.6 MB XML is built once per file per world and kept **gzipped** (`sitemapGz
 
 Pages are sent `Cache-Control: private, no-cache, no-store` and that is left alone: each page carries a fresh `Content-Security-Policy` nonce made per request (`proxy.ts`), in the header and in the markup together, which is a security decision (`docs/security.md`), not a performance setting. To let a CDN cache pages for 30 to 60 seconds, all of this would have to be settled and tested first: (1) the nonce: a shared copy gives every visitor one nonce, so either the policy moves to hashes or `strict-dynamic` for those pages (a weaker protection, to be decided), or the edge writes a fresh nonce into the header and the markup of each copy it serves; (2) the cache key must include the query string and honour `Vary` on Next's `rsc` and router headers, or a browser can be handed a page where it asked for data; (3) a purge or a short TTL after each data update (`world_swapped` in the log says when the new data is shown); (4) the origin's own header would change from `private, no-store` to something a shared cache accepts, only on pages that read no cookie (none of the current ones does, as of this measurement). None of this was built or measured here.
 
+## The memory diet and the midnight rebuild
+
+The owner asked for a smaller footprint so a 2 GB host is viable, and for the midnight rebuild to stop making visitors wait. Same machine, same synthetic league (35,000 fighters, 160,000 fights, built with `npm run vendor:rehearse` on a temp copy; the stand-in vendor, never a real database), same driver, the old build and the new one alternated (`taskset` 0,1 for the server, 2,3 for `scripts/capacity.ts`, a shared sandbox: the 1-minute load average was 1.4 to 3.2 during the runs).
+
+**What held the memory (profiled with `process.memoryUsage`, `v8.getHeapSpaceStatistics`, and the heap after a full collection at each step of `WARM_STEPS`; 1 MB = 1,048,576 bytes).** After start the server was 1.3 to 1.5 GB resident but only **0.57 GB of it was live heap**: V8 had committed 1.09 GB of heap (475 MB used of 969 MB in the old generation) because its default limit is a few gigabytes, so it left the build's garbage sitting there; the rest was Next.js itself. The live 0.57 GB was the world (221 MB after a full collection) and what the pages compute once per world (282 MB):
+
+| held in memory (full collection, before) | MB |
+|---|---|
+| the world: fighters, fights, events, ratings history, indexes | 221 |
+| the fight score of every fight of every year (`fightsOfYear`, kept as full objects) and the all-time list built from it | 62 + 14 |
+| the model's call for every past fight (`accountability.calls`, behind the upset record, track record, signal lift) | 40 |
+| the Ask index of fighter names (names, variants, near-spelling words), English and Arabic | 34 + 32 |
+| the ⌘K index (people, events, organisations), English and Arabic | 25 + 32 |
+| the fighter-search index, English and Arabic | 17 + 17 |
+| everything else (countries, on-this-day, rankings, analytics ...) | under 10 |
+| share-image cache, sitemap cache (PLAN 226) | at most 24 and 32 (bounded; not filled in this test) |
+
+**What was done** (behaviour and page output identical; `tests/memory-diet.test.ts` sets each new structure beside the old algorithm on the same league):
+
+1. **A full collection when a lot has just become garbage** (`lib/gc.ts`): after the start-up warm-up, right after a swap (the old world and everything computed on it), after a background build, and every eight warm-up steps of a background rebuild. Asked to run as a task of its own (`gc({ execution: "async" })`, switched on at run time with `v8.setFlagsFromString("--expose-gc")`), not as one blocking pause, and not asked at all when the heap is under 64 MB (the demo league, the tests). **This alone took the resident size at start from 1.5 GB to 0.7 GB**, and is most of what lowered the peak.
+2. **The build streams its rows** (`mapRows`, `statement.iterate()`) instead of reading every table whole first (160,000 bouts as 160,000 raw objects with thirty fields and their own copy of every string): the peak resident size of the build alone, measured in a script with nothing else running, went **from 899 MB to 532 MB**.
+3. **Repeated strings are kept once** (a per-build pool): a weight class, a method, a country, a title, a source, and each rating-history row's date (320,000 of them) were a separate string per row.
+4. **Fight scores kept as two typed arrays per year** (bout ids and scores, in rank order) instead of 160,000 `FightScore` objects: 62 MB and 14 MB became under 1 MB; the few a page shows are scored again when asked for (`topFightsOfYear`, a few ms). The year page, the home page, Ask and the fighter page's award use the new accessors; ranks, counts and the all-time list come out identical (tested against the old computation for every year and every division).
+5. **`accountability.calls` no longer carries `finishX`** (four numbers per call that only the model fitter reads): `callsForFit` has them. About 11 MB.
+6. **The Ask index's word positions are a flat number list**, not an array of two-number arrays per position.
+
+Measured, all with no heap cap, two cores (the "before" is the build before these changes, the same day, the same league):
+
+| | before | after | |
+|---|---|---|---|
+| resident memory, 8 s after the server answers its health check | 1,495 to 1,507 MB | **711 to 716 MB** (high-water 787 to 793) | |
+| resident memory under the mix, 5 at a time, 40 s: start / peak / end | 1,566 / 1,814 / 1,800 | 743 / 1,110 / 1,108 | |
+| the same, 20 at a time | 1,800 / 1,873 / 1,861 | 1,108 / 1,160 / 1,139 | |
+| peak during a data update (5 at a time, 70 s, update at 20 s) | 2,167 (high-water 2,223) | **1,382 (high-water 1,415)**; a run of the same build, repeated, 1,404; 1,730 in a run before the collections during the rebuild were added | |
+| requests a second, 5 / 20 at a time | 18.0 / 20.0 | 20.8 / 21.7 | noise is about 10%; not lower |
+| the update run: nothing answered for (longest) / slowest answer / answers over 2 s | 2.0 s / 3.0 s / 5 | 1.4 s / 2.7 s / 5 | the stall fix of PLAN 226 is intact |
+| the update run: requests a second | 13.1 | 14.8 | |
+| world build / warm-up at start | 4.4 to 5.3 s / 7.3 to 9.8 s | 4.2 to 4.5 s / 7.9 s | |
+
+**Against the target of "comfortably under 1.5 GB peak with the default heap": met, not comfortably.** The peak is 1.38 to 1.42 GB at the worst moment (an update under traffic) and 1.1 to 1.2 GB otherwise, so 2 GB is enough and 1.5 GB is not a safe ask. What is left in it, honestly: old and new world are still alive together while a swap is prepared (that is the price of never making a visitor wait), and about 0.4 to 0.5 GB of the resident size is not heap at all (the framework's code, native buffers, allocator fragmentation). A run with `MALLOC_ARENA_MAX=2` and a run under `--max-old-space-size` were not made for this build.
+
+**Midnight.** A new calendar day used to rebuild the world at once with every visitor that arrived waiting for it (only a change made by another process had the background rebuild of PLAN 226). Now the same path serves both (`lib/world.ts`, `startDayRebuild`): the first request after midnight is answered from yesterday's world, which is still whole and consistent, and the new day's world is built beside it in slices, warmed, and swapped in by one assignment; the midnight timer asks for it and waits for the swap (`dailyRebuild`, `lib/warm.ts`). Our own writes, `invalidateWorld` and the very first build still wait, because there is nothing right to show. A failed build keeps yesterday's world, logs once, and tries again after 60 s. A pinned clock (`RINGSIDE_NOW`, tests) still rebuilds at once, since those callers move the date by hand (`setDayRollover` is how the test of this says otherwise).
+
+Tested with an injected clock and no waiting (`tests/midnight-rebuild.test.ts`: visitors answered at once throughout, one rebuild, the new world warm when it arrives, the scheduler on a fake clock and timer, and a failing build). Measured on the real server with its clock shifted (a `--require` shim on `Date`, so UTC midnight arrives 24 s into a 60 s run at 5 at a time; one run each, old build first):
+
+| | before | after |
+|---|---|---|
+| nothing answered, from the rebuild's start | **15 s** (second 28 to 43 of the run: 0 to 4 answers a second) | 1.2 s at the longest |
+| slowest answer | 10.6 s | 2.2 s |
+| answers over 2 s | 18 | 1 |
+| peak resident memory | 1,989 MB | 1,415 MB |
+| the new day's world built | 5.3 s (all of it a stall) | 11 s, in slices behind the traffic (then warmed, then swapped in; the swap itself was not timed) |
+
+For about 10 to 40 s after midnight UTC, pages are still yesterday's (an event of today still says "upcoming", ages and "today" in the lists are a day behind). The same is true after a data change, and it is the price of not stalling.
+
 ## Left
 
 - **Ties in the garbage collector:** 14 to 16% of the CPU under the mix. A larger young generation (`--max-semi-space-size`) was not tried. (left)
@@ -236,7 +291,7 @@ Pages are sent `Cache-Control: private, no-cache, no-store` and that is left alo
 - **The list re-sorts 35,000 rows per request** (about 10 ms). (left)
 - **A share image's first draw** still costs 220 to 380 ms, and the first request for each sitemap file after a rebuild about 95 ms. (left; the repeats are fixed)
 - **Under a 1 GB heap cap the update is still slow** (4.7 s of nothing, 26 answers over 2 s): it needs more heap, not code. (left)
-- **A new day** still rebuilds at once, with visitors waiting (nothing right to show: the day changes what "upcoming" means); the midnight warm-up does it at 00:00:05 UTC, when traffic is lowest, as before.
+- **A new day** no longer makes visitors wait (see "The memory diet and the midnight rebuild"): yesterday's world is served for the 10 to 40 s the new one takes.
 - **The data update's own half-applied state** (a world built between the update's commits) can no longer be shown for long: it is rebuilt after the writer is quiet. Before, a request in the middle built a world from fights without their recomputed ratings.
 
 Every item of the first list ("Found, not fixed" in the first version of this report) is now either fixed above or listed here as left: the update stall (fixed), no warm-up after a rebuild (fixed), the text search (fixed), share images (fixed for repeats), sitemap files (fixed), garbage collector and public API (left).
@@ -248,7 +303,7 @@ For a league the size of the one tested (35,000 fighters, 160,000 fights), one i
 | | ask for | because (measured) |
 |---|---|---|
 | CPU | **2 vCPU** (1 works at about 70% of the speed; more than 2 is wasted on one instance) | one thread serves; the second core gave 35 to 40% (14.9 to 21.0 req/s at 20 in flight) |
-| RAM | **2 GB with `NODE_OPTIONS=--max-old-space-size=1024`**; or **4 GB with no cap** | 1.2 GB under load and 1.4 GB at a rebuild with the cap; 1.7 GB under load and 2.2 GB at a rebuild without |
+| RAM | **2 GB, no heap cap** (the margin is 0.6 GB at the worst moment; 3 GB if the host has room) | after the memory diet: 0.71 GB at start, 1.1 to 1.2 GB under load, 1.38 to 1.42 GB at a rebuild under traffic (before: 1.5, 1.6 to 1.9, 2.2 GB; and 1.2 / 1.4 GB with a 1 GB cap, which was measured before the diet and not repeated) |
 | disk | a persistent volume of **5 GB** or more, SSD | database 62 MB, vendor cache 122 MB, 14 backups of the database about 0.9 GB; the database is read into memory at start, so disk speed matters only for the start and the update |
 | network | nothing special; pages are 27 KB gzipped (65 KB for the Arabic home page), share images 80 KB | |
 | instances | exactly 1, with the CDN or a proxy in front | `docs/deploy.md` |

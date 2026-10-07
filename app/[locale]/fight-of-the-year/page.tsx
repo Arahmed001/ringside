@@ -1,7 +1,7 @@
 import { ScrollRegion } from "@/components/ScrollRegion";
 import Link from "@/components/L";
 import { getWorld } from "@/lib/world";
-import { PARTS, PART_LABEL, WEIGHTS, MIN_ROUNDS, featuredYear, fightOfTheYear, fightsOfYear, resultLine } from "@/lib/fight-score";
+import { PARTS, PART_LABEL, WEIGHTS, MIN_ROUNDS, featuredYear, fightOfTheYear, fightCountOfYear, resultLine } from "@/lib/fight-score";
 import { FightHero, ScoreBadge } from "@/components/Awards";
 import { SectionTitle } from "@/components/ui";
 import { currentYear } from "@/lib/clock";
@@ -57,7 +57,7 @@ export default async function FightOfTheYear() {
             </tbody>
           </table>
         </ScrollRegion>
-        <p className="mt-3 text-xs text-muted">{t("The current year can still change until its last fight. The numbers of fights considered: {counts}.", { counts: winners.slice(0, 3).map((x) => `${x.year}: ${fightsOfYear(w, x.year).length}`).join(", ") })}</p>
+        <p className="mt-3 text-xs text-muted">{t("The current year can still change until its last fight. The numbers of fights considered: {counts}.", { counts: winners.slice(0, 3).map((x) => `${x.year}: ${fightCountOfYear(w, x.year)}`).join(", ") })}</p>
       </section>
 
       <section className="card p-6" aria-labelledby="how">

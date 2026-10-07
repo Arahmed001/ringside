@@ -42,7 +42,7 @@ before(async () => {
 });
 
 test("each fight is scored at its own division, whatever class the fighters are registered at now", () => {
-  const cs = A.calls(w);
+  const cs = A.callsForFit(w);
   const byExt = (red: string, date: string) => cs.find((c) => w.bouts.find((b) => b.id === c.boutId)!.date === date && w.byId.get(c.redId)!.name === `Fighter ${red}`)!;
   const welter = byExt("A", "2024-06-10"), heavy = byExt("A", "2024-09-10");
   assert.ok(welter && heavy, "both later fights are scored (both fighters had a fight before)");
@@ -52,7 +52,7 @@ test("each fight is scored at its own division, whatever class the fighters are 
 });
 
 test("the mismatch input is the plain-Elo gap from the ratings before the fight, not after", () => {
-  const cs = A.calls(w);
+  const cs = A.callsForFit(w);
   for (const c of cs) assert.ok(Math.abs(c.finishX![2] - Math.abs(2 * c.eloPRed - 1)) < 1e-12);
   // A beat B in the first fight, so before the second fight A's rating is above C's (who has not yet won)
   const welter = cs.find((c) => w.bouts.find((b) => b.id === c.boutId)!.date === "2024-06-10")!;

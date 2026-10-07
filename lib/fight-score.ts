@@ -123,16 +123,35 @@ export function scoreFight(w: World, b: BoutRow): FightScore | null {
   return { bout: b, score: Math.round((100 * sum) / avail), parts, coverage: avail, facts };
 }
 
-/** Every eligible fight of a calendar year, best first (ties go to the earlier fight). */
-export const fightsOfYear = (w: World, year: number): FightScore[] => memo(w, `fightsOfYear:${year}`, () => {
+/**
+ * One calendar year's eligible fights, best first (ties go to the earlier fight), kept as two typed arrays (the bout ids and their scores) and not as a list
+ * of `FightScore`s: scoring every fight of the league and keeping each result (its seven parts and its facts) held 60 MB at 160,000 fights, and a page needs the
+ * top few of a year, or one fight's place in it. The top are scored again when asked for (a few milliseconds; `scoreFight` gives the same answer each time).
+ * The memo key keeps its old name: the warm-up and the tests look for it.
+ */
+interface YearIndex { ids: Int32Array; scores: Uint8Array }
+const yearIndex = (w: World, year: number): YearIndex => memo(w, `fightsOfYear:${year}`, () => {
   const out: FightScore[] = [];
   for (const b of w.bouts) {
     if (!b.date.startsWith(String(year))) continue;
     const s = scoreFight(w, b);
     if (s) out.push(s);
   }
-  return out.sort((a, b) => b.score - a.score || a.bout.date.localeCompare(b.bout.date) || a.bout.id - b.bout.id);
+  out.sort((a, b) => b.score - a.score || a.bout.date.localeCompare(b.bout.date) || a.bout.id - b.bout.id);
+  return { ids: Int32Array.from(out, (s) => s.bout.id), scores: Uint8Array.from(out, (s) => s.score) };
 });
+
+const scoredBout = (w: World, id: number): FightScore => scoreFight(w, w.boutById.get(id)!)!;
+
+/** The best `n` fights of a calendar year, best first (a few are scored again each time: use this, not `fightsOfYear`, for a page). */
+export const topFightsOfYear = (w: World, year: number, n: number): FightScore[] => Array.from(yearIndex(w, year).ids.subarray(0, n), (id) => scoredBout(w, id));
+/** How many fights of a calendar year are eligible. */
+export const fightCountOfYear = (w: World, year: number): number => yearIndex(w, year).ids.length;
+/** One fight's score, the same number `fightsOfYear` lists it with (null when it is not eligible). */
+export const fightScoreOf = (w: World, b: BoutRow): number | null => scoreFight(w, b)?.score ?? null;
+
+/** Every eligible fight of a calendar year, best first (ties go to the earlier fight). Scores them all again: pages use `topFightsOfYear`. */
+export const fightsOfYear = (w: World, year: number): FightScore[] => topFightsOfYear(w, year, Infinity);
 
 /** Years that have at least one eligible fight, newest first. */
 export const fightYears = (w: World): number[] => memo(w, "fightYears", () => {
@@ -146,23 +165,30 @@ export const featuredYear = (w: World): number | null => { const ys = fightYears
 
 /** The fight of each year, newest first. The current year is "so far": it can still change. */
 export const fightOfTheYear = (w: World): { year: number; top: FightScore }[] => memo(w, "fightOfTheYear", () =>
-  fightYears(w).flatMap((year) => { const top = fightsOfYear(w, year)[0]; return top ? [{ year, top }] : []; }));
+  fightYears(w).flatMap((year) => { const top = topFightsOfYear(w, year, 1)[0]; return top ? [{ year, top }] : []; }));
 
 /** Where one fight stands among the fights of its year (1 = fight of the year). */
 export function fightRank(w: World, boutId: number): { year: number; rank: number; of: number; score: number } | null {
   const b = w.boutById.get(boutId);
   if (!b || !isEligible(b)) return null;
   const year = Number(b.date.slice(0, 4));
-  const list = fightsOfYear(w, year);
-  const i = list.findIndex((s) => s.bout.id === boutId);
-  return i < 0 ? null : { year, rank: i + 1, of: list.length, score: list[i].score };
+  const { ids, scores } = yearIndex(w, year);
+  const i = ids.indexOf(boutId);
+  return i < 0 ? null : { year, rank: i + 1, of: ids.length, score: scores[i] };
 }
 
 /** The best fights in the whole data, with an optional division filter. */
 export const bestFightsEver = (w: World, n: number, division?: string): FightScore[] => memo(w, `bestFightsEver:${n}:${division ?? ""}`, () => {
-  const all: FightScore[] = [];
-  for (const y of fightYears(w)) for (const s of fightsOfYear(w, y)) if (!division || s.bout.weightClass === division) all.push(s);
-  return all.sort((a, b) => b.score - a.score || b.bout.date.localeCompare(a.bout.date)).slice(0, n);
+  // the same candidates in the same order as before (newest year first, each year best first) and the same stable sort, so ties fall as they always did
+  const all: { id: number; score: number; date: string }[] = [];
+  for (const y of fightYears(w)) {
+    const { ids, scores } = yearIndex(w, y);
+    for (let i = 0; i < ids.length; i++) {
+      const b = w.boutById.get(ids[i])!;
+      if (!division || b.weightClass === division) all.push({ id: ids[i], score: scores[i], date: b.date });
+    }
+  }
+  return all.sort((a, b) => b.score - a.score || b.date.localeCompare(a.date)).slice(0, n).map((x) => scoredBout(w, x.id));
 });
 
 export const PART_LABEL: Record<PartKey, string> = {

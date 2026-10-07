@@ -1,5 +1,6 @@
-import type { DatabaseSync } from "node:sqlite";
+import type { DatabaseSync, StatementSync } from "node:sqlite";
 import { getDb, dbVersion, openSnapshot } from "./db";
+import { collectGarbage } from "./gc";
 import { applyFittedWeights } from "./model-fit";
 import { snapshotUpcomingSafe } from "./ledger";
 import { currentYear, todayIso } from "./clock";
@@ -137,10 +138,33 @@ export async function getWorld(): Promise<World> {
   if (g.__world && g.__worldKey) {
     const have = keyParts(g.__worldKey), want = keyParts(key);
     if (have.day === want.day && have.bump === want.bump) { noteChange(db, key); return g.__world; }
+    // A new calendar day is the same: yesterday's world is still a whole, consistent answer, and the new one is built beside it in slices and warmed before it is shown
+    // (docs/capacity.md, "Midnight"), where it used to be built at once with every visitor waiting. Our own write, invalidateWorld() and the first build still wait.
+    if (have.day !== want.day && have.bump === want.bump && dayRollsInBackground()) { startDayRebuild(db, key); return g.__world; }
   }
   // Nothing to show (first build, a new day, our own write, invalidateWorld): visitors wait, and they all wait for the same build.
   return buildShared(db, key);
 }
+
+let dayMode: "background" | "block" | undefined;
+/**
+ * How a new calendar day is taken: "background" (the default: keep serving the old world, build the new one beside it) or "block" (every visitor waits for the
+ * build). A pinned clock (RINGSIDE_NOW: tests, reproducible runs) means "block", because those callers move the date by hand and expect the next call to see it;
+ * `setDayRollover` is how a test that wants to exercise the real behaviour says so.
+ */
+const dayRollsInBackground = () => (dayMode ?? (process.env.RINGSIDE_NOW ? "block" : "background")) === "background";
+export function setDayRollover(mode: "background" | "block" | undefined) { dayMode = mode; }
+
+/** The new day's world, built in slices behind the old one. Many requests call this; the first starts the build and the rest find it running (or, after a failure, waiting to retry). */
+function startDayRebuild(db: DatabaseSync, key: string) {
+  const r = (g.__worldRefresh ??= { lastChange: Date.now(), firstChange: Date.now(), retryAt: 0 });
+  if (r.building) return;
+  if (r.failedKey === key && Date.now() < r.retryAt) return; // it failed on this very data a moment ago: keep showing yesterday's world and try again later
+  void rebuildInBackground(db, key, r);
+}
+
+/** Resolves when the background rebuild that is running now (a new day's, or a data change's) has been shown or has failed; at once when none is running. */
+export async function whenRebuilt(): Promise<void> { await g.__worldRefresh?.building; }
 
 function buildShared(db: DatabaseSync, key: string): Promise<World> {
   if (!g.__worldBuild) {
@@ -157,11 +181,14 @@ async function buildAndPublish(db: DatabaseSync, key: string, gen: number, befor
   const built = await buildWorld(db, key);
   // a rebuild is a several-second event at scale and discards everything computed on the old world: say when and why (the key is "day|data version")
   if (process.env.NODE_ENV === "production" || process.env.RINGSIDE_MEMO_LOG === "1") console.log(JSON.stringify({ event: "world_built", ms: Math.round(performance.now() - t0), key, previous: previous ?? null, bouts: built.bouts.length }));
-  if (beforePublish) await beforePublish(built);
+  // a background rebuild: what the build left behind (the scratch maps, the strings of rows already turned into objects) goes now, before the warm-up adds to it
+  if (beforePublish) { await collectGarbage(); await beforePublish(built); }
   if ((g.__worldGen ?? 0) !== gen) return built; // invalidated while it was building: it is not shown, and whoever asks next builds again
   g.__world = built; g.__worldKey = key; // the swap: one assignment, so a request sees the whole old world or the whole new one
   if (beforePublish && (process.env.NODE_ENV === "production" || process.env.RINGSIDE_MEMO_LOG === "1")) console.log(JSON.stringify({ event: "world_swapped", ms: Math.round(performance.now() - t0), key })); // build and warm-up together: how long the data waited to be shown
   snapshotUpcomingSafe(db, built); // write today's pre-fight predictions down (lib/ledger.ts); never fails a page
+  // the world it replaced, with everything computed on it, is garbage now (several hundred MB at the real size): collect it now, not whenever V8 gets round to it
+  if (previous !== undefined) void collectGarbage();
   return built;
 }
 
@@ -211,6 +238,17 @@ async function mapSlices<T, U>(a: readonly T[], f: (x: T) => U): Promise<U[]> {
   return out;
 }
 
+/**
+ * The rows of a query one at a time, mapped as they come, letting the event loop answer requests every 1,024 rows (see `pause`). `.all()` first held every raw row
+ * of the table (a plain object with thirty fields and its own copy of every string, 160,000 times for the bouts): a third of a gigabyte of garbage per rebuild.
+ */
+async function mapRows<U>(stmt: StatementSync, f: (r: Record<string, unknown>) => U): Promise<U[]> {
+  const out: U[] = [];
+  let i = 0;
+  for (const r of stmt.iterate() as Iterable<Record<string, unknown>>) { out.push(f(r)); if ((++i & 1023) === 0) await pause(); }
+  return out;
+}
+
 /** A stored number that is really there: NULL, and the 0 an older load wrote for "unknown", are both unknown. */
 const known = (v: unknown): number | null => (typeof v === "number" && v > 0 ? v : null);
 
@@ -228,23 +266,25 @@ async function buildWorld(main: DatabaseSync, key: string): Promise<World> {
 async function buildWorldFrom(db: DatabaseSync, main: DatabaseSync, key: string): Promise<World> {
   void key;
   const today = todayIso();
+  // Every string the database hands over is a new string, so "Heavyweight" was stored once per fight (160,000 times) and a date once per rating-history row. Values that repeat are
+  // kept once: `S` returns the first copy it saw. The pool only lives for the build; the objects keep the strings.
+  const pool = new Map<string, string>();
+  const S = <T extends string | null | undefined>(v: T): T => { if (typeof v !== "string") return v; const have = pool.get(v); if (have !== undefined) return have as T; pool.set(v, v); return v; };
 
-  const rawBoxers = db.prepare("SELECT * FROM boxers").all() as Record<string, unknown>[];
-  await pause();
-  const boxersBase: Boxer[] = await mapSlices(rawBoxers, (r) => ({
+  const boxersBase: Boxer[] = await mapRows(db.prepare("SELECT * FROM boxers"), (r) => ({
     id: r.id as number, slug: r.slug as string, name: r.name as string, nickname: (r.nickname as string) ?? null,
-    country: r.country as string, birthYear: known(r.birth_year), stance: (r.stance as Boxer["stance"]) || null, sex: ((r.sex as string) === "female" ? "female" : "male"),
-    heightCm: known(r.height_cm), reachCm: known(r.reach_cm), weightClass: r.weight_class as string,
+    country: S(r.country as string), birthYear: known(r.birth_year), stance: S(r.stance as Boxer["stance"]) || null, sex: ((r.sex as string) === "female" ? "female" : "male"),
+    heightCm: known(r.height_cm), reachCm: known(r.reach_cm), weightClass: S(r.weight_class as string),
     turnedPro: known(r.turned_pro), active: !!r.active, rating: r.rating as number,
     recordDisputed: r.record_disputed === 1,
     vendorRecord: [r.vendor_wins, r.vendor_losses, r.vendor_draws].every((x) => typeof x === "number" && x >= 0) ? { wins: r.vendor_wins as number, losses: r.vendor_losses as number, draws: r.vendor_draws as number, ...supplierTotals(r) } : null,
     photoUrl: (r.photo_url as string) ?? null,
     photoCredit: r.photo_credit ? (JSON.parse(r.photo_credit as string) as Boxer["photoCredit"]) : null,
-    birthDate: (r.birth_date as string) ?? null, birthPlace: (r.birth_place as string) ?? null, residence: (r.residence as string) ?? null,
+    birthDate: (r.birth_date as string) ?? null, birthPlace: S((r.birth_place as string) ?? null), residence: S((r.residence as string) ?? null),
     wikidataId: (r.wikidata_id as string) ?? null, boxrecId: (r.boxrec_id as string) ?? null,
     ibhofId: (r.ibhof_id as string) ?? null, olympediaId: (r.olympedia_id as string) ?? null, wikipediaTitle: (r.wikipedia_title as string) ?? null,
     aliases: r.aliases ? (JSON.parse(r.aliases as string) as string[]) : [],
-    debutDate: (r.debut_date as string) ?? null, retiredDate: (r.retired_date as string) ?? null,
+    debutDate: S((r.debut_date as string) ?? null), retiredDate: S((r.retired_date as string) ?? null),
   }));
 
   const events = (db.prepare("SELECT * FROM events ORDER BY date").all() as Record<string, unknown>[]).map((e): EventRow => ({
@@ -260,20 +300,18 @@ async function buildWorldFrom(db: DatabaseSync, main: DatabaseSync, key: string)
   const nameOf = new Map(boxersBase.map((b) => [b.id, b]));
   const evOf = new Map(events.map((e) => [e.id, e]));
   await pause();
-  const rawBouts = db.prepare("SELECT * FROM bouts").all() as Record<string, unknown>[];
-  await pause();
-  const bouts = (await mapSlices(rawBouts, (b): BoutRow => {
+  const bouts = (await mapRows(db.prepare("SELECT * FROM bouts"), (b): BoutRow => {
       const ev = evOf.get(b.event_id as number)!;
       const red = nameOf.get(b.red_id as number)!, blue = nameOf.get(b.blue_id as number)!;
       return {
         id: b.id as number, eventId: ev.id, eventName: ev.name, date: ev.date,
-        status: ((b.status as Status | null) ?? (b.method ? "completed" : ev.date > today ? "scheduled" : "completed")),
+        status: S((b.status as Status | null) ?? (b.method ? "completed" : ev.date > today ? "scheduled" : "completed")),
         upcoming: ev.upcoming && (b.status as string | null) !== "cancelled" && !b.method,
         redId: red.id, blueId: blue.id, redName: red.name, blueName: blue.name, redSlug: red.slug, blueSlug: blue.slug,
-        weightClass: b.weight_class as string, rounds: b.rounds as number, winnerId: (b.winner_id as number) ?? null,
-        method: (b.method as Method) ?? null, endRound: (b.end_round as number) ?? null,
-        title: (b.title as string) ?? null, position: b.position as number,
-        vendorScores: parseScores(b.vendor_scores), roundTime: (b.round_time as string) ?? null, kdRed: (b.kd_red as number) ?? 0, kdBlue: (b.kd_blue as number) ?? 0,
+        weightClass: S(b.weight_class as string), rounds: b.rounds as number, winnerId: (b.winner_id as number) ?? null,
+        method: S((b.method as Method) ?? null), endRound: (b.end_round as number) ?? null,
+        title: S((b.title as string) ?? null), position: b.position as number,
+        vendorScores: parseScores(b.vendor_scores), roundTime: S((b.round_time as string) ?? null), kdRed: (b.kd_red as number) ?? 0, kdBlue: (b.kd_blue as number) ?? 0,
         oddsRed: (b.odds_red as number) ?? null, oddsBlue: (b.odds_blue as number) ?? null, contractLb: (b.contract_lb as number) ?? null,
         titleOrgId: (b.title_org_id as number) ?? null, titleVacant: !!b.title_vacant,
       };
@@ -301,7 +339,7 @@ async function buildWorldFrom(db: DatabaseSync, main: DatabaseSync, key: string)
 
   const stints: TeamStint[] = (db.prepare("SELECT * FROM team_stints ORDER BY start_date, id").all() as Record<string, unknown>[]).map((r) => ({
     id: r.id as number, boxerId: r.boxer_id as number, role: r.role as TeamStint["role"], personId: (r.person_id as number) ?? null, orgId: (r.org_id as number) ?? null,
-    start: (r.start_date as string) ?? null, end: (r.end_date as string) ?? null, source: r.source as string, sourceUrl: (r.source_url as string) ?? null, note: (r.note as string) ?? null,
+    start: (r.start_date as string) ?? null, end: (r.end_date as string) ?? null, source: S(r.source as string), sourceUrl: (r.source_url as string) ?? null, note: (r.note as string) ?? null,
   }));
   const stintsByBoxer = new Map<number, TeamStint[]>(), stintsByPerson = new Map<number, TeamStint[]>(), stintsByOrg = new Map<number, TeamStint[]>();
   for (const st of stints) {
@@ -332,7 +370,7 @@ async function buildWorldFrom(db: DatabaseSync, main: DatabaseSync, key: string)
     push(cornersByBout, r.bout_id as number, { boutId: r.bout_id as number, boxerId: r.boxer_id as number, role: r.role as Corner["role"], personId: r.person_id as number });
 
   // ----- money -----
-  const prov = (r: Record<string, unknown>) => ({ basis: r.basis as Purse["basis"], source: r.source as string, sourceUrl: (r.source_url as string) ?? null, retrievedAt: (r.retrieved_at as string) ?? null, note: (r.note as string) ?? null });
+  const prov = (r: Record<string, unknown>) => ({ basis: S(r.basis as Purse["basis"]), source: S(r.source as string), sourceUrl: (r.source_url as string) ?? null, retrievedAt: S((r.retrieved_at as string) ?? null), note: (r.note as string) ?? null });
   const n0 = (v: unknown) => (v === null || v === undefined ? null : (v as number));
   const financialsByEvent = new Map<number, EventFinancials[]>();
   for (const r of db.prepare("SELECT * FROM event_financials").all() as Record<string, unknown>[])
@@ -351,12 +389,12 @@ async function buildWorldFrom(db: DatabaseSync, main: DatabaseSync, key: string)
   const honoursByBoxer = new Map<number, Honour[]>();
   const KIND_ORDER: Record<string, number> = { hall_of_fame: 0, award: 1, title: 2 };
   for (const r of db.prepare("SELECT * FROM honours ORDER BY year, label").all() as Record<string, unknown>[])
-    push(honoursByBoxer, r.boxer_id as number, { boxerId: r.boxer_id as number, kind: r.kind as Honour["kind"], label: r.label as string, year: n0(r.year), source: r.source as string });
+    push(honoursByBoxer, r.boxer_id as number, { boxerId: r.boxer_id as number, kind: S(r.kind as Honour["kind"]), label: S(r.label as string), year: n0(r.year), source: S(r.source as string) });
   for (const list of honoursByBoxer.values()) list.sort((a, b) => (KIND_ORDER[a.kind] ?? 3) - (KIND_ORDER[b.kind] ?? 3) || (a.year ?? 9999) - (b.year ?? 9999));
 
   const reignsByBoxer = new Map<number, TitleReign[]>();
   for (const r of db.prepare("SELECT * FROM title_reigns WHERE boxer_id IS NOT NULL ORDER BY start_date, org, division").all() as Record<string, unknown>[])
-    push(reignsByBoxer, r.boxer_id as number, { boxerId: r.boxer_id as number, org: r.org as string, division: r.division as string, category: r.category as string, status: (r.status as string | null) ?? null, start: (r.start_date as string | null) ?? null, end: (r.end_date as string | null) ?? null, current: r.current === 1, defences: n0(r.defences), endNote: (r.end_note as string | null) ?? null, source: r.source as string });
+    push(reignsByBoxer, r.boxer_id as number, { boxerId: r.boxer_id as number, org: S(r.org as string), division: S(r.division as string), category: S(r.category as string), status: S((r.status as string | null) ?? null), start: (r.start_date as string | null) ?? null, end: (r.end_date as string | null) ?? null, current: r.current === 1, defences: n0(r.defences), endNote: (r.end_note as string | null) ?? null, source: S(r.source as string) });
 
   // on a licensed feed the official lists are shown only once the owner has confirmed the vendor allows it (lib/site-info.ts), whatever the database holds
   const official = buildOfficial(officialRankingsShown() ? (db.prepare("SELECT * FROM official_rankings").all() as unknown as OfficialRow[]) : []);
@@ -378,15 +416,14 @@ async function buildWorldFrom(db: DatabaseSync, main: DatabaseSync, key: string)
 
   const history = new Map<number, World["history"] extends Map<number, infer V> ? V : never>();
   const boutPre = new Map<number, { red: number; blue: number }>();
-  const hrows = db.prepare("SELECT boxer_id, bout_id, date, rating, opp_rating FROM rating_history ORDER BY date, bout_id").all() as
-    { boxer_id: number; bout_id: number; date: string; rating: number; opp_rating: number }[];
   await pause();
   const redOf = new Map(bouts.map((b) => [b.id, b.redId]));
-  for (let i = 0; i < hrows.length; i++) {
-    const h = hrows[i];
-    if (!history.has(h.boxer_id)) history.set(h.boxer_id, []);
-    history.get(h.boxer_id)!.push({ date: h.date, rating: h.rating, boutId: h.bout_id, opp: h.opp_rating });
-    if ((i & 4095) === 4095) await pause();
+  let hi = 0;
+  for (const h of db.prepare("SELECT boxer_id, bout_id, date, rating, opp_rating FROM rating_history ORDER BY date, bout_id").iterate() as Iterable<{ boxer_id: number; bout_id: number; date: string; rating: number; opp_rating: number }>) {
+    let list = history.get(h.boxer_id);
+    if (!list) history.set(h.boxer_id, (list = []));
+    list.push({ date: S(h.date), rating: h.rating, boutId: h.bout_id, opp: h.opp_rating });
+    if ((++hi & 4095) === 0) await pause();
   }
   await pause();
   let pre_i = 0;
