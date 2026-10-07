@@ -50,7 +50,7 @@ test("the real command: a run is refused while another holds the key, and a stal
   // this test process stands in for the other run: it is alive, and it is not the command's own process
   const held = acquireBackfillLock(KEY, { dir: d, pid: process.pid, alive: () => true, command: "--check --fighters 5000" });
   const refused = await run();
-  assert.equal(refused.code, 1, refused.out);
+  assert.equal(refused.code, 75, refused.out);
   assert.match(refused.out, new RegExp(`Another backfill is already running with this API key \\(process ${process.pid}`));
   assert.match(refused.out, /--check --fighters 5000/);
   releaseBackfillLock(held);
