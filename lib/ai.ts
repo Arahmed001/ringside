@@ -207,9 +207,10 @@ export function heuristicParse(q: string, countries: string[], today?: string): 
   if (/\bswitch\b|ambidextrous|switch-hitter/.test(s)) f.stance = "Switch";
   if (/\bwom[ae]n['’]?s?\b|\bfemale\b|\bladies\b/.test(s)) f.sex = "female";
   else if (/\bmen['’]?s?\b|\bmale\b|\bguys\b/.test(s)) f.sex = "male";
-  for (const c of countries) if (s.includes(c.toLowerCase())) f.country = c;
-  for (const c of WORLD_COUNTRIES) if (new RegExp(`\\b${c.toLowerCase()}\\b`).test(s) && (!f.country || c.length > f.country.length)) f.country = c;
-  for (const [k, v] of Object.entries(COUNTRY_ALIASES)) if (new RegExp(`\\b${k}s?\\b`).test(s)) f.country = v; // "Mexican" and "Mexicans"
+  // a country by its name, as whole words and the longest first: "Somalia" is not Mali, "South Sudan" is not Sudan, "Papua New Guinea" is not Guinea (found on the first real league, which has 196 countries)
+  for (const c of [...new Set([...countries, ...WORLD_COUNTRIES])]) if (new RegExp(`(?<![a-z])${c.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![a-z])`).test(s) && (!f.country || c.length > f.country.length)) f.country = c;
+  // a country said as a nationality ("Mexican", "Mexicans"), unless the word is part of a country's name already found ("French Polynesia" is not France, "American Samoa" is not the United States)
+  for (const [k, v] of Object.entries(COUNTRY_ALIASES)) if (new RegExp(`\\b${k}s?\\b`).test(s) && !(f.country && f.country.toLowerCase().split(/\s+/).includes(k) && f.country !== v)) f.country = v;
   if (/undefeated|unbeaten|perfect record/.test(s)) f.undefeated = true;
   if (/\b(?:former|ex|past|one-time|two-time|multiple-time|multi-time)[ -]?champions?\b|\bonce (?:a )?champions?\b|\bused to be champions?\b|\bformer title.?holders?\b/.test(s)) f.champion = "former";
   else if (/\bretired\b.*\bchampions?\b|\bchampions?\b.*\bretired\b|\b(?:were|was|have been|has been|had been) (?:a |the )?(?:world )?champions?\b|\bever (?:been|won|held) (?:a |the )?(?:world )?(?:champions?|belt|title)/.test(s)) f.champion = "ever";

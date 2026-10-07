@@ -217,6 +217,8 @@ function claim(w: World, names: Names, question: string): Claimed {
   }
   const rest = q;
   for (const t of trainersOf(w)) if (q.includes(` ${t.n} `)) q = q.replace(` ${t.n} `, ` ${"·".repeat(t.n.length)} `);
+  // a country's name is not a fighter's name a slip or two away ("Hong Kong SAR China" is not Jong Seon Kang)
+  for (const c of [...new Set(w.boxers.map((b) => b.country))].filter((c) => c && c.includes(" ")).sort((a, b) => b.length - a.length)) { const k = ` ${plain(c)} `; if (q.includes(k)) q = q.replace(k, ` ${"·".repeat(k.length - 2)} `); }
   for (const n of nearNamed(nearFighters(w, names), q)) if (!hits.some((h) => h.b.id === n.owner.id)) hits.push({ b: n.owner, at: n.at });
   return { fighters: hits.sort((a, c) => a.at - c.at).map((h) => h.b), rest };
 }
@@ -262,8 +264,8 @@ const OTHER_SPORTS = /\b(games?|football|soccer|basketball|baseball|tennis|golf|
 
 /** A stretch of time rather than one year: "since 2018", "in the 2010s", "this decade", "the last five years", "recently". The all-time lists have no way to cut one. */
 const SPAN = /\b(since|after|before|until)\s+(19|20)\d\d\b|\b(19|20)\d0'?s\b|\b(the )?\d0s\b|\bthe (twenties|thirties|forties|fifties|sixties|seventies|eighties|nineties|noughties|aughts)\b|\b(this|last|past|previous)\s+(decade|century)\b|\b(recent|last|past|previous)\s+(\w+\s+)?years\b|\brecently\b|\bnowadays\b/;
-/** Places that are not countries: fighters are searched by country, not by region. */
-const REGIONS = /\b(europe|european|europeans|asia|asian|asians|africa|african|africans|latin america|latino|latinos|south america|north america|oceania|scandinavia|scandinavian|middle east|arab|arabs|caribbean|balkans)\b/;
+/** Places that are not countries: fighters are searched by country, not by region. ("South Africa" and "Central African Republic" are countries: 288 fighters on the first real league were from the first.) */
+const REGIONS = /\b(europe|european|europeans|asia|asian|asians|(?<!south |central )(?:africa|african|africans)|latin america|latino|latinos|south america|north america|oceania|scandinavia|scandinavian|middle east|(?<!united )arab|arabs|caribbean|balkans)\b/;
 /** What a fighter search can be narrowed by that the record lists cannot (they take only a sex and a division). */
 const GROUP_KEYS = ["stance", "country", "active", "undefeated", "minAge", "maxAge", "maxWins", "maxKOs", "minLosses", "maxLosses", "minBouts", "maxBouts", "minStopped", "maxStopped", "minDraws", "maxDraws", "minWinStreak", "minLossStreak", "unbeatenIn", "lastFightAfter", "lastFightBefore", "record", "champion", "minReach", "maxReach", "minRating", "maxRating", "minHeight", "maxHeight"];
 /** The facts about a fighter's record and form the fighter search can cut by (round 53). */
