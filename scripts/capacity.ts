@@ -119,7 +119,7 @@ async function hit(r: Req, ip: string): Promise<{ ms: number; ok: boolean; statu
   } catch { return { ms: performance.now() - t0, ok: false, status: 0, bytes: 0 }; }
 }
 
-interface StepResult { conc: number; seconds: number; n: number; reqPerSec: number; p50: number; p95: number; p99: number; max: number; errors: number; errorRate: number; cpuPct: number; rssStart: number; rssEnd: number; rssPeak: number; mbPerSec: number; /** the machine's 1-minute load average when the step ended: well above the cores given to the server and this driver means other work was competing, and the step is suspect */ load1: number; byKind: Record<string, { n: number; p50: number; p95: number; max: number; errors: number }>; bucket?: { sec: number; n: number; p50: number; max: number; rss: number }[] }
+interface StepResult { conc: number; seconds: number; n: number; reqPerSec: number; p50: number; p95: number; p99: number; max: number; errors: number; errorRate: number; cpuPct: number; rssStart: number; rssEnd: number; rssPeak: number; mbPerSec: number; /** the machine's 1-minute load average when the step ended: well above the cores given to the server and this driver means other work was competing, and the step is suspect */ load1: number; byKind: Record<string, { n: number; p50: number; p95: number; max: number; errors: number }>; bucket?: { sec: number; n: number; p50: number; max: number; rss: number }[]; /** with --event-at: how long nothing at all was answered after the event started, the slowest answer after it, and how many took over 2 s */ afterEvent?: { longestSilenceS: number; slowestMs: number; over2s: number; peakRssMb: number } }
 
 async function step(pick: () => Req, conc: number, seconds: number, eventAt?: number, eventCmd?: string): Promise<StepResult> {
   const samples: Sample[] = [];
@@ -148,6 +148,12 @@ async function step(pick: () => Req, conc: number, seconds: number, eventAt?: nu
   const out: StepResult = { conc, seconds: wall, n: samples.length, reqPerSec: sum.reqPerSec, p50: sum.p50, p95: sum.p95, p99: sum.p99, max: sum.max, errors, errorRate: samples.length ? errors / samples.length : 0, cpuPct: p0 && p1 ? ((p1.cpuS - p0.cpuS) / wall) * 100 : NaN, rssStart: p0?.rss ?? NaN, rssEnd: p1?.rss ?? NaN, rssPeak, mbPerSec: samples.reduce((a, b) => a + b.bytes, 0) / 1048576 / wall, load1: Number(fs.readFileSync("/proc/loadavg", "utf8").split(" ")[0]), byKind };
   if (eventAt !== undefined) {
     out.bucket = [];
+    // "blocked": the longest stretch after the event in which no request finished at all (a request counts when it finished, so a stall is a silence)
+    const after = samples.filter((x) => x.t >= eventAt).map((x) => x.t).sort((a, b) => a - b);
+    let longest = 0, prev = eventAt;
+    for (const t of [...after, wall]) { longest = Math.max(longest, t - prev); prev = t; }
+    const late = samples.filter((x) => x.t >= eventAt);
+    out.afterEvent = { longestSilenceS: longest, slowestMs: late.length ? Math.max(...late.map((x) => x.ms)) : 0, over2s: late.filter((x) => x.ms > 2000).length, peakRssMb: Math.max(0, ...rssTrace.filter((x) => x.t >= eventAt).map((x) => x.rss)) };
     for (let sec = 0; sec < Math.floor(wall); sec++) {
       const xs = samples.filter((x) => x.t >= sec && x.t < sec + 1), rs = rssTrace.filter((x) => x.t >= sec && x.t < sec + 1);
       // a request is counted in the second it finished, so a stall shows as an empty second followed by a very slow one
@@ -192,6 +198,8 @@ async function main() {
       console.log(`\nper kind at ${r.conc} at a time (ms):`);
       for (const [kind, v] of Object.entries(r.byKind).sort((a, b) => b[1].p50 - a[1].p50)) console.log(`  ${kind.padEnd(30)} n ${String(v.n).padStart(6)}  p50 ${f0(v.p50).padStart(6)}  p95 ${f0(v.p95).padStart(6)}  max ${f0(v.max).padStart(6)}  errors ${v.errors}`);
     }
+    const ae = results[0].afterEvent;
+    if (ae) console.log(`\nafter the event: nothing answered for ${ae.longestSilenceS.toFixed(1)} s at the longest; slowest answer ${f0(ae.slowestMs)} ms; ${ae.over2s} answers took over 2 s; peak rss ${f0(ae.peakRssMb)} MB`);
     if (results[0].bucket) { console.log("\nsecond-by-second (requests finished, p50 ms, worst ms, rss MB):"); for (const b of results[0].bucket) console.log(`  t=${String(b.sec).padStart(3)}s  n ${String(b.n).padStart(4)}  p50 ${f0(b.p50).padStart(5)}  max ${f0(b.max).padStart(6)}  rss ${f0(b.rss)}`); }
   }
   const out = arg("json");

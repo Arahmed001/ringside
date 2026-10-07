@@ -43,13 +43,17 @@ test("the world is reused until the day or the data changes, not on a timer", as
   assert.equal(w.today, "2026-10-03");
 });
 
-test("a commit from another connection (a CLI importer) makes the next call rebuild", async () => {
+test("a commit from another connection (a CLI importer) makes the world rebuild once it has settled, and the old one is served until then", async () => {
   const before = await worldMod.getWorld();
   const target = before.boxers[0];
+  process.env.RINGSIDE_WORLD_SETTLE_MS = "50"; // (tests/capacity-update.test.ts covers the settling itself)
   const other = new DatabaseSync(process.env.DATABASE_PATH!);
   other.prepare("UPDATE boxers SET nickname = ? WHERE id = ?").run("Rebuilt Rex", target.id);
   other.close();
-  const after = await worldMod.getWorld();
+  assert.equal(await worldMod.getWorld(), before, "straight after the commit the previous world is still served");
+  let after = before;
+  for (const t0 = Date.now(); after === before && Date.now() - t0 < 60_000; ) { await new Promise((r) => setTimeout(r, 50)); after = await worldMod.getWorld(); }
+  delete process.env.RINGSIDE_WORLD_SETTLE_MS;
   assert.notEqual(after, before);
   assert.equal(after.byId.get(target.id)!.nickname, "Rebuilt Rex");
   assert.equal(await worldMod.getWorld(), after, "and then it is stable again");

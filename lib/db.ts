@@ -169,6 +169,13 @@ export function dbVersion(db: DatabaseSync): string {
   return `${dv}.${run}.${g.__ringsideBump ?? 0}`;
 }
 
+/** A second, read-only connection with a transaction open (its snapshot starts at its first read), for a long read that must see one consistent state. The caller rolls back and closes it. */
+export function openSnapshot(): DatabaseSync {
+  const db = new DatabaseSync(DB_PATH, { readOnly: true });
+  try { db.exec("PRAGMA busy_timeout = 5000; BEGIN"); } catch (e) { db.close(); throw e; }
+  return db;
+}
+
 const g = globalThis as unknown as { __ringsideDb?: DatabaseSync; __ringsideReady?: Promise<void>; __ringsideBump?: number };
 
 /** Our own writes do not move PRAGMA data_version, so code that changes the data on this connection (approving a community edit) calls this to make the cached world rebuild. */
