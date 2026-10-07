@@ -457,7 +457,7 @@ test("regions become countries: US states, Canadian provinces, UK nations, Austr
   const country = (loc: string) => B.parseLocation(loc, n).country;
   assert.equal(country("Las Vegas, Nevada"), "United States"); assert.equal(country("New York, New York"), "United States");
   assert.equal(country("Quebec City, Quebec"), "Canada"); assert.equal(country("Montréal, Québec"), "Canada");
-  assert.equal(country("Cardiff, Wales"), "United Kingdom"); assert.equal(country("Belfast, Northern Ireland"), "United Kingdom");
+  assert.equal(country("Cardiff, Wales"), "Wales"); assert.equal(country("Belfast, Northern Ireland"), "Northern Ireland");
   assert.equal(country("Sydney, New South Wales"), "Australia"); assert.equal(country("Guadalajara, Jalisco"), "Mexico");
   assert.equal(n.locationCountryInferred, 8);
   assert.equal(country("Riyadh, Saudi Arabia"), "Saudi Arabia"); assert.equal(country("London, United Kingdom"), "United Kingdom");
@@ -831,4 +831,15 @@ test("a run with patience waits out a network outage instead of skipping fighter
   const none = await run(1e9, {});
   assert.ok(Array.isArray(none.boxers) && none.boxers.length === 2, "A1 skipped, the others loaded");
   assert.ok(none.lines.some((l) => /fighter A1 skipped: Boxing Data API unreachable/.test(l)));
+});
+
+test("a card's country is spelled as a fighter's nationality is, the home nations stay themselves, and the regions of the first real league are placed (round 133: the England page said 0 events beside 1,089 fighters; 425 cards had a country no fighter has)", () => {
+  const n = notes();
+  const country = (loc: string) => B.parseLocation(loc, n).country;
+  for (const [loc, want] of [["Liverpool, England", "England"], ["Preston, Lancashire", "England"], ["Bethnal Green, Merseyside", "England"], ["Hove, Hove", "England"], ["Greenwich, London", "England"], ["Glasgow, Scotland", "Scotland"], ["Cardiff, Wales", "Wales"],
+    ["Prague, Czech Republic", "Czechia"], ["Dubai, UAE", "United Arab Emirates"], ["Kinshasa, DRC", "Congo - Kinshasa"], ["Mexico City, México", "Mexico"], ["Houston, USA", "United States"], ["London, UK", "United Kingdom"], ["Amsterdam, Holland", "Netherlands"],
+    ["Munich, Bayern", "Germany"], ["Tokyo, Aichi", "Japan"], ["Bilbao, Basque Country", "Spain"], ["Rosario, Santa Fe", "Argentina"], ["Soweto, Gauteng", "South Africa"], ["Santa Marta, Columbia", "Colombia"], ["Charleston, Wes Virginia", "United States"], ["Tripoli, Libyan Arab Jamahiriya", "Libya"],
+  ]) assert.equal(country(loc), want, loc);
+  assert.equal(country("Greenville, SC"), "SC", "a two-letter state code is not a country (it was Seychelles)");
+  assert.equal(country("Las Vegas, Nevada, United States"), "United States");
 });

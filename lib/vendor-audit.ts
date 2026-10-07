@@ -41,6 +41,14 @@ export function auditDatabase(db: DatabaseSync, today: string): Check[] {
   const respelled = countries.filter((c) => c.country !== "Unknown" && flag(c.country) !== WHITE_FLAG && canonicalCountry(c.country) !== c.country && !/^(england|scotland|wales|northern ireland)$/i.test(c.country));
   add("countries-one-spelling", respelled.length ? "warn" : "pass", "every country is spelled its one way", respelled.length ? `${respelled.length} spelling(s) of a country that has another: ${sample(respelled.map((c) => `${c.country} (${canonicalCountry(c.country)})`))}` : "no country has two spellings");
 
+  // the country of each card is a country too (the first real load had 425 cards in Lancashire, London, Berlin, "UAE" and "Columbia", and the England page said 0 events)
+  const eventTotal = count(db, "SELECT COUNT(*) n FROM events");
+  const eventCountries = db.prepare("SELECT country, COUNT(*) n FROM events GROUP BY country ORDER BY n DESC").all() as { country: string; n: number }[];
+  const oddCards = eventCountries.filter((c) => c.country && c.country !== "Unknown" && flag(c.country) === WHITE_FLAG);
+  const oddCardsN = oddCards.reduce((s, c) => s + c.n, 0);
+  add("event-countries", oddCardsN === 0 ? "pass" : oddCardsN / Math.max(1, eventTotal) > 0.02 ? "fail" : "warn", "every card's country can be placed",
+    oddCardsN === 0 ? `${eventCountries.length} countries, none unplaced` : `${oddCardsN} card(s) (${pctOf(oddCardsN, eventTotal)}) in ${oddCards.length} place(s) the app cannot place as a country: ${sample(oddCards.map((c) => `${c.country} ${c.n}`))}`);
+
   // fights that never happened are cancelled, not "no result"; a card of nothing but cancelled fights is not a card
   const cancelledOnly = count(db, "SELECT COUNT(*) n FROM events e WHERE EXISTS (SELECT 1 FROM bouts b WHERE b.event_id = e.id) AND NOT EXISTS (SELECT 1 FROM bouts b WHERE b.event_id = e.id AND COALESCE(b.status,'') <> 'cancelled')");
   add("no-cancelled-only-cards", cancelledOnly ? "fail" : "pass", "no card is made only of cancelled fights", cancelledOnly ? `${cancelledOnly} event(s) have only cancelled bouts` : `${count(db, "SELECT COUNT(*) n FROM bouts WHERE status = 'cancelled'").toLocaleString("en-US")} cancelled bouts, all on cards that were held`);

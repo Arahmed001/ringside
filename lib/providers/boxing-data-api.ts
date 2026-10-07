@@ -119,7 +119,20 @@ const REGIONS: Record<string, string> = {};
 const region = (country: string, names: string) => names.split(",").forEach((n) => { REGIONS[n.trim().toLowerCase()] = country; });
 region("United States", "Alabama, Alaska, Arizona, Arkansas, California, Colorado, Connecticut, Delaware, Florida, Hawaii, Idaho, Illinois, Indiana, Iowa, Kansas, Kentucky, Louisiana, Maine, Maryland, Massachusetts, Michigan, Minnesota, Mississippi, Missouri, Montana, Nebraska, Nevada, New Hampshire, New Jersey, New Mexico, New York, North Carolina, North Dakota, Ohio, Oklahoma, Oregon, Pennsylvania, Rhode Island, South Carolina, South Dakota, Tennessee, Texas, Utah, Vermont, Virginia, Washington, West Virginia, Wisconsin, Wyoming, District of Columbia");
 region("Canada", "Alberta, British Columbia, Manitoba, New Brunswick, Newfoundland and Labrador, Nova Scotia, Ontario, Prince Edward Island, Quebec, Québec, Saskatchewan, Yukon, Northwest Territories, Nunavut");
-region("United Kingdom", "England, Scotland, Wales, Northern Ireland");
+// The four home nations are kept apart, as fighters' nationalities are (a fan counts them as nations, and the England page would otherwise say "0 events here" beside 1,089 fighters): "Cardiff, Wales" is Wales
+region("England", "England, Lancashire, Merseyside, Yorkshire, West Yorkshire, South Yorkshire, North Yorkshire, Cheshire, Essex, Derbyshire, Nottinghamshire, Bedfordshire, Berkshire, Norfolk, Staffordshire, Warwickshire, West Midlands, Wiltshire, Tyne and Wear, Hove, London, Greater Manchester, Kent, Surrey, Sussex, Suffolk, Hertfordshire, Lincolnshire, Leicestershire, Northamptonshire, Oxfordshire, Cambridgeshire, Hampshire, Durham, Cumbria, Northumberland");
+region("Scotland", "Scotland, Glasgow"); region("Wales", "Wales"); region("Northern Ireland", "Northern Ireland");
+region("Germany", "Berlin, Hamburg, Brandenburg, Baden-Wurttemberg, Baden Wurttemberg, Baden-Württemberg, Mecklenburg-Vorpommern, Niedersachsen, Nordrhein-Westfalen, Rheinland-Pfalz, Sachsen Anhalt, Sachsen-Anhalt, Munich, Bayern, Bavaria, Hessen, Sachsen, Saxony, Schleswig-Holstein, Thüringen, Saarland, Bremen");
+region("Japan", "Aichi, Fukuoka, Hyogo, Kanagawa, Osaka, Shizuoka, Tokyo, Saitama, Chiba, Kyoto, Hokkaido, Okinawa");
+region("Spain", "Andalucia, Andalucía, Basque Country, Castilla La Mancha, Communidad Madrid, Comunidad Valenciana, Islas Canarias, Catalonia, Cataluña, Galicia");
+region("France", "Calvados, Hauts de Seine, Hauts-de-Seine, Haut-Rhin. France, Paris, val d'Oise, Seine-Saint-Denis, Val-de-Marne");
+region("Argentina", "Buenos Aires, Mendoza, Neuquen, Neuquén, Santa Fe, Chubut, Misiones, Salta, Tucumán");
+region("Mexico", "Coahuila de Zaragoza, Distrito Federal, Yucatan, Zapopan");
+region("Italy", "Lombardia, Lazio, Campania, Sicilia, Piemonte, Veneto, Toscana");
+region("South Africa", "Gauteng, KwaZulu-Natal, Western Cape, Eastern Cape, Free State, Limpopo, Mpumalanga");
+region("Philippines", "Bohol, Metro Manila, Cebu");
+region("Nicaragua", "Managua"); region("Russia", "Chechnya"); region("Latvia", "Latvija"); region("Libya", "Libyan Arab Jamahiriya"); region("Macao SAR China", "Macao, M aco");
+region("Colombia", "Columbia"); region("United States", "Wes Virginia");
 region("Australia", "New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, Northern Territory, Australian Capital Territory");
 region("Mexico", "Aguascalientes, Baja California, Baja California Sur, Campeche, Chiapas, Chihuahua, Coahuila, Colima, Durango, Guanajuato, Guerrero, Hidalgo, Jalisco, Michoacán, Morelos, Nayarit, Nuevo León, Oaxaca, Puebla, Querétaro, Quintana Roo, San Luis Potosí, Sinaloa, Sonora, Tabasco, Tamaulipas, Tlaxcala, Veracruz, Yucatán, Zacatecas, Ciudad de México, Estado de México");
 const AMBIGUOUS_REGIONS = new Set(["georgia"]);
@@ -157,7 +170,12 @@ export function parseLocation(raw: string | null | undefined, notes: Notes): { c
   const last = parts[parts.length - 1], key = last.toLowerCase();
   if (AMBIGUOUS_REGIONS.has(key)) notes.locationRegionAmbiguous++;
   else if (REGIONS[key]) { notes.locationCountryInferred++; return { city: parts[0], country: REGIONS[key] }; }
-  return { city: parts[0], country: last };
+  return { city: parts[0], country: eventCountry(last) };
+}
+/** A country as the feed spelled it for a card ("USA", "UAE", "Czech Republic", "México", "DRC") in the one spelling fighters' nationalities have, so the fighters of a country and the cards held there meet on one page. A two-letter code is a state or a province ("SC") unless it is UK or US. */
+function eventCountry(c: string): string {
+  if (/^[A-Za-z]{2}$/.test(c) && !/^(uk|us)$/i.test(c)) return c;
+  return canonicalCountry(c);
 }
 
 /** A finished fight with no result this many days old is counted as missing, not as a result still to come. */

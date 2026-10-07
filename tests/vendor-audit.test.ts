@@ -92,3 +92,10 @@ test("the command: reads a database read-only, prints the report, exits 1 on a f
   assert.equal(none.status, 1); assert.match(none.stderr, /There is no database at .*missing\.db/);
   fs.rmSync(dir, { recursive: true, force: true });
 });
+
+test("a card held in a place that is not a country (a county, a state, a typo) is a warning in a large league and a failure in a small one (round 133: 425 cards of the first real load)", () => {
+  assert.equal(level(broken("UPDATE events SET country = 'Lancashire'"), "event-countries"), "fail", "all of one card is more than 2%");
+  assert.equal(level(broken("UPDATE events SET country = 'England'"), "event-countries"), "pass", "a home nation is a country");
+  assert.equal(level(broken("UPDATE events SET country = 'Unknown'"), "event-countries"), "pass");
+  assert.match(describeAudit(broken("UPDATE events SET country = 'Lancashire'")).join("\n"), /every card's country[\s\S]*Lancashire 1/);
+});
