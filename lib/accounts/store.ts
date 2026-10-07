@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS audit (
 const g = globalThis as unknown as { __accountsDb?: { file: string; db: DatabaseSync } };
 
 /**
- * Forward-only, additive migration of forum_posts (PLAN 228), safe to run on every open and on a file made by any earlier version: only columns and indexes are added,
+ * Forward-only, additive migration of forum_posts (PLAN 229), safe to run on every open and on a file made by any earlier version: only columns and indexes are added,
  * nothing is rewritten or dropped. `wave_fp` is a hash of a post's letters, to notice the same post from different accounts (posts of the last day are filled in from
  * their words once, so the rule applies at once); `withdrawn_body` and `withdrawn_at` hold the words of a post withdrawn while hidden or reported, for editors only;
  * `appeal_at` and `appeal_result` record an author's request for a review of an automatically hidden post, and its outcome.

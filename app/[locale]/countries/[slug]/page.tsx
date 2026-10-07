@@ -33,7 +33,7 @@ export default async function Country({ params }: { params: Promise<{ slug: stri
     <div className="space-y-12">
       <BreadcrumbLd locale={t.locale} trail={[{ name: t("Boxing by country"), path: "/countries" }, { name, path: `/countries/${v.slug}` }]} />
       <div className="rise">
-        <div className="eyebrow mb-2"><Link href="/countries" className="hover:text-ink">{t("Boxing by country")}</Link></div>
+        <div className="eyebrow mb-2"><Link href="/countries" className="-my-1.5 inline-block py-1.5 hover:text-ink">{t("Boxing by country")}</Link></div>
         <h1 className="font-display text-6xl font-extrabold uppercase leading-[.95] sm:text-7xl">{flag(v.name)} {name}</h1>
         <div className="mt-3"><ShareButton title={t("Boxers from {country}", { country: name })} /></div>
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">

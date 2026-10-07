@@ -42,7 +42,7 @@ export default async function Rankings({ searchParams }: { searchParams: Promise
               <Link href={`/boxers/${b.slug}`} className="flex items-center gap-3 rounded-lg px-2 py-2.5 transition hover:bg-panel-2">
                 <span className="w-7 text-center font-display text-xl font-bold text-gold">{i + 4}</span>
                 <Headshot boxer={b} size={36} rounded={false} className="rounded-full object-cover" />
-                <span className="min-w-0 flex-1"><span className="block truncate font-semibold">{t.name(b.name)}</span><span className="block truncate text-xs text-muted">{countryName(b.country, t.locale)} · {divisionLabel(b.weightClass, b.sex, t)}</span></span>
+                <span className="min-w-0 flex-1"><span className="block break-words font-semibold leading-snug">{t.name(b.name)}</span><span className="block break-words text-xs leading-snug text-muted">{countryName(b.country, t.locale)} · {divisionLabel(b.weightClass, b.sex, t)}</span></span>
                 <span className="hidden tabular text-sm font-semibold sm:inline">{recordStr(b)}</span>
                 <span className="w-10 text-end tabular text-xs text-gold">{Math.round(b.rating)}</span>
               </Link>
@@ -60,7 +60,7 @@ export default async function Rankings({ searchParams }: { searchParams: Promise
                   <li key={r.boxer.id} className={r.rank === 1 ? "flex items-center gap-2.5 border-b border-line/60 pb-3 text-sm" : "flex items-center gap-2.5 text-sm"}>
                     <span className={`w-5 text-center font-display text-lg font-bold ${r.rank === 1 ? "text-gold" : "text-muted"}`}>{r.rank === 1 ? t("C") : r.rank}</span>
                     <Headshot boxer={r.boxer} size={r.rank === 1 ? 44 : 26} rounded={false} className="rounded-full object-cover" />
-                    <span className={`min-w-0 flex-1 truncate ${r.rank === 1 ? "font-display text-xl font-bold leading-tight" : ""}`}>{t.name(r.boxer.name)}</span>
+                    <span className={`min-w-0 flex-1 break-words leading-snug ${r.rank === 1 ? "font-display text-xl font-bold leading-tight" : ""}`}>{t.name(r.boxer.name)}</span>
                     <span className="tabular text-xs text-muted">{recordStr(r.boxer)}</span>
                   </li>
                 ))}

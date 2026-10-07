@@ -173,3 +173,10 @@ test("a division with nobody ranked draws no empty table, and says why (axe: emp
   assert.match(src, /rows\.length === 0 && !typed/);
   assert.match(src, /has the five fights on record that a ranking needs yet/);
 });
+
+test("the rankings index never cuts a fighter's name or division off with an ellipsis, and a sorting heading and the event link above a fight keep a 24 px target (found in the round 129 phone sweep of other sessions' pages)", () => {
+  const idx = read("app/[locale]/rankings/page.tsx");
+  assert.ok(!/truncate/.test(idx), "the compact list lost 'Super Featherweight' to 'Super Fea…' on a phone; names and divisions wrap instead");
+  assert.match(read("components/SortTh.tsx"), /min-h-6 min-w-6/, "the narrow # heading was 24 px wide and 32 high: at the limit, now with a floor");
+  for (const f of ["app/[locale]/bouts/[id]/page.tsx", "app/[locale]/previews/[id]/page.tsx"]) assert.match(read(f), /className="-my-1\.5 inline-block py-1\.5 hover:text-ink"/, `${f}: the event link in the heading line is 24 px high (it was 12)`);
+});

@@ -76,7 +76,7 @@ test("a report's note and an editor's reason are cut to their limits, not stored
   assert.ok(((c.acc.prepare("SELECT detail FROM audit WHERE action = 'forum_hide'").get() as { detail: string }).detail).length <= 200, "and so is the activity log");
 });
 
-/** A reporter whose report counts toward the automatic hide: ten days old, with three posts of its own standing (PLAN 228). */
+/** A reporter whose report counts toward the automatic hide: ten days old, with three posts of its own standing (PLAN 229). */
 async function established(name: string) {
   const u = await c.mk(name, "user", 10 * 24 * 60), at = new Date(T0).toISOString();
   const th = (c.acc.prepare("INSERT INTO forum_threads (kind, title, user_id, created_at, last_post_at) VALUES ('general', 'Elders', ?, ?, ?) RETURNING id").get(u.id, at, at) as { id: number }).id;

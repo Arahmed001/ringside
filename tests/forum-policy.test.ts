@@ -8,7 +8,7 @@ import { tempDb } from "./helpers";
 import { AUTO_HIDE_REPORTS, WITHDRAWN_KEEP_MS } from "../lib/forum/rules";
 
 /**
- * The three forum policy defaults the owner approved (PLAN 228, docs/forum-security-review.md items A, D and E): a harder-to-abuse automatic hide with an appeal for the
+ * The three forum policy defaults the owner approved (PLAN 229, docs/forum-security-review.md items A, D and E): a harder-to-abuse automatic hide with an appeal for the
  * author; the same text from different accounts refused; and withdrawing a hidden post no longer wipes what the editors wanted to read. Each test fails on the code as it was.
  */
 const cleanup = tempDb("forumpolicy");

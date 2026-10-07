@@ -56,7 +56,7 @@ beforeEach(async () => {
   if (!alice) { alice = await c.mk("alice_forum", "user"); bob = await c.mk("bob_forum", "user"); eddie = await c.mk("eddie_forum", "editor"); }
   n++;
 });
-/** A number as letters: the forum treats posts that differ only in digits as one post (PLAN 228), so tests that want different posts vary letters. */
+/** A number as letters: the forum treats posts that differ only in digits as one post (PLAN 229), so tests that want different posts vary letters. */
 export const lett = (i: number) => [...Math.floor(i).toString(26)].map((ch) => String.fromCharCode(97 + parseInt(ch, 26))).join("");
 const say = (user: typeof alice, text = `A fair point from ${lett(user.id)} number ${lett(n)}, and a long enough one.`, at = T0) => c.F.addPost(user, { kind: "boxer", subject: c.slug }, text, `10.0.0.${user.id}`, c.main, c.acc, at);
 
@@ -278,7 +278,7 @@ test("a spam wave: many young accounts from one address, from many addresses, an
   const old = await Promise.all(Array.from({ length: 50 }, (_, i) => c.mk(`wave3_${n}_${i}`, "user")));
   const ad = "Visit my amazing offer today and win big every single week without any risk at all";
   const results = old.map((u, i) => c.F.addPost(u, { kind: "boxer", subject: c.slug }, `${ad}${i % 2 ? "!" : ""}`, `192.0.2.${i}`, c.main, c.acc, T0 + 1000 + i));
-  assert.equal(results.filter((r) => r.ok).length, 1, "one copy gets through, the rest are refused as a wave from other accounts (PLAN 228: it was two)");
+  assert.equal(results.filter((r) => r.ok).length, 1, "one copy gets through, the rest are refused as a wave from other accounts (PLAN 229: it was two)");
   assert.deepEqual([...new Set(results.filter((r) => !r.ok).map((r) => (r as { error: string }).error))], ["copied"]);
   // short common posts are not a wave
   const shorts = old.slice(0, 10).map((u, i) => c.F.addPost(u, { kind: "boxer", subject: c.slug }, "Great fight, well done", `192.0.2.${100 + i}`, c.main, c.acc, T0 + 2000 + i));

@@ -12,7 +12,7 @@ export const POSTS_PER_USER = { max: 10, windowMs: 10 * 60_000 }, POSTS_PER_ADDR
 /** The author may change a post for this long after writing it. */
 export const EDIT_WINDOW_MS = 15 * 60_000;
 /**
- * Automatic hiding (PLAN 228; it was four reports from day-old accounts, which a handful of sign-ups could meet). A post is hidden until an editor looks when this many
+ * Automatic hiding (PLAN 229; it was four reports from day-old accounts, which a handful of sign-ups could meet). A post is hidden until an editor looks when this many
  * DIFFERENT people report it, counting only reporters with real history here: an account at least a week old, with at least a few posts of its own still standing, and
  * not from one network area (see `reportPost`). The number is a setting (FORUM_AUTO_HIDE_REPORTS, 2 or more). The author of a hidden post can ask for a review.
  */
