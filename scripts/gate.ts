@@ -37,7 +37,8 @@ for (const step of steps) {
   process.stdout.write(`... ${step.label}`);
   const r = spawnSync(step.cmd, step.args, { cwd, encoding: "utf8", env: { ...process.env, NEXT_TELEMETRY_DISABLED: "1", ...step.env }, maxBuffer: 256 * 1024 * 1024 });
   const output = `${r.stdout ?? ""}\n${r.stderr ?? ""}`;
-  const why = r.status !== 0 ? `exit code ${r.status ?? r.signal}` : step.proves?.(output) ?? null;
+  // the proof is read from the step's standard output only: Node prints warnings to stderr AFTER the smoke run's "272/272 ok", and a combined stream made that look like a failure
+  const why = r.status !== 0 ? `exit code ${r.status ?? r.signal}` : step.proves?.(r.stdout ?? "") ?? null;
   const seconds = (Date.now() - t0) / 1000;
   results.push({ step, ok: !why, seconds, why: why ?? undefined });
   console.log(`\r${why ? "FAIL" : "PASS"}  ${step.label}  (${seconds.toFixed(0)} s)`);

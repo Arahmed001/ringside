@@ -50,3 +50,12 @@ test("the report names each step, says what failed and what did not run, and onl
   assert.match(summarize([r(a, true)], 7).join("\n"), /GATE INCOMPLETE: 6 steps not run/, "stopping early is never a pass");
   assert.match(summarize([r(a, false)], 1).join("\n"), /GATE FAILED: 1 step failed\./);
 });
+
+test("the proof is read from a step's standard output, not from stderr (the first real run failed on Node's warning lines printed after '272/272 ok')", () => {
+  const src = fs.readFileSync(path.join(ROOT, "scripts/gate.ts"), "utf8");
+  assert.match(src, /step\.proves\?\.\(r\.stdout \?\? ""\)/, "judged on stdout alone");
+  assert.ok(!/step\.proves\?\.\(output\)/.test(src), "never on the combined stream");
+  // and the pure check still reads a stdout that ends with the count, however many warning lines a caller has kept apart
+  assert.equal(smokeProof("✓ en /x (a, 3 ms)\n\n272/272 ok\n"), null);
+  assert.match(smokeProof("272/272 ok\n(Use `node --trace-warnings ...` to show where the warning was created)\n") ?? "", /not "N\/N ok"/, "mixed into one stream it would fail: which is why the two are kept apart");
+});
