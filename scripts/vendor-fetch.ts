@@ -11,6 +11,7 @@
  */
 import { spawn } from "node:child_process";
 import fs from "node:fs";
+import { constants as osConstants } from "node:os";
 import path from "node:path";
 import { DEFAULT_KEY_FILE, backgroundFiles, backgroundPid, defaultCacheDir, fetchArgs, logTail, readKeyFile, writeKeyFile } from "../lib/vendor-fetch";
 
@@ -83,6 +84,10 @@ async function main() {
   }
   const child = spawn(process.execPath, ["--import", "tsx", path.join(__dirname, "vendor-backfill.ts"), ...args], { stdio: "inherit", env: { ...process.env, BOXING_API_KEY: key } });
   if (process.platform === "darwin" && !noCaffeinate && child.pid) { try { spawn("caffeinate", ["-i", "-w", String(child.pid)], { stdio: "ignore", detached: true }).on("error", () => {}).unref(); } catch { /* not available: the machine may sleep */ } }
-  child.on("close", (code) => process.exit(code ?? 1));
+  // a child that dies by a signal has no exit code: say which, and exit 128 + the signal's number (the shell's convention: 143 for SIGTERM, 137 for SIGKILL)
+  child.on("close", (code, signal) => {
+    if (code === null && signal) { const n = osConstants.signals[signal] ?? 0; console.error(`vendor:backfill ${signal === "SIGKILL" ? "killed" : "stopped"} (${signal}).`); process.exit(n ? 128 + n : 1); }
+    process.exit(code ?? 1);
+  });
 }
 main().catch((e) => { console.error(e instanceof Error ? e.message : e); process.exit(1); });

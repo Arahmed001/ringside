@@ -19,7 +19,7 @@ export async function GET(req: Request) {
   if (!A || !B || A.id === B.id) return new Response("Not found", { status: 404 });
   const t = await getTFor(lang);
   const p = predict(A, B, t);
-  const res = ogCard({
+  const res = await ogCard({
     locale: lang, t, accent: "red",
     kicker: t("Head to head"),
     title: t("{a} vs {b}", { a: t.name(A.name), b: t.name(B.name) }),

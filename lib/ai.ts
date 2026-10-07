@@ -11,7 +11,8 @@ import { msg, tEn, type T } from "./i18n/t";
 import { divisionLabel } from "./divisions";
 import { countryName, fmtDate } from "./format";
 import { DIVISIONS } from "./divisions";
-import { normalize } from "./fighter-search";
+import { normalize, isEmptyTable } from "./fighter-search";
+import { sharedWeakMap } from "./memo";
 import { dictOf } from "./i18n/dicts";
 import { AiFailed, aiPaused, noteAiFailure, notRemembered, reserveAiCall, AiLimited } from "./ai-guard";
 import { Lru } from "./lru";
@@ -335,7 +336,28 @@ function unbeatenIn(w: World, b: BoxerFull, n: number): boolean {
   return list.length >= n && list.slice(-n).every((x) => x.winnerId === null || x.winnerId === b.id);
 }
 
+const textKeys = sharedWeakMap<object, WeakMap<BoxerFull, string>>("ai.ts:fighter-text");
+const NO_TABLE: object = ((globalThis as unknown as { __ringsideNoNames?: object }).__ringsideNoNames ??= Object.freeze({}));
+/** The kept texts of one language table. Looked up once per search, not per fighter: telling an empty table from a full one walks a large table's keys. */
+function textsFor(names: Record<string, string>): WeakMap<BoxerFull, string> {
+  const table = isEmptyTable(names) ? NO_TABLE : names;
+  let m = textKeys.get(table);
+  if (!m) { m = new WeakMap(); textKeys.set(table, m); }
+  return m;
+}
+/**
+ * What a text search matches a fighter against: the name, its translation, the nickname and its translation, normalised. Worked out once per fighter and
+ * language table (a fighter is a new object whenever the world is rebuilt, so the cache follows the data) instead of for every fighter on every search:
+ * 160 to 210 ms of one thread per request at 35,000 fighters (docs/capacity.md). The text is exactly what the search used to build on each call.
+ */
+export function searchTextOf(b: BoxerFull, names: Record<string, string>, texts: WeakMap<BoxerFull, string> = textsFor(names)): string {
+  let t = texts.get(b);
+  if (t === undefined) { t = normalize(`${b.name} ${names[b.name] ?? ""} ${b.nickname ?? ""} ${b.nickname ? names[b.nickname] ?? "" : ""}`); texts.set(b, t); }
+  return t;
+}
+
 export function applyFilters(boxers: BoxerFull[], f: Filters, w?: World, names: Record<string, string> = {}): BoxerFull[] {
+  const needle = f.text ? normalize(f.text) : "", texts = f.text ? textsFor(names) : undefined;
   const via = new Map<string, Set<number>>();
   if (w) {
     if (f.trainer) via.set("trainer", idsVia(w, f.trainer, "person", ["head_trainer", "assistant_trainer"], !!f.trainerCurrent));
@@ -394,7 +416,7 @@ export function applyFilters(boxers: BoxerFull[], f: Filters, w?: World, names: 
     (f.minAge === undefined || (b.age !== null && b.age >= f.minAge)) &&
     (f.maxAge === undefined || (b.age !== null && b.age <= f.maxAge)) &&
     (!f.archetype || archetype(b) === f.archetype) &&
-    (!f.text || normalize(`${b.name} ${names[b.name] ?? ""} ${b.nickname ?? ""} ${b.nickname ? names[b.nickname] ?? "" : ""}`).includes(normalize(f.text))),
+    (!f.text || searchTextOf(b, names, texts).includes(needle)),
   );
   const key = f.sort ?? "rating";
   // the sort keys compare the career as the page shows it (a fighter held in part by the fights Ringside has is compared by the supplier's totals); where those say nothing (knockouts of a part-held career) the value is unknown and sorts last

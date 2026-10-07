@@ -8,8 +8,8 @@ Ringside must run as exactly one copy (one Node process, one SQLite file; `docs/
 - **In visitors** (calculation, with an assumption: 85% of requests in the mix are pages, and a reader looks at a new page every 30 seconds): one core carries about 380 people reading at once, two cores about 530. Look at a page every 60 seconds and the numbers double. These are the ceiling, not a comfortable load: at the ceiling a request waits behind the others (about 1 second at 20 requests in flight on two cores, 3.3 seconds at 50 on one).
 - **Memory: ask for 2 GB with the heap capped, or 4 GB without a cap.** The process is 1.29 GB right after start, 1.6 to 1.7 GB under load (it plateaus; no growth over 7,600 requests), and **2.2 GB at the moment a data update makes it rebuild its in-memory world** (old and new world are both alive). With `NODE_OPTIONS=--max-old-space-size=1024` it was 0.7 GB idle, 1.2 GB under load, 1.4 GB at the rebuild, at the price of about 10% of the throughput. A 700 MB cap costs 27%; a 500 MB cap started and then crashed out of memory under load.
 - **Disk is not a constraint:** the database for 35,000 fighters and 160,000 fights is 62 MB.
-- **A data update under traffic stalls the site for about 10 seconds** (two back-to-back rebuilds of the in-memory world, 4.7 s each, nothing is answered meanwhile; 16 s with the 1 GB heap cap), and the process peaks at 2.2 GB. A start takes 11 to 16 seconds before it answers. Put a cache in front that can serve stale pages for a minute, and run the update at a quiet hour.
-- **Nothing sits in front of the server today that can take load off it:** pages are sent `Cache-Control: private, no-cache, no-store`, and the share images `public, max-age=0, must-revalidate`, so a CDN with default rules caches neither. What a CDN can and cannot safely be told is in "What to put in front".
+- **A data update under traffic used to stall the site for 10 to 16 seconds; it no longer does (fixed, "Fixes after the first measurement" below).** The update commits three times, each moved `dbVersion`, and each move rebuilt the in-memory world (4.7 s each) on the one thread that serves visitors. Now one rebuild runs, in slices, behind the old world, which keeps answering; the new one is warmed and swapped in whole. Measured on the same machine, alternating runs: nothing answered for 6 to 13 s (before) against 1.3 to 1.7 s (after), the slowest answer 11 to 14 s against 1.9 to 2.2 s. The process still peaks at about 2.1 GB (two worlds alive together), and a start takes 11 to 16 seconds before it answers.
+- **Little sits in front of the server today that can take load off it:** pages are sent `Cache-Control: private, no-cache, no-store` (a decision, below), so a CDN with default rules caches none of them. Share images (`public, max-age=600, stale-while-revalidate=3600`) and sitemap files (`public, max-age=3600`, gzip) now can be cached, and the origin keeps a copy of both in memory. What a CDN can and cannot safely be told is in "What to put in front".
 - The measurement found two hot spots that were not about traffic, and fixed them: a fighter page worked out the style of every fighter in the league and scored every possible opponent, and a country page scanned every event and bout, on each view. Throughput of the mix went from **9-10 to 15-16 requests a second on one core, and from 11-13 to 20-22 on two** (alternating runs, same machine); the fighter page went from 168 to 69 ms and the country page from 319 to 34 ms. The behaviour is unchanged (tests below).
 
 ## What this is and is not
@@ -23,7 +23,7 @@ Ringside must run as exactly one copy (one Node process, one SQLite file; `docs/
 ## Method
 
 1. `npm run build`; `npm start` on a free port with `BOXING_PROVIDER=licensed`, `SITE_URL=https://capacity-test.example.org` (a non-localhost name, so the site is indexable and serves sitemaps), the copy as `DATABASE_PATH`.
-2. `scripts/capacity.ts` (`npm run capacity`): replays the mix at 1, 5, 20, 50 and 100 at a time for a fixed time each, recording requests a second, p50/p95/p99/max latency, failures (anything not 2xx, or no answer in 30 s), and the server's CPU and resident memory from `/proc/<pid>` every 250 ms. `--cold` times the first request of each kind straight after a start. `--event-cmd` runs a command part-way through a step (here the real `vendor:backfill --update` against the stand-in, writing into the database the server was reading) and prints a second-by-second table.
+2. `scripts/capacity.ts` (`npm run capacity`): replays the mix at 1, 5, 20, 50 and 100 at a time for a fixed time each, recording requests a second, p50/p95/p99/max latency, failures (anything not 2xx, or no answer in 30 s), and the server's CPU and resident memory from `/proc/<pid>` every 250 ms. `--cold` times the first request of each kind straight after a start. `--event-cmd` runs a command part-way through a step (the real `vendor:backfill --update` against the stand-in, or `scripts/capacity-update.ts`, which makes the same three commits without a vendor, writing into the database the server was reading) and prints a second-by-second table and, since the fixes below, "nothing answered for N s at the longest, slowest answer, answers over 2 s".
 3. The slow routes were found from per-kind latencies, then from V8 CPU profiles of the production server (`--cpu-prof`) resolved through the source maps to the repository's own lines.
 4. Before and after a change, the old and new builds were run alternately on the same machine, same seed, same sequence of requests.
 
@@ -104,7 +104,7 @@ One visitor at a time on two cores, p50 in ms, with the number of requests behin
 | type-ahead API | 20 | 4 | 20 |
 | fighter card API | 4 | 4 | 8 |
 
-What is left is spread evenly: a typical page is 40 to 80 ms of one thread, and the V8 profiles put the garbage collector at 14 to 16% of all CPU time under the mix. The share image is the dearest single request (it draws a picture), and the text search on the fighters list the slowest page: it normalises every fighter's name on each request (in `applyFilters`, `lib/ai.ts`), which is left alone (below).
+What is left is spread evenly: a typical page is 40 to 80 ms of one thread, and the V8 profiles put the garbage collector at 14 to 16% of all CPU time under the mix. The share image is the dearest single request (it draws a picture), and the text search on the fighters list the slowest page: it normalised every fighter's name on each request (in `applyFilters`, `lib/ai.ts`). Both are fixed since (below); the table above is the measurement before those fixes.
 
 ### Memory
 
@@ -128,7 +128,7 @@ Heap caps (`NODE_OPTIONS=--max-old-space-size=N`), two cores:
 
 So the world needs between 500 and 700 MB of heap at this size, and a cap near 1 GB leaves room to hold two of them while one is rebuilt. (`docs/deploy.md` measured 250 to 400 MB at 44,000 fights; the heap grows with the fights, as it says.)
 
-### A data update while serving
+### A data update while serving: the measurement that found the stall (before the fix)
 
 Method: 5 at a time on two cores for 70 s; at 20 s the real `vendor:backfill --update` (6.8 to 8.3 s, 324 to 348 requests to the stand-in, a few fights changed) runs against the same database file. The update is a separate process, as the daily job is.
 
@@ -161,9 +161,9 @@ A page links about 30 files under `/_next/static/` (measured on the home page), 
 
 ## What is cached, what is rebuilt, what invalidates
 
-- **The world** (every fighter, fight and event, with ratings and indexes, in memory): built once, kept on `globalThis`, keyed by `today|dbVersion`. Each request checks the key with two one-row queries (`PRAGMA data_version`, newest `ingest_runs` id; `lib/db.ts`) and rebuilds on a mismatch. The key changes when the UTC day changes, when **another process** commits to the database (the daily update; this process's own writes do not move `data_version`), when the newest ingest run changes, and when code in the process calls `bumpDbVersion` (approving a community edit). The rebuild is synchronous: 4.4 to 5.2 s at this size, and the thread serves nothing meanwhile. The old world is garbage once nothing uses it, but it is alive until the new one is assigned, hence the 2.2 GB peak.
-- **Aggregates** (`lib/memo.ts`): a `WeakMap` per world, so a new world starts empty and the old ones go with it. `WARM_STEPS` fills the slow ones at start (and at 00:00:05 UTC each day, `scheduleDailyWarm`); anything not in the list is computed by the first visitor.
-- **Per request, every time:** the whole HTML of every page (the layout is `force-dynamic`; nothing is cached by Next), the fighters list's filter and sort of up to 35,000 rows, a fighter page's profile and its neighbours, share images, sitemap XML (8.6 MB a file, 19 files), JSON of the APIs. There is no page cache and no response cache in the app.
+- **The world** (every fighter, fight and event, with ratings and indexes, in memory): built once, kept on `globalThis`, keyed by `today|dbVersion`. Each request checks the key with two one-row queries (`PRAGMA data_version`, newest `ingest_runs` id; `lib/db.ts`) and rebuilds on a mismatch (see "Fixes after the first measurement" for how: a change another process made is rebuilt in the background once it has settled, while the old world keeps answering; a new day, this process's own change and `invalidateWorld` rebuild at once). The key changes when the UTC day changes, when **another process** commits to the database (the daily update; this process's own writes do not move `data_version`), when the newest ingest run changes, and when code in the process calls `bumpDbVersion` (approving a community edit). The rebuild takes 4.4 to 5.2 s of the thread at this size; it now runs in slices of about 25 ms that give the thread back between them (at most about 1 s in one piece, the SQL reads and one sort), so visitors are answered meanwhile. The old world is garbage once nothing uses it, but it is alive until the new one is assigned, hence the 2.1 to 2.2 GB peak.
+- **Aggregates** (`lib/memo.ts`): a `WeakMap` per world, so a new world starts empty and the old ones go with it. `WARM_STEPS` fills the slow ones at start, at 00:00:05 UTC each day (`scheduleDailyWarm`) and now before every data-triggered rebuild is shown; anything not in the list is computed by the first visitor.
+- **Per request, every time:** the whole HTML of every page (the layout is `force-dynamic`; nothing is cached by Next), the fighters list's filter and sort of up to 35,000 rows, a fighter page's profile and its neighbours, JSON of the APIs. There is no page cache in the app. Kept in memory, bounded by bytes, since the fixes: drawn share images (24 MB, keyed by everything on the card) and gzipped sitemap files (32 MB, per world).
 - **Middleware** (`proxy.ts`) runs on every request: a fresh CSP nonce, the locale rewrite.
 
 ## What was fixed, and the proof
@@ -176,15 +176,70 @@ All three were found in V8 profiles of the production server, and each is a pure
 
 Tests (`tests/capacity-hotspots.test.ts`, `tests/capacity-countries.test.ts`, `tests/capacity-search.test.ts`): the old algorithm is written out in the test and the new code must return exactly the same answer, ties included, for a spread of fighters and every country, for several list lengths; a synthetic league of identical fighters checks tie order; `winChances` equals `predict`'s probabilities digit for digit; the shared lists cannot be changed by a caller; the search indexes live in the shared registry. Mutation checks: reversing the tie rule, dropping the rating tie-break, and including upcoming events were each caught by a test.
 
-## Found, not fixed
+## Fixes after the first measurement
 
-- **A data update rebuilds the world twice and stalls the site for 10 to 16 s.** Needs a design decision (build in a worker thread and swap, or debounce rebuilds until the writer is quiet, or restart after the update). Until then: run the update at a quiet hour, expect the stall, serve stale pages from the proxy meanwhile. Because the update commits in separate steps, a request in the middle also builds a world from a half-applied update (fights loaded, ratings not yet recomputed); the next rebuild corrects it.
-- **No warm-up after a data-triggered rebuild** (see above); the first visitors to each page pay for the aggregates.
-- **The fighters list's text search** normalises 35,000 names on each request (159 to 211 ms); a per-world, per-language index of normalised names, like the one `fighter-search.ts` keeps, would remove it. The list also re-sorts 35,000 rows per request (about 10 ms).
-- **Share images** cost 220 to 380 ms each and are never cached by the origin.
-- **Sitemap files are 8.6 MB each, built per request (95 to 125 ms) and not compressed by the app** (HTML is: 197 KB becomes 26 KB; XML is not). 19 files, about 160 MB for a crawler that reads them all.
-- **Ties in the garbage collector:** 14 to 16% of the CPU under the mix. A larger young generation (`--max-semi-space-size`) was not tried.
-- **The public API** (`/api/v1`) is closed for licensed data by design and was not measured.
+Found by the measurement above and fixed afterwards, each with a test (`tests/capacity-update.test.ts`, `tests/capacity-textsearch.test.ts`, `tests/capacity-share.test.ts`) and a measurement on the same machine, alternating the old and the new build, same data, same driver. **Caveat on every number here:** the sandbox is a shared 4-core machine; other work was running (1-minute load average 1.2 to 2.0 during these runs, which the driver records, and a number of runs started while other tests were running were thrown away and repeated once it was quiet). Differences under 10% are noise. The "before" build is the commit these fixes start from (the three hot-spot fixes above are in both).
+
+### 1. The update stall: fixed
+
+What happened: another process's update commits three times (its fights, its ratings, its run record); each commit moves `dbVersion`; each request that saw a new version rebuilt the world on the one thread (4.7 s), and everything after the rebuild was cold.
+
+What it does now (`lib/world.ts`):
+
+- **Coalesce.** A change made by another process (not a new day, not this process's own `bumpDbVersion`, not `invalidateWorld`, which still rebuild at once because there is nothing right to show) starts a settle timer. The world is rebuilt when the data has stayed unchanged for `RINGSIDE_WORLD_SETTLE_MS` (default 5 s) or after 60 s of changes whatever happens. Three commits, one rebuild (test: three commits 80 ms apart, one `world_built`).
+- **Never block.** Until the new world is ready the previous one keeps answering (stale while revalidate). The build reads from its own read snapshot connection, so the data is one consistent state even though the build yields; it runs in slices of about 25 ms and, as a background rebuild, sleeps 15 ms between slices (giving the thread back for whole stretches: yielding for one turn of the event loop between slices left a request needing a dozen turns waiting a dozen slices, which was measured to be nearly as bad). The new world is published by one assignment, so a request sees all of the old one or all of the new one. Visitors that arrive when there is no world at all (the first build, a new day) wait for it, all for the same build (callers share one build).
+- **Re-warm.** The page aggregates (`WARM_STEPS`) are computed on the new world before it is shown (so the first visitors after the swap do not pay for them), in finer steps (one list, one language) and with a sleep as long as the step took (at most 1 s) between them. At start-up the warm-up is as before.
+- **On failure** the old world stays, one line is logged per version of the data (`world rebuild failed ... still showing the previous data`), and the next try is made when the data changes again or after 60 s. (Test: a table the build reads is renamed away: 20 more requests are answered from the old world, one log line; repaired, the next rebuild succeeds.)
+
+Measured (two cores, 5 at a time for 70 s, a synthetic update by another process at 20 s: three commits 1.5 s apart, `scripts/capacity-update.ts`; the data is the 35,000-fighter league):
+
+| | before (3 runs) | after (2 runs) |
+|---|---|---|
+| world rebuilds for the one update | 2 | 1 |
+| longest time in which nothing was answered | 6.3, 13.0 s (and about 12 s in the first run, which did not have the metric and ran at a load average of 5.8) | **1.3, 1.7 s** |
+| slowest answer | 11.1, 13.3, 14.0 s | **1.9, 2.2 s** |
+| answers that took over 2 s after the update | 9, 6 | 0, 2 |
+| seconds with no answer at all in the 30 s after the update began | 9, 11, 13 | 1, 1 |
+| answers per second in those 30 s (15 to 16 when nothing is going on) | 7.8 to 9.9 | 13.3, 13.3 |
+| failed requests (not a 2xx, or no answer in 30 s) | 1, 2, 1 | 0, 0 |
+| p95 / p99 of the whole 70 s run | 625 to 767 / 1,433 to 1,695 ms | **915 to 971** / 1,233 to 1,277 ms |
+| peak resident memory | 1,875 to 2,117 MB | 2,084 to 2,112 MB |
+
+Read this honestly: the p95 of the whole run is **higher** after, because for about 15 s the rebuild shares the thread with the visitors, who are answered at 13 a second instead of 8 with a few answers of 12 s; the stall, which a percentile hides (five visitors stuck means five slow samples), is gone. The longest block of the thread is now about 1 s (event-loop lag logged at one visitor: 1.9 s before the warm-up was cut into finer steps, 1.07 s after). **The new data is shown later:** at one visitor a second, the swap came 26.3 s after the rebuild started (build 6.5 s, the warm-up 20 s with its sleeps) plus the 5 s settle, so about 30 s after the last commit, where it was shown at once (behind a 10 s stall); under a saturating load it is longer. `world_built` is logged when the build finishes and `world_swapped` when it is shown.
+
+**Memory: the old and the new world are alive together, as before.** The peak is unchanged (about 2.1 GB uncapped; the documented 2.2 GB), because the old world was never freed before the new one was assigned either. Nothing is dropped earlier: the old world is what visitors are being served from, and dropping it first would bring the stall back. What is new is that the new world's aggregates are also alive before the swap; the measured peak did not move. **Under `--max-old-space-size=1024` (one run each, same method):** before, nothing answered for 16.4 s, slowest answer 16.9 s (two rebuilds, 8.7 and 6.0 s); after, 4.7 s and 5.8 s, and 26 answers over 2 s: the process survived and one rebuild took 13.5 s, because two worlds and a warm-up in a 1 GB heap make the garbage collector work hard. So under that cap the stall is shortened (16.4 s to 4.7 s) but not gone; **if updates happen under traffic, give the process a heap above 1 GB, or the 4 GB without a cap that the sizing already recommends.** Everything below that cap is a trade the owner should know about, not a fix.
+
+What is not changed: a request that arrives while the data is newer than its world still runs the caches that are keyed by `dbVersion` itself (the translated-names table, `coverage()` at 0.8 s, the leaderboard) once per new version, so the three commits cost up to three of those recomputations during the settle window. They are small next to a world rebuild.
+
+### 2. The fighters list's text search: fixed
+
+The search normalised (NFD, accent and Arabic folding, regular expressions) every candidate's name, translation, nickname and nickname's translation on every request. It is now computed once per fighter and per language table and kept (`searchTextOf` in `lib/ai.ts`, in the registry every bundle shares; a rebuilt world has new fighter objects, so it follows the data) and filled by the warm-up (`fighter search <locale>`, 0.1 to 0.4 s more at start). Test: the old expression is written out and the results must be identical, same fighters in the same order, for 35 queries (accents, Arabic with and without vowel marks and hamza, Ł Đ Æ ß, "Jr.", translated names, empty and one-letter) over two language tables, first call and cached call. Measured (one visitor, only that kind of request, alternating, two cores): **p50 145 to 62 ms, p95 191 to 206 down to 110 to 113 ms** (n 73 to 86 each); what remains is the parser, the sort and the page.
+
+### 3. Share images: fixed (for repeats)
+
+`ogCard` (`lib/og.tsx`) now keeps what it drew in a cache bounded by bytes (`RINGSIDE_OG_CACHE_MB`, default 24, 0 turns it off; `lib/byte-lru.ts`, least recently used out first, nothing bigger than the whole budget kept), shared by every route that draws a card, and two requests for one card at once draw it once. **The key is the content of the card** (language, kicker, title, subtitle, each statistic, colour, footer), not the address, so a changed record is a different card at once, an unchanged one is the same bytes, and no `dbVersion` is needed. The origin now sends `Cache-Control: public, max-age=600, stale-while-revalidate=3600` (`RINGSIDE_OG_MAX_AGE`; was `public, max-age=0, must-revalidate`). It is safe because a card is the same for every visitor (it depends on the address and the data, never on who asks). One thing to know: the page proxy (`proxy.ts`) still puts a per-request `Content-Security-Policy` header on the image response, as it did before; a shared cache that keeps the image would keep that header too, which does nothing for an image. Test: bytes identical to the uncached drawing, English and Arabic; different words are a different card; simultaneous asks; the cache is bounded.
+
+Measured (curl, the same fighter's card asked six times): **316 to 395 ms each before; after 21 ms for the first ask after a start (a hit, the previous request drew it) and 6 to 10 ms after.** In the capacity mix (a random fighter out of 35,000 each time) it changes nothing (p50 216 to 220 ms both ways, n 59 to 78): there are no repeats in it, and that is the honest limit. The cache helps what link-preview robots and a CDN do, asking for the same card again; it does not make the first draw of each card cheaper (the 220 ms stays).
+
+### 4. Sitemap files: fixed
+
+The 8.6 MB XML is built once per file per world and kept **gzipped** (`sitemapGzip`, `lib/sitemap.ts`; `RINGSIDE_SITEMAP_CACHE_MB`, default 32; one file is about 0.2 MB gzipped, all 19 about 4 MB). The gzip runs on the thread pool, so the main thread is not held for it. The route sends the gzip to a client that accepts it (every crawler does), with `Content-Encoding: gzip` and `Vary: Accept-Encoding`, and the plain XML (unpacked, off the main thread, from the same bytes) to one that does not. `Cache-Control: public, max-age=3600` was already sent and is kept. **The limits from PLAN 208 are untouched**: the XML is exactly what `sitemapXml` wrote (test: gunzipped bytes equal it, for every file), `PATHS_PER_FILE` is still 10,000 (20,000 URLs a file with two languages, under 50,000), the index is unchanged. Measured (curl, a 7.99 MB file): **90 to 96 ms and 7,990,152 bytes on the wire before; after, 2.8 to 4.6 ms and 196,232 bytes (41 times smaller) with gzip, and 40 to 52 ms for the plain XML (80 to 92 before).** The first request for a file after a rebuild still builds it (about 95 ms of the thread, plus the gzip off it).
+
+### Caching the HTML: what it would need (not done, on purpose)
+
+Pages are sent `Cache-Control: private, no-cache, no-store` and that is left alone: each page carries a fresh `Content-Security-Policy` nonce made per request (`proxy.ts`), in the header and in the markup together, which is a security decision (`docs/security.md`), not a performance setting. To let a CDN cache pages for 30 to 60 seconds, all of this would have to be settled and tested first: (1) the nonce: a shared copy gives every visitor one nonce, so either the policy moves to hashes or `strict-dynamic` for those pages (a weaker protection, to be decided), or the edge writes a fresh nonce into the header and the markup of each copy it serves; (2) the cache key must include the query string and honour `Vary` on Next's `rsc` and router headers, or a browser can be handed a page where it asked for data; (3) a purge or a short TTL after each data update (`world_swapped` in the log says when the new data is shown); (4) the origin's own header would change from `private, no-store` to something a shared cache accepts, only on pages that read no cookie (none of the current ones does, as of this measurement). None of this was built or measured here.
+
+## Left
+
+- **Ties in the garbage collector:** 14 to 16% of the CPU under the mix. A larger young generation (`--max-semi-space-size`) was not tried. (left)
+- **The public API** (`/api/v1`) is closed for licensed data by design and was not measured. (left)
+- **The list re-sorts 35,000 rows per request** (about 10 ms). (left)
+- **A share image's first draw** still costs 220 to 380 ms, and the first request for each sitemap file after a rebuild about 95 ms. (left; the repeats are fixed)
+- **Under a 1 GB heap cap the update is still slow** (4.7 s of nothing, 26 answers over 2 s): it needs more heap, not code. (left)
+- **A new day** still rebuilds at once, with visitors waiting (nothing right to show: the day changes what "upcoming" means); the midnight warm-up does it at 00:00:05 UTC, when traffic is lowest, as before.
+- **The data update's own half-applied state** (a world built between the update's commits) can no longer be shown for long: it is rebuilt after the writer is quiet. Before, a request in the middle built a world from fights without their recomputed ratings.
+
+Every item of the first list ("Found, not fixed" in the first version of this report) is now either fixed above or listed here as left: the update stall (fixed), no warm-up after a rebuild (fixed), the text search (fixed), share images (fixed for repeats), sitemap files (fixed), garbage collector and public API (left).
 
 ## Sizing recommendation
 
@@ -202,9 +257,9 @@ What one such instance carries (calculation, from the measured throughput and tw
 
 Put a limit of 10 to 20 requests in flight to the origin in the proxy, and queue or shed the rest: past that the answer only gets later (3.3 s at 50 in flight on one core), and at 100 on one core some requests waited 30 s.
 
-**What to watch** (all in the logs or the health check already): resident memory against the container limit, with a margin of 1 GB above the loaded figure for the rebuild; the `world_built` log lines (one a day at midnight UTC, and two per data update: more means something is writing to the database or the clock is wrong); `/api/health` latency and `data.stale` (an update that has stopped); the error lines (`"level":"error"`); the proxy's own request time at the 95th percentile (the origin's p95 at 5 in flight is 0.5 to 0.8 s here); the count of requests the proxy queued.
+**What to watch** (all in the logs or the health check already): resident memory against the container limit, with a margin of 1 GB above the loaded figure for the rebuild; the `world_built` and `world_swapped` log lines (one `world_built` a day at midnight UTC, and one `world_built` plus one `world_swapped` per data update; more means something is writing to the database all day or the clock is wrong), and any `world rebuild failed` line (the site is serving old data); `/api/health` latency and `data.stale` (an update that has stopped); the error lines (`"level":"error"`); the proxy's own request time at the 95th percentile (the origin's p95 at 5 in flight is 0.5 to 0.8 s here); the count of requests the proxy queued.
 
-**Running the update:** at a quiet hour, right after midnight UTC (the midnight rebuild and warm-up are one stall of about 12 s; the update adds two more of about 5 s each), with the proxy serving stale pages meanwhile. Alternatively restart the container after the update: one 12 to 16 s start instead of two rebuilds under traffic, with the health check failing meanwhile.
+**Running the update:** a quiet hour is still kinder (the rebuild and its warm-up take about 15 to 25 s of background work, during which visitors are answered at roughly 80% of the normal rate, and the new data appears about 30 s after the update's last commit), but it no longer stalls the site: the old data keeps being served. Give the process more than a 1 GB heap if updates run under traffic. Do not restart the container to cover the update any more: a start is 12 to 16 s with the health check failing, a worse stall than the one that was fixed.
 
 ## What to put in front
 
@@ -214,22 +269,22 @@ Cache headers measured on the production server (localhost, `Accept-Encoding: gz
 |---|---|---|
 | pages, English and Arabic | `private, no-cache, no-store, max-age=0, must-revalidate` | `Vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding`; gzipped by the app (27 KB for a fighter page; 197 KB plain) |
 | `/_next/static/*` | `public, max-age=31536000, immutable` | correct as it is |
-| share images (`…/opengraph-image`) | `public, max-age=0, must-revalidate` | revalidates every time; 80 KB, 220 to 380 ms to draw |
+| share images (`…/opengraph-image`) | `public, max-age=600, stale-while-revalidate=3600` (was `public, max-age=0, must-revalidate`) | 80 KB; drawn once per card and kept in memory (6 to 21 ms after), 220 to 380 ms the first time |
 | `/api/art/portrait/*` | `public, max-age=86400, stale-while-revalidate=604800`, `ETag` | |
 | `/api/fighter-card/*` | `public, max-age=300` | |
 | `/api/search`, `/api/fighters` | none | 1 KB; cheap (4 to 11 ms) except the first search after a start |
 | `/api/v1/*` | `public, max-age=300, s-maxage=300` (404 and 429 `no-store`) | closed for licensed data |
-| `/sitemap.xml`, `/sitemaps/*.xml` | `public, max-age=3600` | 8.6 MB a file, not compressed by the app |
+| `/sitemap.xml`, `/sitemaps/*.xml` | `public, max-age=3600` | a file is 8.0 to 8.6 MB of XML; `/sitemaps/*.xml` is sent gzipped (0.2 MB) to a client that accepts it, with `Vary: Accept-Encoding` |
 | `/feeds/*` | `public, max-age=900` | |
 | `/robots.txt`, `favicon.ico` | `public, max-age=0, must-revalidate` | |
 | `/api/health`, account and forum APIs | `no-store` | must never be cached |
 
 Recommendations:
 
-1. **Always put a CDN or caching proxy in front for the static files, images, sitemaps and portraits**, and let it compress the XML (the app does not). That alone removes the assets (about as much origin work as the page itself, for a first-time visitor), the sitemaps and the share images (the dearest single requests) from the origin. Give the share images an edge cache time (an hour or more; they change with the data, and a stale card is harmless) whatever the origin says: the origin's `max-age=0` makes a CDN with default rules revalidate every time.
+1. **Always put a CDN or caching proxy in front for the static files, images, sitemaps and portraits**, (the app now compresses the sitemap XML itself). That alone removes the assets (about as much origin work as the page itself, for a first-time visitor), the sitemaps and the share images (the dearest single requests) from the origin. The share images now say `max-age=600, stale-while-revalidate=3600`, which a CDN with default rules honours; a longer edge time (an hour or more; a stale card is harmless) is still fine.
 2. **Pages: the origin says "do not cache", and that is a decision, not an accident.** No page reads a cookie (nothing in `app/` outside the APIs calls `cookies()`), the language is in the URL, and there is no redirect on `Accept-Language`, so the HTML of a URL is the same for everybody, and a CDN told to cache it for 30 to 60 seconds would lift the ceiling by the hit rate. Two things must be settled first, neither tested here: **(a)** each page's `Content-Security-Policy` header and the `nonce` attributes in its markup are made together per request (`proxy.ts`); a cached copy gives every visitor the same nonce, which still works but means the nonce no longer keeps an injected script out of those pages, so it is a security decision for `docs/security.md` before it is a performance one; **(b)** the pages `Vary` on Next's `rsc` and router headers, and navigation inside the site fetches the same URL with an `_rsc` query: the cache key must include the query string and honour `Vary` (or bypass requests carrying an `rsc` header), or the browser can be handed a page where it asked for data.
 3. **Pass `X-Forwarded-For`** (`docs/deploy.md`): without it the per-address limits see one visitor.
-4. **Serve stale on error and while the origin is busy** (`stale-while-revalidate`, `stale-if-error`): the origin stalls for 10 to 16 s at each data update and starts in 12 to 16 s, and the CDN can cover both for pages it has.
+4. **Serve stale on error and while the origin is busy** (`stale-while-revalidate`, `stale-if-error`): the origin starts in 12 to 16 s, and the CDN can cover that for pages it has. (A data update no longer stalls the origin.)
 5. **Do not scale out.** If the origin is the limit, raise the CDN's hit rate; a second instance has its own database copy, ledger and AI counters.
 
 ## Reproduce
@@ -242,7 +297,7 @@ DATABASE_PATH=<copy>/real.db ACCOUNTS_DB_PATH=<copy>/accounts.db BOXING_PROVIDER
 # find the server's pid (the process is named next-server)
 taskset -c 2,3 npm run capacity -- --base http://localhost:3417 --pid <pid> --steps 1,5,20,50,100 --seconds 30 --json out.json
 npm run capacity -- --base http://localhost:3417 --pid <pid> --cold          # right after a start
-npm run capacity -- --base http://localhost:3417 --pid <pid> --steps 5 --seconds 70 --event-at 20 --event-cmd "<a command that writes to the database>"
+npm run capacity -- --base http://localhost:3417 --pid <pid> --steps 5 --seconds 70 --event-at 20 --event-cmd "npx tsx scripts/capacity-update.ts <copy>/real.db"   # a data update by another process, in three commits
 ```
 
 On a real host, run the driver from another machine (so it does not take the server's cores), against a copy of the database, never against a site other people use. `RINGSIDE_MEMO_LOG=1` on the server logs every aggregate a first visit computes; `node --cpu-prof` on it gives the profile the hot spots were found with. The per-run JSON from this report was not kept in the repository (it is a few KB each); re-running takes about 12 minutes per core configuration.

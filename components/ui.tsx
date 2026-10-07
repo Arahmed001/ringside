@@ -38,14 +38,14 @@ export async function Streak({ b }: { b: BoxerFull }) {
   return <span className={`tabular text-xs font-semibold ${c}`}>{t(RES[b.streak.type])}{b.streak.count}</span>;
 }
 
-export async function BoxerCard({ b, rank, badge }: { b: BoxerFull; rank?: number; /** A chip beside the name (the name gives way to it); not laid over the card, which covered the name. */ badge?: string }) {
+export async function BoxerCard({ b, rank, badge, featured }: { b: BoxerFull; rank?: number; /** a larger card for a podium place: bigger portrait, name and rank */ featured?: boolean; /** A chip beside the name (the name gives way to it); not laid over the card, which covered the name. */ badge?: string }) {
   const t = await getT();
   return (
-    <Link href={`/boxers/${b.slug}`} className="card card-hover group flex gap-3 p-3">
-      <Headshot boxer={b} size={64} />
+    <Link href={`/boxers/${b.slug}`} className={`card card-hover group flex ${featured ? "gap-4 p-4" : "gap-3 p-3"}`}>
+      <Headshot boxer={b} size={featured ? 88 : 64} />
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 break-words font-display text-xl font-bold leading-tight">{rank ? <span className="me-1.5 text-gold">{rank}</span> : null}{t.name(b.name)}</div>
+          <div className={`min-w-0 break-words font-display font-bold leading-tight ${featured ? "text-2xl" : "text-xl"}`}>{rank ? <span className={`me-1.5 text-gold ${featured ? "text-3xl" : ""}`}>{rank}</span> : null}{t.name(b.name)}</div>
           {badge && <span className="chip shrink-0 whitespace-nowrap !border-gold/40 !text-gold">{badge}</span>}
         </div>
         <div className="text-xs text-muted">{flag(b.country)} {countryName(b.country, t.locale)} · {divisionLabel(b.weightClass, b.sex, t)}</div>

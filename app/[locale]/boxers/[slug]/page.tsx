@@ -114,7 +114,8 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const rehydration = avgRehydration(w, b.id);
   const misses = missCount(w, b.id);
   const monthsWithTrainer = monthsWithCurrentTrainer(w, b.id);
-  const ROLE_COLOR: Record<string, string> = { head_trainer: "#d9b25f", gym: "#4a8cff", manager: "#7ee0b4", promoter: "#c58bff", strength_coach: "#8d8d99" };
+  // the head trainer is the one honour (gold); every other role is muted and told apart by its lane label (DESIGN.md: blue is the second fighter, archetype colours are for the style map)
+  const ROLE_COLOR: Record<string, string> = { head_trainer: "#d9b25f", gym: "#8d8d99", manager: "#8d8d99", promoter: "#8d8d99", strength_coach: "#8d8d99" };
   const timelineRows: TimelineRow[] = (["head_trainer", "gym", "manager", "promoter", "strength_coach"] as const)
     .filter((r) => team.get(r)?.length)
     .map((r) => ({
@@ -194,7 +195,7 @@ const HONOURS_SHOWN = 8;
               </Link>
             ))}
             {!b.active && <span className="chip">{t("Retired")}</span>}
-            <span className="ms-auto flex gap-2"><ShareButton title={t.name(b.name)} /><PrintButton /><WatchButton slug={b.slug} /></span>
+            <span className="flex w-full gap-2 sm:ms-auto sm:w-auto"><ShareButton title={t.name(b.name)} /><PrintButton /><WatchButton slug={b.slug} /></span>
           </div>
           <h1 className="mt-3 font-display text-6xl font-extrabold uppercase leading-[.95] sm:text-7xl">{t.name(b.name)}</h1>
           {b.nickname && <div className="mt-1 font-serif text-3xl italic text-gold">“{t.name(b.nickname)}”</div>}

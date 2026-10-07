@@ -45,7 +45,7 @@ Every choice below serves that. The risk is turning drama into noise, so drama i
 
 ## Layout
 - **Approach:** hybrid. The home page and event pages are composition-led (a poster beside the headline). Rankings, fighters and analytics are grid-disciplined.
-- **Grid:** 1 column phone, 2 at 640, 3 at 1024, 4 at 1280 for card lists. Detail pages use a 1.4fr / 1fr split.
+- **Grid:** 1 column phone, 2 at 640, 3 at 1024, 4 at 1536 for card lists (with the rail open, 1280 leaves about 1000 px of content: four fighter cards there are too tight). Detail pages use a 1.4fr / 1fr split.
 - **Max content width:** 1280px (`max-w-7xl`), 20px side padding.
 - **Border radius:** hierarchical. Chips full, cards 18px, inner panels 12–16px, bars full. Do not use one uniform radius.
 - **Anti-patterns to avoid:** purple gradients, three-column icon feature grids, centred-everything pages, gradient buttons.
@@ -63,7 +63,7 @@ Every choice below serves that. The risk is turning drama into noise, so drama i
 - **Between pages (2026-10-06):** `app/[locale]/template.tsx` wraps each page in React's `<ViewTransition>`: the old page leaves in 120 ms, the new one fades in over 200 ms with an 8px rise; the rail and top bar stay put. A thin gold bar (`components/NavProgress.tsx`) runs along the top while a page loads. Dialogs and the phone drawer slide or pop in (160-220 ms); buttons sink 3 % when pressed. On a desktop with a real pointer, a link to a fighter's page shows a small card (record, rating, rank, last fight) after the pointer rests on it for 0.45 s or keyboard focus does (`components/HoverPreview.tsx`; Esc, scrolling or leaving closes it; never on touch). A fighter's page, which is long, has a strip of jump links under the top bar (`components/JumpNav.tsx`; plain anchors, no script, so the current section is deliberately not highlighted). Every one of these is off under reduced motion (tests/motion.test.ts checks that each animated rule is listed there).
 
 ## Imagery
-- **Headshots:** 4:5 portrait, `object-position: top`. Real photos only with a visible licence credit. Otherwise: the demo league's (fictional) fighters get the generated illustrated portrait; a real-data site gets a plain head-and-shoulders silhouette on the division's colour, which depends on nothing about the person (decided 2026-10-06).
+- **Headshots:** 4:5 portrait, `object-position: top`. Real photos only with a visible licence credit. Otherwise: the demo league's (fictional) fighters get the generated illustrated portrait; a real-data site gets a plain head-and-shoulders silhouette on one neutral `--panel-2` background (no division tint, so it never echoes the corner colours), which depends on nothing about the person (decided 2026-10-06).
 - **Posters:** 5:7 portrait. Red fighter on the left, blue on the right, divided by a diagonal. A feed `posterUrl` always wins over the generated one.
 - **Generated art is illustration, not photography,** and must never look like a real person's likeness. Demo fighters are fictional, which is why only they are drawn with faces.
 
@@ -76,6 +76,7 @@ Every choice below serves that. The risk is turning drama into noise, so drama i
 ## Decisions Log
 | Date | Decision | Rationale |
 |---|---|---|
+| 2026-10-06 | Design review decisions (docs/design-review.md, O1-O10): blue and archetype colours are never reused for roles or fight methods (head trainer gold, other roles muted; KO family red, decisions gold, the rest grey); card titles and fighter names in the display face are uppercase; sortable headers carry a muted ▲▼; a chip that is a link or button is 44 px tall on touch; the greys and gold tints in charts are tokens (`--draw`, `--chart-grey`, `--chart-empty`, `--gold-2..4`) | The owner approved the review's recommended option for each; the card-list grid line and the silhouette background above were changed to match |
 | 2026-10-06 | Weight classes are listed heaviest first everywhere they are shown as a list (`DIVISIONS_HEAVIEST_FIRST`) | The owner's call; the canonical order in `DIVISIONS` stays lightest to heaviest because the logic indexes it |
 | 2026-10-03 | Dark editorial direction, red/blue corner semantics | Boxing's own visual language (corners, ring lights) doubles as a data encoding |
 | 2026-10-03 | Replaced Inter with Geist for body text | Inter is the converged default; Geist is as legible, and has tabular numerals |

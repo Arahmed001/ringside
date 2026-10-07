@@ -21,6 +21,7 @@ import { exampleQuestions } from "./ask/examples";
 import { planByRules } from "./ask/rules";
 import { toolByName } from "./ask/tools";
 import { searchFighters } from "./fighter-search";
+import { applyFilters } from "./ai";
 import { globalSearch } from "./search";
 import { countryList, countryView } from "./countries";
 import { similarTo } from "./style";
@@ -38,12 +39,16 @@ export const msUntilNextDay = (now: number, slackMs = 5_000): number => DAY - (n
  */
 export const WARM_STEPS: [string, (w: World) => unknown][] = [
   // the all-time lists include the greatest fights ever, which scores every year of fights (the fighter pages need those too)
-  ["all-time lists", (w) => { for (const l of LISTS) { recordList(w, l.id, {}, 5); if (l.subject !== "bout") recordList(w, l.id, {}, 10); } }],
+  // (steps are kept short, one list or one language each, because the server answers requests between steps: see warmAggregates)
+  ...LISTS.map((l): [string, (w: World) => unknown] => [`all-time list ${l.id}`, (w) => { recordList(w, l.id, {}, 5); if (l.subject !== "bout") recordList(w, l.id, {}, 10); }]),
   ["lineages", (w) => belts(w)],
   ["division rankings", (w) => { for (const sex of ["male", "female"] as const) for (const d of DIVISIONS) rankedBoxers(w, d.name, sex); }],
-  ["upset watch record", (w) => { upsetRecord(w); signalLift(w); }],
+  ["upset watch record", (w) => upsetRecord(w)],
+  ["upset watch signals", (w) => signalLift(w)],
   ["track record", (w) => trackRecord(w)],
-  ["trainer impact", (w) => { trainerImpact(w); moves(w); switchStudy(w); underdogLifters(w); recentTrainerChanges(w, 9); }],
+  ["trainer impact", (w) => trainerImpact(w)],
+  ["trainer moves", (w) => { moves(w); switchStudy(w); }],
+  ["trainer lifters", (w) => { underdogLifters(w); recentTrainerChanges(w, 9); }],
   ["organisations and corners", (w) => { orgsRanking(w); trainerLeaderboard(w); }],
   ["analytics", (w) => { A.overview(w); A.byWeightClass(w); A.methodSplit(w); A.boutsPerYear(w); A.finishHeat(w); A.biggestUpsets(w, 6); A.biggestUpsets(w, 200); A.countryLeaders(w); A.stanceEdge(w); A.reachEdge(w); A.longestStreaks(w, 6); A.finishRoundHistogram(w); A.biggestUpsets(w, 1, `${currentYear() - 1}-01-01`); }],
   ["money", (w) => {
@@ -55,29 +60,32 @@ export const WARM_STEPS: [string, (w: World) => unknown][] = [
   ["weigh-ins", (w) => { divisionWeights(w); fightNightEdge(w); missedWeights(w, 12); }],
   ["on this day", (w) => { const k = dayOf(w.today); if (k) onThisDay(w, k); }],
   // the live answer under the home page's question box, in each language: the plan is the rule-based one (no model call), and the name table is the one the page is given, because the fighter-name index is kept per table
-  ["home answer", async (w) => {
-    for (const locale of LOCALES) {
-      const t = await getTFor(locale), names = await getNames(locale), ctx = { w, t, names };
-      for (const c of planByRules(exampleQuestions(w, t)[0], w, names)) toolByName(c.tool)?.run(ctx, c.args);
-    }
-  }],
+  ...LOCALES.map((locale): [string, (w: World) => unknown] => [`home answer ${locale}`, async (w) => {
+    const t = await getTFor(locale), names = await getNames(locale), ctx = { w, t, names };
+    for (const c of planByRules(exampleQuestions(w, t)[0], w, names)) toolByName(c.tool)?.run(ctx, c.args);
+  }]),
   // the fighter-search index (every name, nickname and alias, normalised), one per language: the first search typed on the site would otherwise build it (140 ms at 19,000 fighters)
-  ["fighter search", async (w) => { for (const locale of LOCALES) searchFighters(w, "zz", { names: await getNames(locale), forgiving: false }); }],
+  // and the normalised text the fighters list's search box matches each fighter against (160 to 210 ms per search at 35,000 fighters when it was worked out on every request)
+  ...LOCALES.map((locale): [string, (w: World) => unknown] => [`fighter search ${locale}`, async (w) => { const names = await getNames(locale); searchFighters(w, "zz", { names, forgiving: false }); applyFilters(w.boxers, { text: "zz" }, w, names); }]),
   ["data coverage", () => coverage()],
   // the first ⌘K search typed on the site built the index of events, people and organisations (270 ms at 160,000 bouts), and the first country page the country tables (290 ms)
-  ["global search", async (w) => { for (const locale of LOCALES) globalSearch(w, "zz", await getTFor(locale), await getNames(locale)); }],
+  ...LOCALES.map((locale): [string, (w: World) => unknown] => [`global search ${locale}`, async (w) => { globalSearch(w, "zz", await getTFor(locale), await getNames(locale)); }]),
   ["countries", (w) => { const c = countryList(w)[0]; if (c) countryView(w, c.slug); }],
   // what every fighter page shares: the style vectors of the whole league and the set of booked fighters (docs/capacity.md); each is built once per world, by whoever asks first
   ["fighter page shared", (w) => { const b = w.boxers.find((x) => x.bouts >= 5 && x.active) ?? w.boxers.find((x) => x.bouts >= 5); if (b) { similarTo(b, w, 4); suggestOpponents(w, b, 3); } }],
 ];
 
 /** Runs every step, returning how long each took and what went wrong with any that threw. */
-export async function warmAggregates(w: World): Promise<{ step: string; ms: number; error?: string }[]> {
+export async function warmAggregates(w: World, opts: { gentle?: boolean } = {}): Promise<{ step: string; ms: number; error?: string }[]> {
   const out: { step: string; ms: number; error?: string }[] = [];
   for (const [step, run] of WARM_STEPS) {
+    // between steps the requests that are waiting are answered (a step is 0.1 to 1 s of the one thread). At start-up that is a turn of the event loop; when the site is
+    // serving and this is a rebuild's warm-up, the thread is given back for as long as the step took (at most a second), so visitors get half of it, not a turn in a dozen.
+    await new Promise<void>((r) => setImmediate(r));
     const t0 = performance.now();
     try { await run(w); out.push({ step, ms: Math.round(performance.now() - t0) }); }
     catch (e) { out.push({ step, ms: Math.round(performance.now() - t0), error: e instanceof Error ? e.message : String(e) }); }
+    if (opts.gentle) await new Promise<void>((r) => setTimeout(r, Math.min(1000, Math.round(performance.now() - t0))));
   }
   return out;
 }

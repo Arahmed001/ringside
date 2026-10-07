@@ -59,6 +59,27 @@ export async function TeamTimeline({ rows, today }: { rows: TimelineRow[]; today
           ))}
         </div>
       </div>
+      {/* Under 768 px the bars are too short for a name, so the same stints are listed in words (the bars stay as the overview) */}
+      <div className="space-y-4 pt-3 md:hidden">
+        {rows.map((row) => (
+          <section key={row.label} aria-label={row.label}>
+            <div className="mb-1 text-xs uppercase tracking-widest text-muted">{row.label}</div>
+            <ul className="divide-y divide-line rounded-xl bg-panel2/60">
+              {row.segments.map((s, i) => (
+                <li key={i} className="flex items-baseline justify-between gap-3 px-3 py-2 text-sm" style={{ borderInlineStart: `3px solid ${row.color}` }}>
+                  <span className="min-w-0">
+                    {s.href ? <Link href={s.href} className="break-words font-semibold underline-offset-2 hover:underline">{s.label}</Link> : <span className="break-words font-semibold">{s.label}</span>}
+                    <span className="tabular mt-0.5 block text-xs text-muted">
+                      <bdi dir="ltr">{s.from ?? "?"}</bdi> → {s.to ? <bdi dir="ltr">{s.to}</bdi> : t("present")}
+                    </span>
+                  </span>
+                  {s.sub && <bdi dir="ltr" className="tabular shrink-0 text-xs text-muted">{s.sub}</bdi>}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
     </div>
   );
 }
