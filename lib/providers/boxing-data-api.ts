@@ -129,14 +129,24 @@ const UNSAFE_TEXT = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u200b\
 /** The longest name, nickname, title or place the site will store: no real one comes near it, and a feed that sends a megabyte is cut, not stored. */
 export const MAX_TEXT = 200;
 /**
+ * Two ways a feed's text arrives damaged, both found in the first real league: a name with its unicode escapes still in it ("Rodr\u00edguez", and the stray "Sol\[u00eds]"),
+ * and a name that runs on into the JSON of the record it was cut out of (`Kevin P", "nationality": "Mexico", ...`). The first is decoded, the second is cut where the next key begins.
+ */
+function unescapeText(s: string): string {
+  return s.replace(/\\\[u([0-9a-fA-F]{4})([^\]]*)\]/g, (_, hex, rest) => String.fromCharCode(parseInt(hex, 16)) + rest)
+    .replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/"\s*,\s*"[A-Za-z_]+"\s*:[\s\S]*$/, "");
+}
+/**
  * Text from the feed as it may be stored and shown: unsafe characters removed, line breaks and runs of spaces made one space, cut at `max` characters. Anything that is not text
  * (a number, an object, null) is null: it is never turned into a name. A string that had to be changed is counted in the notes.
  */
 export function cleanText(raw: unknown, notes: Notes, max = MAX_TEXT): string | null {
   if (typeof raw !== "string") return null;
-  const t = raw.slice(0, max * 4).replace(/[\t\n\r\u2028\u2029]/g, " ").replace(UNSAFE_TEXT, "").replace(/\s+/g, " ").trim();
+  const unescaped = unescapeText(raw.slice(0, max * 4));
+  const t = unescaped.replace(/[\t\n\r\u2028\u2029]/g, " ").replace(UNSAFE_TEXT, "").replace(/\s+/g, " ").trim();
   const out = t.length > max ? Array.from(t).slice(0, max).join("").trim() : t;
-  if (raw.length > max || raw.search(UNSAFE_TEXT) >= 0) notes.textCleaned++;
+  if (raw.length > max || raw.search(UNSAFE_TEXT) >= 0 || unescaped !== raw.slice(0, max * 4)) notes.textCleaned++;
   return out || null;
 }
 
