@@ -46,7 +46,7 @@ export default async function Tonight() {
             <section className="card p-5">
               <div className="eyebrow mb-3">{t("Last card in review")} · {data.review.event.name}</div>
               <p className="font-display text-2xl font-bold leading-snug">{data.review.lines[0]}</p>
-              <ul className="mt-3 list-disc space-y-1.5 ps-5 text-sm text-ink/90">{data.review.lines.slice(1).map((l, i) => <li key={i}>{l}</li>)}</ul>
+              <ul className="mt-4 divide-y divide-line/60 border-t border-line/60 text-sm text-ink/90">{data.review.lines.slice(1).map((l, i) => <li key={i} className="flex gap-3 py-2.5"><span aria-hidden="true" className="mt-[.45rem] size-1.5 shrink-0 rounded-full bg-gold/70" />{l}</li>)}</ul>
               <Link href={`/events/${data.review.event.id}`} className="mt-3 inline-block py-1 text-sm text-muted hover:text-gold">{t("Full card and results")} <span className="inline-block rtl:rotate-180">→</span></Link>
             </section>
           )}
