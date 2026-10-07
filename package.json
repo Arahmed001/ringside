@@ -23,6 +23,7 @@
     "venues:resolve": "tsx scripts/resolve-venues.ts",
     "model:fit": "tsx scripts/fit-model.ts",
     "data:check": "tsx scripts/check-feed.ts",
+    "data:from-csv": "tsx scripts/csv-to-feed.ts",
     "smoke": "tsx scripts/smoke.ts",
     "sweep": "tsx scripts/sweep-database.ts",
     "first-look": "tsx scripts/first-look.ts",
