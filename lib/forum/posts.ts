@@ -1,9 +1,11 @@
-import crypto from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import { accountsDb, audit } from "../accounts/store";
 import { limits } from "../accounts/guard";
 import type { User } from "../accounts/users";
-import { AUTO_HIDE_MIN_AGE_MS, AUTO_HIDE_REPORTS, checkText, cleanText, EDIT_WINDOW_MS, NEW_ACCOUNT_AGE_MS, NEW_ACCOUNT_DAILY, NEW_ACCOUNT_WAIT_MS, normalizedWords, NOTE_MAX, PAGE_SIZE, REASON_MAX, REPORT_REASONS, THREADS_PAGE, TITLE_MAX, TITLE_MIN, WAVE_MIN_CHARS, WAVE_OTHERS, type PostProblem } from "./rules";
+import { fingerprint, waveFingerprint } from "./fp";
+import { AUTO_HIDE_MIN_AGE_MS, autoHideReports, checkText, cleanText, EDIT_WINDOW_MS, NEW_ACCOUNT_AGE_MS, NEW_ACCOUNT_DAILY, NEW_ACCOUNT_WAIT_MS, NOTE_MAX, PAGE_SIZE, REASON_MAX, REPORT_REASONS, REPORTER_MIN_POSTS, THREADS_PAGE, TITLE_MAX, TITLE_MIN, WAVE_MIN_CHARS, WAVE_OTHERS, WAVE_WINDOW_MS, WITHDRAWN_KEEP_MS, type PostProblem } from "./rules";
+
+export { fingerprint };
 
 /**
  * The forum (round 125): discussion under each fighter and each fight (one thread per subject, made when the first post is written) and a general board where
@@ -12,13 +14,10 @@ import { AUTO_HIDE_MIN_AGE_MS, AUTO_HIDE_REPORTS, checkText, cleanText, EDIT_WIN
  * the place stays, the words do not) or `deleted` (by its author; the words are wiped).
  */
 export type Kind = "boxer" | "bout" | "general";
-export type ForumError = PostProblem | "unauthorized" | "forbidden" | "not_found" | "locked" | "too_new" | "rate_limited" | "duplicate" | "title_invalid" | "no_such_subject" | "edit_window_over" | "own_post" | "bad_reason" | "already_reported";
+export type ForumError = PostProblem | "unauthorized" | "forbidden" | "not_found" | "locked" | "too_new" | "rate_limited" | "duplicate" | "title_invalid" | "no_such_subject" | "edit_window_over" | "own_post" | "bad_reason" | "already_reported" | "copied" | "already_appealed" | "not_appealable";
 
 export interface ThreadRow { id: number; kind: Kind; subject: string | null; title: string | null; author: string | null; createdAt: string; lastPostAt: string; postCount: number; locked: boolean }
-export interface PostView { id: number; author: string | null; body: string | null; status: "visible" | "hidden" | "deleted"; createdAt: string; editedAt: string | null; mine: boolean; reports?: number }
-
-/** A hash of the words (see normalizedWords): enough to notice the same post twice, not enough to read it back. */
-export const fingerprint = (text: string): string => crypto.createHash("sha256").update(normalizedWords(text)).digest("hex").slice(0, 32);
+export interface PostView { id: number; author: string | null; body: string | null; status: "visible" | "hidden" | "deleted"; createdAt: string; editedAt: string | null; mine: boolean; reports?: number; appeal?: "available" | "open" | "decided" }
 
 type Fail = { ok: false; error: ForumError };
 const no = (error: ForumError): Fail => ({ ok: false, error });
@@ -72,10 +71,13 @@ export function listPosts(threadId: number, viewer: User | null, after = 0, acc:
     `SELECT p.*, u.username AS author, (SELECT COUNT(*) FROM forum_reports r WHERE r.post_id = p.id AND r.status = 'open') AS open_reports
      FROM forum_posts p LEFT JOIN users u ON u.id = p.user_id WHERE p.thread_id = ? AND p.id > ? ORDER BY p.id LIMIT ?`).all(threadId, Math.max(0, after | 0), PAGE_SIZE + 1) as Record<string, unknown>[];
   const posts = rows.slice(0, PAGE_SIZE).map((r): PostView => {
-    const status = r.status as PostView["status"], shown = status === "visible";
+    const status = r.status as PostView["status"], shown = status === "visible", mine = !!viewer && r.user_id === viewer.id;
+    // the author of a post hidden by reports (or whose appeal is on record) is told where it stands: whether they can ask for a review, whether one is open, whether it was decided. Never who reported.
+    const autoHidden = status === "hidden" && r.hidden_by === null && typeof r.hidden_reason === "string" && r.hidden_reason.startsWith("auto:");
+    const appeal: PostView["appeal"] | undefined = !mine || status === "deleted" || !(autoHidden || r.appeal_at) ? undefined : !r.appeal_at ? "available" : r.appeal_result ? "decided" : "open";
     return {
       id: r.id as number, author: shown ? ((r.author as string | null) ?? null) : null, body: shown ? (r.body as string) : null, status, createdAt: r.created_at as string,
-      editedAt: (r.edited_at as string | null) ?? null, mine: !!viewer && r.user_id === viewer.id, ...(canSee ? { reports: r.open_reports as number } : {}),
+      editedAt: (r.edited_at as string | null) ?? null, mine, ...(canSee ? { reports: r.open_reports as number } : {}), ...(appeal && status === "hidden" ? { appeal } : {}),
     };
   });
   return { posts, more: rows.length > PAGE_SIZE };
@@ -102,18 +104,39 @@ function allowance(user: User, ip: string): boolean {
   return true;
 }
 
-function insertPost(acc: DatabaseSync, threadId: number, user: User, text: string, at: string): number {
-  const id = (acc.prepare("INSERT INTO forum_posts (thread_id, user_id, body, fingerprint, created_at) VALUES (?,?,?,?,?) RETURNING id").get(threadId, user.id, text, fingerprint(text), at) as { id: number }).id;
+function insertPost(acc: DatabaseSync, threadId: number, user: User, text: string, at: string, ip?: string): number {
+  const id = (acc.prepare("INSERT INTO forum_posts (thread_id, user_id, body, fingerprint, wave_fp, created_at) VALUES (?,?,?,?,?,?) RETURNING id").get(threadId, user.id, text, fingerprint(text), waveFingerprint(text, WAVE_MIN_CHARS), at) as { id: number }).id;
+  rememberAuthorArea(id, ip);
   acc.prepare("UPDATE forum_threads SET post_count = post_count + 1, last_post_at = ? WHERE id = ?").run(at, threadId);
   return id;
 }
-/** The same words twice by one person in a day, or the same long post from two other people already (a wave of copies from many accounts). */
-function isDuplicate(acc: DatabaseSync, user: User, text: string, now: number): boolean {
+/** In memory, once per person and post per hour: the activity log gets one line for a refused copy, not one for every retry. */
+const gl = globalThis as unknown as { __forumCopyLogged?: Map<string, number> };
+function logCopy(acc: DatabaseSync, user: User, wave: string, now: number) {
+  const seen = (gl.__forumCopyLogged ??= new Map()), key = `${user.id}:${wave}`;
+  if (now - (seen.get(key) ?? -Infinity) < 60 * 60_000) return;
+  seen.set(key, now);
+  while (seen.size > 2000) seen.delete(seen.keys().next().value as string);
+  audit(acc, user.username, "forum_copy_refused", `user#${user.id}`, `same text as a post by another account in the last day (hash ${wave.slice(0, 8)}); words not logged`);
+}
+
+/**
+ * Why this text is refused as a repeat, or null: the same words twice by one person in a day ("duplicate"), or the same post (letters only: case, spacing, digits and punctuation
+ * do not matter) already written by ANOTHER account in the last day ("copied": spam waves from many accounts). Short posts are exempt from the second. One indexed lookup each.
+ * A refused post spends no allowance (callers check this before `allowance`) and the second kind is logged.
+ */
+function repeatOf(acc: DatabaseSync, user: User, text: string, now: number): "duplicate" | "copied" | null {
   const fp = fingerprint(text), since = new Date(now - 24 * 60 * 60_000).toISOString();
-  if (acc.prepare("SELECT 1 x FROM forum_posts WHERE user_id = ? AND fingerprint = ? AND created_at > ? AND status <> 'deleted'").get(user.id, fp, since)) return true;
-  if (normalizedWords(text).length < WAVE_MIN_CHARS) return false;
-  const others = (acc.prepare("SELECT COUNT(DISTINCT user_id) c FROM forum_posts WHERE fingerprint = ? AND created_at > ? AND user_id <> ? AND status <> 'deleted'").get(fp, since, user.id) as { c: number }).c;
-  return others >= WAVE_OTHERS;
+  if (acc.prepare("SELECT 1 x FROM forum_posts WHERE user_id = ? AND fingerprint = ? AND created_at > ? AND status <> 'deleted'").get(user.id, fp, since)) return "duplicate";
+  return copiedFromOthers(acc, user, text, now) ? "copied" : null;
+}
+function copiedFromOthers(acc: DatabaseSync, user: User, text: string, now: number): boolean {
+  const wave = waveFingerprint(text, WAVE_MIN_CHARS);
+  if (!wave) return false;
+  const others = (acc.prepare("SELECT COUNT(DISTINCT user_id) c FROM forum_posts WHERE wave_fp = ? AND created_at > ? AND user_id <> ? AND status <> 'deleted'").get(wave, new Date(now - WAVE_WINDOW_MS).toISOString(), user.id) as { c: number }).c;
+  if (others < WAVE_OTHERS) return false;
+  logCopy(acc, user, wave, now);
+  return true;
 }
 
 /** Writes under a fighter or a fight (made on the first post), or into an existing thread by id. */
@@ -134,12 +157,12 @@ export function addPost(user: User, target: { kind: "boxer" | "bout"; subject: s
     if (existing?.locked) return no("locked");
     threadId = existing?.id ?? null;
   }
-  if (isDuplicate(acc, user, c.text, now)) return no("duplicate");
+  const again = repeatOf(acc, user, c.text, now); if (again) return no(again);
   if (!allowance(user, ip)) return no("rate_limited");
   const at = new Date(now).toISOString();
   // the thread under a subject is made only now, by a post that is going to be kept: a refused post leaves nothing behind
   if (threadId === null) threadId = (acc.prepare("INSERT INTO forum_threads (kind, subject_ext, user_id, created_at, last_post_at) VALUES (?,?,?,?,?) RETURNING id").get((target as { kind: string }).kind, ext, user.id, at, at) as { id: number }).id;
-  const id = insertPost(acc, threadId, user, c.text, at);
+  const id = insertPost(acc, threadId, user, c.text, at, ip);
   return { ok: true, id, threadId };
 }
 
@@ -149,13 +172,13 @@ export function startThread(user: User, title: unknown, body: unknown, ip: strin
   if (t.problem || t.text.includes("\n")) return no("title_invalid");
   const c = checkText(body); if (c.problem) return no(c.problem);
   const bar = mayPost(user, acc, now); if (bar) return no(bar);
-  if (isDuplicate(acc, user, c.text, now)) return no("duplicate");
+  const again = repeatOf(acc, user, c.text, now); if (again) return no(again);
   const l = limits();
   if (l.forumThread.left(`u${user.id}`) < 1 || l.forumPost.left(`u${user.id}`) < 1 || l.forumPostIp.left(ip) < 1) return no("rate_limited");
   l.forumThread.take(`u${user.id}`); l.forumPost.take(`u${user.id}`); l.forumPostIp.take(ip);
   const at = new Date(now).toISOString();
   const threadId = (acc.prepare("INSERT INTO forum_threads (kind, title, user_id, created_at, last_post_at) VALUES ('general',?,?,?,?) RETURNING id").get(t.text, user.id, at, at) as { id: number }).id;
-  return { ok: true, threadId, postId: insertPost(acc, threadId, user, c.text, at) };
+  return { ok: true, threadId, postId: insertPost(acc, threadId, user, c.text, at, ip) };
 }
 
 const postRow = (acc: DatabaseSync, id: number) => acc.prepare("SELECT * FROM forum_posts WHERE id = ?").get(id) as Record<string, unknown> | undefined;
@@ -167,21 +190,80 @@ export function editPost(user: User, id: number, body: unknown, acc: DatabaseSyn
   if (p.user_id !== user.id || p.status !== "visible") return no("forbidden");
   if (now - Date.parse(p.created_at as string) > EDIT_WINDOW_MS) return no("edit_window_over");
   const c = checkText(body); if (c.problem) return no(c.problem);
+  if (copiedFromOthers(acc, user, c.text, now)) return no("copied"); // a short post cannot be edited into a pasted wave
   if (!limits().forumEdit.take(`u${user.id}`)) return no("rate_limited"); // spent only by an edit that is otherwise acceptable
-  acc.prepare("UPDATE forum_posts SET body = ?, fingerprint = ?, edited_at = ? WHERE id = ?").run(c.text, fingerprint(c.text), new Date(now).toISOString(), id);
+  acc.prepare("UPDATE forum_posts SET body = ?, fingerprint = ?, wave_fp = ?, edited_at = ? WHERE id = ?").run(c.text, fingerprint(c.text), waveFingerprint(c.text, WAVE_MIN_CHARS), new Date(now).toISOString(), id);
   return { ok: true };
 }
 
-/** The author withdraws their own post: the words are wiped and the place stays, so replies still make sense. */
-export function deleteOwnPost(user: User, id: number, acc: DatabaseSync = accountsDb()): { ok: true } | Fail {
+/**
+ * The author withdraws their own post: the words are wiped from the post and the place stays, so replies still make sense. If the post was hidden, or had open reports, the
+ * words are first copied to `withdrawn_body`, which only the editors' views read (never a public answer, search, sitemap or cache), for `WITHDRAWN_KEEP_MS` and until the
+ * account is deleted; and the withdrawal is written to the activity log (without the words), so an author cannot wipe what an editor wanted to read.
+ */
+export function deleteOwnPost(user: User, id: number, acc: DatabaseSync = accountsDb(), now = Date.now()): { ok: true } | Fail {
   const p = postRow(acc, id);
   if (!p || p.user_id !== user.id) return no("not_found");
-  acc.prepare("UPDATE forum_posts SET body = '', fingerprint = '', status = 'deleted' WHERE id = ?").run(id);
+  if (p.status === "deleted") return { ok: true };
+  const reported = p.status === "visible" && !!acc.prepare("SELECT 1 x FROM forum_reports WHERE post_id = ? AND status = 'open' LIMIT 1").get(id);
+  const keep = (p.status === "hidden" || reported) && typeof p.body === "string" && p.body !== "";
+  acc.prepare("UPDATE forum_posts SET body = '', fingerprint = '', wave_fp = '', status = 'deleted', withdrawn_body = ?, withdrawn_at = ? WHERE id = ?").run(keep ? (p.body as string) : null, keep ? new Date(now).toISOString() : null, id);
+  if (keep) audit(acc, user.username, "forum_withdraw", `post#${id}`, `author withdrew a post that was ${p.status === "hidden" ? "hidden" : "reported"}; words kept for editors for ${Math.round(WITHDRAWN_KEEP_MS / 86_400_000)} days, not logged here`);
+  purgeWithdrawn(acc, now);
   return { ok: true };
 }
+/** Wipes the kept words of withdrawn posts once their time is up. Cheap (a partial index), run whenever editors look and whenever someone withdraws. */
+export function purgeWithdrawn(acc: DatabaseSync, now = Date.now()): void {
+  acc.prepare("UPDATE forum_posts SET withdrawn_body = NULL WHERE withdrawn_body IS NOT NULL AND withdrawn_at < ?").run(new Date(now - WITHDRAWN_KEEP_MS).toISOString());
+}
 
-/** Reporting a post (not your own; once per post per person). Enough different people hide it until an editor looks. */
-export function reportPost(user: User, id: number, reason: unknown, note: unknown, acc: DatabaseSync = accountsDb(), now = Date.now()): { ok: true; hidden: boolean } | Fail {
+/**
+ * Where a request came from, coarsely: an IPv4 /24 or an IPv6 /64, or null when the address is not one (no proxy header). Only ever kept in memory (the privacy page says the
+ * site does not write addresses down), so after a restart earlier reports count as one person each, which is the old behaviour, never a stricter one.
+ */
+export function addressArea(ip: string | undefined): string | null {
+  if (!ip) return null;
+  const v4 = /(?:^|:)(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.\d{1,3}$/.exec(ip);
+  if (v4) return `4:${v4[1]}.${v4[2]}.${v4[3]}`;
+  if (!/^[0-9a-f:]+$/i.test(ip) || !ip.includes(":")) return null;
+  const [head, tail, ...more] = ip.split("::");
+  if (more.length) return null;
+  const h = head ? head.split(":") : [], tl = tail === undefined ? [] : tail ? tail.split(":") : [];
+  const groups = tail === undefined ? h : [...h, ...Array<string>(Math.max(0, 8 - h.length - tl.length)).fill("0"), ...tl];
+  return groups.length === 8 ? `6:${groups.slice(0, 4).map((x) => x.toLowerCase().replace(/^0+(?=.)/, "")).join(":")}` : null;
+}
+interface Areas { authors: Map<number, string>; reporters: Map<number, Map<number, string>> }
+const ga = globalThis as unknown as { __forumAreas?: Areas };
+const areas = (): Areas => (ga.__forumAreas ??= { authors: new Map(), reporters: new Map() });
+const trim = <K, V>(m: Map<K, V>, max: number) => { while (m.size > max) m.delete(m.keys().next().value as K); };
+function rememberAuthorArea(postId: number, ip: string | undefined) { const a = addressArea(ip); if (a) { areas().authors.set(postId, a); trim(areas().authors, 5000); } }
+function rememberReporterArea(postId: number, userId: number, ip: string | undefined) {
+  const a = addressArea(ip), r = areas().reporters;
+  if (!a) return;
+  r.set(postId, (r.get(postId) ?? new Map()).set(userId, a)); trim(r, 2000);
+}
+
+/**
+ * How many different people's reports count toward the automatic hide for this post. A reporter counts only when their account is a week old, not disabled, and has a few
+ * posts of its own still standing; reporters from one network area count once (as one person), and so do none who share the post author's area; each person counts once.
+ */
+export function countedReporters(acc: DatabaseSync, postId: number, now: number): number {
+  const rows = acc.prepare(
+    `SELECT DISTINCT r.user_id AS id FROM forum_reports r JOIN users u ON u.id = r.user_id
+     WHERE r.post_id = ? AND r.status = 'open' AND u.disabled = 0 AND u.created_at <= ?
+       AND (SELECT COUNT(*) FROM forum_posts q WHERE q.user_id = u.id AND q.status = 'visible') >= ?`).all(postId, new Date(now - AUTO_HIDE_MIN_AGE_MS).toISOString(), REPORTER_MIN_POSTS) as { id: number }[];
+  const ar = areas(), known = ar.reporters.get(postId), authorArea = ar.authors.get(postId);
+  const people = new Set<string>();
+  for (const r of rows) {
+    const area = known?.get(r.id);
+    if (area && area === authorArea) continue; // from the author's own network area: not another person's opinion
+    people.add(area ?? `u${r.id}`);
+  }
+  return people.size;
+}
+
+/** Reporting a post (not your own; once per post per person). Enough different, established people hide it until an editor looks; its author can then ask for a review. */
+export function reportPost(user: User, id: number, reason: unknown, note: unknown, acc: DatabaseSync = accountsDb(), now = Date.now(), ip?: string): { ok: true; hidden: boolean } | Fail {
   if (typeof reason !== "string" || !(REPORT_REASONS as readonly string[]).includes(reason)) return no("bad_reason");
   const p = postRow(acc, id);
   if (!p || p.status === "deleted") return no("not_found");
@@ -190,10 +272,11 @@ export function reportPost(user: User, id: number, reason: unknown, note: unknow
   if (!limits().forumReport.take(`u${user.id}`)) return no("rate_limited");
   const n = typeof note === "string" ? [...cleanText(note)].slice(0, NOTE_MAX).join("") : "";
   acc.prepare("INSERT INTO forum_reports (post_id, user_id, reason, note, created_at) VALUES (?,?,?,?,?)").run(id, user.id, reason, n || null, new Date(now).toISOString());
-  // only reporters whose account is a day old count toward the automatic hide: a handful of accounts made a minute ago must not be able to silence anyone (their reports are kept for an editor)
-  const open = (acc.prepare("SELECT COUNT(DISTINCT r.user_id) c FROM forum_reports r JOIN users u ON u.id = r.user_id WHERE r.post_id = ? AND r.status = 'open' AND u.disabled = 0 AND u.created_at <= ?").get(id, new Date(now - AUTO_HIDE_MIN_AGE_MS).toISOString()) as { c: number }).c;
+  rememberReporterArea(id, user.id, ip);
+  // only established reporters count toward the automatic hide: a handful of accounts made for the purpose must not be able to silence anyone (their reports are kept for an editor)
+  const open = countedReporters(acc, id, now);
   let hidden = false;
-  if (open >= AUTO_HIDE_REPORTS && p.status === "visible") {
+  if (open >= autoHideReports() && p.status === "visible") {
     acc.prepare("UPDATE forum_posts SET status = 'hidden', hidden_by = NULL, hidden_at = ?, hidden_reason = ? WHERE id = ?").run(new Date(now).toISOString(), `auto: ${open} reports`, id);
     audit(acc, null, "forum_auto_hide", `post#${id}`, `${open} reports`);
     hidden = true;
@@ -201,19 +284,42 @@ export function reportPost(user: User, id: number, reason: unknown, note: unknow
   return { ok: true, hidden };
 }
 
+/**
+ * The author of a post that reports hid asks for a review: once per post, a few a day. The post goes into the editors' queue marked as an appeal; the author is shown a plain
+ * notice that it is under review (listPosts), never who reported. An editor then restores it or confirms the hide, and every step is in the activity log.
+ */
+export function appealPost(user: User, id: number, acc: DatabaseSync = accountsDb(), now = Date.now()): { ok: true } | Fail {
+  const p = postRow(acc, id);
+  if (!p || p.user_id !== user.id) return no("not_found");
+  if (p.appeal_at) return no("already_appealed");
+  if (p.status !== "hidden" || p.hidden_by !== null || typeof p.hidden_reason !== "string" || !p.hidden_reason.startsWith("auto:")) return no("not_appealable");
+  const row = acc.prepare("SELECT disabled FROM users WHERE id = ?").get(user.id) as { disabled: number } | undefined;
+  if (!row || row.disabled) return no("forbidden");
+  if (!limits().forumAppeal.take(`u${user.id}`)) return no("rate_limited"); // spent only by an otherwise acceptable appeal
+  acc.prepare("UPDATE forum_posts SET appeal_at = ?, appeal_result = NULL WHERE id = ?").run(new Date(now).toISOString(), id);
+  audit(acc, user.username, "forum_appeal", `post#${id}`, "author asked for a review of an automatic hide");
+  return { ok: true };
+}
+
 const isEditor = (u: User) => u.role === "editor" || u.role === "admin";
 
-/** An editor hides a post or puts it back, with a reason that is kept in the activity log. Open reports on it are settled the same way (upheld by hiding, dismissed by restoring). */
-export function moderatePost(editor: User, id: number, action: "hide" | "restore", reason: unknown, acc: DatabaseSync = accountsDb(), now = Date.now()): { ok: true } | Fail {
+/**
+ * An editor hides a post, puts it back, or confirms a hide (keeps it hidden), with a reason that is kept in the activity log. Open reports on it are settled the same way
+ * (upheld by hiding or confirming, dismissed by restoring). If its author had appealed, the appeal is settled too and the log says so.
+ */
+export function moderatePost(editor: User, id: number, action: "hide" | "restore" | "confirm", reason: unknown, acc: DatabaseSync = accountsDb(), now = Date.now()): { ok: true } | Fail {
   if (!isEditor(editor)) return no("forbidden");
   const p = postRow(acc, id);
   if (!p || p.status === "deleted") return no("not_found");
+  if (action === "confirm" && p.status !== "hidden") return no("forbidden");
   const why = typeof reason === "string" ? [...cleanText(reason)].slice(0, REASON_MAX).join("") : "";
-  const at = new Date(now).toISOString();
-  if (action === "hide") acc.prepare("UPDATE forum_posts SET status = 'hidden', hidden_by = ?, hidden_at = ?, hidden_reason = ? WHERE id = ?").run(editor.id, at, why || "hidden by a moderator", id);
+  const at = new Date(now).toISOString(), appealOpen = !!p.appeal_at && !p.appeal_result;
+  if (action !== "restore") acc.prepare("UPDATE forum_posts SET status = 'hidden', hidden_by = ?, hidden_at = ?, hidden_reason = ? WHERE id = ?").run(editor.id, at, why || "hidden by a moderator", id);
   else acc.prepare("UPDATE forum_posts SET status = 'visible', hidden_by = NULL, hidden_at = NULL, hidden_reason = NULL WHERE id = ?").run(id);
-  acc.prepare("UPDATE forum_reports SET status = ?, reviewed_by = ?, reviewed_at = ? WHERE post_id = ? AND status = 'open'").run(action === "hide" ? "upheld" : "dismissed", editor.id, at, id);
-  audit(acc, editor.username, action === "hide" ? "forum_hide" : "forum_restore", `post#${id}`, why || undefined);
+  if (appealOpen) acc.prepare("UPDATE forum_posts SET appeal_result = ? WHERE id = ?").run(action === "restore" ? "restored" : "confirmed", id);
+  acc.prepare("UPDATE forum_reports SET status = ?, reviewed_by = ?, reviewed_at = ? WHERE post_id = ? AND status = 'open'").run(action === "restore" ? "dismissed" : "upheld", editor.id, at, id);
+  const logged = appealOpen ? (action === "restore" ? "forum_appeal_restore" : "forum_appeal_confirm") : action === "hide" ? "forum_hide" : action === "confirm" ? "forum_confirm" : "forum_restore";
+  audit(acc, editor.username, logged, `post#${id}`, why || undefined);
   return { ok: true };
 }
 
@@ -227,30 +333,38 @@ export function moderateThread(editor: User, id: number, action: "lock" | "unloc
   return { ok: true };
 }
 
-export interface ModItem { postId: number; threadId: number; kind: Kind; subject: string | null; threadTitle: string | null; body: string; author: string | null; status: string; reports: number; reasons: string[]; createdAt: string }
+export interface ModItem { postId: number; threadId: number; kind: Kind; subject: string | null; threadTitle: string | null; body: string; author: string | null; status: string; reports: number; reasons: string[]; createdAt: string; appeal: boolean; withdrawn: boolean }
 
-/** The editor's queue: posts with open reports, most reported first, with the words and who wrote them. */
+const MOD_SELECT = `SELECT p.id, p.thread_id, p.status, p.created_at, u.username AS author, t.kind, t.subject_ext, t.title,
+  CASE WHEN p.status = 'deleted' THEN p.withdrawn_body ELSE p.body END AS body,
+  (p.appeal_at IS NOT NULL AND p.appeal_result IS NULL AND p.status = 'hidden') AS appeal,
+  (SELECT COUNT(*) FROM forum_reports r WHERE r.post_id = p.id AND r.status = 'open') AS n,
+  (SELECT GROUP_CONCAT(DISTINCT r.reason) FROM forum_reports r WHERE r.post_id = p.id AND r.status = 'open') AS reasons
+  FROM forum_posts p JOIN forum_threads t ON t.id = p.thread_id LEFT JOIN users u ON u.id = p.user_id`;
+
+/** The editor's queue: appeals first, then posts with open reports, most reported first, with the words and who wrote them. */
 export function reportQueue(editor: User, acc: DatabaseSync = accountsDb()): { ok: true; items: ModItem[] } | Fail {
   if (!isEditor(editor)) return no("forbidden");
   const rows = acc.prepare(
-    `SELECT p.id, p.thread_id, p.body, p.status, p.created_at, u.username AS author, t.kind, t.subject_ext, t.title, COUNT(r.id) AS n, GROUP_CONCAT(DISTINCT r.reason) AS reasons
-     FROM forum_reports r JOIN forum_posts p ON p.id = r.post_id JOIN forum_threads t ON t.id = p.thread_id LEFT JOIN users u ON u.id = p.user_id WHERE r.status = 'open' AND p.status <> 'deleted'
-     GROUP BY p.id ORDER BY n DESC, p.id LIMIT 100`).all() as Record<string, unknown>[];
+    `${MOD_SELECT} WHERE p.status <> 'deleted'
+       AND p.id IN (SELECT post_id FROM forum_reports WHERE status = 'open' UNION SELECT id FROM forum_posts WHERE appeal_at IS NOT NULL AND appeal_result IS NULL)
+     ORDER BY appeal DESC, n DESC, p.id LIMIT 100`).all() as Record<string, unknown>[];
   return { ok: true, items: rows.map(modItem) };
 }
 const modItem = (r: Record<string, unknown>): ModItem => ({
-  postId: r.id as number, threadId: r.thread_id as number, kind: r.kind as Kind, subject: (r.subject_ext as string | null) ?? null, threadTitle: (r.title as string | null) ?? null, body: r.body as string,
+  postId: r.id as number, threadId: r.thread_id as number, kind: r.kind as Kind, subject: (r.subject_ext as string | null) ?? null, threadTitle: (r.title as string | null) ?? null, body: (r.body as string | null) ?? "",
   author: (r.author as string | null) ?? null, status: r.status as string, reports: (r.n as number) ?? 0, reasons: typeof r.reasons === "string" && r.reasons ? r.reasons.split(",") : [], createdAt: r.created_at as string,
+  appeal: !!r.appeal, withdrawn: r.status === "deleted",
 });
 
-/** The newest posts, hidden ones included, for an editor who wants to look without waiting for a report; and the threads that are hidden, so they can be shown again. */
-export function recentForEditors(editor: User, acc: DatabaseSync = accountsDb(), limit = 50): { ok: true; posts: ModItem[]; hiddenThreads: { id: number; title: string | null; kind: Kind }[] } | Fail {
+/**
+ * The newest posts, hidden ones included (and posts their author withdrew while hidden or reported, with the words kept for editors), for an editor who wants to look without
+ * waiting for a report; and the threads that are hidden, so they can be shown again.
+ */
+export function recentForEditors(editor: User, acc: DatabaseSync = accountsDb(), limit = 50, now = Date.now()): { ok: true; posts: ModItem[]; hiddenThreads: { id: number; title: string | null; kind: Kind }[] } | Fail {
   if (!isEditor(editor)) return no("forbidden");
-  const rows = acc.prepare(
-    `SELECT p.id, p.thread_id, p.body, p.status, p.created_at, u.username AS author, t.kind, t.subject_ext, t.title,
-       (SELECT COUNT(*) FROM forum_reports r WHERE r.post_id = p.id AND r.status = 'open') AS n,
-       (SELECT GROUP_CONCAT(DISTINCT r.reason) FROM forum_reports r WHERE r.post_id = p.id AND r.status = 'open') AS reasons
-     FROM forum_posts p JOIN forum_threads t ON t.id = p.thread_id LEFT JOIN users u ON u.id = p.user_id WHERE p.status <> 'deleted' ORDER BY p.id DESC LIMIT ?`).all(Math.min(200, Math.max(1, limit))) as Record<string, unknown>[];
+  purgeWithdrawn(acc, now);
+  const rows = acc.prepare(`${MOD_SELECT} WHERE (p.status <> 'deleted' OR p.withdrawn_body IS NOT NULL) ORDER BY p.id DESC LIMIT ?`).all(Math.min(200, Math.max(1, limit))) as Record<string, unknown>[];
   const hidden = acc.prepare("SELECT id, title, kind FROM forum_threads WHERE hidden = 1 ORDER BY id DESC LIMIT 50").all() as { id: number; title: string | null; kind: Kind }[];
   return { ok: true, posts: rows.map(modItem), hiddenThreads: hidden.map((h) => ({ ...h })) };
 }
@@ -268,8 +382,9 @@ export function whereIs(main: DatabaseSync, item: { kind: Kind; subject: string 
   return { path: `/forum/${item.threadId}`, label: item.threadTitle ?? "" };
 }
 
-/** What deleting an account does to what the person wrote: the words are wiped (the places stay, so replies still read), and notes on reports are cleared. */
+/** What deleting an account does to what the person wrote: the words are wiped (the places stay, so replies still read), the titles of the threads they started and the notes on their reports are cleared, and so are any words kept for editors after they withdrew a hidden post. */
 export function eraseForumFor(userId: number, acc: DatabaseSync = accountsDb()): void {
-  acc.prepare("UPDATE forum_posts SET body = '', fingerprint = '', status = 'deleted' WHERE user_id = ?").run(userId);
+  acc.prepare("UPDATE forum_posts SET body = '', fingerprint = '', wave_fp = '', status = 'deleted', withdrawn_body = NULL, withdrawn_at = NULL WHERE user_id = ?").run(userId);
+  acc.prepare("UPDATE forum_threads SET title = NULL WHERE user_id = ? AND kind = 'general'").run(userId); // the title is words of the first post: wiped with it
   acc.prepare("UPDATE forum_reports SET note = NULL WHERE user_id = ?").run(userId);
 }

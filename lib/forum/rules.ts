@@ -11,12 +11,24 @@ export const NEW_ACCOUNT_DAILY = 10, NEW_ACCOUNT_AGE_MS = 24 * 60 * 60_000;
 export const POSTS_PER_USER = { max: 10, windowMs: 10 * 60_000 }, POSTS_PER_ADDRESS = { max: 30, windowMs: 10 * 60_000 }, THREADS_PER_USER = { max: 3, windowMs: 24 * 60 * 60_000 };
 /** The author may change a post for this long after writing it. */
 export const EDIT_WINDOW_MS = 15 * 60_000;
-/** This many different people reporting a post hides it (an editor can put it back), so one bad post does not wait for a moderator. */
-export const AUTO_HIDE_REPORTS = 4;
-/** The same long post (its words, not its spelling) from this many OTHER people within a day is a copy-and-paste wave, and is refused. Short posts ("Agreed", "Great fight") are exempt: many people really do write those. */
-export const WAVE_OTHERS = 2, WAVE_MIN_CHARS = 30;
-/** Only reports from accounts at least this old count toward the automatic hide. */
-export const AUTO_HIDE_MIN_AGE_MS = 24 * 60 * 60_000;
+/**
+ * Automatic hiding (PLAN 229; it was four reports from day-old accounts, which a handful of sign-ups could meet). A post is hidden until an editor looks when this many
+ * DIFFERENT people report it, counting only reporters with real history here: an account at least a week old, with at least a few posts of its own still standing, and
+ * not from one network area (see `reportPost`). The number is a setting (FORUM_AUTO_HIDE_REPORTS, 2 or more). The author of a hidden post can ask for a review.
+ */
+export const AUTO_HIDE_REPORTS = 6;
+export const autoHideReports = (): number => { const n = Math.floor(Number(process.env.FORUM_AUTO_HIDE_REPORTS)); return Number.isFinite(n) && n >= 2 ? Math.min(n, 100) : AUTO_HIDE_REPORTS; };
+/** Only reports from accounts at least this old, with at least this many visible posts of their own, count toward the automatic hide. (Every report is kept for editors.) */
+export const AUTO_HIDE_MIN_AGE_MS = 7 * 24 * 60 * 60_000, REPORTER_MIN_POSTS = 3;
+/** An author asks for a review of an automatically hidden post: once per post, and at most this often overall. */
+export const APPEALS_PER_USER = { max: 5, windowMs: 24 * 60 * 60_000 };
+/**
+ * The same post (its letters: not its case, spacing, digits or punctuation) from this many OTHER accounts within the window is a copy-and-paste wave, and is refused.
+ * Posts of fewer letters than WAVE_MIN_CHARS are exempt ("Agreed", "Great fight"): many people really do write those.
+ */
+export const WAVE_OTHERS = 1, WAVE_MIN_CHARS = 24, WAVE_WINDOW_MS = 24 * 60 * 60_000;
+/** The words of a post its author withdrew while it was hidden or reported stay readable to editors this long, then are wiped. */
+export const WITHDRAWN_KEEP_MS = 90 * 24 * 60 * 60_000;
 /** Longest note on a report and longest reason an editor gives, in characters (cut, not refused: they are not posts). */
 export const NOTE_MAX = 300, REASON_MAX = 200;
 /** Edits of one's own posts: the same ten in ten minutes as writing. */
@@ -64,3 +76,5 @@ export function checkText(raw: unknown, opts: { min?: number; max?: number } = {
 
 /** The text with case, accents, spacing and punctuation taken out: two posts that come to the same words are the same post. (posts.ts keeps only a hash of it.) */
 export const normalizedWords = (text: string): string => text.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+/** The text as letters only, to notice one post sent from several accounts: normalizedWords with the digits and the spaces taken out as well ("Call 5" and "call 7" are one post). */
+export const waveLetters = (text: string): string => normalizedWords(text).replace(/[\p{N}\s]+/gu, "");

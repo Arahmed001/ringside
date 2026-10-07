@@ -2731,6 +2731,12 @@
   ]
  },
  {
+  "key": "An editor reviewed your post and it stays hidden.",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
   "key": "An estimate, not a verdict: fighters do not change trainer at random, and most trainers cannot be told from average. See how it is worked out.",
   "files": [
    "components/TrainerImpactCard.tsx"
@@ -2794,7 +2800,7 @@
   ]
  },
  {
-  "key": "Anyone with an account can report a post. When {n} different people report one, it is hidden until an editor looks at it.",
+  "key": "Anyone with an account can report a post. When {n} different people report one, it is hidden until an editor looks at it. Only reports from accounts at least {days} days old, with at least {posts} posts of their own, count toward that.",
   "files": [
    "app/[locale]/forum/rules/page.tsx"
   ]
@@ -2804,6 +2810,12 @@
   "files": [
    "components/ContributeForm.tsx",
    "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "appeal: the author asks for a review",
+  "files": [
+   "components/ForumQueue.tsx"
   ]
  },
  {
@@ -2916,6 +2928,12 @@
   "key": "Ask anything… “southpaw welterweights with 10+ KOs”",
   "files": [
    "app/[locale]/layout.tsx"
+  ]
+ },
+ {
+  "key": "Ask for a review",
+  "files": [
+   "components/Discussion.tsx"
   ]
  },
  {
@@ -6858,6 +6876,12 @@
   ]
  },
  {
+  "key": "If your post was hidden by reports, you can ask for a review. An editor will restore it or keep it hidden. You are never told who reported it.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
+  ]
+ },
+ {
   "key": "Image:",
   "files": [
    "components/CreditedPicture.tsx"
@@ -7036,9 +7060,21 @@
   ]
  },
  {
+  "key": "Keep hidden",
+  "files": [
+   "components/ForumQueue.tsx"
+  ]
+ },
+ {
   "key": "Keep the correction",
   "files": [
    "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Kept hidden.",
+  "files": [
+   "components/ForumQueue.tsx"
   ]
  },
  {
@@ -8945,7 +8981,7 @@
   ]
  },
  {
-  "key": "Nothing is waiting: no post has an open report.",
+  "key": "Nothing is waiting: no post has an open report or an appeal.",
   "files": [
    "components/ForumQueue.tsx"
   ]
@@ -10527,7 +10563,7 @@
   ]
  },
  {
-  "key": "Reported posts",
+  "key": "Reported posts and appeals",
   "files": [
    "components/ForumQueue.tsx"
   ]
@@ -11112,6 +11148,12 @@
  },
  {
   "key": "Send report",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "Sent for review.",
   "files": [
    "components/Discussion.tsx"
   ]
@@ -12180,6 +12222,12 @@
   ]
  },
  {
+  "key": "That has already been posted here by someone else. Please write it in your own words.",
+  "files": [
+   "lib/forum/text.ts"
+  ]
+ },
+ {
   "key": "That is not there any more.",
   "files": [
    "lib/forum/text.ts"
@@ -12606,7 +12654,7 @@
   ]
  },
  {
-  "key": "the forum threads you started: the title (on the general board), the fighter or fight it is about, and when; the thread under a fighter or a fight is made by the first post written there",
+  "key": "the forum threads you started: the title (on the general board; it is cleared if you delete your account), the fighter or fight it is about, and when; the thread under a fighter or a fight is made by the first post written there",
   "files": [
    "lib/privacy.ts"
   ]
@@ -12935,6 +12983,12 @@
   "key": "The Ringside model",
   "files": [
    "app/[locale]/leaderboard/page.tsx"
+  ]
+ },
+ {
+  "key": "The same text posted by two different accounts within a day is refused for the second one, unless it is very short.",
+  "files": [
+   "app/[locale]/forum/rules/page.tsx"
   ]
  },
  {
@@ -13314,6 +13368,12 @@
   "key": "This person is not in the data yet (a new page will be created).",
   "files": [
    "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "This post cannot be sent for review.",
+  "files": [
+   "lib/forum/text.ts"
   ]
  },
  {
@@ -14473,7 +14533,7 @@
   ]
  },
  {
-  "key": "what you wrote in the forum: the words, when, any edit, and a hash of the words that is used to refuse the same post twice in a day; deleting your account wipes the words and leaves the empty place, so the replies still read",
+  "key": "what you wrote in the forum: the words, when, any edit, and two hashes of the words that are used to refuse the same post twice in a day, from you or from several accounts; if you delete a post that had been hidden or reported, the words are kept for the editors for 90 days; if a post of yours was hidden by reports and you asked for a review, when you asked and the outcome; deleting your account wipes the words, including any kept for the editors, and leaves the empty place, so the replies still read",
   "files": [
    "lib/privacy.ts"
   ]
@@ -14968,6 +15028,12 @@
   ]
  },
  {
+  "key": "withdrawn by the author; the words are kept for editors for a while",
+  "files": [
+   "components/ForumQueue.tsx"
+  ]
+ },
+ {
   "key": "within 1.5 lb",
   "files": [
    "lib/weights.ts"
@@ -15140,6 +15206,12 @@
   ]
  },
  {
+  "key": "You already asked for a review of this post.",
+  "files": [
+   "lib/forum/text.ts"
+  ]
+ },
+ {
   "key": "You already reported this post.",
   "files": [
    "lib/forum/text.ts"
@@ -15195,7 +15267,7 @@
   ]
  },
  {
-  "key": "You can edit your own post for {n} minutes, and delete it at any time. Deleting wipes the words.",
+  "key": "You can edit your own post for {n} minutes, and delete it at any time. Deleting wipes the words. If the post had been hidden or reported, editors can still read the words for {days} days, and they are wiped sooner if you delete your account.",
   "files": [
    "app/[locale]/forum/rules/page.tsx"
   ]
@@ -15410,6 +15482,18 @@
   "key": "Your place",
   "files": [
    "components/PickStanding.tsx"
+  ]
+ },
+ {
+  "key": "Your post is under review by the editors.",
+  "files": [
+   "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "Your post was hidden after reports from other members. You can ask the editors to review it.",
+  "files": [
+   "components/Discussion.tsx"
   ]
  },
  {

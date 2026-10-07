@@ -8,6 +8,6 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (r instanceof Response) return r;
   const user = userOf(req);
   if (!user) return forumFail("unauthorized");
-  const res = reportPost(user, Number((await ctx.params).id), r.body.reason, r.body.note);
+  const res = reportPost(user, Number((await ctx.params).id), r.body.reason, r.body.note, undefined, undefined, r.ip);
   return res.ok ? forumJson({ ok: true, hidden: res.hidden }, 201) : forumFail(res.error);
 }

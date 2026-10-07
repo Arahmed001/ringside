@@ -28,7 +28,7 @@ export function exportFor(user: User, db: DatabaseSync, now = new Date()) {
     linkedFighters: db.prepare("SELECT boxer_ext AS fighter, verified_by AS verifiedBy, verified_at AS verifiedAt, note, official_urls AS officialUrls FROM boxer_owners WHERE user_id = ? ORDER BY boxer_ext").all(user.id),
     // what you wrote in the forum (a fighter's or a fight's thread is named by the fighter's or fight's id), the threads you started, and the posts you reported
     forumThreads: db.prepare("SELECT id, kind, subject_ext AS subject, title, created_at AS createdAt, locked FROM forum_threads WHERE user_id = ? ORDER BY id").all(user.id),
-    forumPosts: db.prepare("SELECT id, thread_id AS thread, body, created_at AS createdAt, edited_at AS editedAt, status, hidden_reason AS hiddenReason FROM forum_posts WHERE user_id = ? ORDER BY id").all(user.id),
+    forumPosts: db.prepare("SELECT id, thread_id AS thread, body, created_at AS createdAt, edited_at AS editedAt, status, hidden_reason AS hiddenReason, withdrawn_body AS keptForEditors, appeal_at AS reviewAskedAt, appeal_result AS reviewOutcome FROM forum_posts WHERE user_id = ? ORDER BY id").all(user.id),
     forumReports: db.prepare("SELECT id, post_id AS post, reason, note, status, created_at AS createdAt FROM forum_reports WHERE user_id = ? ORDER BY id").all(user.id),
     // the activity log, for the entries that name you: things you did, and things done about you
     activity: auditMentioning(db, user.username).map((r) => ({ at: r.at, by: r.actor, action: r.action, about: r.target, detail: r.detail })),

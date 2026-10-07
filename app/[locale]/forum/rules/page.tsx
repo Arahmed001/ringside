@@ -1,7 +1,7 @@
 import Link from "@/components/L";
 import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
-import { AUTO_HIDE_REPORTS, EDIT_WINDOW_MS, NEW_ACCOUNT_DAILY, NEW_ACCOUNT_WAIT_MS, POST_MAX, POSTS_PER_USER, THREADS_PER_USER } from "@/lib/forum/rules";
+import { autoHideReports, AUTO_HIDE_MIN_AGE_MS, EDIT_WINDOW_MS, REPORTER_MIN_POSTS, WITHDRAWN_KEEP_MS, NEW_ACCOUNT_DAILY, NEW_ACCOUNT_WAIT_MS, POST_MAX, POSTS_PER_USER, THREADS_PER_USER } from "@/lib/forum/rules";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({
   path: "/forum/rules", title: t("Forum rules"), description: t("What you can write in the Ringside forum, how often, and what happens when a post is reported."), noindex: true,
@@ -38,9 +38,11 @@ export default async function ForumRules() {
       <section className="card space-y-3 p-5 text-sm">
         <h2 className="eyebrow">{t("Reports, hiding and your own posts")}</h2>
         <ul className="list-disc space-y-1.5 ps-5">
-          <li>{t("Anyone with an account can report a post. When {n} different people report one, it is hidden until an editor looks at it.", { n: AUTO_HIDE_REPORTS })}</li>
+          <li>{t("Anyone with an account can report a post. When {n} different people report one, it is hidden until an editor looks at it. Only reports from accounts at least {days} days old, with at least {posts} posts of their own, count toward that.", { n: autoHideReports(), days: Math.round(AUTO_HIDE_MIN_AGE_MS / 86_400_000), posts: REPORTER_MIN_POSTS })}</li>
+          <li>{t("If your post was hidden by reports, you can ask for a review. An editor will restore it or keep it hidden. You are never told who reported it.")}</li>
+          <li>{t("The same text posted by two different accounts within a day is refused for the second one, unless it is very short.")}</li>
           <li>{t("Editors can hide or restore a post and lock or hide a thread. A hidden post keeps its place, but its words and its author are not shown. Every action is logged.")}</li>
-          <li>{t("You can edit your own post for {n} minutes, and delete it at any time. Deleting wipes the words.", { n: min(EDIT_WINDOW_MS) })}</li>
+          <li>{t("You can edit your own post for {n} minutes, and delete it at any time. Deleting wipes the words. If the post had been hidden or reported, editors can still read the words for {days} days, and they are wiped sooner if you delete your account.", { n: min(EDIT_WINDOW_MS), days: Math.round(WITHDRAWN_KEEP_MS / 86_400_000) })}</li>
           <li>{t("Deleting your account wipes everything you wrote here. The privacy page says what is kept until then.")}</li>
         </ul>
       </section>

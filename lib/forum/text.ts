@@ -15,6 +15,9 @@ export function forumExplain(t: T, code: string | undefined): string {
     case "too_new": return t("New accounts can post after a few minutes. Try again soon.");
     case "rate_limited": return t("You are posting too fast. Wait a few minutes.");
     case "duplicate": return t("You already said that.");
+    case "copied": return t("That has already been posted here by someone else. Please write it in your own words.");
+    case "already_appealed": return t("You already asked for a review of this post.");
+    case "not_appealable": return t("This post cannot be sent for review.");
     case "locked": return t("This thread is locked.");
     case "title_invalid": return t("A title is 5 to 100 characters on one line, with no links.");
     case "not_found": case "no_such_subject": return t("That is not there any more.");
