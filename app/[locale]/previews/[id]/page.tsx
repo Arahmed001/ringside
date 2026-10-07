@@ -65,7 +65,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
           {[red, blue].map((f, i) => (
             <Link key={f.id} href={`/boxers/${f.slug}`} className={`flex min-w-0 flex-col items-center gap-2 text-center ${i === 1 ? "order-3" : ""}`}>
               <Headshot boxer={f} size={110} />
-              <div className="w-full text-balance break-words font-display text-2xl font-bold sm:text-3xl leading-tight" dir="auto" style={{ color: i === 0 ? "#e5322d" : "#4a8cff" }}>{name(f)}</div>
+              <div className="w-full text-balance break-words font-display text-2xl font-bold uppercase sm:text-3xl leading-tight" dir="auto" style={{ color: i === 0 ? "#e5322d" : "#4a8cff" }}>{name(f)}</div>
               <div className="text-xs text-muted"><span className="tabular">{pv.tape[0][i === 0 ? "red" : "blue"]}</span> · Elo {Math.round(f.rating)}</div>
             </Link>
           ))}
@@ -104,7 +104,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
             <div className="grid gap-4 sm:grid-cols-2">
               {([[red, pv.cases.red, "#e5322d"], [blue, pv.cases.blue, "#4a8cff"]] as const).map(([f, list, color]) => (
                 <div key={f.id} className="card p-4">
-                  <div className="mb-2 font-display text-xl font-bold" style={{ color }}>{t("The case for {name}", { name: name(f) })}</div>
+                  <div className="mb-2 font-display text-xl font-bold uppercase" style={{ color }}>{t("The case for {name}", { name: name(f) })}</div>
                   {list.length ? <ul className="space-y-1.5 text-sm">{list.map((c) => <li key={c}>{c}</li>)}</ul> : <p className="text-sm text-muted">{t("The numbers do not favour either side on this point.")}</p>}
                 </div>
               ))}
@@ -137,7 +137,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
               {pv.pick.endings.map((e) => (
                 <li key={e.label}>
                   <div className="mb-1 flex justify-between gap-3"><span className="min-w-0 truncate">{e.label}</span><b className="tabular">{Math.round(e.pct * 100)}%</b></div>
-                  <div className="ltr-fixed h-2 overflow-hidden rounded-full bg-panel2"><div className="h-full rounded-full" style={{ width: `${e.pct * 100}%`, background: e.side === "red" ? "#e5322d" : e.side === "blue" ? "#4a8cff" : "#666" }} /></div>
+                  <div className="ltr-fixed h-2 overflow-hidden rounded-full bg-panel2"><div className="h-full rounded-full" style={{ width: `${e.pct * 100}%`, background: e.side === "red" ? "#e5322d" : e.side === "blue" ? "#4a8cff" : "var(--draw)" }} /></div>
                 </li>
               ))}
             </ul>

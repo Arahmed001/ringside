@@ -13,6 +13,14 @@
   --gold: #d9b25f;
   --blue: #4a8cff;
   --green: #3ecf8e;
+  --draw: #555560; /* a drawn result: the grey bar between red and blue (win-probability bars, "how it could end") */
+  --chart-grey: #c9c9d1; /* axis titles in charts: brighter than muted so they read on the plot */
+  --chart-empty: #15151b; /* an empty heat-map cell */
+  --gold-2: #b8923f; /* darker and lighter tints of gold: successive reigns on the title timeline */
+  --gold-3: #e8c97d;
+  --gold-4: #a67f30;
+  --card-end: #101015; /* where the card gradient ends */
+  --line-hover: #3a3a46; /* a card's border under the pointer */
 }
 
 @theme inline {
@@ -49,12 +57,14 @@ body::before {
 }
 
 .font-display { font-family: var(--font-display), "Arial Narrow", sans-serif; letter-spacing: 0.02em; }
-.card { background: linear-gradient(180deg, var(--panel), #101015); border: 1px solid var(--line); border-radius: 18px; }
+.card { background: linear-gradient(180deg, var(--panel), var(--card-end)); border: 1px solid var(--line); border-radius: 18px; }
 .card-hover { transition: transform .25s cubic-bezier(.2,.8,.2,1), border-color .25s, box-shadow .25s; }
-.card-hover:hover { transform: translateY(-3px); border-color: #3a3a46; box-shadow: 0 18px 40px -18px rgba(0,0,0,.8); }
+.card-hover:hover { transform: translateY(-3px); border-color: var(--line-hover); box-shadow: 0 18px 40px -18px rgba(0,0,0,.8); }
 .eyebrow { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .18em; font-size: .75rem; color: var(--gold); font-weight: 600; }
 .chip { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid var(--line); background: var(--panel-2); padding: .22rem .65rem; border-radius: 999px; font-size: .75rem; color: var(--muted); }
 .tabular { font-variant-numeric: tabular-nums; }
+/* A chip that is a link or a button is a touch target: 44 px tall on a touch screen (a mouse keeps the compact chip). Filters wrap onto more rows. */
+@media (pointer: coarse) { a.chip, button.chip, summary.chip, label.chip { min-height: 2.75rem; } }
 
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 .rise { animation: rise .6s cubic-bezier(.2,.8,.2,1) both; }

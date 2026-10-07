@@ -46,7 +46,7 @@ export function MatchupLab({ a, b, defaults, modelNote, finish = null }: { a: Si
 
   const fighter = (s: Side, f: Features, set: (f: Features) => void, color: string, orig: Features) => (
     <div className="space-y-3">
-      <div className="font-display text-lg font-bold" style={{ color }}>{s.name} <span className="text-xs font-normal text-muted">{t("what-if")}</span></div>
+      <div className="font-display text-lg font-bold uppercase" style={{ color }}>{s.name} <span className="text-xs font-normal normal-case text-muted">{t("what-if")}</span></div>
       <Slider label={t("Rating")} value={f.rating} min={Math.round(orig.rating - 200)} max={Math.round(orig.rating + 200)} step={5} onChange={(v) => set({ ...f, rating: v })} display={t("{n} Elo", { n: Math.round(f.rating) })} color={color} />
       {f.age === null ? <Unknown label={t("Age")} note={t("Unknown: not counted")} /> : <Slider label={t("Age")} value={f.age} min={18} max={46} step={1} onChange={(v) => set({ ...f, age: v })} display={String(f.age)} color={color} />}
       {f.reachCm === null || orig.reachCm === null ? <Unknown label={t("Reach")} note={t("Unknown: not counted")} /> : <Slider label={t("Reach")} value={f.reachCm} min={Math.round(orig.reachCm - 12)} max={Math.round(orig.reachCm + 12)} step={1} onChange={(v) => set({ ...f, reachCm: v })} display={t("{n} cm", { n: f.reachCm })} color={color} />}
@@ -74,7 +74,7 @@ export function MatchupLab({ a, b, defaults, modelNote, finish = null }: { a: Si
 
       <div className="mt-6 grid gap-8 lg:grid-cols-3">
         <div className="space-y-3">
-          <div className="font-display text-lg font-bold">{t("Model weights")}</div>
+          <div className="font-display text-lg font-bold uppercase">{t("Model weights")}</div>
           <div className="flex flex-wrap gap-1.5">
             {presets.map((pr) => (
               <button key={pr.name} title={t(PRESET_BLURB[pr.name] ?? pr.blurb)} onClick={() => { setMult(toMult(pr.weights, defaults)); setPreset(pr.name); }}
@@ -90,7 +90,7 @@ export function MatchupLab({ a, b, defaults, modelNote, finish = null }: { a: Si
       </div>
 
       <div className="mt-8">
-        <div className="mb-3 font-display text-lg font-bold">{t("What’s driving the number")}</div>
+        <div className="mb-3 font-display text-lg font-bold uppercase">{t("What’s driving the number")}</div>
         <ul className="space-y-2.5">
           {p.factors.map((f) => (
             <li key={f.label} className="grid grid-cols-[110px_1fr_70px] items-center gap-3 text-xs sm:grid-cols-[150px_1fr_80px]">

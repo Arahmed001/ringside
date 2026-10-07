@@ -37,7 +37,7 @@ export function ProbBar({ a, b, pA, pB, pDraw, colorA = "#e5322d", colorB = "#4a
       </div>
       <div className="ltr-fixed flex h-3 overflow-hidden rounded-full bg-panel2" role="img" aria-label={t("{a} {pa}, {b} {pb}", { a, pa: f(pA), b, pb: f(pB) })}>
         <div className="growx transition-[width] duration-300" style={{ width: `${pA * 100}%`, background: colorA }} />
-        <div style={{ width: `${pDraw * 100}%`, background: "#444" }} />
+        <div style={{ width: `${pDraw * 100}%`, background: "var(--draw)" }} />
         <div className="growx-end ms-auto transition-[width] duration-300" style={{ width: `${pB * 100}%`, background: colorB }} />
       </div>
       <div className="ltr-fixed mt-1.5 flex justify-between text-xs text-muted"><span dir="auto">{a}</span><span dir="auto">{b}</span></div>

@@ -4,7 +4,7 @@ import { getT } from "@/lib/i18n/server";
 import type { World } from "@/lib/world";
 import type { Belt } from "@/lib/lineage";
 
-const SHADES = ["#d9b25f", "#b8923f", "#e8c97d", "#a67f30"];
+const SHADES = ["var(--gold)", "var(--gold-2)", "var(--gold-3)", "var(--gold-4)"];
 
 /** Every reign on one strip, left to right through time: gaps are vacant periods, bar width is the reign's length. */
 export async function ReignTimeline({ w, belt }: { w: World; belt: Belt }) {

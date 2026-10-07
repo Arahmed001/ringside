@@ -49,9 +49,9 @@ export default async function Analytics() {
           <BarList rows={wc.map((r) => ({ label: t(r.weightClass), value: r.koRate, sub: t.n(r.bouts, "{n} bout", "{n} bouts") }))} fmt={(v) => pct(v)} /></div>
         <div className="card p-5"><div className="eyebrow mb-3">{t("How fights end")}</div>
           <Donut center={{ big: pct(o.finishRate), small: t("FINISHED") }} parts={[
-            { label: t("KO"), value: ms.KO, color: "#e5322d" }, { label: t("TKO"), value: ms.TKO, color: "#ff8a3d" }, { label: t("Corner retirement"), value: ms.RTD, color: "#c2410c" },
-            { label: t("Unanimous"), value: ms.UD, color: "#d9b25f" }, { label: t("Split"), value: ms.SD, color: "#4a8cff" }, { label: t("Majority"), value: ms.MD, color: "#7ee0b4" },
-            { label: t("Technical decision"), value: ms.TD, color: "#a78bfa" }, { label: t("Disqualification"), value: ms.DQ, color: "#f472b6" }, { label: t("Draw"), value: ms.DRAW + ms.TDRAW, color: "#8d8d99" },
+            { label: t("KO"), value: ms.KO, color: "var(--red)" }, { label: t("TKO"), value: ms.TKO, color: "var(--red-ink)" }, { label: t("Corner retirement"), value: ms.RTD, color: "var(--red-btn)" },
+            { label: t("Unanimous"), value: ms.UD, color: "var(--gold)" }, { label: t("Split"), value: ms.SD, color: "var(--gold-3)" }, { label: t("Majority"), value: ms.MD, color: "var(--gold-4)" },
+            { label: t("Technical decision"), value: ms.TD, color: "var(--chart-grey)" }, { label: t("Disqualification"), value: ms.DQ, color: "var(--muted)" }, { label: t("Draw"), value: ms.DRAW + ms.TDRAW, color: "var(--draw)" },
           ]} />
           <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-xl bg-panel2 p-3"><div className="text-xs text-muted">{t("Southpaw win rate")}</div><div className="font-display text-2xl font-bold">{pct(stance.southpaw, 1)}</div></div>

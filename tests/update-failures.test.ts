@@ -4,7 +4,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { DatabaseSync } from "node:sqlite";
-import { boxingDataApiProvider, HttpError, NetworkError } from "../lib/providers/boxing-data-api";
+import { boxingDataApiProvider, BudgetError, HttpError, NetworkError } from "../lib/providers/boxing-data-api";
+import { CheckRefusedError, LockHeldError, describeNothingToUpdate, exitCodeFor, skippedSummary } from "../lib/vendor-backfill";
 import type { MockFight, MockWorld } from "../lib/vendor-mock";
 import {
   DAY0, DAY1, KEY, ROOT, UPDATE, copyDb, faultyFetch, makeLeague, nextDay, open, pool, results, serveFaulty, start, state, tmp, updateInProcess,
@@ -144,34 +145,34 @@ const fighterN = (n: number) => (c: { path: string; nth: number }) => c.path.sta
 
 test("the vendor refuses (429, 403, quota) or fails (500, 502, 503) or is gone: the command stops, says why, and the database is as it was", async () => {
   await table([
-    { name: "429 with no Retry-After on the first page", o: { fault: (c) => (c.n === 1 ? { status: 429, body: { message: "Too many requests" } } : undefined) }, code: 1, db: "untouched", out: [/rate limit hit on \/v2\/fights\/: Too many requests \(retry after unknown s\)/, /--patience-min/] },
-    { name: "429 with Retry-After: 30", o: { fault: (c) => (c.n === 1 ? { status: 429, headers: { "retry-after": "30" }, body: { message: "Too many requests" } } : undefined) }, code: 1, db: "untouched", out: [/\(retry after 30 s\)/] },
-    { name: "429 on the hourly limit part way through the fighters", o: { fault: (c) => (fighterN(5)(c) ? { status: 429, body: { message: "You have exceeded the rate limit per hour for your plan, MEGA, by the API provider" } } : undefined) }, code: 1, db: "untouched", out: [/rate limit hit on \/v2\/fighters\/\w+: You have exceeded the rate limit per hour/] },
-    { name: "429 saying the monthly quota is used up", o: { fault: (c) => (c.n === 1 ? { status: 429, body: { message: "You have exceeded the MONTHLY quota for Requests on your current plan" } } : undefined) }, code: 1, db: "untouched", out: [/quota used up on \/v2\/fights\/.*Waiting will not help/] },
-    { name: "403: the key has lapsed", o: { key: "some-other-key-0123456789abcdef0123456789" }, code: 1, db: "untouched", out: [/403 on \/v2\/fights\/: Invalid API key/] },
-    { name: "500 on the second page", o: { fault: (c) => (c.n === 2 ? { status: 500 } : undefined) }, code: 1, db: "untouched", out: [/Boxing Data API 500 on \/v2\/fights\//] },
-    { name: "503 on the schedule", o: { fault: (c) => (c.path === "/v2/fights/schedule" ? { status: 503 } : undefined) }, code: 1, db: "untouched", out: [/503 on \/v2\/fights\/schedule/] },
-    { name: "502 on one fighter", o: { fault: (c) => (fighterN(3)(c) ? { status: 502 } : undefined) }, code: 1, db: "untouched", out: [/skipped: Boxing Data API 502/, /fight\(s\) were left out because a fighter could not be fetched/, /Run the same command again/] },
+    { name: "429 with no Retry-After on the first page", o: { fault: (c) => (c.n === 1 ? { status: 429, body: { message: "Too many requests" } } : undefined) }, code: 2, db: "untouched", out: [/rate limit hit on \/v2\/fights\/: Too many requests \(retry after unknown s\)/, /--patience-min/] },
+    { name: "429 with Retry-After: 30", o: { fault: (c) => (c.n === 1 ? { status: 429, headers: { "retry-after": "30" }, body: { message: "Too many requests" } } : undefined) }, code: 2, db: "untouched", out: [/\(retry after 30 s\)/] },
+    { name: "429 on the hourly limit part way through the fighters", o: { fault: (c) => (fighterN(5)(c) ? { status: 429, body: { message: "You have exceeded the rate limit per hour for your plan, MEGA, by the API provider" } } : undefined) }, code: 2, db: "untouched", out: [/rate limit hit on \/v2\/fighters\/\w+: You have exceeded the rate limit per hour/] },
+    { name: "429 saying the monthly quota is used up", o: { fault: (c) => (c.n === 1 ? { status: 429, body: { message: "You have exceeded the MONTHLY quota for Requests on your current plan" } } : undefined) }, code: 2, db: "untouched", out: [/quota used up on \/v2\/fights\/.*Waiting will not help/] },
+    { name: "403: the key has lapsed", o: { key: "some-other-key-0123456789abcdef0123456789" }, code: 2, db: "untouched", out: [/403 on \/v2\/fights\/: Invalid API key/] },
+    { name: "500 on the second page", o: { fault: (c) => (c.n === 2 ? { status: 500 } : undefined) }, code: 2, db: "untouched", out: [/Boxing Data API 500 on \/v2\/fights\//] },
+    { name: "503 on the schedule", o: { fault: (c) => (c.path === "/v2/fights/schedule" ? { status: 503 } : undefined) }, code: 2, db: "untouched", out: [/503 on \/v2\/fights\/schedule/] },
+    { name: "502 on one fighter", o: { fault: (c) => (fighterN(3)(c) ? { status: 502 } : undefined) }, code: 3, db: "untouched", out: [/skipped: Boxing Data API 502/, /fight\(s\) were left out because a fighter could not be fetched/, /Run the same command again/] },
     { name: "one 503, one retry allowed: the retry succeeds", args: ["--update", "--retries", "1", "--patience-min", "0"], o: { fault: (c) => (c.n === 1 ? { status: 503 } : undefined) }, code: 0, db: "applied", out: [/503 on \/v2\/fights\/; retrying/] },
-    { name: "two 503s in a row, one retry allowed: the run stops", args: ["--update", "--retries", "1", "--patience-min", "0"], o: { fault: (c) => (c.n <= 2 ? { status: 503 } : undefined) }, code: 1, db: "untouched", out: [/Boxing Data API 503 on \/v2\/fights\//] },
-    { name: "the vendor answers with an error envelope on a 200", o: { fault: (c) => (c.n === 1 ? { status: 200, body: { metadata: {}, pagination: {}, error: { code: "Maintenance", message: "back soon" }, data: [] } } : undefined) }, code: 1, db: "untouched", out: [/Boxing Data API error on \/v2\/fights\/.*Maintenance/] },
+    { name: "two 503s in a row, one retry allowed: the run stops", args: ["--update", "--retries", "1", "--patience-min", "0"], o: { fault: (c) => (c.n <= 2 ? { status: 503 } : undefined) }, code: 2, db: "untouched", out: [/Boxing Data API 503 on \/v2\/fights\//] },
+    { name: "the vendor answers with an error envelope on a 200", o: { fault: (c) => (c.n === 1 ? { status: 200, body: { metadata: {}, pagination: {}, error: { code: "Maintenance", message: "back soon" }, data: [] } } : undefined) }, code: 3, db: "untouched", out: [/Boxing Data API error on \/v2\/fights\/.*Maintenance/] },
   ]);
 });
 
 test("the vendor is not there (connection refused) and the network drops (reset, cut off mid-page, hung): no change, a plain message, the next run recovers", async () => {
   const gone = (await serveFaulty(w1)); const goneUrl = gone.url; await gone.close(); // a port nothing listens on now
   await table([
-    { name: "connection refused (the vendor's host is down)", env: { BOXING_API_URL: goneUrl }, code: 1, db: "untouched", out: [/unreachable on \/v2\/fights\/.*ECONNREFUSED/] },
-    { name: "connection reset on the first page", o: { fault: (c) => (c.n === 1 ? { destroy: true } : undefined) }, code: 1, db: "untouched", out: [/unreachable on \/v2\/fights\/.*(ECONNRESET|other side closed|UND_ERR_SOCKET|socket)/] },
-    { name: "connection reset on one fighter", o: { fault: (c) => (fighterN(4)(c) ? { destroy: true } : undefined) }, code: 1, db: "untouched", out: [/skipped: Boxing Data API unreachable on \/v2\/fighters\//, /could not be fetched/] },
-    { name: "the connection dies in the middle of page 2", o: { fault: (c) => (c.n === 2 ? { cutAfter: 500 } : undefined) }, code: 1, db: "untouched", out: [/unreachable on \/v2\/fights\/.*(terminated|other side closed|UND_ERR_SOCKET)/] },
-    { name: "the connection dies in the middle of one fighter", o: { fault: (c) => (fighterN(4)(c) ? { cutAfter: 50 } : undefined) }, code: 1, db: "untouched", out: [/could not be fetched/] },
+    { name: "connection refused (the vendor's host is down)", env: { BOXING_API_URL: goneUrl }, code: 2, db: "untouched", out: [/unreachable on \/v2\/fights\/.*ECONNREFUSED/] },
+    { name: "connection reset on the first page", o: { fault: (c) => (c.n === 1 ? { destroy: true } : undefined) }, code: 2, db: "untouched", out: [/unreachable on \/v2\/fights\/.*(ECONNRESET|other side closed|UND_ERR_SOCKET|socket)/] },
+    { name: "connection reset on one fighter", o: { fault: (c) => (fighterN(4)(c) ? { destroy: true } : undefined) }, code: 3, db: "untouched", out: [/skipped: Boxing Data API unreachable on \/v2\/fighters\//, /could not be fetched/] },
+    { name: "the connection dies in the middle of page 2", o: { fault: (c) => (c.n === 2 ? { cutAfter: 500 } : undefined) }, code: 2, db: "untouched", out: [/unreachable on \/v2\/fights\/.*(terminated|other side closed|UND_ERR_SOCKET)/] },
+    { name: "the connection dies in the middle of one fighter", o: { fault: (c) => (fighterN(4)(c) ? { cutAfter: 50 } : undefined) }, code: 3, db: "untouched", out: [/could not be fetched/] },
     { name: "the middle-of-the-page cut is retried like any other network failure", args: ["--update", "--retries", "1", "--patience-min", "0"], o: { fault: (c) => (c.n === 2 ? { cutAfter: 500 } : undefined) }, code: 0, db: "applied", out: [/network error on \/v2\/fights\/.*retrying/] },
-    { name: "a JSON body that stops short (a complete HTTP answer)", o: { fault: (c) => (c.n === 2 ? { truncateJson: 700 } : undefined) }, code: 1, db: "untouched", out: [/sent something that is not JSON on \/v2\/fights\//] },
-    { name: "an HTML maintenance page with status 200", o: { fault: (c) => (c.n === 2 ? { raw: "<html><body>Down for maintenance</body></html>" } : undefined) }, code: 1, db: "untouched", out: [/not JSON on \/v2\/fights\/: <html><body>Down for maintenance/] },
-    { name: "an HTML page with status 200 for one fighter", o: { fault: (c) => (fighterN(2)(c) ? { raw: "<html>x</html>" } : undefined) }, code: 1, db: "untouched", out: [/not JSON on \/v2\/fighters\//, /could not be fetched/] },
-    { name: "the body is JSON null", o: { fault: (c) => (c.n === 1 ? { raw: "null", type: "application/json" } : undefined) }, code: 1, db: "untouched", out: [/Boxing Data API.*\/v2\/fights\/.*(unexpected|changed)/i] },
-    { name: "the body is a JSON list instead of the envelope", o: { fault: (c) => (c.n === 1 ? { raw: "[1,2,3]", type: "application/json" } : undefined) }, code: 1, db: "untouched", out: [/Boxing Data API.*\/v2\/fights\/.*(unexpected|changed)/i] },
+    { name: "a JSON body that stops short (a complete HTTP answer)", o: { fault: (c) => (c.n === 2 ? { truncateJson: 700 } : undefined) }, code: 3, db: "untouched", out: [/sent something that is not JSON on \/v2\/fights\//] },
+    { name: "an HTML maintenance page with status 200", o: { fault: (c) => (c.n === 2 ? { raw: "<html><body>Down for maintenance</body></html>" } : undefined) }, code: 3, db: "untouched", out: [/not JSON on \/v2\/fights\/: <html><body>Down for maintenance/] },
+    { name: "an HTML page with status 200 for one fighter", o: { fault: (c) => (fighterN(2)(c) ? { raw: "<html>x</html>" } : undefined) }, code: 3, db: "untouched", out: [/not JSON on \/v2\/fighters\//, /could not be fetched/] },
+    { name: "the body is JSON null", o: { fault: (c) => (c.n === 1 ? { raw: "null", type: "application/json" } : undefined) }, code: 3, db: "untouched", out: [/Boxing Data API.*\/v2\/fights\/.*(unexpected|changed)/i] },
+    { name: "the body is a JSON list instead of the envelope", o: { fault: (c) => (c.n === 1 ? { raw: "[1,2,3]", type: "application/json" } : undefined) }, code: 3, db: "untouched", out: [/Boxing Data API.*\/v2\/fights\/.*(unexpected|changed)/i] },
   ]);
 });
 
@@ -183,28 +184,28 @@ const noList = (c: { path: string }) => c.path === "/v2/fights/" || c.path === "
 
 test("a fight list that comes back empty or null is not a successful update (it would have stamped the data as fresh and changed nothing)", async () => {
   await table([
-    { name: "an empty list on every page", o: { mutate: (c, j) => { if (noList(c)) { j.data = []; j.pagination = { page: 1, total_pages: 1, next_page: null }; } return j; } }, code: 1, db: "untouched", out: [/no usable fights for 2026-09-18 to 2026-10-04/] },
-    { name: "data is null on every page", o: { mutate: (c, j) => { if (noList(c)) j.data = null; return j; } }, code: 1, db: "untouched", out: [/no usable fights for 2026-09-18/] },
-    { name: "data is an object instead of a list", o: { mutate: (c, j) => { if (c.path === "/v2/fights/") j.data = { oops: 1 }; return j; } }, code: 1, db: "untouched", out: [/\/v2\/fights\/.*(not a list|changed|unexpected)/i] },
-    { name: "every fight has lost its fighters (the field was renamed)", o: { mutate: (c, j) => allFights(j, c, (f) => { f.competitors = f.fighters; delete f.fighters; return f; }) }, code: 1, db: "untouched", out: [/no usable fights for 2026-09-18/] },
+    { name: "an empty list on every page", o: { mutate: (c, j) => { if (noList(c)) { j.data = []; j.pagination = { page: 1, total_pages: 1, next_page: null }; } return j; } }, code: 3, db: "untouched", out: [/no usable fights for 2026-09-18 to 2026-10-04/] },
+    { name: "data is null on every page", o: { mutate: (c, j) => { if (noList(c)) j.data = null; return j; } }, code: 3, db: "untouched", out: [/no usable fights for 2026-09-18/] },
+    { name: "data is an object instead of a list", o: { mutate: (c, j) => { if (c.path === "/v2/fights/") j.data = { oops: 1 }; return j; } }, code: 3, db: "untouched", out: [/\/v2\/fights\/.*(not a list|changed|unexpected)/i] },
+    { name: "every fight has lost its fighters (the field was renamed)", o: { mutate: (c, j) => allFights(j, c, (f) => { f.competitors = f.fighters; delete f.fighters; return f; }) }, code: 3, db: "untouched", out: [/no usable fights for 2026-09-18/] },
   ]);
 });
 
 test("a fight or a fighter with a field missing, extra, null or of the wrong type is skipped and counted, or read as far as it can be, never a crash with a stack trace", async () => {
   await table([
-    { name: "an extra field everywhere", o: { mutate: (c, j) => allFights(j, c, (f) => ({ ...f, surprise: { a: 1 }, fighters: { ...f.fighters, fighter_3: null } })) }, code: 0, db: "applied" },
-    { name: "the newest fight has no second fighter", o: { mutate: (c, j) => first(j, c, (f) => { delete f.fighters.fighter_2; }) }, code: 0, db: "changed", out: [/fightsSkippedNoFighter\s+1/], check: (r) => assert.equal(r.after.counts.bouts, base.counts.bouts, "the skipped fight is not in, and nothing else moved") },
-    { name: "the newest fight has no id", o: { mutate: (c, j) => first(j, c, (f) => { delete f.id; }) }, code: 0, db: "changed", out: [/fightsSkippedNoId\s+1/] },
+    { name: "an extra field everywhere (and a night that skipped nothing is silent at the end)", check: (r) => assert.doesNotMatch(r.run.out, /update done, but/), o: { mutate: (c, j) => allFights(j, c, (f) => ({ ...f, surprise: { a: 1 }, fighters: { ...f.fighters, fighter_3: null } })) }, code: 0, db: "applied" },
+    { name: "the newest fight has no second fighter", o: { mutate: (c, j) => first(j, c, (f) => { delete f.fighters.fighter_2; }) }, code: 0, db: "changed", out: [/update done, but 1 fight\(s\) skipped \(a field missing\): see "approximated or skipped" above\./, /fightsSkippedNoFighter\s+1/], check: (r) => assert.equal(r.after.counts.bouts, base.counts.bouts, "the skipped fight is not in, and nothing else moved") },
+    { name: "the newest fight has no id", o: { mutate: (c, j) => first(j, c, (f) => { delete f.id; }) }, code: 0, db: "changed", out: [/update done, but 1 fight\(s\) skipped \(a field missing\)/, /fightsSkippedNoId\s+1/] },
     { name: "fighters is a string", o: { mutate: (c, j) => first(j, c, (f) => { f.fighters = "none"; }) }, code: 0, db: "changed", out: [/fightsSkippedNoFighter\s+1/] },
     { name: "the same fighter on both sides", o: { mutate: (c, j) => first(j, c, (f) => { f.fighters.fighter_2 = { ...f.fighters.fighter_1 }; }) }, code: 0, db: "changed", out: [/fightsSkippedSameFighter\s+1/] },
     { name: "the event's date is a number (the fight's own date is fine)", o: { mutate: (c, j) => first(j, c, (f) => { f.event.date = 20261003; }) }, code: 0, db: "applied" },
     { name: "both dates are numbers", o: { mutate: (c, j) => first(j, c, (f) => { f.event.date = 20261003; f.date = 20261003; }) }, code: 0, db: "changed", out: [/fightsSkippedNoDate\s+1/] },
-    { name: "a fighter id that is a number", o: { mutate: (c, j) => first(j, c, (f) => { f.fighters.fighter_1.fighter_id = 12345; }) }, code: 1, db: "untouched", out: [/404 on \/v2\/fighters\/12345/, /could not be fetched/] },
+    { name: "a fighter id that is a number", o: { mutate: (c, j) => first(j, c, (f) => { f.fighters.fighter_1.fighter_id = 12345; }) }, code: 3, db: "untouched", out: [/404 on \/v2\/fighters\/12345/, /could not be fetched/] },
     { name: "scheduled rounds as text on four fights (a decision's last round is its scheduled rounds, so for a night it reads 10; the next night puts it right)", o: { mutate: (c, j) => onFights(j, c, (f, i) => { if (i >= 1 && i < 4) f.scheduled_rounds = "twelve"; return f; }) }, code: 0, db: "changed", out: [/roundUnreadable\s+3/] },
-    { name: "a fighter with a null name", o: { mutate: (c, j) => onFighter(j, c, 2, (f) => { f.name = null; }) }, code: 1, db: "untouched", out: [/could not be fetched/] },
-    { name: "a fighter whose name is a number", o: { mutate: (c, j) => onFighter(j, c, 2, (f) => { f.name = 42; }) }, code: 1, db: "untouched", out: [/could not be fetched/] },
+    { name: "a fighter with a null name", o: { mutate: (c, j) => onFighter(j, c, 2, (f) => { f.name = null; }) }, code: 3, db: "untouched", out: [/could not be fetched/] },
+    { name: "a fighter whose name is a number", o: { mutate: (c, j) => onFighter(j, c, 2, (f) => { f.name = 42; }) }, code: 3, db: "untouched", out: [/could not be fetched/] },
     { name: "birth year as text, totals as text", o: { mutate: (c, j) => onFighter(j, c, 2, (f) => { f.birth_year = "1990"; f.stats = { wins: "5", losses: "1", draws: "0" }; }) }, code: 0, db: "applied" },
-    { name: "a country nobody has heard of", o: { mutate: (c, j) => onFighter(j, c, 2, (f) => { f.nationality = "Atlantis"; f.nationality_code = "ZZ"; }) }, code: 0, db: "changed", out: [/nationalityUnplaced\s+1/] },
+    { name: "a country nobody has heard of (an approximation, not a skip: no end-of-run summary)", check: (r) => assert.doesNotMatch(r.run.out, /update done, but/), o: { mutate: (c, j) => onFighter(j, c, 2, (f) => { f.nationality = "Atlantis"; f.nationality_code = "ZZ"; }) }, code: 0, db: "changed", out: [/nationalityUnplaced\s+1/] },
     { name: "a division nobody has heard of, on four fights", o: { mutate: (c, j) => onFights(j, c, (f, i) => { if (i < 4) f.division = { name: "Mega Heavy Plus" }; return f; }) }, code: 0, db: "applied", out: [/divisionUnknown\s+4/, /boutDivisionFromFighters\s+4/] },
     { name: "a division nobody has heard of, for a fighter", o: { mutate: (c, j) => onFighter(j, c, 2, (f) => { f.division = { name: "Zorp" }; }) }, code: 0, db: "applied" },
   ]);
@@ -212,7 +213,7 @@ test("a fight or a fighter with a field missing, extra, null or of the wrong typ
 
 test("a result or a status the importer has never seen does not wipe a result that was in the database", async () => {
   await table([
-    { name: "outcome ZZZ on four fights", o: { mutate: (c, j) => onFights(j, c, (f, i) => { if (f.results && i < 4) f.results.outcome = "ZZZ"; return f; }) }, code: 0, db: "changed", out: [/outcomeUnreadable\s+\d/] },
+    { name: "outcome ZZZ on four fights", o: { mutate: (c, j) => onFights(j, c, (f, i) => { if (f.results && i < 4) f.results.outcome = "ZZZ"; return f; }) }, code: 0, db: "changed", out: [/update done, but \d+ result\(s\) kept as unsettled/, /outcomeUnreadable\s+\d/] },
     { name: "status POSTPONED on four finished fights", o: { mutate: (c, j) => onFights(j, c, (f, i) => { if (i < 4) f.status = "POSTPONED"; return f; }) }, code: 0, db: "changed" },
     { name: "results null on every fight of the page", o: { mutate: (c, j) => allFights(j, c, (f) => { f.results = null; return f; }) }, code: 0, db: "changed" },
     { name: "the same fight listed again under another id with the other fighter as winner", o: { mutate: (c, j) => { if (c.path === "/v2/fights/" && c.nth === 1) { const x = j.data.find((f: J) => f.id === "x100"); const w = x.fighters.fighter_1.winner; j.data.push({ ...JSON.parse(JSON.stringify(x)), id: "x100-b", fighters: { fighter_1: { ...x.fighters.fighter_1, winner: !w }, fighter_2: { ...x.fighters.fighter_2, winner: w } } }); } return j; } }, code: 0, db: "changed", out: [/duplicateFightsDisagree\s+1/] },
@@ -224,7 +225,7 @@ test("a fight listed twice, under two ids, or under two fighters: counted once, 
     { name: "the same page entry twice (duplicate ids in one page)", o: { mutate: (c, j) => { if (c.path === "/v2/fights/" && c.nth === 1) j.data = [...j.data, ...j.data.slice(0, 5)]; return j; } }, code: 0, db: "applied" },
     { name: "the same fight id again, with two other fighters", o: { mutate: (c, j) => { if (c.path === "/v2/fights/" && c.nth === 1) { const x = JSON.parse(JSON.stringify(j.data[0])); x.fighters.fighter_1.fighter_id = "f50"; x.fighters.fighter_2.fighter_id = "f51"; j.data.push(x); } return j; } }, code: 0, db: "applied" },
     { name: "the same bout under a second id, same fighters, same winner (two generations of records)", o: { mutate: (c, j) => { if (c.path === "/v2/fights/" && c.nth === 1) j.data.push({ ...JSON.parse(JSON.stringify(j.data[0])), id: "n1-b" }); return j; } }, code: 0, db: "applied", out: [/duplicateFightsMerged\s+1/] },
-    { name: "a fight whose fighter has vanished (404): the run stops, naming the fighter", o: { fault: (c) => (c.path === "/v2/fighters/f33" ? { status: 404, body: { message: "not found" } } : undefined) }, code: 1, db: "untouched", out: [/fighter f33 skipped: Boxing Data API 404/, /could not be fetched/, /--allow-incomplete/] },
+    { name: "a fight whose fighter has vanished (404): the run stops, naming the fighter", o: { fault: (c) => (c.path === "/v2/fighters/f33" ? { status: 404, body: { message: "not found" } } : undefined) }, code: 3, db: "untouched", out: [/fighter f33 skipped: Boxing Data API 404/, /could not be fetched/, /--allow-incomplete/] },
     { name: "the same, with --allow-incomplete: the rest is loaded, nothing is deleted", args: [...UPDATE, "--allow-incomplete"], o: { fault: (c) => (c.path === "/v2/fighters/f33" ? { status: 404, body: { message: "not found" } } : undefined) }, code: 0, db: "changed", out: [/boutsDroppedUnknownFighter\s+\d/] },
   ]);
 });
@@ -235,7 +236,7 @@ test("a fight listed twice, under two ids, or under two fighters: counted once, 
 test("a finished result dated in the future is not shown as a result; negative, absurd, huge and hostile values are cleaned or left out, not stored", async () => {
   const hostile = "Evil\u0000\u0007 \u202efdp.exe\u202c Name\u2066\u200b";
   await table([
-    { name: "a finished fight with a result, dated 2027", o: { mutate: (c, j) => first(j, c, (f) => { f.date = "2027-01-01T02:00:00"; f.event = { ...f.event, date: "2027-01-01T00:00:00" }; f.status = "FINISHED"; f.results = { outcome: "KO", round: 2 }; f.fighters.fighter_1.winner = true; f.fighters.fighter_2.winner = false; }) }, code: 0, db: "changed", out: [/finishedInFuture\s+1/],
+    { name: "a finished fight with a result, dated 2027", o: { mutate: (c, j) => first(j, c, (f) => { f.date = "2027-01-01T02:00:00"; f.event = { ...f.event, date: "2027-01-01T00:00:00" }; f.status = "FINISHED"; f.results = { outcome: "KO", round: 2 }; f.fighters.fighter_1.winner = true; f.fighters.fighter_2.winner = false; }) }, code: 0, db: "changed", out: [/update done, but 1 result\(s\) dropped \(dated in the future\)/, /finishedInFuture\s+1/],
       check: (r) => { const x = new DatabaseSync(r.k.db); try { assert.equal((x.prepare("SELECT COUNT(*) c FROM bouts b JOIN events e ON e.id = b.event_id WHERE e.date > ? AND b.method IS NOT NULL").get(DAY1) as { c: number }).c, 0, "no result for a fight not yet held"); } finally { x.close(); } } },
     { name: "negative career totals are ignored", o: { mutate: (c, j) => onFighter(j, c, 2, (f) => { f.stats.wins = -5; }) }, code: 0, db: "applied" },
     { name: "absurd career totals", o: { mutate: (c, j) => onFighter(j, c, 2, (f) => { f.stats.wins = 9e12; f.stats.total_bouts = 9e12; }) }, code: 0, db: "applied",
@@ -243,7 +244,7 @@ test("a finished result dated in the future is not shown as a result; negative, 
     { name: "a fractional career total", o: { mutate: (c, j) => onFighter(j, c, 2, (f) => { f.stats.wins = 5.5; }) }, code: 0, db: "applied" },
     { name: "negative and absurd height and reach", o: { mutate: (c, j) => onFighter(j, c, 2, (f) => { f.height_cm = -300; f.reach_cm = 1e9; }) }, code: 0, db: "changed",
       check: (r) => { const x = new DatabaseSync(r.k.db); try { assert.ok((x.prepare("SELECT MAX(reach_cm) m FROM boxers").get() as { m: number }).m < 300, "no reach of a million kilometres"); } finally { x.close(); } } },
-    { name: "a billion scheduled rounds and a round 9999", o: { mutate: (c, j) => onFights(j, c, (f, i) => { if (i === 1) f.scheduled_rounds = 1e9; if (i === 2) f.results = { outcome: "KO", round: 9999 }; return f; }) }, code: 0, db: "applied", out: [/roundUnreadable\s+[12]/] },
+    { name: "a billion scheduled rounds and a round 9999", o: { mutate: (c, j) => onFights(j, c, (f, i) => { if (i === 1) f.scheduled_rounds = 1e9; if (i === 2) f.results = { outcome: "KO", round: 9999 }; return f; }) }, code: 0, db: "applied", out: [/update done, but [12] unreadable round count\(s\) read as ten/, /roundUnreadable\s+[12]/] },
     { name: "a fighter's name two million characters long", o: { mutate: (c, j) => onFighter(j, c, 2, (f) => { f.name = "A".repeat(2_000_000); }) }, code: 0, db: "changed",
       check: (r) => { const x = new DatabaseSync(r.k.db); try { assert.ok((x.prepare("SELECT MAX(LENGTH(name)) a FROM boxers").get() as { a: number }).a <= 200, "the name is cut"); } finally { x.close(); } } },
     { name: "control characters and right-to-left overrides in names, nicknames and card titles", o: { mutate: (c, j) => { onFighter(j, c, 2, (f) => { f.name = hostile; }); onFighter(j, c, 3, (f) => { f.name = "محمد علي"; }); return first(j, c, (f) => { f.event.title = "Card \u202eevil\u0000 title"; f.venue = "Arena\u0007"; }); } }, code: 0, db: "changed",
@@ -273,7 +274,7 @@ test("the page limit (10,000 documents) reached silently, and a vendor whose lis
 test("clock skew: a clock a day behind, years behind, years ahead", async () => {
   await table([
     { name: "the machine's date is two days behind the vendor's: the vendor leaves out tonight's fight (it is after the date asked for); the next run, with the right date, adds it", now: "2026-10-02", code: 0, db: "changed", check: (r) => assert.equal(r.after.counts.bouts, base.counts.bouts) },
-    { name: "the machine's date is years behind: nothing is updated, and it says what it saw", now: "2020-01-01", code: 1, db: "untouched", out: [/nothing to update/i] },
+    { name: "the machine's date is years behind: nothing is updated, and it says what it saw", now: "2020-01-01", code: 1, db: "untouched", out: [/nothing to update/i, /newest card in the database is dated 2026-\d\d-\d\d and today is 2020-01-01 on this machine, so the newest card is \d+ day\(s\) in the future/, /Is this machine's clock right\?/] },
     { name: "the machine's date is years ahead: the run goes through, but every fighter is 'inactive' until the next run with the right date", now: "2030-01-01", code: 0, db: "changed" },
   ]);
 });
@@ -341,7 +342,7 @@ test("two overlapping runs: the second is refused with the first one's process i
   const a = start([...UPDATE, "--cache-dir", path.join(k.dir, "cacheA")], env);
   await waitFor(() => lockFiles(k.lockDir).length === 1);
   const b = await start([...UPDATE, "--cache-dir", path.join(k.dir, "cacheB")], env).wait();
-  assert.equal(b.code, 1);
+  assert.equal(b.code, 75, "another run holds the key: EX_TEMPFAIL");
   assert.match(b.out, new RegExp(`Another backfill is already running with this API key \\(process ${a.child.pid}`));
   assert.match(b.out, /share the plan's hourly allowance/);
   assert.equal(state(k.db).hash, base.hash, "the refused run touched nothing, and the first has not written yet");
@@ -514,7 +515,7 @@ test("the running site keeps answering while the update runs (old data, then new
       const down = await serveFaulty(w1, { fault: () => ({ status: 503 }) });
       const f = await start([...UPDATE, "--cache-dir", path.join(work, "cache-site")], { db: site, url: down.url, lockDir: path.join(work, "lock-site") }).wait();
       await down.close();
-      assert.equal(f.code, 1, f.out);
+      assert.equal(f.code, 2, f.out);
     }
     assert.equal(Date.parse(latestUpdate(db)!.at), T0, "failed nights record nothing");
     const probe = (): Parameters<typeof fileFindings>[1] => ({
@@ -565,4 +566,38 @@ test("a machine whose clock was wrong when the update ran (years ahead) cannot h
     assert.deepEqual(f.map((x) => x.level), ["warn"]);
     assert.match(f[0].message, /clock/i);
   } finally { db.close(); fs.rmSync(k.dir, { recursive: true, force: true }); }
+});
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the exit codes, the clock message and the end-of-run summary, as functions (the commands above prove them end to end)
+
+test("exit codes: 2 the vendor is unreachable or refused, 3 a check refused the data, 75 the lock is held, everything else 1", () => {
+  assert.equal(exitCodeFor(new HttpError("Boxing Data API 403 on /v2/fights/: Invalid API key", 403)), 2);
+  assert.equal(exitCodeFor(new NetworkError("unreachable for 10 minute(s)")), 2);
+  assert.equal(exitCodeFor(new BudgetError("Stopped after 5 requests")), 2);
+  assert.equal(exitCodeFor(new Error("Boxing Data API unreachable on /v2/fights/: fetch failed (ECONNREFUSED)")), 2);
+  assert.equal(exitCodeFor(new CheckRefusedError("The validator found 3 error(s)")), 3);
+  for (const m of ["sent something that is not JSON on /v2/fights/: <html>", "sent an unexpected answer on /v2/fights/", "error on /v2/fights/: {}", "changed shape on /v2/fights/", "returned no usable fights for a to b"]) assert.equal(exitCodeFor(new Error(`Boxing Data API ${m}`)), 3, m);
+  assert.equal(exitCodeFor(new LockHeldError("Another backfill is already running")), 75);
+  for (const e of [new Error("There is nothing to update yet"), new Error("Set BOXING_API_KEY"), "a string", null, new TypeError("x is not a function")]) assert.equal(exitCodeFor(e), 1);
+});
+
+test("nothing to update: an empty database says run the backfill; a clock behind the newest card says both dates and asks if the clock is right", () => {
+  const db = new DatabaseSync(":memory:");
+  db.exec("CREATE TABLE events (id INTEGER PRIMARY KEY, date TEXT, status TEXT)");
+  assert.match(describeNothingToUpdate(db, "2026-10-04"), /no completed card\. Run the backfill first/);
+  db.exec("INSERT INTO events (date, status) VALUES ('2026-12-01', 'cancelled')");
+  assert.match(describeNothingToUpdate(db, "2026-10-04"), /no completed card/, "a cancelled card does not count");
+  db.exec("INSERT INTO events (date, status) VALUES ('2026-09-20', NULL)");
+  const m = describeNothingToUpdate(db, "2020-01-01");
+  assert.match(m, /newest card in the database is dated 2026-09-20 and today is 2020-01-01 on this machine, so the newest card is \d+ day\(s\) in the future\. Is this machine's clock right\?/);
+  db.close();
+});
+
+test("the end-of-run summary: one line naming what an update skipped or ignored, nothing when every counter is zero", () => {
+  assert.equal(skippedSummary({}), null);
+  assert.equal(skippedSummary({ fightsSkipped: 0, textCleaned: 0, divisionUnknown: 9, nationalityUnplaced: 4 }), null, "an approximation is not a skip");
+  const line = skippedSummary({ fightsSkipped: 3, fightsSkippedUnreadable: 1, textCleaned: 2, outcomeUnreadable: 4, careerTotalImplausible: 1, finishedInFuture: 1 })!;
+  assert.ok(!line.includes("\n"));
+  for (const re of [/3 fight\(s\) skipped \(a field missing\)/, /1 fight\(s\) skipped as unreadable/, /2 text\(s\) cleaned/, /4 result\(s\) kept as unsettled/, /1 implausible career total/, /1 result\(s\) dropped/, /see "approximated or skipped" above/]) assert.match(line, re);
 });

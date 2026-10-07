@@ -24,9 +24,9 @@ export function PickEm({ bouts }: { bouts: PickBout[] }) {
           {made.length > 0 ? t.rich("you side with the model on <b>{n}</b>", { n: agree, b: (c) => <b className="text-gold">{c}</b> }) : t("picks made")}
         </div>
       </div>
-      <ul className="space-y-3">
+      <ul className="grid gap-x-8 gap-y-3 @[40rem]:grid-cols-2">
         {bouts.map((b) => (
-          <li key={b.id} className="ltr-fixed grid grid-cols-1 items-stretch gap-x-2 gap-y-1 @[17rem]:grid-cols-2">
+          <li key={b.id} className="@container min-w-0"><div className="ltr-fixed grid grid-cols-1 items-stretch gap-x-2 gap-y-1 @[17rem]:grid-cols-2">
             {[{ id: b.redId, n: b.red, c: "#e5322d" }, null, { id: b.blueId, n: b.blue, c: "#4a8cff" }].map((s, i) => s === null ? (
               <span key="vs" className="order-first text-center @[17rem]:col-span-2 text-xs uppercase tracking-widest text-muted">{b.label}</span>
             ) : (
@@ -37,7 +37,7 @@ export function PickEm({ bouts }: { bouts: PickBout[] }) {
                 {b.modelPickId === s.id && <span className="block text-xs text-gold" title={t("Model: {pct}%", { pct: b.modelPct })}>✦ {b.modelPct}%</span>}
               </button>
             ))}
-          </li>
+          </div></li>
         ))}
       </ul>
       <p role="status" aria-live="polite" className="mt-2 text-xs text-red-ink">{problem}</p>
