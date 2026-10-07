@@ -182,6 +182,9 @@ test("real-league names the checker must recognise: a very long event title, a n
   assert.equal(left("ضمن Return of the Legends: Barrera vs.…"), "", "with the ellipsis a cut leaves");
   assert.equal(left("Cao"), "", "a three-letter surname alone"); assert.notEqual(left("the Legends of nothing"), "", "but a real leak that merely resembles the start of a name is still a leak"); assert.notEqual(left("Win"), "", "a three-letter part that is an interface word is not taken as a name");
   assert.equal(left("ضمن Return of the Legends: Barrera vs."), "", "a cut that ends in a word which is also a fighter's surname (Barrera): the cut is read before the surname is taken alone");
+  assert.equal(left("في Art Cen…"), "", "a cut in the middle of a word, marked by the ellipsis it leaves");
+  assert.notEqual(left("in Art Zzz…"), "", "but only when what is left starts a known name");
+  assert.notEqual(left("in Art Cen"), "", "and not without the ellipsis (nothing says it was cut)");
   assert.notEqual(left("ضمن Return of the Legends and more English words"), "", "a long run that goes past the cut name is not hidden");
   // the slips check on an English page: a name that holds 'Infinity' is not a rendering slip, a bare one is
   const route = { path: "/events/1", kind: "page" as const, label: "x" };

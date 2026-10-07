@@ -451,6 +451,16 @@ function knownPrefixes(known: Set<string>): Set<string> {
   return p;
 }
 
+/** The known names in order, so "does some name start with this" is a binary search (used only where the text says it was cut: "…"). */
+const sortedCache = new WeakMap<Set<string>, string[]>();
+function startsSomeName(known: Set<string>, start: string): boolean {
+  let a = sortedCache.get(known);
+  if (!a) { a = [...known].sort(); sortedCache.set(known, a); }
+  let lo = 0, hi = a.length;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (a[mid] < start) lo = mid + 1; else hi = mid; }
+  return lo < a.length && a[lo].startsWith(start);
+}
+
 export function blankKnown(text: string, known: Set<string>): string {
   const words = [...text.matchAll(/\S+/g)].map((m) => ({ w: m[0], at: m.index ?? 0 }));
   const edge = (s: string) => unquote(s.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}.]+$/gu, "").toLowerCase());
@@ -462,6 +472,13 @@ export function blankKnown(text: string, known: Set<string>): string {
   for (let n = Math.min(24, words.length); n >= 3; n--) {
     const phrase = edge(words.slice(words.length - n).map((x) => x.w).join(" ").replace(/[…]+$/u, ""));
     if (prefixes.has(phrase)) { for (let k = words.length - n; k < words.length; k++) keep[k] = false; break; }
+  }
+  // a cut made in the middle of a word ("Auditorio Inam…"): the text says it was cut, and what is left starts a known name
+  if (/…\s*$/u.test(text)) {
+    for (let n = Math.min(24, words.length); n >= 1; n--) {
+      const phrase = edge(words.slice(words.length - n).map((x) => x.w).join(" ").replace(/[…]+$/u, ""));
+      if (phrase.length >= 6 && startsSomeName(known, phrase)) { for (let k = words.length - n; k < words.length; k++) keep[k] = false; break; }
+    }
   }
   for (let i = 0; i < words.length; i++) {
     if (!keep[i]) continue;
