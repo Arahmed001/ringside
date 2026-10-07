@@ -21,6 +21,7 @@ A map of the features added in the first week of October 2026, one line each: wh
 
 | Command | What it does |
 |---|---|
+| `npm run gate` | **everything CI runs before a change reaches main**, in one command: route types, type check, lint, translations, data validation, the tests, the production build, the six smoke runs and the audit of what ships; stops at the first failure and fails unless every smoke run ends "N/N ok". `-- --fresh` runs it in a clean clone of the last commit (a used folder is not a clean checkout); `-- --quick` stops after the build; `-- --keep-going` reports every failure. Use it when CI cannot run (GitHub has twice refused to start the smoke job over billing) |
 | `npm test` | the whole suite (about 35 seconds); safe to run in two terminals at once |
 | `npm run smoke` and its variants | the site, built and served, every page in both languages; CI runs six: default, `--feed sparse`, `--feed empty`, `--facts unknown`, `--feed partial`, `--feed hostile --crawl 60`; `--database FILE` runs it on a real league |
 | `npm run forum:bench` | how fast the forum is with 200,000 posts |
