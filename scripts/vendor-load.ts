@@ -14,7 +14,7 @@ import { cacheState } from "../lib/vendor-status";
 import { DEFAULT_KEY_FILE, defaultCacheDir, readKeyFile } from "../lib/vendor-fetch";
 import { todayIso } from "../lib/clock";
 import { auditDatabase } from "../lib/vendor-audit";
-import { auditStep, isConfirmation, loadPlan } from "../lib/vendor-load";
+import { auditStep, confirmPrompt, existingWarning, isConfirmation, loadPlan } from "../lib/vendor-load";
 
 const argv = process.argv.slice(2);
 const take = (flag: string): string | undefined => { const i = argv.indexOf(flag); if (i < 0) return undefined; const v = argv[i + 1]; argv.splice(i, v === undefined || v.startsWith("--") ? 1 : 2); return v; };
@@ -38,6 +38,8 @@ async function main() {
   const cacheDir = cacheArg ?? defaultCacheDir();
   const c = cacheDir ? cacheState(cacheDir) : null;
   console.log(`vendor:load\n  cache:    ${cacheDir ?? "(the backfill's default)"}${c ? ` (${c.fighters.toLocaleString("en-US")} fighters, ${c.listPages} fight-list pages)` : ""}\n  database: ${plan.database}${fs.existsSync(plan.database) ? "  (exists: a re-load updates it in place; the backfill backs it up first)" : "  (new)"}\n  ${plan.loadArgs.includes("--keep-disputed") ? "disputed: " + plan.disputedFile : "dropped:  " + plan.droppedFile}\n  key:      ${dry ? "(not needed: a dry run reads only the cache and makes no request)" : `${keyFile} (${key!.length} characters)`}\n`);
+  const existed = fs.existsSync(plan.database);
+  if (existed) for (const l of existingWarning(plan.database)) console.log(l);
   // the storage confirmation reaches the backfill only if the owner stated it (the environment or --storage-confirmed): it is never set for them
   const env = { BOXING_API_KEY: key ?? "", DATABASE_PATH: plan.database, ...(plan.refusal ? {} : { BOXING_API_STORAGE_CONFIRMED: "1" }) };
   console.log("step 1: the check (nothing is written to the database)\n");
@@ -48,7 +50,7 @@ async function main() {
   if (checked !== 0 && !argv.includes("--allow-errors")) { console.error(`\nThe check would not allow a load (exit ${checked}); read why above. Nothing was loaded.`); process.exit(checked); }
   if (!yes) {
     if (!process.stdin.isTTY) { console.error("\nThis is not an interactive terminal, so the confirmation cannot be typed. Run it in a terminal tab, or add --yes if you mean it. Nothing was loaded."); process.exit(1); }
-    const a = await ask(`\nType LOAD to write this league into ${plan.database} (anything else cancels): `);
+    const a = await ask(confirmPrompt(plan.database, existed));
     if (!isConfirmation(a)) { console.log("Cancelled. Nothing was loaded."); process.exit(0); }
   }
   console.log("\nstep 2: the load\n");

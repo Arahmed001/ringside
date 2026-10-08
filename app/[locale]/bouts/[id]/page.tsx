@@ -218,7 +218,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
       {punches.length > 0 && (
         <section><SectionTitle eyebrow={t("Fight stats")} title={t("Punch statistics")} /><div className="card p-5"><PunchStats lines={punches} redId={red.id} blueId={blue.id} redName={t.name(red.name)} blueName={t.name(blue.name)} /></div></section>
       )}
-      <section id="discussion" className="scroll-mt-32">
+      <section id="discussion">
         <SectionTitle eyebrow={t("Community")} title={t("Discussion")} href="/forum" cta={t("The general board")} />
         <Discussion target={{ kind: "bout", subject: String(b.id) }} />
       </section>

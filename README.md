@@ -19,9 +19,11 @@ To regenerate the demo data, stop the server, delete `data/`, and start again.
 - `WIKIMEDIA_CONTACT` and `npm run media:resolve`: fetch freely licensed fighter photos from Wikimedia Commons (real fighters only); `-- --entities` does the same for the four sanctioning bodies' belt photos, organisation logos and venue photos, each shown with its credit (`docs/media.md`: no promotion has a free logo, so they keep their name in text). `npm run wikidata:import` stages boxers from Wikidata (CC0); `-- --enrich` links your fighters to them and fills blanks only: birth details, honours, the Arabic name, a nickname and the link to the Wikipedia article. `npm run champions:import` reads Wikipedia's lists of WBA, WBC, IBF and WBO champions into a fighter's title history (`docs/title-reigns.md`).
 
 ## Scripts
-`npm run dev` · `npm run build` · `npm start` · `npm run lint` · `npm test` · `npm run data:check` · `npm run bench -- --scale 5` · `npm run media:resolve` · `npm run smoke` · `npm run wikidata:import` · `npm run champions:import` · `npm run venues:resolve` · `npm run model:fit` · `npm run vendor:sample` · `npm run vendor:backfill` · `npm run vendor:rehearse` · `npm run vendor:explain`
+`npm run dev` · `npm run build` · `npm start` · `npm run lint` · `npm test` · `npm run data:check` · `npm run bench -- --scale 5` · `npm run media:resolve` · `npm run smoke` · `npm run e2e` · `npm run wikidata:import` · `npm run champions:import` · `npm run venues:resolve` · `npm run model:fit` · `npm run vendor:sample` · `npm run vendor:backfill` · `npm run vendor:rehearse` · `npm run vendor:explain`
 
 `npm test` runs the suite (a couple of seconds). `npm run bench -- --scale 20 [--keep]` generates a league 20 times the demo size (about 19,000 fighters and 160,000 bouts), loads it into `data/bench-20.db` and times the data work behind every page; see PLAN.md §10. `npm run data:check -- --file sample.json` validates a vendor sample before you build an adapter for it. CI (`.github/workflows/ci.yml`) runs type check, lint, tests, the data check, a production build and the smoke check (`npm run smoke`, every kind of page in both languages on a real server).
+
+`npm run e2e` is the browser suite (after `npm run build`; about two minutes, not part of `npm test`): sign-up and sign-in, the watchlist, pick'em, search, reporting, the forum and its moderation, account deletion and the keyboard-only behaviour of the palette, the phone menu, the forum form and the preview cards, in English and Arabic at 375 and 1280 px, on a temporary league and accounts file. See `docs/e2e.md`.
 
 See `PLAN.md` §8 for what data exists, the data model, and what each script does.
 
@@ -54,7 +56,7 @@ A grouped left rail on desktop that collapses to icons (the choice is remembered
 `/on-this-day` lists the fights decided and the fighters born on a calendar date (today by default; `?d=MM-DD` for another, with previous / next links and a pointer to the nearest day that has anything), across every year in the database. A crowded day shows title fights and the highest fight scores first, at most three from any one year. Only results on record and exact birth dates are used. `lib/on-this-day.ts`, PLAN.md section 53.
 
 ## Accessibility
-WCAG 2.2 AA is the target in both languages: skip link, visible focus, text colours measured at 4.5:1 or better, no text under 12px, charts that state their numbers, and a list view of the style map. See `docs/accessibility.md` for what was tested and what was not.
+WCAG 2.2 AA is the target in both languages: skip link, visible focus, text colours measured at 4.5:1 or better, no text under 12px, charts that state their numbers, and a list view of the style map. See `docs/accessibility.md` for what was tested and what was not, and `docs/e2e.md` for the keyboard-only browser checks that run with `npm run e2e`.
 
 ## Fight previews
 `/previews` lists the next upcoming events; each bout has a data-built preview (stakes, tape, form, the model's pick and how it could end, factors, what to watch). With `ANTHROPIC_API_KEY` set, an AI-written article replaces the plain text, using only the facts on the page.
