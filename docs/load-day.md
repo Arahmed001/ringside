@@ -90,6 +90,8 @@ Ten fighters you know (record, age, division, last fight); the top of the heavie
 17 6 * * *  cd /path/to/ringside && DATABASE_PATH=$HOME/ringside-real/real.db BOXING_API_STORAGE_CONFIRMED=1 npm run vendor:fetch -- --update >> $HOME/ringside-real/update.log 2>&1
 ```
 
+**No cron that can reach the volume (Render, Fly, Railway)?** Their scheduled jobs cannot open the database, so the job runs inside the one container: `npm run nightly` (a verified backup, this same update, an optional copy off the host, a status file), started each night by an optional built-in scheduler when `NIGHTLY_SCHEDULE=03:30` (UTC) is set. Its exit codes are the table below. See [nightly.md](nightly.md).
+
 It fetches the recent fights and the coming weeks (tens of requests) and reports a career total that trails a result as lagging, not as a conflict. A mark set by the load stays until the next load.
 
 **Exit codes** (of `vendor:fetch`, which passes through those of `vendor:backfill`; a cron job or a monitor can read them):
@@ -100,11 +102,11 @@ It fetches the recent fights and the coming weeks (tens of requests) and reports
 | 1 | Anything else: a missing key, a bad option, the clock message below, a backup folder that cannot be written, a database error such as "disk is full", `--check` that found errors or would refuse a load. | |
 | 2 | The vendor is unreachable or refused. | Network down or connection refused/reset/cut; 401, 403, 404 on the list; 5xx after the retries; 429 (rate limit still in force, or the quota used up); the request budget reached. |
 | 3 | A check refused the data (nothing was written). | The validator found errors; the records gate refused; fights were left out because a fighter could not be fetched; the vendor sent something that is not JSON, an unexpected shape or an error envelope, or no usable fights for the window. |
-| 75 | Another run holds the lock for this key (`EX_TEMPFAIL`: try again later). | A hand run while the nightly job runs. |
+| 75 | Another run holds the lock for this key (`EX_TEMPFAIL`: try again later). | A hand run while the nightly job runs. (`npm run nightly` returns it too, when another nightly job is running.) |
 | 130 | Stopped by SIGINT, SIGTERM or SIGHUP (the backfill catches them, gives the lock back and exits). | A cron timeout, Ctrl-C. |
 | 128 + n | `vendor:fetch` only: its child died by signal number n, which the child could not catch, and `vendor:fetch` says so ("vendor:backfill killed (SIGKILL)." / "stopped (SIGQUIT)."). | 137 for SIGKILL (the out-of-memory killer, `kill -9`), 131 for SIGQUIT. |
 
-`vendor:fetch` passes the backfill's code through unchanged. A cron wrapper can therefore tell the three kinds of failure apart without reading the log (`2` is worth a retry in an hour, `3` needs a look, `75` needs nothing). `vendor:load` passes the code through too.
+`npm run nightly` (the in-container job, [nightly.md](nightly.md)) returns the update's code when the update failed, and 1 when only its backup failed; a failed copy off the host alone is 0 (the status file says `warning`). `vendor:fetch` passes the backfill's code through unchanged. A cron wrapper can therefore tell the three kinds of failure apart without reading the log (`2` is worth a retry in an hour, `3` needs a look, `75` needs nothing). `vendor:load` passes the code through too.
 
 When an update skipped or ignored anything (fights it could not read, text it cleaned, results it kept as unsettled, values that cannot be true), its last line says so in one sentence ("update done, but 1 fight(s) skipped ..., see "approximated or skipped" above."); a clean night has no such line. When there is nothing to update, it says the newest card's date and today's and asks whether this machine's clock is right. What each failure of the nightly job does is in [update-failure-modes.md](update-failure-modes.md).
 

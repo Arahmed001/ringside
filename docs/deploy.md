@@ -28,7 +28,7 @@ docker run -d --name ringside -p 3000:3000 -v ringside-data:/data \
 
 The first start seeds the demo league into an empty database (about 2 seconds) and builds the in-memory world before the server accepts traffic (about 1 second at demo size, about 4 seconds at 160,000 bouts), so nobody waits for it.
 
-`GET /api/health` returns `200 {"status":"ok","fighters":N,"bouts":N,"data":{"updatedAt":…,"ageHours":N,"stale":…}}` when the database is open and the world is built, and `503` otherwise. It reports counts and the age of the data only. `data.stale` is `true` when a licensed feed (`BOXING_PROVIDER=licensed`) has not been updated for more than two days, meaning the daily `vendor:backfill --update` has probably stopped and the site is serving old results; it is `null` for the demo league and a file feed. A stale feed never makes the answer a `503`: it is a reason to look at the cron, not to restart the container, so point an alert at `data.stale`, not at the status code. `npm run doctor` gives the same warning (`stale-data`). The image's `HEALTHCHECK` uses it; point a load balancer at it too.
+`GET /api/health` returns `200 {"status":"ok","fighters":N,"bouts":N,"data":{"updatedAt":…,"ageHours":N,"stale":…}}` (plus `data.nightly` once the optional in-container nightly job has run: its result, times and exit codes, no message or path) when the database is open and the world is built, and `503` otherwise. It reports counts and the age of the data only. `data.stale` is `true` when a licensed feed (`BOXING_PROVIDER=licensed`) has not been updated for more than two days, meaning the daily `vendor:backfill --update` has probably stopped and the site is serving old results; it is `null` for the demo league and a file feed. A stale feed never makes the answer a `503`: it is a reason to look at the cron, not to restart the container, so point an alert at `data.stale`, not at the status code. `npm run doctor` gives the same warning (`stale-data`). The image's `HEALTHCHECK` uses it; point a load balancer at it too.
 
 ## Settings
 
@@ -40,6 +40,7 @@ All optional; see `.env.example` for the full list.
 - `BOXING_PROVIDER`: while it is `demo` the site is `noindex`, so a demo deployment never competes with real sites in search. Set `INDEXABLE=1` only to override that on purpose. Either way the site is indexable only when `SITE_URL` is also a public address (not localhost): without it everything stays `noindex` and no sitemap is served. What was checked before launch: `docs/seo-audit.md`.
 - `ANTHROPIC_API_KEY`, `AI_DAILY_BUDGET`, `AI_CLIENT_LIMIT`, `AI_CLIENT_WINDOW_MS`: the AI features and what visitors can spend. Without a key everything falls back to rules.
 - `DATABASE_PATH`: defaults to `/data/ringside.db` in the image.
+- `NIGHTLY_SCHEDULE`, `NIGHTLY_KEEP`, `NIGHTLY_OFFSITE_CMD`, `NIGHTLY_OFFSITE_TIMEOUT_MIN`, `NIGHTLY_JITTER_MIN`, `NIGHTLY_NODE_OPTIONS`: the optional in-container nightly job (above, and `docs/nightly.md`). Off unless `NIGHTLY_SCHEDULE` is set.
 
 Put the key in your host's secret store, not in the image or the repository.
 
@@ -180,6 +181,10 @@ Build a new image and replace the container with the same volume. The schema mig
 ## Real data
 
 A licensed feed is loaded and kept current by `npm run vendor:backfill` (first load, then a daily `--update`), not by the app: an empty database with `BOXING_PROVIDER=licensed` makes the app refuse to start a paid fetch on a page view. In a container pass `--cache-dir /data/vendor-cache` so the cache lives on the volume. See `docs/real-data-runbook.md`.
+
+### The nightly job inside the container (optional)
+
+If the host's scheduler cannot reach the volume (Render, Fly, Railway), set `NIGHTLY_SCHEDULE=HH:MM` (UTC) and the container's start command (`scripts/docker-entrypoint.sh`) runs a small scheduler beside the site. Each night it runs `npm run nightly` as a child process: a verified backup (the newest `NIGHTLY_KEEP`, default 7, are kept), the daily update with the key from `BOXING_API_KEY`, an optional `NIGHTLY_OFFSITE_CMD` to copy the backup off the host, and `/data/nightly-status.json`. The update runs as its own process with `--max-old-space-size=768` and `MALLOC_ARENA_MAX=2`, so budget about 340 MB on top of the site's 1.4 GB peak ([capacity.md](capacity.md)): 3 to 4 GB of memory is safer than 2. Unset, nothing changes: the start command is exactly `npm start`. Everything about it: [nightly.md](nightly.md).
 
 ## Not covered yet
 

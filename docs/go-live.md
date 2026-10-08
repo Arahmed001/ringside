@@ -93,8 +93,10 @@ The real league is kept current by one nightly job (`vendor:fetch -- --update`, 
 
 So make something look for you. Any uptime monitor that can **alert when a page contains some text** will do (several have a free plan; I have not tried any against your host, so choose one you trust): point it at `https://your-address/api/health` and alert on the text `"stale":true`, and also on the page not answering at all. Send the alert to an address you read daily. The threshold is two days: one missed night leaves the data about a day old and does not alert; a second miss does, as soon as that night's job should have finished.
 
+**If the host has no cron that can reach the data disk** (Render, Fly, Railway), the job runs inside the container: set `NIGHTLY_SCHEDULE=03:30` (UTC) and the key in the service's settings, redeploy, and run `npm run nightly` once by hand in the host's shell to watch the first night ([nightly.md](nightly.md)). `/api/health` then also shows `data.nightly` (its last result and exit codes), and its log lines start `[nightly]`. `"stale"` still decides the alert.
+
 When it fires:
-1. Open the log the job writes to (the `>> .../update.log` in the cron line): its last lines say what stopped it.
+1. Open the log the job writes to (the `>> .../update.log` in the cron line, or the container log lines that start `[nightly]`): its last lines say what stopped it.
 2. Run the update by hand, once, with the same command, and watch it. A wrong or lapsed key, or the hourly limit, says so in plain words.
 3. Open `/api/health` again: `"stale":false` and a new `updatedAt` mean it is fixed.
 4. If you cannot tell, paste the whole output of step 2 to me.
