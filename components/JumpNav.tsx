@@ -3,7 +3,7 @@ import { getT } from "@/lib/i18n/server";
 /**
  * A strip of links to the sections of a long page, fixed under the top bar while the page scrolls (round 123). Plain anchors: they work without scripts, the address records
  * where you jumped, and nothing runs while the page scrolls (DESIGN.md: no scroll-driven behaviour, which is why the current section is not highlighted). On a narrow screen the
- * strip scrolls sideways. `sections` lists only the sections the page actually has, in page order; each needs an element with that `id` (and `scroll-mt-*` so the strip does not cover it).
+ * strip scrolls sideways. `sections` lists only the sections the page actually has, in page order; each needs an element with that `id` (the page's `scroll-padding-top`, in globals.css, keeps the strip from covering it).
  */
 export async function JumpNav({ sections }: { sections: readonly { id: string; label: string }[] }) {
   const t = await getT();
