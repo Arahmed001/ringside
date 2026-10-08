@@ -213,6 +213,20 @@ export async function listBoxerIds(limit = Infinity, pageSize = 5000): Promise<s
   return ids;
 }
 
+/** Runs one query per chunk; if the query service gives up on a chunk, retries it as two halves (down to a single boxer) instead of failing the run. */
+async function inHalves<T>(chunk: string[], run: (c: string[]) => Promise<Map<string, T>>, log: (m: string) => void = () => {}): Promise<Map<string, T>> {
+  try {
+    return await run(chunk);
+  } catch (e) {
+    if (chunk.length <= 1) throw e;
+    log(`query failed for ${chunk.length} boxers (${e instanceof Error ? e.message : e}); retrying as two halves`);
+    const mid = Math.ceil(chunk.length / 2);
+    const out = await inHalves(chunk.slice(0, mid), run, log);
+    for (const [k, v] of await inHalves(chunk.slice(mid), run, log)) out.set(k, v);
+    return out;
+  }
+}
+
 export interface ImportSummary { listed: number; stored: number; batches: number; skipped: number }
 export interface ImportOptions {
   limit?: number;
@@ -242,7 +256,7 @@ export async function importWikidata(db: DatabaseSync, opts: ImportOptions = {})
     let stored = 0, batches = 0;
     for (let i = 0; i < todo.length; i += batch) {
       const chunk = todo.slice(i, i + batch);
-      const more = parseExtras(await sparql(extrasQuery(chunk)));
+      const more = await inHalves(chunk, async (c) => parseExtras(await sparql(extrasQuery(c))), log);
       const now = new Date().toISOString();
       db.exec("BEGIN");
       for (const q of chunk) { store(more.get(q) ?? empty(q), now); stored++; }
@@ -267,8 +281,8 @@ export async function importWikidata(db: DatabaseSync, opts: ImportOptions = {})
   let stored = 0, batches = 0;
   for (let i = 0; i < ids.length; i += batch) {
     const chunk = ids.slice(i, i + batch);
-    const parsed = parseBindings(await sparql(batchQuery(chunk)));
-    const more = extras ? parseExtras(await sparql(extrasQuery(chunk))) : new Map<string, WikidataExtras>();
+    const parsed = await inHalves(chunk, async (c) => parseBindings(await sparql(batchQuery(c))), log);
+    const more = extras ? await inHalves(chunk, async (c) => parseExtras(await sparql(extrasQuery(c))), log) : new Map<string, WikidataExtras>();
     const now = new Date().toISOString();
     db.exec("BEGIN");
     for (const b of parsed.values()) {
