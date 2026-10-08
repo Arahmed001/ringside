@@ -15,7 +15,9 @@ Words used here:
 
 Have not chosen a host yet? [host-guide.md](host-guide.md) compares four options against these requirements and gives first-deployment steps for each.
 
-The host also needs to put the site on `https://` for you (most do). It must pass on the visitor's real address; deploy.md has the technical wording if your host asks.
+The host also needs to put the site on `https://` for you (most do). It must pass on the visitor's real address; deploy.md has the technical wording if your host asks (the proxy in front must overwrite `X-Forwarded-For`, not append to it).
+
+If you put a CDN in front: let it cache the static files, images, portraits and sitemaps. The pages are sent "do not cache" on purpose, and a CDN will not keep them; making them cacheable without weakening the security policy needs an edge that writes a fresh value into each page it serves, and that is your decision, not a setting (`docs/cdn.md` says what was found, which routes could be cached and which never may be).
 
 ## 1. Decide, once, and write it down
 
