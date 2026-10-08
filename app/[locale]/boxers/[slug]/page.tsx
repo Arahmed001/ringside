@@ -31,6 +31,8 @@ import { FighterPrintSheet, type PrintRow } from "@/components/FighterPrintSheet
 import { BoutLine, BoxerCard, ResultPill, SectionTitle, Stat } from "@/components/ui";
 import { JumpNav } from "@/components/JumpNav";
 import { Discussion } from "@/components/Discussion";
+import { NewsList } from "@/components/NewsList";
+import { newsForFighter } from "@/lib/news/read";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
@@ -96,6 +98,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const div = divisionInfo(b.weightClass)!;
   const a = archetype(b);
   const similar = similarTo(b, w, 4);
+  const news = await newsForFighter(w, b.id);
   const divBoxers = w.boxers.filter((x) => x.sex === b.sex && x.weightClass === b.weightClass && x.bouts >= 5);
   const norm = (v: number, arr: number[]) => { if (!arr.length) return 0.5; const mn = Math.min(...arr), mx = Math.max(...arr); return mx === mn ? 0.5 : (v - mn) / (mx - mn); };
   const radar = [
@@ -236,7 +239,7 @@ const HONOURS_SHOWN = 8;
         ...(numbers && numbers.fights >= 5 ? [{ id: "numbers", label: t("By the numbers") }] : []),
         ...(hasHighlights ? [{ id: "highlights", label: t("Career highlights") }] : []),
         { id: "profile", label: t("Profile") }, { id: "scouting", label: t("Scouting report") }, { id: "form", label: t("Rating history") },
-        { id: "similar", label: t("Style similarity") }, { id: "record", label: t("Fight record") }, { id: "discussion", label: t("Discussion") },
+        { id: "similar", label: t("Style similarity") }, ...(news.length ? [{ id: "news", label: t("In the news") }] : []), { id: "record", label: t("Fight record") }, { id: "discussion", label: t("Discussion") },
       ]} />
 
       {numbers && numbers.fights >= 5 && (
@@ -416,6 +419,13 @@ const HONOURS_SHOWN = 8;
           ))}
         </div>
       </section>
+
+      {news.length > 0 && (
+        <section id="news">
+          <SectionTitle eyebrow={t("In the news")} title={t("Headlines from boxing outlets")} href="/news" cta={t("All headlines")} />
+          <NewsList items={news} t={t} />
+        </section>
+      )}
 
       <section id="record">
         <SectionTitle eyebrow={t("Fight record")} title={t.n(completed.length, "{n} bout", "{n} bouts")} />
