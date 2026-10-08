@@ -87,7 +87,7 @@ export async function BoutLine({ bout, focusId, context, event }: { bout: BoutRo
       cells={<>
         <td className="py-2.5 pe-3 tabular text-muted max-sm:w-[4.5rem] sm:whitespace-nowrap">{fmtDate(bout.date, { month: "short", year: "numeric", day: "numeric" }, t.locale)}</td>
         <td className="pe-3">{bout.method ? <Link href={`/bouts/${bout.id}`} title={t("Full bout details")}><ResultPill r={r} /></Link> : <Link href={`/bouts/${bout.id}`} className={`chip ${bout.status === "cancelled" ? "!border-red/40 !text-red-ink" : ""}`}>{bout.status === "cancelled" ? t("Cancelled") : t("TBA")}</Link>}</td>
-        <td className="pe-3"><Link href={`/boxers/${opp.s}`} className="hover:text-gold">{t.name(opp.n)}</Link>{context && <div className="tabular text-xs text-muted">{context}</div>}<div className="text-xs text-muted sm:hidden">{t.name(bout.eventName)}{bout.title ? ` · ${t.name(bout.title)}` : ""}</div></td>
+        <td className="pe-3"><Link href={`/boxers/${opp.s}`} className="hover:text-gold">{t.name(opp.n)}</Link>{context && <div className="tabular text-xs text-muted">{context}</div>}</td>
         <td className="whitespace-nowrap pe-3 tabular text-muted">{methodLabel(bout.method, bout.endRound, t)}</td>
         <td className="hidden pe-3 text-muted sm:table-cell"><Link href={`/events/${bout.eventId}`} className="hover:text-ink">{t.name(bout.eventName)}</Link></td>
         <td className="hidden pe-3 text-end text-xs text-gold md:table-cell">{bout.title ? t.name(bout.title) : ""}</td>
