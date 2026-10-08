@@ -79,8 +79,6 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   // counted from every fight, so only for a career held whole (from part of one these would be wrong in a way that reads as right)
   const careerStripOf = career.source !== "loaded" ? careerStrip({ dates: completed.map((x) => x.date), total: career.total, turnedPro: b.turnedPro, debutDate: b.debutDate }) : null;
   const numbers = career.source === "loaded" ? numbersOf(bouts, b.id, (id) => w.eventById.get(id)) : null;
-  const ape = reachIndex(b, divBoxers);
-  const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `\u2212${-n}` : "0");
   const duration = (days: number) => (days >= 730 ? t("{n} years", { n: (days / 365.25).toFixed(1) }) : days >= 60 ? t("{n} months", { n: Math.round(days / 30.4) }) : t.n(days, "{n} day", "{n} days"));
   const hl = (id: number) => { const x = w.boutById.get(id); return x ? fmtDate(x.date, { month: "short", year: "numeric" }, t.locale) : ""; };
   const hasHighlights = !!(highlights.bestWin || highlights.biggestUpset || highlights.longestStreak);
@@ -100,6 +98,8 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const a = archetype(b);
   const similar = similarTo(b, w, 4);
   const divBoxers = w.boxers.filter((x) => x.sex === b.sex && x.weightClass === b.weightClass && x.bouts >= 5);
+  const ape = reachIndex(b, divBoxers);
+  const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `\u2212${-n}` : "0");
   const norm = (v: number, arr: number[]) => { if (!arr.length) return 0.5; const mn = Math.min(...arr), mx = Math.max(...arr); return mx === mn ? 0.5 : (v - mn) / (mx - mn); };
   const radar = [
     { label: t("Power"), v: norm(b.koRate, divBoxers.map((x) => x.koRate)) },
