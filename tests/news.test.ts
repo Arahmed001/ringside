@@ -5,7 +5,7 @@ import { parseFeed, cleanUrl, plain, MAX_TITLE, MAX_SNIPPET } from "../lib/news/
 import { refreshNews } from "../lib/news/fetch";
 import { latest, prune, saveEntries } from "../lib/news/store";
 import { fightersIn, newsByFighter } from "../lib/news/match";
-import { NEWS_SOURCES, sourcesFor } from "../lib/news/sources";
+import { ALL_SOURCES, NEWS_SOURCES, VIDEO_SOURCES, sourcesFor, videoIdOf, isVideoSource } from "../lib/news/sources";
 import type { World } from "../lib/world";
 
 const RSS = `<?xml version="1.0"?><rss version="2.0"><channel><title>x</title>
@@ -100,7 +100,7 @@ test("a headline is credited to a fighter only by a whole name that is one fight
 
 test("the sources: every feed is https, noncommercial feeds are read only when the owner says the site earns nothing", () => {
   for (const s of NEWS_SOURCES) { assert.match(s.feed, /^https:\/\//, s.id); assert.ok(s.note.length > 10, `${s.id} says why it is allowed`); }
-  assert.ok(sourcesFor(false).every((s) => s.use === "open")); assert.equal(sourcesFor(true).length, NEWS_SOURCES.length);
+  assert.ok(sourcesFor(false).every((s) => s.use === "open")); assert.equal(sourcesFor(true).length, ALL_SOURCES.length);
   assert.ok(NEWS_SOURCES.some((s) => s.use === "noncommercial") && NEWS_SOURCES.some((s) => s.use === "open"));
 });
 
@@ -119,4 +119,48 @@ test("a Wayback copy is kept only if the Archive reports one, on archive.org ove
   const limited = (async () => new Response("", { status: 429 })) as unknown as typeof fetch;
   const d2 = mkDb(); saveEntries(d2, "t1", [{ guid: "z", title: "Z", url: "https://example.org/z", published: null, snippet: "" }]);
   assert.deepEqual(await findArchives(d2, { ...o, fetchImpl: limited }), { checked: 1, found: 0 }); assert.equal((d2.prepare("SELECT archive_checked_at c FROM news_items").get() as { c: string | null }).c, null, "a request to slow down is not recorded as an answer");
+});
+
+test("official videos: every channel is a YouTube channel id that says so, a video id is eleven safe characters of a youtube.com watch address, and nothing else is played", () => {
+  assert.ok(VIDEO_SOURCES.length >= 8);
+  for (const s of VIDEO_SOURCES) { assert.match(s.feed, /^uploads:UC[A-Za-z0-9_-]{22}$/, s.id); assert.equal(s.kind, "video"); assert.ok(isVideoSource(s.id)); assert.equal(s.use, "open"); }
+  assert.ok(NEWS_SOURCES.every((s) => !isVideoSource(s.id)) && new Set(ALL_SOURCES.map((s) => s.id)).size === ALL_SOURCES.length, "ids are distinct and news is never a video");
+  assert.equal(videoIdOf("https://www.youtube.com/watch?v=OZWT2969oBU"), "OZWT2969oBU");
+  for (const bad of ["https://evil.example/watch?v=OZWT2969oBU", "https://www.youtube.com/watch?v=short", "https://www.youtube.com/watch?v=OZWT2969oBU\"onload=1", "javascript:alert(1)", "https://www.youtube.com/watch", ""]) assert.equal(videoIdOf(bad), null, bad);
+  const e = parseFeed(`<feed xmlns:yt="x" xmlns="http://www.w3.org/2005/Atom"><entry><id>yt:video:OZWT2969oBU</id><yt:videoId>OZWT2969oBU</yt:videoId><title>An inside look | On The Ground</title><link rel="alternate" href="https://www.youtube.com/watch?v=OZWT2969oBU"/><published>2026-10-08T20:11:00+00:00</published><media:group><media:title>x</media:title><media:description>A long description that is not kept</media:description></media:group></entry></feed>`)[0];
+  assert.deepEqual([e.title, e.url, e.snippet, e.guid], ["An inside look | On The Ground", "https://www.youtube.com/watch?v=OZWT2969oBU", "", "yt:video:OZWT2969oBU"], "the channel's own description is not kept");
+});
+
+import fs from "node:fs";
+import { contentSecurityPolicy } from "../lib/security";
+test("the only frame a page may hold is YouTube's privacy-enhanced player, the player loads nothing until play, and the embeds for other sites hold no frame", () => {
+  const csp = contentSecurityPolicy({ nonce: "abc" }), emb = contentSecurityPolicy({ nonce: "abc", embed: true });
+  assert.match(csp, /frame-src https:\/\/www\.youtube-nocookie\.com(;|$)/); assert.match(emb, /frame-src 'none'/); assert.match(csp, /frame-ancestors 'none'/);
+  const c = fs.readFileSync("components/VideoList.tsx", "utf8");
+  assert.match(c, /youtube-nocookie\.com\/embed\//); assert.ok(!/youtube\.com\/embed|ytimg|i\.ytimg|<img|<script/.test(c), "no picture, script or ordinary youtube.com frame");
+  assert.match(c, /open === v\.videoId \? \(/, "the frame exists only after the visitor opens that video"); assert.match(c, /sandbox=/);
+});
+
+import { entriesFrom, refreshVideos } from "../lib/news/youtube";
+test("the YouTube list: only a real video's title, date and watch address are kept; without a key nothing is read; the key is never stored, logged or shown", async () => {
+  const body = { items: [
+    { snippet: { title: "Fundora camp | On The Ground", publishedAt: "2026-10-08T20:11:00Z", resourceId: { videoId: "OZWT2969oBU" }, description: "never kept", thumbnails: { default: { url: "https://i.ytimg.com/x.jpg" } } } },
+    { snippet: { title: "Private video", publishedAt: "2026-10-08T20:11:00Z", resourceId: { videoId: "AAAAAAAAAAA" } } },
+    { snippet: { title: "Bad id", publishedAt: "2026-10-08T20:11:00Z", resourceId: { videoId: "x\"onload=1" } } },
+    { snippet: { title: "<b>Tagged</b> &amp; title", publishedAt: "2099-01-01T00:00:00Z", resourceId: { videoId: "BBBBBBBBBBB" } } }, null, { snippet: {} },
+  ] };
+  const e = entriesFrom(body);
+  assert.deepEqual(e.map((x) => [x.title, x.url, x.published === null]), [["Fundora camp | On The Ground", "https://www.youtube.com/watch?v=OZWT2969oBU", false], ["Tagged & title", "https://www.youtube.com/watch?v=BBBBBBBBBBB", true]], "private videos, bad ids and empty items are dropped; a future date is not trusted");
+  assert.ok(e.every((x) => x.snippet === ""), "no description kept");
+  const db = mkDb(); const urls: string[] = [];
+  const none = await refreshVideos(db, { key: undefined, contact: "me@example.org", sources: VIDEO_SOURCES.slice(0, 2), fetchImpl: (async (u: string) => { urls.push(u); return Response.json(body); }) as unknown as typeof fetch });
+  assert.deepEqual(none.map((o) => o.status), ["no YOUTUBE_API_KEY", "no YOUTUBE_API_KEY"]); assert.equal(urls.length, 0, "no key, no request");
+  const logs: string[] = [];
+  const ok = await refreshVideos(db, { key: "SECRETKEY123", contact: "me@example.org", sources: VIDEO_SOURCES.slice(0, 2), delayMs: 0, sleep: async () => {}, log: (l) => logs.push(l), fetchImpl: (async (u: string) => { urls.push(u); return Response.json(body); }) as unknown as typeof fetch });
+  assert.deepEqual(ok.map((o) => o.added), [2, 2]); assert.match(urls[0], /playlistId=UU[A-Za-z0-9_-]{22}&key=SECRETKEY123$/, "the uploads playlist of the channel; the key goes to Google only");
+  assert.ok(!JSON.stringify(db.prepare("SELECT * FROM news_items").all()).includes("SECRETKEY123") && !logs.join().includes("SECRETKEY123"), "the key is neither stored nor logged");
+  const boom = await refreshVideos(mkDb(), { key: "SECRETKEY123", contact: "me@example.org", sources: VIDEO_SOURCES.slice(0, 1), fetchImpl: (async (u: string) => { throw new Error(`failed ${u}`); }) as unknown as typeof fetch });
+  assert.ok(!boom[0].status.includes("SECRETKEY123") && /\[key\]/.test(boom[0].status), "an error message does not carry the key");
+  const quota = await refreshVideos(mkDb(), { key: "k", contact: "me@example.org", sources: VIDEO_SOURCES.slice(0, 3), delayMs: 0, sleep: async () => {}, fetchImpl: (async () => new Response("", { status: 403 })) as unknown as typeof fetch });
+  assert.equal(quota.length, 1, "a refused key or used-up quota stops the rest");
 });

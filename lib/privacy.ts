@@ -32,6 +32,11 @@ export const HELD: Record<string, { columns: string[]; what: string }> = {
   audit: { columns: ["id", "at", "actor", "action", "target", "detail"], what: msg("a log of account and review actions (sign-ups, password changes, decisions on proposals and reports), naming the people involved") },
 };
 
+/** Outside services a visitor's browser contacts ONLY after the visitor presses a button (nothing is requested while the page is just open), and what that service can then see. */
+export const CLICK_TO_LOAD: { host: string; what: string }[] = [
+  { host: "www.youtube-nocookie.com", what: msg("YouTube’s video player (Google), when you press play on an official video: it can then see your network address, your browser and that you played that video") },
+];
+
 /** Every place that sends text to the model provider when a key is configured, and exactly what is in it. A test fails if `claude(` is called anywhere else. */
 export const AI_USES: { files: string[]; what: string }[] = [
   { files: ["lib/ai.ts"], what: msg("the words you type into the fighter search, so they can be turned into filters; and a scouting report, built from a fighter’s record") },

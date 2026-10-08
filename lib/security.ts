@@ -28,6 +28,8 @@ export function contentSecurityPolicy({ nonce, dev = false, https = false, embed
     ["object-src", "'none'"],
     ["base-uri", "'self'"],
     ["form-action", "'self'"],
+    // the only frame a page here may hold: YouTube's privacy-enhanced player, which a visitor opens by pressing play (components/VideoList.tsx); the embeds for other sites hold none
+    ["frame-src", embed ? "'none'" : "https://www.youtube-nocookie.com"],
     ["frame-ancestors", embed ? "*" : "'none'"],
     ["manifest-src", "'self'"],
   ].map(([k, v]) => `${k} ${v}`);

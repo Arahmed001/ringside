@@ -6262,6 +6262,13 @@
   ]
  },
  {
+  "key": "From the promoters' and networks' own channels",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/news/page.tsx"
+  ]
+ },
+ {
   "key": "From the top eight available fighters in each division (active, not already booked, not training partners). One best fight per division; the strongest eight overall are shown. It is a model’s view, not a promoter’s.",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
@@ -6563,6 +6570,12 @@
   "key": "Headlines from boxing outlets. Each one links to the original story on the outlet's own site; we show only the headline and the short excerpt the outlet itself publishes.",
   "files": [
    "app/[locale]/news/page.tsx"
+  ]
+ },
+ {
+  "key": "Headlines from other outlets are links: your browser contacts an outlet only if you follow one.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -9171,6 +9184,14 @@
   ]
  },
  {
+  "key": "Official videos",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/events/[id]/page.tsx",
+   "app/[locale]/news/page.tsx"
+  ]
+ },
+ {
   "key": "Official weight",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -9766,6 +9787,12 @@
   "files": [
    "components/Discussion.tsx",
    "components/StartThread.tsx"
+  ]
+ },
+ {
+  "key": "Play the video",
+  "files": [
+   "components/Videos.tsx"
   ]
  },
  {
@@ -11646,6 +11673,12 @@
  },
  {
   "key": "Some fighter photos and event posters are loaded from other websites:",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "Some things are contacted only if you press a button for them; while the page is just open nothing is requested from them:",
   "files": [
    "app/[locale]/privacy/page.tsx"
   ]
@@ -14265,6 +14298,12 @@
   ]
  },
  {
+  "key": "Videos about this card",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "View all",
   "files": [
    "components/ui.tsx"
@@ -14357,6 +14396,12 @@
   "key": "warning",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Watch on YouTube",
+  "files": [
+   "components/Videos.tsx"
   ]
  },
  {
@@ -15637,6 +15682,12 @@
   "key": "Your watchlist is saved to your account.",
   "files": [
    "components/WatchlistPage.tsx"
+  ]
+ },
+ {
+  "key": "YouTube’s video player (Google), when you press play on an official video: it can then see your network address, your browser and that you played that video",
+  "files": [
+   "lib/privacy.ts"
   ]
  }
 ]

@@ -33,3 +33,22 @@ Each headline gets a link to a Wayback Machine copy when the Internet Archive ha
 ## What the visitor sees and sends
 
 Links open the outlet's own page in a new tab with `noopener noreferrer nofollow`. Nothing is loaded from an outlet's site when a page is viewed: no image, script or frame. The privacy page needs no change.
+
+## Official videos
+
+The same refresh lists the newest uploads of eight official channels (DAZN Boxing, Matchroom, Top Rank, Queensberry, Sky Sports Boxing, ProBox TV, Premier Boxing Champions, Golden Boy) and shows the ones that name a fighter on that fighter's page and on the card's page, and the newest twelve on `/news`.
+
+**A key of your own is needed.** YouTube's `robots.txt` closes its RSS feeds to bots, so the channels are read with YouTube's Data API, which is free (10,000 units a day; a refresh uses 8):
+
+1. In the [Google Cloud console](https://console.cloud.google.com/) create a project, enable "YouTube Data API v3", and under Credentials create an API key. Restrict it to that API.
+2. `export YOUTUBE_API_KEY=...` (a secret: never commit it) and run `npm run news:refresh`.
+
+Without the key the videos are skipped and the headlines still refresh. The key goes to Google only; it is never stored, logged or shown (an error message has it replaced with `[key]`).
+
+**What is kept:** the video's title, date and watch address, never the description or the picture.
+
+**How it plays:** the page shows the channel, the title and a "Play the video" button, and nothing else. No request goes to YouTube or Google while the page is just open (no picture, no script, no frame; checked in a real browser: zero requests before the press, then YouTube's privacy-enhanced player, `youtube-nocookie.com`, in a sandboxed frame). The content security policy allows that one frame source and no other, and the privacy page says what YouTube can see after a press of play.
+
+## Social posts (X, Instagram): not built
+
+Their embeds need a script from the platform on the page, and neither lets a site discover a fighter's posts without a paid or approved API key. The honest way is a short list, kept by an editor, of specific posts by verified accounts, each opened by a click like the videos. It is a possible later round; nothing of it is in the code.

@@ -17,7 +17,8 @@ test("the production policy lets only nonced scripts run and nothing be framed, 
   assert.ok(!csp.includes("upgrade-insecure-requests"), "only over https");
   assert.ok(contentSecurityPolicy({ nonce: "n", https: true }).includes("upgrade-insecure-requests"));
   assert.ok(!/ws:/.test(csp), "no websockets in production");
-  assert.ok(!/(?:script|style|font|frame|connect)-src[^;]*https:/.test(csp.replace(/img-src[^;]*/, "")), "no third-party script, style, font, frame or connection is allowed");
+  assert.ok(!/(?:script|style|font|connect)-src[^;]*https:/.test(csp.replace(/img-src[^;]*/, "")), "no third-party script, style, font or connection is allowed");
+  assert.equal(directive(csp, "frame-src"), "frame-src https://www.youtube-nocookie.com", "the only frame: YouTube's privacy-enhanced player, opened by a press of play");
 });
 
 test("development loosens exactly what Next's tooling needs", () => {

@@ -1,5 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import type { NewsEntry } from "./parse";
+import { isVideoSource } from "./sources";
 
 /** One stored headline. */
 export interface NewsItem { id: number; source: string; title: string; url: string; published: string | null; snippet: string; archiveUrl: string | null }
@@ -25,7 +26,8 @@ type Row = { id: number; source: string; title: string; url: string; published: 
 const toItem = (r: Row): NewsItem => ({ id: r.id, source: r.source, title: r.title, url: r.url, published: r.published, snippet: r.snippet ?? "", archiveUrl: r.archive_url });
 
 /** Newest first. A database without the table (an old one, or the demo) has no news. */
-export function latest(db: DatabaseSync, limit = 200, source?: string): NewsItem[] {
+export function latest(db: DatabaseSync, limit = 200, source?: string, kind?: "news" | "video"): NewsItem[] {
+  if (kind) return latest(db, limit * 3, source).filter((n) => isVideoSource(n.source) === (kind === "video")).slice(0, limit);
   try {
     const rows = source
       ? db.prepare("SELECT * FROM news_items WHERE source = ? ORDER BY COALESCE(published, fetched_at) DESC, id DESC LIMIT ?").all(source, limit)

@@ -3,7 +3,8 @@ import { NewsList } from "@/components/NewsList";
 import { SectionTitle } from "@/components/ui";
 import { getT } from "@/lib/i18n/server";
 import { metaFor } from "@/lib/seo-server";
-import { recentNews } from "@/lib/news/read";
+import { recentNews, recentVideos } from "@/lib/news/read";
+import { Videos } from "@/components/Videos";
 import { NEWS_SOURCES } from "@/lib/news/sources";
 
 // Other outlets' headlines: a page of links to their work, not content of ours, so it is kept out of search results.
@@ -18,6 +19,7 @@ export default async function News({ searchParams }: { searchParams: Promise<{ s
   const all = await recentNews();
   const held = [...new Set(all.map((n) => n.source))];
   const only = source && held.includes(source) ? source : undefined;
+  const videos = (await recentVideos()).slice(0, 12);
   const items = (only ? all.filter((n) => n.source === only) : all).slice(0, 60);
   return (
     <div className="space-y-8">
@@ -32,6 +34,7 @@ export default async function News({ searchParams }: { searchParams: Promise<{ s
           {held.map((id) => <Link key={id} href={`/news?source=${id}`} aria-current={only === id ? "page" : undefined} className={`chip ${only === id ? "text-ink" : ""}`}><span lang="en" dir="ltr">{NEWS_SOURCES.find((s) => s.id === id)?.name ?? id}</span></Link>)}
         </nav>
       )}
+      {videos.length > 0 && <section><SectionTitle eyebrow={t("Official videos")} title={t("From the promoters' and networks' own channels")} /><Videos items={videos} t={t} /></section>}
       {items.length ? <section><SectionTitle eyebrow={t("Latest")} title={t.n(items.length, "{n} headline", "{n} headlines")} /><NewsList items={items} t={t} /></section>
         : <div className="card p-6 text-muted">{t("No headlines yet. They appear once the site's news refresh has run.")}</div>}
     </div>
