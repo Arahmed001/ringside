@@ -102,11 +102,11 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const divBoxers = w.boxers.filter((x) => x.sex === b.sex && x.weightClass === b.weightClass && x.bouts >= 5);
   const norm = (v: number, arr: number[]) => { if (!arr.length) return 0.5; const mn = Math.min(...arr), mx = Math.max(...arr); return mx === mn ? 0.5 : (v - mn) / (mx - mn); };
   const radar = [
-    { label: t("Power"), v: norm(b.koRate, divBoxers.map((x) => x.koRate)) },
-    { label: t("Winning"), v: norm(b.winRate, divBoxers.map((x) => x.winRate)) },
-    { label: t("Durability"), v: 1 - norm(b.bouts ? b.koLosses / b.bouts : 0, divBoxers.map((x) => (x.bouts ? x.koLosses / x.bouts : 0))) },
+    { label: t("KO rate"), v: norm(b.koRate, divBoxers.map((x) => x.koRate)) },
+    { label: t("Win rate"), v: norm(b.winRate, divBoxers.map((x) => x.winRate)) },
+    { label: t("Stoppage resistance"), v: 1 - norm(b.bouts ? b.koLosses / b.bouts : 0, divBoxers.map((x) => (x.bouts ? x.koLosses / x.bouts : 0))) },
     ...(isKnown(b.reachCm) ? [{ label: t("Reach"), v: norm(b.reachCm, divBoxers.map((x) => x.reachCm).filter(isKnown)) }] : []), // an unknown reach is left off the chart, not drawn as short
-    { label: t("Experience"), v: norm(b.bouts, divBoxers.map((x) => x.bouts)) },
+    { label: t("Fights"), v: norm(b.bouts, divBoxers.map((x) => x.bouts)) },
     { label: t("Rating"), v: norm(b.rating, divBoxers.map((x) => x.rating)) },
   ];
   const methods = { KO: 0, Decision: 0, Other: 0 };

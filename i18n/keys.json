@@ -4867,13 +4867,6 @@
   ]
  },
  {
-  "key": "Durability",
-  "files": [
-   "app/[locale]/boxers/[slug]/page.tsx",
-   "app/[locale]/compare/page.tsx"
-  ]
- },
- {
   "key": "e.g. <x>{example}</x>",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -5421,13 +5414,6 @@
   ]
  },
  {
-  "key": "Experience",
-  "files": [
-   "app/[locale]/boxers/[slug]/page.tsx",
-   "app/[locale]/compare/page.tsx"
-  ]
- },
- {
   "key": "Experience (log fights)",
   "files": [
    "lib/fit.ts"
@@ -5935,6 +5921,8 @@
   "key": "Fights",
   "files": [
    "app/[locale]/accountability/page.tsx",
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/compare/page.tsx",
    "app/[locale]/upset-watch/page.tsx",
    "lib/ask/tools.ts",
    "lib/nav.ts",
@@ -7222,6 +7210,7 @@
   "key": "KO rate",
   "files": [
    "app/[locale]/boxers/[slug]/opengraph-image.tsx",
+   "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/compare/page.tsx",
    "lib/ask/tools.ts",
    "lib/i18n/dynamic-keys.ts"
@@ -9850,13 +9839,6 @@
   ]
  },
  {
-  "key": "Power",
-  "files": [
-   "app/[locale]/boxers/[slug]/page.tsx",
-   "app/[locale]/compare/page.tsx"
-  ]
- },
- {
   "key": "Power punches",
   "files": [
    "components/PunchStats.tsx"
@@ -11923,6 +11905,13 @@
   "key": "Stoppage rate",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Stoppage resistance",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/compare/page.tsx"
   ]
  },
  {
@@ -14962,6 +14951,13 @@
   ]
  },
  {
+  "key": "Win rate",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
   "key": "Win rate by how much heavier (or lighter) a fighter was than his opponent at the pre-fight check. The dashed line is 50%.",
   "files": [
    "app/[locale]/weights/page.tsx"
@@ -15013,13 +15009,6 @@
   "key": "Winners",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
-  ]
- },
- {
-  "key": "Winning",
-  "files": [
-   "app/[locale]/boxers/[slug]/page.tsx",
-   "app/[locale]/compare/page.tsx"
   ]
  },
  {
