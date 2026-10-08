@@ -298,7 +298,7 @@ export function submitReport(user: User, p: ReportInput, main: DatabaseSync, acc
   if (open >= MAX_OPEN_PER_USER) return { ok: false, error: "too_many_open" };
   const dup = x.kind === "about_me"
     ? acc.prepare("SELECT 1 y FROM reports WHERE status = 'open' AND kind = 'about_me' AND user_id = ? AND target_ext = ?").get(user.id, x.targetExt)
-    : acc.prepare("SELECT 1 y FROM reports WHERE status = 'open' AND kind = 'error' AND target_type = ? AND target_ext = ? AND field = ? AND COALESCE(proposed_value, '') = ?").get(x.targetType, x.targetExt, x.field, x.proposed ?? "");
+    : acc.prepare("SELECT 1 y FROM reports WHERE status = 'open' AND kind = 'error' AND target_type = ? AND target_ext = ? AND field = ? AND COALESCE(proposed_value, '') = ? AND (field <> 'other' OR COALESCE(note, '') = ?)").get(x.targetType, x.targetExt, x.field, x.proposed ?? "", x.note ?? ""); // a free-text report ("other") has no value to compare: it is the same report only if it says the same words
   if (dup) return { ok: false, error: "duplicate_open" };
   const r = acc.prepare(`INSERT INTO reports (user_id, kind, target_type, target_ext, field, shown_value, proposed_value, source_url, quote, note, contact, created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?) RETURNING id`)
     .get(user.id, x.kind, x.targetType, x.targetExt, x.field, x.shown, x.proposed, x.sourceUrl, x.quote, x.note, x.contact, nowIso()) as { id: number };

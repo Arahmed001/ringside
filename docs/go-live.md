@@ -15,7 +15,11 @@ Words used here:
 1. It can run a Docker container and give it a permanent disk (a volume) mounted at `/data`.
 2. It runs **exactly one copy** of the site. Two copies would each keep their own data and drift apart.
 
-The host also needs to put the site on `https://` for you (most do). It must pass on the visitor's real address; deploy.md has the technical wording if your host asks.
+Have not chosen a host yet? [host-guide.md](host-guide.md) compares four options against these requirements and gives first-deployment steps for each.
+
+The host also needs to put the site on `https://` for you (most do). It must pass on the visitor's real address; deploy.md has the technical wording if your host asks (the proxy in front must overwrite `X-Forwarded-For`, not append to it).
+
+If you put a CDN in front: let it cache the static files, images, portraits and sitemaps. The pages are sent "do not cache" on purpose, and a CDN will not keep them; making them cacheable without weakening the security policy needs an edge that writes a fresh value into each page it serves, and that is your decision, not a setting (`docs/cdn.md` says what was found, which routes could be cached and which never may be).
 
 ## 1. Decide, once, and write it down
 
@@ -95,8 +99,10 @@ The real league is kept current by one nightly job (`vendor:fetch -- --update`, 
 
 So make something look for you. Any uptime monitor that can **alert when a page contains some text** will do (several have a free plan; I have not tried any against your host, so choose one you trust): point it at `https://your-address/api/health` and alert on the text `"stale":true`, and also on the page not answering at all. Send the alert to an address you read daily. The threshold is two days: one missed night leaves the data about a day old and does not alert; a second miss does, as soon as that night's job should have finished.
 
+**If the host has no cron that can reach the data disk** (Render, Fly, Railway), the job runs inside the container: set `NIGHTLY_SCHEDULE=03:30` (UTC) and the key in the service's settings, redeploy, and run `npm run nightly` once by hand in the host's shell to watch the first night ([nightly.md](nightly.md)). `/api/health` then also shows `data.nightly` (its last result and exit codes), and its log lines start `[nightly]`. `"stale"` still decides the alert.
+
 When it fires:
-1. Open the log the job writes to (the `>> .../update.log` in the cron line): its last lines say what stopped it.
+1. Open the log the job writes to (the `>> .../update.log` in the cron line, or the container log lines that start `[nightly]`): its last lines say what stopped it.
 2. Run the update by hand, once, with the same command, and watch it. A wrong or lapsed key, or the hourly limit, says so in plain words.
 3. Open `/api/health` again: `"stale":false` and a new `updatedAt` mean it is fixed.
 4. If you cannot tell, paste the whole output of step 2 to me.
@@ -106,3 +112,7 @@ If you would rather not use a monitor yet: put a weekly reminder in your calenda
 ## What I (Claude) can and cannot do for you here
 
 I can write, test and prepare the code, and walk you through each step above. I cannot log in to your host, and I will not guess at it. For steps 2 to 4 you do the clicking and typing, and tell me what you see after each one.
+
+## Keeping your data in spreadsheets
+
+If your fighters, events and fights live in Excel or Google Sheets, `docs/spreadsheet-loading.md` shows how to turn them into the file the site loads, with plain-English error messages.

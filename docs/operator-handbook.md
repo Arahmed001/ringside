@@ -55,7 +55,7 @@ Where the first load happens: today's documents describe the first load on **you
 
 | When | What happens | Detail |
 |---|---|---|
-| **Before launch** | Choose a host. Subscribe to the vendor's full-history plan. Send the vendor questions (rankings, other sites using the data) and read the answers. Have the Terms, Privacy and forum rules read by someone who can advise on the law. Pick `SITE_URL` and a role mailbox for `SITE_CONTACT`. | `docs/host-guide.md` (pull request 165), [deploy.md](deploy.md), [boxing-data-api-vendor-email.md](boxing-data-api-vendor-email.md), [rankings-decision.md](rankings-decision.md), [launch-pages.md](launch-pages.md), [forum.md](forum.md) |
+| **Before launch** | Choose a host. Subscribe to the vendor's full-history plan. Send the vendor questions (rankings, other sites using the data) and read the answers. Have the Terms, Privacy and forum rules read by someone who can advise on the law. Pick `SITE_URL` and a role mailbox for `SITE_CONTACT`. | [host-guide.md](host-guide.md), [deploy.md](deploy.md), [boxing-data-api-vendor-email.md](boxing-data-api-vendor-email.md), [rankings-decision.md](rankings-decision.md), [launch-pages.md](launch-pages.md), [forum.md](forum.md) |
 | **Load day** (days of fetching, then an hour of checking) | Save the key. Fetch the league at the plan's pace. Dry-run the load, load it, audit it, look at it. Add Arabic names and photos. Check ten fighters you know. | [load-day.md](load-day.md), [real-data-runbook.md](real-data-runbook.md) |
 | **Launch day** | Back up. Put the version on the host with the real settings. Run the checks. Run the doctor. Turn on the monitor. Schedule the nightly update and the backups. | [go-live.md](go-live.md) sections 2 to 4 and 6 |
 | **First week** | Look at the health check every day. Confirm the nightly job ran on three nights in a row. Confirm a backup reached somewhere that is not the host. Rehearse a restore (dry run). Make at least one editor. Read the first reports. | [update-failure-modes.md](update-failure-modes.md), [go-live.md](go-live.md) section 5, [forum.md](forum.md) |
@@ -70,7 +70,7 @@ Tick each box only when it is true, not when it is planned.
 
 **Host and address**
 
-- [ ] A host is chosen and written down (name, login). It gives a permanent disk at `/data`, runs exactly one copy, has 2 GB of memory and 2 processor cores, and puts the site on https. Choosing: `docs/host-guide.md` (pull request 165). The decision is section 5, decision 3.
+- [ ] A host is chosen and written down (name, login). It gives a permanent disk at `/data`, runs exactly one copy, has 2 GB of memory and 2 processor cores, and puts the site on https. Choosing: [host-guide.md](host-guide.md). The decision is section 5, decision 3.
 - [ ] The host's front door overwrites `X-Forwarded-For` with the visitor's address and the container's own port is not open to the internet. Why: the sign-in and AI limits are keyed on that address. [deploy.md](deploy.md), "Putting it on the internet".
 - [ ] `SITE_URL` is the public https address, with nothing after the host name (for example `https://ringside.example`).
 - [ ] `SITE_CONTACT` is a shared mailbox you read daily (for example `corrections@...`), never a personal one. It is printed on the Data and Report pages.
@@ -356,7 +356,7 @@ The site needs about 0.7 GB at start, 1.1 to 1.2 GB under load and about 1.4 GB 
 - A restart makes the health check fail for 12 to 16 seconds, so do not restart "to be safe".
 - The fix is a bigger plan. Ask Claude to measure on the real host.
 
-Detail: [capacity.md](capacity.md), `docs/host-guide.md` (pull request 165).
+Detail: [capacity.md](capacity.md), [host-guide.md](host-guide.md).
 
 ### 4.10 The AI key runs out or is wrong
 
@@ -417,8 +417,8 @@ Read from the documents. Each says what is open, which document explains it, and
 |---|---|---|---|
 | 1 | **The official rankings.** May the site store and show the IBF, WBA, WBC and WBO lists, and with what credit? The email is a draft that was not sent as of 2026-10-05. | [rankings-decision.md](rankings-decision.md), [boxing-data-api-vendor-email.md](boxing-data-api-vendor-email.md) | The lists stay off. The site shows only Ringside's own rating ranking, labelled unofficial. Nothing is broken. |
 | 2 | **The legal reading** of Terms, Privacy and the forum rules, and the Terms line about forum posts. | [launch-pages.md](launch-pages.md), [forum.md](forum.md), [forum-security-review.md](forum-security-review.md) | The drafts stay as they are. They are plain-language drafts, not legal advice. |
-| 3 | **The host** (Fly.io, Render, Railway or a plain server), size, address and who runs it. The requirement list and four options are in the host guide (pull request 165). | `docs/host-guide.md`, [deploy.md](deploy.md), [go-live.md](go-live.md) | There is no public site. The project has never been deployed to any host. |
-| 4 | **A CDN, and the edge worker option.** A CDN cannot cache the pages under the present security policy. The safe route (a small program at the edge that writes a fresh value into each page) needs a vendor and tests; the weaker policy is not recommended. Pull request 166. | `docs/cdn.md`, [security.md](security.md), [capacity.md](capacity.md) "What to put in front" | Pages are not cached. One instance serves about 15 requests a second on one core, 21 on two, roughly 380 to 530 people reading at once. A CDN is used only for static files, images and sitemaps. |
+| 3 | **The host** (Fly.io, Render, Railway or a plain server), size, address and who runs it. The requirement list and four options are in the host guide. | [host-guide.md](host-guide.md), [deploy.md](deploy.md), [go-live.md](go-live.md) | There is no public site. The project has never been deployed to any host. |
+| 4 | **A CDN, and the edge worker option.** A CDN cannot cache the pages under the present security policy. The safe route (a small program at the edge that writes a fresh value into each page) needs a vendor and tests; the weaker policy is not recommended. Pull request 166. | [cdn.md](cdn.md), [security.md](security.md), [capacity.md](capacity.md) "What to put in front" | Pages are not cached. One instance serves about 15 requests a second on one core, 21 on two, roughly 380 to 530 people reading at once. A CDN is used only for static files, images and sitemaps. |
 | 5 | **The Arabic review.** A native speaker has not checked the site. You de-prioritised it. | [arabic-review.md](arabic-review.md), [arabic-reviewer-brief.md](arabic-reviewer-brief.md) | The Arabic stays machine-written and the Data page says how much is reviewed. |
 | 6 | **Privacy wording and removal requests.** Three stances (corrections only; corrections plus personal details removed on request; full removal) and the Arabic of the Privacy page. Decided 2026-10-06: removal is not advertised and the Terms say each request "is considered". | [launch-pages.md](launch-pages.md), [forum-security-review.md](forum-security-review.md) item H | Corrections only, in practice, and no promised outcome. Nothing is built to hide one fighter's details. |
 | 7 | **How the loaded database gets onto the host.** The first load is described on your computer; the public site runs on the host. No document says how `real.db` becomes the host's `ringside.db`, or whether to load on the host itself. | Section 8 below, [load-day.md](load-day.md), [real-data-runbook.md](real-data-runbook.md) | The host would start with the fictional demo league. Ask Claude to write and test the steps for the host you choose before launch day. |
@@ -459,6 +459,12 @@ Set in the host's settings (secrets screen for the secret ones), then restart. `
 | `BOXING_FILE` | Path of the JSON file when `BOXING_PROVIDER=file`. | none | no |
 | `BOXING_API_KEY` | The vendor's RapidAPI key. Lets a load or the nightly update run. On a laptop `vendor:fetch` reads it from the key file instead. | none | **yes** |
 | `BOXING_API_URL` | The vendor's address. Change only if told to. | `https://boxing-data-api.p.rapidapi.com` | no |
+| `NIGHTLY_SCHEDULE` | Turns on the built-in nightly job inside the container: a time of day `HH:MM`, in UTC (for example `03:30`). It runs `npm run nightly` (a verified backup, the update, an optional copy off the host) once a day with a few minutes of random delay. See [nightly.md](nightly.md). | off (not set; no nightly job runs unless your host runs one) | no |
+| `NIGHTLY_KEEP` | How many of the nightly job's dated backups to keep; older ones it made are removed after a new one verifies. | `7` | no |
+| `NIGHTLY_OFFSITE_CMD` | A command of yours that copies the newest backup off the host; it receives the backup folder as its first argument and a failure never stops the update. The image has no `rclone`, `scp`, `rsync` or `curl`: you add what it needs. | none | no (but the command may use your own credentials: keep them out of the command text) |
+| `NIGHTLY_OFFSITE_TIMEOUT_MIN` | Minutes the off-host copy may run before it is stopped. | `30` | no |
+| `NIGHTLY_JITTER_MIN` | The most random minutes added to the scheduled time (0 to 60). | `5` | no |
+| `NIGHTLY_NODE_OPTIONS` | Node settings for the update process the nightly job starts (its memory cap). Raise it if the update runs out of memory on a bigger league. | `--max-old-space-size=768` | no |
 | `BOXING_API_STORAGE_CONFIRMED` | Statement flag: the vendor said in writing that we may store its data. `1` yes; `0` refuse to store; unset provisional. | unset (provisional; every run says so) | no |
 | `BOXING_API_MAX_REQUESTS` | Cap on vendor requests for one ingest run. (`vendor:backfill` has its own `--max-requests`, default 100,000.) | 90 | no |
 | `BOXING_API_PER_HOUR` | The plan's hourly limit, with a margin, so a long fetch spaces its requests (Mega allows 500). | unset; use 450 on Mega | no |
@@ -515,4 +521,4 @@ Reading ten-odd documents against the code found these. **Fixed in the same chan
 2. No drafted vendor email asks whether other sites may receive its data (`PUBLIC_API`). The drafted email covers rankings, field values, scorecards and the hourly limit only.
 3. The vendor email on rankings is a draft, "Not sent as of this commit" (2026-10-05). `boxing-data-api-enquiry.md` still carries an older, superseded hourly-limit draft.
 4. There is no operator command to remove one wrong photo or to hide one fighter's personal details.
-5. `docs/host-guide.md` and `docs/cdn.md` are in open pull requests 165 and 166. This page names them in plain text because they are not on `main` yet; once they are merged, turn the names into links.
+5. `docs/host-guide.md`, `docs/cdn.md`, `docs/nightly.md` and `docs/hosting-options.md` are all on `main` now and linked from this page. `hosting-options.md` (written in parallel) says the nightly job is `npm run data:ingest`; for the real vendor data it is the update in [nightly.md](nightly.md) and [load-day.md](load-day.md) step 8, and where a price differs between the two host pages the provider's own page wins.

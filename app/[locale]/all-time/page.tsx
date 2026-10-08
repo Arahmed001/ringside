@@ -43,7 +43,7 @@ export default async function AllTime({ searchParams }: { searchParams: Promise<
       </nav>
 
       {GROUPS.map((g) => (
-        <section key={g} id={`group-${g}`} className="scroll-mt-20">
+        <section key={g} id={`group-${g}`}>
           <SectionTitle eyebrow={t("Top 5 of each")} title={t(GROUP_TITLE[g])} />
           <div className="grid gap-4 lg:grid-cols-2">
             {LISTS.filter((l) => l.group === g).map((l) => {

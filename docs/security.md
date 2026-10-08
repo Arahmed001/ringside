@@ -28,6 +28,7 @@ Two concessions, stated plainly: `style-src-attr 'unsafe-inline'`, because chart
 - No `onclick="..."` strings or `javascript:` links; use React handlers.
 - A new third-party origin (analytics, an embed, a font host) needs a deliberate change to `lib/security.ts` and a line in this file saying why. Nothing third-party is loaded today.
 - Pages must stay dynamically rendered (the root layout is `force-dynamic`): a nonce cannot be baked into a page at build time.
+- A hash-based policy (so a CDN could cache pages) was evaluated in round 131 and **not adopted**: Next 16.3.8 puts each page's data in an inline script that differs per page, a hash of it can only be computed from the rendered page, and a policy built that way would also approve a script injected into that page. The policy above is unchanged; the findings and the safe alternative (a fresh nonce written by the edge) are in `docs/cdn.md`.
 
 ## How it is checked
 

@@ -41,10 +41,20 @@ export function backupDatabases(opts: { root: string; files: BackupFile[]; keep?
   for (const f of opts.extra ?? []) if (fs.existsSync(f.path)) fs.copyFileSync(f.path, path.join(dir, path.basename(f.path)));
   const manifest = fs.readdirSync(dir).filter((n) => n !== MANIFEST).sort().map((n) => `${sha256File(path.join(dir, n))}  ${n}`);
   fs.writeFileSync(path.join(dir, MANIFEST), manifest.join("\n") + "\n", { mode: 0o600 });
-  const keep = Math.max(1, opts.keep ?? DEFAULT_BACKUPS_KEPT);
-  const old = fs.readdirSync(opts.root).filter((n) => STAMP.test(n) && fs.statSync(path.join(opts.root, n)).isDirectory()).sort();
-  for (const n of old.slice(0, Math.max(0, old.length - keep))) { fs.rmSync(path.join(opts.root, n), { recursive: true, force: true }); result.pruned.push(n); }
+  result.pruned = pruneBackups(opts.root, opts.keep ?? DEFAULT_BACKUPS_KEPT);
   return result;
+}
+
+/**
+ * Removes the oldest dated backup folders beyond `keep` (at least 1) and returns their names. Only directories named like a backup this tool writes are ever
+ * touched: `before-restore/` (the safety copies a restore makes), a folder someone made by hand and loose files all stay. Pass `Infinity` to prune nothing.
+ */
+export function pruneBackups(root: string, keep: number): string[] {
+  const k = Math.max(1, keep);
+  const old = fs.readdirSync(root).filter((n) => STAMP.test(n) && fs.statSync(path.join(root, n)).isDirectory()).sort();
+  const gone: string[] = [];
+  for (const n of old.slice(0, Math.max(0, old.length - k))) { fs.rmSync(path.join(root, n), { recursive: true, force: true }); gone.push(n); }
+  return gone;
 }
 
 /** Opens every database in a backup folder and checks it: the tables are there and `integrity_check` says ok. Returns problems (empty = good). */
