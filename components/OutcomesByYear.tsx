@@ -7,8 +7,8 @@ const SEGMENTS = [
   { key: "ko", label: msg("Won by stoppage"), cls: "bg-red" },
   { key: "decision", label: msg("Won on the scorecards"), cls: "bg-gold" },
   { key: "otherWin", label: msg("Won otherwise"), cls: "bg-muted" },
-  { key: "draw", label: msg("Drew"), cls: "bg-ink/40" },
-  { key: "loss", label: msg("Lost"), cls: "bg-line" },
+  { key: "draw", label: msg("Drew"), cls: "bg-muted/60" },
+  { key: "loss", label: msg("Lost"), cls: "border border-red-ink/70" },
 ] as const;
 
 /** How each year's fights ended, as stacked columns drawn in plain CSS: one column a year, one block a fight. The same figures are in the words under the chart for a reader who cannot see it. */
