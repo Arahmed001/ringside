@@ -544,7 +544,7 @@ test("saved responses can be replayed with no requests: the same league comes ou
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test("a fighter with no division in the feed takes the division of their most recent fight, counted; one with no fights stays unknown for the validator to report", () => {
+test("a fighter with no division in the feed takes the division of their most recent fight, counted; one whose fights name none takes the division of the opponents (counted); one with no fights stays unknown for the validator to report", () => {
   const n = notes();
   const loose = ["a", "b", "c", "d"].map((id) => B.mapFighter(fighter(id, id.toUpperCase(), id === "d" ? { division: { name: "Cruiserweight" } } : { division: null }), n)!);
   assert.ok(loose.slice(0, 3).every((r) => r.weightClass === "Unknown"), "the feed gave none");
@@ -553,10 +553,10 @@ test("a fighter with no division in the feed takes the division of their most re
   const dates = new Map([["e1", "2025-01-01"], ["e2", "2026-05-01"]]);
   const out = Object.fromEntries(B.finishBoxers(loose, bouts, dates, n).map((r) => [r.name, r]));
   assert.equal(out.A.weightClass, "Super Middleweight", "the most recent fight's class, not the first");
-  assert.equal(out.B.weightClass, "Unknown", "its only fight has an unrecognised class: nothing to go on");
+  assert.equal(out.B.weightClass, "Cruiserweight", "its only fight has an unrecognised class, so it takes its opponent's division (round 134)");
   assert.equal(out.C.weightClass, "Unknown", "no fights at all");
   assert.equal(out.D.weightClass, "Cruiserweight", "a division the feed gave is kept");
-  assert.equal(n.divisionFromFight, 1);
+  assert.equal(n.divisionFromFight, 1); assert.equal(n.divisionFromOpponents, 1);
   const { issues } = sanitizeFeed({ ...emptyFeed(), boxers: [out.A, out.D], events: [{ externalId: "e1", name: "x", date: "2025-01-01", venue: "v", city: "c", country: "k" }, { externalId: "e2", name: "y", date: "2026-05-01", venue: "v", city: "c", country: "k" }], bouts: bouts.slice(0, 2) }, { today: "2026-10-03" });
   assert.deepEqual(issues.filter((i) => i.code === "unknown_division"), [], "the validator no longer rejects the fighter");
 });
@@ -843,4 +843,16 @@ test("a card's country is spelled as a fighter's nationality is, the home nation
   ]) assert.equal(country(loc), want, loc);
   assert.equal(country("Greenville, SC"), "SC", "a two-letter state code is not a country (it was Seychelles)");
   assert.equal(country("Las Vegas, Nevada, United States"), "United States");
+});
+
+test("a fighter whose fights and profile name no division takes the division most of the opponents fight in, the heavier on a tie, and stays unplaced when no opponent has one (round 134)", () => {
+  const n = notes();
+  const loose = ["x", "y", "z", "m", "w", "h"].map((id) => B.mapFighter(fighter(id, id.toUpperCase(), id === "m" ? { division: { name: "Middleweight" } } : id === "w" ? { division: { name: "Welterweight" } } : id === "h" ? { division: { name: "Heavyweight" } } : { division: null }), n)!);
+  const mk = (id: string, red: string, blue: string) => ({ externalId: id, eventExternalId: "e1", redExternalId: `bda-f-${red}`, blueExternalId: `bda-f-${blue}`, weightClass: "Catchweight", rounds: 12, winnerExternalId: null, method: null, endRound: null, title: null, position: 0 }) as unknown as import("../lib/providers/types").ProviderBout;
+  const bouts = [mk("1", "x", "m"), mk("2", "x", "m"), mk("3", "x", "w"), mk("4", "y", "m"), mk("5", "y", "w"), mk("6", "z", "y")];
+  const out = Object.fromEntries(B.finishBoxers(loose, bouts, new Map([["e1", "2025-01-01"]]), n).map((r) => [r.name, r.weightClass]));
+  assert.equal(out.X, "Middleweight", "two of three opponents");
+  assert.equal(out.Y, "Middleweight", "a tie: the heavier");
+  assert.equal(out.Z, "Unknown", "its only opponent had no division of his own (a neighbour's guess is not passed on)");
+  assert.equal(n.divisionFromOpponents, 2);
 });

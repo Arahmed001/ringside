@@ -98,12 +98,12 @@ export const divisionOf = (raw: string): string | null => normalizeDivision(raw)
 
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
-  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "cancelledFights" | "resultMissingOld" | "cancelledCardsLeftOut" | "amateurBoutsSkipped" | "nationalityFromCode" | "nationalityUnplaced" | "titleBodyUnknown" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter" | "duplicateFightsMerged" | "duplicateFightsDisagree" | "duplicateFightsAcrossProfiles" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
+  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "cancelledFights" | "resultMissingOld" | "cancelledCardsLeftOut" | "amateurBoutsSkipped" | "nationalityFromCode" | "nationalityUnplaced" | "titleBodyUnknown" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter" | "duplicateFightsMerged" | "duplicateFightsDisagree" | "duplicateFightsAcrossProfiles" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "divisionFromOpponents" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
   | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsHeldBack" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "outcomeMapped" | "outcomeUnreadable" | "roundUnreadable" | "bothMarkedWinner" | "eventsWithoutFights" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig" | "textCleaned" | "statusUnknown" | "finishedInFuture" | "fightsSkippedUnreadable" | "careerTotalImplausible" | "physicalsImplausible",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsHeldBack: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, cancelledFights: 0, resultMissingOld: 0, cancelledCardsLeftOut: 0, amateurBoutsSkipped: 0, nationalityFromCode: 0, nationalityUnplaced: 0, titleBodyUnknown: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, fightsSkippedNoId: 0, fightsSkippedNoFighter: 0, fightsSkippedNoDate: 0, fightsSkippedSameFighter: 0, duplicateFightsMerged: 0, duplicateFightsDisagree: 0, duplicateFightsAcrossProfiles: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
+  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsHeldBack: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, cancelledFights: 0, resultMissingOld: 0, cancelledCardsLeftOut: 0, amateurBoutsSkipped: 0, nationalityFromCode: 0, nationalityUnplaced: 0, titleBodyUnknown: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, fightsSkippedNoId: 0, fightsSkippedNoFighter: 0, fightsSkippedNoDate: 0, fightsSkippedSameFighter: 0, duplicateFightsMerged: 0, duplicateFightsDisagree: 0, duplicateFightsAcrossProfiles: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, divisionFromOpponents: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, textCleaned: 0, statusUnknown: 0, finishedInFuture: 0, fightsSkippedUnreadable: 0, careerTotalImplausible: 0, physicalsImplausible: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, outcomeMapped: 0, outcomeUnreadable: 0, roundUnreadable: 0, bothMarkedWinner: 0, eventsWithoutFights: 0, windowTooBig: 0,
 });
 
@@ -394,6 +394,24 @@ export function finishBoxers(rows: Loose[], bouts: ProviderBout[], eventDates: M
     notes.divisionFromFight++;
     return { ...r, weightClass: lastClass.get(r.externalId)! };
   });
+  // a fighter still without one (his fights name no division either: 2,569 fighters and 3,183 fights of the first full load were dropped for it, and every opponent lost a fight from his
+  // record) takes the division most of his opponents fight in; the heavier of two equally common ones. An approximation, counted; a fighter whose opponents have none stays unplaced
+  const order = new Map(DIVISIONS.map((d, i) => [d.name, i] as const));
+  const known = new Map(rows.map((r) => [r.externalId, normalizeDivision(r.weightClass)] as const));
+  const votes = new Map<string, Map<string, number>>();
+  for (const b of bouts) for (const [me, opp] of [[b.redExternalId, b.blueExternalId], [b.blueExternalId, b.redExternalId]]) {
+    if (known.get(me)) continue;
+    const c = known.get(opp);
+    if (!c) continue;
+    const v = votes.get(me) ?? new Map<string, number>(); v.set(c, (v.get(c) ?? 0) + 1); votes.set(me, v);
+  }
+  rows = rows.map((r) => {
+    const v = votes.get(r.externalId);
+    if (known.get(r.externalId) || !v) return r;
+    const best = [...v].sort((x, y) => y[1] - x[1] || (order.get(y[0]) ?? 0) - (order.get(x[0]) ?? 0))[0][0];
+    notes.divisionFromOpponents++;
+    return { ...r, weightClass: best };
+  });
   const cutoff = new Date(nowMs() - 30 * 30.4 * 86400000).toISOString().slice(0, 10);
   return rows.map((r) => ({ ...r, active: (last.get(r.externalId) ?? "") >= cutoff }));
 }
@@ -409,9 +427,11 @@ const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * 86400
  * The two generations of records sometimes name two PROFILES of the same opponent (Mayweather against "Canelo Alvarez" under two fighter ids, a day apart), so the
  * pair is the two fighters' NAMES where `names` knows them (normalised: case, accents and spacing ignored), and their ids where it does not.
  */
+/** Letters that do not come apart by accent (Michał / Michal, Głowacki / Glowacki: 13 fights of the first full load were listed twice under the two spellings of one fighter). */
+const STROKED: Record<string, string> = { ł: "l", đ: "d", ð: "d", ø: "o", ı: "i", æ: "ae", œ: "oe", ß: "ss", þ: "th" };
 export function mergeDuplicateFights(bouts: ProviderBout[], eventDates: Map<string, string>, notes: Notes, names?: Map<string, string>): ProviderBout[] {
   const groups = new Map<string, number[]>();
-  const who = (id: string) => { const n = names?.get(id); return n ? n.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() || id : id; };
+  const who = (id: string) => { const n = names?.get(id); return n ? n.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[łđðøıæœßþ]/g, (c) => STROKED[c]).replace(/[^a-z0-9]+/g, " ").trim() || id : id; };
   const idPair = (b: ProviderBout) => [b.redExternalId, b.blueExternalId].sort().join("|");
   bouts.forEach((b, i) => { if (b.status !== "cancelled") { const k = [who(b.redExternalId), who(b.blueExternalId)].sort().join("|"); (groups.get(k) ?? groups.set(k, []).get(k)!).push(i); } });
   const drop = new Set<number>(), blank = new Set<number>();

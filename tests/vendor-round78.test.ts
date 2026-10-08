@@ -130,3 +130,11 @@ test("the same fight under two PROFILES of the same opponent, a day apart, is on
   assert.equal(B.mergeDuplicateFights([bout("a", "M", "C1", "e1"), bout("b", "C1", "M", "e2", { winnerExternalId: "M" })], dates, n3, names).length, 1);
   assert.equal(n3.duplicateFightsAcrossProfiles, 0);
 });
+
+test("one fighter under two profiles spelled with and without a letter that has no accent form (Michał / Michal, Głowacki / Glowacki) is one opponent: the fight listed under each is one fight (round 134)", () => {
+  const n = notes();
+  const names = new Map([["G", "Mairis Briedis"], ["P1", "Krzysztof Głowacki"], ["P2", "Krzysztof Glowacki"], ["Q1", "Michał Cieślak"], ["Q2", "Michal Cieslak"]]);
+  const out = B.mergeDuplicateFights([bout("g1", "G", "P1", "e1"), bout("g2", "G", "P2", "e1"), bout("c1", "G", "Q1", "e1"), bout("c2", "G", "Q2", "e1")], dates, n, names);
+  assert.equal(out.length, 2);
+  assert.equal(n.duplicateFightsMerged, 2); assert.equal(n.duplicateFightsAcrossProfiles, 2);
+});
