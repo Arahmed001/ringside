@@ -178,12 +178,20 @@ export async function sparql(query: string): Promise<Binding[]> {
     const wait = lastCall + GAP_MS - Date.now(); // one request at a time, ~1/s: well inside WDQS limits
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));
     lastCall = Date.now();
-    const res = await fetch(WDQS, {
-      method: "POST",
-      headers: { "User-Agent": userAgent(), Accept: "application/sparql-results+json", "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ query, format: "json" }),
-      signal: AbortSignal.timeout(70000),
-    });
+    let res: Response;
+    try {
+      res = await fetch(WDQS, {
+        method: "POST",
+        headers: { "User-Agent": userAgent(), Accept: "application/sparql-results+json", "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ query, format: "json" }),
+        signal: AbortSignal.timeout(70000),
+      });
+    } catch (e) {
+      // a slow or dropped request is routine on the public query service: wait and try again
+      if (attempt === 3) throw e;
+      await new Promise((r) => setTimeout(r, GAP_MS ? 5000 * (attempt + 1) : 0));
+      continue;
+    }
     if (res.status === 429 || res.status >= 500) {
       const retry = Number(res.headers.get("retry-after") ?? 0) * 1000 || 5000 * (attempt + 1);
       await new Promise((r) => setTimeout(r, retry));
@@ -203,6 +211,20 @@ export async function listBoxerIds(limit = Infinity, pageSize = 5000): Promise<s
     if (rows.length < pageSize) break;
   }
   return ids;
+}
+
+/** Runs one query per chunk; if the query service gives up on a chunk, retries it as two halves (down to a single boxer) instead of failing the run. */
+async function inHalves<T>(chunk: string[], run: (c: string[]) => Promise<Map<string, T>>, log: (m: string) => void = () => {}): Promise<Map<string, T>> {
+  try {
+    return await run(chunk);
+  } catch (e) {
+    if (chunk.length <= 1) throw e;
+    log(`query failed for ${chunk.length} boxers (${e instanceof Error ? e.message : e}); retrying as two halves`);
+    const mid = Math.ceil(chunk.length / 2);
+    const out = await inHalves(chunk.slice(0, mid), run, log);
+    for (const [k, v] of await inHalves(chunk.slice(mid), run, log)) out.set(k, v);
+    return out;
+  }
 }
 
 export interface ImportSummary { listed: number; stored: number; batches: number; skipped: number }
@@ -234,7 +256,7 @@ export async function importWikidata(db: DatabaseSync, opts: ImportOptions = {})
     let stored = 0, batches = 0;
     for (let i = 0; i < todo.length; i += batch) {
       const chunk = todo.slice(i, i + batch);
-      const more = parseExtras(await sparql(extrasQuery(chunk)));
+      const more = await inHalves(chunk, async (c) => parseExtras(await sparql(extrasQuery(c))), log);
       const now = new Date().toISOString();
       db.exec("BEGIN");
       for (const q of chunk) { store(more.get(q) ?? empty(q), now); stored++; }
@@ -259,8 +281,8 @@ export async function importWikidata(db: DatabaseSync, opts: ImportOptions = {})
   let stored = 0, batches = 0;
   for (let i = 0; i < ids.length; i += batch) {
     const chunk = ids.slice(i, i + batch);
-    const parsed = parseBindings(await sparql(batchQuery(chunk)));
-    const more = extras ? parseExtras(await sparql(extrasQuery(chunk))) : new Map<string, WikidataExtras>();
+    const parsed = await inHalves(chunk, async (c) => parseBindings(await sparql(batchQuery(c))), log);
+    const more = extras ? await inHalves(chunk, async (c) => parseExtras(await sparql(extrasQuery(c))), log) : new Map<string, WikidataExtras>();
     const now = new Date().toISOString();
     db.exec("BEGIN");
     for (const b of parsed.values()) {
