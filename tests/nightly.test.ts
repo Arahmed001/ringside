@@ -158,7 +158,7 @@ test("an off-host command that works is given the new backup folder as its argum
 });
 
 test("an off-host command that fails is reported (a warning) and the update stands", async () => {
-  const { v, r } = await withOffsite("off-fail", "echo the-remote-said-no >&2; exit 7");
+  const { v, r } = await withOffsite("off-fail", "echo the-remote-said-no >&2; exit 7 #" /* the job appends the folder after the command; a comment keeps it from being an argument of exit, which macOS sh refuses (exit 1) and Linux sh ignores */);
   assert.equal(r.code, 0, "the job's own work is done: a failed copy does not fail the night");
   const st = readStatusFile(v), off = stepsOf(v).offsite;
   assert.deepEqual([st.result, off.ok, off.exitCode, stepsOf(v).update.exitCode], ["warning", false, 7, 0]);
