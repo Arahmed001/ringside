@@ -14,6 +14,7 @@ import { siteUrlIsPublic } from "./seo";
 import path from "node:path";
 import { assertPlausibleKey } from "./providers/boxing-data-api";
 import { CLOCK_SLACK_HOURS, STALE_DATA_DAYS } from "./freshness";
+import { exitMeaning, parseSchedule, type PublicNightly } from "./nightly-status";
 
 export type Level = "fail" | "warn" | "info" | "ok";
 export interface Finding { level: Level; id: string; message: string; fix?: string }
@@ -32,10 +33,11 @@ export const KNOWN_ENV = [
   "BOXING_PROVIDER", "BOXING_FILE", "BOXING_API_URL", "BOXING_API_KEY", "BOXING_API_MAX_REQUESTS", "BOXING_API_PER_HOUR", "BOXING_API_SINCE", "BOXING_API_STORAGE_CONFIRMED", "PUBLIC_API", "VENDOR_REDISTRIBUTION_CONFIRMED",
   "VENDOR_LAG_DAYS", "VENDOR_LOAD_LAG_DAYS", "RINGSIDE_KEY_FILE", "WIKIMEDIA_CONTACT", "WIKIMEDIA_GAP_MS", "WIKIDATA_GAP_MS", "MEDIA_RESOLVER", "MEDIA_RESOLVER_BATCH",
   "RESEARCH_CONTACT", "SITE_CONTACT", "VENDOR_TERMS_URL", "VENDOR_RANKINGS_CONFIRMED", "RESEARCH_DELAY_MS", "RESEARCH_BLOCKLIST", "SITE_URL", "INDEXABLE", "DATABASE_PATH", "ACCOUNTS_DB_PATH",
+  "NIGHTLY_SCHEDULE", "NIGHTLY_KEEP", "NIGHTLY_OFFSITE_CMD", "NIGHTLY_OFFSITE_TIMEOUT_MIN", "NIGHTLY_JITTER_MIN", "NIGHTLY_NODE_OPTIONS",
   "RINGSIDE_NOW", "RINGSIDE_WORLD_SETTLE_MS", "RINGSIDE_OG_CACHE_MB", "RINGSIDE_OG_MAX_AGE", "RINGSIDE_SITEMAP_CACHE_MB", "FORUM_AUTO_HIDE_REPORTS",
 ] as const;
 /** Settings that exist for tests and tooling and are deliberately not in .env.example. */
-export const INTERNAL_ENV = ["I18N_DIR", "REVIEW_OUT", "RINGSIDE_LOCK_DIR", "RINGSIDE_NO_SEED", "RINGSIDE_MEMO_LOG", "WIKIPEDIA_API_URL", "RESEARCH_DIR", "PLAYWRIGHT_MODULE"] as const;
+export const INTERNAL_ENV = ["I18N_DIR", "REVIEW_OUT", "RINGSIDE_LOCK_DIR", "RINGSIDE_NIGHTLY_UPDATE_ARGS", "RINGSIDE_NO_SEED", "RINGSIDE_MEMO_LOG", "WIKIPEDIA_API_URL", "RESEARCH_DIR", "PLAYWRIGHT_MODULE"] as const;
 /** Edit distance, for "did you mean". Cheap, and only ever run on a handful of names. */
 export function distance(a: string, b: string): number {
   const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array<number>(b.length).fill(0)]);
@@ -119,6 +121,12 @@ export function envFindings(env: Env, nodeVersion = process.versions.node, produ
   }
   if (set(env, "PORT") && !(Number.isInteger(Number(env.PORT)) && Number(env.PORT) > 0 && Number(env.PORT) < 65536)) out.push(f("fail", "port", "PORT is not a port number."));
 
+  if (set(env, "NIGHTLY_SCHEDULE")) {
+    if (!parseSchedule(env.NIGHTLY_SCHEDULE)) out.push(f("warn", "nightly-schedule", `NIGHTLY_SCHEDULE=${env.NIGHTLY_SCHEDULE} is not HH:MM (UTC, 24 hours), so the in-container scheduler stays off and no nightly job runs.`, "Use for example NIGHTLY_SCHEDULE=03:30 (docs/nightly.md)."));
+    else if (p !== "licensed") out.push(f("info", "nightly-schedule", "NIGHTLY_SCHEDULE is set but the data is not the licensed feed: the nightly job would back up, but its update step needs BOXING_PROVIDER=licensed and a key."));
+    else out.push(f("ok", "nightly-schedule", `The in-container nightly job is scheduled for ${env.NIGHTLY_SCHEDULE!.trim()} UTC.`));
+  }
+
   // A misspelt name is silently ignored: the one failure that looks exactly like "I set it and nothing happened".
   // Only near misses are reported (other tools' variables, like ANTHROPIC_BASE_URL, are none of our business).
   const known = new Set<string>([...KNOWN_ENV, ...INTERNAL_ENV]);
@@ -138,6 +146,8 @@ export interface Probe {
   /** Newest backup folder's time, or null when there are none. */
   newestBackup(dir: string): Date | null;
   freeBytes(p: string): number | null;
+  /** The nightly job's last result (nightly-status.json in the data folder), or null when it never ran. Optional: a probe without it reports nothing about the job. */
+  nightly?(dataDir: string): PublicNightly | null;
 }
 
 export const SPORTS_TABLES = ["boxers", "events", "bouts"], ACCOUNT_TABLES = ["users", "sessions", "picks", "forum_posts"];
@@ -205,6 +215,15 @@ export function fileFindings(env: Env, probe: Probe, o: { cwd?: string; now?: Da
     if (days > STALE_BACKUP_DAYS) out.push(f("warn", "backup", `The newest backup is ${Math.floor(days)} days old (${last.toISOString().slice(0, 10)}): the schedule is probably not running.`, "Check the scheduled `npm run backup`."));
     else out.push(f("ok", "backup", `Newest backup is from ${last.toISOString().slice(0, 10)}.`));
   }
+
+  const night = probe.nightly?.(path.dirname(p.db)) ?? null;
+  if (night) {
+    const when = (night.finishedAt ?? night.startedAt).slice(0, 16).replace("T", " ");
+    if (night.result === "failed" || night.result === "interrupted") out.push(f("warn", "nightly", `The last nightly job (${when} UTC) ${night.result === "failed" ? "failed" : "was interrupted"}: exit code ${night.exitCode ?? "?"}, ${exitMeaning(night.exitCode)}. The site keeps serving the last good data.`, "Read the container log lines that start with [nightly], or run `npm run nightly` by hand (docs/nightly.md)."));
+    else if (night.result === "warning") out.push(f("warn", "nightly", `The last nightly job (${when} UTC) updated and backed up, but the copy off the host failed.`, "Check NIGHTLY_OFFSITE_CMD (docs/nightly.md)."));
+    else if (night.result === "running") out.push(f("info", "nightly", `A nightly job started ${when} UTC and has not finished.`));
+    else out.push(f("ok", "nightly", `The last nightly job finished ${when} UTC with everything done.`));
+  } else if (parseSchedule(env.NIGHTLY_SCHEDULE) && probe.nightly) out.push(f("info", "nightly", "The nightly job is scheduled but has not run yet on this volume."));
 
   if (prov === "file" && set(env, "BOXING_FILE") && !probe.file(env.BOXING_FILE!.trim())) out.push(f("fail", "file-feed", `BOXING_FILE ${env.BOXING_FILE} does not exist.`, "Fix the path."));
 

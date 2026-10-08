@@ -17,6 +17,8 @@ test("the watchlist gives each followed fighter's record, last result and rating
     assert.ok(r.record && r.rating && r.last, r.slug);
     assert.ok(["W", "L", "D", "NC"].includes(r.last!.result));
     assert.ok(r.last!.boutId > 0 && r.last!.how && r.last!.opponent);
+    // the page formats this date itself, in the visitor's language: a date already turned into words ("Oct 3, 2026") came out as "Invalid Date" (found by the browser suite, docs/e2e.md)
+    assert.match(r.last!.date, /^\d{4}-\d{2}-\d{2}$/, r.slug);
   }
 });
 

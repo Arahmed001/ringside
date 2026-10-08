@@ -519,3 +519,13 @@ test("the operator commands: owner links an account to a fighter, owners lists i
     assert.doesNotMatch(run("owners").stdout, /fran_fighter/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+test("free-text reports ('something else') are the same report only when they say the same words: a pending one does not block another about the same fighter", async () => {
+  const { main, acc, alice, frank, C } = await get();
+  const { boxer } = pick(main);
+  const say = (user: typeof alice, note: string) => C.submitReport(user, { kind: "error", targetType: "boxer", targetExt: String(boxer.e), field: "other", note }, main, acc);
+  assert.ok(say(alice, "The nickname on this page is spelt wrongly everywhere it appears.").ok, "the first report is taken");
+  // found by the browser suite (docs/e2e.md): any pending "something else" report on a fighter refused every other one, with "someone has already reported exactly this"
+  assert.ok(say(frank, "The country flag next to this fighter is the wrong one entirely.").ok, "a different complaint about the same fighter is not a duplicate");
+  assert.deepEqual(say(frank, "The nickname on this page is spelt wrongly everywhere it appears."), { ok: false, error: "duplicate_open" }, "the same words are");
+});

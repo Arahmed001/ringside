@@ -139,7 +139,7 @@ export function accountsDb(): DatabaseSync {
 }
 
 /** Opens the file only if it already exists, so reading code never creates an accounts database as a side effect. */
-export const accountsDbIfAny = (): DatabaseSync | null => (fs.existsSync(accountsPath()) ? accountsDb() : null);
+export const accountsDbIfAny = (): DatabaseSync | null => (fs.existsSync(/* turbopackIgnore: true */ accountsPath()) ? accountsDb() : null);
 export const closeAccountsDb = () => { g.__accountsDb?.db.close(); g.__accountsDb = undefined; };
 
 export const nowIso = () => new Date().toISOString();
