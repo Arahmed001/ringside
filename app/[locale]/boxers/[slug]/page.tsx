@@ -36,6 +36,8 @@ import { newsForFighter } from "@/lib/news/read";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
+import { outcomesByYear } from "@/lib/outcomes-by-year";
+import { OutcomesByYear } from "@/components/OutcomesByYear";
 import { countryName, flag, fmtDate, fmtPartialDate, methodLabel, pct } from "@/lib/format";
 import { msg } from "@/lib/i18n/t";
 import { countsInRecord, isDecision, isStoppage } from "@/lib/methods";
@@ -80,6 +82,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   // counted from every fight, so only for a career held whole (from part of one these would be wrong in a way that reads as right)
   const careerStripOf = career.source !== "loaded" ? careerStrip({ dates: completed.map((x) => x.date), total: career.total, turnedPro: b.turnedPro, debutDate: b.debutDate }) : null;
   const numbers = career.source === "loaded" ? numbersOf(bouts, b.id, (id) => w.eventById.get(id)) : null;
+  const yearsOut = career.source === "loaded" ? outcomesByYear(bouts, b.id) : [];
   const duration = (days: number) => (days >= 730 ? t("{n} years", { n: (days / 365.25).toFixed(1) }) : days >= 60 ? t("{n} months", { n: Math.round(days / 30.4) }) : t.n(days, "{n} day", "{n} days"));
   const hl = (id: number) => { const x = w.boutById.get(id); return x ? fmtDate(x.date, { month: "short", year: "numeric" }, t.locale) : ""; };
   const hasHighlights = !!(highlights.bestWin || highlights.biggestUpset || highlights.longestStreak);
@@ -254,6 +257,7 @@ const HONOURS_SHOWN = 8;
             {numbers.busiestYear && <Stat label={t("Busiest year")} value={numbers.busiestYear.year} sub={t.n(numbers.busiestYear.n, "{n} fight", "{n} fights")} />}
             {numbers.layoff && <Stat label={t("Longest layoff")} value={duration(numbers.layoff.days)} sub={t("{from} to {to}", { from: fmtDate(numbers.layoff.from, { month: "short", year: "numeric" }, t.locale), to: fmtDate(numbers.layoff.to, { month: "short", year: "numeric" }, t.locale) })} />}
           </div>
+          {yearsOut.length >= 3 && <div className="mt-3"><OutcomesByYear years={yearsOut} /></div>}
         </section>
       )}
 
