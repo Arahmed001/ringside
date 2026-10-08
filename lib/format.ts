@@ -101,3 +101,8 @@ export const flag = (c: string): string => {
 /** Short result label: "KO R4", "UD", "DQ R3", "Draw". */
 export const methodLabel = (m: string | null, r: number | null, t: T = tEn) =>
   !m ? "—" : m === "DRAW" ? t("Draw") : m === "TDRAW" ? (r ? t("Tech draw R{r}", { r }) : t("Tech draw")) : m === "NC" ? t("No contest") : endsEarly(m) && r ? t("{m} R{r}", { m: t(m), r }) : t(m);
+
+/** The four nations that sit inside the United Kingdom's page: their fighters and cards are also the United Kingdom's. */
+export const UK_NATIONS = new Set(["England", "Scotland", "Wales", "Northern Ireland"]);
+/** Whether a place called `country` is `wanted`, or a nation inside it (England is in the United Kingdom). */
+export const inCountry = (country: string, wanted: string): boolean => country === wanted || (wanted === "United Kingdom" && UK_NATIONS.has(country));

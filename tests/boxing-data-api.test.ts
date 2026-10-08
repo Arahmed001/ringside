@@ -1,6 +1,7 @@
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { tempDb } from "./helpers";
+import { nowMs } from "../lib/clock";
 
 /**
  * The Boxing Data API adapter, tested against the shapes in the vendor's published docs (the Tyson Fury fighter example, the
@@ -66,7 +67,7 @@ test("draws and unresolved results: a decision with no winner is a draw; a finis
   const none = B.mapFight(fight("f7", "A", "B", { fighters: { fighter_1: side("A", false), fighter_2: side("B", false) }, results: { outcome: null, round: null } }), n)!.bout;
   assert.equal(none.method, null); assert.equal(none.winnerExternalId, null); assert.equal(none.endRound, null); assert.equal(n.resultMissing, 1);
   assert.equal(n.resultMissingOld, 1); // 2024: long past
-  const day = new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10);
+  const day = new Date(nowMs() - 3 * 86400000).toISOString().slice(0, 10);
   B.mapFight(fight("f8", "A", "B", { date: day, event: { id: "ev-f8", title: "Recent", date: day }, fighters: { fighter_1: side("A", false), fighter_2: side("B", false) }, results: { outcome: null, round: null } }), n);
   assert.equal(n.resultMissing, 2); assert.equal(n.resultMissingOld, 1); // three days ago: a result that may still come
 });

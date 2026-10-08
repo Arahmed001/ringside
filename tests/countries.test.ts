@@ -84,3 +84,10 @@ test("regions that feeds write as a nationality (round 133, from the first real-
   assert.equal(countryName("Kurdistan", "ar"), "كردستان"); assert.equal(countryName("Kurdistan", "en"), "Kurdistan"); assert.equal(canonicalCountry("Kurdistan"), "Kurdistan", "kept as given");
   assert.equal(countryCode("Victoria"), undefined, "a name that is also a city elsewhere is not guessed");
 });
+
+test("the United Kingdom's page holds England, Scotland, Wales and Northern Ireland, which keep pages of their own; the fighter list for the United Kingdom holds them too (round 133)", async () => {
+  const { inCountry, UK_NATIONS } = await import("../lib/format");
+  for (const n of UK_NATIONS) { assert.ok(inCountry(n, "United Kingdom"), n); assert.ok(inCountry(n, n)); }
+  assert.ok(inCountry("United Kingdom", "United Kingdom"));
+  assert.ok(!inCountry("England", "Wales") && !inCountry("Mexico", "United Kingdom") && !inCountry("United Kingdom", "England"));
+});

@@ -2,7 +2,7 @@ import type { World } from "./world";
 import type { BoutRow, EventRow } from "./types";
 import { belts, type Belt } from "./lineage";
 import { slugify } from "./slug";
-import { canonicalCountry } from "./format";
+import { canonicalCountry, UK_NATIONS } from "./format";
 import { memo } from "./memo";
 
 /**
@@ -18,17 +18,20 @@ export const countrySlug = (name: string): string => slugify(canonicalCountry(na
 const slugger = () => { const seen = new Map<string, string>(); return (name: string): string => { let s = seen.get(name); if (s === undefined) { s = countrySlug(name); seen.set(name, s); } return s; }; };
 
 /** boxer id to the address of their country, worked out once per world (a page scans every fight, and slugifying a name 100,000 times per request is waste) */
-const slugOf = (w: World): Map<number, string> => memo(w, "countrySlugOf", () => { const slug = slugger(); return new Map(w.boxers.filter((b) => b.country).map((b) => [b.id, slug(b.country)] as const)); });
+const slugOf = (w: World): Map<number, string[]> => memo(w, "countrySlugOf", () => { const slug = slugger(); return new Map(w.boxers.filter((b) => b.country).map((b) => [b.id, slugsFor(b.country, slug)] as const)); });
+/** A country's address, and the United Kingdom's too when it is England, Scotland, Wales or Northern Ireland (their pages are inside it). */
+const slugsFor = (country: string, slug: (c: string) => string): string[] => { const s = slug(country); return UK_NATIONS.has(canonicalCountry(country)) ? [s, "united-kingdom"] : [s]; };
 
 const rows = (w: World): Map<string, { name: string; fighters: number; active: number }> => memo(w, "countryRows", () => {
   const m = new Map<string, { name: string; fighters: number; active: number }>(), slugFor = slugger();
   for (const b of w.boxers) {
     if (b.bouts === 0 || !b.country) continue;
-    const slug = slugFor(b.country);
-    if (!slug) continue;
-    const r = m.get(slug) ?? { name: canonicalCountry(b.country), fighters: 0, active: 0 };
-    r.fighters++; if (b.active) r.active++;
-    m.set(slug, r);
+    for (const slug of slugsFor(b.country, slugFor)) {
+      if (!slug) continue;
+      const r = m.get(slug) ?? { name: slug === "united-kingdom" ? "United Kingdom" : canonicalCountry(b.country), fighters: 0, active: 0 };
+      r.fighters++; if (b.active) r.active++;
+      m.set(slug, r);
+    }
   }
   return m;
 });
@@ -47,11 +50,13 @@ export interface CountryView {
   /** events held in this country, newest first */
   events: EventRow[];
   eventCount: number;
+  /** for the United Kingdom: the nations inside it, with their fighters */
+  nations: { slug: string; name: string; fighters: number }[];
 }
 
 const topOf = (w: World, slug: string, n: number) => {
   const of = slugOf(w);
-  const mine = w.boxers.filter((b) => b.bouts > 0 && of.get(b.id) === slug);
+  const mine = w.boxers.filter((b) => b.bouts > 0 && of.get(b.id)?.includes(slug));
   return mine.slice().sort((a, b) => Number(b.active) - Number(a.active) || b.rating - a.rating || a.id - b.id).slice(0, n);
 };
 
@@ -63,8 +68,7 @@ const heldBySlug = (w: World): Map<string, EventRow[]> => memo(w, "countryEvents
   const m = new Map<string, EventRow[]>(), slugFor = slugger();
   for (const e of w.events) {
     if (!e.country || e.status === "cancelled" || e.upcoming) continue;
-    const s = slugFor(e.country);
-    (m.get(s) ?? m.set(s, []).get(s)!).push(e);
+    for (const s of slugsFor(e.country, slugFor)) (m.get(s) ?? m.set(s, []).get(s)!).push(e);
   }
   for (const list of m.values()) list.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.id - a.id));
   return m;
@@ -74,9 +78,10 @@ export function countryView(w: World, slug: string, limits = { top: 12, next: 8,
   const r = rows(w).get(slug);
   if (!r) return null;
   const of = slugOf(w);
-  const fromHere = (id: number) => of.get(id) === slug;
+  const fromHere = (id: number) => !!of.get(id)?.includes(slug);
   const champions = belts(w).filter((b) => b.current && !b.stale && fromHere(b.current.boxerId)).map((belt) => ({ belt, boxerId: belt.current!.boxerId }));
   const next = upcomingBouts(w).filter((b) => fromHere(b.redId) || fromHere(b.blueId)).sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : a.id - b.id)).slice(0, limits.next);
   const held = heldBySlug(w).get(slug) ?? [];
-  return { slug, name: r.name, fighters: r.fighters, active: r.active, top: topOf(w, slug, limits.top), champions, next, events: held.slice(0, limits.events), eventCount: held.length };
+  return { slug, name: r.name, fighters: r.fighters, active: r.active, top: topOf(w, slug, limits.top), champions, next, events: held.slice(0, limits.events), eventCount: held.length,
+    nations: slug === "united-kingdom" ? [...UK_NATIONS].map((n) => ({ slug: countrySlug(n), name: n, fighters: rows(w).get(countrySlug(n))?.fighters ?? 0 })).filter((n) => n.fighters > 0) : [] };
 }

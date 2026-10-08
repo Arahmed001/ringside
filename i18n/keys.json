@@ -6923,6 +6923,12 @@
   ]
  },
  {
+  "key": "Inside {country}",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Insights engine",
   "files": [
    "app/[locale]/analytics/page.tsx"
@@ -12863,6 +12869,12 @@
   "key": "The most wins in a row at any point in a career. Draws and no-contests do not break a run; a loss does.",
   "files": [
    "lib/records.ts"
+  ]
+ },
+ {
+  "key": "The nations",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
   ]
  },
  {

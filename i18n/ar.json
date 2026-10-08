@@ -766,6 +766,7 @@
   "many": "بعد {n} يومًا",
   "other": "بعد {n} يوم"
  },
+ "Inside {country}": "ضمن {country}",
  "Insights engine": "محرك الرؤى",
  "Interactive tale of the tape": "مقارنة تفاعلية بين الملاكمين",
  "Interim champion": "بطل مؤقت",
@@ -1670,6 +1671,7 @@
  "The money": "المال",
  "The most complete records, trainers and weigh-ins in boxing": "أكمل السجلات والمدربين وبيانات الوزن الرسمي في الملاكمة",
  "The most wins in a row at any point in a career. Draws and no-contests do not break a run; a loss does.": "أكثر انتصارات متتالية في أي مرحلة من المسيرة. التعادل وعدم الاحتساب لا يقطعان السلسلة؛ أما الخسارة فتقطعها.",
+ "The nations": "الدول المكوّنة",
  "The next card is {event} on {date}, headlined by {fight}.": "الفعالية القادمة هي {event} بتاريخ {date}، ورئيسها نزال {fight}.",
  "The night’s biggest surprise: {winner} beat {loser}, a {p} chance in the model’s eyes.": "أكبر مفاجآت الليلة: فوز {winner} على {loser}، وهو ما منحه النموذج {p} فقط.",
  "The note is too long.": "الملاحظة طويلة جدًا.",

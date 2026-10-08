@@ -1,5 +1,6 @@
 import { careerView } from "./career";
 import type { Stance } from "./types";
+import { inCountry } from "./format";
 
 /**
  * The controls on the fighters list: country, stance, active or retired, and the order. Every one is a plain query parameter, so a filtered list is a link, and
@@ -37,7 +38,7 @@ export const koRateComparable = (b: F): boolean => b.wins >= KO_RATE_MIN_WINS &&
  */
 export function applyControls<T extends F>(list: T[], c: ListControls, keepOrder = false): T[] {
   const status = asStatus(c.status);
-  let out = list.filter((b) => (!c.country || b.country === c.country) && (!c.stance || b.stance === c.stance) && (!status || b.active === (status === "active")));
+  let out = list.filter((b) => (!c.country || inCountry(b.country, c.country)) && (!c.stance || b.stance === c.stance) && (!status || b.active === (status === "active")));
   const sort = asSort(c.sort);
   if (sort === "rating" && keepOrder) return out;
   const tie = (a: T, b: T) => b.rating - a.rating || a.id - b.id;

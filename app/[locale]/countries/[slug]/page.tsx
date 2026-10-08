@@ -44,6 +44,15 @@ export default async function Country({ params }: { params: Promise<{ slug: stri
         </div>
       </div>
 
+      {v.nations.length > 0 && (
+        <section>
+          <SectionTitle eyebrow={t("Inside {country}", { country: name })} title={t("The nations")} />
+          <div className="flex flex-wrap gap-2">
+            {v.nations.map((n) => <Link key={n.slug} href={`/countries/${n.slug}`} className="chip hover:text-ink">{flag(n.name)} {countryName(n.name, t.locale)} · {n.fighters.toLocaleString("en-US")}</Link>)}
+          </div>
+        </section>
+      )}
+
       {v.champions.length > 0 && (
         <section>
           <SectionTitle eyebrow={t("Champions")} title={t("Belts held by a fighter from {country}", { country: name })} href="/titles" cta={t("All belts")} />
