@@ -178,12 +178,20 @@ export async function sparql(query: string): Promise<Binding[]> {
     const wait = lastCall + GAP_MS - Date.now(); // one request at a time, ~1/s: well inside WDQS limits
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));
     lastCall = Date.now();
-    const res = await fetch(WDQS, {
-      method: "POST",
-      headers: { "User-Agent": userAgent(), Accept: "application/sparql-results+json", "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ query, format: "json" }),
-      signal: AbortSignal.timeout(70000),
-    });
+    let res: Response;
+    try {
+      res = await fetch(WDQS, {
+        method: "POST",
+        headers: { "User-Agent": userAgent(), Accept: "application/sparql-results+json", "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ query, format: "json" }),
+        signal: AbortSignal.timeout(70000),
+      });
+    } catch (e) {
+      // a slow or dropped request is routine on the public query service: wait and try again
+      if (attempt === 3) throw e;
+      await new Promise((r) => setTimeout(r, GAP_MS ? 5000 * (attempt + 1) : 0));
+      continue;
+    }
     if (res.status === 429 || res.status >= 500) {
       const retry = Number(res.headers.get("retry-after") ?? 0) * 1000 || 5000 * (attempt + 1);
       await new Promise((r) => setTimeout(r, retry));
