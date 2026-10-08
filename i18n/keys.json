@@ -7354,6 +7354,12 @@
   ]
  },
  {
+  "key": "Last five opponents",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Last five results",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
@@ -13254,6 +13260,12 @@
   "key": "Their careers did not overlap",
   "files": [
    "lib/matchmaking.ts"
+  ]
+ },
+ {
+  "key": "Their combined record going in: {w} wins, {l} losses",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
