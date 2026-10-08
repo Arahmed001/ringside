@@ -23,6 +23,7 @@
     "venues:resolve": "tsx scripts/resolve-venues.ts",
     "model:fit": "tsx scripts/fit-model.ts",
     "data:check": "tsx scripts/check-feed.ts",
+    "data:from-csv": "tsx scripts/csv-to-feed.ts",
     "smoke": "tsx scripts/smoke.ts",
     "gate": "tsx scripts/gate.ts",
     "test": "node --import tsx --test tests/*.test.ts",
