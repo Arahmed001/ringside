@@ -23,7 +23,7 @@ import { planByRules } from "./ask/rules";
 import { toolByName } from "./ask/tools";
 import { searchFighters } from "./fighter-search";
 import { applyFilters } from "./ai";
-import { globalSearch } from "./search";
+import { warmGlobalSearch } from "./search";
 import { countryList, countryView } from "./countries";
 import { similarTo } from "./style";
 import { suggestOpponents } from "./matchmaking";
@@ -69,8 +69,8 @@ export const WARM_STEPS: [string, (w: World) => unknown][] = [
   // and the normalised text the fighters list's search box matches each fighter against (160 to 210 ms per search at 35,000 fighters when it was worked out on every request)
   ...LOCALES.map((locale): [string, (w: World) => unknown] => [`fighter search ${locale}`, async (w) => { const names = await getNames(locale); searchFighters(w, "zz", { names, forgiving: false }); applyFilters(w.boxers, { text: "zz" }, w, names); }]),
   ["data coverage", () => coverage()],
-  // the first ⌘K search typed on the site built the index of events, people and organisations (270 ms at 160,000 bouts), and the first country page the country tables (290 ms)
-  ...LOCALES.map((locale): [string, (w: World) => unknown] => [`global search ${locale}`, async (w) => { globalSearch(w, "zz", await getTFor(locale), await getNames(locale)); }]),
+  // the first ⌘K search typed on the site built the index of events, people and organisations (270 ms at 160,000 bouts), and the first country page the country tables (290 ms); the near-spelling index is left to the first search that finds nothing (lib/search.ts, `warmGlobalSearch`)
+  ...LOCALES.map((locale): [string, (w: World) => unknown] => [`global search ${locale}`, async (w) => { warmGlobalSearch(w, await getNames(locale)); }]),
   ["countries", (w) => { const c = countryList(w)[0]; if (c) countryView(w, c.slug); }],
   // what every fighter page shares: the style vectors of the whole league and the set of booked fighters (docs/capacity.md); each is built once per world, by whoever asks first
   ["fighter page shared", (w) => { const b = w.boxers.find((x) => x.bouts >= 5 && x.active) ?? w.boxers.find((x) => x.bouts >= 5); if (b) { similarTo(b, w, 4); suggestOpponents(w, b, 3); } }],
