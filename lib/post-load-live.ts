@@ -153,7 +153,7 @@ export async function checkSampleOverHttp(base: string, sample: SampleFighter[],
 /** What docs/capacity.md measured, one visitor at a time on two cores, 35,000 synthetic fighters (the table "The slowest routes", column "after", p50 in ms). The test in tests/post-load.test.ts keeps these in step with the document. */
 export const CAPACITY_REFERENCE = {
   p50Ms: { home: 44, "fighters list (sorted, paged)": 74, fighter: 69, event: 44, "rankings (a division)": 30, country: 34, search: 11, "share image (fighter)": 221, sitemap: 95 } as Record<string, number>,
-  startSeconds: [10.9, 16.5] as [number, number], rssStartGb: 0.71, rssLoadGb: [1.1, 1.2] as [number, number],
+  startSeconds: [10.9, 16.5] as [number, number], rssStartGb: 0.65, rssLoadGb: [0.94, 1.06] as [number, number],
   source: "docs/capacity.md (35,000 synthetic fighters, a 4-core shared virtual machine, one visitor at a time on two cores; the start and memory lines are after the memory diet)",
 };
 export const LIMITS = { startWarnS: 60, startFailS: 120, rssWarnMb: 2048, rssFailMb: 3072, p95WarnMs: 1500, p95FailMs: 5000, pageWarnBytes: 1_000_000, pageFailBytes: 4_000_000 };

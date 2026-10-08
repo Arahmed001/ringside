@@ -52,7 +52,7 @@ export default async function Titles({ searchParams }: { searchParams: Promise<{
         const list = mine.filter((b) => b.division === d.name);
         if (!list.length) return null;
         return (
-          <section key={d.name} id={`div-${slugifyDivision(d.name)}`} className="scroll-mt-20">
+          <section key={d.name} id={`div-${slugifyDivision(d.name)}`}>
             <SectionTitle eyebrow={`${list.length} ${list.length === 1 ? t("belt") : t("belts")}`} title={divisionLabel(d.name, sex, t)} href={`/rankings/${slugifyDivision(d.name)}${q}`} cta={t("Rankings")} />
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               {list.map((b) => {

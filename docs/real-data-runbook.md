@@ -348,7 +348,7 @@ Schedule it once a day (the vendor's data for a card is usually settled by the n
 17 6 * * *  cd /app && npm run vendor:backfill -- --update --cache-dir /data/vendor-cache >> /data/vendor-update.log 2>&1
 ```
 
-In a container, run it with the container's own environment: `docker exec ringside npm run vendor:backfill -- --update --cache-dir /data/vendor-cache` from the host's cron (the key, `BOXING_API_STORAGE_CONFIRMED` and `DATABASE_PATH` must be in the container's environment). Look at the log now and then: a run that fails does not change the database, and the site keeps showing the last good data.
+In a container with no cron that can reach the volume (Render, Fly, Railway), the built-in `npm run nightly` job runs this same update from inside it, with a verified backup before and a status file after ([nightly.md](nightly.md)). Otherwise, in a container, run it with the container's own environment: `docker exec ringside npm run vendor:backfill -- --update --cache-dir /data/vendor-cache` from the host's cron (the key, `BOXING_API_STORAGE_CONFIRMED` and `DATABASE_PATH` must be in the container's environment). Look at the log now and then: a run that fails does not change the database, and the site keeps showing the last good data.
 
 ## When something goes wrong
 

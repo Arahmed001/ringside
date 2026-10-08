@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Agents' leftover git worktrees live here; a whole-repo lint of them reported ~87,000 problems.
+    ".claude/**",
   ]),
 ]);
 

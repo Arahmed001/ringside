@@ -62,15 +62,28 @@ export function nearOf(w: World, names: Names): Near {
   if (!per) { per = new WeakMap(); nearCache.set(w, per); }
   let near = per.get(names);
   if (!near) {
-    const group = <T,>(items: T[], parts: (x: T) => (string | undefined | null)[]): NearGroup<T> => ({ items, vocab: buildWordIndex(items.map((x) => normalize(parts(x).filter(Boolean).join(" ")))) });
+    // The words of each item are those of the folded text the exact match already keeps (`exactOf`: the same parts of each person, event and organisation, folded the same way),
+    // so the first guess does not fold 75,000 events a second time (that was most of its 1.1 s at the real size). Events are kept newest first there and in world order here.
+    const ex = exactOf(w, names);
+    const group = <T,>(items: T[], hays: string[]): NearGroup<T> => ({ items, vocab: buildWordIndex(hays) });
+    const events = [...ex.events].reverse();
     near = {
-      people: group([...w.people.values()], (p) => [p.name, names[p.name]]),
-      events: group(w.events.filter((e) => e.status !== "cancelled"), (e) => [e.name, names[e.name], e.city, names[e.city], e.venue, names[e.venue]]),
-      orgs: group([...w.orgs.values()], (o) => [o.name, names[o.name]]),
+      people: group(ex.people.map((x) => x.p), ex.people.map((x) => x.hay)),
+      events: group(events.map((x) => x.e), events.map((x) => x.hay)),
+      orgs: group(ex.orgs.map((x) => x.o), ex.orgs.map((x) => x.hay)),
     };
     per.set(names, near);
   }
   return near;
+}
+/**
+ * What the start-up and a rebuild's warm-up build for ⌘K: the fighter index and the exact-match text (what every search reads), and NOT the near-spelling index
+ * (`nearOf`), which only a search that found nothing reads and which is built by the first such search (docs/capacity.md: it is 25 + 32 MB at the real size, held for
+ * a thing most visitors never type, and held twice during a swap if the warm-up built it). Same answers either way: it is the same index, built later.
+ */
+export function warmGlobalSearch(w: World, names: Names): void {
+  searchFighters(w, "zz", { limit: 1, names, forgiving: false });
+  exactOf(w, names);
 }
 /** What the exact match reads, folded once per world and table of translated names instead of once per keystroke: each person, event and organisation's searchable text. */
 interface Exact { people: { p: Person; hay: string }[]; orgs: { o: Org; hay: string }[]; /** newest first, called-off events left out */ events: { e: EventRow; hay: string }[] }

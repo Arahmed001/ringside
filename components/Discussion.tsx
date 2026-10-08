@@ -47,7 +47,7 @@ export function Discussion({ target }: { target: Target }) {
     setBusy(true); setStatus(null);
     const r = await api("/api/forum/post", "POST", { ...target, body: text });
     setBusy(false); say(r, t("Posted."));
-    if (r.ok) { setText(""); await load(); }
+    if (r.ok) { setText(""); await load(); document.getElementById("forum-text")?.focus(); } // the Post button is off now that the box is empty, and a button that turns off drops focus to the top of the page: the box is where the next thing is written
   }
   async function act(path: string, method: string, body: unknown, okText: string) {
     setStatus(null);

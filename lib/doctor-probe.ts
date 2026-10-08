@@ -7,6 +7,7 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import type { DbFacts, Probe } from "./doctor";
 import { latestUpdate } from "./freshness";
+import { lastNightly } from "./nightly-status";
 
 export const probe: Probe = {
   dir(p) {
@@ -30,6 +31,7 @@ export const probe: Probe = {
     } catch (e) { return { exists: true, error: (e as Error).message.slice(0, 120) }; }
   },
   file: (p) => fs.existsSync(p),
+  nightly: (dir) => lastNightly({ DATABASE_PATH: path.join(dir, "ringside.db") }),
   newestBackup(dir) {
     try {
       const stamps = fs.readdirSync(dir).filter((n) => /^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z$/.test(n) && fs.existsSync(path.join(dir, n, "ringside.db")))

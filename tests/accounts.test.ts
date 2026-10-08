@@ -543,6 +543,16 @@ test("every form field in the account screens is tied to its label", () => {
   for (const m of c.matchAll(/<label htmlFor="([\w-]+)"/g)) assert.match(c, new RegExp(`id="${m[1]}"`), `label for ${m[1]} has no field`);
 });
 
+test("the note that picks from this browser moved onto the new account is said on the page that replaces the form: the form is unmounted the moment the account is known (found by the browser suite, docs/e2e.md)", () => {
+  const s = fs.readFileSync(path.join(process.cwd(), "components/AccountPanel.tsx"), "utf8");
+  const at = s.indexOf("{n} of the picks saved in this browser were added to your account.");
+  assert.ok(at > 0);
+  assert.match(s.slice(Math.max(0, at - 60), at), /onMoved\(t\("$/, "it is passed up to the panel, not kept in the form's own state (which is gone after refreshAccount)");
+  assert.ok(s.indexOf("onMoved(t(") < s.indexOf("await refreshAccount()"), "and passed up before the form is replaced");
+  assert.match(s, /<Signed me=\{me\} notice=\{moved\} \/>/);
+  assert.match(s, /<p role="status" aria-live="polite" className="text-sm text-win empty:hidden">\{notice\}<\/p>/);
+});
+
 // ---------- sessions: where you are signed in ----------
 test("device labels are coarse, and nothing else of the user agent is kept", async () => {
   const { deviceLabel } = await import("../lib/accounts/users");

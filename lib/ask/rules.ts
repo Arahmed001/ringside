@@ -37,57 +37,96 @@ export function nameVariants(name: string): string[] {
   return [...out];
 }
 
-/** Each fighter's variants that point to that fighter alone: a variant two fighters share, or one that is another fighter's full name, is dropped. */
+/**
+ * The folded form of every fighter's name, by position in `w.boxers`, made once per world: the name index, the variants and the near-spelling index of every language all
+ * start from it, and before they each folded the name again and kept a copy of their own (docs/capacity.md, "The leftovers": the Ask index, compacted).
+ */
+const plainNameCache = sharedWeakMap<World, string[]>("rules.ts:plainNames");
+function plainNames(w: World): string[] {
+  let m = plainNameCache.get(w);
+  if (!m) { m = w.boxers.map((b) => plain(b.name)); plainNameCache.set(w, m); }
+  return m;
+}
+
+/** Each fighter's variants that point to that fighter alone: a variant two fighters share, or one that is another fighter's full name, is dropped. Only fighters that have any are in the map. */
 const variantCache = sharedWeakMap<World, Map<number, string[]>>("rules.ts:variantCache");
 function variantsOf(w: World): Map<number, string[]> {
   let m = variantCache.get(w);
   if (!m) {
-    const full = new Set(w.boxers.map((b) => plain(b.name)));
-    const owners = new Map<string, number[]>();
-    const all = w.boxers.map((b) => ({ b, vs: nameVariants(plain(b.name)).filter((v) => v.length >= 5 && !full.has(v)) }));
+    const pn = plainNames(w), full = new Set(pn);
+    const owners = new Map<string, number[]>(), kept = new Map<string, string>(); // (one string per distinct variant, however many fighters' lists it is in)
+    const all = w.boxers.map((b, i) => ({ b, vs: nameVariants(pn[i]).filter((v) => v.length >= 5 && !full.has(v)) }));
     for (const { b, vs } of all) for (const v of vs) { const l = owners.get(v); if (l) l.push(b.id); else owners.set(v, [b.id]); }
-    m = new Map(all.map(({ b, vs }) => [b.id, vs.filter((v) => owners.get(v)!.length === 1)]));
+    m = new Map();
+    for (const { b, vs } of all) { const own = vs.filter((v) => owners.get(v)!.length === 1); if (own.length) m.set(b.id, own.map((v) => kept.get(v) ?? (kept.set(v, v), v))); }
     variantCache.set(w, m);
   }
   return m;
 }
 
-interface Entry { b: BoxerFull; n: string[] }
-const indexes = sharedWeakMap<World, WeakMap<Names, Entry[]>>("rules.ts:indexes");
-function index(w: World, names: Names): Entry[] {
+/**
+ * The names a fighter can be called by in full, for the exact match, as two flat lists instead of an object with an array of strings per fighter: `strs[k]` is a folded
+ * name of at least five letters and `owner[k]` the position of its fighter in `w.boxers` (the order is each fighter's names in turn, so a question is searched
+ * exactly as before).
+ */
+interface NameList { strs: string[]; owner: Int32Array }
+const indexes = sharedWeakMap<World, WeakMap<Names, NameList>>("rules.ts:indexes");
+function index(w: World, names: Names): NameList {
   let per = indexes.get(w);
   if (!per) { per = new WeakMap(); indexes.set(w, per); }
   let idx = per.get(names);
   if (!idx) {
-    const variants = variantsOf(w);
-    idx = w.boxers.map((b) => ({ b, n: [plain(b.name), ...(names[b.name] ? [plain(names[b.name])] : []), ...(variants.get(b.id) ?? [])].filter((x) => x.length >= 5) }));
+    const variants = variantsOf(w), pn = plainNames(w), strs: string[] = [], owner: number[] = [];
+    w.boxers.forEach((b, i) => {
+      const add = (n: string) => { if (n.length >= 5) { strs.push(n); owner.push(i); } };
+      add(pn[i]);
+      if (names[b.name]) add(plain(names[b.name]));
+      for (const v of variants.get(b.id) ?? []) add(v);
+    });
+    idx = { strs, owner: Int32Array.from(owner) };
     per.set(names, idx);
   }
   return idx;
 }
 
-/** The words of a name, for the near-spelling match: a full name has at least two, and the words of one person are all there is to go on. */
-interface Near<T> { owner: T; words: string[] }
-interface NearIndex<T> { all: Near<T>[]; /** each distinct word with the names that have it and where in the name */ vocab: Map<string, number[]>; /** (flat: name, position in it, name, position ...: a pair of numbers each in an array of its own was most of the index) */ byLength: Map<number, string[]>; /** words of questions already looked up: the same few come in every question */ closeTo: Map<string, string[]> }
+/**
+ * The words of the names, for the near-spelling match: a name with at least two words, and the words of one person are all there is to go on. Kept flat (typed arrays and
+ * one string per distinct word) instead of an object with an array of strings for each name and an array of numbers behind each word, which was most of the Ask index's size.
+ * A "slot" is one name of one owner; its words are `slotWords[slotStart[slot] .. slotStart[slot + 1])` (each an id into `words`), and word `id` is in the slots and
+ * positions listed in `postings[postStart[id] .. postStart[id + 1])` (flat: slot, position in the name, slot, position ...), in the order the names were read.
+ */
+interface NearIndex<T> {
+  owners: T[]; slotOwner: Int32Array; slotStart: Int32Array; slotWords: Int32Array;
+  words: string[]; vocab: Map<string, number>; postStart: Int32Array; postings: Int32Array;
+  /** the ids of the words of each length, in the order first read */ byLength: Map<number, number[]>;
+  /** words of questions already looked up (the ids of the words close to them): the same few come in every question */ closeTo: Map<string, number[]>;
+}
 
 /** The words of a name or question for the near match: split at punctuation and hyphens, or, run together, with the hyphens taken out of a word ("Al-Otaibi" is "al-otaibi" in one word) as people often type them. */
 const HYPHEN = /-/;
 const nearWords = (s: string, joined: boolean) => (joined ? s.split(/[\s.,;:!?؟،()"“”'’]+/).filter(Boolean).map((x) => x.replace(/-/g, "")) : wordsOf(s));
 
 function buildNear<T>(people: { owner: T; names: string[] }[], joined = false): NearIndex<T> {
-  const all: Near<T>[] = [], vocab = new Map<string, number[]>(), byLength = new Map<number, string[]>();
-  for (const p of people) for (const n of p.names) {
+  const slotOwner: number[] = [], slotStart: number[] = [0], slotWords: number[] = [];
+  const vocab = new Map<string, number>(), words: string[] = [], byLength = new Map<number, number[]>(), counts: number[] = [];
+  people.forEach((p, who) => { for (const n of p.names) {
     if (joined && !HYPHEN.test(n)) continue; // the same words as the other index
-    const words = nearWords(n, joined);
-    if (words.length < 2) continue;
-    const at = all.push({ owner: p.owner, words }) - 1;
-    words.forEach((word, j) => {
-      let l = vocab.get(word);
-      if (!l) { vocab.set(word, (l = [])); const b = byLength.get(word.length); if (b) b.push(word); else byLength.set(word.length, [word]); }
-      l.push(at, j);
-    });
-  }
-  return { all, vocab, byLength, closeTo: new Map() };
+    const ws = nearWords(n, joined);
+    if (ws.length < 2) continue;
+    slotOwner.push(who);
+    for (const word of ws) {
+      let id = vocab.get(word);
+      if (id === undefined) { id = words.push(word) - 1; vocab.set(word, id); counts.push(0); const b = byLength.get(word.length); if (b) b.push(id); else byLength.set(word.length, [id]); }
+      counts[id]++;
+      slotWords.push(id);
+    }
+    slotStart.push(slotWords.length);
+  } });
+  const postStart = new Int32Array(words.length + 1);
+  for (let id = 0; id < words.length; id++) postStart[id + 1] = postStart[id] + counts[id] * 2;
+  const postings = new Int32Array(postStart[words.length]), fill = postStart.slice(0, words.length);
+  for (let at = 0; at < slotOwner.length; at++) for (let k = slotStart[at], j = 0; k < slotStart[at + 1]; k++, j++) { const id = slotWords[k]; postings[fill[id]++] = at; postings[fill[id]++] = j; }
+  return { owners: people.map((p) => p.owner), slotOwner: Int32Array.from(slotOwner), slotStart: Int32Array.from(slotStart), slotWords: Int32Array.from(slotWords), words, vocab, postStart, postings, byLength, closeTo: new Map() };
 }
 
 /**
@@ -124,7 +163,7 @@ interface Tok { t: string; at: number }
 const MIN_MERGED = 5;
 
 function nearNamedIn<T>(idx: NearIndex<T>, q: string, joined: boolean): { owner: T; at: number }[] {
-  if (!idx.all.length) return [];
+  if (!idx.slotOwner.length) return [];
   const toks: Tok[] = [...q.matchAll(joined ? /[^\s.,;:!?؟،()"“”'’]+/g : /[^\s\-.,;:!?؟،()"“”'’]+/g)].map((m) => ({ t: joined ? m[0].replace(/-/g, "") : m[0], at: m.index ?? 0 })).filter((x) => x.t);
   const found = align(idx, toks);
   for (let i = 0; i + 1 < toks.length; i++) {
@@ -137,12 +176,13 @@ function nearNamedIn<T>(idx: NearIndex<T>, q: string, joined: boolean): { owner:
 
 /** The words of the names that `typed` is, or is a slip or two from (see slipsBetween). */
 const REMEMBERED = 4000;
-function wordsCloseTo<T>(idx: NearIndex<T>, typed: string): string[] {
+function wordsCloseTo<T>(idx: NearIndex<T>, typed: string): number[] {
   let close = idx.closeTo.get(typed);
   if (close) return close;
   close = [];
-  if (idx.vocab.has(typed)) close.push(typed);
-  if (typed.length > 3) { const reach = allowedSlips(typed.length + 2); for (let len = typed.length - reach; len <= typed.length + reach; len++) for (const v of idx.byLength.get(len) ?? []) if (v !== typed && slipsBetween(typed, v) !== Infinity) close.push(v); }
+  const same = idx.vocab.get(typed);
+  if (same !== undefined) close.push(same);
+  if (typed.length > 3) { const reach = allowedSlips(typed.length + 2); for (let len = typed.length - reach; len <= typed.length + reach; len++) for (const id of idx.byLength.get(len) ?? []) if (id !== same && slipsBetween(typed, idx.words[id]) !== Infinity) close.push(id); }
   if (idx.closeTo.size >= REMEMBERED) idx.closeTo.clear();
   idx.closeTo.set(typed, close);
   return close;
@@ -153,16 +193,16 @@ function align<T>(idx: NearIndex<T>, toks: Tok[], anchors?: number[]): { owner: 
   const seen = new Set<number>(), hits: NearHit<T>[] = [];
   for (const i of anchors ?? toks.keys()) {
     const t = toks[i].t, close = wordsCloseTo(idx, t);
-    for (const v of close) for (let pairs = idx.vocab.get(v)!, n = pairs.length, k = 0; k < n; k += 2) {
-      const at = pairs[k], j = pairs[k + 1];
-      const first = i - j, words = idx.all[at].words;
-      if (first < 0 || first + words.length > toks.length) continue;
+    for (const id of close) for (let k = idx.postStart[id], end = idx.postStart[id + 1]; k < end; k += 2) {
+      const at = idx.postings[k], j = idx.postings[k + 1];
+      const first = i - j, from = idx.slotStart[at], count = idx.slotStart[at + 1] - from;
+      if (first < 0 || first + count > toks.length) continue;
       const key = at * 1e5 + first;
       if (seen.has(key)) continue;
       seen.add(key);
       let slips = 0;
-      for (let m = 0; m < words.length && slips <= MAX_NAME_SLIPS; m++) slips += slipsBetween(toks[first + m].t, words[m]);
-      if (slips <= MAX_NAME_SLIPS) hits.push({ owner: idx.all[at].owner, first, count: words.length, slips });
+      for (let m = 0; m < count && slips <= MAX_NAME_SLIPS; m++) slips += slipsBetween(toks[first + m].t, idx.words[idx.slotWords[from + m]]);
+      if (slips <= MAX_NAME_SLIPS) hits.push({ owner: idx.owners[idx.slotOwner[at]], first, count, slips });
     }
   }
   hits.sort((a, c) => a.slips - c.slips || c.count - a.count || a.first - c.first);
@@ -184,7 +224,7 @@ function nearFighters(w: World, names: Names): NearBoth<BoxerFull> {
   let per = nearIndexes.get(w);
   if (!per) { per = new WeakMap(); nearIndexes.set(w, per); }
   let idx = per.get(names);
-  if (!idx) { const variants = variantsOf(w); idx = both(w.boxers.map((b) => ({ owner: b, names: [plain(b.name), ...(names[b.name] ? [plain(names[b.name])] : []), ...(variants.get(b.id) ?? [])] }))); per.set(names, idx); }
+  if (!idx) { const variants = variantsOf(w), pn = plainNames(w); idx = both(w.boxers.map((b, i) => ({ owner: b, names: [pn[i], ...(names[b.name] ? [plain(names[b.name])] : []), ...(variants.get(b.id) ?? [])] }))); per.set(names, idx); }
   return idx;
 }
 
@@ -208,12 +248,14 @@ function claim(w: World, names: Names, question: string): Claimed {
   const hits: { b: BoxerFull; at: number }[] = [];
   // a name stands alone, or in Arabic carries the attached word for "and" (و): "قارن بين راميل أباد وتوماس فيلالبا"
   const form = (n: string) => [` ${n} `, ` و${n} `];
-  const cands = index(w, names).flatMap((e) => e.n.map((n) => ({ b: e.b, n }))).filter((c) => form(c.n).some((f) => q.includes(f))).sort((a, c) => c.n.length - a.n.length);
-  for (const c of cands) {
-    const f = form(c.n).find((x) => q.includes(x));
-    if (!f || hits.some((h) => h.b.id === c.b.id)) continue;
-    hits.push({ b: c.b, at: q.indexOf(f) });
-    q = q.replace(f, ` ${"·".repeat(c.n.length)} `);
+  const list = index(w, names), cands: number[] = [];
+  for (let k = 0; k < list.strs.length; k++) { const n = list.strs[k]; if (q.includes(n) && form(n).some((f) => q.includes(f))) cands.push(k); } // (a form has the name inside it, so a question without the name has neither: the cheap test first)
+  cands.sort((a, c) => list.strs[c].length - list.strs[a].length);
+  for (const k of cands) {
+    const n = list.strs[k], b = w.boxers[list.owner[k]], f = form(n).find((x) => q.includes(x));
+    if (!f || hits.some((h) => h.b.id === b.id)) continue;
+    hits.push({ b, at: q.indexOf(f) });
+    q = q.replace(f, ` ${"·".repeat(n.length)} `);
   }
   const rest = q;
   for (const t of trainersOf(w)) if (q.includes(` ${t.n} `)) q = q.replace(` ${t.n} `, ` ${"·".repeat(t.n.length)} `);
