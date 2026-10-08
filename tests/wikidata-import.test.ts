@@ -116,3 +116,17 @@ test("boxers staged before their Arabic names, nicknames and article titles were
   fresh();
   assert.equal((await wd.importWikidata(db, { extrasOnly: true })).stored, 0); assert.equal(calls.extras, 0);
 });
+
+test("a query the service keeps timing out on is retried as halves, so the run goes on instead of stopping", async () => {
+  const inner = globalThis.fetch;
+  globalThis.fetch = (async (url: string | URL, init?: RequestInit) => {
+    const q = String(init?.body instanceof URLSearchParams ? init.body.get("query") : "");
+    if (/\?bLabel/.test(q) && [...q.matchAll(/wd:(Q\d+)/g)].length > 2) throw new DOMException("The operation was aborted due to timeout", "TimeoutError");
+    return inner(url, init);
+  }) as typeof fetch;
+  try {
+    const s = await wd.importWikidata(db, { batch: 7, force: true });
+    assert.equal(s.stored, 7);
+    assert.equal(staged().length, 7);
+  } finally { globalThis.fetch = inner; }
+});
