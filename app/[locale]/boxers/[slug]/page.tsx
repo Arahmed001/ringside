@@ -34,6 +34,7 @@ import { Discussion } from "@/components/Discussion";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
+import { reachIndex } from "@/lib/reach";
 import { countryName, flag, fmtDate, fmtPartialDate, methodLabel, pct } from "@/lib/format";
 import { msg } from "@/lib/i18n/t";
 import { countsInRecord, isDecision, isStoppage } from "@/lib/methods";
@@ -78,6 +79,8 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   // counted from every fight, so only for a career held whole (from part of one these would be wrong in a way that reads as right)
   const careerStripOf = career.source !== "loaded" ? careerStrip({ dates: completed.map((x) => x.date), total: career.total, turnedPro: b.turnedPro, debutDate: b.debutDate }) : null;
   const numbers = career.source === "loaded" ? numbersOf(bouts, b.id, (id) => w.eventById.get(id)) : null;
+  const ape = reachIndex(b, divBoxers);
+  const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `\u2212${-n}` : "0");
   const duration = (days: number) => (days >= 730 ? t("{n} years", { n: (days / 365.25).toFixed(1) }) : days >= 60 ? t("{n} months", { n: Math.round(days / 30.4) }) : t.n(days, "{n} day", "{n} days"));
   const hl = (id: number) => { const x = w.boutById.get(id); return x ? fmtDate(x.date, { month: "short", year: "numeric" }, t.locale) : ""; };
   const hasHighlights = !!(highlights.bestWin || highlights.biggestUpset || highlights.longestStreak);
@@ -394,7 +397,20 @@ const HONOURS_SHOWN = 8;
           <div className="eyebrow mb-1">{t("Scouting report")}</div>
           <ScoutingReport slug={b.slug} initial={rulesReport(b, w, t)} />
         </div>
-        <div className="card flex items-center justify-center p-5"><Radar axes={radar} /></div>
+        <div className="card flex flex-col items-center justify-center gap-4 p-5">
+          <Radar axes={radar} />
+          {ape && (
+            <div className="w-full border-t border-line/60 pt-4 text-sm">
+              <div className="text-xs uppercase tracking-widest text-muted">{t("Reach and height")}</div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <bdi dir="ltr" className="font-display text-3xl font-bold tabular">{t("{n} cm", { n: signed(ape.diff) })}</bdi>
+                <span className="text-muted">{ape.diff > 0 ? t("reach is longer than height") : ape.diff < 0 ? t("reach is shorter than height") : t("reach equals height")}</span>
+              </div>
+              {ape.divisionDiff !== null && <div className="mt-1 text-xs text-muted">{t("Division average: {d}", { d: t("{n} cm", { n: signed(ape.divisionDiff) }) })} · {t.n(ape.peers, "{n} fighter measured", "{n} fighters measured")}</div>}
+              <div className="mt-1 text-xs text-muted">{t("{h} tall, {r} reach", { h: t("{n} cm", { n: ape.heightCm }), r: t("{n} cm", { n: ape.reachCm }) })}</div>
+            </div>
+          )}
+        </div>
       </section>
 
       <section id="form" className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">

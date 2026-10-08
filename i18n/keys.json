@@ -332,6 +332,12 @@
   ]
  },
  {
+  "key": "{h} tall, {r} reach",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{h}cm tall · {limit}",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -589,6 +595,13 @@
   "plural": "{n} fighter matches. The first, by {sort}, is {name} ({record}).",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{n} fighters measured",
+  "plural": "{n} fighter measured",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -4688,6 +4701,12 @@
    "components/RecordsFilter.tsx",
    "components/StyleMap.tsx",
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Division average: {d}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -10300,9 +10319,33 @@
   ]
  },
  {
+  "key": "Reach and height",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Reach edge",
   "files": [
    "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "reach equals height",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "reach is longer than height",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "reach is shorter than height",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
