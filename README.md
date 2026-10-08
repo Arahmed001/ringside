@@ -30,7 +30,7 @@ See `PLAN.md` §8 for what data exists, the data model, and what each script doe
 ## Deploying
 `docs/features.md` is a one-page map of what is in it and each feature's switch.
 
-A `Dockerfile` and `docs/deploy.md` cover running it as one container with a persistent volume, the health check at `/api/health`, settings, backups and updates.
+A `Dockerfile` and `docs/deploy.md` cover running it as one container with a persistent volume, the health check at `/api/health`, settings, backups and updates; `docs/host-guide.md` helps choose a host.
 
 ## Languages
 English at `/`, Arabic at `/ar`. UI text is keyed by its English sentence (`i18n/ar.json`); proper names have their own table. `npm run i18n:check` lists missing entries; `npm run i18n:translate` fills them with Claude (`ANTHROPIC_API_KEY` in `.env.local`); `npm run i18n:names -- auto` does the same for names. See `docs/i18n.md`. Set `SITE_URL` for canonical URLs and sitemaps; the site is `noindex` (and `robots.txt` closed) until a real provider is configured **and** `SITE_URL` is a public address. See `docs/seo-audit.md`.

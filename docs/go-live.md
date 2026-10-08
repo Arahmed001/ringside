@@ -13,6 +13,8 @@ Words used here:
 1. It can run a Docker container and give it a permanent disk (a volume) mounted at `/data`.
 2. It runs **exactly one copy** of the site. Two copies would each keep their own data and drift apart.
 
+Have not chosen a host yet? [host-guide.md](host-guide.md) compares four options against these requirements and gives first-deployment steps for each.
+
 The host also needs to put the site on `https://` for you (most do). It must pass on the visitor's real address; deploy.md has the technical wording if your host asks.
 
 ## 1. Decide, once, and write it down
