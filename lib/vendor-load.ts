@@ -47,6 +47,29 @@ export function loadPlan(user: string[], env: Record<string, string | undefined>
 /** The exit code of `vendor:load` when the league was loaded but the audit of it found a failing check (a failed load keeps the code of the load itself). */
 export const AUDIT_FAILED_EXIT = 4;
 
+/** The three files of a SQLite database (the database and its write-ahead log and shared-memory file): all must go to start clean. */
+export const databaseFiles = (database: string): string[] => [database, `${database}-wal`, `${database}-shm`];
+
+/**
+ * What to say when the load's target already exists. A re-load updates the fighters, fights and events in it in place, but the importer never removes a fight an earlier load took
+ * and the importer now leaves out (cancelled cards, Olympic and games bouts) or a country spelled the old way, so a file made by an older version of the importer comes out of a re-load
+ * with those still in it, and the audit then fails. The first full load of a league is the time to start clean; the cache is the source and costs nothing to read again.
+ */
+export function existingWarning(database: string): string[] {
+  return [
+    "",
+    "  WARNING: this database already exists. A re-load updates its fighters, fights and events in place, but it never removes a fight an earlier load took that the importer now",
+    "  leaves out (a card of cancelled fights, an Olympic or games bout), and an old spelling of a country stays. If this file was made by an older version of this importer, stop now:",
+    `  delete ${databaseFiles(database).join(" ")}`,
+    "  (the cache is the source and costs nothing) and run this command again for a clean load.",
+  ];
+}
+
+/** The line that asks for the confirmation: it says plainly when the file is going to be updated in place rather than made. */
+export const confirmPrompt = (database: string, exists: boolean): string =>
+  `\nType LOAD to ${exists ? `UPDATE ${database} IN PLACE (see the warning above)` : `write this league into ${database}`} (anything else cancels): `;
+
+
 /**
  * Step 3 of the guided load: what the audit (`lib/vendor-audit.ts`) found in the database just written, as the lines to print and the exit code. The load itself worked either way
  * (nothing is undone); a FAIL means something in what was loaded is wrong, which is why it gets its own exit code and says how to load again.

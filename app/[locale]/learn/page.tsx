@@ -43,14 +43,14 @@ export default async function Learn() {
         </nav>
       </div>
 
-      <section id="won" className="scroll-mt-24 space-y-4">
+      <section id="won" className="space-y-4">
         <h2 className={h2}>{t("How a fight is won")}</h2>
         <dl className="card divide-y divide-line/60">
           {endings.map(([k, v]) => <div key={k} className="grid gap-1 p-4 sm:grid-cols-[14rem_1fr] sm:gap-4"><dt className="font-semibold">{k}</dt><dd className="text-muted">{v}</dd></div>)}
         </dl>
       </section>
 
-      <section id="scored" className="scroll-mt-24 space-y-4">
+      <section id="scored" className="space-y-4">
         <h2 className={h2}>{t("How the judges score")}</h2>
         <p className="text-muted">{t("Each judge scores every round with the 10-point must system: the fighter who won the round gets 10 points and the other gets 9 or fewer. A knockdown usually costs the fighter who went down an extra point, and the referee can take a point for a foul. A round that is exactly level is scored {level}, which is rare.", { level: "10–10" })}</p>
         <p className="text-muted">{t("The three cards are added up, and how they agree gives the result:")}</p>
@@ -59,26 +59,26 @@ export default async function Learn() {
         </dl>
       </section>
 
-      <section id="record" className="scroll-mt-24 space-y-4">
+      <section id="record" className="space-y-4">
         <h2 className={h2}>{t("How to read a record")}</h2>
         <p className="text-muted">{t("A record is wins, losses and draws, in that order: {example} is 25 wins, 3 losses and 1 draw. Knockouts are the wins that ended early; Ringside shows them as a count and as a share of wins. A no contest is not in the record.", { example: "25-3-1" })}</p>
         <p className="text-muted">{t("When Ringside does not hold a fighter’s early fights, the record on the page is the career total from the data supplier and the page says so; the fight list and the rates are then built only from the fights we hold.")}</p>
       </section>
 
-      <section id="weights" className="scroll-mt-24 space-y-4">
+      <section id="weights" className="space-y-4">
         <h2 className={h2}>{t("Weight classes")}</h2>
         <p className="text-muted">{t("Boxers fight in {n} divisions, from minimumweight (105 lb) to heavyweight (over 200 lb). Fighters step on the scale the day before the fight, and coming in over the limit is called missing weight.", { n: DIVISIONS.length })}</p>
         <p><Link href="/rankings" className="underline decoration-dotted hover:text-gold">{t("See the rankings in every division")}</Link></p>
       </section>
 
-      <section id="belts" className="scroll-mt-24 space-y-4">
+      <section id="belts" className="space-y-4">
         <h2 className={h2}>{t("Belts and champions")}</h2>
         <p className="text-muted">{t("Four organisations, the WBA, WBC, IBF and WBO, each name a world champion in every division, so one division can have four champions at once. A fighter who holds more than one of those belts is a unified champion, and one who holds all four is called undisputed.")}</p>
         <p className="text-muted">{t("An organisation may also name an interim champion while the champion is out, or a super champion for its best fighter. Ringside rebuilds each belt’s line of champions from the title fights in the data.")}</p>
         <p><Link href="/titles" className="underline decoration-dotted hover:text-gold">{t("See every belt and its champions")}</Link></p>
       </section>
 
-      <section id="ratings" className="scroll-mt-24 space-y-4">
+      <section id="ratings" className="space-y-4">
         <h2 className={h2}>{t("Where Ringside’s ratings come from")}</h2>
         <p className="text-muted">{t("Ratings are Elo-style: Ringside’s own calculation from results, not an official ranking. Everyone starts at 1,500 and gains or loses points after each fight, more for beating a higher-rated opponent, and a stoppage counts for a little more than a decision.")}</p>
         <p className="text-muted">{t("A fighter needs five fights on record to be ranked. The win probabilities on fight previews come from these ratings, and the track record page shows how they have done.")}</p>

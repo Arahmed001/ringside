@@ -101,6 +101,6 @@ export function describeStatus(i: StatusInput): string[] {
   else if (fileOk && (left === null || left > 0)) out.push("  start the paced fetch (one run only; the key is read from the key file). Detached, so closing the terminal does not end it:  npm run vendor:fetch -- --background   (in this tab instead:  npm run vendor:fetch)");
   else if ((!i.key.set || i.key.placeholder) && !fileOk) out.push("  save the key once, in a real terminal tab (hidden prompt, never in a chat box):  npm run vendor:fetch -- --setup");
   else if (left === null || left > 0) out.push(`  (re)start the fetch, one run only, paced:  npm run vendor:backfill -- --check --per-hour 400 --patience-min 240 --cache-dir ${i.cacheDir}`);
-  else out.push(`  the cache is complete. See what the load would do, writing nothing:  npm run vendor:load -- --dry-run   (then, and only if you agree with it:  npm run vendor:load; docs/real-data-runbook.md section 2c)`);
+  else out.push(`  the cache is complete. See what the load would do, writing nothing:  npm run vendor:load -- --dry-run   (then, and only if you agree with it:  npm run vendor:load; docs/real-data-runbook.md section 2c). Before the real load: if a database from an earlier load exists (~/ringside-real/real.db, or DATABASE_PATH), delete it and its -wal and -shm files first (a re-load never removes what an older load took and the importer now leaves out; docs/load-day.md step 4).`);
   return out;
 }

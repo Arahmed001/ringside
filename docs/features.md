@@ -26,6 +26,7 @@ A map of the features added in the first week of October 2026, one line each: wh
 | `npm run smoke` and its variants | the site, built and served, every page in both languages; CI runs six: default, `--feed sparse`, `--feed empty`, `--facts unknown`, `--feed partial`, `--feed hostile --crawl 60`; `--database FILE` runs it on a real league |
 | `npm run forum:bench` | how fast the forum is with 200,000 posts |
 | `npm run a11y` | the browser accessibility sweep (needs a Chromium download; see `docs/accessibility.md`) |
+| `npm audit --omit=dev` / `npm audit` | what ships must say 0 (the gate and CI require it); the five "high" findings of the full audit are the linter's, have no patched version, and are explained in `docs/dependencies.md` |
 | `npm run vendor:audit` | what a loaded league must satisfy (the guided load runs it at the end) |
 
 ## Where the numbers are
