@@ -8,14 +8,19 @@ const root = path.resolve(__dirname, "..");
 const read = (f: string) => fs.readFileSync(path.join(root, f), "utf8");
 const page = read("app/[locale]/boxers/[slug]/page.tsx");
 
-test("every section the strip links to exists on the page, once, with room above it for the strip", () => {
+test("every section the strip links to exists on the page, once, and the page leaves room above whatever it scrolls to for the sticky bars", () => {
   const strip = page.slice(page.indexOf("<JumpNav sections={["), page.indexOf("]} />", page.indexOf("<JumpNav sections={[")));
   const ids = [...strip.matchAll(/id: "([a-z]+)"/g)].map((m) => m[1]);
   assert.deepEqual(ids, ["numbers", "highlights", "profile", "scouting", "form", "similar", "record", "discussion"], "in page order");
   for (const id of ids) {
-    const found = [...page.matchAll(new RegExp(`<section id="${id}" className="[^"]*scroll-mt-32`, "g"))];
-    assert.equal(found.length, 1, `#${id}: one section carries it, with scroll-mt-32 (the strip is about 107 px under the top of the window)`);
+    assert.equal([...page.matchAll(new RegExp(`<section id="${id}"`, "g"))].length, 1, `#${id}: one section carries it`);
   }
+  // the room is the page's scroll-padding, which also keeps a control that takes focus from the keyboard out from under the bars (WCAG 2.4.11: the browser suite found Tab
+  // leaving controls hidden under the top bar and the strip, docs/e2e.md); a per-section scroll-mt on top of it would add the two together
+  const css = read("app/globals.css");
+  assert.match(css, /html \{ scroll-padding-top: 5rem; \}/, "the top bar is about 4rem");
+  assert.match(css, /html:has\(\.jump-nav\) \{ scroll-padding-top: 8rem; \}/, "a fighter's page has the strip under it as well (about 107 px in all)");
+  assert.ok(!/scroll-mt-/.test(page), "no section adds its own offset to the page's");
   assert.ok(page.indexOf("<JumpNav") < page.indexOf('<section id="numbers"'), "the strip comes before the sections it links to");
   assert.match(strip, /numbers && numbers\.fights >= 5/, "a conditional section is linked only when it is shown"); assert.match(strip, /hasHighlights/);
 });

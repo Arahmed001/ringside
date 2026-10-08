@@ -106,3 +106,7 @@ If you would rather not use a monitor yet: put a weekly reminder in your calenda
 ## What I (Claude) can and cannot do for you here
 
 I can write, test and prepare the code, and walk you through each step above. I cannot log in to your host, and I will not guess at it. For steps 2 to 4 you do the clicking and typing, and tell me what you see after each one.
+
+## Keeping your data in spreadsheets
+
+If your fighters, events and fights live in Excel or Google Sheets, `docs/spreadsheet-loading.md` shows how to turn them into the file the site loads, with plain-English error messages.

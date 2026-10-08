@@ -1,0 +1,9 @@
+event,red,blue,rounds,winner,method,end round,weight class,title
+Sample Night 1,Sample Boxer 01,Sample Boxer 02,12,red,UD,,Welterweight,Sample Title
+Sample Night 1,Sample Boxer 03,Sample Boxer 04,10,blue,TKO,6,Welterweight,
+Sample Night 1,Sample Boxer 07,Sample Boxer 08,10,draw,,,Super Middleweight,
+Sample Night 2,Sample Boxer 05,Sample Boxer 06,12,red,KO,3,Welterweight,
+Sample Night 2,Sample Boxer 09,Sample Boxer 10,10,blue,SD,,Super Middleweight,
+Sample Night 2,Sample Boxer 02,Sample Boxer 03,10,red,UD,,Welterweight,
+Sample Night 3,Sample Boxer 01,Sample Boxer 05,12,,,,Welterweight,Sample Title
+Sample Night 3,Sample Boxer 07,Sample Boxer 09,10,,,,Super Middleweight,
