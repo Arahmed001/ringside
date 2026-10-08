@@ -99,6 +99,12 @@
   ]
  },
  {
+  "key": "{a} scored · {b} suffered",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
   "key": "{a} vs {b}",
   "files": [
    "app/[locale]/bouts/[id]/opengraph-image.tsx",
@@ -842,6 +848,7 @@
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
    "app/[locale]/previews/[id]/page.tsx",
+   "components/ui.tsx",
    "lib/calendar.ts"
   ]
  },
@@ -4576,6 +4583,12 @@
   ]
  },
  {
+  "key": "Details of the fight against {name}",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
   "key": "Developers",
   "files": [
    "app/[locale]/developers/page.tsx"
@@ -5068,6 +5081,12 @@
   ]
  },
  {
+  "key": "Ended",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
   "key": "Ended in {date}",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -5160,6 +5179,7 @@
  {
   "key": "Event",
   "files": [
+   "components/ui.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -7092,6 +7112,7 @@
  {
   "key": "Knockdowns",
   "files": [
+   "components/ui.tsx",
    "lib/fight-score.ts"
   ]
  },
@@ -10807,13 +10828,15 @@
   "key": "Round {r}",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
+   "components/ui.tsx",
    "lib/correction-text.ts"
   ]
  },
  {
   "key": "Round {r}, {time}",
   "files": [
-   "app/[locale]/bouts/[id]/page.tsx"
+   "app/[locale]/bouts/[id]/page.tsx",
+   "components/ui.tsx"
   ]
  },
  {
@@ -10959,6 +10982,12 @@
   "key": "scheduled",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Scheduled distance",
+  "files": [
+   "components/ui.tsx"
   ]
  },
  {
@@ -13476,7 +13505,8 @@
  {
   "key": "Title",
   "files": [
-   "components/StartThread.tsx"
+   "components/StartThread.tsx",
+   "components/ui.tsx"
   ]
  },
  {
@@ -14154,6 +14184,12 @@
   "key": "Value",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Venue",
+  "files": [
+   "components/ui.tsx"
   ]
  },
  {

@@ -2967,5 +2967,10 @@
  "✦ Written by Claude": "✦ كتبه Claude",
  "✦ Written by Claude from the facts on this page": "✦ كتبه Claude من الحقائق الواردة في هذه الصفحة",
  "✦ marks the model’s pick. Picks are saved in this browser.": "✦ يشير إلى اختيار النموذج. تُحفظ الاختيارات في هذا المتصفح.",
- "✦ marks the model’s pick. Saved to your account; picks lock when fight day begins.": "✦ يشير إلى اختيار النموذج. محفوظ في حسابك؛ تُقفل الاختيارات عند بدء يوم النزال."
+ "✦ marks the model’s pick. Saved to your account; picks lock when fight day begins.": "✦ يشير إلى اختيار النموذج. محفوظ في حسابك؛ تُقفل الاختيارات عند بدء يوم النزال.",
+ "Details of the fight against {name}": "تفاصيل النزال ضد {name}",
+ "Ended": "انتهى",
+ "Scheduled distance": "المسافة المقررة",
+ "Venue": "المكان",
+ "{a} scored · {b} suffered": "سجّل {a} · وتلقّى {b}"
 }
