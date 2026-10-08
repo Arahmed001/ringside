@@ -34,7 +34,7 @@ export async function OutcomesByYear({ years }: { years: YearOutcomes[] }) {
             </div>
           ))}
         </div>
-        <div className="mt-1 flex gap-[3px] text-[11px] tabular text-muted" aria-hidden="true">
+        <div className="mt-1 flex gap-[3px] text-xs tabular text-muted" aria-hidden="true">
           {years.map((y) => <div key={y.year} className="relative h-4 min-w-[5px] max-w-8 flex-1">{labels.has(y.year) && <span className="absolute left-1/2 -translate-x-1/2">{y.year}</span>}</div>)}
         </div>
       </div>
