@@ -1,7 +1,6 @@
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { tempDb } from "./helpers";
-import { nowMs } from "../lib/clock";
 
 /**
  * The Boxing Data API adapter, tested against the shapes in the vendor's published docs (the Tyson Fury fighter example, the
