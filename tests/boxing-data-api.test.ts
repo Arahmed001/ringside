@@ -837,7 +837,7 @@ test("a run with patience waits out a network outage instead of skipping fighter
 test("a card's country is spelled as a fighter's nationality is, the home nations stay themselves, and the regions of the first real league are placed (round 133: the England page said 0 events beside 1,089 fighters; 425 cards had a country no fighter has)", () => {
   const n = notes();
   const country = (loc: string) => B.parseLocation(loc, n).country;
-  for (const [loc, want] of [["Liverpool, England", "England"], ["Preston, Lancashire", "England"], ["Bethnal Green, Merseyside", "England"], ["Hove, Hove", "England"], ["Greenwich, London", "England"], ["Glasgow, Scotland", "Scotland"], ["Cardiff, Wales", "Wales"],
+  for (const [loc, want] of [["Liverpool, England", "England"], ["Preston, Lancashire", "England"], ["Bethnal Green, Merseyside", "England"], ["Hove, Hove", "England"], ["Greenwich, London", "England"], ["Bournemouth, Dorset", "England"], ["Morelia, Michoacan", "Mexico"], ["Mexico City, M xico", "Mexico"], ["Kinshasa, The Democratic Republic of The", "Congo - Kinshasa"], ["Glasgow, Scotland", "Scotland"], ["Cardiff, Wales", "Wales"],
     ["Prague, Czech Republic", "Czechia"], ["Dubai, UAE", "United Arab Emirates"], ["Kinshasa, DRC", "Congo - Kinshasa"], ["Mexico City, México", "Mexico"], ["Houston, USA", "United States"], ["London, UK", "United Kingdom"], ["Amsterdam, Holland", "Netherlands"],
     ["Munich, Bayern", "Germany"], ["Tokyo, Aichi", "Japan"], ["Bilbao, Basque Country", "Spain"], ["Rosario, Santa Fe", "Argentina"], ["Soweto, Gauteng", "South Africa"], ["Santa Marta, Columbia", "Colombia"], ["Charleston, Wes Virginia", "United States"], ["Tripoli, Libyan Arab Jamahiriya", "Libya"],
   ]) assert.equal(country(loc), want, loc);
