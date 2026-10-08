@@ -2981,5 +2981,16 @@
  "✦ Written by Claude": "✦ كتبه Claude",
  "✦ Written by Claude from the facts on this page": "✦ كتبه Claude من الحقائق الواردة في هذه الصفحة",
  "✦ marks the model’s pick. Picks are saved in this browser.": "✦ يشير إلى اختيار النموذج. تُحفظ الاختيارات في هذا المتصفح.",
- "✦ marks the model’s pick. Saved to your account; picks lock when fight day begins.": "✦ يشير إلى اختيار النموذج. محفوظ في حسابك؛ تُقفل الاختيارات عند بدء يوم النزال."
+ "✦ marks the model’s pick. Saved to your account; picks lock when fight day begins.": "✦ يشير إلى اختيار النموذج. محفوظ في حسابك؛ تُقفل الاختيارات عند بدء يوم النزال.",
+ "Clear decisions": "قرارات واضحة",
+ "Record in late rounds": "السجل في الجولات المتأخرة",
+ "{u} of {w} decision wins were unanimous": "{u} من أصل {w} انتصارًا بالقرار كانت بالإجماع",
+ "{n} fights that reached round 8": {
+  "zero": "{n} نزالات بلغت الجولة 8",
+  "one": "نزال واحد بلغ الجولة 8",
+  "two": "نزالان بلغا الجولة 8",
+  "few": "{n} نزالات بلغت الجولة 8",
+  "many": "{n} نزالًا بلغت الجولة 8",
+  "other": "{n} نزال بلغت الجولة 8"
+ }
 }

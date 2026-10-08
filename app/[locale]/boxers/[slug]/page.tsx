@@ -36,6 +36,7 @@ import { newsForFighter } from "@/lib/news/read";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
+import { lateRoundsOf, clearDecisionsOf } from "@/lib/late-rounds";
 import { countryName, flag, fmtDate, fmtPartialDate, methodLabel, pct } from "@/lib/format";
 import { msg } from "@/lib/i18n/t";
 import { countsInRecord, isDecision, isStoppage } from "@/lib/methods";
@@ -80,6 +81,8 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   // counted from every fight, so only for a career held whole (from part of one these would be wrong in a way that reads as right)
   const careerStripOf = career.source !== "loaded" ? careerStrip({ dates: completed.map((x) => x.date), total: career.total, turnedPro: b.turnedPro, debutDate: b.debutDate }) : null;
   const numbers = career.source === "loaded" ? numbersOf(bouts, b.id, (id) => w.eventById.get(id)) : null;
+  const late = career.source === "loaded" ? lateRoundsOf(bouts, b.id) : null;
+  const clearDec = career.source === "loaded" ? clearDecisionsOf(bouts, b.id) : null;
   const duration = (days: number) => (days >= 730 ? t("{n} years", { n: (days / 365.25).toFixed(1) }) : days >= 60 ? t("{n} months", { n: Math.round(days / 30.4) }) : t.n(days, "{n} day", "{n} days"));
   const hl = (id: number) => { const x = w.boutById.get(id); return x ? fmtDate(x.date, { month: "short", year: "numeric" }, t.locale) : ""; };
   const hasHighlights = !!(highlights.bestWin || highlights.biggestUpset || highlights.longestStreak);
@@ -252,6 +255,8 @@ const HONOURS_SHOWN = 8;
             {numbers.countries.length > 0 && <Stat label={t("Fought in")} value={t.n(numbers.countries.length, "{n} country", "{n} countries")} sub={numbers.countries.slice(0, 3).map((c) => countryName(c.name, t.locale)).join(", ")} />}
             {numbers.venue && <Stat label={t("Most-fought venue")} value={t.n(numbers.venue.n, "{n} fight", "{n} fights")} sub={`${t.name(numbers.venue.name)}${numbers.venue.city ? `, ${t.name(numbers.venue.city)}` : ""}`} />}
             {numbers.busiestYear && <Stat label={t("Busiest year")} value={numbers.busiestYear.year} sub={t.n(numbers.busiestYear.n, "{n} fight", "{n} fights")} />}
+            {late && <Stat label={t("Record in late rounds")} value={`\u2066${late.wins}-${late.losses}${late.draws ? `-${late.draws}` : ""}\u2069`} sub={t.n(late.fights, "{n} fight that reached round 8", "{n} fights that reached round 8")} />}
+            {clearDec && <Stat label={t("Clear decisions")} value={pct(clearDec.unanimous / clearDec.wins)} sub={t("{u} of {w} decision wins were unanimous", { u: clearDec.unanimous, w: clearDec.wins })} />}
             {numbers.layoff && <Stat label={t("Longest layoff")} value={duration(numbers.layoff.days)} sub={t("{from} to {to}", { from: fmtDate(numbers.layoff.from, { month: "short", year: "numeric" }, t.locale), to: fmtDate(numbers.layoff.to, { month: "short", year: "numeric" }, t.locale) })} />}
           </div>
         </section>
