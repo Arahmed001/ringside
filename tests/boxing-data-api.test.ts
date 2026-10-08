@@ -17,6 +17,7 @@ delete process.env.BOXING_API_STORAGE_CONFIRMED;
 import * as B from "../lib/providers/boxing-data-api";
 import { sanitizeFeed } from "../lib/validate";
 import { emptyFeed } from "../lib/feed";
+import { nowMs } from "../lib/clock";
 
 const KEY = "sk-test-key-0123456789abcdef0123456789";
 const notes = () => ({ ...B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: (async () => new Response("{}")) as typeof fetch }).notes() });
@@ -67,7 +68,7 @@ test("draws and unresolved results: a decision with no winner is a draw; a finis
   const none = B.mapFight(fight("f7", "A", "B", { fighters: { fighter_1: side("A", false), fighter_2: side("B", false) }, results: { outcome: null, round: null } }), n)!.bout;
   assert.equal(none.method, null); assert.equal(none.winnerExternalId, null); assert.equal(none.endRound, null); assert.equal(n.resultMissing, 1);
   assert.equal(n.resultMissingOld, 1); // 2024: long past
-  const day = new Date(nowMs() - 3 * 86400000).toISOString().slice(0, 10);
+  const day = new Date(nowMs() - 3 * 86400000).toISOString().slice(0, 10); // the app's clock (pinned by tempDb), not the real one: a real-clock date drifts past the pinned "today" and reads as a result from the future
   B.mapFight(fight("f8", "A", "B", { date: day, event: { id: "ev-f8", title: "Recent", date: day }, fighters: { fighter_1: side("A", false), fighter_2: side("B", false) }, results: { outcome: null, round: null } }), n);
   assert.equal(n.resultMissing, 2); assert.equal(n.resultMissingOld, 1); // three days ago: a result that may still come
 });

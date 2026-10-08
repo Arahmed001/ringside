@@ -184,4 +184,16 @@ test("the rankings index never cuts a fighter's name or division off with an ell
 test("every playing-style colour is text-safe on the panels it is drawn on (the Journeyman chip was 3.3:1: axe on a real fighter's page, round 133)", async () => {
   const { ARCH_COLOR } = await import("../lib/style");
   for (const [style, colour] of Object.entries(ARCH_COLOR)) for (const bg of ["panel", "panel-2", "bg"]) assert.ok(ratio(colour, token(bg)) >= 4.5, `${style} ${colour} on ${bg} is ${ratio(colour, token(bg)).toFixed(2)}:1`);
+
+test("closing the search box puts focus back on a control that exists: the search button is replaced by the dialog while it is open, so the element remembered at opening is gone (found by the browser suite, docs/e2e.md)", () => {
+  const src = read("components/CommandPalette.tsx");
+  assert.match(src, /const trigger = useRef<HTMLButtonElement>\(null\)/);
+  assert.match(src, /<button ref=\{trigger\}/, "the button in the bar is reachable from the close path");
+  assert.match(src, /was\.isConnected && was !== document\.body \? was : trigger\.current/, "what was focused if it is still there, else the button that took its place");
+  assert.ok(!/const close = useCallback\(\(\) => \{ setOpen\(false\); opener\.current\?\.focus\(\)/.test(src), "focusing the remembered element at once is what lost focus: it is not on the page any more");
+});
+
+test("the sticky bars never end up on top of the control that has focus: the page leaves room above whatever the browser scrolls to (WCAG 2.4.11, found by the browser suite, docs/e2e.md)", () => {
+  assert.match(css, /html \{ scroll-padding-top: 5rem; \}/);
+  assert.match(css, /html:has\(\.jump-nav\) \{ scroll-padding-top: 8rem; \}/);
 });

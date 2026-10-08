@@ -1,5 +1,7 @@
 # Load day: the short version
 
+> Running the site day to day? [operator-handbook.md](operator-handbook.md) is the one page with the timeline, the checklists, what to do when something goes wrong, and every setting.
+
 The commands, in order, with what to look at after each. Everything is explained in `real-data-runbook.md`; this is the page to keep open. Run every command in the project folder, in a real terminal tab:
 
 ```bash
@@ -60,6 +62,21 @@ npm run first-look -- --database ~/ringside-real/real.db      # counts only: how
 npm run sweep -- --database ~/ringside-real/real.db --each 300 # every library calculation on a sample of your fighters, fights and cards; "no problems" or the list (a minute)
 ```
 
+
+## 4c. The first real look, in one report: `npm run post-load`
+
+```bash
+npm run build                            # once, if the code changed since the last build (or add --build to the next command)
+npm run post-load                        # about ten minutes on 35,000 fighters; writes ~/ringside-real/post-load-report.html and prints a PASS / WARN / FAIL line per section
+npm run post-load -- --skip a11y,gallery # just the data checks, the sample and the timings (a few minutes); --quick shortens the browser and timing parts
+```
+
+It answers "does the real league look right, and does it run fast?" and gives you and Claude one page to look at (open the HTML file in a browser; the same summary is printed at its end, ready to paste). The sections: (1) the audit of step 4b plus the doctor, (2) counts and completeness (photos, Arabic names, Wikidata ids, full / partial / disputed records, fights and events per year with the holes marked), (3) a sample of 60 fighters (the 10 most active, 10 champions, 10 disputed, 10 longest careers, 10 fewest fights, 10 at random) rendered through the real pages in English and Arabic and in a real browser (record equals the database's, no `undefined` / `NaN` / `null`, no console errors, no broken images, a form strip, a sensible age), (4) speed at your machine's size (cold start, memory, p50 and p95 per kind of page, beside `docs/capacity.md`), (5) the accessibility sweep on about 20 real pages in English and Arabic at 375 and 1280 px, (6) a gallery of screenshots with photos and silhouettes, (7) surprises (duplicate fighters, one venue or country spelled two ways, results for fights not yet held, impossible records, small divisions, one-bout cards, swapped corners), (8) what to look at by hand, with the names filled in.
+
+**It never writes your database.** It copies `real.db` (and its `-wal`) into a temporary folder, analyses and serves the copy (the app writes when it opens a database), deletes the copy, and the report shows that the original's size, time and checksum are the same before and after. It makes no request to the vendor, reads no key, and sends nothing anywhere: the only traffic is to the site it starts on this machine. The report holds fighter names, records and dates (what the public site shows), `~` for your home folder and no setting's value, so it is safe to send. Run it after step 6 (`vendor:enrich`) too: before it, photos, Arabic names and Wikidata ids are 0% and that is expected.
+
+Needs Playwright with Chromium for sections 3 (the browser part), 5 and 6 (`docs/accessibility.md`: `npm i -g playwright && npx playwright install chromium`, or `PLAYWRIGHT_MODULE=/path/to/playwright`); without it those parts say SKIP and the verdict is a WARN, not a PASS. **Read the timings with care if anything else is running**: the report prints the machine's load beside them. Exit code 1 if any section FAILS (so it can sit in a script), 2 if there is no database or no build.
+
 ## 5. Look at it, then run the site on it
 
 To look at what was loaded, on your own machine (port 3480; detached, so closing the tab does not stop it):
@@ -88,7 +105,7 @@ npm run vendor:enrich                    # lists them again and asks you to type
 
 ## 7. By hand, once
 
-Ten fighters you know (record, age, division, last fight); the top of the heaviest and lightest divisions; a fighter marked disputed (the note says what disagrees); an Arabic page; the Data page (the credit, the counts); `npm run model:fit`; `npm run backup`. The full list is section 4 of the runbook.
+(Section 8 of the post-load report is this list with the names filled in.) Ten fighters you know (record, age, division, last fight); the top of the heaviest and lightest divisions; a fighter marked disputed (the note says what disagrees); an Arabic page; the Data page (the credit, the counts); `npm run model:fit`; `npm run backup`. The full list is section 4 of the runbook.
 
 ## 8. Every day after
 
@@ -96,6 +113,16 @@ Ten fighters you know (record, age, division, last fight); the top of the heavie
 # cron, on the machine that holds the database; the storage statement is yours, as in step 4
 17 6 * * *  cd /path/to/ringside && DATABASE_PATH=$HOME/ringside-real/real.db BOXING_API_STORAGE_CONFIRMED=1 npm run vendor:fetch -- --update >> $HOME/ringside-real/update.log 2>&1
 ```
+
+**On a host (a container) use this form instead.** `vendor:fetch` reads the key from a file in the home folder of the machine it runs on; a container has no such file, so the nightly job runs `vendor:backfill` directly (which `vendor:fetch` wraps), with the cache on the volume and the key, the storage statement and the database path in the container's own settings (the key as `BOXING_API_KEY`, its secret field; `BOXING_API_STORAGE_CONFIRMED` set to 1 once the vendor has confirmed; `DATABASE_PATH`). The host's cron runs:
+
+```bash
+17 6 * * *  docker exec ringside npm run vendor:backfill -- --update --cache-dir /data/vendor-cache >> /data/vendor-update.log 2>&1
+```
+
+The log path is on the machine where the cron line runs, so make sure that folder exists and that you read it (go-live section 6 says what to look for). Everything below, including the exit codes, applies to both forms. [real-data-runbook.md](real-data-runbook.md) section 5 has the same line.
+
+**No cron that can reach the volume (Render, Fly, Railway)?** Their scheduled jobs cannot open the database, so the job runs inside the one container: `npm run nightly` (a verified backup, this same update, an optional copy off the host, a status file), started each night by an optional built-in scheduler when `NIGHTLY_SCHEDULE=03:30` (UTC) is set. Its exit codes are the table below. See [nightly.md](nightly.md).
 
 It fetches the recent fights and the coming weeks (tens of requests) and reports a career total that trails a result as lagging, not as a conflict. A mark set by the load stays until the next load.
 
@@ -107,11 +134,11 @@ It fetches the recent fights and the coming weeks (tens of requests) and reports
 | 1 | Anything else: a missing key, a bad option, the clock message below, a backup folder that cannot be written, a database error such as "disk is full", `--check` that found errors or would refuse a load. | |
 | 2 | The vendor is unreachable or refused. | Network down or connection refused/reset/cut; 401, 403, 404 on the list; 5xx after the retries; 429 (rate limit still in force, or the quota used up); the request budget reached. |
 | 3 | A check refused the data (nothing was written). | The validator found errors; the records gate refused; fights were left out because a fighter could not be fetched; the vendor sent something that is not JSON, an unexpected shape or an error envelope, or no usable fights for the window. |
-| 75 | Another run holds the lock for this key (`EX_TEMPFAIL`: try again later). | A hand run while the nightly job runs. |
+| 75 | Another run holds the lock for this key (`EX_TEMPFAIL`: try again later). | A hand run while the nightly job runs. (`npm run nightly` returns it too, when another nightly job is running.) |
 | 130 | Stopped by SIGINT, SIGTERM or SIGHUP (the backfill catches them, gives the lock back and exits). | A cron timeout, Ctrl-C. |
 | 128 + n | `vendor:fetch` only: its child died by signal number n, which the child could not catch, and `vendor:fetch` says so ("vendor:backfill killed (SIGKILL)." / "stopped (SIGQUIT)."). | 137 for SIGKILL (the out-of-memory killer, `kill -9`), 131 for SIGQUIT. |
 
-`vendor:fetch` passes the backfill's code through unchanged. A cron wrapper can therefore tell the three kinds of failure apart without reading the log (`2` is worth a retry in an hour, `3` needs a look, `75` needs nothing). `vendor:load` passes the code through too.
+`npm run nightly` (the in-container job, [nightly.md](nightly.md)) returns the update's code when the update failed, and 1 when only its backup failed; a failed copy off the host alone is 0 (the status file says `warning`). `vendor:fetch` passes the backfill's code through unchanged. A cron wrapper can therefore tell the three kinds of failure apart without reading the log (`2` is worth a retry in an hour, `3` needs a look, `75` needs nothing). `vendor:load` passes the code through too.
 
 When an update skipped or ignored anything (fights it could not read, text it cleaned, results it kept as unsettled, values that cannot be true), its last line says so in one sentence ("update done, but 1 fight(s) skipped ..., see "approximated or skipped" above."); a clean night has no such line. When there is nothing to update, it says the newest card's date and today's and asks whether this machine's clock is right. What each failure of the nightly job does is in [update-failure-modes.md](update-failure-modes.md).
 

@@ -25,8 +25,9 @@ function Field({ id, label, hint, children }: { id: string; label: string; hint?
 export function AccountPanel() {
   const t = useT();
   const me = useAccount();
+  const [moved, setMoved] = useState(""); // said by the sign-in form, shown by the page that replaces it: the form is gone the moment the account is known
   if (me === undefined) return <p className="text-sm text-muted">{t("Loading…")}</p>;
-  return me ? <Signed me={me} /> : <SignedOut />;
+  return me ? <Signed me={me} notice={moved} /> : <SignedOut onMoved={setMoved} />;
 }
 
 /** The picks a visitor made before signing in move onto the account (open fights only; the server never overwrites an existing pick). */
@@ -38,7 +39,7 @@ async function moveLocalPicks(): Promise<number> {
   return r.ok ? r.data.added ?? 0 : 0;
 }
 
-function SignedOut() {
+function SignedOut({ onMoved }: { onMoved: (text: string) => void }) {
   const t = useT();
   const [tab, setTab] = useState<"in" | "up" | "reset">("in");
   const [busy, setBusy] = useState(false);
@@ -55,9 +56,9 @@ function SignedOut() {
       : await api(tab === "in" ? "/api/account/login" : "/api/account/signup", "POST", { username: val("username"), password: val("password") });
     if (!r.ok) { setBusy(false); setMsg({ text: explain(t, r.data.error), bad: true }); return; }
     const moved = await moveLocalPicks();
-    await refreshAccount();
+    if (moved) onMoved(t("{n} of the picks saved in this browser were added to your account.", { n: moved }));
+    await refreshAccount(); // this replaces the form with the signed-in page, so anything to say has been passed up before this line
     setBusy(false);
-    if (moved) setMsg({ text: t("{n} of the picks saved in this browser were added to your account.", { n: moved }), bad: false });
   }
 
   const tabs: ["in" | "up" | "reset", string][] = [["in", t("Sign in")], ["up", t("Create account")], ["reset", t("Forgot password")]];
@@ -97,11 +98,12 @@ function SignedOut() {
   );
 }
 
-function Signed({ me }: { me: Me }) {
+function Signed({ me, notice }: { me: Me; notice: string }) {
   const t = useT();
   const role = me.role === "admin" ? t("Admin") : me.role === "editor" ? t("Editor") : t("Member");
   return (
     <div className="space-y-6">
+      <p role="status" aria-live="polite" className="text-sm text-win empty:hidden">{notice}</p>
       <section className="card flex flex-wrap items-center justify-between gap-4 p-5">
         <div>
           <div className="eyebrow">{t("Signed in")}</div>

@@ -1,5 +1,7 @@
 # Going live: the short, step-by-step version
 
+> Running the site day to day? [operator-handbook.md](operator-handbook.md) is the one page with the timeline, the checklists, what to do when something goes wrong, and every setting.
+
 This is the plain version of [deploy.md](deploy.md). Use it when you want to put Ringside on the internet, or put a new version on a site that is already live, and you would rather follow steps than read about options. Every step says what you should see when it worked. If you do not see it, stop and ask before doing the next step.
 
 Words used here:
@@ -13,7 +15,11 @@ Words used here:
 1. It can run a Docker container and give it a permanent disk (a volume) mounted at `/data`.
 2. It runs **exactly one copy** of the site. Two copies would each keep their own data and drift apart.
 
-The host also needs to put the site on `https://` for you (most do). It must pass on the visitor's real address; deploy.md has the technical wording if your host asks.
+Have not chosen a host yet? [host-guide.md](host-guide.md) compares four options against these requirements and gives first-deployment steps for each.
+
+The host also needs to put the site on `https://` for you (most do). It must pass on the visitor's real address; deploy.md has the technical wording if your host asks (the proxy in front must overwrite `X-Forwarded-For`, not append to it).
+
+If you put a CDN in front: let it cache the static files, images, portraits and sitemaps. The pages are sent "do not cache" on purpose, and a CDN will not keep them; making them cacheable without weakening the security policy needs an edge that writes a fresh value into each page it serves, and that is your decision, not a setting (`docs/cdn.md` says what was found, which routes could be cached and which never may be).
 
 ## 1. Decide, once, and write it down
 
@@ -62,7 +68,7 @@ Open each of these in a browser, in this order. All should load without an error
 4. Sign up with a test account, star a fighter, then reload `/watchlist`. The fighter should still be there. Sign out, sign in again, and check it is still there.
 5. On the host's terminal: `docker exec ringside npm run doctor`. It prints a list of problems with the fix beside each. Fix anything marked as a failure.
 
-If step 1 or 4 fails: use the host's rollback (or run the old container), then tell me exactly what you saw. Your data is safe: the update does not delete it, and you made a backup in section 2.
+If step 1 or 4 fails: use the host's rollback (or run the old container), then tell me exactly what you saw. Your data is safe: the update does not delete it, and you made a backup in section 2. If the old version will not start (the new one may have moved the data file's layout forward, and an older version on a newer file is not supported: `deploy.md`, "Updating"), put the section 2 backup back with the steps in section 5 below, then start the old version.
 
 ## 5. Afterwards
 
@@ -93,8 +99,10 @@ The real league is kept current by one nightly job (`vendor:fetch -- --update`, 
 
 So make something look for you. Any uptime monitor that can **alert when a page contains some text** will do (several have a free plan; I have not tried any against your host, so choose one you trust): point it at `https://your-address/api/health` and alert on the text `"stale":true`, and also on the page not answering at all. Send the alert to an address you read daily. The threshold is two days: one missed night leaves the data about a day old and does not alert; a second miss does, as soon as that night's job should have finished.
 
+**If the host has no cron that can reach the data disk** (Render, Fly, Railway), the job runs inside the container: set `NIGHTLY_SCHEDULE=03:30` (UTC) and the key in the service's settings, redeploy, and run `npm run nightly` once by hand in the host's shell to watch the first night ([nightly.md](nightly.md)). `/api/health` then also shows `data.nightly` (its last result and exit codes), and its log lines start `[nightly]`. `"stale"` still decides the alert.
+
 When it fires:
-1. Open the log the job writes to (the `>> .../update.log` in the cron line): its last lines say what stopped it.
+1. Open the log the job writes to (the `>> .../update.log` in the cron line, or the container log lines that start `[nightly]`): its last lines say what stopped it.
 2. Run the update by hand, once, with the same command, and watch it. A wrong or lapsed key, or the hourly limit, says so in plain words.
 3. Open `/api/health` again: `"stale":false` and a new `updatedAt` mean it is fixed.
 4. If you cannot tell, paste the whole output of step 2 to me.

@@ -98,6 +98,10 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--red-btn); }
 
 /* Keyboard focus: one visible ring everywhere (gold, 3:1 on every surface), only for keyboard users. */
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+/* The sticky bars cover the top of the window (the top bar, about 4rem; on a fighter's page the jump strip under it as well), so whatever the browser scrolls to must stop below them:
+   a control that takes focus from the keyboard, or the section a link jumps to. Without this, Tab left controls hidden under the bar (WCAG 2.4.11, found by the browser suite, docs/e2e.md). */
+html { scroll-padding-top: 5rem; }
+html:has(.jump-nav) { scroll-padding-top: 8rem; }
 .skip-link { position: absolute; inset-inline-start: 12px; top: -64px; z-index: 100; background: var(--gold); color: #09090b; padding: .6rem 1rem; border-radius: 10px; font-weight: 700; transition: top .15s; }
 .skip-link:focus { top: 12px; }
 @media (forced-colors: active) { .chip, .card { border-color: CanvasText; } }

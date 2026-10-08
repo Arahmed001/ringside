@@ -1,6 +1,6 @@
 # Deploying Ringside
 
-> New to deploying? [go-live.md](go-live.md) is the same material as plain, numbered steps.
+> New to deploying? [go-live.md](go-live.md) is the same material as plain, numbered steps. Have not chosen a host? [host-guide.md](host-guide.md) compares Fly.io, Render, Railway and a plain server against the requirements below.
 
 Ringside is one Node process with one SQLite file. That shapes the deployment: **run exactly one instance, with a persistent volume.** Two instances would each hold their own copy of the database, the live ledger and visitors' cached AI answers.
 
@@ -26,9 +26,9 @@ docker run -d --name ringside -p 3000:3000 -v ringside-data:/data \
   ringside
 ```
 
-The first start seeds the demo league into an empty database (about 2 seconds) and builds the in-memory world before the server accepts traffic (about 1 second at demo size, about 4 seconds at 160,000 bouts), so nobody waits for it.
+The first start seeds the demo league into an empty database (about 2 seconds) and builds the in-memory world and warms the pages' shared computations before the server accepts traffic (about 1 second at demo size; at 160,000 bouts about 4 seconds for the world plus 7 to 10 more for the warm-up, so 11 to 16 seconds from launch to the first answer: `capacity.md`, "Start-up"), so no visitor waits for it. The health check fails during that time, and the image's `HEALTHCHECK` allows 120 seconds.
 
-`GET /api/health` returns `200 {"status":"ok","fighters":N,"bouts":N,"data":{"updatedAt":…,"ageHours":N,"stale":…}}` when the database is open and the world is built, and `503` otherwise. It reports counts and the age of the data only. `data.stale` is `true` when a licensed feed (`BOXING_PROVIDER=licensed`) has not been updated for more than two days, meaning the daily `vendor:backfill --update` has probably stopped and the site is serving old results; it is `null` for the demo league and a file feed. A stale feed never makes the answer a `503`: it is a reason to look at the cron, not to restart the container, so point an alert at `data.stale`, not at the status code. `npm run doctor` gives the same warning (`stale-data`). The image's `HEALTHCHECK` uses it; point a load balancer at it too.
+`GET /api/health` returns `200 {"status":"ok","fighters":N,"bouts":N,"data":{"updatedAt":…,"ageHours":N,"stale":…}}` (plus `data.nightly` once the optional in-container nightly job has run: its result, times and exit codes, no message or path) when the database is open and the world is built, and `503` otherwise. It reports counts and the age of the data only. `data.stale` is `true` when a licensed feed (`BOXING_PROVIDER=licensed`) has not been updated for more than two days, meaning the daily `vendor:backfill --update` has probably stopped and the site is serving old results; it is `null` for the demo league and a file feed. A stale feed never makes the answer a `503`: it is a reason to look at the cron, not to restart the container, so point an alert at `data.stale`, not at the status code. `npm run doctor` gives the same warning (`stale-data`). The image's `HEALTHCHECK` uses it; point a load balancer at it too.
 
 ## Settings
 
@@ -40,6 +40,7 @@ All optional; see `.env.example` for the full list.
 - `BOXING_PROVIDER`: while it is `demo` the site is `noindex`, so a demo deployment never competes with real sites in search. Set `INDEXABLE=1` only to override that on purpose. Either way the site is indexable only when `SITE_URL` is also a public address (not localhost): without it everything stays `noindex` and no sitemap is served. What was checked before launch: `docs/seo-audit.md`.
 - `ANTHROPIC_API_KEY`, `AI_DAILY_BUDGET`, `AI_CLIENT_LIMIT`, `AI_CLIENT_WINDOW_MS`: the AI features and what visitors can spend. Without a key everything falls back to rules.
 - `DATABASE_PATH`: defaults to `/data/ringside.db` in the image.
+- `NIGHTLY_SCHEDULE`, `NIGHTLY_KEEP`, `NIGHTLY_OFFSITE_CMD`, `NIGHTLY_OFFSITE_TIMEOUT_MIN`, `NIGHTLY_JITTER_MIN`, `NIGHTLY_NODE_OPTIONS`: the optional in-container nightly job (above, and `docs/nightly.md`). Off unless `NIGHTLY_SCHEDULE` is set.
 
 Put the key in your host's secret store, not in the image or the repository.
 
@@ -48,7 +49,7 @@ Put the key in your host's secret store, not in the image or the repository.
 - Terminate TLS in front of the container (the host's proxy, Caddy, a load balancer). The app speaks plain HTTP on `PORT` (3000).
 - Pass the real client address in `X-Forwarded-For`: the per-visitor AI limit and the sign-in and sign-up limits are keyed on it. Without a proxy in front, every visitor looks alike. A client that can reach the container directly can fake the header, so do not publish the container's own port; the per-name and site-wide limits do not depend on it.
 - Pass `X-Forwarded-Proto: https` (or set `SITE_URL=https://…`) so the session cookie is marked `Secure`, and keep `Host` or `X-Forwarded-Host` as the public name: state-changing requests are refused unless their `Origin` matches it (CSRF protection).
-- Security headers need nothing from the proxy except what is above: the app sets a content security policy (a fresh nonce per page), `X-Frame-Options`, `nosniff`, a referrer and permissions policy itself, and `Strict-Transport-Security` once it knows it is behind https. Do not add a second, different `Content-Security-Policy` in the proxy: browsers apply both, and the nonce-based one here would be defeated or broken. See `docs/security.md`.
+- Security headers need nothing from the proxy except what is above: the app sets a content security policy (a fresh nonce per page), `X-Frame-Options`, `nosniff`, a referrer and permissions policy itself, and `Strict-Transport-Security` once it knows it is behind https. Do not add a second, different `Content-Security-Policy` in the proxy: browsers apply both, and the nonce-based one here would be defeated or broken. See `docs/security.md`. Pages are sent `private, no-store` and a CDN in front will not cache them; what could change that, and what a CDN is safe to cache today, is in `docs/cdn.md`.
 - English is at `/`, Arabic at `/ar`; there is no redirect on `Accept-Language`, by design.
 
 ## First start, and the gap between seasons
@@ -69,7 +70,16 @@ The reference on the error page is that `digest`, so a report of "reference 1624
 
 ## Sizing
 
-**At the real size (35,000 fighters, 160,000 fights), see [capacity.md](capacity.md):** what one instance serves (about 15 requests a second on one core, 21 on two, of a mixed workload), the memory it needs (after the memory diet: 0.7 GB at start, 1.1 to 1.2 GB under load, 1.4 GB while a data update or a new day rebuilds the world, so **2 GB is enough with no heap cap**; before it was 1.5, 1.7 and 2.2 GB, a 4 GB host or a capped heap), the 10 to 16 second stall a data update used to cause, and the 15 second one at midnight (both fixed: the old data keeps being served while the new is built; under a 1 GB heap cap it is shortened, not gone), and what to put in front. The older measurements below are of smaller leagues.
+**At the real size (35,000 fighters, 160,000 fights), see [capacity.md](capacity.md):** what one instance serves (about 15 requests a second on one core, 21 on two, of a mixed workload), the memory it needs (after the memory diet and the leftovers: 0.6 GB at start, 0.9 to 1.0 GB under load, 1.3 to 1.4 GB while a data update or a new day rebuilds the world, 1.1 to 1.2 GB with `MALLOC_ARENA_MAX=2`, so **2 GB is enough with no heap cap**; before it was 1.5, 1.7 and 2.2 GB, a 4 GB host or a capped heap), the 10 to 16 second stall a data update used to cause, and the 15 second one at midnight (both fixed: the old data keeps being served while the new is built; under a 1 GB heap cap it is shortened, not gone), and what to put in front. The older measurements below are of smaller leagues.
+
+**For a 2 GB host, set `MALLOC_ARENA_MAX=2` on the container and leave the heap uncapped** (measured at that size in a sandbox, [capacity.md](capacity.md) "The leftovers"; the base image is Debian, `node:22-slim`, so the allocator setting applies):
+
+```
+MALLOC_ARENA_MAX=2        # glibc keeps two allocation arenas, not one per thread: 135 to 210 MB less at the peak, no change in speed
+# NODE_OPTIONS=--max-old-space-size=1024   # only for a host below 2 GB; see below
+```
+
+`docker run -e MALLOC_ARENA_MAX=2 ...`, or `environment:` in compose. With it the process is about 0.6 GB after start, 0.8 to 0.9 GB under load and 1.1 to 1.2 GB at the worst moment (a data update or midnight, old and new world alive together); without it 0.65, 1.0 and 1.3 to 1.4 GB. **Do not cap the heap on a 2 GB host:** a 1 GB cap saved only another 90 MB at the peak, cost a few percent of the throughput, and the world's live heap at this size (about 0.57 GB, two worlds about 1 GB at a swap) leaves a cap of 896 MB or less no room (the update slowed down at 896 MB and did not finish at 768 MB). V8 does not read the container's limit (its default heap limit stayed at 8 GB inside a 2 GB container), so nothing but the working set keeps the process under 2 GB: keep a margin of 0.5 GB and watch resident memory (`What to watch` in capacity.md). If the host is below 2 GB (1.5 GB fits), use both settings, and raise the cap with the league (it must stay well above twice the live heap).
 
 Measured on a production build with the demo league (968 fighters, 7,466 bouts; one Node process, one core, Apple laptop, a browser on the same machine, so network time is not in these numbers):
 
@@ -171,6 +181,10 @@ Build a new image and replace the container with the same volume. The schema mig
 ## Real data
 
 A licensed feed is loaded and kept current by `npm run vendor:backfill` (first load, then a daily `--update`), not by the app: an empty database with `BOXING_PROVIDER=licensed` makes the app refuse to start a paid fetch on a page view. In a container pass `--cache-dir /data/vendor-cache` so the cache lives on the volume. See `docs/real-data-runbook.md`.
+
+### The nightly job inside the container (optional)
+
+If the host's scheduler cannot reach the volume (Render, Fly, Railway), set `NIGHTLY_SCHEDULE=HH:MM` (UTC) and the container's start command (`scripts/docker-entrypoint.sh`) runs a small scheduler beside the site. Each night it runs `npm run nightly` as a child process: a verified backup (the newest `NIGHTLY_KEEP`, default 7, are kept), the daily update with the key from `BOXING_API_KEY`, an optional `NIGHTLY_OFFSITE_CMD` to copy the backup off the host, and `/data/nightly-status.json`. The update runs as its own process with `--max-old-space-size=768` and `MALLOC_ARENA_MAX=2`, so budget about 340 MB on top of the site's 1.4 GB peak ([capacity.md](capacity.md)): 3 to 4 GB of memory is safer than 2. Unset, nothing changes: the start command is exactly `npm start`. Everything about it: [nightly.md](nightly.md).
 
 ## Not covered yet
 
