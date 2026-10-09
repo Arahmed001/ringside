@@ -10,6 +10,11 @@ import { getT } from "@/lib/i18n/server";
 import { ShareButton } from "@/components/ShareButton";
 import { metaFor } from "@/lib/seo-server";
 import { BreadcrumbLd } from "@/components/JsonLd";
+import { WorldMap, viewFor, type Dot } from "@/components/WorldMap";
+import { VenueTable } from "@/components/VenueTable";
+import { project } from "@/lib/geo/project";
+import { venuesOfCountry } from "@/lib/venues";
+import { countryCode } from "@/lib/format";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; slug: string }> }) =>
   metaFor(params, async ({ slug }, t) => {
@@ -29,6 +34,9 @@ export default async function Country({ params }: { params: Promise<{ slug: stri
   const v = countryView(w, slug);
   if (!v) notFound();
   const name = countryName(v.name, t.locale);
+  const venues = venuesOfCountry(w, slug), iso = countryCode(v.name);
+  const placed = venues.filter((x) => x.lat !== null && x.lon !== null);
+  const dots: Dot[] = placed.slice(0, 120).map((x) => { const [px, py] = project(x.lat!, x.lon!); return { x: px, y: py, r: 3, label: `${x.name}, ${x.city}`, href: `#venue-${venues.indexOf(x)}` }; });
   return (
     <div className="space-y-12">
       <BreadcrumbLd locale={t.locale} trail={[{ name: t("Boxing by country"), path: "/countries" }, { name, path: `/countries/${v.slug}` }]} />
@@ -43,6 +51,20 @@ export default async function Country({ params }: { params: Promise<{ slug: stri
           <Stat label={t("Events held here")} value={v.eventCount.toLocaleString("en-US")} sub={t("on record")} />
         </div>
       </div>
+
+      {venues.length > 0 && (
+        <section>
+          <SectionTitle eyebrow={t("Where fights are held")} title={t("Venues in {country}", { country: name })} />
+          {dots.length > 0 && (
+            <>
+              <WorldMap view={viewFor(iso, dots)} dots={dots} shades={{}} current={iso} label={t("Map of the venues in {country}", { country: name })} className="mb-2 max-w-4xl" />
+              <p className="mb-3 text-xs text-muted">{t("{placed} of {all} venues are placed on the map so far; the rest are listed by name and city.", { placed: placed.length.toLocaleString("en-US"), all: venues.length.toLocaleString("en-US") })} {t("Country outlines: Natural Earth (public domain).")}{venues.some((x) => x.osm) ? <> {t("Some venue places and addresses: © OpenStreetMap contributors (ODbL).")}</> : null}</p>
+            </>
+          )}
+          <VenueTable venues={venues.slice(0, 50)} t={t} />
+          {venues.length > 50 && <p className="mt-2 text-xs text-muted">{t("The 50 busiest of {n} venues.", { n: venues.length.toLocaleString("en-US") })}</p>}
+        </section>
+      )}
 
       {v.nations.length > 0 && (
         <section>

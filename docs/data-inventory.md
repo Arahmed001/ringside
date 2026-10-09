@@ -2,13 +2,13 @@
 
 **Generated from the code on 9 October 2026** (the tables and columns are read from the schemas themselves, so they are exact; the "source" and "kept for" columns are from the code and docs). Counts are from your live site on 9 October 2026 unless marked. This is a description of what is stored, not legal advice: the privacy page (`/privacy`) says the same thing to visitors, and `tests/privacy.test.ts` fails if the two drift apart.
 
-**Summary:** two SQLite databases (30 sports tables with 316 columns; 16 accounts tables with 159 columns), plus about a dozen folders and files of working data. Nothing is sent to analytics, no advertising or tracking cookies exist, and **only the accounts database holds personal data**.
+**Summary:** two SQLite databases (31 sports tables with 330 columns; 16 accounts tables with 159 columns), plus about a dozen folders and files of working data. Nothing is sent to analytics, no advertising or tracking cookies exist, and **only the accounts database holds personal data**.
 
 ## 1. Where it lives (on Fly: the volume at `/data`)
 
 | Item | What it is | Personal data? |
 |---|---|---|
-| `real.db` (your `DATABASE_PATH`) | The sports database: fighters, fights, cards, results, ratings, news, pictures. 30 tables (section 2). | No |
+| `real.db` (your `DATABASE_PATH`) | The sports database: fighters, fights, cards, results, ratings, news, pictures. 31 tables (section 2). | No |
 | `accounts.db` | People, sessions, picks, forum, reports, editors' work, approvals. 16 tables (section 3). | **Yes** |
 | `backups/<time>/` | The nightly verified copies of both databases (last 7). | Yes (holds a copy of the accounts) |
 | `vendor-cache/` | Every answer the Boxing Data API gave, as files, so a reload needs no new requests. | No |
@@ -22,7 +22,7 @@
 | `/data/incoming/`, `ship/` | Temporary: a database being shipped. | Only while it exists |
 | Off-host: an S3 bucket (if you set it up) | Encrypted copies of the nightly backups. | Encrypted |
 
-## 2. The sports database (`real.db`): 30 tables
+## 2. The sports database (`real.db`): 31 tables
 
 ### Fighters and their facts
 | Table | Holds | Source | Live count |
@@ -55,6 +55,7 @@
 | `corners` (4) | Who was in a fighter's corner for a fight. | Vendor API |
 | `officials` (4) | Who judged or refereed a fight. | Vendor API |
 | `venues` (12) | Venue's coordinates, capacity and Wikidata id (583 located). | Wikidata |
+| `venue_places` (11) | Where a venue is when Wikidata could not place it: coordinates, a street address and a kind of place (Arena, Stadium, Casino hotel...), each accepted only by strict rules (`docs/venue-map.md`), with the OpenStreetMap object it came from. Credit: © OpenStreetMap contributors (ODbL). | OpenStreetMap |
 
 ### Titles and rankings
 | Table | Holds | Source |
