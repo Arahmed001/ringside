@@ -5450,6 +5450,12 @@
   ]
  },
  {
+  "key": "Ended in round",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "Enter a full web address (https://…) for the source.",
   "files": [
    "lib/account-text.ts"
@@ -8503,6 +8509,7 @@
  {
   "key": "Method",
   "files": [
+   "components/UpdateQueue.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -9338,6 +9345,12 @@
   "key": "No weigh-in data recorded for this bout yet.",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "No winner (draw or no contest)",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -11509,6 +11522,13 @@
   ]
  },
  {
+  "key": "Results found in fighters' Wikipedia records",
+  "files": [
+   "components/UpdateGroups.tsx",
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "Results only: ignore everything else",
   "files": [
    "components/MatchupLab.tsx"
@@ -12460,6 +12480,12 @@
   "files": [
    "components/PickStanding.tsx",
    "components/WatchDigest.tsx"
+  ]
+ },
+ {
+  "key": "Single unofficial source: a result is the commission's or the sanctioning body's to state, so approve it only if you can check it.",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -16122,7 +16148,8 @@
  {
   "key": "Winner",
   "files": [
-   "components/Awards.tsx"
+   "components/Awards.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {

@@ -1,6 +1,7 @@
 import { getDb, dbVersion } from "../db";
 import type { Locale } from "./config";
 import type { Names } from "./t";
+import { composedNames } from "./name-words";
 
 const cache = globalThis as unknown as { __names?: Record<string, { key: string; map: Names }> };
 
@@ -20,6 +21,7 @@ export async function getNames(locale: Locale): Promise<Names> {
   if (hit?.key === key) return hit.map;
   const map: Names = {};
   for (const r of db.prepare("SELECT en, text FROM name_translations WHERE locale = ?").all(locale) as { en: string; text: string }[]) map[r.en] = r.text;
+  if (locale === "ar") Object.assign(map, composedNames(db, map)); // fighters with no whole Arabic name, written from reviewed words (lib/i18n/name-words.ts)
   (cache.__names ??= {})[locale] = { key, map };
   return map;
 }

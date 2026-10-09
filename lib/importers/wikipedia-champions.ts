@@ -119,7 +119,7 @@ const linkOf = (w: string): { text: string; title: string } | null => {
 /** Open braces and open <ref> tags in a stretch of wikitext: a line that starts with | inside one of them continues the cell instead of starting another (citation templates run over several lines). */
 const openDepth = (t: string) => (t.match(/\{\{/g)?.length ?? 0) - (t.match(/\}\}/g)?.length ?? 0) + (t.match(/<ref(?![^>]*\/>)[^>]*>/gi)?.length ?? 0) - (t.match(/<\/ref>/gi)?.length ?? 0);
 
-function splitRows(table: string): string[][] {
+export function splitRows(table: string): string[][] {
   const rows: string[][] = [];
   let cur: string[] | null = null;
   for (const line of table.split("\n")) {

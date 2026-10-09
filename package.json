@@ -40,6 +40,7 @@
     "i18n:merge": "tsx scripts/i18n.ts merge",
     "i18n:translate": "tsx scripts/i18n.ts translate",
     "i18n:names": "tsx scripts/i18n-names.ts",
+    "i18n:words": "tsx scripts/i18n-words.ts",
     "data:ingest": "tsx scripts/ingest.ts",
     "research": "tsx scripts/research.ts",
     "i18n:review": "tsx scripts/i18n-review.ts",

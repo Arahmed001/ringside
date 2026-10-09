@@ -3,6 +3,7 @@
  *
  *   npm run watch -- --source champions            read the Wikipedia lists (cached), compare with the reigns held, store the differences
  *   npm run watch -- --source champions --dry-run  show the differences and store nothing
+ *   npm run watch -- --source results --limit 40  read the Wikipedia records of 40 fighters with past fights held without a result, propose the results found
  *   npm run watch -- --list                        the pending proposals
  *
  * Options: --org WBO,IBF (only some bodies)  --cache-dir <dir> (default data/wikipedia-cache)  --refresh (ignore the cache)  --gap-ms 1500
@@ -33,7 +34,7 @@ async function main() {
   const dryRun = flag("dry-run");
   const orgs = arg("org")?.split(",").map((x) => x.trim().toUpperCase());
   const r = await runWatch(id, {
-    main, log: (m) => console.log(m), championSources: CHAMPION_SOURCES.filter((x) => !orgs || orgs.includes(x.org)),
+    main, limit: arg("limit") ? Number(arg("limit")) : undefined, log: (m) => console.log(m), championSources: CHAMPION_SOURCES.filter((x) => !orgs || orgs.includes(x.org)),
     fetch: { refresh: flag("refresh"), gapMs: Number(arg("gap-ms") ?? 1500), cacheDir: path.resolve(arg("cache-dir") ?? path.join(process.cwd(), "data", "wikipedia-cache")) },
   }, acc, { dryRun });
   console.log(`\n${reportLines(r, dryRun).join("\n")}`);

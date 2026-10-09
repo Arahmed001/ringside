@@ -24,6 +24,8 @@ export interface WatchContext {
   championSources?: ChampionSource[];
   /** a share of a page's rows above which a run proposes nothing from that page (default 0.05 and at least 10 changes) */
   floodShare?: number;
+  /** at most this many fighters' articles are read (the results source; a pilot reads a few dozen) */
+  limit?: number;
 }
 
 export interface WatchResult {

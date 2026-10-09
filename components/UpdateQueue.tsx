@@ -81,7 +81,7 @@ export function UpdateQueue() {
   );
 }
 
-const kindTitle = (t: ReturnType<typeof useT>, kind: string) => kind === "field_change" ? t("Changes to details we hold") : kind === "result_change" ? t("Results") : kind === "list_change" ? t("Official ranking lists") : kind === "reign_added" ? t("New title reigns") : kind === "reign_removed" ? t("Title reigns no longer on the page") : kind === "reign_changed" ? t("Changed title reigns") : kind;
+const kindTitle = (t: ReturnType<typeof useT>, kind: string) => kind === "field_change" ? t("Changes to details we hold") : kind === "result_change" ? t("Results") : kind === "result_set" ? t("Results found in fighters' Wikipedia records") : kind === "list_change" ? t("Official ranking lists") : kind === "reign_added" ? t("New title reigns") : kind === "reign_removed" ? t("Title reigns no longer on the page") : kind === "reign_changed" ? t("Changed title reigns") : kind;
 
 function Group({ rows, source, max, pending, busy, decide }: { rows: ProposalRow[]; source?: SourceInfo; max: number; pending: boolean; busy: boolean; decide: (ids: number[], d: "approved" | "rejected", note: string, done: string) => void }) {
   const t = useT();
@@ -124,7 +124,7 @@ function fieldLabel(t: ReturnType<typeof useT>, k: string): string {
 function Item({ r, pending, busy, decide }: { r: ProposalRow; pending: boolean; busy: boolean; decide: (ids: number[], d: "approved" | "rejected", note: string, done: string) => void }) {
   const t = useT();
   const [note, setNote] = useState("");
-  const ev = (r.evidence ?? {}) as { page?: string; revision?: string; seen?: string; held?: string };
+  const ev = (r.evidence ?? {}) as { page?: string; revision?: string; seen?: string; held?: string; quote?: string; corroboration?: string; notes?: string };
   const old = (r.old ?? {}) as Record<string, unknown>, now = (r.new ?? {}) as Record<string, unknown>;
   const show = (v: unknown) => (v === null || v === undefined || v === "" ? "–" : v === true ? t("Yes") : v === false ? t("No") : String(v));
   const record = (o: Record<string, unknown>) => { const w = o.vendor_wins, l = o.vendor_losses, d = o.vendor_draws; return [w, l, d].every((x) => x === undefined) ? "–" : `${w ?? "?"}-${l ?? "?"}-${d ?? "?"}${o.vendor_ko_wins !== undefined ? ` (${o.vendor_ko_wins} KO)` : ""}`; };
@@ -138,6 +138,8 @@ function Item({ r, pending, busy, decide }: { r: ProposalRow; pending: boolean; 
     view = [{ k: "result", label: t("Result"), o: e.shown?.old ?? "–", n: e.shown?.new ?? "–" },
       ...["round_time", "vendor_scores", "kd_red", "kd_blue", "status"].filter((c) => c in now && old[c] !== now[c]).map((c) => ({ k: c, label: c, o: show(old[c]), n: show(now[c]) })),
       ...(e.totals ?? []).map((x) => ({ k: `t-${x.name}`, label: `${x.name}: ${t("Career totals")}`, o: record(x.old), n: record(x.new) }))];
+  } else if (r.kind === "result_set") {
+    view = [{ k: "method", label: t("Method"), o: show(old.method), n: show(now.method) }, { k: "winner", label: t("Winner"), o: show(old.winner), n: now.winner ? String(now.winner) : t("No winner (draw or no contest)") }, { k: "round", label: t("Ended in round"), o: show(old.endRound), n: show(now.endRound) }];
   } else if (r.kind === "list_change") {
     const names = (rows: unknown) => (Array.isArray(rows) ? (rows as { kind: string; rank: number | null; who?: string | null; name?: string | null; vacant?: number }[]) : []);
     const fmt = (rows: unknown, kind: string) => names(rows).filter((x) => x.kind === kind).map((x) => (x.vacant ? t("Vacant") : `${kind === "contender" && x.rank ? `${x.rank}. ` : ""}${x.who ?? x.name ?? "?"}`)).join(", ") || "–";
@@ -159,6 +161,7 @@ function Item({ r, pending, busy, decide }: { r: ProposalRow; pending: boolean; 
         </tbody>
       </table>
       {wiki && <p className="text-muted">{t("Read on")} <a href={`https://en.wikipedia.org/wiki/${encodeURIComponent(ev.page!)}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-gold">{ev.page!.replace(/_/g, " ")}</a>{ev.revision && <> · <a href={`https://en.wikipedia.org/w/index.php?oldid=${encodeURIComponent(ev.revision)}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-gold">{t("revision {n}", { n: ev.revision })}</a></>}</p>}
+      {r.kind === "result_set" && ev.quote && <p className="text-xs text-muted"><span dir="ltr" lang="en" className="[overflow-wrap:anywhere]">{ev.quote}</span>{ev.corroboration && <> · {t("Single unofficial source: a result is the commission's or the sanctioning body's to state, so approve it only if you can check it.")}</>}{ev.notes && <> · <span dir="ltr" lang="en">{ev.notes}</span></>}</p>}
       <p className="text-xs text-muted">{t("First seen {date}", { date: r.firstSeen.slice(0, 10) })}{r.lastSeen !== r.firstSeen ? ` · ${t("last seen {date}", { date: r.lastSeen.slice(0, 10) })}` : ""}</p>
       {pending ? (
         <div className="flex flex-wrap items-end gap-3 border-t border-line pt-3">
