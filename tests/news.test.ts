@@ -138,7 +138,10 @@ test("the only frames a page may hold are the five platforms' own players and em
   const csp = contentSecurityPolicy({ nonce: "abc" }), emb = contentSecurityPolicy({ nonce: "abc", embed: true });
   assert.ok(csp.split("; ").includes(`frame-src ${Object.values(EMBED_HOSTS).map((h) => `https://${h}`).join(" ")}`)); assert.match(emb, /frame-src 'none'/); assert.match(csp, /frame-ancestors 'none'/);
   const c = fs.readFileSync("components/VideoList.tsx", "utf8");
-  assert.match(c, /youtube-nocookie\.com\/embed\//); assert.ok(!/youtube\.com\/embed|ytimg|i\.ytimg|<img|<script/.test(c), "no picture, script or ordinary youtube.com frame");
+  assert.match(c, /youtube-nocookie\.com\/embed\//); assert.ok(!/youtube\.com\/embed|ytimg|<script/.test(c), "no YouTube picture host, script or ordinary youtube.com frame");
+  const imgs = c.match(/<img\b[^>]*>/g) ?? [];
+  assert.ok(imgs.length === 1 && /src=\{v\.thumb\}/.test(imgs[0]), "the only picture is the one this site saved and serves, never an address from YouTube or Google");
+  assert.ok(/thumb: hasThumb\(videoId\) \? `\/api\/video-thumb\//.test(fs.readFileSync("components/Videos.tsx", "utf8")), "and that address is this site's own route");
   assert.match(c, /open === v\.videoId \? \(/, "the frame exists only after the visitor opens that video"); assert.match(c, /sandbox=/);
 });
 
