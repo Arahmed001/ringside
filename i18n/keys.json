@@ -8945,6 +8945,18 @@
   ]
  },
  {
+  "key": "News sections",
+  "files": [
+   "app/[locale]/news/page.tsx"
+  ]
+ },
+ {
+  "key": "News to read",
+  "files": [
+   "app/[locale]/news/page.tsx"
+  ]
+ },
+ {
   "key": "Next card: {event}, {date}.",
   "files": [
    "app/[locale]/tonight/page.tsx"
@@ -9217,6 +9229,12 @@
   "key": "No name is spelt exactly “{q}”. These are the closest names.",
   "files": [
    "components/ListFinder.tsx"
+  ]
+ },
+ {
+  "key": "No official videos yet. They appear once the site's news refresh has run with a YouTube key.",
+  "files": [
+   "app/[locale]/news/page.tsx"
   ]
  },
  {
@@ -15406,6 +15424,12 @@
   "key": "Videos about this card",
   "files": [
    "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Videos to watch",
+  "files": [
+   "app/[locale]/news/page.tsx"
   ]
  },
  {
