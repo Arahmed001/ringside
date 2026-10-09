@@ -11,11 +11,11 @@ export const STATUS_FILE = "nightly-status.json";
 export const RUNNING_STALE_HOURS = 6;
 
 /** The settings the job and its scheduler read. Listed here (not scattered) so the doctor, the docs and the drift test agree; they are all optional. */
-export type NightlyEnv = Record<"NIGHTLY_SCHEDULE" | "NIGHTLY_KEEP" | "NIGHTLY_OFFSITE_CMD" | "NIGHTLY_OFFSITE_TIMEOUT_MIN" | "NIGHTLY_JITTER_MIN" | "NIGHTLY_NODE_OPTIONS" | "RINGSIDE_NIGHTLY_UPDATE_ARGS" | "WATCH_SOURCES" | "NEWS_REFRESH", string | undefined>;
+export type NightlyEnv = Record<"NIGHTLY_SCHEDULE" | "NIGHTLY_KEEP" | "NIGHTLY_OFFSITE_CMD" | "NIGHTLY_OFFSITE_TIMEOUT_MIN" | "NIGHTLY_JITTER_MIN" | "NIGHTLY_NODE_OPTIONS" | "RINGSIDE_NIGHTLY_UPDATE_ARGS" | "WATCH_SOURCES" | "NEWS_REFRESH" | "NIGHTLY_ENRICH" | "NIGHTLY_PING_URL", string | undefined>;
 export const nightlyEnv = (): NightlyEnv => ({
   NIGHTLY_SCHEDULE: process.env.NIGHTLY_SCHEDULE, NIGHTLY_KEEP: process.env.NIGHTLY_KEEP, NIGHTLY_OFFSITE_CMD: process.env.NIGHTLY_OFFSITE_CMD,
   NIGHTLY_OFFSITE_TIMEOUT_MIN: process.env.NIGHTLY_OFFSITE_TIMEOUT_MIN, NIGHTLY_JITTER_MIN: process.env.NIGHTLY_JITTER_MIN, NIGHTLY_NODE_OPTIONS: process.env.NIGHTLY_NODE_OPTIONS,
-  RINGSIDE_NIGHTLY_UPDATE_ARGS: process.env.RINGSIDE_NIGHTLY_UPDATE_ARGS, WATCH_SOURCES: process.env.WATCH_SOURCES, NEWS_REFRESH: process.env.NEWS_REFRESH,
+  RINGSIDE_NIGHTLY_UPDATE_ARGS: process.env.RINGSIDE_NIGHTLY_UPDATE_ARGS, WATCH_SOURCES: process.env.WATCH_SOURCES, NEWS_REFRESH: process.env.NEWS_REFRESH, NIGHTLY_ENRICH: process.env.NIGHTLY_ENRICH, NIGHTLY_PING_URL: process.env.NIGHTLY_PING_URL,
 });
 
 /**
@@ -32,7 +32,7 @@ export const EXIT_MEANING: Record<number, string> = {
 };
 export const exitMeaning = (code: number | null): string => (code === null ? "not run" : EXIT_MEANING[code] ?? (code > 128 ? `killed by signal ${code - 128}` : "anything else"));
 
-export type StepName = "backup" | "update" | "watch" | "news" | "offsite";
+export type StepName = "backup" | "update" | "watch" | "news" | "offsite" | "enrich";
 export interface StepResult {
   name: StepName;
   /** null: the step did not run (cut short, or an offsite command was never set) */

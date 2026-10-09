@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { pingMonitor } from "./nightly-ping";
 import { backupDatabases, pruneBackups, verifyBackup } from "./backup";
 import {
   exitMeaning, nextSlot, parseSchedule, publicNightly, statusPath, writeStatus,
@@ -29,13 +30,14 @@ export const UPDATE_TIMEOUT_MS = 4 * 3_600_000;
 /** one source's look: a few page fetches a second apart, so half an hour is far more than it needs */
 export const WATCH_TIMEOUT_MS = 30 * 60_000;
 export const NEWS_TIMEOUT_MS = 15 * 60_000;
+export const ENRICH_TIMEOUT_MS = 3 * 3_600_000;
 /** A lock older than this belongs to a run that died (no run lasts so long); it also covers a pid that a restarted container has given to something else. */
 export const LOCK_STALE_MS = 6 * 3_600_000;
 
 type Env = Record<string, string | undefined>;
 const ROOT = path.resolve(__dirname, "..");
 
-export interface NightlyConfig { keep: number; offsiteCmd: string | null; offsiteTimeoutMs: number; childNodeOptions: string; schedule: { hour: number; minute: number } | null; updateArgs: string[]; watch: WatchPlan; news: boolean; warnings: string[] }
+export interface NightlyConfig { keep: number; offsiteCmd: string | null; offsiteTimeoutMs: number; childNodeOptions: string; schedule: { hour: number; minute: number } | null; updateArgs: string[]; watch: WatchPlan; news: boolean; enrich: "off" | "weekly" | "nightly"; pingUrl: string | null; warnings: string[] }
 /** Reads the settings. A value that is not usable is ignored with a warning (the job never refuses to run for a typo in an option). */
 export function configFromEnv(s: Partial<NightlyEnv>): NightlyConfig {
   const warnings: string[] = [];
@@ -54,10 +56,13 @@ export function configFromEnv(s: Partial<NightlyEnv>): NightlyConfig {
   const watch = parseWatchSources(s.WATCH_SOURCES);
   warnings.push(...watch.warnings);
   const news = s.NEWS_REFRESH?.trim() === "1";
+  const en = (s.NIGHTLY_ENRICH ?? "").trim().toLowerCase();
+  const enrich: NightlyConfig["enrich"] = en === "weekly" || en === "nightly" ? en : "off";
+  if (en && !["weekly", "nightly", "off", "0"].includes(en)) warnings.push(`NIGHTLY_ENRICH="${s.NIGHTLY_ENRICH}" is not weekly or nightly: enrichment stays off.`);
   return {
     keep, offsiteCmd: s.NIGHTLY_OFFSITE_CMD?.trim() || null, offsiteTimeoutMs: Math.round(min * 60_000),
     childNodeOptions: s.NIGHTLY_NODE_OPTIONS?.trim() || DEFAULT_CHILD_NODE_OPTIONS, schedule,
-    updateArgs: (s.RINGSIDE_NIGHTLY_UPDATE_ARGS ?? "").split(/\s+/).filter(Boolean), watch, news, warnings,
+    updateArgs: (s.RINGSIDE_NIGHTLY_UPDATE_ARGS ?? "").split(/\s+/).filter(Boolean), watch, news, enrich, pingUrl: s.NIGHTLY_PING_URL?.trim() || null, warnings,
   };
 }
 
@@ -170,6 +175,11 @@ export interface NightlyOptions {
   /** tests: replace the command that refreshes the news (default: node --import tsx scripts/news-refresh.ts --database <db>) */
   newsCommand?: () => { file: string; args: string[] };
   newsTimeoutMs?: number;
+  /** tests: replace the command that enriches from Wikidata (default: node --import tsx scripts/vendor-enrich.ts --yes) */
+  enrichCommand?: () => { file: string; args: string[] };
+  enrichTimeoutMs?: number;
+  /** tests: replace the fetch that sends the heartbeat */
+  pingFetch?: typeof fetch;
   sampleMs?: number;
 }
 export interface NightlyOutcome { exitCode: number; status: NightlyStatus | null }
@@ -322,20 +332,41 @@ export async function runNightly(o: NightlyOptions): Promise<NightlyOutcome> {
       const message = ok ? "copied" : out.timedOut ? `timed out after ${Math.round(cfg.offsiteTimeoutMs / 600) / 100} minute(s) and was stopped` : out.spawnError ? "could not start" : `the command ended with exit ${code ?? "?"}`;
       record("offsite", { exitCode: ok ? 0 : code ?? 1, ok, message: `${message}${ok ? "" : " (the backup is still on the volume; the update was not affected)"}`, seconds: Math.round((Date.now() - t0) / 100) / 10 });
     }
+
+    // ---- 4. enrichment from Wikidata and Commons (optional: NIGHTLY_ENRICH=weekly|nightly). Photos, Arabic names, honours, venues and the champions' reigns for fighters not yet looked
+    // up: `vendor:enrich`'s own resumable steps, which skip what is done, so a week with few new fighters is quick. It runs LAST so a long run never delays the off-host copy, and a
+    // failure is a warning in the status, never a failed night. Weekly means Sundays (UTC). It needs WIKIMEDIA_CONTACT (sent to Wikimedia with every request).
+    if (cfg.enrich !== "off" && (cfg.enrich === "nightly" || now().getUTCDay() === 0)) {
+      if (aborted()) record("enrich", { exitCode: null, ok: false, skipped: true, message: "stopped before the enrichment began", seconds: 0 });
+      else if (!o.enrichCommand && !(o.env.WIKIMEDIA_CONTACT ?? "").trim()) record("enrich", { exitCode: 1, ok: false, message: "NIGHTLY_ENRICH is on but WIKIMEDIA_CONTACT is not set (an email address or web page Wikimedia can reach): nothing was asked of Wikidata", seconds: 0 });
+      else {
+        const t0 = Date.now(); const seen: string[] = [];
+        const cmd = o.enrichCommand ? o.enrichCommand() : { file: process.execPath, args: ["--import", "tsx", "scripts/vendor-enrich.ts", "--yes"] };
+        const out = await runChild({
+          file: cmd.file, args: cmd.args, cwd: root, timeoutMs: o.enrichTimeoutMs ?? ENRICH_TIMEOUT_MS, signal: o.signal,
+          env: { ...o.env, DATABASE_PATH: dbPath, NODE_OPTIONS: cfg.childNodeOptions, MALLOC_ARENA_MAX: o.env.MALLOC_ARENA_MAX ?? DEFAULT_MALLOC_ARENA_MAX },
+          onLine: (l) => { if (l.trim()) { seen.push(l.trim()); say(`  | enrich: ${oneLine(l, 300)}`); } },
+        });
+        const code = out.spawnError ? 1 : out.timedOut ? 124 : out.code ?? signalNumber(out.signal) ?? 1;
+        const done = [...seen].reverse().find((l) => /^Done: /.test(l)) ?? "";
+        record("enrich", { exitCode: code, ok: code === 0, message: out.spawnError ? "could not start the enrichment" : out.timedOut ? "the enrichment timed out and was stopped (it resumes next time)" : code === 0 ? (done || "enriched") : `the enrichment stopped (exit ${code}; it resumes next time): ${oneLine(seen[seen.length - 1] ?? "no output", 160)}`, seconds: Math.round((Date.now() - t0) / 100) / 10 });
+      }
+    }
   } finally {
     const get = (n: StepName) => status.steps.find((s) => s.name === n);
-    const upd = get("update"), bak = get("backup"), off = get("offsite"), wat = get("watch"), nws = get("news");
+    const upd = get("update"), bak = get("backup"), off = get("offsite"), wat = get("watch"), nws = get("news"), enr = get("enrich");
     const interrupted = aborted();
     let exitCode = 0, result: NightlyResult = "ok";
     if (interrupted) { exitCode = 130; result = "interrupted"; }
     else if (upd && !upd.ok) { exitCode = upd.exitCode ?? 1; result = "failed"; }
     else if (bak && !bak.ok) { exitCode = 1; result = "failed"; }
-    else if ((off && !off.ok && !off.skipped) || (wat && !wat.ok && !wat.skipped) || (nws && !nws.ok && !nws.skipped)) result = "warning";
+    else if ((off && !off.ok && !off.skipped) || (wat && !wat.ok && !wat.skipped) || (nws && !nws.ok && !nws.skipped) || (enr && !enr.ok && !enr.skipped)) result = "warning";
     const end = now();
     Object.assign(status, { finished: end.toISOString(), result, exitCode, exitMeaning: exitMeaning(exitCode), next: cfg.schedule ? nextSlot(end, cfg.schedule).toISOString() : null });
     save();
     releaseNightlyLock(lock);
     say(`finished: ${result}, exit ${exitCode} (${exitMeaning(exitCode)})${status.next ? `; next scheduled ${status.next}` : ""}`);
+    if (cfg.pingUrl) { const p = await pingMonitor(cfg.pingUrl, result, o.pingFetch); say(`heartbeat: ${p.note}`); }
   }
   return { exitCode: status.exitCode ?? 1, status };
 }
