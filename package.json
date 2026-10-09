@@ -28,6 +28,7 @@
     "data:from-csv": "tsx scripts/csv-to-feed.ts",
     "smoke": "tsx scripts/smoke.ts",
     "sweep": "tsx scripts/sweep-database.ts",
+    "photos:apply": "tsx scripts/photos-apply.ts",
     "news:refresh": "tsx scripts/news-refresh.ts",
     "first-look": "tsx scripts/first-look.ts",
     "gate": "tsx scripts/gate.ts",

@@ -27,4 +27,4 @@ A Commons file is accepted only if its licence is free (CC0, CC BY, CC BY-SA, pu
 
 - Fighters' other photos (action shots, weigh-ins) and event photos: no free source that can be tied to the right fight automatically.
 - Belt images per title and division: Wikidata has one per body, not per belt.
-- Any image from a vendor or a promoter without their written permission. BoxRec images are never used.
+- Any image from a vendor or a promoter without their written permission. BoxRec images are never used. With permission, an editor records the picture at /review/photos: see [photo-permissions.md](photo-permissions.md).

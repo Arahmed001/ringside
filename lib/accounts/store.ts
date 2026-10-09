@@ -96,6 +96,12 @@ CREATE TABLE IF NOT EXISTS social_posts (
   added_by INTEGER REFERENCES users(id) ON DELETE SET NULL, added_at TEXT NOT NULL, UNIQUE (provider, post_id, subject_kind, subject_ext)
 );
 CREATE INDEX IF NOT EXISTS idx_social_subject ON social_posts(subject_kind, subject_ext, added_at);
+-- A picture of a fighter that an editor recorded together with the right to show it: the licence it was published under, or the rights-holder's permission and the evidence of it.
+-- The record outlives a reload of the sports database; the command photos:apply puts the current records onto the fighters' pages. Only a record with a licence and a credit exists.
+CREATE TABLE IF NOT EXISTS licensed_images (
+  id INTEGER PRIMARY KEY, boxer_slug TEXT NOT NULL UNIQUE, image_url TEXT NOT NULL, licence TEXT NOT NULL, licence_url TEXT, credit TEXT NOT NULL, source_url TEXT NOT NULL,
+  evidence TEXT, added_by INTEGER REFERENCES users(id) ON DELETE SET NULL, added_at TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS audit (
   id INTEGER PRIMARY KEY, at TEXT NOT NULL, actor TEXT, action TEXT NOT NULL, target TEXT, detail TEXT
 );
