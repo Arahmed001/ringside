@@ -10,7 +10,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { candidates, composeName, readWordsFile, wordsFilePath, writeWordsFile, wordsOf, type WordsFile } from "../lib/i18n/name-words";
+import { candidates, composeName, readWordsFile, wordsFilePath, writeWordsFile, wordsOf } from "../lib/i18n/name-words";
 import { sheet } from "../lib/i18n/name-words-sheet";
 import { readNamesFile } from "../lib/i18n/names-file";
 

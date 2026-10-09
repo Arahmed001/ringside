@@ -83,8 +83,9 @@ test("only fighters with an article and a past fight with no result are looked u
 test("two articles that disagree on one fight propose nothing for it", async () => {
   const db = world();
   db.exec("UPDATE boxers SET wikipedia_title = 'Jose Nunez' WHERE id = 2");
-  const dir = await import("node:fs").then((fs) => fs.mkdtempSync(require("node:os").tmpdir() + "/wr-"));
   const fs = await import("node:fs");
+  const os = await import("node:os");
+  const dir = fs.mkdtempSync(`${os.tmpdir()}/wr-`);
   const page = (title: string, rows: string) => fs.writeFileSync(`${dir}/${title.replace(/[^A-Za-z0-9_-]/g, "_")}.json`, JSON.stringify({ page: title.replace(/ /g, "_"), revision: "1", wikitext: TABLE(rows) }));
   page("Ana Cruz", ROW(1, "{{yes2|Win}}", "José Núñez", "TKO", "2 (10)", "29 Apr 2026"));
   page("Jose Nunez", ROW(1, "{{yes2|Win}}", "Ana Cruz", "KO", "3 (10)", "29 Apr 2026")); // both say they won
