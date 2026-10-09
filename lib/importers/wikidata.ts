@@ -10,6 +10,8 @@
  * property returned 1.74 (m), 70.5 (inches) and 173 (cm) for different fighters.
  */
 import type { DatabaseSync } from "node:sqlite";
+import fs from "node:fs";
+import path from "node:path";
 import { userAgent } from "../media/wikimedia";
 
 const WDQS = "https://query.wikidata.org/sparql";
@@ -431,4 +433,44 @@ function applyHonours(db: DatabaseSync, s: EnrichSummary) {
     if (r.olympedia_id) s.honours.olympedia++;
   }
   db.exec("COMMIT");
+}
+
+
+/**
+ * The staged Wikidata boxers, kept in a file beside the database (wikidata-staging.json), so that a clean reload of the sports database (a new file) does not make the next
+ * enrichment fetch about 19,650 boxers again. The staging rows are Wikidata's facts, not ours; the two columns that point at OUR fighters (matched_boxer_id, match_method) are not kept, because
+ * a new database numbers its fighters again: the next enrich links them afresh.
+ */
+export const SNAPSHOT_FILE = "wikidata-staging.json";
+const KEPT = ["qid", "name", "birth_date", "birth_year", "birth_place", "country", "height_cm", "weight_kg", "image_file", "boxrec_id", "residence", "death_date", "teachers", "fetched_at", "ibhof_id", "olympedia_id", "awards", "extras_at", "ar_label", "nickname", "enwiki", "labels_at"] as const;
+
+export function saveStagingSnapshot(db: DatabaseSync, file: string): number {
+  const rows = db.prepare(`SELECT ${KEPT.join(", ")} FROM wikidata_boxers`).all();
+  if (!rows.length) return 0;
+  const tmp = `${file}.tmp-${process.pid}`;
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(tmp, JSON.stringify({ version: 1, at: new Date().toISOString(), rows }));
+  fs.renameSync(tmp, file); // the old snapshot is replaced whole or not at all
+  return rows.length;
+}
+
+/** Puts the snapshot back into an EMPTY staging table, if the file is there, readable and not older than `maxAgeDays`. Returns how many rows came back (0: nothing was done). */
+export function restoreStagingSnapshot(db: DatabaseSync, file: string, maxAgeDays = 30, now = Date.now()): number {
+  if ((db.prepare("SELECT COUNT(*) c FROM wikidata_boxers").get() as { c: number }).c > 0) return 0;
+  let snap: { version?: number; at?: string; rows?: Record<string, unknown>[] };
+  try { snap = JSON.parse(fs.readFileSync(file, "utf8")); } catch { return 0; }
+  const at = Date.parse(snap.at ?? "");
+  if (snap.version !== 1 || !Number.isFinite(at) || now - at > maxAgeDays * 86400_000 || !Array.isArray(snap.rows)) return 0;
+  const ins = db.prepare(`INSERT OR IGNORE INTO wikidata_boxers (${KEPT.join(", ")}) VALUES (${KEPT.map(() => "?").join(", ")})`);
+  let n = 0;
+  db.exec("BEGIN");
+  try {
+    for (const r of snap.rows) {
+      if (typeof r.qid !== "string" || !/^Q\d+$/.test(r.qid)) continue;
+      ins.run(...KEPT.map((k) => (r[k] === undefined ? null : (r[k] as string | number | null))));
+      n++;
+    }
+    db.exec("COMMIT");
+  } catch (e) { db.exec("ROLLBACK"); throw e; }
+  return n;
 }

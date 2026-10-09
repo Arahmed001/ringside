@@ -14709,6 +14709,12 @@
   ]
  },
  {
+  "key": "Turned professional in {year}; the earliest fight held is from {first}, so earlier fights are missing.",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Two evenly matched fighters, both highly rated going in.",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"

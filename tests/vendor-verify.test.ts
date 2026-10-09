@@ -202,3 +202,15 @@ test("a supplier total of 0-0-0 beside a professional fight (more than three rou
   const short: FeedData = { ...long, bouts: [bout("1", "A", "B", { eventExternalId: "E1", rounds: 3 })] };
   assert.equal(reconcileFeed(short, new Map([["A", rec(0, 0, 0)], ["B", rec(0, 0, 0)]])).conflict, 2, "only a three-round fight: an exhibition or amateur bout the total may leave out, still a conflict");
 });
+
+import { disputedCsv } from "../lib/vendor-verify";
+test("disputed.csv says why each fighter is disputed, in the explanation's words, and quotes what needs quoting (round 138)", () => {
+  const feed: FeedData = { ...miniFeed(), boxers: ["A", "B"].map(boxer), events: [ev("E1", "2020-01-01")], bouts: [bout("1", "A", "B", { eventExternalId: "E1" })] };   // A beats B
+  const v = new Map([["A", rec(0, 1, 0)], ["B", rec(1, 0, 0)]]);                                                                                           // the vendor has it the other way round
+  const rec2 = reconcileFeed(feed, v), report = explainConflicts(feed, v, "2026-10-04", 14);
+  const csv = disputedCsv(rec2.conflicts, report).split("\n");
+  assert.equal(csv[0], "id,name,loaded,vendor,causes,opponent_evidence");
+  assert.equal(csv[1], 'A,"Fighter A",1-0-0,0-1-0,"wins; flipped","mutual"', "a win loaded where the supplier has a loss: one reversed winner clears both fighters");
+  assert.equal(csv[2], 'B,"Fighter B",0-1-0,1-0-0,"losses; flipped","mutual"');
+  assert.equal(disputedCsv([{ externalId: "X", name: 'Quote "Q", Jr', loaded: "1-0-0", vendor: "0-0-0" }]).split("\n")[1], 'X,"Quote ""Q"", Jr",1-0-0,0-0-0,"",""', "a name with quotes and a comma stays one field; no report, no causes");
+});
