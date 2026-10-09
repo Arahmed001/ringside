@@ -3704,6 +3704,12 @@
   ]
  },
  {
+  "key": "By permission of the rights-holder",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
   "key": "By posting you allow Ringside to show your post on the site for as long as it is there. Editors can hide or remove posts, and anyone with an account can report one. You can delete your own posts at any time, and deleting your account removes them.",
   "files": [
    "app/[locale]/terms/page.tsx"
@@ -3993,6 +3999,12 @@
   ]
  },
  {
+  "key": "Choose a licence.",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
   "key": "Choose a role.",
   "files": [
    "lib/account-text.ts"
@@ -4027,6 +4039,7 @@
  {
   "key": "Chosen posts",
   "files": [
+   "app/[locale]/review/photos/page.tsx",
    "app/[locale]/review/social/page.tsx"
   ]
  },
@@ -4457,6 +4470,12 @@
   "key": "Credit",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Credit (photographer or rights-holder)",
+  "files": [
+   "components/PhotoQueue.tsx"
   ]
  },
  {
@@ -5119,6 +5138,7 @@
    "app/[locale]/data/page.tsx",
    "app/[locale]/review/forum/page.tsx",
    "app/[locale]/review/page.tsx",
+   "app/[locale]/review/photos/page.tsx",
    "app/[locale]/review/reports/page.tsx",
    "app/[locale]/review/social/page.tsx"
   ]
@@ -5157,6 +5177,12 @@
   "key": "Editors look at reported forum posts and the newest posts, and hide or restore them.",
   "files": [
    "app/[locale]/review/forum/page.tsx"
+  ]
+ },
+ {
+  "key": "Editors record a fighter's picture together with the licence or permission that lets the site show it.",
+  "files": [
+   "app/[locale]/review/photos/page.tsx"
   ]
  },
  {
@@ -5536,6 +5562,12 @@
   ]
  },
  {
+  "key": "Evidence of the permission (who agreed, how, and when)",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
   "key": "Exact birth date",
   "files": [
    "lib/coverage.ts"
@@ -5873,6 +5905,7 @@
  {
   "key": "Fighter (page address ending)",
   "files": [
+   "components/PhotoQueue.tsx",
    "components/SocialQueue.tsx"
   ]
  },
@@ -6302,6 +6335,12 @@
   "key": "Follow in a feed reader",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "For a picture used by permission, say how you know: who agreed, and when.",
+  "files": [
+   "components/PhotoQueue.tsx"
   ]
  },
  {
@@ -7715,7 +7754,8 @@
  {
   "key": "Licence",
   "files": [
-   "app/[locale]/data/page.tsx"
+   "app/[locale]/data/page.tsx",
+   "components/PhotoQueue.tsx"
   ]
  },
  {
@@ -7888,6 +7928,7 @@
    "components/AccountPanel.tsx",
    "components/ContributeForm.tsx",
    "components/ForumQueue.tsx",
+   "components/PhotoQueue.tsx",
    "components/ReportForm.tsx",
    "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx",
@@ -8937,6 +8978,12 @@
   ]
  },
  {
+  "key": "No pictures have been recorded yet.",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
   "key": "No posts have been chosen yet.",
   "files": [
    "components/SocialQueue.tsx"
@@ -9522,6 +9569,7 @@
  {
   "key": "Only editors can do that.",
   "files": [
+   "components/PhotoQueue.tsx",
    "components/SocialQueue.tsx"
   ]
  },
@@ -9529,6 +9577,12 @@
   "key": "Only editors can moderate the forum.",
   "files": [
    "components/ForumQueue.tsx"
+  ]
+ },
+ {
+  "key": "Only editors can record pictures.",
+  "files": [
+   "components/PhotoQueue.tsx"
   ]
  },
  {
@@ -9991,6 +10045,12 @@
   "key": "Picks the home fighter",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Picture address",
+  "files": [
+   "components/PhotoQueue.tsx"
   ]
  },
  {
@@ -10776,6 +10836,12 @@
   ]
  },
  {
+  "key": "Record a fighter's picture only with the right to show it: a free licence, or the rights-holder's permission and how you know. The credit is shown beside the picture. A picture that came with the supplier's data is never replaced. Never use a picture from BoxRec or one you do not have the right to use.",
+  "files": [
+   "app/[locale]/review/photos/page.tsx"
+  ]
+ },
+ {
   "key": "Record in late rounds",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -10787,6 +10853,12 @@
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "components/TenureTable.tsx"
+  ]
+ },
+ {
+  "key": "Recorded pictures",
+  "files": [
+   "app/[locale]/review/photos/page.tsx"
   ]
  },
  {
@@ -10891,6 +10963,7 @@
  {
   "key": "Remove",
   "files": [
+   "components/PhotoQueue.tsx",
    "components/SocialQueue.tsx"
   ]
  },
@@ -10909,6 +10982,7 @@
  {
   "key": "Removed.",
   "files": [
+   "components/PhotoQueue.tsx",
    "components/SocialQueue.tsx"
   ]
  },
@@ -11295,6 +11369,30 @@
   "key": "Save",
   "files": [
    "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "Save the picture",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "Saved, and shown on the fighter's page.",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "Saved, but no fighter has that page address yet.",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "Saved, but the fighter already has a photo that came with the data, so it is not replaced.",
+  "files": [
+   "components/PhotoQueue.tsx"
   ]
  },
  {
@@ -11776,6 +11874,7 @@
   "files": [
    "components/AccountMenu.tsx",
    "components/AccountPanel.tsx",
+   "components/PhotoQueue.tsx",
    "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx",
    "components/SocialQueue.tsx"
@@ -11791,6 +11890,12 @@
   "key": "Sign in as an editor to moderate the forum.",
   "files": [
    "components/ForumQueue.tsx"
+  ]
+ },
+ {
+  "key": "Sign in as an editor to record pictures.",
+  "files": [
+   "components/PhotoQueue.tsx"
   ]
  },
  {
@@ -12035,6 +12140,7 @@
  {
   "key": "Something went wrong. Try again.",
   "files": [
+   "components/PhotoQueue.tsx",
    "components/SocialQueue.tsx",
    "lib/account-text.ts",
    "lib/forum/text.ts"
@@ -12081,6 +12187,7 @@
   "key": "Source page",
   "files": [
    "components/ContributeForm.tsx",
+   "components/PhotoQueue.tsx",
    "components/ReportForm.tsx"
   ]
  },
@@ -12565,6 +12672,7 @@
   "key": "Team-history edits",
   "files": [
    "app/[locale]/review/forum/page.tsx",
+   "app/[locale]/review/photos/page.tsx",
    "app/[locale]/review/reports/page.tsx",
    "app/[locale]/review/social/page.tsx"
   ]
@@ -13042,6 +13150,12 @@
   ]
  },
  {
+  "key": "The fighter is the last part of the fighter's page address.",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
   "key": "The fighter the ratings did not favour won.",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
@@ -13398,6 +13512,18 @@
   ]
  },
  {
+  "key": "The picture needs an https address that ends in .jpg, .png or .webp.",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "the pictures an editor recorded, each with its licence or permission, credit and source, and which editor added it (nothing about visitors)",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
   "key": "The public API and the embeds are not available on this site.",
   "files": [
    "app/[locale]/developers/page.tsx"
@@ -13576,6 +13702,12 @@
   "key": "The source is published by the owner of this fact.",
   "files": [
    "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "The source needs an https address: the page the picture came from.",
+  "files": [
+   "components/PhotoQueue.tsx"
   ]
  },
  {
@@ -15685,6 +15817,12 @@
   "key": "Write something first.",
   "files": [
    "lib/forum/text.ts"
+  ]
+ },
+ {
+  "key": "Write the credit that goes with the picture.",
+  "files": [
+   "components/PhotoQueue.tsx"
   ]
  },
  {

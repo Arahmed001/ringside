@@ -31,6 +31,7 @@ export const HELD: Record<string, { columns: string[]; what: string }> = {
   forum_reports: { columns: ["id", "post_id", "user_id", "reason", "note", "status", "created_at", "reviewed_by", "reviewed_at"], what: msg("the forum posts you reported and why, with any note you added (the note is cleared if you delete your account)") },
   social_posts: { columns: ["id", "provider", "post_id", "url", "subject_kind", "subject_ext", "account", "note", "added_by", "added_at"], what: msg("the public posts an editor chose to show, with where each shows and which editor added it (nothing about visitors)") },
   proposals: { columns: ["id", "source", "kind", "target_key", "label", "old_json", "new_json", "evidence_json", "fingerprint", "status", "first_seen", "last_seen", "decided_by", "decided_at", "note"], what: msg("changes to our data that a public source seems to have made, waiting for an administrator to accept or reject them: what changes, where it was read, and which administrator decided and when (nothing a reader wrote)") },
+  licensed_images: { columns: ["id", "boxer_slug", "image_url", "licence", "licence_url", "credit", "source_url", "evidence", "added_by", "added_at"], what: msg("the pictures an editor recorded, each with its licence or permission, credit and source, and which editor added it (nothing about visitors)") },
   audit: { columns: ["id", "at", "actor", "action", "target", "detail"], what: msg("a log of account and review actions (sign-ups, password changes, decisions on proposals and reports), naming the people involved") },
 };
 
