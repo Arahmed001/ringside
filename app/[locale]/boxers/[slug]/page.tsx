@@ -36,6 +36,8 @@ import { newsForFighter } from "@/lib/news/read";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
+import { outcomesByYear } from "@/lib/outcomes-by-year";
+import { OutcomesByYear } from "@/components/OutcomesByYear";
 import { lateRoundsOf, clearDecisionsOf } from "@/lib/late-rounds";
 import { opponentsLastFive } from "@/lib/opponents-last-five";
 import { reachIndex } from "@/lib/reach";
@@ -85,6 +87,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   // counted from every fight, so only for a career held whole (from part of one these would be wrong in a way that reads as right)
   const careerStripOf = career.source !== "loaded" ? careerStrip({ dates: completed.map((x) => x.date), total: career.total, turnedPro: b.turnedPro, debutDate: b.debutDate }) : null;
   const numbers = career.source === "loaded" ? numbersOf(bouts, b.id, (id) => w.eventById.get(id)) : null;
+  const yearsOut = career.source === "loaded" ? outcomesByYear(bouts, b.id) : [];
   const late = career.source === "loaded" ? lateRoundsOf(bouts, b.id) : null;
   const clearDec = career.source === "loaded" ? clearDecisionsOf(bouts, b.id) : null;
   const lastFive = career.source === "loaded" ? opponentsLastFive(bouts, b.id, (id) => w.boutsByBoxer.get(id) ?? [], (id) => { const o = w.byId.get(id); return !!o && careerView(o).source === "loaded"; }) : null;
@@ -270,6 +273,7 @@ const HONOURS_SHOWN = 8;
             {clearDec && <Stat label={t("Clear decisions")} value={pct(clearDec.unanimous / clearDec.wins)} sub={t("{u} of {w} decision wins were unanimous", { u: clearDec.unanimous, w: clearDec.wins })} />}
             {numbers.layoff && <Stat label={t("Longest layoff")} value={duration(numbers.layoff.days)} sub={t("{from} to {to}", { from: fmtDate(numbers.layoff.from, { month: "short", year: "numeric" }, t.locale), to: fmtDate(numbers.layoff.to, { month: "short", year: "numeric" }, t.locale) })} />}
           </div>
+          {yearsOut.length >= 3 && <div className="mt-3"><OutcomesByYear years={yearsOut} /></div>}
           {finish && (
             <div className="card mt-3 p-4">
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">

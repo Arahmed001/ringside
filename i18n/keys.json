@@ -4943,6 +4943,12 @@
   ]
  },
  {
+  "key": "Drew",
+  "files": [
+   "components/OutcomesByYear.tsx"
+  ]
+ },
+ {
   "key": "Durability",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
@@ -6037,6 +6043,12 @@
   ]
  },
  {
+  "key": "Fights by year: {list}",
+  "files": [
+   "components/OutcomesByYear.tsx"
+  ]
+ },
+ {
   "key": "Fights held by year",
   "files": [
    "components/CareerStrip.tsx"
@@ -6831,6 +6843,12 @@
   "key": "How a fight is won and scored, how to read a record, what the weight classes and belts mean, and where Ringside’s ratings come from, in plain words.",
   "files": [
    "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
+  "key": "How each year's fights ended",
+  "files": [
+   "components/OutcomesByYear.tsx"
   ]
  },
  {
@@ -7921,7 +7939,8 @@
  {
   "key": "Lost",
   "files": [
-   "app/[locale]/weights/page.tsx"
+   "app/[locale]/weights/page.tsx",
+   "components/OutcomesByYear.tsx"
   ]
  },
  {
@@ -15348,9 +15367,27 @@
   ]
  },
  {
+  "key": "Won by stoppage",
+  "files": [
+   "components/OutcomesByYear.tsx"
+  ]
+ },
+ {
   "key": "Won on the cards by {margin} points on average",
   "files": [
    "lib/fight-score.ts"
+  ]
+ },
+ {
+  "key": "Won on the scorecards",
+  "files": [
+   "components/OutcomesByYear.tsx"
+  ]
+ },
+ {
+  "key": "Won otherwise",
+  "files": [
+   "components/OutcomesByYear.tsx"
   ]
  },
  {
