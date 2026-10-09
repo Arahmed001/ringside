@@ -34,6 +34,8 @@ export interface WatchResult {
   scope: string[];
   /** places not proposed from, and why (a page that changed shape, one that read as empty, nothing held yet) */
   refused: { scope: string; reason: string }[];
+  /** a pending proposal this says is no longer true even though its place was not read this run (a fight that has got a result meanwhile) */
+  retire?: (targetKey: string) => boolean;
   /** how many rows were compared */
   compared: number;
 }

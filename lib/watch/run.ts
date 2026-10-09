@@ -17,6 +17,6 @@ export async function runWatch(sourceId: string, ctx: WatchContext, acc: Databas
   if (!src.enabled) throw new Error(`${src.id} is switched off until its terms have been read and recorded.`);
   if (!src.run) throw new Error(`${src.id} is not looked at by the watcher: its changes come from the daily update.`);
   const r = await src.run(ctx);
-  const proposals = o.dryRun ? null : reconcile(acc, src.id, r.changes, r.scope, o.now);
+  const proposals = o.dryRun ? null : reconcile(acc, src.id, r.changes, r.retire ? (k: string) => r.scope.some((x) => k.startsWith(x)) || r.retire!(k) : r.scope, o.now);
   return { source: src.id, compared: r.compared, changes: r.changes.length, refused: r.refused, proposals };
 }
