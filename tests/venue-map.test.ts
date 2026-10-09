@@ -116,3 +116,11 @@ test("the venue list: events counted per venue (cancelled ones not, coming ones 
   assert.deepEqual(venueCounts(w), { all: 3, placed: 2 });
   assert.equal(mapsUrl({ name: "Wembley Arena", city: "London", country: "United Kingdom" }), "https://www.google.com/maps/search/?api=1&query=Wembley%20Arena%2C%20London%2C%20United%20Kingdom");
 });
+
+test("a contact pasted with quote marks is cleaned; one that cannot be sent is refused plainly", async () => {
+  const { cleanContact } = await import("../lib/media/wikimedia");
+  assert.equal(cleanContact("“you@example.com”"), "you@example.com");
+  assert.equal(cleanContact(' "https://example.org" '), "https://example.org");
+  assert.equal(cleanContact(undefined), "");
+  assert.throws(() => cleanContact("café@example.com"), /plain characters/);
+});
