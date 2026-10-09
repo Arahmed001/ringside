@@ -72,3 +72,12 @@ test("a fighter the supplier gave no total for has no stored total, and shows th
   assert.equal(r.w, null);
   assert.equal((db.prepare("SELECT COUNT(*) c FROM boxers").get() as { c: number }).c, before + 1);
 });
+
+test("a fighter the supplier gave no total for says so on the page where the supplier does give totals, and nowhere else (round 137)", async () => {
+  const fs = await import("node:fs");
+  const page = fs.readFileSync("app/[locale]/boxers/[slug]/page.tsx", "utf8");
+  assert.match(page, /career\.source === "loaded" && b\.vendorRecord === null && b\.bouts > 0 && suppliesTotals\(w\)/, "only for a loaded record with no supplier total, a fight held, and a league whose supplier gives totals");
+  const { suppliesTotals } = await import("../lib/supplier-totals");
+  assert.equal(suppliesTotals({ boxers: [{ vendorRecord: null }, { vendorRecord: null }] } as never), false, "the demo league: no totals at all, so no note");
+  assert.equal(suppliesTotals({ boxers: [{ vendorRecord: null }, { vendorRecord: { wins: 1, losses: 0, draws: 0 } }] } as never), true);
+});

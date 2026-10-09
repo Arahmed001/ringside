@@ -18,7 +18,7 @@ export async function Headshot({ boxer, size = 64, className = "", rounded = tru
   // A real fighter with no licensed photo gets a name plate (the surname in large capitals, the initials in a small block), not an invented silhouette.
   // It is decoration: the name is always beside it, so it is hidden from a screen reader. The illustrated demo portraits stay as they are.
   if (!isDemoData()) {
-    const plate = plateOf(t.name(boxer.name), size);
+    const plate = plateOf(t.name(boxer.name), size, t.locale);
     return (
       <div aria-hidden className={`${r} ${className} relative grid shrink-0 place-items-center overflow-hidden border border-line/70 bg-gradient-to-b from-panel2 to-panel`} style={{ width: size, height: size * 1.25 }}>
         <span className="font-display font-extrabold uppercase leading-none tracking-wide text-ink/90" style={{ fontSize: plate.fontSize }}>{plate.text}</span>

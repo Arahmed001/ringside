@@ -350,13 +350,13 @@ test("a career the loaded fights do not add up to is refused: a partial history 
 
 test("a career LOWER than the loaded fights is a contradiction in the feed itself: refused, and a lower bar does not excuse it", async () => {
   state.g3Finished = false;
-  state.skew = { f1: { wins: -1 } }; // the vendor says Ace One has no wins, though a fight we hold says he won
+  state.skew = { f1: { wins: -1, losses: 1 } }; // the vendor says Ace One has no wins and a loss, though a fight we hold says he won
   const cache5 = path.join(root, "cache5"), db5 = path.join(root, "fifth.db");
   const env = { DATABASE_PATH: db5, BOXING_API_STORAGE_CONFIRMED: "1" };
   try {
     const r = await run(["--cache-dir", cache5, "--min-complete", "0.5", "--allow-partial"], env);
     assert.equal(r.code, 3, "allowing partial records does not allow conflicts");
-    assert.match(r.out, /1 CONFLICT: more than the vendor's own career total, so the feed contradicts itself \(e\.g\. Ace One loaded 1-0-0 vs vendor 0-0-0\)/);
+    assert.match(r.out, /1 CONFLICT: more than the vendor's own career total, so the feed contradicts itself \(e\.g\. Ace One loaded 1-0-0 vs vendor 0-1-0\)/);
     assert.match(r.out, /Nothing was loaded, because 1 fighter\(s\) have MORE wins, losses or draws in the loaded fights than the vendor's own career total/);
     const ok = await run(["--cache-dir", cache5, "--allow-conflicts", "--min-complete", "0.5"], env);
     assert.equal(ok.code, 0, ok.out);

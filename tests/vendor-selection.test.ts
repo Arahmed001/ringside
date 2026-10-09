@@ -64,7 +64,7 @@ test("coherentCore: a fighter the vendor contradicts, or gave no record for, is 
     fight("1", "A", "B", "old"), fight("2", "C", "D", "old"), fight("3", "E", "F", "old"),
     fight("4", "A", "Z", "mid", { status: "cancelled" }), fight("5", "E", "Y", "soon", { winnerExternalId: null, method: null }), // nothing counts: against fighters who are not loaded
   ];
-  const vendor = new Map([["A", rec(1, 0)], ["B", rec(0, 1)], ["C", rec(1, 0)], ["D", rec(0, 0)] /* D's total is lower than the fights: a conflict */, ["E", rec(1, 0)] /* F: no record at all */]);
+  const vendor = new Map([["A", rec(1, 0)], ["B", rec(0, 1)], ["C", rec(1, 0)], ["D", rec(1, 0)] /* D's total has no loss, though a fight lists one: a conflict */, ["E", rec(1, 0)] /* F: no record at all */]);
   const core = coherentCore(feedOf(["A", "B", "C", "D", "E", "F"], bouts), vendor);
   assert.deepEqual([...core.fighters].sort(), ["A", "B"], "C is out because D contradicts the vendor; E is out because F has no record to check; A stays despite a cancelled fight against someone not loaded");
 });

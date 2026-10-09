@@ -37,12 +37,12 @@ test("reconciling a feed: wins, losses and draws are counted from the fights; ca
     bout("3", "A", "B", { status: "cancelled" }),                   // never happened
     bout("4", "A", "B", { winnerExternalId: null, method: null }),  // no result yet
   ] } as FeedData;
-  const vendor = new Map([["A", rec(1, 0, 0)], ["B", rec(0, 1, 0)], ["C", rec(0, 0, 2)], ["D", rec(0, 0, 0)]]);
+  const vendor = new Map([["A", rec(1, 0, 0)], ["B", rec(0, 1, 0)], ["C", rec(0, 0, 2)], ["D", rec(0, 1, 0)]]);
   const r = reconcileFeed(feed, vendor);
   assert.deepEqual([r.checked, r.complete, r.partial, r.conflict, r.noVendorRecord], [4, 2, 1, 1, 1]);
   assert.equal(r.share, 0.5);
   assert.deepEqual(r.partials, [{ externalId: "C", name: "Fighter C", loaded: "0-0-1", vendor: "0-0-2" }]);
-  assert.deepEqual(r.conflicts, [{ externalId: "D", name: "Fighter D", loaded: "0-0-1", vendor: "0-0-0" }]);
+  assert.deepEqual(r.conflicts, [{ externalId: "D", name: "Fighter D", loaded: "0-0-1", vendor: "0-1-0" }]);
   const text = describeReconciliation(r).join("\n");
   assert.match(text, /2 of 4 fighters \(50\.0%\)/); assert.match(text, /1 partial.*fewer fights are held/); assert.match(text, /1 CONFLICT.*contradicts itself/); assert.match(text, /1 fighter\(s\) came with no career record/);
   assert.equal(reconcileFeed({ ...feed, bouts: [] } as FeedData, new Map()).share, 0, "nothing to check is a share of 0, not 100%");
@@ -54,7 +54,7 @@ test("reconciling the database (the daily update): the same check over what is s
   await ingest(db, providerOf(miniFeed())); // A (red) beats B by UD
   assert.deepEqual(reconcileDb(db, new Map([["A", rec(1, 0, 0)], ["B", rec(0, 1, 0)]])).complete, 2);
   assert.equal(reconcileDb(db, new Map([["A", rec(2, 0, 0)], ["B", rec(0, 1, 0)]])).partial, 1, "the vendor says more than we hold");
-  const conflict = reconcileDb(db, new Map([["A", rec(0, 0, 0)], ["B", rec(0, 1, 0)]]));
+  const conflict = reconcileDb(db, new Map([["A", rec(0, 1, 0)], ["B", rec(0, 1, 0)]]));
   assert.equal(conflict.conflict, 1); assert.equal(conflict.conflicts[0].name, "Fighter A");
   assert.deepEqual(reconcileDb(db, new Map([["A", rec(2, 0, 0)], ["B", rec(0, 1, 0)]]), ["B"]).checked, 1, "only the fighters asked about");
 });
@@ -76,7 +76,7 @@ test("the daily update's audit: a surplus that only the last few days' fights ca
   assert.match(describeReconciliation(r).join("\n"), /2 career total\(s\) probably lagging.*Fighter A loaded 2-0-0 vs vendor 1-0-0.*next day's update/);
   assert.ok(!/CONFLICT/.test(describeReconciliation(r).join("\n")));
   // one recent fight cannot explain a surplus of two: the vendor says A has no wins at all
-  const wrong = reconcileDb(db, new Map([["A", rec(0, 0, 0)], ["B", rec(0, 1, 0)]]), undefined, lag);
+  const wrong = reconcileDb(db, new Map([["A", rec(0, 1, 0)], ["B", rec(0, 1, 0)]]), undefined, lag);
   assert.deepEqual([wrong.conflict, wrong.lagging], [1, 1], "A is a conflict (two wins loaded, one of them recent, vendor has none); B is only lagging");
   assert.equal(wrong.conflicts[0].name, "Fighter A");
   // the same surplus with the recent window moved past the fight is a conflict again: the fight is not recent any more
@@ -165,7 +165,7 @@ test("a conflict that one reversed winner would remove is named as such: 1-0-0 l
   assert.equal(r.tally.flipped, 2);
   // a fighter with several surplus wins is not one flipped winner away from his record
   const many: FeedData = { ...miniFeed(), boxers: ["A", "B", "C", "D"].map(boxer), events: [ev("E1", "2020-01-01")], bouts: [bout("1", "A", "B", { eventExternalId: "E1" }), bout("2", "A", "C", { eventExternalId: "E1" }), bout("3", "A", "D", { eventExternalId: "E1" })] };
-  const m = explainConflicts(many, new Map([["A", rec(0, 0, 0)], ["B", rec(0, 1, 0)], ["C", rec(0, 1, 0)], ["D", rec(0, 1, 0)]]), "2026-10-04", 14);
+  const m = explainConflicts(many, new Map([["A", rec(0, 1, 0)], ["B", rec(0, 1, 0)], ["C", rec(0, 1, 0)], ["D", rec(0, 1, 0)]]), "2026-10-04", 14);
   assert.deepEqual(m.fighters.find((f) => f.name === "Fighter A")!.causes.includes("flipped"), false);
 });
 
@@ -192,4 +192,13 @@ test("flip evidence: an opponent with no vendor record, or a partial one the rev
   assert.deepEqual(evidenceOf(new Map([["A", rec(0, 1, 0)], ["B", rec(5, 4, 0)]])).flipEvidence, { mutual: 0, open: 1, contradicted: 0 });
   const text = describeConflictReport(evidenceOf(new Map([["A", rec(0, 1, 0)], ["B", rec(1, 0, 0)]]))).join("\n");
   assert.match(text, /of those: 2 where the same reversal would also clear the OTHER fighter's conflict/); assert.match(text, /0 where every such reversal would break an opponent/);
+});
+
+test("a supplier total of 0-0-0 beside a professional fight (more than three rounds) is no total to check: not a conflict; beside only short fights it still is (round 137)", () => {
+  const long: FeedData = { ...miniFeed(), boxers: ["A", "B", "C"].map(boxer), events: [ev("E1", "2020-01-01")], bouts: [bout("1", "A", "B", { eventExternalId: "E1" })] };       // A beats B over 10 rounds
+  const r = reconcileFeed(long, new Map([["A", rec(0, 0, 0)], ["B", rec(0, 1, 0)], ["C", rec(0, 0, 0)]]));
+  assert.deepEqual([r.checked, r.complete, r.conflict, r.noVendorRecord], [2, 2, 0, 1], "A (a win loaded, supplier total nothing) is set aside; B agrees; C (no fights, total nothing) is exact");
+  assert.equal(reconcileFeed(long, new Map([["A", rec(0, 1, 0)], ["B", rec(0, 0, 0)]])).conflict, 1, "a total that is not nothing still conflicts (A's win against 0-1-0); B's loss against nothing is set aside");
+  const short: FeedData = { ...long, bouts: [bout("1", "A", "B", { eventExternalId: "E1", rounds: 3 })] };
+  assert.equal(reconcileFeed(short, new Map([["A", rec(0, 0, 0)], ["B", rec(0, 0, 0)]])).conflict, 2, "only a three-round fight: an exhibition or amateur bout the total may leave out, still a conflict");
 });

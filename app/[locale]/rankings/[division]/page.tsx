@@ -17,6 +17,7 @@ import type { BoxerFull } from "@/lib/types";
 import { countryName, flag, fmtDate } from "@/lib/format";
 import { getT } from "@/lib/i18n/server";
 import { OfficialListView } from "@/components/OfficialList";
+import { BODY_PAGES, bodyPage } from "@/lib/official-links";
 import { officialKey } from "@/lib/official";
 import { RANKING_BODIES } from "@/lib/providers";
 import { metaFor, pagedTitle, type SearchParams } from "@/lib/seo-server";
@@ -86,6 +87,11 @@ export default async function DivisionRankings({ params, searchParams }: { param
           {RANKING_BODIES.map((b) => lists.some((l) => l.body === b) ? <Link key={b} href={`/rankings/${slugifyDivision(d.name)}?list=${b.toLowerCase()}`} aria-current={official?.body === b ? "page" : undefined} className={`chip ${official?.body === b ? "!border-gold/50 !text-gold" : ""}`}>{b}</Link> : null)}
         </nav>
       )}
+
+      <nav aria-label={t("The bodies' own lists")} className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+        <span>{t("The bodies' own lists")}:</span>
+        {BODY_PAGES.map((b) => <a key={b.body} href={bodyPage(b, sex)} target="_blank" rel="noopener noreferrer" title={b.name} className="chip py-1.5 hover:!text-ink">{b.body} ↗</a>)}
+      </nav>
 
       {official && <OfficialListView list={official} w={w} />}
       {!official && champ && (
