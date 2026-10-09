@@ -265,12 +265,13 @@ export function ensureReignTable(db: DatabaseSync) { db.exec(REIGN_SCHEMA); }
 
 export interface ImportSummary { pages: number; reigns: number; skipped: number; qidsResolved: number; linked: number; notes: ParseNotes }
 
-/** Fetches the lists, replaces each page's rows (re-running never duplicates; a row removed upstream disappears), then links reigns to our fighters. */
-export async function importChampions(db: DatabaseSync, o: FetchOptions & { sources?: ChampionSource[]; now?: string } = {}): Promise<ImportSummary> {
-  ensureReignTable(db);
+export interface ChampionLists { parsed: { src: ChampionSource; page: PageText; reigns: ParsedReign[] }[]; qids: Map<string, string>; notes: ParseNotes }
+
+/** Fetches and reads the lists and resolves the Wikidata IDs of the names they link; writes nothing (the importer and the watcher both start here). */
+export async function readChampionLists(o: FetchOptions & { sources?: ChampionSource[] } = {}): Promise<ChampionLists> {
   const notes: ParseNotes = { rowsSkipped: 0, divisionUnknown: 0, datesUnread: 0 };
   const sources = o.sources ?? CHAMPION_SOURCES;
-  const parsed: { src: ChampionSource; page: PageText; reigns: ParsedReign[] }[] = [];
+  const parsed: ChampionLists["parsed"] = [];
   for (const src of sources) {
     const page = await fetchPage(src.page, o);
     const reigns = parseChampionList(page.wikitext, src.org, notes);
@@ -278,7 +279,13 @@ export async function importChampions(db: DatabaseSync, o: FetchOptions & { sour
     parsed.push({ src, page, reigns });
   }
   const titles = parsed.flatMap((p) => p.reigns.flatMap((r) => [r.wikiTitle, r.wonVsTitle].filter((t): t is string => !!t)));
-  const qids = await resolveQids(titles, o);
+  return { parsed, qids: await resolveQids(titles, o), notes };
+}
+
+/** Fetches the lists, replaces each page's rows (re-running never duplicates; a row removed upstream disappears), then links reigns to our fighters. */
+export async function importChampions(db: DatabaseSync, o: FetchOptions & { sources?: ChampionSource[]; now?: string } = {}): Promise<ImportSummary> {
+  ensureReignTable(db);
+  const { parsed, qids, notes } = await readChampionLists(o);
   const now = o.now ?? new Date().toISOString();
   const del = db.prepare("DELETE FROM title_reigns WHERE source = ?");
   const ins = db.prepare(`INSERT INTO title_reigns (org, division, category, seq, n, name, status, wiki_title, wikidata_id, start_date, end_date, current, won_vs, won_vs_wikidata_id, won_note, defences, end_note, source, revision, fetched_at)

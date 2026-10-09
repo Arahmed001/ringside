@@ -1,0 +1,44 @@
+# Fly.io settings for Ringside. Guide: docs/fly-deploy.md
+# Written from Fly's documentation; not yet tried on a real Fly account.
+# Never put secrets in this file (use `fly secrets set`).
+
+# Fly fills in the app name when you run `fly launch --no-deploy --copy-config`.
+app = "ringside-change-me"
+# Fly has no Middle East region. fra (Frankfurt) is a reasonable first choice; no latency was measured.
+primary_region = "fra"
+
+[build]
+  # uses the Dockerfile in this folder
+
+[env]
+  PORT = "3000"
+  # the site must read the visitor's address from the header only Fly sets (see docs/fly-deploy.md, step 9)
+  CLIENT_IP_HEADER = "Fly-Client-IP"
+  MALLOC_ARENA_MAX = "2"
+  # Nightly update + verified backup inside the same container (docs/nightly.md).
+  # Turn on only after the vendor key is stored as a secret and the data has loaded once. UTC time.
+  # NIGHTLY_SCHEDULE = "03:30"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  # one machine, always on: the database file lives on one volume
+  auto_stop_machines = "off"
+  auto_start_machines = false
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/api/health"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "120s"
+
+[[mounts]]
+  source = "ringside_data"
+  destination = "/data"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 2
+  memory = "2gb"

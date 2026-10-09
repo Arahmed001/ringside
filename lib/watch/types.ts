@@ -1,0 +1,48 @@
+import type { DatabaseSync } from "node:sqlite";
+import type { ChampionSource, FetchOptions } from "../importers/wikipedia-champions";
+
+/** One difference between what a source says now and what we hold. Never applied by the watcher: it becomes a pending proposal. */
+export interface Change {
+  /** "reign_added" | "reign_changed" | "reign_removed" for the champions lists; each source names its own */
+  kind: string;
+  /** a stable name for the thing, so the same change is the same proposal on the next run */
+  targetKey: string;
+  /** a short line for the approval screen ("WBC Heavyweight: Tyson Fury, from 2015-11-28") */
+  label: string;
+  old: Record<string, unknown> | null;
+  new: Record<string, unknown> | null;
+  /** where it was read: page, revision, the row's own words */
+  evidence: Record<string, unknown>;
+}
+
+export interface WatchContext {
+  main: DatabaseSync;
+  /** options for fetching (cache directory, pause between requests, refresh); the same ones the importers take */
+  fetch: FetchOptions;
+  log: (m: string) => void;
+  /** which bodies' lists to read (default: all four); only the champions source uses it */
+  championSources?: ChampionSource[];
+  /** a share of a page's rows above which a run proposes nothing from that page (default 0.05 and at least 10 changes) */
+  floodShare?: number;
+}
+
+export interface WatchResult {
+  changes: Change[];
+  /** the prefixes of target keys this run read successfully: only pending proposals inside them can be found to have gone away */
+  scope: string[];
+  /** places not proposed from, and why (a page that changed shape, one that read as empty, nothing held yet) */
+  refused: { scope: string; reason: string }[];
+  /** how many rows were compared */
+  compared: number;
+}
+
+/** A source the watcher can look at. Every source declares what it is for and the terms it is read under; a new one starts disabled until those are recorded. */
+export interface WatchSource {
+  id: string;
+  label: string;
+  kind: "titles" | "results" | "news" | "details";
+  /** the licence or terms it is read under, and the link; shown on the approval screen */
+  terms: string;
+  enabled: boolean;
+  run(ctx: WatchContext): Promise<WatchResult>;
+}

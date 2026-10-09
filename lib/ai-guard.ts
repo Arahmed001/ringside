@@ -1,4 +1,5 @@
 import { todayIso } from "./clock";
+import { clientAddress } from "./client-ip";
 
 /**
  * Protects the Anthropic bill. Three things reach the model from anonymous traffic: the plain-English fighter search,
@@ -70,7 +71,5 @@ export const resetAiGuard = () => { g.__aiGuard = undefined; resetAiPause(); };
 
 /** Who is asking, for the per-client limit. Never trusted for the daily budget. */
 export function clientId(headers: Pick<Headers, "get">): string {
-  const xff = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  const id = xff || headers.get("x-real-ip")?.trim() || "anon";
-  return id.slice(0, 64);
+  return clientAddress(headers) ?? "anon";
 }
