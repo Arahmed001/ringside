@@ -114,7 +114,7 @@ export async function resolveEntityMedia(db: DatabaseSync, opts: { limit?: numbe
     for (const code of Object.keys(BODIES).filter((c) => due("belt", c)).slice(0, limit)) await guarded(`${code} belt`, async () => record("belt", code, `${code} belt`, BODIES[code].qid, await beltByBody(code)));
   }
   if (kinds.includes("org_logo")) {
-    const orgs = db.prepare("SELECT id, name, wikidata_id AS qid FROM orgs WHERE kind IN ('promotion', 'sanctioning_body', 'broadcaster') ORDER BY id").all() as { id: number; name: string; qid: string | null }[];
+    const orgs = db.prepare("SELECT id, name, wikidata_id AS qid FROM orgs WHERE kind IN ('promotion', 'sanctioning_body', 'magazine', 'broadcaster') ORDER BY id").all() as { id: number; name: string; qid: string | null }[];
     for (const o of orgs.filter((x) => due("org_logo", String(x.id))).slice(0, limit)) {
       await guarded(o.name, async () => {
         let qid = o.qid;

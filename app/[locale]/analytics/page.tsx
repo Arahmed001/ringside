@@ -57,6 +57,7 @@ export default async function Analytics() {
             <div className="rounded-xl bg-panel2 p-3"><div className="text-xs text-muted">{t("Southpaw win rate")}</div><div className="font-display text-2xl font-bold">{pct(stance.southpaw, 1)}</div></div>
             <div className="rounded-xl bg-panel2 p-3"><div className="text-xs text-muted">{t("Orthodox win rate")}</div><div className="font-display text-2xl font-bold">{pct(stance.orthodox, 1)}</div></div>
           </div>
+          {stance.all > 0 && <p className="mt-3 text-xs text-muted">{t("Only {known} of {all} fighters have a stance on file ({share}), and they are not a random sample, so read these two figures as a pattern in the records, not as proof that one stance is better.", { known: stance.known.toLocaleString("en-US"), all: stance.all.toLocaleString("en-US"), share: pct(stance.known / stance.all) })}</p>}
         </div>
       </section>
 

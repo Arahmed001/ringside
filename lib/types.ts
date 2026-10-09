@@ -100,6 +100,8 @@ export interface BoutRow {
   titleOrgId: number | null;
   titleVacant: boolean;
   status: Status;
+  /** billed as an exhibition (lib/exhibitions.ts): no winner, in nobody's record */
+  exhibition?: boolean;
 }
 
 export interface EventRow {

@@ -3049,6 +3049,12 @@
   ]
  },
  {
+  "key": "Anything the editor should know (optional)",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
   "key": "appeal: the author asks for a review",
   "files": [
    "components/ForumQueue.tsx"
@@ -3064,6 +3070,7 @@
  {
   "key": "Approve",
   "files": [
+   "components/PhotoQueue.tsx",
    "components/ReviewQueue.tsx",
    "components/UpdateQueue.tsx"
   ]
@@ -3080,6 +3087,12 @@
   "files": [
    "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
+  ]
+ },
+ {
+  "key": "Approve only a picture whose sender plausibly has the right to it: the fighter, their team, or the photographer. Refuse screenshots, pictures from other websites, and anything that does not look like the fighter.",
+  "files": [
+   "components/PhotoQueue.tsx"
   ]
  },
  {
@@ -3100,6 +3113,24 @@
   "key": "Approved and published.",
   "files": [
    "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Approved and recorded, but the fighter already has a photo that came with the data, so it is not replaced.",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "Approved and recorded.",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "Approved, and shown on the fighter's page.",
+  "files": [
+   "components/PhotoQueue.tsx"
   ]
  },
  {
@@ -3765,6 +3796,13 @@
   "key": "Boxing intelligence · {fighters} fighters · {bouts} bouts",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Boxing magazine",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx",
+   "lib/search.ts"
   ]
  },
  {
@@ -4714,6 +4752,12 @@
   "key": "Credit (photographer or rights-holder)",
   "files": [
    "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "Credit shown beside the picture",
+  "files": [
+   "components/PhotoSubmit.tsx"
   ]
  },
  {
@@ -5834,6 +5878,12 @@
   "key": "Examples",
   "files": [
    "app/[locale]/ask/page.tsx"
+  ]
+ },
+ {
+  "key": "Exhibition",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
   ]
  },
  {
@@ -7411,6 +7461,12 @@
   ]
  },
  {
+  "key": "I took this picture, or its owner has given me permission to let Ringside show it on this fighter's page with the credit above.",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
   "key": "Identifiers",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -7548,6 +7604,12 @@
   "key": "Is it calibrated? ({model}, held-out fights)",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Is this you or your fighter? Send a photo",
+  "files": [
+   "components/PhotoSubmit.tsx"
   ]
  },
  {
@@ -8275,6 +8337,7 @@
    "components/ContributeForm.tsx",
    "components/ForumQueue.tsx",
    "components/PhotoQueue.tsx",
+   "components/PhotoSubmit.tsx",
    "components/ReportForm.tsx",
    "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx",
@@ -8445,6 +8508,12 @@
   "key": "made by {name}",
   "files": [
    "components/UpdateGroups.tsx"
+  ]
+ },
+ {
+  "key": "Magazine belts, not sanctioned by a body",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
   ]
  },
  {
@@ -9395,6 +9464,12 @@
   ]
  },
  {
+  "key": "No pictures are waiting.",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
   "key": "No pictures have been recorded yet.",
   "files": [
    "components/PhotoQueue.tsx"
@@ -9636,6 +9711,12 @@
   "key": "Not enough weigh-ins on record",
   "files": [
    "components/WeightChart.tsx"
+  ]
+ },
+ {
+  "key": "Not in either fighter’s record",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
   ]
  },
  {
@@ -10043,6 +10124,12 @@
   "key": "One-time code",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Only {known} of {all} fighters have a stance on file ({share}), and they are not a random sample, so read these two figures as a pattern in the records, not as proof that one stance is better.",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
   ]
  },
  {
@@ -10563,6 +10650,12 @@
   ]
  },
  {
+  "key": "Picture (JPEG or PNG, up to 4 MB)",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
   "key": "Picture address",
   "files": [
    "components/PhotoQueue.tsx"
@@ -10575,9 +10668,27 @@
   ]
  },
  {
+  "key": "Picture sent in for {name}",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
   "key": "pictures recorded with their licence",
   "files": [
    "components/EditorTools.tsx"
+  ]
+ },
+ {
+  "key": "Pictures sent in",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "pictures you sent in for a fighter's page: the picture file (with its location and camera data removed), who you said you are to it, the credit you wrote, your note, and the editor's decision; a picture an editor approved stays on the fighter's page, with your credit, if you delete your account; one still waiting is deleted with it",
+  "files": [
+   "lib/privacy.ts"
   ]
  },
  {
@@ -11399,6 +11510,12 @@
   ]
  },
  {
+  "key": "Record a picture by its address",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
   "key": "Record in late rounds",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -11471,6 +11588,18 @@
   "key": "Reference: {code}",
   "files": [
    "components/ErrorView.tsx"
+  ]
+ },
+ {
+  "key": "Refuse",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "Refused.",
+  "files": [
+   "components/PhotoQueue.tsx"
   ]
  },
  {
@@ -12267,6 +12396,24 @@
   ]
  },
  {
+  "key": "Send a better photo of this fighter",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
+  "key": "Send a JPEG or PNG picture.",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
+  "key": "Send a picture of {name} that you took, or that its owner has said we may show. Photos taken from social media or other websites cannot be used. An editor checks it before it appears, with your credit beside it.",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
   "key": "Send for review",
   "files": [
    "components/ContributeForm.tsx",
@@ -12277,6 +12424,24 @@
   "key": "Send report",
   "files": [
    "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "Send the picture",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
+  "key": "Sending…",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
+  "key": "Sent by {sender}, who says they are {relation}.",
+  "files": [
+   "components/PhotoQueue.tsx"
   ]
  },
  {
@@ -12301,6 +12466,12 @@
   "key": "Seventy seconds, no sound, with captions. The fighters in it are made up.",
   "files": [
    "app/[locale]/tour/page.tsx"
+  ]
+ },
+ {
+  "key": "Several pictures of this fighter are already waiting for an editor.",
+  "files": [
+   "components/PhotoSubmit.tsx"
   ]
  },
  {
@@ -12548,6 +12719,7 @@
  {
   "key": "Sign in first.",
   "files": [
+   "components/PhotoSubmit.tsx",
    "lib/account-text.ts",
    "lib/forum/text.ts"
   ]
@@ -12558,6 +12730,7 @@
    "components/ContributeForm.tsx",
    "components/Discussion.tsx",
    "components/ForumQueue.tsx",
+   "components/PhotoSubmit.tsx",
    "components/ReportForm.tsx",
    "components/StartThread.tsx"
   ]
@@ -12596,6 +12769,12 @@
   "key": "Sign in to report a mistake. Every report goes to an editor, who checks the source before anything changes.",
   "files": [
    "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "Sign in to send a photo.",
+  "files": [
+   "components/PhotoSubmit.tsx"
   ]
  },
  {
@@ -12754,6 +12933,24 @@
   ]
  },
  {
+  "key": "someone else with permission",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "Someone else with permission",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
+  "key": "Someone has already decided on this picture.",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
   "key": "Someone has already decided this.",
   "files": [
    "lib/account-text.ts"
@@ -12789,6 +12986,7 @@
   "key": "Something went wrong. Try again.",
   "files": [
    "components/PhotoQueue.tsx",
+   "components/PhotoSubmit.tsx",
    "components/SocialQueue.tsx",
    "lib/account-text.ts",
    "lib/forum/text.ts"
@@ -13438,6 +13636,12 @@
   ]
  },
  {
+  "key": "Thank you. An editor will look at your picture. It appears on the page only after they approve it.",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
   "key": "That code is wrong or has expired.",
   "files": [
    "lib/account-text.ts"
@@ -13882,6 +14086,18 @@
   ]
  },
  {
+  "key": "the fighter",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "The fighter",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
   "key": "The fighter is the last part of the fighter's page address.",
   "files": [
    "components/PhotoQueue.tsx"
@@ -13891,6 +14107,18 @@
   "key": "The fighter the ratings did not favour won.",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
+  ]
+ },
+ {
+  "key": "the fighter's team or promoter",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "The fighter's team or promoter",
+  "files": [
+   "components/PhotoSubmit.tsx"
   ]
  },
  {
@@ -14247,6 +14475,36 @@
   "key": "The people behind the fights",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "the photographer",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "The photographer",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
+  "key": "The picture is larger than 4 MB. Send a smaller file.",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
+  "key": "The picture is too large in pixels. Send one up to 8000 pixels on each side.",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
+  "key": "The picture is too small. It needs at least 300 pixels on each side.",
+  "files": [
+   "components/PhotoSubmit.tsx"
   ]
  },
  {
@@ -14707,6 +14965,12 @@
   ]
  },
  {
+  "key": "This account is linked to the fighter.",
+  "files": [
+   "components/PhotoQueue.tsx"
+  ]
+ },
+ {
   "key": "This change could not be applied.",
   "files": [
    "lib/account-text.ts"
@@ -14770,6 +15034,12 @@
   "key": "This person is not in the data yet (a new page will be created).",
   "files": [
    "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "This picture was already sent for this fighter.",
+  "files": [
+   "components/PhotoSubmit.tsx"
   ]
  },
  {
@@ -14837,6 +15107,12 @@
   "key": "Through time",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Tick the box to confirm you have the right to send this picture.",
+  "files": [
+   "components/PhotoSubmit.tsx"
   ]
  },
  {
@@ -15059,6 +15335,12 @@
   "key": "Too few rounds on the record to pin down a style; every fight right now is a data point.",
   "files": [
    "lib/ai.ts"
+  ]
+ },
+ {
+  "key": "Too many tries. Wait a little and try again.",
+  "files": [
+   "components/PhotoSubmit.tsx"
   ]
  },
  {
@@ -16702,7 +16984,8 @@
  {
   "key": "Write the credit that goes with the picture.",
   "files": [
-   "components/PhotoQueue.tsx"
+   "components/PhotoQueue.tsx",
+   "components/PhotoSubmit.tsx"
   ]
  },
  {
@@ -16800,6 +17083,12 @@
   ]
  },
  {
+  "key": "You already have three pictures waiting. Wait for an editor to decide on them first.",
+  "files": [
+   "components/PhotoSubmit.tsx"
+  ]
+ },
+ {
   "key": "You already reported this post.",
   "files": [
    "lib/forum/text.ts"
@@ -16809,6 +17098,12 @@
   "key": "You already said that.",
   "files": [
    "lib/forum/text.ts"
+  ]
+ },
+ {
+  "key": "You are",
+  "files": [
+   "components/PhotoSubmit.tsx"
   ]
  },
  {
@@ -16864,6 +17159,12 @@
   "key": "You can propose corrections to a fighter’s team history, with a source an editor can check.",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "You cannot decide on a picture you sent yourself.",
+  "files": [
+   "components/PhotoQueue.tsx"
   ]
  },
  {

@@ -22,6 +22,7 @@ export default async function Orgs({ searchParams }: { searchParams: Promise<{ k
   const w = await getWorld();
   const names = await getNames(t.locale);
   const bodies = [...w.orgs.values()].filter((o) => o.kind === "sanctioning_body");
+  const magazines = [...w.orgs.values()].filter((o) => o.kind === "magazine");
   const ranking = orgsRanking(w);
   const common = { q, page: sp.page, names, size: ORGS_PAGE };
   const promos = kind === "promotion" ? pageRows(ranking.promos, (x) => x.o.name, common) : null;
@@ -34,6 +35,8 @@ export default async function Orgs({ searchParams }: { searchParams: Promise<{ k
       <section>
         <SectionTitle eyebrow={t("Sanctioning bodies")} title={t("Belts")} />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{bodies.map((o) => <Link key={o.id} href={`/orgs/${o.slug}`} className="card card-hover p-4"><div className="font-display text-xl font-bold">{t.name(o.name)}</div></Link>)}</div>
+        {magazines.length > 0 && <><p className="mb-3 mt-6 text-xs uppercase tracking-widest text-muted">{t("Magazine belts, not sanctioned by a body")}</p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{magazines.map((o) => <Link key={o.id} href={`/orgs/${o.slug}`} className="card card-hover p-4"><div className="font-display text-xl font-bold">{t.name(o.name)}</div></Link>)}</div></>}
       </section>
       <section>
         <div className="mb-4 flex flex-wrap gap-2">

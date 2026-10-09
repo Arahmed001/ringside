@@ -1003,7 +1003,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     },
     fetchOrgs: async (): Promise<ProviderOrg[]> => { // only the bodies a loaded belt names: an unlinked one would be an orphan
       const used = new Set((await once()).bouts.map((b) => b.titleOrgExternalId).filter(Boolean));
-      return TITLE_BODIES.filter((b) => used.has(b.ext)).map((b) => ({ externalId: b.ext, name: b.name, kind: "sanctioning_body" as const }));
+      return TITLE_BODIES.filter((b) => used.has(b.ext)).map((b) => ({ externalId: b.ext, name: b.name, kind: b.ext === "bda-o-ring" ? "magazine" as const : "sanctioning_body" as const }));
     },
     fetchBoxers: async () => (await once()).boxers, fetchEvents: async () => (await once()).events, fetchBouts: async () => (await once()).bouts,
     notes: () => ({ ...notes }), requests: () => used, cacheHits: () => hits, bytes: () => downloaded, vendorRecords: () => new Map(careers),

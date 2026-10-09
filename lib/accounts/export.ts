@@ -7,7 +7,7 @@ import type { User } from "./users";
  * Each table that has a `user_id` is either exported here or named in NOT_EXPORTED with the reason, and a test fails when a table is in neither:
  * adding somewhere to keep personal data has to be a decision about the export (and so about the privacy page), not an accident.
  */
-export const EXPORTED_TABLES: Record<string, string> = { picks: "picks", watchlist: "watchlist", contributions: "contributions", reports: "reports", boxer_owners: "linkedFighters", forum_threads: "forumThreads", forum_posts: "forumPosts", forum_reports: "forumReports", sessions: "sessions" };
+export const EXPORTED_TABLES: Record<string, string> = { picks: "picks", watchlist: "watchlist", contributions: "contributions", reports: "reports", boxer_owners: "linkedFighters", forum_threads: "forumThreads", forum_posts: "forumPosts", forum_reports: "forumReports", photo_submissions: "photoSubmissions", sessions: "sessions" };
 export const NOT_EXPORTED: Record<string, string> = {
   resets: "a one-time sign-in code, stored only as a hash, valid for an hour: it identifies no one and reveals nothing",
 };
@@ -30,6 +30,8 @@ export function exportFor(user: User, db: DatabaseSync, now = new Date()) {
     forumThreads: db.prepare("SELECT id, kind, subject_ext AS subject, title, created_at AS createdAt, locked FROM forum_threads WHERE user_id = ? ORDER BY id").all(user.id),
     forumPosts: db.prepare("SELECT id, thread_id AS thread, body, created_at AS createdAt, edited_at AS editedAt, status, hidden_reason AS hiddenReason, withdrawn_body AS keptForEditors, appeal_at AS reviewAskedAt, appeal_result AS reviewOutcome FROM forum_posts WHERE user_id = ? ORDER BY id").all(user.id),
     forumReports: db.prepare("SELECT id, post_id AS post, reason, note, status, created_at AS createdAt FROM forum_reports WHERE user_id = ? ORDER BY id").all(user.id),
+    // pictures you sent in for a fighter's page (the file itself is on the site if it was approved)
+    photoSubmissions: db.prepare("SELECT id, boxer_slug AS fighter, relation, credit, note, status, created_at AS createdAt, reviewed_at AS reviewedAt, review_note AS reviewNote FROM photo_submissions WHERE user_id = ? ORDER BY id").all(user.id),
     // the activity log, for the entries that name you: things you did, and things done about you
     activity: auditMentioning(db, user.username).map((r) => ({ at: r.at, by: r.actor, action: r.action, about: r.target, detail: r.detail })),
   };

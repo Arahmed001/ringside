@@ -96,11 +96,12 @@ export const countryLeaders = (w: World) => memo(w, "countryLeaders", () => {
 });
 
 export const stanceEdge = (w: World) => memo(w, "stanceEdge", () => {
-  let sw = 0, swW = 0, or = 0, orW = 0;
+  let sw = 0, swW = 0, or = 0, orW = 0, known = 0;
+  const all = fought(w).length;
   for (const b of w.boxers) {
-    if (b.stance === "Southpaw") { sw += b.bouts; swW += b.wins; } else if (b.stance === "Orthodox") { or += b.bouts; orW += b.wins; } // a fighter whose stance is unknown is in neither group
+    if (b.stance === "Southpaw") { sw += b.bouts; swW += b.wins; if (b.bouts > 0) known++; } else if (b.stance === "Orthodox") { or += b.bouts; orW += b.wins; if (b.bouts > 0) known++; } // a fighter whose stance is unknown is in neither group
   }
-  return { southpaw: sw ? swW / sw : 0, orthodox: or ? orW / or : 0 };
+  return { southpaw: sw ? swW / sw : 0, orthodox: or ? orW / or : 0, /** fighters with a stance on file and a fight held, out of all fighters with a fight held */ known, all };
 });
 
 export const reachEdge = (w: World) => memo(w, "reachEdge", () => {

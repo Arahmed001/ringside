@@ -23,6 +23,7 @@ import { predict } from "@/lib/predict";
 import { divisionInfo, divisionLabel, limitLabel, slugifyDivision } from "@/lib/divisions";
 import { Headshot } from "@/components/Portrait";
 import { Sparkline, Radar, Donut } from "@/components/charts";
+import { PhotoSubmit } from "@/components/PhotoSubmit";
 import { ScoutingReport } from "@/components/ScoutingReport";
 import { WatchButton } from "@/components/Watch";
 import { ShareButton } from "@/components/ShareButton";
@@ -195,7 +196,7 @@ const HONOURS_SHOWN = 8;
       <BreadcrumbLd locale={t.locale} trail={[{ name: t("Fighters"), path: "/boxers" }, { name: t.name(b.name), path: `/boxers/${b.slug}` }]} />
       <JsonLd data={{
         "@type": "Person", name: t.name(b.name), ...(t.name(b.name) !== b.name ? { alternateName: [b.name] } : {}), jobTitle: "Professional boxer",
-        nationality: { "@type": "Country", name: b.country }, ...(b.birthDate ? { birthDate: b.birthDate } : {}), ...(b.photoUrl ? { image: b.photoUrl } : {}),
+        nationality: { "@type": "Country", name: b.country }, ...(b.birthDate ? { birthDate: b.birthDate } : {}), ...(b.photoUrl ? { image: b.photoUrl.startsWith("/") ? abs(b.photoUrl) : b.photoUrl } : {}),
         ...(isKnown(b.heightCm) ? { height: { "@type": "QuantitativeValue", value: b.heightCm, unitCode: "CMT" } } : {}), url: abs(localePath(t.locale, `/boxers/${b.slug}`)), inLanguage: t.locale,
         ...(b.wikidataId ? { sameAs: [`https://www.wikidata.org/wiki/${b.wikidataId}`] } : {}),
       }} />
@@ -365,6 +366,7 @@ const HONOURS_SHOWN = 8;
           </dl>
           <CorrectionNotes rows={noteRows} />
           <p className="mt-2 text-xs text-muted"><Link href={`/report?boxer=${b.slug}`} className="inline-block py-1 underline decoration-dotted hover:text-ink">{t("Report a mistake on this profile")}</Link></p>
+          <PhotoSubmit slug={b.slug} name={t.name(b.name)} hasPhoto={!!b.photoUrl} />
           <BoxerRecords w={w} boxerId={b.id} />
           {honours.length > 0 && (
             <div className="mt-4 border-t border-line/60 pt-3">

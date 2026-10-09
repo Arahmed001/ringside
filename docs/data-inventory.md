@@ -15,6 +15,7 @@
 | `wikipedia-cache/` | Wikipedia's champions lists as read. | No |
 | `wikidata-staging.json` + the `wikidata_boxers` table | 19,651 boxers' facts from Wikidata, held until linked to our fighters. | No |
 | `video-thumbs/`, `news-images/` | Pictures of official videos and news cards, saved and shrunk by this site (30-day and 120-day life). | No |
+| `photos/` (beside the accounts database) | Photos people sent in for a fighter's page, with location and camera data removed. A waiting one is private to its sender and the editors; an approved one is public. Not copied by `npm run backup`. | Yes (the picture; the sender is in the accounts database) |
 | `model-fit.json` | The fitted prediction model's numbers. | No |
 | `nightly-status.json`, `gate-reports/` | What the last nights did; what the vendor's updates would have changed. | No |
 | `disputed.csv`, `dropped.csv` | Records where the vendor's total and the fights disagree; rows left out of a load. | No |
@@ -95,6 +96,7 @@
 | `contributions` (18) | A signed-in person's proposed team-history edit with its source and quote, and the review. | editors |
 | `boxer_owners` (6) | Which user is verified as a fighter's own account (for corrections the fighter makes). | admins |
 | `licensed_images` (10) | Photos an editor recorded, with licence or permission, credit and evidence. | editors |
+| `photo_submissions` | Photos people sent in, who they said they are to it, the credit, a note, and the editor's decision. Waiting ones are deleted with the account. | the sender, editors |
 | `social_posts` (10) | Public posts an editor chose to show (provider, address, account, note). | public |
 | `proposals` (15) | Changes a public source or the vendor suggested, waiting for an administrator, with the old and new values and the evidence. | admins |
 | `watch_rules` (10) | Standing rules an administrator made for source changes. | admins |
