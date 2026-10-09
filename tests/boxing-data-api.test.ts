@@ -856,3 +856,10 @@ test("a fighter whose fights and profile name no division takes the division mos
   assert.equal(out.Z, "Unknown", "its only opponent had no division of his own (a neighbour's guess is not passed on)");
   assert.equal(n.divisionFromOpponents, 2);
 });
+
+test("the places the second full load left unplaced: a county written first, a state written as two letters, and three region spellings; a two-letter code that is also a country is not guessed (round 139)", () => {
+  const n = notes();
+  const country = (loc: string) => B.parseLocation(loc, n).country;
+  for (const [loc, want] of [["Davenport, IA", "United States"], ["Houston, TX", "United States"], ["Thailand, Ayutthaya", "Thailand"], ["Yas Island, Abu Dhabi", "United Arab Emirates"], ["Termas de Rio Hondo, Argentine", "Argentina"]]) assert.equal(country(loc), want, loc);
+  for (const [loc, want] of [["Toronto, CA", "CA"], ["Mumbai, IN", "IN"], ["Paris, DE", "DE"], ["Boise, ID", "ID"], ["Greenville, SC", "SC"], ["Tirana, AL", "AL"]]) assert.equal(country(loc), want, `${loc}: also a country's code, so left as written`);
+});

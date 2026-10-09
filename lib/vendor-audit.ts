@@ -34,7 +34,8 @@ export function auditDatabase(db: DatabaseSync, today: string): Check[] {
 
   // countries: every fighter's country can be placed (a flag, an Arabic name), and is spelled its one way
   const countries = db.prepare("SELECT country, COUNT(*) n FROM boxers GROUP BY country ORDER BY n DESC").all() as { country: string; n: number }[];
-  const unplaced = countries.filter((c) => c.country !== "Unknown" && flag(c.country) === WHITE_FLAG);
+  // Kurdistan is a nation fighters list as their own and no flag exists for it: like the home nations, it is a country the app places by name
+  const unplaced = countries.filter((c) => c.country !== "Unknown" && c.country !== "Kurdistan" && flag(c.country) === WHITE_FLAG);
   const unplacedN = unplaced.reduce((s, c) => s + c.n, 0);
   add("countries-placed", unplacedN === 0 ? "pass" : unplacedN / Math.max(1, boxers) > 0.01 ? "fail" : "warn", "every fighter's country can be placed",
     unplacedN === 0 ? `${countries.length} countries, none unplaced` : `${unplacedN} fighter(s) (${pctOf(unplacedN, boxers)}) in ${unplaced.length} countr${unplaced.length === 1 ? "y" : "ies"} the app cannot place: ${sample(unplaced.map((c) => `${c.country} ${c.n}`))}`);
@@ -64,10 +65,13 @@ export function auditDatabase(db: DatabaseSync, today: string): Check[] {
   const gaps = count(db, "SELECT COUNT(*) n FROM bouts b JOIN events e ON e.id = b.event_id WHERE e.date < ? AND b.method IS NULL AND COALESCE(b.status,'') <> 'cancelled'", cutoff);
   add("result-gaps", "info", "fights over a month old with no result", `${gaps.toLocaleString("en-US")} (${pctOf(gaps, bouts)} of bouts): the supplier's gap, shown as "no result yet"`);
 
-  // the same fighter twice on one night
-  const doubles = count(db, `SELECT COUNT(*) n FROM (SELECT f, d FROM (SELECT b.red_id f, e.date d FROM bouts b JOIN events e ON e.id = b.event_id WHERE COALESCE(b.status,'') <> 'cancelled'
-    UNION ALL SELECT b.blue_id, e.date FROM bouts b JOIN events e ON e.id = b.event_id WHERE COALESCE(b.status,'') <> 'cancelled') GROUP BY f, d HAVING COUNT(*) > 1)`);
-  add("double-booked", doubles ? "warn" : "pass", "no fighter is on two bouts one night", doubles ? `${doubles} fighter-night(s): usually one fight listed under two supplier ids` : "none");
+  // the same fighter twice on one night: on two different cards it is almost always one fight listed under two supplier ids (a warning); on one card it is a one-night tournament, which is normal
+  const night = db.prepare(`WITH x AS (SELECT b.red_id f, e.date d, e.id ev FROM bouts b JOIN events e ON e.id = b.event_id WHERE COALESCE(b.status,'') <> 'cancelled'
+      UNION ALL SELECT b.blue_id, e.date, e.id FROM bouts b JOIN events e ON e.id = b.event_id WHERE COALESCE(b.status,'') <> 'cancelled'),
+    g AS (SELECT f, d, COUNT(*) n, COUNT(DISTINCT ev) evs FROM x GROUP BY f, d HAVING COUNT(*) > 1)
+    SELECT COALESCE(SUM(evs > 1), 0) across, COALESCE(SUM(evs = 1), 0) one FROM g`).get() as { across: number; one: number };
+  add("double-booked", night.across ? "warn" : "pass", "no fighter is on two bouts one night",
+    night.across || night.one ? `${night.across} fighter-night(s) on two different cards (usually one fight listed under two supplier ids); ${night.one} more on one card (a one-night tournament is normal)` : "none");
 
   // careers: a record that loaded fights push past the supplier's own total must be marked disputed (the loader marks them), unless the last fight was too recent at the load for the total to have caught up
   // judged from the day of the load, as the loader judged it: a fighter whose last fight was inside the lag window then was left unmarked on purpose (the supplier's totals trail its results)

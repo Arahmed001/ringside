@@ -132,7 +132,16 @@ region("Italy", "Lombardia, Lazio, Campania, Sicilia, Piemonte, Veneto, Toscana"
 region("South Africa", "Gauteng, KwaZulu-Natal, Western Cape, Eastern Cape, Free State, Limpopo, Mpumalanga");
 region("Philippines", "Bohol, Metro Manila, Cebu");
 region("Nicaragua", "Managua"); region("Russia", "Chechnya"); region("Latvia", "Latvija"); region("Libya", "Libyan Arab Jamahiriya"); region("Macao SAR China", "Macao, M aco");
-region("Colombia", "Columbia"); region("Congo - Kinshasa", "The Democratic Republic of The, The Democratic Republic of The Congo"); region("United States", "Wes Virginia");
+region("Colombia", "Columbia");
+region("Thailand", "Ayutthaya"); region("United Arab Emirates", "Abu Dhabi"); region("Argentina", "Argentine");
+// "Davenport, IA": a US state written as its two letters is the United States, but only the codes that are not also a country's (CA is Canada, IN is India, DE is Germany): the ones that are not are safe
+{
+  const names = new Intl.DisplayNames(["en"], { type: "region" });
+  for (const code of "AK AL AR AZ CA CO CT DE FL GA HI IA ID IL IN KS KY LA MA MD ME MI MN MO MS MT NC ND NE NH NJ NM NV NY OH OK OR PA RI SC SD TN TX UT VA VT WA WI WV WY".split(" ")) {
+    let country: string | undefined; try { country = names.of(code); } catch { country = undefined; }
+    if (!country || country === code) REGIONS[code.toLowerCase()] = "United States";
+  }
+} region("Congo - Kinshasa", "The Democratic Republic of The, The Democratic Republic of The Congo"); region("United States", "Wes Virginia");
 region("Australia", "New South Wales, Victoria, Queensland, Western Australia, South Australia, Tasmania, Northern Territory, Australian Capital Territory");
 region("Mexico", "Aguascalientes, Baja California, Baja California Sur, Campeche, Chiapas, Chihuahua, Coahuila, Colima, Durango, Guanajuato, Guerrero, Hidalgo, Jalisco, Michoacán, Morelos, Nayarit, Nuevo León, Oaxaca, Puebla, Querétaro, Quintana Roo, San Luis Potosí, Sinaloa, Sonora, Tabasco, Tamaulipas, Tlaxcala, Veracruz, Yucatán, Zacatecas, Ciudad de México, Estado de México");
 const AMBIGUOUS_REGIONS = new Set(["georgia"]);

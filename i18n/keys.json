@@ -4195,7 +4195,8 @@
   "key": "Chosen posts",
   "files": [
    "app/[locale]/review/photos/page.tsx",
-   "app/[locale]/review/social/page.tsx"
+   "app/[locale]/review/social/page.tsx",
+   "components/EditorTools.tsx"
   ]
  },
  {
@@ -6579,13 +6580,20 @@
   "files": [
    "app/[locale]/review/forum/page.tsx",
    "app/[locale]/review/reports/page.tsx",
-   "app/[locale]/review/social/page.tsx"
+   "app/[locale]/review/social/page.tsx",
+   "components/EditorTools.tsx"
   ]
  },
  {
   "key": "Forum posts",
   "files": [
    "app/[locale]/terms/page.tsx"
+  ]
+ },
+ {
+  "key": "forum posts that people reported",
+  "files": [
+   "components/EditorTools.tsx"
   ]
  },
  {
@@ -10368,6 +10376,12 @@
   ]
  },
  {
+  "key": "pictures recorded with their licence",
+  "files": [
+   "components/EditorTools.tsx"
+  ]
+ },
+ {
   "key": "plain Elo",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -10471,6 +10485,12 @@
   "key": "Posts are not shown to search engines.",
   "files": [
    "app/[locale]/forum/rules/page.tsx"
+  ]
+ },
+ {
+  "key": "posts chosen to show",
+  "files": [
+   "components/EditorTools.tsx"
   ]
  },
  {
@@ -10688,6 +10708,12 @@
   "key": "Proposed by {name}",
   "files": [
    "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "proposed changes waiting for an administrator",
+  "files": [
+   "components/EditorTools.tsx"
   ]
  },
  {
@@ -11178,7 +11204,8 @@
  {
   "key": "Recorded pictures",
   "files": [
-   "app/[locale]/review/photos/page.tsx"
+   "app/[locale]/review/photos/page.tsx",
+   "components/EditorTools.tsx"
   ]
  },
  {
@@ -11395,12 +11422,19 @@
   ]
  },
  {
+  "key": "reports of a wrong value",
+  "files": [
+   "components/EditorTools.tsx"
+  ]
+ },
+ {
   "key": "Reports of mistakes",
   "files": [
    "app/[locale]/review/forum/page.tsx",
    "app/[locale]/review/page.tsx",
    "app/[locale]/review/reports/page.tsx",
-   "app/[locale]/review/updates/page.tsx"
+   "app/[locale]/review/updates/page.tsx",
+   "components/EditorTools.tsx"
   ]
  },
  {
@@ -12937,6 +12971,12 @@
   ]
  },
  {
+  "key": "suggested edits to wait for your check",
+  "files": [
+   "components/EditorTools.tsx"
+  ]
+ },
+ {
   "key": "Super Bantamweight",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -13078,7 +13118,8 @@
    "app/[locale]/review/photos/page.tsx",
    "app/[locale]/review/reports/page.tsx",
    "app/[locale]/review/social/page.tsx",
-   "app/[locale]/review/updates/page.tsx"
+   "app/[locale]/review/updates/page.tsx",
+   "components/EditorTools.tsx"
   ]
  },
  {
@@ -13539,6 +13580,12 @@
   "key": "The early-finish estimate is the hand-set rule, not yet fitted to results.",
   "files": [
    "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "The editors' pages",
+  "files": [
+   "components/EditorTools.tsx"
   ]
  },
  {
@@ -15192,6 +15239,12 @@
   "key": "Updated after every fight",
   "files": [
    "app/[locale]/rankings/page.tsx"
+  ]
+ },
+ {
+  "key": "Updates from public sources",
+  "files": [
+   "components/EditorTools.tsx"
   ]
  },
  {
