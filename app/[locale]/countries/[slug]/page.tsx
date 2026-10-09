@@ -58,7 +58,7 @@ export default async function Country({ params }: { params: Promise<{ slug: stri
           {dots.length > 0 && (
             <>
               <WorldMap view={viewFor(iso, dots)} dots={dots} shades={{}} current={iso} label={t("Map of the venues in {country}", { country: name })} className="mb-2 max-w-4xl" />
-              <p className="mb-3 text-xs text-muted">{t("{placed} of {all} venues are placed on the map so far; the rest are listed by name and city.", { placed: placed.length.toLocaleString("en-US"), all: venues.length.toLocaleString("en-US") })} {t("Country outlines: Natural Earth (public domain).")}{venues.some((x) => x.osm) ? <> {t("Some venue places and addresses: © OpenStreetMap contributors (ODbL).")}</> : null}</p>
+              <p className="mb-3 text-xs text-muted">{t("{placed} of {all} venues are placed on the map so far; the rest are listed by name and city.", { placed: placed.length.toLocaleString("en-US"), all: venues.length.toLocaleString("en-US") })} {t.rich("Country outlines: <o>Natural Earth</o> (public domain).", { o: (c) => <span lang="en" dir="ltr">{c}</span> })}{venues.some((x) => x.osm) ? <> {t.rich("Some venue places and addresses: <o>© OpenStreetMap contributors (ODbL)</o>.", { o: (c) => <span lang="en" dir="ltr">{c}</span> })}</> : null}</p>
             </>
           )}
           <VenueTable venues={venues.slice(0, 50)} t={t} />

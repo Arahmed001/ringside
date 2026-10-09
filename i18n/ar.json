@@ -428,7 +428,6 @@
  "Counter-Puncher": "ملاكم الهجوم المضاد",
  "Countries": "البلدان",
  "Country": "البلد",
- "Country outlines: Natural Earth (public domain).": "حدود الدول: Natural Earth (ملك عام).",
  "Coverage: {withFin} of {events} completed cards have gate or PPV figures and {purses} purses are on file ({disclosed} official, {reported} reported, {estimated} estimated). Rankings below cover only what is on file.": "التغطية: {withFin} من أصل {events} بطاقة منتهية لها أرقام تذاكر أو دفع مقابل المشاهدة، و{purses} أجرًا مسجلًا ({disclosed} رسمي، {reported} مُبلَّغ عنه، {estimated} تقديري). التصنيفات أدناه تشمل المسجَّل فقط.",
  "Create account": "إنشاء حساب",
  "Create an account": "أنشئ حسابًا",
@@ -1637,7 +1636,6 @@
  "Solid": "متين",
  "Some fighter photos and event posters are loaded from other websites:": "بعض صور الملاكمين وملصقات الفعاليات تُحمَّل من مواقع أخرى:",
  "Some things are contacted only if you press a button for them; while the page is just open nothing is requested from them:": "هناك أمور لا يُتصل بها إلا إذا ضغطت زرًّا لها؛ وما دامت الصفحة مفتوحة فقط فلا يُطلب منها شيء:",
- "Some venue places and addresses: © OpenStreetMap contributors (ODbL).": "بعض مواقع القاعات وعناوينها: © مساهمو OpenStreetMap (ODbL).",
  "Someone has already decided this.": "سبق أن بتّ أحدهم في هذا.",
  "Someone has already reported exactly this and it is waiting for review.": "سبق أن أبلغ شخص بالأمر نفسه وهو في انتظار المراجعة.",
  "Something broke on our side while building this page. Try again; if it keeps happening, go back to the home page.": "حدث خطأ من جانبنا أثناء إعداد هذه الصفحة. حاول مرة أخرى، وإن تكرر ذلك فعُد إلى الصفحة الرئيسية.",
@@ -2168,7 +2166,6 @@
  "Where to watch": "أين تشاهد",
  "Where you are signed in": "الأجهزة التي سجّلت الدخول منها",
  "Which ranking": "أي تصنيف",
- "White dots are venues that have held fights. Country outlines: Natural Earth (public domain).": "النقاط البيضاء قاعات استضافت نزالات. حدود الدول: Natural Earth (ملك عام).",
  "Who": "من",
  "Who adds the most": "من يضيف أكثر",
  "Who are the best trainers?": "من هم أفضل المدربين؟",
@@ -3256,5 +3253,8 @@
  "✦ Written by Claude": "✦ كتبه Claude",
  "✦ Written by Claude from the facts on this page": "✦ كتبه Claude من الحقائق الواردة في هذه الصفحة",
  "✦ marks the model’s pick. Picks are saved in this browser.": "✦ يشير إلى اختيار النموذج. تُحفظ الاختيارات في هذا المتصفح.",
- "✦ marks the model’s pick. Saved to your account; picks lock when fight day begins.": "✦ يشير إلى اختيار النموذج. محفوظ في حسابك؛ تُقفل الاختيارات عند بدء يوم النزال."
+ "✦ marks the model’s pick. Saved to your account; picks lock when fight day begins.": "✦ يشير إلى اختيار النموذج. محفوظ في حسابك؛ تُقفل الاختيارات عند بدء يوم النزال.",
+ "Country outlines: <o>Natural Earth</o> (public domain).": "حدود الدول: <o>Natural Earth</o> (ملك عام).",
+ "White dots are venues that have held fights. Country outlines: <o>Natural Earth</o> (public domain).": "النقاط البيضاء قاعات استضافت نزالات. حدود الدول: <o>Natural Earth</o> (ملك عام).",
+ "Some venue places and addresses: <o>© OpenStreetMap contributors (ODbL)</o>.": "بعض مواقع القاعات وعناوينها: <o>© OpenStreetMap contributors (ODbL)</o>."
 }

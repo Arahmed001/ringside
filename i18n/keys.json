@@ -4680,7 +4680,7 @@
   ]
  },
  {
-  "key": "Country outlines: Natural Earth (public domain).",
+  "key": "Country outlines: <o>Natural Earth</o> (public domain).",
   "files": [
    "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/countries/page.tsx"
@@ -12747,7 +12747,7 @@
   ]
  },
  {
-  "key": "Some venue places and addresses: © OpenStreetMap contributors (ODbL).",
+  "key": "Some venue places and addresses: <o>© OpenStreetMap contributors (ODbL)</o>.",
   "files": [
    "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/countries/page.tsx"
@@ -16134,7 +16134,7 @@
   ]
  },
  {
-  "key": "White dots are venues that have held fights. Country outlines: Natural Earth (public domain).",
+  "key": "White dots are venues that have held fights. Country outlines: <o>Natural Earth</o> (public domain).",
   "files": [
    "app/[locale]/countries/page.tsx"
   ]

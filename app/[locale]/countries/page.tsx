@@ -16,6 +16,8 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string 
 }));
 
 /** The shade of a country on the map, by its number of fighters (the ranges are printed in the key). */
+/** Proper names that stay in English inside an Arabic sentence, marked so a screen reader and the line breaker treat them as English. */
+const EN = { o: (c: React.ReactNode) => <span lang="en" dir="ltr">{c}</span> };
 const levelOf = (n: number): 1 | 2 | 3 | 4 | 5 => (n >= 1000 ? 5 : n >= 200 ? 4 : n >= 50 ? 3 : n >= 10 ? 2 : 1);
 
 export default async function Countries() {
@@ -41,7 +43,7 @@ export default async function Countries() {
         <section>
           <WorldMap shades={shades} dots={dots} label={t("World map of boxing by country")} />
           <MapKey none={t("No fighters")} steps={[{ level: 1, text: t("1-9") }, { level: 2, text: t("10-49") }, { level: 3, text: t("50-199") }, { level: 4, text: t("200-999") }, { level: 5, text: t("1,000 or more") }]} />
-          <p className="mt-2 text-xs text-muted">{dots.length > 0 ? t("White dots are venues that have held fights. Country outlines: Natural Earth (public domain).") : t("Country outlines: Natural Earth (public domain).")}{anyOsm ? <> {t("Some venue places and addresses: © OpenStreetMap contributors (ODbL).")}</> : null}</p>
+          <p className="mt-2 text-xs text-muted">{dots.length > 0 ? t.rich("White dots are venues that have held fights. Country outlines: <o>Natural Earth</o> (public domain).", EN) : t.rich("Country outlines: <o>Natural Earth</o> (public domain).", EN)}{anyOsm ? <> {t.rich("Some venue places and addresses: <o>© OpenStreetMap contributors (ODbL)</o>.", EN)}</> : null}</p>
         </section>
       ) : <div className="card p-8 text-center text-muted">{t("No fighters yet.")}</div>}
 
