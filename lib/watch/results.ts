@@ -60,6 +60,14 @@ export function parseRecordTable(wikitext: string): RecordRow[] {
   return out;
 }
 
+const STOPPAGES = new Set(["KO", "TKO", "RTD", "TD", "TD-U"]);
+/** Does the vendor's outcome word agree with the method found? A stoppage called KO by one and TKO by the other agrees; a draw is the vendor's D. */
+export function vendorAgrees(vendor: string, method: string): boolean {
+  const v = vendor.toUpperCase();
+  if (v === method || (v === "PTS" && method === "UD")) return true;
+  if (STOPPAGES.has(v) && STOPPAGES.has(method)) return true;
+  return method === "DRAW" && v === "D";
+}
 const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
 const sameName = (a: string, b: string) => { const x = fold(a), y = fold(b); return !!x && x === y; };
 const dayShift = (iso: string, n: number) => new Date(Date.parse(iso + "T00:00:00Z") + n * 86400000).toISOString().slice(0, 10);
@@ -76,7 +84,7 @@ export function fightersToLook(main: DatabaseSync, limit?: number): { id: number
 }
 
 /** One article's table against the fights we hold for that fighter. A row proposes a result only when the opponent's name and the date both agree with a fight that has no result. */
-export function compareFighter(main: DatabaseSync, f: { id: number; name: string; title: string }, rows: RecordRow[], revision: string): { changes: Change[]; unmatched: number; looked: string[] } {
+export function compareFighter(main: DatabaseSync, f: { id: number; name: string; title: string }, rows: RecordRow[], revision: string, vendorCheck?: WatchContext["vendorCheck"]): { changes: Change[]; unmatched: number; looked: string[] } {
   const bouts = main.prepare(`SELECT b.id, b.external_id extId, r.external_id redExt, u.external_id blueExt, e.date, b.rounds, b.red_id, b.blue_id, r.name redName, u.name blueName, e.name card FROM bouts b JOIN events e ON e.id = b.event_id JOIN boxers r ON r.id = b.red_id JOIN boxers u ON u.id = b.blue_id
     WHERE (b.red_id = ? OR b.blue_id = ?) AND ${OPEN} AND e.date < date('now')`).all(f.id, f.id) as unknown as Bout[];
   const changes: Change[] = [];
@@ -94,12 +102,15 @@ export function compareFighter(main: DatabaseSync, f: { id: number; name: string
     if (distance && r.scheduled && b.rounds && r.scheduled !== b.rounds) { unmatched++; continue; }
     const endRound = distance ? (r.scheduled ?? b.rounds) : r.round;
     const notes = r.scheduled && b.rounds && r.scheduled !== b.rounds ? `scheduled rounds differ: we hold ${b.rounds}, the article ${r.scheduled}` : undefined;
+    // against the vendor's own copy: the same way it ended (kind result_set), nothing there (result_set_alone: Wikipedia is the only source), or a different way (result_set_conflict)
+    const said = vendorCheck?.(b.extId);
+    const kind = said?.outcome ? (vendorAgrees(said.outcome, r.method) ? "result_set" : "result_set_conflict") : "result_set_alone";
     changes.push({
-      kind: "result_set", targetKey: `result|${b.extId}|`,
+      kind, targetKey: `result|${b.extId}|`,
       label: `${b.redName} v ${b.blueName}, ${b.date}: ${winnerName ? `${winnerName} won` : r.result === "nc" ? "no contest" : "draw"} by ${r.method}${endRound ? `, round ${endRound}` : ""} (${f.name}'s Wikipedia record)`,
       old: { method: null, winner: null, endRound: null },
       new: { method: r.method, winner: winnerName, endRound: endRound ?? null },
-      evidence: { page: f.title.replace(/ /g, "_"), revision, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(f.title.replace(/ /g, "_"))}#Professional_boxing_record`, quote: r.quote, corroboration: "single unofficial source", ...(notes ? { notes } : {}), apply: { boutExternalId: b.extId, winnerExternalId: winnerExt, method: r.method, endRound: endRound ?? null } },
+      evidence: { page: f.title.replace(/ /g, "_"), revision, url: `https://en.wikipedia.org/wiki/${encodeURIComponent(f.title.replace(/ /g, "_"))}#Professional_boxing_record`, quote: r.quote, corroboration: "single unofficial source", ...(said?.outcome ? { vendor: { outcome: said.outcome, status: said.status } } : {}), ...(notes ? { notes } : {}), apply: { boutExternalId: b.extId, winnerExternalId: winnerExt, method: r.method, endRound: endRound ?? null } },
     });
   }
   // every past fight of this fighter was looked at, with or without a result now: a pending proposal for one that has since got a result is retired
@@ -123,7 +134,7 @@ export const resultsSource: WatchSource = {
       try { page = await fetchPage(f.title, { ...ctx.fetch, log: ctx.log }); } catch (e) { res.refused.push({ scope: f.name, reason: `could not read the article: ${(e as Error).message}` }); continue; }
       const rows = parseRecordTable(page.wikitext);
       if (!rows.length) { res.refused.push({ scope: f.name, reason: "no readable professional record table in the article" }); continue; }
-      const { changes, looked } = compareFighter(ctx.main, f, rows, page.revision);
+      const { changes, looked } = compareFighter(ctx.main, f, rows, page.revision, ctx.vendorCheck);
       res.changes.push(...changes);
       res.scope.push(...looked.map((x) => `result|${x}|`));
       res.compared += rows.length;
@@ -146,7 +157,7 @@ export const resultsSource: WatchSource = {
 /** Writes one approved result. It refuses (`stale`) when the fight has meanwhile got a result from the vendor, so an approval never overwrites a value nobody looked at. */
 export function applyResult(main: DatabaseSync, p: { kind: string; targetKey: string; old: unknown; new: unknown; evidence: unknown }): ApplyOutcome {
   const a = ((p.evidence ?? {}) as { apply?: { boutExternalId?: string; winnerExternalId?: string | null; method?: string; endRound?: number | null } }).apply;
-  if (p.kind !== "result_set" || !a?.boutExternalId || !a.method || !Object.values(METHOD).includes(a.method)) return { ok: false, error: "bad_proposal" };
+  if (!/^result_set(_alone|_conflict)?$/.test(p.kind) || !a?.boutExternalId || !a.method || !Object.values(METHOD).includes(a.method)) return { ok: false, error: "bad_proposal" };
   // the fight and the winner are found by the vendor's own ids, which a reload does not change (row numbers do)
   const row = main.prepare("SELECT id, method, winner_id, status, red_id, blue_id FROM bouts WHERE external_id = ?").get(a.boutExternalId) as { id: number; method: string | null; winner_id: number | null; status: string | null; red_id: number; blue_id: number } | undefined;
   if (!row) return { ok: false, error: "gone" };

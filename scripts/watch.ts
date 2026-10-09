@@ -16,6 +16,8 @@ import { CHAMPION_SOURCES } from "../lib/importers/wikipedia-champions";
 import { SOURCES, runWatch } from "../lib/watch/run";
 import { listProposals } from "../lib/watch/proposals";
 import { reportLines } from "../lib/watch/report";
+import { readVendorOutcomes } from "../lib/watch/vendor-outcomes";
+import { defaultCacheDir } from "../lib/vendor-fetch";
 
 const arg = (k: string) => { const i = process.argv.indexOf(`--${k}`); return i > -1 ? process.argv[i + 1] : undefined; };
 const flag = (k: string) => process.argv.includes(`--${k}`);
@@ -34,7 +36,7 @@ async function main() {
   const dryRun = flag("dry-run");
   const orgs = arg("org")?.split(",").map((x) => x.trim().toUpperCase());
   const r = await runWatch(id, {
-    main, limit: arg("limit") ? Number(arg("limit")) : undefined, log: (m) => console.log(m), championSources: CHAMPION_SOURCES.filter((x) => !orgs || orgs.includes(x.org)),
+    main, vendorCheck: readVendorOutcomes(arg("vendor-cache") ?? defaultCacheDir()), limit: arg("limit") ? Number(arg("limit")) : undefined, log: (m) => console.log(m), championSources: CHAMPION_SOURCES.filter((x) => !orgs || orgs.includes(x.org)),
     fetch: { refresh: flag("refresh"), gapMs: Number(arg("gap-ms") ?? 1500), cacheDir: path.resolve(arg("cache-dir") ?? path.join(process.cwd(), "data", "wikipedia-cache")) },
   }, acc, { dryRun });
   console.log(`\n${reportLines(r, dryRun).join("\n")}`);

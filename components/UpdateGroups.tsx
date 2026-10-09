@@ -12,7 +12,9 @@ interface Loaded { groups: GroupView[]; rules: Rule[] }
 /** The table words of a field such as `boxers.height_cm`, in the reader's language; the column stays as the data calls it. */
 export function fieldTitle(t: T, kind: string, field: string): string {
   if (kind === "result_change") return t("Results");
-  if (kind === "result_set") return t("Results found in fighters' Wikipedia records");
+  if (kind === "result_set") return t("Wikipedia results the vendor's outcome agrees with");
+  if (kind === "result_set_alone") return t("Wikipedia results with no vendor outcome to compare");
+  if (kind === "result_set_conflict") return t("Wikipedia results the vendor's outcome contradicts");
   if (kind === "list_change") return t("Official ranking lists");
   if (kind === "reign_added") return t("New title reigns");
   if (kind === "reign_removed") return t("Title reigns no longer on the page");

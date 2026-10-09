@@ -11522,13 +11522,6 @@
   ]
  },
  {
-  "key": "Results found in fighters' Wikipedia records",
-  "files": [
-   "components/UpdateGroups.tsx",
-   "components/UpdateQueue.tsx"
-  ]
- },
- {
   "key": "Results only: ignore everything else",
   "files": [
    "components/MatchupLab.tsx"
@@ -14279,6 +14272,12 @@
   ]
  },
  {
+  "key": "The vendor's own copy says: {outcome}",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "The winner was knocked down along the way.",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx"
@@ -16093,6 +16092,27 @@
   "key": "Wikipedia",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Wikipedia results the vendor's outcome agrees with",
+  "files": [
+   "components/UpdateGroups.tsx",
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
+  "key": "Wikipedia results the vendor's outcome contradicts",
+  "files": [
+   "components/UpdateGroups.tsx",
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
+  "key": "Wikipedia results with no vendor outcome to compare",
+  "files": [
+   "components/UpdateGroups.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {

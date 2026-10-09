@@ -26,6 +26,8 @@ export interface WatchContext {
   floodShare?: number;
   /** at most this many fighters' articles are read (the results source; a pilot reads a few dozen) */
   limit?: number;
+  /** what the vendor's own copy says about a fight (by its `bda-b-…` id), to sort the results proposed into those it agrees with and those it contradicts */
+  vendorCheck?: (boutExternalId: string) => { outcome: string | null; status: string | null } | undefined;
 }
 
 export interface WatchResult {

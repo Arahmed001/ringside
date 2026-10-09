@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
-import { applyResult, compareFighter, fightersToLook, isoDate, parseRecordTable, resultsSource } from "../lib/watch/results";
+import { applyResult, compareFighter, fightersToLook, isoDate, parseRecordTable, resultsSource, vendorAgrees } from "../lib/watch/results";
 import { PROPOSAL_SCHEMA } from "../lib/watch/schema";
 import { reconcile } from "../lib/watch/proposals";
 
@@ -139,4 +139,20 @@ test("a pending proposal for a fight that has a result now is retired even when 
   db.exec("UPDATE bouts SET method = 'UD', winner_id = 1 WHERE external_id IN ('b1', 'b2', 'b3')"); // the vendor has results for all of them now
   await runWatch("results", ctx, acc);
   assert.equal((acc.prepare("SELECT COUNT(*) c FROM proposals WHERE status = 'pending'").get() as { c: number }).c, 0);
+});
+
+test("a result is sorted by what the vendor's own copy says: agrees, nothing to compare, or contradicts", () => {
+  assert.ok(vendorAgrees("TKO", "KO") && vendorAgrees("KO", "RTD") && vendorAgrees("UD", "UD") && vendorAgrees("PTS", "UD") && vendorAgrees("D", "DRAW"));
+  assert.ok(!vendorAgrees("UD", "TKO") && !vendorAgrees("TD", "DRAW") && !vendorAgrees("UD", "NC"));
+  const said: Record<string, { outcome: string | null; status: string | null }> = { b1: { outcome: "KO", status: "FINISHED" }, b2: { outcome: "UD", status: "FINISHED" } };
+  const { changes } = compareFighter(world(), FIGHTER, ART, "77", (id) => said[id]);
+  assert.deepEqual(changes.map((c) => [c.targetKey, c.kind]), [["result|b1|", "result_set"], ["result|b2|", "result_set"]], "TKO and KO agree; UD and UD agree");
+  assert.deepEqual((changes[0].evidence as { vendor: unknown }).vendor, { outcome: "KO", status: "FINISHED" });
+  const none = compareFighter(world(), FIGHTER, ART, "77", () => undefined).changes;
+  assert.deepEqual(none.map((c) => c.kind), ["result_set_alone", "result_set_alone"]);
+  const no = compareFighter(world(), FIGHTER, ART, "77", () => ({ outcome: "SD", status: "FINISHED" })).changes;
+  assert.deepEqual(no.map((c) => c.kind), ["result_set_conflict", "result_set_conflict"], "TKO against SD contradicts; UD against SD contradicts");
+  // every kind can be applied
+  const db = world();
+  assert.equal(applyResult(db, { kind: "result_set_conflict", targetKey: "result|b1|", old: null, new: null, evidence: changes[0].evidence }).ok, true);
 });
