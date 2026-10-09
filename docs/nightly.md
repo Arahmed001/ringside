@@ -59,7 +59,7 @@ With `WATCH_SOURCES=champions` (or `champions:weekly`) the job also looks at the
 
 ### 2d. Enrichment from Wikidata and Commons
 
-With `NIGHTLY_ENRICH=weekly` (Sundays, UTC) or `nightly` the job runs `vendor:enrich --yes` after everything else: the same resumable steps you run by hand (Wikidata staging, linking and Arabic names, honours, champions' reigns, venues, headshots, belt and venue pictures), which skip what is done, so a week with few new fighters is quick. It needs `WIKIMEDIA_CONTACT` (sent to Wikimedia with every request) and gives up after 3 hours (it resumes next time). It only fills what is blank or new from those sources; the reigns step proposes rather than overwrites once reigns are held (2b). A failure is a warning in the status, never a failed night. Turn it on: `fly secrets set -a <app> NIGHTLY_ENRICH=weekly WIKIMEDIA_CONTACT=<your address>`.
+With `NIGHTLY_ENRICH=weekly` (Sundays, UTC) or `nightly` the job runs `vendor:enrich --yes` after everything else: the same resumable steps you run by hand (Wikidata staging, linking and Arabic names, honours, champions' reigns, venues, their addresses and places from OpenStreetMap, headshots, belt and venue pictures), which skip what is done, so a week with few new fighters is quick. It needs `WIKIMEDIA_CONTACT` (sent to Wikimedia with every request) and gives up after 3 hours (it resumes next time). It only fills what is blank or new from those sources; the reigns step proposes rather than overwrites once reigns are held (2b). A failure is a warning in the status, never a failed night. Turn it on: `fly secrets set -a <app> NIGHTLY_ENRICH=weekly WIKIMEDIA_CONTACT=<your address>`.
 
 ## 3. Exit codes (the ones from PLAN.md section 224)
 

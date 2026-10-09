@@ -48,6 +48,8 @@
     "forum:bench": "tsx scripts/forum-bench.ts",
     "backup": "tsx scripts/backup.ts",
     "ship": "tsx scripts/ship-db.ts",
+    "map:build": "tsx scripts/build-world-map.ts",
+    "venues:osm": "tsx scripts/venues-osm.ts",
     "offsite": "tsx scripts/offsite-backup.ts",
     "nightly": "tsx scripts/nightly.ts",
     "loadtest": "tsx scripts/loadtest.ts",

@@ -103,6 +103,11 @@ CREATE TABLE IF NOT EXISTS venues (
   name TEXT NOT NULL, city TEXT NOT NULL, country TEXT, status TEXT NOT NULL, reason TEXT, wikidata_id TEXT, label TEXT,
   lat REAL, lon REAL, capacity INTEGER, basis TEXT, checked_at TEXT, PRIMARY KEY (name, city)
 );
+-- Where a venue is, from OpenStreetMap (ODbL, credit "© OpenStreetMap contributors") when Wikidata did not place it: coordinates, a street address and a category, accepted only by
+-- the rules in lib/importers/osm-venues.ts. status is 'found', 'no_match' or 'ambiguous'; a miss is asked again after 45 days. Nothing here is guessed.
+CREATE TABLE IF NOT EXISTS venue_places (
+  name TEXT NOT NULL, city TEXT NOT NULL, country TEXT, status TEXT NOT NULL, reason TEXT, lat REAL, lon REAL, address TEXT, category TEXT, osm_ref TEXT, checked_at TEXT, PRIMARY KEY (name, city)
+);
 CREATE TABLE IF NOT EXISTS prediction_snapshots (
   bout_id INTEGER NOT NULL, locked_on TEXT NOT NULL, locked_at TEXT NOT NULL, model TEXT NOT NULL,
   p_red REAL NOT NULL, p_draw REAL NOT NULL, ko_prob REAL NOT NULL, elo_p_red REAL NOT NULL, inputs TEXT NOT NULL,

@@ -499,7 +499,7 @@
   ]
  },
  {
-  "key": "{n} countries, the one with the most fighters first. Open one for its best fighters, its champions and its coming fights.",
+  "key": "{n} countries, shaded by the number of fighters. Press a country for its best fighters, its champions, its coming fights and the venues where fights are held.",
   "files": [
    "app/[locale]/countries/page.tsx"
   ]
@@ -1674,6 +1674,13 @@
   ]
  },
  {
+  "key": "{placed} of {all} venues are placed on the map so far; the rest are listed by name and city.",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx",
+   "app/[locale]/countries/page.tsx"
+  ]
+ },
+ {
   "key": "{points} points from {graded} graded picks ({per} a pick).",
   "files": [
    "components/PickStanding.tsx"
@@ -1945,6 +1952,18 @@
   ]
  },
  {
+  "key": "1-9",
+  "files": [
+   "app/[locale]/countries/page.tsx"
+  ]
+ },
+ {
+  "key": "1,000 or more",
+  "files": [
+   "app/[locale]/countries/page.tsx"
+  ]
+ },
+ {
   "key": "1.5–4 lb heavier",
   "files": [
    "lib/weights.ts"
@@ -1954,6 +1973,18 @@
   "key": "1.5–4 lb lighter",
   "files": [
    "lib/weights.ts"
+  ]
+ },
+ {
+  "key": "10-49",
+  "files": [
+   "app/[locale]/countries/page.tsx"
+  ]
+ },
+ {
+  "key": "200-999",
+  "files": [
+   "app/[locale]/countries/page.tsx"
   ]
  },
  {
@@ -1978,6 +2009,12 @@
   "key": "4–8 lb lighter",
   "files": [
    "lib/weights.ts"
+  ]
+ },
+ {
+  "key": "50-199",
+  "files": [
+   "app/[locale]/countries/page.tsx"
   ]
  },
  {
@@ -2643,6 +2680,12 @@
   ]
  },
  {
+  "key": "Address",
+  "files": [
+   "components/VenueTable.tsx"
+  ]
+ },
+ {
   "key": "Admin",
   "files": [
    "components/AccountPanel.tsx"
@@ -2765,6 +2808,12 @@
   "key": "All countries",
   "files": [
    "app/[locale]/boxers/page.tsx"
+  ]
+ },
+ {
+  "key": "All countries as a list",
+  "files": [
+   "app/[locale]/countries/page.tsx"
   ]
  },
  {
@@ -3989,6 +4038,12 @@
   ]
  },
  {
+  "key": "Capacity",
+  "files": [
+   "components/VenueTable.tsx"
+  ]
+ },
+ {
   "key": "Card number",
   "files": [
    "components/SocialQueue.tsx"
@@ -3999,7 +4054,8 @@
   "files": [
    "app/[locale]/money/page.tsx",
    "app/[locale]/people/page.tsx",
-   "components/UpdateGroups.tsx"
+   "components/UpdateGroups.tsx",
+   "components/VenueTable.tsx"
   ]
  },
  {
@@ -4240,7 +4296,14 @@
  {
   "key": "City",
   "files": [
+   "components/VenueTable.tsx",
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "City, country",
+  "files": [
+   "components/VenueTable.tsx"
   ]
  },
  {
@@ -4652,6 +4715,13 @@
   "files": [
    "app/[locale]/boxers/page.tsx",
    "lib/correction-text.ts"
+  ]
+ },
+ {
+  "key": "Country outlines: <o>Natural Earth</o> (public domain).",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx",
+   "app/[locale]/countries/page.tsx"
   ]
  },
  {
@@ -7661,6 +7731,12 @@
   ]
  },
  {
+  "key": "Kind",
+  "files": [
+   "components/VenueTable.tsx"
+  ]
+ },
+ {
   "key": "Kind of champion",
   "files": [
    "components/UpdateQueue.tsx"
@@ -7840,6 +7916,12 @@
   "key": "Last 12 months",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "last card {date}",
+  "files": [
+   "components/VenueTable.tsx"
   ]
  },
  {
@@ -8500,7 +8582,14 @@
  {
   "key": "Map",
   "files": [
-   "app/[locale]/events/[id]/page.tsx"
+   "app/[locale]/events/[id]/page.tsx",
+   "components/VenueTable.tsx"
+  ]
+ },
+ {
+  "key": "Map of the venues in {country}",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
   ]
  },
  {
@@ -9234,6 +9323,12 @@
   "key": "No fighter with 4+ bouts matches that.",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "No fighters",
+  "files": [
+   "app/[locale]/countries/page.tsx"
   ]
  },
  {
@@ -10108,6 +10203,12 @@
   "key": "Open any fighter’s profile and press ☆ Watch. Their next fight, last result and rating will show up here.",
   "files": [
    "components/WatchlistPage.tsx"
+  ]
+ },
+ {
+  "key": "Open in Google Maps",
+  "files": [
+   "components/VenueTable.tsx"
   ]
  },
  {
@@ -12825,6 +12926,13 @@
   ]
  },
  {
+  "key": "Some venue places and addresses: <o>© OpenStreetMap contributors (ODbL)</o>.",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx",
+   "app/[locale]/countries/page.tsx"
+  ]
+ },
+ {
   "key": "someone else with permission",
   "files": [
    "components/PhotoQueue.tsx"
@@ -13726,6 +13834,12 @@
   ]
  },
  {
+  "key": "The 50 busiest of {n} venues.",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "The Arabic on this site was written by a machine. A string counts as reviewed only when a native speaker approved or edited it, and only for the exact wording they saw: if the text changes afterwards it goes back to unchecked. Expect mistakes in anything not yet reviewed.",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -13783,6 +13897,12 @@
   "key": "The bodies' own lists",
   "files": [
    "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "The busiest venues",
+  "files": [
+   "app/[locale]/countries/page.tsx"
   ]
  },
  {
@@ -15739,6 +15859,7 @@
  {
   "key": "Venue",
   "files": [
+   "components/VenueTable.tsx",
    "components/ui.tsx"
   ]
  },
@@ -15758,6 +15879,18 @@
   "key": "Venue verified on Wikidata (capacity, coordinates)",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Venues in {country}",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Venues that have held fights",
+  "files": [
+   "components/VenueTable.tsx"
   ]
  },
  {
@@ -16228,6 +16361,13 @@
   ]
  },
  {
+  "key": "Where fights are held",
+  "files": [
+   "app/[locale]/countries/[slug]/page.tsx",
+   "app/[locale]/countries/page.tsx"
+  ]
+ },
+ {
   "key": "Where it aired",
   "files": [
    "components/Money.tsx"
@@ -16273,6 +16413,12 @@
   "key": "Which ranking",
   "files": [
    "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
+  "key": "White dots are venues that have held fights. Country outlines: <o>Natural Earth</o> (public domain).",
+  "files": [
+   "app/[locale]/countries/page.tsx"
   ]
  },
  {
@@ -16809,6 +16955,12 @@
   "key": "World Boxing Organization",
   "files": [
    "components/OfficialList.tsx"
+  ]
+ },
+ {
+  "key": "World map of boxing by country",
+  "files": [
+   "app/[locale]/countries/page.tsx"
   ]
  },
  {

@@ -103,7 +103,7 @@ The doctor lists what is still missing for a public site. Start the site with th
 ## 6. Arabic names, photos, champions (calls Wikidata, Wikipedia and Wikimedia Commons)
 
 ```bash
-npm run vendor:enrich -- --dry-run       # lists the six steps; calls nothing
+npm run vendor:enrich -- --dry-run       # lists the seven steps; calls nothing
 npm run vendor:enrich                    # lists them again and asks you to type ENRICH; the first step is long and resumable
 ```
 

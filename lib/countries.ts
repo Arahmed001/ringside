@@ -22,6 +22,9 @@ const slugOf = (w: World): Map<number, string[]> => memo(w, "countrySlugOf", () 
 /** A country's address, and the United Kingdom's too when it is England, Scotland, Wales or Northern Ireland (their pages are inside it). */
 const slugsFor = (country: string, slug: (c: string) => string): string[] => { const s = slug(country); return UK_NATIONS.has(canonicalCountry(country)) ? [s, "united-kingdom"] : [s]; };
 
+/** Every country address an event or fighter in `country` counts toward: its own, and the United Kingdom's for England, Scotland, Wales and Northern Ireland. */
+export const countrySlugsOf = (country: string): string[] => slugsFor(country, countrySlug);
+
 const rows = (w: World): Map<string, { name: string; fighters: number; active: number }> => memo(w, "countryRows", () => {
   const m = new Map<string, { name: string; fighters: number; active: number }>(), slugFor = slugger();
   for (const b of w.boxers) {

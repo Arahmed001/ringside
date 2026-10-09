@@ -11,7 +11,7 @@ const ROOT = path.resolve(__dirname, "..");
 
 test("the steps are the runbook's, in its order, each pointing at a script that exists", () => {
   const steps = enrichSteps();
-  assert.deepEqual(steps.map((s) => s.id), ["staging", "enrich", "champions", "venues", "headshots", "entities"]);
+  assert.deepEqual(steps.map((s) => s.id), ["staging", "enrich", "champions", "venues", "places", "headshots", "entities"]);
   for (const s of steps) assert.ok(fs.existsSync(path.join(ROOT, s.script)), `${s.id}: ${s.script} exists`);
   assert.deepEqual(steps.find((s) => s.id === "enrich")!.args, ["--enrich"]);
   assert.deepEqual(steps.find((s) => s.id === "entities")!.args, ["--entities"]);
@@ -22,14 +22,14 @@ test("the steps are the runbook's, in its order, each pointing at a script that 
 test("selecting steps: only, skip, and an unknown name is an error", () => {
   const all = enrichSteps();
   assert.deepEqual(selectSteps(all, ["enrich", "champions"], undefined).map((s) => s.id), ["enrich", "champions"]);
-  assert.deepEqual(selectSteps(all, undefined, ["staging", "entities"]).map((s) => s.id), ["enrich", "champions", "venues", "headshots"]);
+  assert.deepEqual(selectSteps(all, undefined, ["staging", "entities"]).map((s) => s.id), ["enrich", "champions", "venues", "places", "headshots"]);
   assert.deepEqual(selectSteps(all, ["champions", "enrich"], undefined).map((s) => s.id), ["enrich", "champions"], "always in the runbook's order");
   assert.throws(() => selectSteps(all, ["photos"], undefined), /There is no step "photos"\. The steps are: staging, enrich/);
 });
 
 test("the plan: the contact is the owner's to give and must be reachable, the database defaults to the load's, and the refusals say how to fix them", () => {
   const p = enrichPlan([], {});
-  assert.equal(p.database, DEFAULT_DATABASE); assert.equal(p.steps.length, 6);
+  assert.equal(p.database, DEFAULT_DATABASE); assert.equal(p.steps.length, 7);
   assert.match(p.refusal ?? "", /WIKIMEDIA_CONTACT is not set.*WIKIMEDIA_CONTACT=you@example\.org, or --contact/);
   assert.equal(enrichPlan([], { WIKIMEDIA_CONTACT: "me@example.org" }).refusal, null);
   assert.equal(enrichPlan(["--contact", "https://example.org/about"], {}).refusal, null);
@@ -63,7 +63,7 @@ const run = (args: string[], env: Record<string, string>) => new Promise<{ code:
 test("the script refuses before it touches anything: no contact, no loaded database, no typed confirmation; a dry run only lists", async () => {
   const d = fs.mkdtempSync(path.join(os.tmpdir(), "venrich-")), db = path.join(d, "real.db");
   const noContact = await run([], { DATABASE_PATH: db });
-  assert.equal(noContact.code, 1); assert.match(noContact.out, /WIKIMEDIA_CONTACT is not set/); assert.match(noContact.out, /6 step|staging[\s\S]*entities/);
+  assert.equal(noContact.code, 1); assert.match(noContact.out, /WIKIMEDIA_CONTACT is not set/); assert.match(noContact.out, /7 step|staging[\s\S]*entities/);
   const noDb = await run(["--contact", "me@example.org", "--yes"], { DATABASE_PATH: db });
   assert.equal(noDb.code, 1); assert.match(noDb.out, /holds no fighters\. Load the league first \(npm run vendor:load\)/);
   const { DatabaseSync } = await import("node:sqlite");
@@ -72,7 +72,7 @@ test("the script refuses before it touches anything: no contact, no loaded datab
   assert.equal(noTty.code, 1); assert.match(noTty.out, /not an interactive terminal.*--yes.*Nothing was run/); assert.match(noTty.out, /database: .*real\.db \(2 fighters\)/); assert.match(noTty.out, /contact:  me@example\.org  \(sent to Wikimedia/);
   const dry = await run(["--dry-run", "--contact", "me@example.org"], { DATABASE_PATH: db });
   assert.equal(dry.code, 0); assert.match(dry.out, /--dry-run: nothing was run\./);
-  for (const id of ["staging", "enrich", "champions", "venues", "headshots", "entities"]) assert.match(dry.out, new RegExp(`\\d\\. ${id}\\b`));
+  for (const id of ["staging", "enrich", "champions", "venues", "places", "headshots", "entities"]) assert.match(dry.out, new RegExp(`\\d\\. ${id}\\b`));
   assert.match(dry.out, /call Wikidata, Wikipedia and Wikimedia Commons/);
   const dryNoContact = await run(["--dry-run"], { DATABASE_PATH: db });
   assert.equal(dryNoContact.code, 0); assert.match(dryNoContact.out, /would be refused: WIKIMEDIA_CONTACT is not set/);

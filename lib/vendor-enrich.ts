@@ -8,7 +8,7 @@ import path from "node:path";
  */
 export const DEFAULT_DATABASE = path.join(os.homedir(), "ringside-real/real.db");
 
-export type EnrichStepId = "staging" | "enrich" | "champions" | "venues" | "headshots" | "entities";
+export type EnrichStepId = "staging" | "enrich" | "champions" | "venues" | "places" | "headshots" | "entities";
 export interface EnrichStep { id: EnrichStepId; title: string; script: string; args: string[]; what: string }
 
 /** The steps, in the order the runbook gives (the later ones need the earlier: reigns link to fighters only through Wikidata ids, entity pictures need the venues linked). */
@@ -19,6 +19,7 @@ export function enrichSteps(mediaLimit?: number): EnrichStep[] {
     { id: "enrich", title: "Wikidata: link our fighters to it", script: "scripts/import-wikidata.ts", args: ["--enrich"], what: "no network: links our fighters to the staged entities and fills missing biography fields, Arabic names, nicknames and article links, and honours" },
     { id: "champions", title: "Wikipedia: world title reigns", script: "scripts/import-champions.ts", args: [], what: "fetches the four men's lists of WBA, WBC, IBF and WBO champions (cached), reads every reign, and links each to our fighters through their Wikidata ids" },
     { id: "venues", title: "Wikidata: link the venues", script: "scripts/resolve-venues.ts", args: [...limit], what: "looks up the venues of our events that have not been checked yet" },
+    { id: "places", title: "OpenStreetMap: place the other venues", script: "scripts/venues-osm.ts", args: [...limit], what: "for venues Wikidata could not place: an address, a kind of place and coordinates from OpenStreetMap, one request a second, each answer stored (so a first run on thousands of venues takes a while and later runs are quick)" },
     { id: "headshots", title: "Wikimedia Commons: fighter photos", script: "scripts/resolve-media.ts", args: [...limit], what: "finds a free-licensed headshot for fighters that lack one" },
     { id: "entities", title: "Wikimedia Commons: belts, logos and venue photos", script: "scripts/resolve-media.ts", args: ["--entities", ...limit], what: "belt photos, organisation logos and venue photos (venues first, so this follows them)" },
   ];
