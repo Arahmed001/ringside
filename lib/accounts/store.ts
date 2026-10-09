@@ -102,6 +102,14 @@ CREATE TABLE IF NOT EXISTS licensed_images (
   id INTEGER PRIMARY KEY, boxer_slug TEXT NOT NULL UNIQUE, image_url TEXT NOT NULL, licence TEXT NOT NULL, licence_url TEXT, credit TEXT NOT NULL, source_url TEXT NOT NULL,
   evidence TEXT, added_by INTEGER REFERENCES users(id) ON DELETE SET NULL, added_at TEXT NOT NULL
 );
+-- A picture someone sent in for a fighter's page, waiting for an editor. The file itself is kept in the photos folder next to this database (name = file_name); nothing is shown until an editor approves it.
+CREATE TABLE IF NOT EXISTS photo_submissions (
+  id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(id) ON DELETE SET NULL, boxer_slug TEXT NOT NULL, file_name TEXT NOT NULL, width INTEGER NOT NULL, height INTEGER NOT NULL, bytes INTEGER NOT NULL,
+  relation TEXT NOT NULL CHECK (relation IN ('self','team','photographer','other')), credit TEXT NOT NULL, note TEXT,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected','withdrawn')),
+  created_at TEXT NOT NULL, reviewed_by INTEGER REFERENCES users(id) ON DELETE SET NULL, reviewed_at TEXT, review_note TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_photo_sub_status ON photo_submissions(status, boxer_slug);
 CREATE TABLE IF NOT EXISTS audit (
   id INTEGER PRIMARY KEY, at TEXT NOT NULL, actor TEXT, action TEXT NOT NULL, target TEXT, detail TEXT
 );

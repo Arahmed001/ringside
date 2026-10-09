@@ -17,16 +17,21 @@ export function httpsUrl(v: unknown): string | null {
   try { const u = new URL(typeof v === "string" ? v.trim() : ""); if (u.protocol !== "https:" || u.username || u.password || (u.port && u.port !== "443") || u.href.length > 600 || !u.hostname.includes(".")) return null; u.hash = ""; return u.href; } catch { return null; }
 }
 
+/** A picture the site holds itself (sent in by a fighter or their team and approved) and the fighter page it is credited to: site paths of exactly one shape, never any other relative address. */
+export const OWN_IMAGE = /^\/api\/photo-file\/[a-f0-9]{32}\.(jpg|png)$/;
+export const OWN_PAGE = /^\/boxers\/[a-z0-9][a-z0-9-]{0,120}$/;
+
 export function cleanPhoto(i: PhotoInput): { ok: true; photo: PhotoClean } | { ok: false; error: PhotoError } {
   const slug = text(i.slug, 120).toLowerCase();
   if (!/^[a-z0-9][a-z0-9-]{0,120}$/.test(slug)) return { ok: false, error: "bad_slug" };
-  const imageUrl = httpsUrl(i.imageUrl);
-  if (!imageUrl || !/\.(jpe?g|png|webp)(\?|$)/i.test(new URL(imageUrl).pathname + new URL(imageUrl).search)) return { ok: false, error: "bad_image" };
+  const own = typeof i.imageUrl === "string" && OWN_IMAGE.test(i.imageUrl);
+  const imageUrl = own ? (i.imageUrl as string) : httpsUrl(i.imageUrl);
+  if (!imageUrl || (!own && !/\.(jpe?g|png|webp)(\?|$)/i.test(new URL(imageUrl).pathname + new URL(imageUrl).search))) return { ok: false, error: "bad_image" };
   const licence = LICENCES.find((l) => l === i.licence);
   if (!licence) return { ok: false, error: "bad_licence" };
   const credit = text(i.credit, 160);
   if (credit.length < 3) return { ok: false, error: "no_credit" };
-  const sourceUrl = httpsUrl(i.sourceUrl);
+  const sourceUrl = typeof i.sourceUrl === "string" && OWN_PAGE.test(i.sourceUrl) ? i.sourceUrl : httpsUrl(i.sourceUrl);
   if (!sourceUrl) return { ok: false, error: "bad_source" };
   const evidence = text(i.evidence, 300) || null;
   if (licence === "By permission" && (!evidence || evidence.length < 10)) return { ok: false, error: "no_evidence" };
