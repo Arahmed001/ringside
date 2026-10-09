@@ -41,7 +41,13 @@ The same refresh lists the newest uploads of eight official channels (DAZN Boxin
 **A key of your own is needed.** YouTube's `robots.txt` closes its RSS feeds to bots, so the channels are read with YouTube's Data API, which is free (10,000 units a day; a refresh uses 8):
 
 1. In the [Google Cloud console](https://console.cloud.google.com/) create a project, enable "YouTube Data API v3", and under Credentials create an API key. Restrict it to that API.
-2. `export YOUTUBE_API_KEY=...` (a secret: never commit it) and run `npm run news:refresh`.
+2. Save the key where only you can read it (the key is not echoed or kept in your shell history):
+
+```bash
+read -s "k?Paste the YouTube key, then press Return: "; printf '%s\n' "$k" > ~/.ringside-youtube-key; chmod 600 ~/.ringside-youtube-key; unset k
+```
+
+   `npm run news:refresh` reads `~/.ringside-youtube-key` (or `YOUTUBE_API_KEY` if that is set, which wins). A secret: never commit it.
 
 Without the key the videos are skipped and the headlines still refresh. The key goes to Google only; it is never stored, logged or shown (an error message has it replaced with `[key]`).
 
