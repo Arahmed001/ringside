@@ -863,7 +863,6 @@
   "plural": "{n} reign",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx",
-   "app/[locale]/titles/page.tsx",
    "lib/records.ts"
   ]
  },
@@ -872,6 +871,13 @@
   "plural": "{n} reign on record",
   "files": [
    "components/TitlesCard.tsx"
+  ]
+ },
+ {
+  "key": "{n} reigns on this belt",
+  "plural": "{n} reign on this belt",
+  "files": [
+   "app/[locale]/titles/page.tsx"
   ]
  },
  {
@@ -2218,7 +2224,7 @@
   ]
  },
  {
-  "key": "A fighter’s corner pulls them out between rounds. Ringside counts it as a knockout, as most record keepers do.",
+  "key": "A fighter’s corner pulls them out between rounds. Ringside counts it as a stoppage (a technical knockout), as most record keepers do.",
   "files": [
    "app/[locale]/learn/page.tsx"
   ]
@@ -2321,7 +2327,7 @@
   ]
  },
  {
-  "key": "A record is wins, losses and draws, in that order: {example} is 25 wins, 3 losses and 1 draw. Knockouts are the wins that ended early; Ringside shows them as a count and as a share of wins. A no contest is not in the record.",
+  "key": "A record is wins, losses and draws, in that order: {example} is 25 wins, 3 losses and 1 draw. Knockouts are the wins that ended early; Ringside shows them as a count and as a share of wins. Ringside leaves a no contest out of that figure.",
   "files": [
    "app/[locale]/learn/page.tsx"
   ]
@@ -3700,7 +3706,7 @@
   ]
  },
  {
-  "key": "Boxers fight in {n} divisions, from minimumweight (105 lb) to heavyweight (over 200 lb). Fighters step on the scale the day before the fight, and coming in over the limit is called missing weight.",
+  "key": "Boxers fight in {n} divisions, from minimumweight (105 lb) to heavyweight (over 200 lb). Fighters step on the scale, usually the day before the fight, and coming in over the limit is called missing weight.",
   "files": [
    "app/[locale]/learn/page.tsx"
   ]
@@ -5398,6 +5404,12 @@
   ]
  },
  {
+  "key": "Either every judge scores it level, or the cards split so that neither fighter has a majority.",
+  "files": [
+   "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
   "key": "Elo change",
   "files": [
    "components/TenureTable.tsx"
@@ -6650,7 +6662,7 @@
   ]
  },
  {
-  "key": "Four organisations, the WBA, WBC, IBF and WBO, each name a world champion in every division, so one division can have four champions at once. A fighter who holds more than one of those belts is a unified champion, and one who holds all four is called undisputed.",
+  "key": "Four organisations, the WBA, WBC, IBF and WBO, each normally name a world champion in every division, so one division can have four champions at once. A fighter who holds more than one of those belts is a unified champion, and one who holds all four is called undisputed.",
   "files": [
    "app/[locale]/learn/page.tsx"
   ]
@@ -6998,7 +7010,7 @@
   ]
  },
  {
-  "key": "Headlines from boxing outlets. Each one links to the original story on the outlet's own site; we show only the headline and the short excerpt the outlet itself publishes.",
+  "key": "Headlines from boxing outlets. Each one links to the original story on the outlet's own site; we show the headline, the short excerpt and the picture the outlet itself publishes in its feed.",
   "files": [
    "app/[locale]/news/page.tsx"
   ]
@@ -7007,6 +7019,12 @@
   "key": "Headlines from other outlets are links: your browser contacts an outlet only if you follow one.",
   "files": [
    "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "Heavier fighters are also usually the bigger, stronger natural fighters, so this is a correlation, not proof that rehydration wins fights.",
+  "files": [
+   "app/[locale]/weights/page.tsx"
   ]
  },
  {
@@ -7901,6 +7919,12 @@
   ]
  },
  {
+  "key": "last known champion, since {date}",
+  "files": [
+   "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
   "key": "Last nine months",
   "files": [
    "app/[locale]/trainers/page.tsx"
@@ -8172,6 +8196,18 @@
   "key": "Lives in",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Loaded into this site's database; storing it is confirmed.",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Loaded into this site's database. Storing it is provisional until the vendor's written confirmation is recorded.",
+  "files": [
+   "app/[locale]/data/page.tsx"
   ]
  },
  {
@@ -9386,6 +9422,12 @@
   ]
  },
  {
+  "key": "No trainers are on record yet. The data supplier does not say who trains whom, so there is nothing to estimate; this page fills in when a source for trainers is loaded.",
+  "files": [
+   "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
   "key": "No upcoming cards on the calendar.",
   "files": [
    "app/[locale]/previews/page.tsx"
@@ -9426,6 +9468,12 @@
   "key": "No weigh-in data recorded for this bout yet.",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "No weigh-ins are on record yet. The data supplier does not provide official or fight-night weights, so this page fills in when a source for them is loaded.",
+  "files": [
+   "app/[locale]/weights/page.tsx"
   ]
  },
  {
@@ -9571,6 +9619,12 @@
  },
  {
   "key": "Not used",
+  "files": [
+   "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Not used on this site, which runs on the licensed feed.",
   "files": [
    "app/[locale]/data/page.tsx"
   ]
@@ -10473,6 +10527,12 @@
   "key": "Picture address",
   "files": [
    "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "Picture from <o>{name}</o>",
+  "files": [
+   "components/NewsList.tsx"
   ]
  },
  {
@@ -11655,6 +11715,12 @@
    "app/[locale]/on-this-day/page.tsx",
    "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
+  ]
+ },
+ {
+  "key": "Results here are as of the last data update, not a live scoreboard. When a card is on, this page checks for new results every minute.",
+  "files": [
+   "app/[locale]/tonight/page.tsx"
   ]
  },
  {
@@ -13689,12 +13755,6 @@
   ]
  },
  {
-  "key": "The cards do not give either fighter a majority.",
-  "files": [
-   "app/[locale]/learn/page.tsx"
-  ]
- },
- {
   "key": "The case for {name}",
   "files": [
    "app/[locale]/previews/[id]/page.tsx"
@@ -13869,7 +13929,7 @@
   ]
  },
  {
-  "key": "The fight is declared void, for example after an accidental foul early on. It is in neither fighter’s record.",
+  "key": "The fight is declared void, for example after an accidental foul early on. Ringside’s win-loss-draw figure leaves it out.",
   "files": [
    "app/[locale]/learn/page.tsx"
   ]
@@ -15903,7 +15963,7 @@
   ]
  },
  {
-  "key": "What {n} professional bouts actually say about the sport.",
+  "key": "What {n} fights with a result actually say about the sport.",
   "files": [
    "app/[locale]/analytics/page.tsx"
   ]

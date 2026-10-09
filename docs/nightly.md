@@ -21,6 +21,8 @@ Set these in the host's environment for the one service, next to the ones the up
 | `NIGHTLY_JITTER_MIN` | random delay added to the time, 0 to 60 minutes | 5 |
 | `NIGHTLY_NODE_OPTIONS` | Node options for the update process only | `--max-old-space-size=768` |
 | `WATCH_SOURCES` | which public sources to look at for changes, and how often: `champions`, `champions:nightly` or `champions:weekly` (Mondays, UTC), comma-separated (section 2b). Needs `WIKIMEDIA_CONTACT` in the same environment. | none: nothing is watched |
+| `NIGHTLY_ENRICH` | `weekly` (Sundays, UTC) or `nightly` adds the enrichment step (section 2d). Needs `WIKIMEDIA_CONTACT`. A failure is a warning in the status and never fails the night. | off |
+| `NIGHTLY_PING_URL` | a heartbeat address from a free monitor, asked once when a night ends (`/fail` added for a failed night); `docs/monitoring.md`. | none |
 | `NEWS_REFRESH` | `1` adds the news step: the boxing headlines and the official videos are refreshed each night (docs/news.md). It needs `NEWS_CONTACT`; videos also need `YOUTUBE_API_KEY`. A failure is a warning in the status and never fails the night. |
 
 `DATABASE_PATH` is already `/data/ringside.db` in the image; the job works in `/data` (backups in `/data/backups`, the vendor cache in `/data/vendor-cache`, the status file `/data/nightly-status.json`). The container still runs as the non-root `node` user and opens no new port.
@@ -37,7 +39,8 @@ One lock (`ringside-nightly.lock` in `RINGSIDE_LOCK_DIR`, default the temp folde
 2. **The update**: `vendor:backfill -- --update --cache-dir /data/vendor-cache --no-backup`, run as a child process with the container's own environment. It is the runbook's in-container form; `--no-backup` is the only addition, because step 1 has just made a better (complete) backup.
 3. **The watch**, if `WATCH_SOURCES` is set (section 2b).
 3b. **The news**, if `NEWS_REFRESH=1` (section 2c): `npm run news:refresh` reads the outlets' public feeds and the official channels, keeps new headlines and drops old ones; a failure is a warning, not a failed night.
-4. **The off-host copy**, if `NIGHTLY_OFFSITE_CMD` is set.
+4. **The off-host copy**, if `NIGHTLY_OFFSITE_CMD` is set (an encrypted copy to your own S3-compatible storage is built in: `docs/offsite-backups.md`).
+4b. **The enrichment**, if `NIGHTLY_ENRICH` is set and it is its day (section 2d). It runs last, so a long run never delays the off-host copy.
 5. **The status file**, rewritten after every step so a job killed half-way leaves a true account of how far it got.
 
 **Why the backup comes first and is always taken.** The update is the only step that changes the data, so the copy that matters is the one from just before it. Taking it only after a successful update would leave no fresh copy on exactly the nights something is wrong with the vendor's data. The update still runs when the backup failed (it is one transaction and repeatable, and a stale site is the worse risk); the failure is recorded and the job exits 1.
@@ -46,11 +49,17 @@ One lock (`ringside-nightly.lock` in `RINGSIDE_LOCK_DIR`, default the temp folde
 
 With `VENDOR_GATE=hold` the update (step 2) puts back, before it commits, every change the vendor makes to a row the site already holds that the policy says must wait (a corrected height, a result arriving or overturned, a renamed card, a changed ranking list), and stores each as a proposal for an administrator at `/review/updates`. New fighters, fights and cards, odds and picture paths go in at once. The night is still a success. A night that would change one field in a large share of the rows it touched (the usual sign of a format change at the vendor) is refused whole with **exit code 3** and writes nothing. **The first night of holding on a data folder skips the flood guard by itself** (nothing to remember or pass), so the pile left from before is recorded as proposals instead of refused; `--gate-baseline` does the same on any other night. The night's line in the status file says how many changes were held (`N change(s) held for approval`), `/api/health` shows `data.updatesWaiting` and, after `UPDATES_OVERDUE_DAYS` (7) days, `data.updatesOverdueDays`, and the doctor warns. `--accept-all` lets one night through unheld. Use `VENDOR_GATE=observe` first to see the numbers. Standing rules an administrator has made at `/review/updates` are read at the start of the update and applied inside it (a change a rule accepts is not held; each night's use is logged). See [vendor-gate-plan.md](vendor-gate-plan.md).
 
-### 2b. Watching public sources for changes
+### 2b. Watching public sources for changes (switching it on)
 
 With `WATCH_SOURCES=champions` (or `champions:weekly`) the job also looks at the Wikipedia lists of world champions after the update: it compares them with the reigns the site holds and stores every difference as a **proposal**. It never changes what the site shows. An administrator decides on each at `/review/updates`; see [accounts.md](accounts.md#source-updates-administrators) and PLAN 253. Weekly means Mondays (UTC). The step is a **warning at worst**: if a list was refused (a page that changed shape, an empty read), the look failed or the contact is missing, the night's result is `warning` with the reason in the step's message, and neither the update before it nor the off-host copy after it is affected. `/api/health` shows `data.updatesWaiting` when proposals are waiting. By hand: `npm run watch -- --source champions` (`--dry-run` shows the differences without storing them).
 
+**To switch it on:** (1) check the server holds reigns: `npm run first-look -- --database /data/real.db` should not list `title_reigns` under "What is empty" (if it does, run `npm run champions:import` once there with `WIKIMEDIA_CONTACT` set; a watcher refuses to run against an empty table); (2) `fly secrets set -a <app> WATCH_SOURCES=champions:weekly WIKIMEDIA_CONTACT=<your address>`; (3) try it without storing anything: `npm run watch -- --source champions --dry-run`; (4) decisions arrive at `/review/updates` (administrators only), and `/api/health` shows `updatesWaiting` while any wait.
+
 `npm run champions:import` follows the same rule once reigns are held: it only proposes. `--apply-all` replaces the stored reigns at once, without approval, and is logged as `update.apply_all` in the audit log.
+
+### 2d. Enrichment from Wikidata and Commons
+
+With `NIGHTLY_ENRICH=weekly` (Sundays, UTC) or `nightly` the job runs `vendor:enrich --yes` after everything else: the same resumable steps you run by hand (Wikidata staging, linking and Arabic names, honours, champions' reigns, venues, headshots, belt and venue pictures), which skip what is done, so a week with few new fighters is quick. It needs `WIKIMEDIA_CONTACT` (sent to Wikimedia with every request) and gives up after 3 hours (it resumes next time). It only fills what is blank or new from those sources; the reigns step proposes rather than overwrites once reigns are held (2b). A failure is a warning in the status, never a failed night. Turn it on: `fly secrets set -a <app> NIGHTLY_ENRICH=weekly WIKIMEDIA_CONTACT=<your address>`.
 
 ## 3. Exit codes (the ones from PLAN.md section 224)
 

@@ -98,12 +98,12 @@ export const divisionOf = (raw: string): string | null => normalizeDivision(raw)
 
 /** How often the mapping had to approximate. Every key is a count; zero means the feed supplied the fact itself. */
 export type Notes = Record<
-  | "ptsAsUnanimousDecision" | "drawInferred" | "resultMissing" | "liveTreatedAsUpcoming" | "cancelledFights" | "resultMissingOld" | "cancelledCardsLeftOut" | "amateurBoutsSkipped" | "nationalityFromCode" | "nationalityUnplaced" | "titleBodyUnknown" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter" | "duplicateFightsMerged" | "duplicateFightsDisagree" | "duplicateFightsAcrossProfiles" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "divisionFromOpponents" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
+  | "ptsAsUnanimousDecision" | "drawInferred" | "decisionWithoutWinner" | "duplicateProfilesMerged" | "resultMissing" | "liveTreatedAsUpcoming" | "cancelledFights" | "resultMissingOld" | "cancelledCardsLeftOut" | "amateurBoutsSkipped" | "nationalityFromCode" | "nationalityUnplaced" | "titleBodyUnknown" | "fightsSkipped" | "boutsDroppedUnknownFighter" | "boutsOutsideSelection" | "fightsSkippedNoId" | "fightsSkippedNoFighter" | "fightsSkippedNoDate" | "fightsSkippedSameFighter" | "duplicateFightsMerged" | "duplicateFightsDisagree" | "duplicateFightsAcrossProfiles" | "stoppageWithoutWinner" | "drawDemoted" | "roundsRaisedToEnd" | "divisionFromOpponents" | "fightersDroppedNoDivision" | "boutsDroppedNoDivision"
   | "locationCountryInferred" | "locationRegionAmbiguous" | "scheduleUnavailable" | "upcomingUnavailable" | "rankingsUnavailable" | "rankingsHeldBack" | "rankingsSkipped" | "divisionFromFight" | "boutDivisionFromFighters" | "outcomeMapped" | "outcomeUnreadable" | "roundUnreadable" | "bothMarkedWinner" | "eventsWithoutFights" | "birthYearUnknown" | "physicalsConverted" | "debutUnknown" | "physicalsUnknown" | "stanceUnknown" | "locationUnparsed" | "divisionUnknown" | "windowTooBig" | "textCleaned" | "statusUnknown" | "finishedInFuture" | "fightsSkippedUnreadable" | "careerTotalImplausible" | "physicalsImplausible",
   number
 >;
 const emptyNotes = (): Notes => ({
-  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsHeldBack: 0, rankingsSkipped: 0, drawInferred: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, cancelledFights: 0, resultMissingOld: 0, cancelledCardsLeftOut: 0, amateurBoutsSkipped: 0, nationalityFromCode: 0, nationalityUnplaced: 0, titleBodyUnknown: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, fightsSkippedNoId: 0, fightsSkippedNoFighter: 0, fightsSkippedNoDate: 0, fightsSkippedSameFighter: 0, duplicateFightsMerged: 0, duplicateFightsDisagree: 0, duplicateFightsAcrossProfiles: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, divisionFromOpponents: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
+  ptsAsUnanimousDecision: 0, rankingsUnavailable: 0, rankingsHeldBack: 0, rankingsSkipped: 0, drawInferred: 0, decisionWithoutWinner: 0, duplicateProfilesMerged: 0, resultMissing: 0, liveTreatedAsUpcoming: 0, cancelledFights: 0, resultMissingOld: 0, cancelledCardsLeftOut: 0, amateurBoutsSkipped: 0, nationalityFromCode: 0, nationalityUnplaced: 0, titleBodyUnknown: 0, fightsSkipped: 0, boutsDroppedUnknownFighter: 0, boutsOutsideSelection: 0, fightsSkippedNoId: 0, fightsSkippedNoFighter: 0, fightsSkippedNoDate: 0, fightsSkippedSameFighter: 0, duplicateFightsMerged: 0, duplicateFightsDisagree: 0, duplicateFightsAcrossProfiles: 0, stoppageWithoutWinner: 0, drawDemoted: 0, roundsRaisedToEnd: 0, divisionFromOpponents: 0, fightersDroppedNoDivision: 0, boutsDroppedNoDivision: 0, locationCountryInferred: 0, locationRegionAmbiguous: 0, scheduleUnavailable: 0, upcomingUnavailable: 0,
   birthYearUnknown: 0, physicalsConverted: 0, debutUnknown: 0, physicalsUnknown: 0, stanceUnknown: 0, locationUnparsed: 0, divisionUnknown: 0, textCleaned: 0, statusUnknown: 0, finishedInFuture: 0, fightsSkippedUnreadable: 0, careerTotalImplausible: 0, physicalsImplausible: 0, divisionFromFight: 0, boutDivisionFromFighters: 0, outcomeMapped: 0, outcomeUnreadable: 0, roundUnreadable: 0, bothMarkedWinner: 0, eventsWithoutFights: 0, windowTooBig: 0,
 });
 
@@ -247,12 +247,16 @@ export function mapFight(f: ApiFight, notes: Notes, index = 0): { bout: Provider
     else if (outcome === "UD" || outcome === "MD" || outcome === "SD" || outcome === "KO" || outcome === "TKO") method = outcome;
     else { const m = normalizeMethod(outcome); if (m) { method = m; notes.outcomeMapped++; } } // "DQ", "RTD", "Technical Decision", "No Contest"...: the words the feed's own list does not show but a real feed has
   }
-  // a decision with no winner is a draw; a finished fight with neither a winner nor an outcome is left "no result yet" rather than guessed
-  if (finished && !bothMarked && !winner && outcome && DECISIONS.has(outcome)) { method = "DRAW"; notes.drawInferred++; }
+  // a decision with no winner marked is NOT read as a draw: the feed writes a draw as "D" (2,042 of them in the first real load), and a decision word (UD, SD, MD, PTS) is a fight that had a
+  // winner the feed has not filled in (checked against Wikipedia's record tables: both such fights it was wrong about were won, one by unanimous decision). It is left "no result yet",
+  // counted as `decisionWithoutWinner`, and the winner can come from the next update or from an approved source.
+  const decisionGap = finished && !bothMarked && !winner && !!outcome && DECISIONS.has(outcome);
+  if (decisionGap) { method = null; notes.decisionWithoutWinner++; unsettled = true; }
   // a result that needs a winner and has none (a knockout, a disqualification...) is a feed slip (the validator rejects it): left as no result rather than a winner guessed
   if (finished && !winner && method && hasWinner(method)) { method = null; notes.stoppageWithoutWinner++; unsettled = true; }
   if (finished && !bothMarked && !winner && !method) {
-    notes.resultMissing++; unsettled = true;
+    if (!decisionGap) notes.resultMissing++; // a decision with no winner is counted as `decisionWithoutWinner`, not twice
+    unsettled = true;
     // a result the vendor has had a month and not entered is not lag: counted apart, so a load says how much of "no result yet" is simply recent
     if (date < addDays(todayIso(), -RESULT_LAG_DAYS)) notes.resultMissingOld++;
   }
@@ -436,6 +440,36 @@ const addDays = (iso: string, n: number) => new Date(Date.parse(iso) + n * 86400
  * The two generations of records sometimes name two PROFILES of the same opponent (Mayweather against "Canelo Alvarez" under two fighter ids, a day apart), so the
  * pair is the two fighters' NAMES where `names` knows them (normalised: case, accents and spacing ignored), and their ids where it does not.
  */
+/**
+ * One person under two profiles: the same name once spelling is folded, the same birth year, and the SAME career total from the feed (wins, losses and draws all given, at least three fights).
+ * Two real people with one name and one birth year do not also share a career total; a famous fighter listed twice does (Canelo Alvarez, Sergio Martinez: two profile ids, each with half the
+ * fights and both the full total). The profile with the more fights is kept, the others' fights are pointed at it, and the copies of one fight listed under both are merged afterwards.
+ * Two fighters who merely share a name and a birth year are left alone: nothing is guessed.
+ */
+export function mergeDuplicateProfiles<T extends { externalId: string; name: string; birthYear?: number | null }>(boxers: T[], bouts: ProviderBout[], careers: Map<string, CareerRecord>, notes: Notes): { boxers: T[]; bouts: ProviderBout[] } {
+  const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const count = new Map<string, number>();
+  for (const b of bouts) for (const id of [b.redExternalId, b.blueExternalId]) count.set(id, (count.get(id) ?? 0) + 1);
+  const groups = new Map<string, T[]>();
+  for (const b of boxers) {
+    const c = careers.get(b.externalId);
+    if (!b.birthYear || !c || c.wins + c.losses + c.draws < 3) continue;
+    const k = `${fold(b.name)}|${b.birthYear}|${c.wins}-${c.losses}-${c.draws}`;
+    (groups.get(k) ?? groups.set(k, []).get(k)!).push(b);
+  }
+  const into = new Map<string, string>();
+  for (const g of groups.values()) {
+    if (g.length < 2) continue;
+    const keep = [...g].sort((a, b) => (count.get(b.externalId) ?? 0) - (count.get(a.externalId) ?? 0) || (a.externalId < b.externalId ? -1 : 1))[0];
+    for (const o of g) if (o !== keep) { into.set(o.externalId, keep.externalId); notes.duplicateProfilesMerged++; }
+  }
+  if (!into.size) return { boxers, bouts };
+  return {
+    boxers: boxers.filter((b) => !into.has(b.externalId)),
+    bouts: bouts.map((b) => (into.has(b.redExternalId) || into.has(b.blueExternalId) || (b.winnerExternalId && into.has(b.winnerExternalId)) ? { ...b, redExternalId: into.get(b.redExternalId) ?? b.redExternalId, blueExternalId: into.get(b.blueExternalId) ?? b.blueExternalId, winnerExternalId: b.winnerExternalId ? into.get(b.winnerExternalId) ?? b.winnerExternalId : b.winnerExternalId } : b)),
+  };
+}
+
 /** Letters that do not come apart by accent (Michał / Michal, Głowacki / Glowacki: 13 fights of the first full load were listed twice under the two spellings of one fighter). */
 const STROKED: Record<string, string> = { ł: "l", đ: "d", ð: "d", ø: "o", ı: "i", æ: "ae", œ: "oe", ß: "ss", þ: "th" };
 export function mergeDuplicateFights(bouts: ProviderBout[], eventDates: Map<string, string>, notes: Notes, names?: Map<string, string>): ProviderBout[] {
@@ -929,7 +963,8 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     const kept = placeBouts(keep.filter((b) => { const ok = placedIds.has(b.redExternalId) && placedIds.has(b.blueExternalId); if (!ok) notes.boutsDroppedNoDivision++; return ok; }), placed, notes);
     // an event exists here only because a fight said so: one whose every fight was dropped (a fighter outside the selection, an unplaceable division) is not a card with a page,
     // and would be a 404 in the sitemap, the search and the country pages. In a partial load that is most small cards, so it is left out and counted
-    const merged = demoteUnsupportedDraws(o.mergeDuplicates === false ? kept : mergeDuplicateFights(kept, eventDates, notes, new Map(placed.map((r) => [r.externalId, r.name]))), careers, notes);
+    const unified = o.mergeDuplicates === false ? { boxers: placed, bouts: kept } : mergeDuplicateProfiles(placed, kept, careers, notes);
+    const merged = demoteUnsupportedDraws(o.mergeDuplicates === false ? unified.bouts : mergeDuplicateFights(unified.bouts, eventDates, notes, new Map(unified.boxers.map((r) => [r.externalId, r.name]))), careers, notes);
     // a card whose every fight was cancelled never took place: left out with its bouts (a card with some fights cancelled stays, the cancelled ones shown as such)
     const before = notes.cancelledCardsLeftOut;
     const held = new Set(merged.filter((b) => b.status !== "cancelled").map((b) => b.eventExternalId)), onCard = new Set(merged.map((b) => b.eventExternalId));
@@ -937,7 +972,7 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
     notes.cancelledCardsLeftOut += [...onCard].filter((id) => !held.has(id)).length;
     const cards = [...events.values()].filter((e) => held.has(e.externalId));
     notes.eventsWithoutFights += events.size - cards.length - (notes.cancelledCardsLeftOut - before);
-    return { boxers: placed, events: cards, bouts: finalBouts };
+    return { boxers: unified.boxers, events: cards, bouts: finalBouts };
   }
   const once = () => (cache ??= load());
   /** The official lists: 17 requests (one page per division, the pages being the same four bodies each), cached like every other page (so a stopped load resumes, and a reload asks for nothing; the daily `--update` refreshes everything), and never fatal: a plan without them just has none. */

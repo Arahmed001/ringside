@@ -35,7 +35,8 @@ test("a finished fight keeps its scores; a fight not yet fought has none", () =>
   assert.equal(mapFight(fight({ scores: null }), notes())!.bout.scores, undefined, "no scores is no field, not an empty one");
   assert.equal(mapFight(fight({ scores: ["bad"] }), notes())!.bout.scores, undefined);
   assert.equal(mapFight(fight({ results: { outcome: "KO", round: "5" } }), notes())!.bout.scores, undefined, "a stoppage has no scorecards, whatever the feed attached");
-  assert.deepEqual(mapFight(fight({ fighters: { fighter_1: { fighter_id: "a", winner: false, name: "A" }, fighter_2: { fighter_id: "b", winner: false, name: "B" } } }), notes())!.bout.scores, ["116-109", "117-108", "116-109"], "a draw is decided on the cards too");
+  assert.equal(mapFight(fight({ fighters: { fighter_1: { fighter_id: "a", winner: false, name: "A" }, fighter_2: { fighter_id: "b", winner: false, name: "B" } } }), notes())!.bout.scores, undefined, "a decision with no winner marked has no result yet, so its cards are not shown without it (a draw, the feed's D, keeps them)");
+  assert.deepEqual(mapFight(fight({ results: { outcome: "D", round: null }, fighters: { fighter_1: { fighter_id: "a", winner: false, name: "A" }, fighter_2: { fighter_id: "b", winner: false, name: "B" } } }), notes())!.bout.scores, ["116-109", "117-108", "116-109"], "a draw (the feed's D) is decided on the cards too, and keeps them");
 });
 
 test("career totals: a number counts only if it is a whole number no larger than the wins or losses it is part of", () => {

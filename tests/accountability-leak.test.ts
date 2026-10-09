@@ -85,3 +85,18 @@ test("a result changed from a win to a no-contest or draw moves nothing before i
   assert.equal(after.length, base.length - 1, "a draw is not scored");
   for (let i = 0; i < after.length; i++) assert.deepEqual({ ...after[i] }, base[i]);
 });
+
+test("which fighter is listed first (\"red\") tells the fit and the track record nothing: a feed where red always wins gives a balanced training set and no free right calls", async () => {
+  const all = Array.from({ length: 24 }, () => "red");
+  await ingest(db, providerOf(league(all)));
+  wm.invalidateWorld();
+  const w = await wm.getWorld();
+  const { buildDataset } = await import("../lib/fit");
+  const rows = buildDataset(w);
+  assert.ok(rows.length >= 12, "the league gives training rows");
+  const share = rows.reduce((s, r) => s + r.y, 0) / rows.length;
+  assert.ok(share > 0.3 && share < 0.7, `red won every fight, yet the rows read from a neutral point of view (the first-listed fighter wins ${Math.round(share * 100)}% of them)`);
+  const calls = A.calls(w);
+  const red = calls.filter((c) => c.pickedRed).length / calls.length;
+  assert.ok(red > 0 && red < 1, "the model does not simply pick the first-listed fighter");
+});

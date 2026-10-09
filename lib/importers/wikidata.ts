@@ -302,6 +302,148 @@ export async function importWikidata(db: DatabaseSync, opts: ImportOptions = {})
 
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[łđðøı]/g, (c) => ({ ł: "l", đ: "d", ð: "d", ø: "o", ı: "i" })[c as "ł"]).replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
 
+/**
+ * Does a Wikidata person's life fit our fighter's career? Used for the one link kind with nothing to corroborate it (a name unique on both sides in one country): the first fight at 14
+ * or later, the last fight no later than 50 years after birth (a comeback at 55 is a tournament link by birth year, not this), and none after the person's death.
+ */
+export function careerFits(birthYear: number | null, deathDate: string | null, firstYear: number | undefined, lastYear: number | undefined): boolean {
+  if (typeof birthYear === "number") {
+    if (firstYear !== undefined && firstYear < birthYear + 14) return false;
+    if (lastYear !== undefined && lastYear > birthYear + 50) return false;
+  }
+  const died = typeof deathDate === "string" ? parseInt(deathDate.slice(0, 4), 10) : NaN;
+  if (Number.isFinite(died) && lastYear !== undefined && lastYear > died) return false;
+  return true;
+}
+
+/**
+ * Takes back the links that were made on a name and a country alone and whose life does not fit the career (a man born in 1953 matched to a boxer who debuted in 2026). Everything the
+ * link brought in is taken out again where it is the entity's own value: the Wikidata ID, birth details, article title, nickname, Hall of Fame and Olympedia IDs, a Commons headshot,
+ * the honours and the Wikidata Arabic name. Returns how many fighters were unlinked.
+ */
+export function repairWikidataLinks(db: DatabaseSync): number {
+  const rows = db.prepare(`SELECT b.id, b.name, w.qid, w.birth_year wy, w.death_date, w.birth_date wd, w.birth_place wp, w.residence wr, w.boxrec_id wbx, w.enwiki, w.nickname wn, w.ibhof_id wi, w.olympedia_id wo,
+      (SELECT MIN(CAST(substr(e.date, 1, 4) AS INTEGER)) FROM bouts x JOIN events e ON e.id = x.event_id WHERE x.red_id = b.id OR x.blue_id = b.id) first,
+      (SELECT MAX(CAST(substr(e.date, 1, 4) AS INTEGER)) FROM bouts x JOIN events e ON e.id = x.event_id WHERE x.red_id = b.id OR x.blue_id = b.id) last
+    FROM wikidata_boxers w JOIN boxers b ON b.id = w.matched_boxer_id WHERE w.match_method = 'name+country'`).all() as unknown as
+    { id: number; name: string; qid: string; wy: number | null; death_date: string | null; wd: string | null; wp: string | null; wr: string | null; wbx: string | null; enwiki: string | null; wn: string | null; wi: string | null; wo: string | null; first: number | null; last: number | null }[];
+  const bad = rows.filter((r) => !careerFits(r.wy, r.death_date, r.first ?? undefined, r.last ?? undefined));
+  if (!bad.length) return 0;
+  const clear = (col: string) => db.prepare(`UPDATE boxers SET ${col} = NULL WHERE id = ? AND ${col} = ?`);
+  const own = { birth_year: clear("birth_year"), birth_date: clear("birth_date"), birth_place: clear("birth_place"), residence: clear("residence"), boxrec_id: clear("boxrec_id"), nickname: clear("nickname"), ibhof_id: clear("ibhof_id"), olympedia_id: clear("olympedia_id") };
+  const hasMedia = (db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='boxer_media'").get() as unknown) !== undefined;
+  db.exec("BEGIN");
+  for (const r of bad) {
+    if (r.wy !== null) own.birth_year.run(r.id, r.wy);
+    if (r.wd) own.birth_date.run(r.id, r.wd);
+    if (r.wp) own.birth_place.run(r.id, r.wp);
+    if (r.wr) own.residence.run(r.id, r.wr);
+    if (r.wbx) own.boxrec_id.run(r.id, r.wbx);
+    if (r.wn) own.nickname.run(r.id, r.wn);
+    if (r.wi) own.ibhof_id.run(r.id, r.wi);
+    if (r.wo) own.olympedia_id.run(r.id, r.wo);
+    if (r.enwiki) db.prepare("UPDATE boxers SET wikipedia_title = NULL WHERE id = ? AND REPLACE(wikipedia_title, '_', ' ') = REPLACE(?, '_', ' ')").run(r.id, r.enwiki);
+    db.prepare("DELETE FROM honours WHERE boxer_id = ? AND source = 'wikidata'").run(r.id);
+    if (hasMedia) { const m = db.prepare("SELECT status FROM boxer_media WHERE boxer_id = ?").get(r.id) as { status: string } | undefined; if (m?.status === "matched") db.prepare("UPDATE boxers SET photo_url = NULL, photo_credit = NULL WHERE id = ?").run(r.id); db.prepare("DELETE FROM boxer_media WHERE boxer_id = ?").run(r.id); }
+    // the Arabic name Wikidata gave belongs to the other person: gone, unless another of our fighters of that name is linked on a firmer ground
+    db.prepare(`DELETE FROM name_translations WHERE en = ? AND locale = 'ar' AND source = 'wikidata'
+      AND NOT EXISTS (SELECT 1 FROM boxers o JOIN wikidata_boxers w2 ON w2.matched_boxer_id = o.id WHERE o.name = ? AND o.id <> ? AND w2.match_method <> 'name+country')`).run(r.name, r.name, r.id);
+    db.prepare("UPDATE boxers SET wikidata_id = NULL WHERE id = ?").run(r.id);
+    db.prepare("UPDATE wikidata_boxers SET matched_boxer_id = NULL, match_method = NULL WHERE qid = ?").run(r.qid);
+  }
+  db.exec("COMMIT");
+  return bad.length;
+}
+
+const foldName = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[łđðøı]/g, (c) => ({ ł: "l", đ: "d", ð: "d", ø: "o", ı: "i" })[c as "ł"]).replace(/[^a-z0-9]+/g, " ").trim();
+const SUFFIXES = new Set(["jr", "sr", "ii", "iii", "iv"]);
+const SAFE_LABEL = /^[\p{L}\p{M}0-9 .'’\-]{2,60}$/u;
+
+/** The fighters the three passes could not place whose name is a fuller or shorter form of an entity's (a middle name, "Jr.", a second surname): same birth year, same nation, one name's words all inside the other's (two words at least), and exactly one such entity, itself claimed by one fighter. Birth names are a separate, curated list (`i18n/ring-names.json`). */
+function linkVariants(db: DatabaseSync, s: EnrichSummary): void {
+  const nation = (c: unknown) => { const n = typeof c === "string" ? foldName(c) : ""; return /^(england|scotland|wales|northern ireland|great britain)$/.test(n) ? "united kingdom" : n; };
+  const era = new Map((db.prepare("SELECT b.id AS id, MIN(CAST(substr(e.date, 1, 4) AS INTEGER)) AS first, MAX(CAST(substr(e.date, 1, 4) AS INTEGER)) AS last FROM boxers b JOIN bouts x ON x.red_id = b.id OR x.blue_id = b.id JOIN events e ON e.id = x.event_id WHERE b.wikidata_id IS NULL GROUP BY b.id").all() as { id: number; first: number; last: number }[]).map((r) => [r.id, r] as const));
+  const mine = db.prepare("SELECT id, name, birth_year, country, boxrec_id, birth_date, birth_place, residence FROM boxers WHERE wikidata_id IS NULL AND birth_year IS NOT NULL").all() as { id: number; name: string; birth_year: number; country: string; boxrec_id: string | null; birth_date: string | null; birth_place: string | null; residence: string | null }[];
+  const staged = db.prepare("SELECT * FROM wikidata_boxers WHERE matched_boxer_id IS NULL AND birth_year IS NOT NULL").all() as Record<string, unknown>[];
+  const byKey = new Map<string, Record<string, unknown>[]>();
+  for (const w of staged) { const k = `${w.birth_year}|${nation(w.country)}`; (byKey.get(k) ?? byKey.set(k, []).get(k)!).push(w); }
+  const hits = new Map<string, typeof mine>(); // qid -> our fighters that would claim it
+  const pick = new Map<number, Record<string, unknown>>();
+  for (const b of mine) {
+    const mt = new Set(foldName(b.name).split(" "));
+    const found = (byKey.get(`${b.birth_year}|${nation(b.country)}`) ?? []).filter((w) => {
+      const wt = new Set(foldName(w.name as string).split(" "));
+      if (foldName(w.name as string) === foldName(b.name)) return false;
+      const [small, large] = mt.size <= wt.size ? [mt, wt] : [wt, mt];
+      return small.size >= 2 && [...small].every((t) => large.has(t));
+    });
+    if (found.length !== 1) continue;
+    const e = era.get(b.id);
+    if (!careerFits(b.birth_year, typeof found[0].death_date === "string" ? found[0].death_date : null, e?.first, e?.last)) continue;
+    pick.set(b.id, found[0]); (hits.get(found[0].qid as string) ?? hits.set(found[0].qid as string, []).get(found[0].qid as string)!).push(b);
+  }
+  linkRows(db, s, mine.filter((b) => pick.has(b.id) && hits.get(pick.get(b.id)!.qid as string)!.length === 1).map((b) => [b, pick.get(b.id)!] as const), "name+year+country");
+}
+
+/** Birth names to ring names: `i18n/ring-names.json` maps the name the feed uses to the label Wikidata carries (Floyd Joy Sinclair to Floyd Mayweather). The entity must be unique and its birth year within one of ours. */
+function linkCurated(db: DatabaseSync, s: EnrichSummary): void {
+  const file = path.join(process.env.I18N_DIR ?? path.join(process.cwd(), "i18n"), "ring-names.json");
+  if (!fs.existsSync(file)) return;
+  let map: Record<string, unknown> = {};
+  try { map = JSON.parse(fs.readFileSync(file, "utf8")) as Record<string, unknown>; } catch { return; }
+  const pairs: (readonly [{ id: number; name: string; birth_year: number | null; boxrec_id: string | null; birth_date: string | null; birth_place: string | null; residence: string | null }, Record<string, unknown>])[] = [];
+  for (const [vendorName, label] of Object.entries(map)) {
+    if (typeof label !== "string" || vendorName.startsWith("_")) continue;
+    const ours = db.prepare("SELECT id, name, birth_year, boxrec_id, birth_date, birth_place, residence FROM boxers WHERE name = ? AND wikidata_id IS NULL").all(vendorName) as { id: number; name: string; birth_year: number | null; boxrec_id: string | null; birth_date: string | null; birth_place: string | null; residence: string | null }[];
+    if (ours.length !== 1) continue;
+    const cand = (db.prepare("SELECT * FROM wikidata_boxers WHERE matched_boxer_id IS NULL").all() as Record<string, unknown>[]).filter((w) => foldName(w.name as string) === foldName(label) && (ours[0].birth_year === null || typeof w.birth_year !== "number" || Math.abs(w.birth_year - ours[0].birth_year) <= 1));
+    if (cand.length === 1) pairs.push([ours[0], cand[0]] as const);
+  }
+  linkRows(db, s, pairs as never, "curated");
+}
+
+function linkRows(db: DatabaseSync, s: EnrichSummary, pairs: readonly (readonly [{ id: number; boxrec_id: string | null; birth_year?: number | null; birth_date?: string | null; birth_place?: string | null; residence?: string | null }, Record<string, unknown>])[], method: string): void {
+  if (!pairs.length) return;
+  const str = (v: unknown) => (typeof v === "string" ? v : null);
+  const upd = db.prepare("UPDATE boxers SET wikidata_id = ?, boxrec_id = COALESCE(boxrec_id, ?), birth_year = COALESCE(birth_year, ?), birth_date = COALESCE(birth_date, ?), birth_place = COALESCE(birth_place, ?), residence = COALESCE(residence, ?) WHERE id = ?");
+  const mark = db.prepare("UPDATE wikidata_boxers SET matched_boxer_id = ?, match_method = ? WHERE qid = ?");
+  db.exec("BEGIN");
+  for (const [b, hit] of pairs) {
+    upd.run(hit.qid as string, b.boxrec_id ? null : str(hit.boxrec_id), typeof hit.birth_year === "number" ? hit.birth_year : null, str(hit.birth_date), str(hit.birth_place), str(hit.residence), b.id);
+    mark.run(b.id, method, hit.qid as string);
+    s.linked++; s.byNameCountry++;
+  }
+  db.exec("COMMIT");
+}
+
+/**
+ * Shows the name people know: where the entity's label is the same name with its accents (the feed is ASCII: Prasovic, Prašović), or the fighter was linked as a fuller or shorter
+ * form of the name or from the ring-names list, the label becomes the fighter's name, and the name the feed used stays as an alias (search finds both; the page address is unchanged).
+ * The Arabic name already stored under the old spelling moves with it. Returns how many fighters were renamed.
+ */
+export function applyDisplayNames(db: DatabaseSync): number {
+  const rows = db.prepare(`SELECT b.id, b.name, b.aliases, w.name AS label, w.match_method AS method FROM wikidata_boxers w JOIN boxers b ON b.id = w.matched_boxer_id WHERE w.name IS NOT NULL AND w.name <> b.name`).all() as { id: number; name: string; aliases: string | null; label: string; method: string }[];
+  let n = 0;
+  db.exec("BEGIN");
+  for (const r of rows) {
+    const label = r.label.trim();
+    if (!SAFE_LABEL.test(label)) continue;
+    const accent = foldName(label) === foldName(r.name) && /[^\u0000-\u007f]/.test(label);
+    if (!accent && r.method !== "name+year+country" && r.method !== "curated") continue;
+    // "Errol Spence Jr." stays "Errol Spence Jr.": a name that differs from the label only by a generational suffix is the form the fight world uses
+    const differs = [...new Set(foldName(label).split(" "))].filter((t) => !foldName(r.name).split(" ").includes(t)).concat(foldName(r.name).split(" ").filter((t) => !foldName(label).split(" ").includes(t)));
+    if (!accent && r.method !== "curated" && differs.length && differs.every((t) => SUFFIXES.has(t))) continue;
+    let aliases: string[] = [];
+    try { aliases = r.aliases ? (JSON.parse(r.aliases) as string[]) : []; } catch { aliases = []; }
+    if (!aliases.includes(r.name)) aliases.push(r.name);
+    db.prepare("UPDATE boxers SET name = ?, aliases = ? WHERE id = ?").run(label, JSON.stringify(aliases), r.id);
+    db.prepare("UPDATE name_translations SET en = ? WHERE en = ? AND locale = 'ar' AND source = 'wikidata' AND NOT EXISTS (SELECT 1 FROM name_translations t WHERE t.en = ? AND t.locale = 'ar') AND NOT EXISTS (SELECT 1 FROM boxers o WHERE o.name = ? AND o.id <> ?)").run(label, r.name, label, r.name, r.id);
+    n++;
+  }
+  db.exec("COMMIT");
+  return n;
+}
+
 export interface EnrichSummary { linked: number; byBoxrecId: number; byNameYear: number; byNameCountry: number; ambiguous: number; names: { added: number; kept: number }; filled: { nickname: number; wikipedia: number; birthYear: number; birthDate: number; birthPlace: number; residence: number; boxrecId: number }; honours: { boxers: number; rows: number; hallOfFame: number; olympedia: number } }
 
 /**
@@ -309,6 +451,7 @@ export interface EnrichSummary { linked: number; byBoxrecId: number; byNameYear:
  * Match order: (1) BoxRec ID, if our feed supplies one; (2) normalised name + birth year when exactly one candidate exists; (3) a name unique on both sides in the same country, with a birth year and a career that fit.
  */
 export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
+  repairWikidataLinks(db); // links made on an earlier run that the career does not fit are taken back first
   const staged = db.prepare("SELECT * FROM wikidata_boxers").all() as Record<string, unknown>[];
   const byBoxrec = new Map<string, Record<string, unknown>>();
   const byNameYear = new Map<string, Record<string, unknown>[]>();
@@ -348,8 +491,8 @@ export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
   // fighter of ours and to exactly one staged entity, in the same country (the four home nations are one with the United Kingdom), with a birth year that does not disagree and a career
   // that fits the life (first fight at 14 or later, and before the entity's death). Two people with one name in one country are left alone: nothing is guessed.
   const nation = (c: unknown) => { const n = typeof c === "string" ? norm(c) : ""; return /^(england|scotland|wales|northern ireland|great britain)$/.test(n) ? "united kingdom" : n; };
-  const era = db.prepare("SELECT b.id AS id, MIN(CAST(substr(e.date, 1, 4) AS INTEGER)) AS first FROM boxers b JOIN bouts x ON x.red_id = b.id OR x.blue_id = b.id JOIN events e ON e.id = x.event_id WHERE b.wikidata_id IS NULL GROUP BY b.id").all() as { id: number; first: number }[];
-  const firstYear = new Map(era.map((r) => [r.id, r.first] as const));
+  const era = db.prepare("SELECT b.id AS id, MIN(CAST(substr(e.date, 1, 4) AS INTEGER)) AS first, MAX(CAST(substr(e.date, 1, 4) AS INTEGER)) AS last FROM boxers b JOIN bouts x ON x.red_id = b.id OR x.blue_id = b.id JOIN events e ON e.id = x.event_id WHERE b.wikidata_id IS NULL GROUP BY b.id").all() as { id: number; first: number; last: number }[];
+  const firstYear = new Map(era.map((r) => [r.id, r.first] as const)), lastYear = new Map(era.map((r) => [r.id, r.last] as const));
   const left = db.prepare("SELECT id, name, birth_year, country, boxrec_id, birth_date, birth_place, residence FROM boxers WHERE wikidata_id IS NULL").all() as
     { id: number; name: string; birth_year: number | null; country: string; boxrec_id: string | null; birth_date: string | null; birth_place: string | null; residence: string | null }[];
   const stagedLeft = staged.filter((r) => !claimed.has(r.qid as string) && !r.matched_boxer_id);
@@ -361,14 +504,9 @@ export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
     if (ws.length !== 1 || !ms || ms.length !== 1) continue;
     const hit = ws[0], b = ms[0];
     if (!hit.country || nation(hit.country) !== nation(b.country)) continue;
-    if (typeof hit.birth_year === "number") {
-      if (b.birth_year !== null && Math.abs(hit.birth_year - b.birth_year) > 1) continue;
-      const first = firstYear.get(b.id);
-      if (first !== undefined && first < hit.birth_year + 14) continue;
-    }
-    const died = typeof hit.death_date === "string" ? parseInt(hit.death_date.slice(0, 4), 10) : NaN;
-    const last = firstYear.get(b.id);
-    if (Number.isFinite(died) && last !== undefined && last > died) continue;
+    if (typeof hit.birth_year === "number" && b.birth_year !== null && Math.abs(hit.birth_year - b.birth_year) > 1) continue;
+    // the life must fit the career, at both ends: not a debut before 14, not a last fight more than 50 years after birth, none after the death
+    if (!careerFits(typeof hit.birth_year === "number" ? hit.birth_year : null, typeof hit.death_date === "string" ? hit.death_date : null, firstYear.get(b.id), lastYear.get(b.id))) continue;
     claimed.add(hit.qid as string);
     const str = (v: unknown) => (typeof v === "string" ? v : null);
     upd.run(hit.qid as string, b.boxrec_id ? null : str(hit.boxrec_id), typeof hit.birth_year === "number" ? hit.birth_year : null, str(hit.birth_date), str(hit.birth_place), str(hit.residence), b.id);
@@ -381,6 +519,9 @@ export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
     if (!b.boxrec_id && hit.boxrec_id) s.filled.boxrecId++;
   }
   db.exec("COMMIT");
+  linkVariants(db, s);
+  linkCurated(db, s);
+  applyDisplayNames(db); // before the labels: the Arabic name is stored under the name shown
   applyHonours(db, s);
   applyLabels(db, s);
   return s;

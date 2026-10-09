@@ -9,8 +9,10 @@ export interface NewsItem { id: number; source: string; title: string; url: stri
 export function saveEntries(db: DatabaseSync, source: string, entries: NewsEntry[], now = new Date().toISOString()): number {
   const ins = db.prepare("INSERT OR IGNORE INTO news_items (source, guid, title, url, published, snippet, fetched_at) VALUES (?,?,?,?,?,?,?)");
   let added = 0;
+  let img: ReturnType<DatabaseSync["prepare"]> | null = null;
+  try { img = db.prepare("INSERT INTO news_images (source, guid, image_url) VALUES (?,?,?) ON CONFLICT(source, guid) DO UPDATE SET image_url = excluded.image_url"); } catch { /* a database without the table has no pictures */ }
   db.exec("BEGIN");
-  try { for (const e of entries) added += Number(ins.run(source, e.guid, e.title, e.url, e.published, e.snippet, now).changes); db.exec("COMMIT"); }
+  try { for (const e of entries) { added += Number(ins.run(source, e.guid, e.title, e.url, e.published, e.snippet, now).changes); if (img && e.image) img.run(source, e.guid, e.image); } db.exec("COMMIT"); }
   catch (e) { db.exec("ROLLBACK"); throw e; }
   return added;
 }
@@ -19,7 +21,9 @@ export function saveEntries(db: DatabaseSync, source: string, entries: NewsEntry
 export const KEEP_DAYS = 120;
 export function prune(db: DatabaseSync, now = Date.now()): number {
   const cut = new Date(now - KEEP_DAYS * 86400_000).toISOString();
-  return Number(db.prepare("DELETE FROM news_items WHERE COALESCE(published, fetched_at) < ?").run(cut).changes);
+  const n = Number(db.prepare("DELETE FROM news_items WHERE COALESCE(published, fetched_at) < ?").run(cut).changes);
+  try { db.exec("DELETE FROM news_images WHERE NOT EXISTS (SELECT 1 FROM news_items n WHERE n.source = news_images.source AND n.guid = news_images.guid)"); } catch { /* no such table */ }
+  return n;
 }
 
 type Row = { id: number; source: string; title: string; url: string; published: string | null; snippet: string | null; archive_url: string | null };

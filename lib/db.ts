@@ -35,13 +35,14 @@ CREATE TABLE IF NOT EXISTS official_rankings (
 );
 CREATE INDEX IF NOT EXISTS idx_official_rankings_division ON official_rankings (division, sex, body);
 CREATE INDEX IF NOT EXISTS idx_official_rankings_boxer ON official_rankings (boxer_id);
--- Boxing news headlines read from the outlets' own public feeds: a title, a short excerpt the feed publishes, the date, and the address of the original. Never a body or an
--- image. archive_url is a Wayback Machine copy of the original, found later, so a link that goes dead still leads somewhere.
+-- Boxing news headlines read from the outlets' own public feeds: a title, a short excerpt the feed publishes, the date, and the address of the original. Never a body.
+-- A feed's own picture for an item is kept as an address in news_images; the file itself is saved by the site (lib/news/images.ts). archive_url is a Wayback Machine copy of the original, found later, so a link that goes dead still leads somewhere.
 CREATE TABLE IF NOT EXISTS news_items (
   id INTEGER PRIMARY KEY, source TEXT NOT NULL, guid TEXT NOT NULL, title TEXT NOT NULL, url TEXT NOT NULL, published TEXT, snippet TEXT,
   fetched_at TEXT NOT NULL, archive_url TEXT, archive_checked_at TEXT, UNIQUE (source, guid)
 );
 CREATE INDEX IF NOT EXISTS idx_news_published ON news_items (published DESC);
+CREATE TABLE IF NOT EXISTS news_images (source TEXT NOT NULL, guid TEXT NOT NULL, image_url TEXT NOT NULL, PRIMARY KEY (source, guid));
 CREATE TABLE IF NOT EXISTS news_feeds (
   source TEXT PRIMARY KEY, etag TEXT, last_modified TEXT, checked_at TEXT, status TEXT, items INTEGER
 );

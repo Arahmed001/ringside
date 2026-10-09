@@ -13,6 +13,7 @@ import { refreshNews } from "../lib/news/fetch";
 import { findArchives } from "../lib/news/archive";
 import { refreshVideos } from "../lib/news/youtube";
 import { refreshThumbs } from "../lib/news/thumbs";
+import { refreshImages } from "../lib/news/images";
 import { ALL_SOURCES, sourcesFor } from "../lib/news/sources";
 
 /** The YouTube key: YOUTUBE_API_KEY if set, else the first line of ~/.ringside-youtube-key (made readable by you only). It is never printed. */
@@ -36,11 +37,13 @@ async function main() {
   const db = new DatabaseSync(file);
   try {
     db.exec("CREATE TABLE IF NOT EXISTS news_items (id INTEGER PRIMARY KEY, source TEXT NOT NULL, guid TEXT NOT NULL, title TEXT NOT NULL, url TEXT NOT NULL, published TEXT, snippet TEXT, fetched_at TEXT NOT NULL, archive_url TEXT, archive_checked_at TEXT, UNIQUE (source, guid)); CREATE INDEX IF NOT EXISTS idx_news_published ON news_items (published DESC); CREATE TABLE IF NOT EXISTS news_feeds (source TEXT PRIMARY KEY, etag TEXT, last_modified TEXT, checked_at TEXT, status TEXT, items INTEGER);");
+    db.exec("CREATE TABLE IF NOT EXISTS news_images (source TEXT NOT NULL, guid TEXT NOT NULL, image_url TEXT NOT NULL, PRIMARY KEY (source, guid))");
     console.log("");
     const out = await refreshNews(db, { contact, log: (l) => console.log(`  ${l}`) });
     const vids = await refreshVideos(db, { key: youtubeKey(), contact, log: (l) => console.log(`  ${l}`) });
     if (vids.some((v) => v.ok)) console.log(`  official videos: ${vids.reduce((n, v) => n + v.added, 0)} new`);
     await refreshThumbs(db, { dir: path.join(path.dirname(file), "video-thumbs"), contact, log: (l) => console.log(`  ${l}`) });
+    await refreshImages(db, { dir: path.join(path.dirname(file), "news-images"), contact, log: (l) => console.log(`  ${l}`) });
     const arc = process.argv.includes("--no-archive") ? null : await findArchives(db, { contact });
     if (arc) console.log(`  Wayback copies: ${arc.found} found of ${arc.checked} asked about`);
     const total = (db.prepare("SELECT COUNT(*) c FROM news_items").get() as { c: number }).c;

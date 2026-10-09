@@ -69,7 +69,11 @@ export function buildDataset(w: World): Row[] {
         (pre.red - pre.blue) / 100, diff(r.reach, u.reach), diff(r.age, u.age), r.idle - u.idle, r.ko - u.ko, r.chin - u.chin, r.exp - u.exp, r.rehyd - u.rehyd,
         wr?.fightNightLb && wb?.fightNightLb ? wr.fightNightLb - wb.fightNightLb : 0, r.newTrainer - u.newTrainer, r.trainerWins - u.trainerWins,
       ];
-      rows.push({ date: b.date, boutId: b.id, x, y: b.winnerId === b.redId ? 1 : 0 });
+      // Which fighter is called "red" must tell the fit nothing. The feed lists the winner first, so red won 95% of the real decided fights; left alone, a fit learns a huge corner
+      // intercept, reports 93% accuracy for "pick red" and tunes every other weight on the 5% exceptions. Every odd-numbered bout is therefore turned round (the features negated, the
+      // outcome flipped): the two fighters are the same, only the point of view moves.
+      const flip = b.id % 2 === 1;
+      rows.push({ date: b.date, boutId: b.id, x: flip ? x.map((v) => -v) : x, y: (b.winnerId === b.redId) !== flip ? 1 : 0 });
     }
     // update running state AFTER the bout is used
     for (const [id, s, f, fw] of [[b.redId, sr, red, wr], [b.blueId, sb, blue, wb]] as const) {

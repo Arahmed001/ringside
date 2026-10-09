@@ -1,0 +1,5 @@
+{
+ "_note": "Birth names the feed uses, and the name the fighter is known by (the label Wikidata carries). Used when the fighters are linked to Wikidata (npm run vendor:enrich): the fighter is linked to the one entity with that label whose birth year is within one of ours, shown under the ring name, and the feed's name stays searchable. Add a line only for a name you have checked.",
+ "Floyd Joy Sinclair": "Floyd Mayweather",
+ "Emmanuel Dapidran Pacquiao": "Manny Pacquiao"
+}

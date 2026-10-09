@@ -68,3 +68,21 @@ test("a world that cannot be built is a 503 that names no path or message", asyn
   const again = await GET();
   assert.equal(again.status, 200);
 });
+
+test("?strict=1 is for a monitor that reads only the status code: 503 while a licensed feed is stale, 200 otherwise, and the plain answer never changes", async () => {
+  const { getDb } = await import("../lib/db");
+  const { GET } = await import("../app/api/health/route");
+  const db = await getDb(), saved = process.env.BOXING_PROVIDER;
+  const set = (iso: string) => { db.exec("DELETE FROM ingest_runs WHERE provider = 'boxing-data-api'"); db.prepare("INSERT INTO ingest_runs (at, provider, errors, warnings, infos, counts, dropped) VALUES (?, 'boxing-data-api', 0, 0, 0, '{}', 0)").run(iso); };
+  const strict = () => GET(new Request("http://localhost/api/health?strict=1"));
+  try {
+    process.env.BOXING_PROVIDER = "licensed";
+    set("2026-10-03T00:00:00.000Z");
+    assert.equal((await strict()).status, 200);
+    set("2026-09-30T23:00:00.000Z");
+    const r = await strict(), body = await r.json();
+    assert.equal(r.status, 503); assert.equal(body.status, "degraded"); assert.deepEqual(body.reasons, ["the data is stale"]);
+    assert.equal((await GET()).status, 200, "without ?strict=1 a stale feed is still a 200");
+    assert.equal((await GET(new Request("http://localhost/api/health"))).status, 200);
+  } finally { if (saved === undefined) delete process.env.BOXING_PROVIDER; else process.env.BOXING_PROVIDER = saved; db.exec("DELETE FROM ingest_runs WHERE provider = 'boxing-data-api'"); }
+});
