@@ -28,7 +28,7 @@ async function main() {
     return;
   }
   const id = arg("source");
-  if (!id) throw new Error(`Say which source: --source ${SOURCES.map((s) => s.id.split(":").pop()).join(" | ")}`);
+  if (!id) throw new Error(`Say which source: --source ${SOURCES.filter((s) => s.run).map((s) => s.id.split(":").pop()).join(" | ")}`);
   const main = await getDb();
   const dryRun = flag("dry-run");
   const orgs = arg("org")?.split(",").map((x) => x.trim().toUpperCase());

@@ -1,6 +1,6 @@
 # The vendor update gate: a plan for review
 
-Status: **step D1 is built (observe and report only; nothing is held or changed). D2 onwards are not. The owner's decisions of 2026-10-09 are recorded in section 11 and applied below.** It follows PLAN 253 (source watchers), whose steps A to C are on main. This page is what to read and decide on before step D starts, because the gate touches `lib/ingest.ts`, the most sensitive code in the project.
+Status: **steps D1 (observe and report) and D2 (hold) are built; E1 and E2 are not. D2 is behind `VENDOR_GATE=hold`, off by default. The owner's decisions of 2026-10-09 are recorded in section 11 and applied below.** It follows PLAN 253 (source watchers), whose steps A to C are on main. This page is what to read and decide on before step D starts, because the gate touches `lib/ingest.ts`, the most sensitive code in the project.
 
 ## 1. What was asked
 
@@ -116,6 +116,16 @@ The site keeps serving the last approved data. `/api/health` already shows `upda
 - **Use**: switch `VENDOR_GATE=observe` on in the nightly job's environment and read `gate-reports/` after five to seven nights; those numbers set the flood-guard thresholds (section 6) before D2 enforces them.
 - **Cost, measured** on a database of 30,000 fighters and 60,000 fights, with an update touching 400 fighters and 800 fights: 661 ms without the observer, 718 ms observing a night with nothing to change, 740 ms observing 400 changed heights (resident memory about 366 MB for the whole test process). The observer copies only the rows the feed names, so it grows with the update, not with the league.
 - The 30-day memory of a rejected change (decision 5) is in `lib/watch/proposals.ts` (`PROPOSAL_REJECT_MEMORY_DAYS`).
+
+## 10c. Step D2: what is built (holding)
+
+- **`VENDOR_GATE=hold`**, only on an `--update` into a database that already holds fighters. After the update's writes and before its COMMIT, `lib/watch/vendor-gate.ts` reads the changes (`collectChanges`), checks the flood guard (a night over it is refused whole: `GateRefusal`, rolled back, exit 3, nothing written), and **puts the old value back** (`restoreHeld`) for every change the policy says must wait. The transaction then commits once: new rows, odds and picture paths are in; nothing held is visible to any page. After the commit the held changes become proposals (`flush`).
+- **Three kinds of proposal** (source `vendor:boxing-data-api`): `field_change` (one per fighter, card, organisation or person field), `result_change` (one per fight, with its winner, method, rounds, time, knockdowns, status and judges' `scores`, and the two fighters' career totals that it explains, applied with it), `list_change` (one per official-rankings list). A fighter's totals that a **new** fight explains go in with that fight.
+- **Applying an approval** (`lib/watch/vendor-apply.ts`): writes exactly the change shown, only for columns the policy lists as waiting, refuses one that no longer fits (`stale`) and is safe to run twice. For a batch, accepted corrections are put back over what was approved and the ratings are recomputed once if a result moved (`lib/watch/decide.ts`).
+- **A rejection keeps our value**: every night the update overwrites it and the gate puts it back, and the proposal is not raised again for 30 days.
+- **The first night**: run the update once with `--gate-baseline` (for the nightly job: `RINGSIDE_NIGHTLY_UPDATE_ARGS="--gate-baseline"` for one night) so the flood guard does not refuse the pile left from before; it is then recorded as proposals. `--accept-all` lets one update through unheld and writes `update.accept_all` to the audit log.
+- **The guarantee, as a test**: for a busy night (a height, a nickname, a stance, a country, a result arriving, an old result overturned, an event renamed and moved, an organisation and a person renamed, a new fighter, a ranking list), holding and then approving everything leaves every table, ratings and their history included, identical to an ungated update.
+- The approval page shows the vendor kinds (details, results with the fighters' totals, ranking lists). Grouping by field, "approve all lists", standing rules and the baseline action are E1; the nightly wiring, health and doctor warnings are E2.
 
 ## 11. Decisions (owner, 2026-10-09)
 

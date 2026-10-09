@@ -60,9 +60,9 @@ test("the policy: every gated column exists in the schema, the result and the to
   assert.equal(policy.policyFor("boxers", "height_cm")!.rule, "wait", "a blank filled waits too (decision 1)");
 });
 
-test("the settings: off by default, observe is the only other mode, a bad value is ignored with a warning", () => {
-  assert.deepEqual([policy.gateSettings({}).mode, policy.gateSettings({ VENDOR_GATE: "observe" }).mode, policy.gateSettings({ VENDOR_GATE: "0" }).mode], ["off", "observe", "off"]);
-  const bad = policy.gateSettings({ VENDOR_GATE: "hold", VENDOR_GATE_MAX_FIELD_SHARE: "7", VENDOR_GATE_MAX_NIGHT: "x" });
+test("the settings: off by default, observe and hold are the other modes, a bad value is ignored with a warning", () => {
+  assert.deepEqual([policy.gateSettings({}).mode, policy.gateSettings({ VENDOR_GATE: "observe" }).mode, policy.gateSettings({ VENDOR_GATE: "hold" }).mode, policy.gateSettings({ VENDOR_GATE: "0" }).mode], ["off", "observe", "hold", "off"]);
+  const bad = policy.gateSettings({ VENDOR_GATE: "freeze", VENDOR_GATE_MAX_FIELD_SHARE: "7", VENDOR_GATE_MAX_NIGHT: "x" });
   assert.equal(bad.mode, "off"); assert.equal(bad.maxFieldShare, 0.3); assert.equal(bad.maxNight, 2000); assert.equal(bad.warnings.length, 3);
 });
 

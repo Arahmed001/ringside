@@ -1,10 +1,11 @@
 import type { DatabaseSync } from "node:sqlite";
 import { championsSource } from "./champions";
+import { vendorSource } from "./vendor-apply";
 import { reconcile, type ReconcileReport } from "./proposals";
 import type { WatchContext, WatchResult, WatchSource } from "./types";
 
 /** Every source the watcher knows. A new source is added here disabled, with its terms written down, and enabled once someone has read them. */
-export const SOURCES: WatchSource[] = [championsSource];
+export const SOURCES: WatchSource[] = [championsSource, vendorSource];
 
 export interface WatchReport { source: string; compared: number; changes: number; refused: WatchResult["refused"]; proposals: ReconcileReport | null }
 
@@ -13,6 +14,7 @@ export async function runWatch(sourceId: string, ctx: WatchContext, acc: Databas
   const src = SOURCES.find((s) => s.id === sourceId || s.id.endsWith(`:${sourceId}`));
   if (!src) throw new Error(`No such source: ${sourceId}. Choose from ${SOURCES.map((s) => s.id).join(", ")}.`);
   if (!src.enabled) throw new Error(`${src.id} is switched off until its terms have been read and recorded.`);
+  if (!src.run) throw new Error(`${src.id} is not looked at by the watcher: its changes come from the daily update.`);
   const r = await src.run(ctx);
   const proposals = o.dryRun ? null : reconcile(acc, src.id, r.changes, r.scope, o.now);
   return { source: src.id, compared: r.compared, changes: r.changes.length, refused: r.refused, proposals };

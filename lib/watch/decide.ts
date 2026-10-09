@@ -2,11 +2,13 @@ import type { DatabaseSync } from "node:sqlite";
 import { audit, nowIso } from "../accounts/store";
 import type { User } from "../accounts/users";
 import { SOURCES } from "./run";
+import { applyCorrections } from "../accounts/corrections";
+import { recomputeRatings } from "../ingest";
 
 export const MAX_BATCH = 50;
 export type DecideError = "forbidden" | "not_found" | "not_pending" | "unknown_source" | "stale" | "gone" | "bad_proposal" | "note_required" | "too_many" | "failed";
 export interface Decided { id: number; ok: boolean; error?: DecideError }
-export interface DecideReport { results: Decided[]; approved: number; rejected: number; changedData: boolean }
+export interface DecideReport { results: Decided[]; approved: number; rejected: number; changedData: boolean; ratingsRecomputed: boolean }
 
 /**
  * An admin's decision on proposed changes. This is the only place a proposal changes the live data, and only an admin may call it (editors keep the report queues).
@@ -20,7 +22,8 @@ export function decide(admin: User | null, ids: number[], decision: "approved" |
   if (!ids.length || ids.length > MAX_BATCH) return { error: "too_many" };
   note = note.trim();
   if (decision === "rejected" && !note) return { error: "note_required" };
-  const report: DecideReport = { results: [], approved: 0, rejected: 0, changedData: false };
+  const report: DecideReport = { results: [], approved: 0, rejected: 0, changedData: false, ratingsRecomputed: false };
+  let ratings = false;
   const get = acc.prepare("SELECT * FROM proposals WHERE id = ?");
   const mark = acc.prepare("UPDATE proposals SET status = ?, decided_by = ?, decided_at = ?, note = ? WHERE id = ? AND status = 'pending'");
   for (const id of [...new Set(ids)]) {
@@ -36,11 +39,17 @@ export function decide(admin: User | null, ids: number[], decision: "approved" |
       } catch { report.results.push({ id, ok: false, error: "failed" }); continue; }
       if (!r.ok) { report.results.push({ id, ok: false, error: r.error }); continue; }
       if (r.changed) report.changedData = true;
+      if (r.ok && r.ratings) ratings = true;
     }
     mark.run(decision, admin.id, nowIso(), note || null, id);
     audit(acc, admin.username, decision === "approved" ? "update.approve" : "update.reject", `proposal:${id}`, JSON.stringify({ source: p.source, kind: p.kind, key: p.target_key, note: note || undefined }));
     report.results.push({ id, ok: true });
     if (decision === "approved") report.approved++; else report.rejected++;
+  }
+  // what the daily update does after it writes, done once for the whole batch: accepted corrections are put back over what was approved, and a moved result moves the ratings
+  if (report.changedData) {
+    try { applyCorrections(main, acc); } catch (e) { console.error("corrections not applied:", (e as Error).message); }
+    if (ratings) { recomputeRatings(main); report.ratingsRecomputed = true; }
   }
   return report;
 }
