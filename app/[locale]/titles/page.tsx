@@ -68,12 +68,12 @@ export default async function Titles({ searchParams }: { searchParams: Promise<{
                         <Headshot boxer={champ} size={44} />
                         <div className="min-w-0">
                           <div className="truncate font-display text-xl font-bold leading-tight">{t.name(champ.name)}</div>
-                          <div className="text-xs text-muted">{t("since {date}", { date: fmtDate(b.current.start, { month: "short", year: "numeric" }, t.locale) })} · {t.n(b.current.defenses.length, "{n} defence", "{n} defences")}</div>
+                          <div className="text-xs text-muted">{b.stale ? t("last known champion, since {date}", { date: fmtDate(b.current.start, { month: "short", year: "numeric" }, t.locale) }) : t("since {date}", { date: fmtDate(b.current.start, { month: "short", year: "numeric" }, t.locale) })} · {t.n(b.current.defenses.length, "{n} defence", "{n} defences")}</div>
                           {(holders.get(champ.id) ?? 0) > 1 && !b.stale && <span className="chip mt-1 !border-gold/40 !px-2 !py-0 text-xs !text-gold">{t("holds {n} belts", { n: holders.get(champ.id) ?? 0 })}</span>}
                         </div>
                       </div>
                     ) : <div className="text-sm text-muted">{t("Vacant")}</div>}
-                    <div className="mt-3 text-xs text-muted">{t.n(b.reigns.length, "{n} reign", "{n} reigns")} · {t.n(b.titleFights, "{n} title fight", "{n} title fights")}</div>
+                    <div className="mt-3 text-xs text-muted">{t.n(b.reigns.length, "{n} reign on this belt", "{n} reigns on this belt")} · {t.n(b.titleFights, "{n} title fight", "{n} title fights")}</div>
                   </Link>
                 );
               })}

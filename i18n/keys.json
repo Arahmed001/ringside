@@ -863,7 +863,6 @@
   "plural": "{n} reign",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx",
-   "app/[locale]/titles/page.tsx",
    "lib/records.ts"
   ]
  },
@@ -872,6 +871,13 @@
   "plural": "{n} reign on record",
   "files": [
    "components/TitlesCard.tsx"
+  ]
+ },
+ {
+  "key": "{n} reigns on this belt",
+  "plural": "{n} reign on this belt",
+  "files": [
+   "app/[locale]/titles/page.tsx"
   ]
  },
  {
@@ -7861,6 +7867,12 @@
   "key": "Last fought today",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "last known champion, since {date}",
+  "files": [
+   "app/[locale]/titles/page.tsx"
   ]
  },
  {
@@ -15700,7 +15712,7 @@
   ]
  },
  {
-  "key": "What {n} professional bouts actually say about the sport.",
+  "key": "What {n} fights with a result actually say about the sport.",
   "files": [
    "app/[locale]/analytics/page.tsx"
   ]

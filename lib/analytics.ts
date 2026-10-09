@@ -3,18 +3,22 @@ import type { BoutRow } from "./types";
 import { WEIGHT_CLASSES } from "./types";
 import { METHODS, countsInRecord, isStoppage } from "./methods";
 import { memo } from "./memo";
+import { canonicalCountry } from "./format";
 
 /** Completed bouts that count toward records, chronological. Shared by every aggregate below. */
 const done = (w: World): BoutRow[] => memo(w, "done", () => w.bouts.filter((b) => !b.upcoming && countsInRecord(b.method)));
 const isKO = isStoppage; // corner retirements count as knockouts, as in fighters' records
 
+/** The fighters every headline count is about: those with at least one fight held and a country, the same rule as the Countries page, so the pages agree. */
+const fought = (w: World) => memo(w, "foughtBoxers", () => w.boxers.filter((b) => b.bouts > 0 && b.country));
+
 export const overview = (w: World) => memo(w, "overview", () => {
   const d = done(w);
   return {
-    boxers: w.boxers.length,
+    boxers: fought(w).length,
     bouts: d.length,
     events: w.events.filter((e) => !e.upcoming).length,
-    countries: new Set(w.boxers.map((b) => b.country)).size,
+    countries: new Set(fought(w).map((b) => canonicalCountry(b.country))).size,
     finishRate: d.length ? d.filter((b) => isKO(b.method)).length / d.length : 0,
   };
 });
@@ -82,10 +86,11 @@ export const biggestUpsets = (w: World, n = 8, since?: string) => memo(w, `bigge
 
 export const countryLeaders = (w: World) => memo(w, "countryLeaders", () => {
   const m = new Map<string, { boxers: number; wins: number; bouts: number }>();
-  for (const b of w.boxers) {
-    const r = m.get(b.country) ?? { boxers: 0, wins: 0, bouts: 0 };
+  for (const b of fought(w)) {
+    const c = canonicalCountry(b.country);
+    const r = m.get(c) ?? { boxers: 0, wins: 0, bouts: 0 };
     r.boxers++; r.wins += b.wins; r.bouts += b.bouts;
-    m.set(b.country, r);
+    m.set(c, r);
   }
   return [...m].map(([country, v]) => ({ country, ...v, winRate: v.bouts ? v.wins / v.bouts : 0 })).sort((a, b) => b.wins - a.wins);
 });
