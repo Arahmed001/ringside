@@ -31,6 +31,13 @@ export const probe: Probe = {
     } catch (e) { return { exists: true, error: (e as Error).message.slice(0, 120) }; }
   },
   file: (p) => fs.existsSync(p),
+  updates(accountsPath) {
+    if (!fs.existsSync(accountsPath)) return null;
+    try {
+      const db = new DatabaseSync(accountsPath, { readOnly: true });
+      try { const r = db.prepare("SELECT COUNT(*) c, MIN(first_seen) o FROM proposals WHERE status = 'pending'").get() as { c: number; o: string | null }; return r.c ? { waiting: r.c, oldestSeen: r.o } : null; } finally { db.close(); }
+    } catch { return null; }
+  },
   nightly: (dir) => lastNightly({ DATABASE_PATH: path.join(dir, "ringside.db") }),
   newestBackup(dir) {
     try {
