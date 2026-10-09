@@ -68,7 +68,7 @@ export function makeWorld(o: { fighters: number; fights: number; years?: number;
     if (b === a) b = pool[(pool.indexOf(a) + 1) % pool.length];
     const date = coming ? day(today, 3 + Math.floor(rand() * 40)) : day(start, Math.floor(rand() * (span - 1)));
     const r = rand();
-    const f: MockFight = { id: `x${i}`, date, a, b, status: coming ? "NOT_STARTED" : "FINISHED", winner: coming ? null : r < 0.47 ? "a" : r < 0.94 ? "b" : null, outcome: coming ? null : r < 0.94 ? (rand() < 0.4 ? "KO" : "UD") : "UD", round: null, division: fighters.get(a)!.division, event: `e${date}-${Math.floor(i % 7)}` };
+    const f: MockFight = { id: `x${i}`, date, a, b, status: coming ? "NOT_STARTED" : "FINISHED", winner: coming ? null : r < 0.47 ? "a" : r < 0.94 ? "b" : null, outcome: coming ? null : r < 0.94 ? (rand() < 0.4 ? "KO" : "UD") : "D", round: null, division: fighters.get(a)!.division, event: `e${date}-${Math.floor(i % 7)}` };
     if (f.outcome === "KO") f.round = 1 + Math.floor(rand() * 11);
     fights.push(f);
     if (!coming) {

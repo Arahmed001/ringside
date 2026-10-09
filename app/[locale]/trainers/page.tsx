@@ -44,6 +44,19 @@ export default async function Trainers() {
   const clear = T.all.filter((x) => x.verdict === "above" || x.verdict === "below").length;
   const leaning = T.all.filter((x) => x.verdict.startsWith("leaning")).length;
 
+  if (T.all.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <div className="eyebrow mb-2">{t("Camps")}</div>
+          <h1 className="font-display text-5xl font-extrabold uppercase">{t("Trainer impact")}</h1>
+          <p className="mt-2 max-w-3xl text-muted">{t("Does the head trainer change how a fighter performs? Fighters’ ratings rising under a trainer proves little: young fighters rise whoever trains them. So each trainer’s effect is estimated together with every fighter’s own ability, using fighters who have worked with more than one trainer, and every estimate comes with its error bars.")}</p>
+        </div>
+        <p className="card max-w-3xl p-6 text-muted">{t("No trainers are on record yet. The data supplier does not say who trains whom, so there is nothing to estimate; this page fills in when a source for trainers is loaded.")}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-12">
       <div>

@@ -52,7 +52,7 @@ export default async function Tonight() {
           )}
         </>
       )}
-      <p className="text-xs text-muted">{t("The fighters and results here are the demo league’s, not a live scoreboard. When a card is on, this page checks for new results every minute.")}</p>
+      <p className="text-xs text-muted">{(process.env.BOXING_PROVIDER ?? "demo").trim() === "licensed" ? t("Results here are as of the last data update, not a live scoreboard. When a card is on, this page checks for new results every minute.") : t("The fighters and results here are the demo league’s, not a live scoreboard. When a card is on, this page checks for new results every minute.")}</p>
     </div>
   );
 }

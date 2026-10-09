@@ -72,3 +72,8 @@ test("the legacy score needs ten bouts, so nobody qualifies in a tiny league, an
   assert.deepEqual(R.recordList(w, "greatest", {}, 5), []);
   assert.deepEqual(R.LEGACY_PARTS, ["peak", "quality", "reign", "defenses", "streak", "honours"]);
 });
+
+test("the fastest-knockouts list needs the clock of the final round: stoppages with no time are not listed as 0:00", () => {
+  assert.ok(w.bouts.some((b) => b.method === "KO"), "the fixture has a knockout");
+  assert.deepEqual(R.recordList(w, "fastest-kos", {}, 5), [], "no bout in this data has a round time, so nobody qualifies");
+});

@@ -189,6 +189,8 @@ function compute(w: World, id: ListId, scope: Scope, n: number): Row[] {
       const rows: Omit<Row, "rank">[] = [];
       for (const b of done(w)) {
         if (!isStoppage(b.method) || !boutInScope(w, b, scope)) continue;
+        // the clock of the final round must be known: without it a stoppage in round 1 would read 0:00 (the real vendor feed gives no round times at all)
+        if (!/^\d+:\d{2}$/.test(b.roundTime ?? "")) continue;
         const s = secondsIn(b);
         if (s !== null) rows.push({ bout: b, value: s });
       }
