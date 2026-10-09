@@ -122,6 +122,8 @@ export async function deleteUser(userId: number, password: string, db: DatabaseS
   // What outlives the account's own rows must not name the person: the contact left on a report, and the activity log, where the name is in
   // `actor` (they did something), `target` ("alice -> boxer", an operator acted on them) or `detail` (a decision about something of theirs).
   db.prepare("UPDATE reports SET contact = NULL WHERE user_id = ?").run(userId);
+  (await import("../photos/submissions")).withdrawPendingFor(userId, db); // pictures still waiting go with the account (and their files)
+  db.prepare("UPDATE photo_submissions SET note = NULL WHERE user_id = ?").run(userId); // a note to the editor may say who they are
   eraseForumFor(userId, db); // what they wrote in the forum: the words are wiped, the places stay
   scrubName(db, row.username as string);
   db.prepare("DELETE FROM users WHERE id = ?").run(userId); // cascades to sessions, resets, picks, watchlist; contributions and reports keep their rows with user_id NULL

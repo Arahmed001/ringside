@@ -16,9 +16,20 @@ The record lives in the accounts database, so it survives a reload of the sports
 npm run photos:apply -- --database ~/ringside-real/real.db
 ```
 
+## Pictures sent in through the site
+
+Anyone signed in can send a picture from a fighter's page ("Is this you or your fighter? Send a photo", under the report link). They choose who they are to the picture (the fighter, the team or promoter, the photographer, someone else with permission), write the credit, and tick a box saying they took it or have the owner's permission. Nothing appears until an editor decides.
+
+- **What is accepted:** a real JPEG or PNG (judged by the file's first bytes, not its name), up to 4 MB, 300 to 8000 pixels on each side. The kept copy has its location, camera and comment data removed.
+- **Limits:** three pictures waiting per person, five per fighter, and the usual rate limit.
+- **Deciding:** editors open **/review/photos**, section "Pictures sent in", look at the picture and the sender (an account linked to the fighter is marked), and press Approve or Refuse. Approve records the picture "by permission" with the sender as the evidence and shows it on the fighter's page at once; a photo that came with the supplier's data is never replaced. Refuse deletes the file. You cannot decide on your own picture unless you are an admin.
+- **Where the files are:** in a `photos` folder next to the accounts database (on Fly, `/data/photos`). They are served at `/api/photo-file/<name>` only while on a fighter's page (or to the sender and editors while waiting).
+- **Backups:** `npm run backup` copies the databases, **not** this folder. The record of an approved picture is in the accounts database, but the picture file itself is only in `photos`. Copy that folder when you copy the databases (on Fly: `fly ssh sftp get -R /data/photos`), or a restore would show broken pictures until the senders send them again.
+- **Corrections:** if the owner of a picture asks for it to be taken down, remove its record on the same page.
+
 ## Where the picture is stored
 
-Nowhere on this site: the page points the visitor's browser at the address you gave (the rights-holder's own hosting or the Commons thumbnail), and the privacy page already says pictures come from other websites. If you want pictures on your own hosting, put the file there and record that address; a licence that allows showing a picture usually allows hosting it, but a *permission* should say so.
+For a picture recorded by its address: nowhere on this site: the page points the visitor's browser at the address you gave (the rights-holder's own hosting or the Commons thumbnail), and the privacy page already says pictures come from other websites. If you want pictures on your own hosting, put the file there and record that address; a licence that allows showing a picture usually allows hosting it, but a *permission* should say so.
 
 ## Asking for permission (a template you send yourself)
 
