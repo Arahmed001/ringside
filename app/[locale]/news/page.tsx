@@ -31,7 +31,7 @@ export default async function News({ searchParams }: { searchParams: Promise<{ s
       <div className="rise">
         <div className="eyebrow mb-2">{t("In the news")}</div>
         <h1 className="font-display text-5xl font-extrabold uppercase leading-[.95] sm:text-6xl">{t("Boxing news")}</h1>
-        <p className="mt-3 max-w-2xl text-muted">{t("Headlines from boxing outlets. Each one links to the original story on the outlet's own site; we show only the headline and the short excerpt the outlet itself publishes.")}</p>
+        <p className="mt-3 max-w-2xl text-muted">{t("Headlines from boxing outlets. Each one links to the original story on the outlet's own site; we show the headline, the short excerpt and the picture the outlet itself publishes in its feed.")}</p>
       </div>
       <nav aria-label={t("News sections")} className="flex flex-wrap gap-2">
         <Link href="/news?tab=videos" aria-current={tab === "videos" ? "page" : undefined} className={`inline-flex min-h-11 items-center rounded-full border px-4 text-sm ${tab === "videos" ? "border-gold/60 text-ink" : "border-line text-muted hover:text-ink"}`}>{t("Videos to watch")}</Link>

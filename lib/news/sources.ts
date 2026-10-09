@@ -1,6 +1,6 @@
 /**
  * The boxing news feeds the site may list, and what each publisher lets a site do with them. The site shows a headline, a short excerpt the feed itself publishes,
- * the outlet's name, the date and a link to the original: never an article body and never an image. Every entry says why it is allowed.
+ * the outlet's name, the date, a link to the original, and the one picture the outlet's own feed offers for the headline (saved by this site and shown from its own address; lib/news/images.ts): never an article body. Every entry says why it is allowed.
  *
  * `use: "open"` is a feed with no restriction on being listed (an independent outlet's public feed). `use: "noncommercial"` is a feed whose publisher limits it to
  * non-commercial sites (the public broadcasters and newspapers): it is fetched only when the owner sets NEWS_NONCOMMERCIAL=1, which is the owner's statement
