@@ -2,6 +2,7 @@ import Link from "@/components/L";
 import { NavLink } from "@/components/NavLink";
 import { Icon } from "@/components/NavIcons";
 import { NAV_GROUPS } from "@/lib/nav";
+import { EditorNav } from "@/components/EditorNav";
 import { getT } from "@/lib/i18n/server";
 
 /**
@@ -29,6 +30,7 @@ export async function NavGroups({ id }: { id?: string }) {
           </ul>
         </div>
       ))}
+      <EditorNav />
     </nav>
   );
 }
