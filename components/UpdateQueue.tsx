@@ -152,7 +152,7 @@ function Item({ r, pending, busy, decide }: { r: ProposalRow; pending: boolean; 
   const btn = "rounded-xl border border-line bg-panel2 px-4 py-2 transition hover:border-white/30 disabled:opacity-60";
   return (
     <li className="card space-y-3 p-5 text-sm">
-      <div className="font-display text-xl font-bold">{r.kind === "reign_changed" ? r.label.split(": ").slice(0, -1).join(": ") : r.label}</div>
+      <div {...(r.kind === "result_set" ? { lang: "en", dir: "ltr" as const } : {})} className="font-display text-xl font-bold">{r.kind === "reign_changed" ? r.label.split(": ").slice(0, -1).join(": ") : r.label}</div>
       <table className="w-full text-start">
         <caption className="sr-only">{r.label}</caption>
         <thead><tr className="text-xs uppercase tracking-widest text-muted"><th scope="col" className="py-1 pe-3 text-start font-normal">{t("Detail")}</th><th scope="col" className="py-1 pe-3 text-start font-normal">{t("Held now")}</th><th scope="col" className="py-1 text-start font-normal">{t("Source says")}</th></tr></thead>

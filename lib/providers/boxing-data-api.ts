@@ -445,7 +445,8 @@ export function mergeDuplicateFights(bouts: ProviderBout[], eventDates: Map<stri
   bouts.forEach((b, i) => { if (b.status !== "cancelled") { const k = [who(b.redExternalId), who(b.blueExternalId)].sort().join("|"); (groups.get(k) ?? groups.set(k, []).get(k)!).push(i); } });
   const drop = new Set<number>(), blank = new Set<number>();
   const hasResult = (b: ProviderBout) => !!b.winnerExternalId || b.method === "DRAW";
-  const verdict = (b: ProviderBout) => b.winnerExternalId ?? (b.method === "DRAW" ? "DRAW" : "");
+  // the winner by name, as the groups are: two profiles of one fighter (copies "across profiles") must not read as two different winners
+  const verdict = (b: ProviderBout) => (b.winnerExternalId ? who(b.winnerExternalId) : b.method === "DRAW" ? "DRAW" : "");
   const gap = (a: string, b: string) => Math.abs(Date.parse(a) - Date.parse(b)) / 86_400_000;
   for (const idxs of groups.values()) {
     if (idxs.length < 2) continue;

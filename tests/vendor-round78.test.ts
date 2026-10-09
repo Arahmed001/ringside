@@ -138,3 +138,17 @@ test("one fighter under two profiles spelled with and without a letter that has 
   assert.equal(out.length, 2);
   assert.equal(n.duplicateFightsMerged, 2); assert.equal(n.duplicateFightsAcrossProfiles, 2);
 });
+
+test("two copies under two profiles of the same winner agree: the result is kept, not blanked as a disagreement", () => {
+  const n = notes();
+  const names = new Map([["H1", "Hal Hill"], ["H2", "Hal  Hill"], ["D", "Dan Day"], ["Z", "Zed Zee"]]);
+  const out = B.mergeDuplicateFights([
+    bout("a", "H1", "D", "e1", { winnerExternalId: "H1" }),
+    bout("b", "H2", "D", "e1", { winnerExternalId: "H2" }),
+  ], dates, n, names);
+  assert.equal(out.length, 1); assert.equal(n.duplicateFightsDisagree, 0);
+  assert.equal(out[0].method, "UD"); assert.ok(out[0].winnerExternalId === "H1" || out[0].winnerExternalId === "H2");
+  // the same copies with different winners by name are still not believed
+  const m = B.mergeDuplicateFights([bout("c", "H1", "D", "e1", { winnerExternalId: "H1" }), bout("d", "H2", "D", "e1", { winnerExternalId: "D" })], dates, notes(), names);
+  assert.equal(m.length, 1); assert.equal(m[0].method, null);
+});

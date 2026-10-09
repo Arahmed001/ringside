@@ -120,6 +120,12 @@ export const resultsSource: WatchSource = {
       res.scope.push(...looked.map((id) => `result|${id}|`));
       res.compared += rows.length;
     }
+    // two articles (the two fighters') that tell one fight differently are believed by neither: nothing is proposed for it
+    const byKey = new Map<string, Change[]>();
+    for (const c of res.changes) (byKey.get(c.targetKey) ?? byKey.set(c.targetKey, []).get(c.targetKey)!).push(c);
+    const conflicting = new Set([...byKey].filter(([, cs]) => new Set(cs.map((c) => JSON.stringify(c.new))).size > 1).map(([k]) => k));
+    for (const k of conflicting) res.refused.push({ scope: byKey.get(k)![0].label.split(" (")[0], reason: "the two fighters' articles disagree on this result; nothing proposed" });
+    res.changes = res.changes.filter((c) => !conflicting.has(c.targetKey));
     // a pending proposal is retired only for a fight looked at this run (a limited run must not retire the others)
     return res;
   },
