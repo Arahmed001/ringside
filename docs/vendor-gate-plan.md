@@ -1,6 +1,6 @@
 # The vendor update gate: a plan for review
 
-Status: **plan only, nothing is built. The owner's decisions of 2026-10-09 are recorded in section 11 and applied below.** It follows PLAN 253 (source watchers), whose steps A to C are on main. This page is what to read and decide on before step D starts, because the gate touches `lib/ingest.ts`, the most sensitive code in the project.
+Status: **step D1 is built (observe and report only; nothing is held or changed). D2 onwards are not. The owner's decisions of 2026-10-09 are recorded in section 11 and applied below.** It follows PLAN 253 (source watchers), whose steps A to C are on main. This page is what to read and decide on before step D starts, because the gate touches `lib/ingest.ts`, the most sensitive code in the project.
 
 ## 1. What was asked
 
@@ -107,6 +107,15 @@ The site keeps serving the last approved data. `/api/health` already shows `upda
 | **E1** | Group approval by field and "Approve all lists", with samples; standing rules and their screen; the baseline action; Arabic. | screens only |
 | **E2** | Nightly wiring, health `updatesOverdueDays`, doctor line, runbook and handbook, a rehearsal at full size. | low |
 | **Later** | Judge-level scorecards, officials and other detail rows, if the vendor ever supplies them; money rows. | separate plan |
+
+## 10b. Step D1: what is built
+
+- `lib/watch/vendor-policy.ts`: the policy table (section 4) and the settings; `lib/watch/vendor-gate.ts`: the snapshot, the comparison, the report and the hooks; two small calls in `lib/ingest.ts` (`gate.before` after the transaction begins, `gate.after` before it commits; without `gate` the update is exactly what it was).
+- **`VENDOR_GATE=observe`**: every real `--update` (so every nightly run) records its report to `<data>/gate-reports/<time>.json` (the newest 90 are kept) and prints a summary in the log: what the feed named that we hold and what was new, how many changes would wait, results arriving or changed, each field's changes (filled, replaced, cleared; the median and largest change for numbers), what goes in without approval, what is not gated, and whether the flood guard would have refused the night. A problem inside the gate is logged and the update goes on.
+- **`npm run vendor:backfill -- --update --gate-report`**: the same, as a dry run: the update is rolled back completely (the database, the run record and the ratings are exactly as they were) and nothing is backed up or written. `--baseline` leaves out the flood guard in it.
+- **Use**: switch `VENDOR_GATE=observe` on in the nightly job's environment and read `gate-reports/` after five to seven nights; those numbers set the flood-guard thresholds (section 6) before D2 enforces them.
+- **Cost, measured** on a database of 30,000 fighters and 60,000 fights, with an update touching 400 fighters and 800 fights: 661 ms without the observer, 718 ms observing a night with nothing to change, 740 ms observing 400 changed heights (resident memory about 366 MB for the whole test process). The observer copies only the rows the feed names, so it grows with the update, not with the league.
+- The 30-day memory of a rejected change (decision 5) is in `lib/watch/proposals.ts` (`PROPOSAL_REJECT_MEMORY_DAYS`).
 
 ## 11. Decisions (owner, 2026-10-09)
 

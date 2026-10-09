@@ -20,6 +20,8 @@
  *          --allow-incomplete (load even though some fighters could not be fetched)  --allow-errors (load even though the validator found errors)
  *          --min-complete 0.9 (the share of fighters whose loaded fights must add up to the vendor's career record)  --allow-partial  --allow-conflicts
  *          --into-existing (the database already holds other fighters: load alongside them)  --no-backup
+ *          --gate-report (the vendor update gate's dry run: say what an update would hold for an administrator, then roll the whole update back; --baseline skips the flood guard in it). VENDOR_GATE=observe
+ *          records the same report on every real update (docs/vendor-gate-plan.md). Neither holds or changes anything yet.
  * Everything except --plan fills the cache and the database. Storing is ON by default while the vendor's answer on storage is pending (every run
  * says so); BOXING_API_STORAGE_CONFIRMED=1 records that the vendor agreed in writing and silences the warning, =0 refuses to store.
  * Point DATABASE_PATH at a NEW file for the real league; never at the demo database.
@@ -181,7 +183,17 @@ async function main() {
   if (sev.errors > 0 && !flag("allow-errors")) throw new CheckRefusedError(`The validator found ${sev.errors} error(s); nothing was loaded. Fix the cause (or pass --allow-errors to drop those rows and load the rest).`);
 
   const { ingest } = await import("../lib/ingest");
-  if (db && foreignFighters(db).total > 0 && !flag("no-backup")) {
+  // the vendor update gate (docs/vendor-gate-plan.md), step D1: it only OBSERVES. VENDOR_GATE=observe records what each update changed in rows we hold (a report file, and lines in the log);
+  // --gate-report shows the same and rolls the whole update back, writing nothing. Neither holds anything yet.
+  const { gateSettings } = await import("../lib/watch/vendor-policy");
+  const { gateHooks, GateRollback } = await import("../lib/watch/vendor-gate");
+  const gateS = gateSettings();
+  for (const w of gateS.warnings) console.log(`warning: ${w}`);
+  const reportOnly = flag("gate-report");
+  const dbFile = process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db");
+  const vendorGate = reportOnly ? gateHooks({ mode: "report", settings: gateS, log: console.log, baseline: flag("baseline") })
+    : gateS.mode === "observe" && update ? gateHooks({ mode: "observe", settings: gateS, log: (m) => console.log(m), dataDir: path.dirname(dbFile) }) : undefined;
+  if (db && foreignFighters(db).total > 0 && !flag("no-backup") && !reportOnly) {
     const { backupDatabases } = await import("../lib/backup");
     const dbPath = process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db");
     const backup = () => backupDatabases({ root: path.join(path.dirname(dbPath), "backups"), files: [{ name: "ringside", path: dbPath }], keep: 14 });
@@ -193,7 +205,12 @@ async function main() {
     }
     log(`backed up the database first: ${r.dir}`);
   }
-  const report = await ingest(db!, source, { strict: !flag("allow-errors") });
+  let report;
+  try { report = await ingest(db!, source, { strict: !flag("allow-errors"), gate: vendorGate }); }
+  catch (e) {
+    if (e instanceof GateRollback) { console.log("\n--gate-report: the update was rolled back; the database was not changed."); return; }
+    throw e;
+  }
   log(`loaded: ${Object.entries(report.counts).filter(([, v]) => v > 0).map(([k, v]) => `${k} ${v}`).join(", ")}; ${report.errors} error(s), ${report.warnings} warning(s) (run ${report.runId})`);
   if (update) { // the feed held only recent fights, so judge the careers as the database now has them
     const rec = reconcileDb(db!, provider.vendorRecords(), raw.boxers.map((b) => b.externalId), { today: todayIso(), days: LAG_DAYS });
