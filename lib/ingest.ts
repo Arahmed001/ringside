@@ -12,6 +12,7 @@ import { countBySeverity, sanitizeFeed, type Issue } from "./validate";
 import { writeMoney } from "./ingest-money";
 import { slugify } from "./slug";
 import { bumpDbVersion } from "./db";
+import type { GateHooks } from "./watch/vendor-gate";
 
 const K = 24;
 
@@ -56,7 +57,7 @@ export interface IngestReport {
  * Loads a provider's feed, validates it, writes the clean rows, recomputes ratings, and records the run.
  * Rows that fail validation are dropped and reported, never written. With `strict`, any error aborts before the database is touched.
  */
-export async function ingest(db: DatabaseSync, provider = getProvider(), opts: { strict?: boolean } = {}): Promise<IngestReport> {
+export async function ingest(db: DatabaseSync, provider = getProvider(), opts: { strict?: boolean; gate?: GateHooks } = {}): Promise<IngestReport> {
   const raw = await loadFeed(provider);
   const { feed, issues, dropped } = sanitizeFeed(raw, { today: todayIso() });
   const sev = countBySeverity(issues);
@@ -66,6 +67,7 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
 
   db.exec("BEGIN IMMEDIATE"); // the write lock first, so another writer is waited for (busy_timeout) rather than failing on a snapshot that went stale while this one read
   try {
+    opts.gate?.before(db, feed); // the vendor update gate (docs/vendor-gate-plan.md): it copies the rows this feed touches, to compare them after the writes below
     // ----- organisations & people -----
     const orgSlug = slugger(db, "orgs");
     const og = new Map<string, number>();
@@ -187,6 +189,7 @@ export async function ingest(db: DatabaseSync, provider = getProvider(), opts: {
       for (const p of punches) ins.run(bo.get(p.boutExternalId)!, bx.get(p.boxerExternalId)!, p.round, p.thrown, p.landed, p.powerThrown, p.powerLanded, num(p.jabThrown), num(p.jabLanded));
     }
     writeMoney(db, { ev, bo, bx }, { financials, purses, broadcasts, earnings });
+    opts.gate?.after(db, feed); // compares before the commit: it may only read, and "report" mode throws here so that everything above is rolled back
     db.exec("COMMIT");
   } catch (e) {
     // a full disk makes SQLite roll the transaction back itself, so this ROLLBACK can fail ("no transaction is active"): that must not hide the error that matters
