@@ -12,5 +12,6 @@ test("each sanctioning body has a plain https link for men's and women's lists, 
   }
   const page = fs.readFileSync("app/[locale]/rankings/[division]/page.tsx", "utf8");
   assert.match(page, /target="_blank" rel="noopener noreferrer"/); assert.ok(!/fetch\(|official-links.*fetch/.test(page), "the page only links");
+  assert.ok(!/title=\{b\.name\}/.test(page), "the body's English name is not put in an attribute on an Arabic page (the smoke check reads it as English left on the page)");
   assert.match(fs.readFileSync("lib/official-links.ts", "utf8"), /docs\/official-bodies\.md/, "the reason is written beside the list");
 });

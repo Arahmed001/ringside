@@ -90,7 +90,7 @@ export default async function DivisionRankings({ params, searchParams }: { param
 
       <nav aria-label={t("The bodies' own lists")} className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
         <span>{t("The bodies' own lists")}:</span>
-        {BODY_PAGES.map((b) => <a key={b.body} href={bodyPage(b, sex)} target="_blank" rel="noopener noreferrer" title={b.name} className="chip py-1.5 hover:!text-ink">{b.body} ↗</a>)}
+        {BODY_PAGES.map((b) => <a key={b.body} href={bodyPage(b, sex)} target="_blank" rel="noopener noreferrer" className="chip py-1.5 hover:!text-ink">{b.body} ↗</a>)}
       </nav>
 
       {official && <OfficialListView list={official} w={w} />}
