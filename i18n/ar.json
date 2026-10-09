@@ -2149,6 +2149,7 @@
  "What you can write": "ما يمكنك كتابته",
  "What you can write in the Ringside forum, how often, and what happens when a post is reported.": "ما يمكنك كتابته في منتدى رينغسايد، وكم مرة، وماذا يحدث عند الإبلاغ عن منشور.",
  "What you want to tell us": "ما تريد إخبارنا به",
+ "What {n} fights with a result actually say about the sport.": "ما الذي تقوله فعلًا {n} نزالات ذات نتيجة عن هذه الرياضة.",
  "What {n} professional bouts actually say about the sport.": "ما الذي تقوله فعلًا {n} نزالات احترافية عن هذه الرياضة.",
  "What’s driving the number": "ما الذي يحرّك الرقم",
  "When Ringside does not hold a fighter’s early fights, the record on the page is the career total from the data supplier and the page says so; the fight list and the rates are then built only from the fights we hold.": "حين لا تتوفر لدى Ringside نزالات ملاكم الأولى، يكون السجل في الصفحة هو إجمالي مسيرته من مزوّد البيانات وتذكر الصفحة ذلك؛ وتُبنى قائمة النزالات والنسب حينها من النزالات المتوفرة لدينا فقط.",
@@ -2406,6 +2407,7 @@
  "info": "معلومة",
  "knockouts": "ضربات قاضية",
  "last card {date}": "آخر نزال {date}",
+ "last known champion, since {date}": "آخر بطل معروف، منذ {date}",
  "last on {date}": "آخرها بتاريخ {date}",
  "last seen {date}": "آخر رصد في {date}",
  "last used {date}": "آخر استخدام في {date}",
@@ -3108,6 +3110,14 @@
   "few": "{n} حقب مسجلة",
   "many": "{n} حقبة مسجلة",
   "other": "{n} حقبة مسجلة"
+ },
+ "{n} reigns on this belt": {
+  "zero": "لا حقب على هذا الحزام",
+  "one": "حقبة واحدة على هذا الحزام",
+  "two": "حقبتان على هذا الحزام",
+  "few": "{n} حقب على هذا الحزام",
+  "many": "{n} حقبة على هذا الحزام",
+  "other": "{n} حقبة على هذا الحزام"
  },
  "{n} results": {
   "zero": "{n} نتيجة",

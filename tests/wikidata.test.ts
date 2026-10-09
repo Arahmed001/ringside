@@ -1,5 +1,8 @@
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { tempDb } from "./helpers";
 import type { DatabaseSync } from "node:sqlite";
 
@@ -237,4 +240,43 @@ test("a life that does not fit the career is not a match, and a link made on a n
   assert.equal((db.prepare("SELECT wikidata_id q FROM boxers WHERE id = ?").get(right.id) as { q: string }).q, "QW2", "a link that fits stays");
   assert.equal((db.prepare("SELECT wikidata_id q FROM boxers WHERE id = ?").get(byYear.id) as { q: string }).q, "QW3", "a link made on a birth year as well is not this rule's to take back");
   assert.equal(wd.repairWikidataLinks(db), 0, "run again, nothing more");
+});
+
+test("fighters are shown under the name people know: accents restored, a fuller name shortened, a birth name replaced from the curated list; the feed's name stays searchable and the page address does not move", () => {
+  const pool = db.prepare("SELECT id, name FROM boxers WHERE wikidata_id IS NULL AND birth_year IS NOT NULL ORDER BY id LIMIT 60").all() as { id: number; name: string }[];
+  const uniq = pool.filter((b) => pool.filter((o) => o.name === b.name).length === 1);
+  const [accent, fuller, birth] = uniq;
+  const row = (id: number) => db.prepare("SELECT name, slug, aliases, birth_year, country, wikidata_id FROM boxers WHERE id = ?").get(id) as { name: string; slug: string; aliases: string | null; birth_year: number; country: string; wikidata_id: string | null };
+  const A = row(accent.id), F = row(fuller.id), B = row(birth.id);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "ringnames-"));
+  fs.writeFileSync(path.join(dir, "ring-names.json"), JSON.stringify({ [B.name]: "Ring Nameson" }));
+  process.env.I18N_DIR = dir;
+  const ins = db.prepare("INSERT INTO wikidata_boxers (qid, name, birth_year, country, matched_boxer_id, match_method) VALUES (?,?,?,?,?,?)");
+  // 1. an accent: linked by name and birth year already, the label carries the accents
+  const accented = A.name.replace(/[aeiou]/, (v) => ({ a: "á", e: "é", i: "í", o: "ó", u: "ú" })[v as "a"]);
+  assert.notEqual(accented, A.name, "the fixture name has a vowel to accent");
+  ins.run("QD1", accented, A.birth_year, A.country, accent.id, "name+birth_year");
+  db.prepare("UPDATE boxers SET wikidata_id = 'QD1' WHERE id = ?").run(accent.id);
+  // 2. a fuller name: the feed has "First Last", Wikidata "First Middle Last", same birth year and nation
+  const [first, ...rest] = F.name.split(" ");
+  ins.run("QD2", `${first} Middlename ${rest.join(" ")}`.trim(), F.birth_year, F.country, null, null);
+  // 3. a birth name from the list
+  ins.run("QD3", "Ring Nameson", B.birth_year, B.country, null, null);
+  const s = wd.enrichFromWikidata(db);
+  delete process.env.I18N_DIR;
+  fs.rmSync(dir, { recursive: true, force: true });
+  const a = row(accent.id), f = row(fuller.id), b = row(birth.id);
+  assert.equal(a.name, accented); assert.ok(JSON.parse(a.aliases!).includes(A.name)); assert.equal(a.slug, A.slug, "the address does not change");
+  assert.ok(rest.length >= 1, "the fixture name has two words"); assert.equal(f.wikidata_id, "QD2"); assert.equal(f.name, `${first} Middlename ${rest.join(" ")}`.trim()); assert.ok(JSON.parse(f.aliases!).includes(F.name));
+  assert.equal(b.wikidata_id, "QD3"); assert.equal(b.name, "Ring Nameson"); assert.ok(JSON.parse(b.aliases!).includes(B.name), "the birth name is still searchable");
+  assert.ok(s.linked >= 2);
+});
+
+test("a name that differs from the label only by Jr. or III keeps the suffix", () => {
+  const b = db.prepare("SELECT id, name, birth_year, country FROM boxers WHERE wikidata_id IS NULL AND birth_year IS NOT NULL AND name NOT LIKE '% Jr%' ORDER BY id DESC LIMIT 1").get() as { id: number; name: string; birth_year: number; country: string };
+  db.prepare("UPDATE boxers SET name = ? WHERE id = ?").run(`${b.name} Jr.`, b.id);
+  db.prepare("INSERT INTO wikidata_boxers (qid, name, birth_year, country) VALUES (?,?,?,?)").run("QD9", b.name, b.birth_year, b.country);
+  wd.enrichFromWikidata(db);
+  const r = db.prepare("SELECT name, wikidata_id FROM boxers WHERE id = ?").get(b.id) as { name: string; wikidata_id: string | null };
+  assert.equal(r.wikidata_id, "QD9", "linked"); assert.equal(r.name, `${b.name} Jr.`, "and still named with the suffix");
 });
