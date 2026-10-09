@@ -3916,12 +3916,6 @@
   ]
  },
  {
-  "key": "Camps and money",
-  "files": [
-   "lib/nav.ts"
-  ]
- },
- {
   "key": "Cancel",
   "files": [
    "components/Discussion.tsx",
@@ -4517,6 +4511,12 @@
   ]
  },
  {
+  "key": "Corners, camps and money",
+  "files": [
+   "lib/nav.ts"
+  ]
+ },
+ {
   "key": "Correct it now",
   "files": [
    "components/ReportForm.tsx"
@@ -4778,12 +4778,6 @@
   ]
  },
  {
-  "key": "Data and models",
-  "files": [
-   "lib/nav.ts"
-  ]
- },
- {
   "key": "Data supplier",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -4965,12 +4959,6 @@
   "key": "Different weight divisions in which a fighter has been champion of a belt.",
   "files": [
    "lib/records.ts"
-  ]
- },
- {
-  "key": "Discover",
-  "files": [
-   "lib/nav.ts"
   ]
  },
  {
@@ -6310,7 +6298,6 @@
    "app/[locale]/upset-watch/page.tsx",
    "components/UpdateGroups.tsx",
    "lib/ask/tools.ts",
-   "lib/nav.ts",
    "lib/records.ts"
   ]
  },
@@ -6529,6 +6516,12 @@
   "key": "Follow in a feed reader",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
+  ]
+ },
+ {
+  "key": "Follow the sport",
+  "files": [
+   "lib/nav.ts"
   ]
  },
  {
@@ -7967,6 +7960,12 @@
   ]
  },
  {
+  "key": "Learn and data",
+  "files": [
+   "lib/nav.ts"
+  ]
+ },
+ {
   "key": "LFLY",
   "files": [
    "lib/i18n/dynamic-keys.ts"
@@ -8937,6 +8936,12 @@
   "key": "Newest posts",
   "files": [
    "components/ForumQueue.tsx"
+  ]
+ },
+ {
+  "key": "News",
+  "files": [
+   "lib/nav.ts"
   ]
  },
  {
@@ -10553,6 +10558,12 @@
   ]
  },
  {
+  "key": "Predict and play",
+  "files": [
+   "lib/nav.ts"
+  ]
+ },
+ {
   "key": "Predict any fight",
   "files": [
    "app/[locale]/compare/page.tsx",
@@ -10899,6 +10910,12 @@
    "app/embed/[locale]/rankings/[division]/page.tsx",
    "lib/nav.ts",
    "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Rankings and records",
+  "files": [
+   "lib/nav.ts"
   ]
  },
  {

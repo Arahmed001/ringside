@@ -51,7 +51,7 @@ Every choice below serves that. The risk is turning drama into noise, so drama i
 - **Anti-patterns to avoid:** purple gradients, three-column icon feature grids, centred-everything pages, gradient buttons.
 
 ## Navigation
-- **Desktop (1024 px and up):** a grouped left rail (Discover, Fights, Camps and money, Data and models), 15rem open and 4rem icons-only. It is open from 1280 px and icons-only below, unless the visitor chose; the choice is saved in this browser (`ringside-nav`) and applied before the first paint. In Arabic the rail is on the right. The top bar keeps only search, the language switch and, on phones, the menu button and logo.
+- **Desktop (1024 px and up):** a grouped left rail (Follow the sport, Rankings and records, Predict and play, Corners camps and money, Learn and data), 15rem open and 4rem icons-only. It is open from 1280 px and icons-only below, unless the visitor chose; the choice is saved in this browser (`ringside-nav`) and applied before the first paint. In Arabic the rail is on the right. The top bar keeps only search, the language switch and, on phones, the menu button and logo.
 - **Phones and small tablets:** a menu button opens the same list in a drawer (a native modal `<dialog>`: focus, Esc and the page behind are the browser's).
 - A collapsed rail hides labels visually, never with `display:none`, so every link keeps its name; the current page has `aria-current` and gold text. Section list and groups live in `lib/nav.ts`; a test fails if a section with an index page is left out.
 

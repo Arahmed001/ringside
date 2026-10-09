@@ -14,6 +14,7 @@ const PATHS: Record<IconName | "menu" | "close" | "chevron", React.ReactNode> = 
   matchups: <path d="M4 8h13l-3-3M20 16H7l3 3" />,
   matchmaking: <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 8v8M8 12h8" />,
   leaderboard: <path d="M6 20V11M12 20V4M18 20v-6M3 20h18" />,
+  news: <path d="M4 5h13v14H6a2 2 0 0 1-2-2V5zM17 9h3v8a2 2 0 0 1-2 2M7 9h7M7 12h7M7 15h4" />,
   tonight: <path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z" />,
   watchlist: <path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.5 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z" />,
   picks: <path d="M9 12l2 2 4-4M5 4h14a1 1 0 0 1 1 1v15l-4-3H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" />,
