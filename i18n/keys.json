@@ -5284,7 +5284,8 @@
  {
   "key": "Editor tools",
   "files": [
-   "components/ThreadTools.tsx"
+   "components/ThreadTools.tsx",
+   "lib/nav.ts"
   ]
  },
  {
@@ -6580,7 +6581,8 @@
    "app/[locale]/review/forum/page.tsx",
    "app/[locale]/review/reports/page.tsx",
    "app/[locale]/review/social/page.tsx",
-   "components/EditorTools.tsx"
+   "components/EditorTools.tsx",
+   "lib/nav.ts"
   ]
  },
  {
@@ -11489,7 +11491,8 @@
    "app/[locale]/review/page.tsx",
    "app/[locale]/review/reports/page.tsx",
    "app/[locale]/review/updates/page.tsx",
-   "components/EditorTools.tsx"
+   "components/EditorTools.tsx",
+   "lib/nav.ts"
   ]
  },
  {
@@ -13180,7 +13183,8 @@
    "app/[locale]/review/reports/page.tsx",
    "app/[locale]/review/social/page.tsx",
    "app/[locale]/review/updates/page.tsx",
-   "components/EditorTools.tsx"
+   "components/EditorTools.tsx",
+   "lib/nav.ts"
   ]
  },
  {
@@ -15311,7 +15315,8 @@
  {
   "key": "Updates from public sources",
   "files": [
-   "components/EditorTools.tsx"
+   "components/EditorTools.tsx",
+   "lib/nav.ts"
   ]
  },
  {

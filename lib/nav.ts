@@ -54,3 +54,20 @@ export const NAV_KEY = "ringside-nav";
 
 /** Pages that exist but are not sections of the site: reached from the account menu or a link on another page, so they are not in the rail. */
 export const OFF_NAV = ["/account", "/contribute", "/report", "/review", "/review/reports", "/review/updates", "/review/forum", "/review/social", "/review/photos", "/forum", "/forum/rules", "/privacy", "/terms", "/tour", "/developers"];
+
+/** Shown in the rail only to a signed-in editor or administrator (components/EditorNav.tsx). The pages are in OFF_NAV because the public rail never lists them. */
+export const EDITOR_NAV: { title: string; items: (NavItem & { admin?: boolean })[] } = {
+  title: msg("Editor tools"),
+  items: [
+    { href: "/review", label: msg("Team-history edits"), icon: "corners" },
+    { href: "/review/reports", label: msg("Reports of mistakes"), icon: "accountability" },
+    { href: "/review/updates", label: msg("Updates from public sources"), icon: "data", admin: true },
+    { href: "/review/forum", label: msg("Forum moderation"), icon: "ask" },
+  ],
+};
+
+/** The editor group's links for a role: none for readers (and for nobody signed in), all but the administrators' for an editor, all for an administrator. */
+export function editorNavItems(role: string | null | undefined) {
+  if (role !== "editor" && role !== "admin") return [];
+  return EDITOR_NAV.items.filter((it) => !it.admin || role === "admin");
+}
