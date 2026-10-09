@@ -5,7 +5,7 @@ import { dataAge, latestUpdate } from "@/lib/freshness";
 import { nowMs } from "@/lib/clock";
 import { lastNightly } from "@/lib/nightly-status";
 import { accountsDbIfAny } from "@/lib/accounts/store";
-import { pendingCount } from "@/lib/watch/decide";
+import { waitingSummary } from "@/lib/watch/waiting";
 
 /**
  * Readiness probe for a load balancer or container orchestrator: GET /api/health.
@@ -17,7 +17,8 @@ import { pendingCount } from "@/lib/watch/decide";
  * results without a word). It never turns the answer into a 503: a stale feed is a reason to look at the cron, not to restart the container.
  * It is null for the demo league and for a file feed, which nobody updates daily.
  *
- * `data.updatesWaiting` appears only when source updates are waiting for an administrator's decision (a count, nothing else): a queue nobody reads is a reason to look, not to restart.
+ * `data.updatesWaiting` appears only when source updates are waiting for an administrator's decision (a count, nothing else), and `data.updatesOverdueDays` only when the oldest of them has waited
+ * UPDATES_OVERDUE_DAYS (default 7) or more: the site shows the last APPROVED data, so a queue nobody reads is a reason to look, not to restart. Neither touches `stale`.
  *
  * `data.nightly` appears only when the optional in-container nightly job (docs/nightly.md) has run on this volume: its result, the times, each step's exit code and the
  * next scheduled start. No message, no path, no setting: those stay in the status file and the container log. It does not touch `stale`: that still comes from the
@@ -31,8 +32,8 @@ export async function GET() {
     const age = last ? dataAge(last.at, nowMs()) : null;
     const daily = process.env.BOXING_PROVIDER === "licensed";
     const nightly = lastNightly(undefined, nowMs());
-    const waiting = pendingCount(accountsDbIfAny());
-    const data = { updatedAt: last?.at ?? null, ageHours: age?.ageHours ?? null, stale: daily ? (age ? age.stale : true) : null, ...(nightly ? { nightly } : {}), ...(waiting ? { updatesWaiting: waiting } : {}) };
+    const waiting = waitingSummary(accountsDbIfAny(), nowMs());
+    const data = { updatedAt: last?.at ?? null, ageHours: age?.ageHours ?? null, stale: daily ? (age ? age.stale : true) : null, ...(nightly ? { nightly } : {}), ...(waiting.waiting ? { updatesWaiting: waiting.waiting } : {}), ...(waiting.overdue ? { updatesOverdueDays: waiting.ageDays } : {}) };
     return NextResponse.json({ status: "ok", fighters: w.boxers.length, bouts: w.bouts.length, data }, { headers });
   } catch (e) {
     console.error("[ringside] health check failed:", e instanceof Error ? e.message : e);

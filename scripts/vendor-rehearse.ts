@@ -12,6 +12,9 @@
  *   1. --plan        what the list costs;   2. --check   fetch everything, validate, reconcile (database untouched)
  *   3. the load      into a new database;   4. --update  the daily job (a day later, one fight changed)
  * and then rehearses a crash: a fresh fetch is killed part way and run again, and the second run must make only the requests the first one did not finish.
+ * With --gate it also rehearses the vendor update gate at this size (docs/vendor-gate-plan.md): the same night is run on three copies of the database, plain, with
+ * VENDOR_GATE=observe and with VENDOR_GATE=hold (so the first night of holding), and then everything held is accepted with the baseline action. It must come out that observing
+ * changes nothing, holding shows none of what it holds, and accepting everything leaves exactly what the plain update left; time and memory are reported for each.
  * Every number it prints is measured on this machine, with the stand-in answering instantly: a real vendor adds its own delay per request
  * (--gap-ms 300 by default, so 19,000 fighters is about an hour and a half of waiting).
  */
@@ -21,6 +24,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import crypto from "node:crypto";
 import { degradeWorld, makeWorld, serveMockVendor } from "../lib/vendor-mock";
 
 const argv = process.argv.slice(2);
@@ -152,6 +156,59 @@ async function main() {
     return r;
   };
 
+
+  /** The vendor update gate at this size: one night, three copies of the database (see the header). */
+  async function gateRehearsal() {
+    console.log("\nthe vendor update gate at this size");
+    const checkpoint = (f: string) => { const d = new DatabaseSync(f); d.exec("PRAGMA wal_checkpoint(TRUNCATE)"); d.close(); };
+    checkpoint(dbFile);
+    const copy = (name: string) => { const f = path.join(dir, `gate-${name}.db`); fs.copyFileSync(dbFile, f); return f; };
+    const plain = copy("plain"), obs = copy("observe"), hold = copy("hold");
+    // a night: the fighters of the most recent cards are changed by the vendor (their country), and every coming fight is decided
+    const recent = world.fights.filter((f) => f.status === "FINISHED").sort((x, y) => y.date.localeCompare(x.date)).slice(0, Math.max(50, Math.round(N.fights * 0.002)));
+    const ids = new Set(recent.flatMap((f) => [f.a, f.b]));
+    for (const id of ids) world.fighters.set(id, { ...world.fighters.get(id)!, country: "Ireland" });
+    let decided = 0;
+    for (const f of world.fights.filter((x) => x.status === "NOT_STARTED")) { f.status = "FINISHED"; f.winner = "b"; f.outcome = "KO"; f.date = TODAY; const c = (id: string) => world.careers.get(id) ?? world.careers.set(id, { wins: 0, losses: 0, draws: 0 }).get(id)!; c(f.b).wins++; c(f.a).losses++; decided++; }
+    console.log(`  the night: ${ids.size} fighters of the latest ${recent.length} fights change country, ${decided} coming fights are decided`);
+    const night = (name: string, db: string, env: Record<string, string>) => step(name, ["--update", "--cache-dir", path.join(dir, `cache-${path.basename(db)}`)], { DATABASE_PATH: db, ...env }, () => `database ${mb(du(db) + du(`${db}-wal`))}`);
+    const accounts = path.join(dir, "gate-hold-accounts.db");
+    const rp = await night("5. update, no gate", plain, {});
+    const ro = await night("6. update, VENDOR_GATE=observe", obs, { VENDOR_GATE: "observe", ACCOUNTS_DB_PATH: path.join(dir, "gate-obs-accounts.db") });
+    const rh = await night("7. update, VENDOR_GATE=hold", hold, { VENDOR_GATE: "hold", ACCOUNTS_DB_PATH: accounts });
+    const digest = (file: string) => {
+      const d = new DatabaseSync(file, { readOnly: true }), h = crypto.createHash("sha1");
+      for (const t of ["boxers", "events", "bouts"]) for (const r of d.prepare(`SELECT * FROM ${t} ORDER BY external_id`).iterate()) h.update(JSON.stringify(r));
+      h.update(JSON.stringify(d.prepare("SELECT COUNT(*) c, SUM(rating) s FROM rating_history").get()));
+      d.close(); return h.digest("hex");
+    };
+    const wouldHold = Number(/would wait for an administrator: (\d+) change/.exec(ro.out)?.[1] ?? NaN), held = Number(/(\d+) change\(s\) held for an administrator \(/.exec(rh.out)?.[1] ?? NaN);
+    console.log(`  observing saw ${wouldHold} change(s) that would wait; holding held ${held}`);
+    checks.push(["gate: the night is applied by the plain update, observed and held", rp.code === 0 && ro.code === 0 && rh.code === 0, `exits ${rp.code}, ${ro.code}, ${rh.code}`]);
+    checks.push(["gate: observing changes nothing (the database is what the plain update left)", digest(obs) === digest(plain), ""]);
+    checks.push(["gate: the first night of holding is not refused by the flood guard, and says so", /first night of holding/.test(rh.out), line(rh.out, /first night of holding/).slice(0, 90)]);
+    checks.push(["gate: what observing says would wait is what holding held", Number.isFinite(wouldHold) && wouldHold === held && held > 0, `${wouldHold} vs ${held}`]);
+    checks.push(["gate: while it waits, the held changes are not in the database", digest(hold) !== digest(plain), ""]);
+    checks.push(["gate: observing adds little to the update's time", ro.ms <= rp.ms * 1.5 + 2000, `${secs(rp.ms)} plain, ${secs(ro.ms)} observed, ${secs(rh.ms)} held`]);
+    // accept everything that waits, in one step: the database must be what the plain update left
+    process.env.ACCOUNTS_DB_PATH = accounts;
+    const store = await import("../lib/accounts/store"), users = await import("../lib/accounts/users"), groups = await import("../lib/watch/groups");
+    const acc = store.accountsDb();
+    const made = await users.createUser("rehearsal_admin", "a-long-passphrase-for-the-rehearsal-1", acc);
+    if ("error" in made) throw new Error(made.error);
+    users.setRole("rehearsal_admin", "admin", acc);
+    const admin = { ...made.user, role: "admin" as const };
+    const main = new DatabaseSync(hold);
+    const waiting = (acc.prepare("SELECT COUNT(*) c FROM proposals WHERE status = 'pending'").get() as { c: number }).c;
+    const t1 = Date.now();
+    const accepted = groups.acceptEverythingWaiting(admin, { note: "rehearsal", expectCount: waiting }, main, acc);
+    const ms = Date.now() - t1;
+    main.close();
+    const ok = !("error" in accepted) && accepted.report.approved === waiting;
+    console.log(`  accepting ${waiting} waiting change(s) in one step: ${secs(ms)}, this process now ${mb(process.memoryUsage().rss)}`);
+    checks.push(["gate: accepting everything waiting leaves exactly what the plain update left (every fighter, card, fight and rating)", ok && digest(hold) === digest(plain), ok ? `${waiting} accepted` : JSON.stringify(accepted)]);
+  }
+
   try {
     const plan = await step("1. --plan", ["--plan"]);
     checks.push(["--plan reads the whole list", plan.code === 0 && new RegExp(`fights ${world.fights.length},`).test(plan.out), line(plan.out, /^fights /)]);
@@ -177,6 +234,8 @@ async function main() {
     const upd = await step("4. --update (the daily job)", ["--update", "--cache-dir", cache], { DATABASE_PATH: dbFile }, () => `database ${mb(du(dbFile) + du(`${dbFile}-wal`))}`);
     checks.push(["update succeeds", upd.code === 0, line(upd.out, /^records:|after the update|updating from/)]);
     checks.push(["update costs a few hundred requests, not a reload", results[3].requests < 3000, `${results[3].requests} requests`]);
+
+    if (argv.includes("--gate")) await gateRehearsal();
 
     // a crash part way through the fetch, then run again: only the unfinished requests should be made
     const cache2 = path.join(dir, "cache-crash");
