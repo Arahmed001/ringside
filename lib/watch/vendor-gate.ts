@@ -2,8 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import type { FeedData } from "../feed";
-import { POLICY, type GateSettings, type Table } from "./vendor-policy";
+import { POLICY, TABLE_OF, type GateSettings, type Table } from "./vendor-policy";
+export { TABLE_OF };
 import { reconcile } from "./proposals";
+import { applyRules, recordRuleUse, type Rule, type RuleUse } from "./rules";
 import type { Change } from "./types";
 
 /**
@@ -43,6 +45,8 @@ export interface GateReport {
   ungated: Record<string, number>;
   /** what the flood guard would have done, in words; empty = it would have let the night through */
   refuse: string[];
+  /** changes that a standing rule accepted, so they stayed (hold mode only) */
+  acceptedByRule: { field: string; condition: string; amount: number | null; count: number }[];
 }
 
 export class GateRollback extends Error { constructor() { super("gate report: the transaction was rolled back, nothing was written"); } }
@@ -109,7 +113,6 @@ export function dropSnapshot(db: DatabaseSync): void {
 const median = (xs: number[]) => { if (!xs.length) return undefined; const s = [...xs].sort((a, b) => a - b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 const kindOf = (o: unknown, n: unknown): Kind => (isBlank(o) && !isBlank(n) ? "fill" : !isBlank(o) && isBlank(n) ? "clear" : "replace");
 const SINGULAR: Record<Table, string> = { boxers: "boxer", events: "event", bouts: "bout", orgs: "org", people: "person" };
-export const TABLE_OF: Record<string, Table> = { boxer: "boxers", event: "events", bout: "bouts", org: "orgs", person: "people" };
 const FK_NAME: Record<string, string> = { "events.promoter_org_id": "orgs", "bouts.title_org_id": "orgs", "bouts.winner_id": "boxers" };
 
 /** Reads what the update changed in rows we already held. Reads only. */
@@ -205,7 +208,7 @@ export function buildReport(cs: ChangeSet, feed: FeedData, settings: GateSetting
   const report: GateReport = {
     version: 1, at: (o.now ?? new Date()).toISOString(), mode: o.mode, touched: cs.touched, newRows: cs.newRows, fields: [],
     results: { arrived: 0, changed: 0, cleared: 0, details: 0, samples: [] }, rankings: { firstSnapshot: cs.rankings.firstSnapshot, changed: 0, removed: 0, added: cs.rankings.added, unchanged: cs.rankings.unchanged, samples: [] },
-    wouldHold: 0, passes: cs.passes, ungated: {}, refuse: [],
+    wouldHold: 0, passes: cs.passes, ungated: {}, refuse: [], acceptedByRule: [],
   };
   report.ungated = {
     "judge-level scorecards": feed.scorecards.length, officials: feed.officials.length, corners: feed.corners.length, "punch stats": feed.punches.length, "weigh-ins": feed.weighIns.length,
@@ -311,7 +314,7 @@ export function writeGateReport(dir: string, r: GateReport): string | null {
 }
 
 export const VENDOR_SOURCE_ID = "vendor:boxing-data-api";
-export interface HookOptions { mode: "observe" | "report" | "hold"; settings: GateSettings; log: (m: string) => void; dataDir?: string; baseline?: boolean; now?: () => Date }
+export interface HookOptions { mode: "observe" | "report" | "hold"; rules?: Rule[]; settings: GateSettings; log: (m: string) => void; dataDir?: string; baseline?: boolean; now?: () => Date }
 /**
  * The hooks `ingest` calls.
  *  - observe: the update goes on and commits exactly as before; anything wrong in here is logged and never stops it.
@@ -320,7 +323,7 @@ export interface HookOptions { mode: "observe" | "report" | "hold"; settings: Ga
  *    can refuse the night (GateRefusal, rolled back, nothing written). A bug in here stops the update and rolls it back: unlike observing, holding must never half-work.
  */
 export function gateHooks(o: HookOptions): GateHooks & { last: () => GateReport | null; flush: (acc: DatabaseSync) => { held: number; added: number; updated: number; unchanged: number; remembered: number; superseded: number } | null } {
-  let last: GateReport | null = null, ready = false, held: ChangeSet | null = null, fed: FeedData | null = null;
+  let last: GateReport | null = null, ready = false, held: ChangeSet | null = null, fed: FeedData | null = null, ruleUses: RuleUse[] = [];
   return {
     last: () => last,
     before(db, feed) {
@@ -344,10 +347,18 @@ export function gateHooks(o: HookOptions): GateHooks & { last: () => GateReport 
       last = buildReport(cs, feed, o.settings, { mode: o.mode, now: o.now?.(), baseline: o.baseline });
       for (const l of describeGateReport(last)) o.log(l);
       if (o.mode === "report") throw new GateRollback();
-      if (last.refuse.length) throw new GateRefusal(last.refuse);
-      restoreHeld(db, cs);
+      if (last.refuse.length) throw new GateRefusal(last.refuse); // the guard looks at the whole night, before any standing rule
+      const ruled = applyRules(cs, o.rules ?? []);
+      ruleUses = ruled.uses;
+      const accepted = ruled.uses.reduce((n, u) => n + u.count, 0);
+      if (accepted) {
+        last.wouldHold -= accepted;
+        last.acceptedByRule = ruled.uses.map((u) => ({ field: u.rule.field, condition: u.rule.condition, amount: u.rule.amount, count: u.count }));
+        o.log(`  accepted by standing rule, so not held: ${last.acceptedByRule.map((a) => `${a.field} ${a.condition === "max_delta" ? `within ${a.amount}` : a.condition}: ${a.count}`).join("; ")}`);
+      }
+      restoreHeld(db, ruled.held);
       dropSnapshot(db);
-      held = cs;
+      held = ruled.held;
       const file = o.dataDir ? writeGateReport(o.dataDir, last) : null;
       if (file) o.log(`vendor gate: the report is in ${path.relative(process.cwd(), file) || file}`);
     },
@@ -360,6 +371,7 @@ export function gateHooks(o: HookOptions): GateHooks & { last: () => GateReport 
       const listsToo = feed.officialRankings.length > 0;
       const inScope = (key: string) => (key.startsWith("list|") ? listsToo : prefixes.has(key.split("|").slice(0, 2).join("|")));
       const r = reconcile(acc, VENDOR_SOURCE_ID, toProposalChanges(held), inScope, o.now?.().toISOString());
+      recordRuleUse(acc, ruleUses, o.now?.().toISOString());
       return { held: held.fields.length + held.results.length + held.lists.length, ...r };
     },
   };

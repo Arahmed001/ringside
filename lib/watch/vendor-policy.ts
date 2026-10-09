@@ -46,6 +46,8 @@ export const POLICY: FieldPolicy[] = [
   ...["name", "country", "wikidata_id"].map((c) => w("people", c)),
 ];
 
+export const TABLE_OF: Record<string, Table> = { boxer: "boxers", event: "events", bout: "bouts", org: "orgs", person: "people" };
+
 export const policyFor = (table: Table, column: string) => POLICY.find((f) => f.table === table && f.column === column);
 
 // ---- settings -----------------------------------------------------------------------------------------------------------------------------------

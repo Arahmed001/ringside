@@ -93,6 +93,12 @@
   ]
  },
  {
+  "key": "{a} filled, {b} replaced, {c} cleared",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "{a} has been stopped in {pa}% of fights; {b} finishes {pb}% of wins",
   "files": [
    "lib/upsets.ts"
@@ -2042,9 +2048,33 @@
   ]
  },
  {
+  "key": "a blank being filled",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "A card's page",
   "files": [
    "components/SocialQueue.tsx"
+  ]
+ },
+ {
+  "key": "A change a rule accepts needs no approval. A rule applies from the next update and every use is logged. A rule cannot hide a changed format: the flood guard looks at the whole night first.",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
+  "key": "a change of at most {n}",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
+  "key": "a change of at most…",
+  "files": [
+   "components/UpdateGroups.tsx"
   ]
  },
  {
@@ -2315,6 +2345,12 @@
   ]
  },
  {
+  "key": "A rule cannot name that field.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
   "key": "A split decision: the judges scored it {cards}",
   "files": [
    "lib/fight-score.ts"
@@ -2422,7 +2458,20 @@
  {
   "key": "Accept",
   "files": [
-   "components/ReportQueue.tsx"
+   "components/ReportQueue.tsx",
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
+  "key": "Accept everything waiting ({n})",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
+  "key": "Accept the present state of the vendor’s feed",
+  "files": [
+   "components/UpdateGroups.tsx"
   ]
  },
  {
@@ -2448,6 +2497,12 @@
   "key": "Accepted.",
   "files": [
    "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Accepted. What the vendor’s feed said is now what the site shows.",
+  "files": [
+   "components/UpdateGroups.tsx"
   ]
  },
  {
@@ -2803,6 +2858,12 @@
   ]
  },
  {
+  "key": "Always accept changes like this",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "amateur pedigree",
   "files": [
    "lib/coverage.ts"
@@ -2896,6 +2957,12 @@
   ]
  },
  {
+  "key": "any change",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "Any stance",
   "files": [
    "app/[locale]/boxers/page.tsx"
@@ -2949,12 +3016,14 @@
  {
   "key": "Approve {n} changes?",
   "files": [
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
  {
   "key": "Approve all {n}",
   "files": [
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -2981,6 +3050,7 @@
  {
   "key": "Approved.",
   "files": [
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -3130,6 +3200,12 @@
   ]
  },
  {
+  "key": "At most",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "At most {posts} posts in {minutes} minutes, and {threads} new threads a day.",
   "files": [
    "app/[locale]/forum/rules/page.tsx"
@@ -3227,6 +3303,12 @@
   "key": "B",
   "files": [
    "app/[locale]/compare/page.tsx"
+  ]
+ },
+ {
+  "key": "Back to the groups",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -3742,6 +3824,12 @@
   ]
  },
  {
+  "key": "By group",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "By number of fighters managed",
   "files": [
    "app/[locale]/people/page.tsx"
@@ -3837,6 +3925,7 @@
   "key": "Cancel",
   "files": [
    "components/Discussion.tsx",
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -3871,7 +3960,8 @@
   "key": "Cards",
   "files": [
    "app/[locale]/money/page.tsx",
-   "app/[locale]/people/page.tsx"
+   "app/[locale]/people/page.tsx",
+   "components/UpdateGroups.tsx"
   ]
  },
  {
@@ -3989,6 +4079,7 @@
  {
   "key": "Changed title reigns",
   "files": [
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -4817,6 +4908,7 @@
  {
   "key": "Detail",
   "files": [
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx",
    "lib/ask/tools.ts"
   ]
@@ -4999,6 +5091,7 @@
  {
   "key": "Done for {done} of {all}.",
   "files": [
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -5358,6 +5451,12 @@
  },
  {
   "key": "Enter a full web address (https://…) for the source.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "Enter a number, zero or more.",
   "files": [
    "lib/account-text.ts"
   ]
@@ -6068,6 +6167,7 @@
    "app/[locale]/countries/[slug]/page.tsx",
    "app/[locale]/people/[slug]/page.tsx",
    "components/TenureTable.tsx",
+   "components/UpdateGroups.tsx",
    "lib/ask/tools.ts",
    "lib/coverage.ts",
    "lib/nav.ts",
@@ -6202,6 +6302,7 @@
    "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/compare/page.tsx",
    "app/[locale]/upset-watch/page.tsx",
+   "components/UpdateGroups.tsx",
    "lib/ask/tools.ts",
    "lib/nav.ts",
    "lib/records.ts"
@@ -6941,6 +7042,7 @@
  {
   "key": "Held now",
   "files": [
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -8052,6 +8154,7 @@
    "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx",
    "components/SocialQueue.tsx",
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -8214,6 +8317,12 @@
   ]
  },
  {
+  "key": "made by {name}",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "Main",
   "files": [
    "components/SideNav.tsx"
@@ -8359,6 +8468,12 @@
   "key": "MD",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "median change {a}, largest {b}",
+  "files": [
+   "components/UpdateGroups.tsx"
   ]
  },
  {
@@ -8758,6 +8873,7 @@
  {
   "key": "New title reigns",
   "files": [
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -9164,6 +9280,12 @@
   ]
  },
  {
+  "key": "No standing rules yet.",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "No team history on record yet.",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -9295,6 +9417,7 @@
  {
   "key": "Not accepted. It will not be raised again unless the source says something different.",
   "files": [
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -9359,6 +9482,12 @@
   ]
  },
  {
+  "key": "Not used yet",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "Not used. Data is licensed to partners; an enquiry is the only legitimate route. Only the numeric ID is stored, as a cross-reference.",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -9386,6 +9515,7 @@
   "key": "Note (needed to reject)",
   "files": [
    "components/ReviewQueue.tsx",
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -9474,6 +9604,7 @@
   "files": [
    "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx",
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -9580,6 +9711,7 @@
  {
   "key": "Official ranking lists",
   "files": [
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -9640,6 +9772,12 @@
   ]
  },
  {
+  "key": "Oldest waiting since {date}",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "Olympedia",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -9682,6 +9820,12 @@
   "key": "On your account page you can download everything held about you as a file, see where you are signed in and end any of those sessions, leave the leaderboard, change your password, and delete the account.",
   "files": [
    "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "One by one",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -9848,6 +9992,12 @@
   "key": "organisations",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Organisations",
+  "files": [
+   "components/UpdateGroups.tsx"
   ]
  },
  {
@@ -10042,6 +10192,12 @@
   "key": "people",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "People",
+  "files": [
+   "components/UpdateGroups.tsx"
   ]
  },
  {
@@ -11158,6 +11314,12 @@
   ]
  },
  {
+  "key": "Reject all {n}",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "Rejected.",
   "files": [
    "components/ReportQueue.tsx",
@@ -11168,7 +11330,8 @@
   "key": "Remove",
   "files": [
    "components/PhotoQueue.tsx",
-   "components/SocialQueue.tsx"
+   "components/SocialQueue.tsx",
+   "components/UpdateGroups.tsx"
   ]
  },
  {
@@ -11334,6 +11497,7 @@
   "files": [
    "app/[locale]/events/page.tsx",
    "app/[locale]/on-this-day/page.tsx",
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -11370,6 +11534,12 @@
   "key": "Retired after round {r}",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Review one by one",
+  "files": [
+   "components/UpdateGroups.tsx"
   ]
  },
  {
@@ -11595,6 +11765,12 @@
   "key": "Save the picture",
   "files": [
    "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "Save the rule",
+  "files": [
+   "components/UpdateGroups.tsx"
   ]
  },
  {
@@ -12024,6 +12200,12 @@
   ]
  },
  {
+  "key": "Showing {n} of {all}.",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "Showing {n} of {total}.",
   "files": [
    "components/AskResults.tsx",
@@ -12434,6 +12616,7 @@
  {
   "key": "Source says",
   "files": [
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -12526,6 +12709,18 @@
    "app/[locale]/compare/page.tsx",
    "lib/correction-text.ts",
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "Standing rules",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
+  "key": "standing rules an administrator made for changes to our data from a source, such as “accept height changes of 3 cm or less”: what each rule covers, who made it and when, and how often it has been used (nothing a reader wrote)",
+  "files": [
+   "lib/privacy.ts"
   ]
  },
  {
@@ -13010,6 +13205,12 @@
   ]
  },
  {
+  "key": "That condition does not fit this field.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
   "key": "That fight is not on the card any more.",
   "files": [
    "lib/account-text.ts"
@@ -13131,6 +13332,12 @@
  },
  {
   "key": "That request is not a correction.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "That rule already exists.",
   "files": [
    "lib/account-text.ts"
   ]
@@ -13487,6 +13694,12 @@
   "key": "The fights worth making right now, who any fighter should face next, and a dream-fight builder. Every pairing is scored on how close, relevant, entertaining, bookable, fresh and meaningful it would be.",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
+  ]
+ },
+ {
+  "key": "The first nights of holding leave a pile of changes that are not news. Look at the groups below, then accept all {n} waiting at once, in one logged step. What arrives afterwards is the real news.",
+  "files": [
+   "components/UpdateGroups.tsx"
   ]
  },
  {
@@ -13882,6 +14095,18 @@
   ]
  },
  {
+  "key": "The rule is removed.",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
+  "key": "The rule is saved. It applies from the next update.",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "The same text posted by two different accounts within a day is refused for the second one, unless it is very short.",
   "files": [
    "app/[locale]/forum/rules/page.tsx"
@@ -14131,6 +14356,12 @@
   ]
  },
  {
+  "key": "There is nothing waiting in that group any more.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
   "key": "There were {n} completed cards in {year}; the latest was {event} on {date}.",
   "plural": "There was {n} completed card in {year}; the latest was {event} on {date}.",
   "files": [
@@ -14244,6 +14475,12 @@
  },
  {
   "key": "This fight is locked: picks close when fight day begins.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "This group has changed since you opened the page, so nothing was decided. Reload and look again.",
   "files": [
    "lib/account-text.ts"
   ]
@@ -14428,6 +14665,7 @@
  {
   "key": "Title reigns no longer on the page",
   "files": [
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -15053,6 +15291,12 @@
   ]
  },
  {
+  "key": "Used {n} times, last {date}",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "Using Ringside",
   "files": [
    "app/[locale]/terms/page.tsx"
@@ -15113,6 +15357,12 @@
   "key": "Videos about this card",
   "files": [
    "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "View",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -15747,6 +15997,12 @@
   ]
  },
  {
+  "key": "Why (logged)",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "Why it might never happen",
   "files": [
    "app/[locale]/matchmaking/page.tsx"
@@ -16189,8 +16445,15 @@
   ]
  },
  {
+  "key": "Yes, accept all {n}",
+  "files": [
+   "components/UpdateGroups.tsx"
+  ]
+ },
+ {
   "key": "Yes, approve",
   "files": [
+   "components/UpdateGroups.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -16198,6 +16461,12 @@
   "key": "Yes, delete it",
   "files": [
    "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "Yes, reject {n}",
+  "files": [
+   "components/UpdateGroups.tsx"
   ]
  },
  {

@@ -55,6 +55,12 @@ export function explain(t: T, code: string | undefined): string {
     case "not_a_correction": return t("That request is not a correction.");
     case "stale": return t("The data has changed since this was proposed, so nothing was applied. The next check will replace it.");
     case "gone": return t("The entry this change is about is no longer held, so nothing was applied.");
+    case "group_changed": return t("This group has changed since you opened the page, so nothing was decided. Reload and look again.");
+    case "group_empty": return t("There is nothing waiting in that group any more.");
+    case "field_unknown": return t("A rule cannot name that field.");
+    case "condition_invalid": return t("That condition does not fit this field.");
+    case "amount_invalid": return t("Enter a number, zero or more.");
+    case "duplicate": return t("That rule already exists.");
     case "bad_proposal": case "unknown_source": case "failed": return t("This change could not be applied.");
     case "network": return t("Could not reach the server. Check your connection and try again.");
     default: return t("Something went wrong. Try again.");
