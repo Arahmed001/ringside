@@ -12,8 +12,8 @@ export async function CreditedPicture({ picture, alt, className = "", imgClassNa
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={picture.url} alt={alt} loading="lazy" referrerPolicy="no-referrer" className={`w-auto rounded-xl object-contain ${imgClassName}`} />
       <figcaption className="mt-1.5 max-w-xs text-xs leading-snug text-muted">
-        {t("Image:")} <a href={picture.credit.pageUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{picture.credit.text}</a>
-        {" · "}{picture.credit.source}
+        {t("Image:")} <a href={picture.credit.pageUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink"><span lang="en" dir="ltr">{picture.credit.text}</span></a>
+        {" · "}{picture.credit.source === "Recorded by the editors" ? t("Recorded by the editors") : <span lang="en" dir="ltr">{picture.credit.source}</span>}
       </figcaption>
     </figure>
   );

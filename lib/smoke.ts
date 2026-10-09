@@ -420,7 +420,7 @@ export function knownNames(w: World): Set<string> {
   const add = (v: string | null | undefined) => { if (v && v.trim()) out.add(unquote(v.trim().toLowerCase())); };
   const ui = uiVocabulary();
   for (const b of w.boxers) {
-    add(b.name); add(b.nickname);
+    add(b.name); add(b.nickname); add(b.birthPlace); add(b.residence); for (const a of b.aliases ?? []) add(a); add(b.photoCredit?.text);
     // a page that is short of room shows a surname (or a first name) on its own; a three-letter part ("Cao", "Tun") counts too unless it is one of the interface's own words, because an
     // untranslated interface string is made only of those (found on the first real-sized league: two surnames were reported as English)
     for (const part of b.name.split(/[\s]+/)) if (part.length >= 4 || (part.length === 3 && ui.size > 0 && !ui.has(part.toLowerCase()))) add(part);
@@ -428,6 +428,9 @@ export function knownNames(w: World): Set<string> {
   for (const e of w.events) { add(e.name); add(e.venue); add(e.city); add(e.broadcaster); }
   for (const b of w.bouts) add(b.title);
   for (const p of w.people.values()) add(p.name);
+  // the supplier's and Wikidata's own words that a page prints as they are: a honour's name, a venue picture's credit
+  for (const hs of w.honoursByBoxer?.values() ?? []) for (const h of hs) add(h.label);
+  for (const pic of w.pictureList ?? []) add(pic.credit.text);
   for (const o of w.orgs.values()) add(o.name);
   // a body's list names fighters who are not in the league (shown without a link, as the supplier spells them)
   for (const lists of w.official.byDivision.values()) for (const l of lists) for (const e of [...l.champions, ...l.contenders]) add(e.name);
@@ -467,7 +470,7 @@ export function blankKnown(text: string, known: Set<string>): string {
   const words = [...text.matchAll(/\S+/g)].map((m) => ({ w: m[0], at: m.index ?? 0 }));
   const edge = (s: string) => unquote(s.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}.]+$/gu, "").toLowerCase());
   const outer = (s: string) => unquote(s.replace(/^[\s·،,;:|—–"“”«»]+|[\s·،,;:|—–"“”«»]+$/g, "").toLowerCase());
-  const prefixless = (s: string) => s.replace(/^[\u0600-\u06ff]{1,2}(?=[A-Za-z])/, "");
+  const prefixless = (s: string) => s.replace(/^[\u0600-\u06ff]{1,2}(?=[A-Za-z\u00c0-\u017f])/, "");
   const keep = new Array<boolean>(words.length).fill(true);
   // the end of the text first: a known name cut off where the page cut it (before its own words are taken as shorter names)
   const prefixes = knownPrefixes(known);

@@ -11064,7 +11064,7 @@
   ]
  },
  {
-  "key": "Read at {source}",
+  "key": "Read at <o>{name}</o>",
   "files": [
    "components/NewsList.tsx"
   ]
@@ -11199,6 +11199,13 @@
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "components/TenureTable.tsx"
+  ]
+ },
+ {
+  "key": "Recorded by the editors",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "components/CreditedPicture.tsx"
   ]
  },
  {

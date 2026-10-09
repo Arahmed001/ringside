@@ -26,3 +26,8 @@ test("a name with no Latin letters makes an empty slug, as before: the caller su
   assert.equal(slugify("محمد 🥊 العلي"), "");
   assert.equal(slugify(""), "");
 });
+
+test("letters that do not come apart by accent keep their plain letter in an address: Łukasz is lukasz, Søren is soren, Weiß is weiss (round 140)", () => {
+  assert.equal(slugify("Łukasz Rusiewicz"), "lukasz-rusiewicz"); assert.equal(slugify("Søren Østergaard"), "soren-ostergaard"); assert.equal(slugify("Jürgen Weiß"), "jurgen-weiss"); assert.equal(slugify("Đorđe Petrović"), "dorde-petrovic");
+  assert.equal(slugify("José Hernández"), "jose-hernandez", "an accent still comes off");
+});

@@ -193,3 +193,17 @@ test("real-league names the checker must recognise: a very long event title, a n
   assert.match(problemsIn(route, "en", 200, "text/html", page(`Card: ${long}.`)).join(), /Infinity/, "without them it is flagged, as before");
   assert.match(problemsIn(route, "en", 200, "text/html", page("Rating: Infinity"), k).join(), /Infinity/, "and a real one still is");
 });
+
+test("the words a page prints as the supplier or Wikidata wrote them are known names, so the Arabic check does not call them English: a birth place, a residence, an alias, a picture's credit, a honour's name (round 140: 198 pages of the second full load)", async () => {
+  const { knownNames, blankKnown } = await import("../lib/smoke");
+  const w = { boxers: [{ name: "Jo Doe", nickname: null, birthPlace: "Connah's Quay", residence: "Rochdale", aliases: ["Johnny D"], photoCredit: { text: "Johnnynajjar, CC BY-SA 3.0" } }], events: [], bouts: [], people: new Map(), orgs: new Map(), official: { byDivision: new Map() },
+    honoursByBoxer: new Map([[1, [{ label: "The Ring magazine Fighter of the Year" }]]]), pictureList: [{ credit: { text: "Mandy Coombes, CC BY-SA 2.0" } }] } as never;
+  const k = knownNames(w);
+  for (const t of ["Connah's Quay", "Rochdale", "Johnny D", "Johnnynajjar, CC BY-SA 3.0", "The Ring magazine Fighter of the Year", "Mandy Coombes, CC BY-SA 2.0"]) assert.equal(blankKnown(`مكتوب ${t} هنا`, k).match(/[A-Za-z]{3,}/g), null, t);
+  assert.notEqual(blankKnown("مكتوب real english words here", k).match(/[A-Za-z]{3,}/g), null, "other English is still English");
+});
+
+test("an Arabic prefix letter glued to a name that starts with a letter outside ASCII (وŁukasz) still lets the known name be found (round 140)", async () => {
+  const { blankKnown } = await import("../lib/smoke");
+  assert.equal(blankKnown("بين Alexey Egorov وŁukasz Rusiewicz", new Set(["alexey egorov", "łukasz rusiewicz"])).match(/[A-Za-z]{3,}/g), null);
+});

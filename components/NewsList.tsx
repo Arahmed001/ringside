@@ -17,7 +17,7 @@ export function NewsList({ items, t }: { items: NewsItem[]; t: T }) {
           <a href={n.url} target="_blank" rel="noopener noreferrer nofollow" lang="en" dir="ltr" className="mt-1 block font-display text-lg font-bold leading-snug hover:text-gold">{n.title}</a>
           {n.snippet && <p lang="en" dir="ltr" className="mt-1 text-sm text-muted">{n.snippet}</p>}
           <div className="mt-2 flex flex-wrap gap-x-4 text-xs text-muted">
-            <a href={n.url} target="_blank" rel="noopener noreferrer nofollow" className="py-1 hover:text-ink">{t("Read at {source}", { source: sourceName(n.source) })} ↗</a>
+            <a href={n.url} target="_blank" rel="noopener noreferrer nofollow" className="py-1 hover:text-ink">{t.rich("Read at <o>{name}</o>", { name: sourceName(n.source), o: (c) => <span lang="en" dir="ltr">{c}</span> })} ↗</a>
             {n.archiveUrl && <a href={n.archiveUrl} target="_blank" rel="noopener noreferrer nofollow" className="py-1 hover:text-ink">{t("Archived copy")} ↗</a>}
           </div>
         </li>

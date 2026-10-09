@@ -204,8 +204,8 @@ const HONOURS_SHOWN = 8;
           <Headshot boxer={b} size={200} priority className="shadow-2xl shadow-black/60" />
           {b.photoCredit && (
             <p className="mt-1.5 max-w-[200px] text-xs leading-snug text-muted">
-              {t("Photo:")} <a href={b.photoCredit.pageUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{b.photoCredit.text}</a>
-              {" · "}{b.photoCredit.source}
+              {t("Photo:")} <a href={b.photoCredit.pageUrl} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink"><span lang="en" dir="ltr">{b.photoCredit.text}</span></a>
+              {" · "}{b.photoCredit.source === "Recorded by the editors" ? t("Recorded by the editors") : <span lang="en" dir="ltr">{b.photoCredit.source}</span>}
             </p>
           )}
         </div>
@@ -371,7 +371,7 @@ const HONOURS_SHOWN = 8;
               <div className="eyebrow mb-2">{t("Honours")}</div>
               <ul className="flex flex-wrap gap-1.5">
                 {honours.slice(0, HONOURS_SHOWN).map((h) => (
-                  <li key={`${h.kind}|${h.label}|${h.year}`} className={`chip ${h.kind === "title" ? "" : "!border-gold/50 !text-gold"}`}>{t.name(h.label)}{h.year ? ` · ${h.year}` : ""}</li>
+                  <li key={`${h.kind}|${h.label}|${h.year}`} className={`chip ${h.kind === "title" ? "" : "!border-gold/50 !text-gold"}`}>{t.name(h.label) === h.label ? <span lang="en" dir="ltr">{h.label}</span> : t.name(h.label)}{h.year ? ` · ${h.year}` : ""}</li>
                 ))}
                 {honours.length > HONOURS_SHOWN && <li className="chip">{t("+{n} more", { n: honours.length - HONOURS_SHOWN })}</li>}
               </ul>
@@ -393,7 +393,7 @@ const HONOURS_SHOWN = 8;
               <p className="mt-2 text-xs text-muted">
                 {t("From Wikipedia (CC BY-SA 4.0), a reference and not an official record:")}{" "}
                 {[...new Set(reigns.map((r) => r.source))].map((src, i) => (
-                  <span key={src}>{i ? " · " : ""}<a href={`https://en.wikipedia.org/wiki/${src}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink">{src.replace(/_/g, " ")}</a></span>
+                  <span key={src}>{i ? " · " : ""}<a href={`https://en.wikipedia.org/wiki/${src}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-ink"><span lang="en" dir="ltr">{src.replace(/_/g, " ")}</span></a></span>
                 ))}
               </p>
             </div>
