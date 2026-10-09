@@ -19,6 +19,9 @@ import { getT } from "@/lib/i18n/server";
 import { ShareButton } from "@/components/ShareButton";
 import { AddToCalendar } from "@/components/AddToCalendar";
 import { metaFor } from "@/lib/seo-server";
+import { NewsList } from "@/components/NewsList";
+import { newsForEvent } from "@/lib/news/read";
+import { SectionTitle } from "@/components/ui";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; id: string }> }) => metaFor(params, async ({ id }, t) => {
   const w = await getWorld();
@@ -45,6 +48,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const venue = w.venueOf(e);
   const night = buildNight(w, e.id);
   const nightText = night ? nightLines(night, w, t) : [];
+  const news = await newsForEvent(w, e.id);
   return (
     <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
       <BreadcrumbLd locale={t.locale} trail={[{ name: t("Events"), path: "/events" }, { name: t.name(e.name), path: `/events/${e.id}` }]} />
@@ -110,6 +114,7 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             );
           })}
         </div>
+        {news.length > 0 && <section className="mt-8"><SectionTitle eyebrow={t("In the news")} title={t("Headlines about this card")} href="/news" cta={t("All headlines")} /><NewsList items={news} t={t} /></section>}
       </div>
     </div>
   );
