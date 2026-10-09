@@ -108,8 +108,8 @@ async function Result({ A, B, w }: { A: BoxerFull; B: BoxerFull; w: Awaited<Retu
     [t("Stance"), A.stance ? t(A.stance) : DASH, B.stance ? t(B.stance) : DASH], [t("Style"), t(archetype(A)), t(archetype(B))], [t("Division"), divisionLabel(A.weightClass, A.sex, t), divisionLabel(B.weightClass, B.sex, t)],
   ];
   const ax = (b: BoxerFull) => [
-    { label: t("Power"), v: b.koRate }, { label: t("Winning"), v: b.winRate }, { label: t("Durability"), v: 1 - Math.min(1, (b.koLosses / Math.max(1, b.bouts)) * 4) },
-    ...(withReach ? [{ label: t("Reach"), v: Math.min(1, Math.max(0, ((b.reachCm as number) - 150) / 60)) }] : []), { label: t("Experience"), v: Math.min(1, b.bouts / 40) }, { label: t("Rating"), v: Math.min(1, Math.max(0, (b.rating - 1350) / 400)) },
+    { label: t("KO rate"), v: b.koRate }, { label: t("Win rate"), v: b.winRate }, { label: t("Stoppage resistance"), v: 1 - Math.min(1, (b.koLosses / Math.max(1, b.bouts)) * 4) },
+    ...(withReach ? [{ label: t("Reach"), v: Math.min(1, Math.max(0, ((b.reachCm as number) - 150) / 60)) }] : []), { label: t("Fights"), v: Math.min(1, b.bouts / 40) }, { label: t("Rating"), v: Math.min(1, Math.max(0, (b.rating - 1350) / 400)) },
   ];
   return (
     <section className="space-y-6">
