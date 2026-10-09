@@ -7,7 +7,7 @@ const b = (id: number, redId: number, blueId: number, winnerId: number | null = 
 test("adds up each of the last five opponents' records as they stood on the night", () => {
   // fighter 1 meets 11..16 in fights 101..106 (the last five count); each opponent has an earlier win and loss, then the fight against fighter 1, then a later win that must not count
   const mine = [1, 2, 3, 4, 5, 6].map((i) => b(100 + i, 1, 10 + i));
-  const real = (o: number) => [b(o * 10, o, 99, o), b(o * 10 + 1, o, 98, 98), mine.find((x: any) => x.blueId === o)!, b(300 + o, o, 97, o)];
+  const real = (o: number) => [b(o * 10, o, 99, o), b(o * 10 + 1, o, 98, 98), mine.find((x: { blueId: number }) => x.blueId === o)!, b(300 + o, o, 97, o)];
   const r = opponentsLastFive(mine, 1, real, () => true)!;
   assert.deepEqual(r, { fights: 5, wins: 5, losses: 5, draws: 0 });
 });

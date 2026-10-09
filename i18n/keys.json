@@ -3899,6 +3899,12 @@
   ]
  },
  {
+  "key": "changes to our data that a public source seems to have made, waiting for an administrator to accept or reject them: what changes, where it was read, and which administrator decided and when (nothing a reader wrote)",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
   "key": "Check the quote on the page",
   "files": [
    "components/ReportQueue.tsx",

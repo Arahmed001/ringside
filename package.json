@@ -10,6 +10,7 @@
     "media:resolve": "tsx scripts/resolve-media.ts",
     "wikidata:import": "tsx scripts/import-wikidata.ts",
     "champions:import": "tsx scripts/import-champions.ts",
+    "watch": "tsx scripts/watch.ts",
     "vendor:sample": "tsx scripts/vendor-sample.ts",
     "vendor:backfill": "tsx scripts/vendor-backfill.ts",
     "vendor:rehearse": "tsx scripts/vendor-rehearse.ts",
