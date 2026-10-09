@@ -11,11 +11,11 @@ export const STATUS_FILE = "nightly-status.json";
 export const RUNNING_STALE_HOURS = 6;
 
 /** The settings the job and its scheduler read. Listed here (not scattered) so the doctor, the docs and the drift test agree; they are all optional. */
-export type NightlyEnv = Record<"NIGHTLY_SCHEDULE" | "NIGHTLY_KEEP" | "NIGHTLY_OFFSITE_CMD" | "NIGHTLY_OFFSITE_TIMEOUT_MIN" | "NIGHTLY_JITTER_MIN" | "NIGHTLY_NODE_OPTIONS" | "RINGSIDE_NIGHTLY_UPDATE_ARGS", string | undefined>;
+export type NightlyEnv = Record<"NIGHTLY_SCHEDULE" | "NIGHTLY_KEEP" | "NIGHTLY_OFFSITE_CMD" | "NIGHTLY_OFFSITE_TIMEOUT_MIN" | "NIGHTLY_JITTER_MIN" | "NIGHTLY_NODE_OPTIONS" | "RINGSIDE_NIGHTLY_UPDATE_ARGS" | "WATCH_SOURCES", string | undefined>;
 export const nightlyEnv = (): NightlyEnv => ({
   NIGHTLY_SCHEDULE: process.env.NIGHTLY_SCHEDULE, NIGHTLY_KEEP: process.env.NIGHTLY_KEEP, NIGHTLY_OFFSITE_CMD: process.env.NIGHTLY_OFFSITE_CMD,
   NIGHTLY_OFFSITE_TIMEOUT_MIN: process.env.NIGHTLY_OFFSITE_TIMEOUT_MIN, NIGHTLY_JITTER_MIN: process.env.NIGHTLY_JITTER_MIN, NIGHTLY_NODE_OPTIONS: process.env.NIGHTLY_NODE_OPTIONS,
-  RINGSIDE_NIGHTLY_UPDATE_ARGS: process.env.RINGSIDE_NIGHTLY_UPDATE_ARGS,
+  RINGSIDE_NIGHTLY_UPDATE_ARGS: process.env.RINGSIDE_NIGHTLY_UPDATE_ARGS, WATCH_SOURCES: process.env.WATCH_SOURCES,
 });
 
 /**
@@ -32,7 +32,7 @@ export const EXIT_MEANING: Record<number, string> = {
 };
 export const exitMeaning = (code: number | null): string => (code === null ? "not run" : EXIT_MEANING[code] ?? (code > 128 ? `killed by signal ${code - 128}` : "anything else"));
 
-export type StepName = "backup" | "update" | "offsite";
+export type StepName = "backup" | "update" | "watch" | "offsite";
 export interface StepResult {
   name: StepName;
   /** null: the step did not run (cut short, or an offsite command was never set) */
@@ -97,7 +97,7 @@ export function publicNightly(s: NightlyStatus | null, nowMs = Date.now()): Publ
   if (!s) return null;
   const dead = s.result === "running" && nowMs - Date.parse(s.started) > RUNNING_STALE_HOURS * 3_600_000; // killed with its container, never finished
   const steps: PublicNightly["steps"] = {};
-  for (const st of s.steps) if (["backup", "update", "offsite"].includes(st.name)) steps[st.name] = typeof st.exitCode === "number" ? st.exitCode : null;
+  for (const st of s.steps) if (["backup", "update", "watch", "offsite"].includes(st.name)) steps[st.name] = typeof st.exitCode === "number" ? st.exitCode : null;
   const text = (x: unknown) => (typeof x === "string" && Number.isFinite(Date.parse(x)) ? x : null);
   return { result: dead ? "interrupted" : s.result, startedAt: s.started, finishedAt: text(s.finished), exitCode: typeof s.exitCode === "number" ? s.exitCode : null, steps, next: text(s.next) };
 }
