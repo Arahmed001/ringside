@@ -1,6 +1,6 @@
 # The vendor update gate: a plan for review
 
-Status: **steps D1 (observe and report) and D2 (hold) are built; E1 and E2 are not. D2 is behind `VENDOR_GATE=hold`, off by default. The owner's decisions of 2026-10-09 are recorded in section 11 and applied below.** It follows PLAN 253 (source watchers), whose steps A to C are on main. This page is what to read and decide on before step D starts, because the gate touches `lib/ingest.ts`, the most sensitive code in the project.
+Status: **steps D1 (observe and report), D2 (hold) and E1 (groups, rules, baseline) are built; E2 is not. D2 is behind `VENDOR_GATE=hold`, off by default. The owner's decisions of 2026-10-09 are recorded in section 11 and applied below.** It follows PLAN 253 (source watchers), whose steps A to C are on main. This page is what to read and decide on before step D starts, because the gate touches `lib/ingest.ts`, the most sensitive code in the project.
 
 ## 1. What was asked
 
@@ -126,6 +126,13 @@ The site keeps serving the last approved data. `/api/health` already shows `upda
 - **The first night**: run the update once with `--gate-baseline` (for the nightly job: `RINGSIDE_NIGHTLY_UPDATE_ARGS="--gate-baseline"` for one night) so the flood guard does not refuse the pile left from before; it is then recorded as proposals. `--accept-all` lets one update through unheld and writes `update.accept_all` to the audit log.
 - **The guarantee, as a test**: for a busy night (a height, a nickname, a stance, a country, a result arriving, an old result overturned, an event renamed and moved, an organisation and a person renamed, a new fighter, a ranking list), holding and then approving everything leaves every table, ratings and their history included, identical to an ungated update.
 - The approval page shows the vendor kinds (details, results with the fighters' totals, ranking lists). Grouping by field, "approve all lists", standing rules and the baseline action are E1; the nightly wiring, health and doctor warnings are E2.
+
+## 10d. Step E1: what is built (making the volume manageable)
+
+- **Groups** (`lib/watch/groups.ts`, `/api/review/updates/groups`): the waiting proposals of one source and kind by the field they are about (`boxers.height_cm`, `result`, `lists`): the count, how many are filled, replaced or cleared, the median and largest change for a number, ten samples and the oldest waiting date. **Approve all** or **Reject all** decides the whole group, whatever its size. The page sends back the count it showed; if the group has changed since (a proposal arrived after the page loaded) the server refuses with `group_changed` and decides nothing, so nothing is approved unseen. A group decision is one `update.group_approve` / `update.group_reject` audit row plus one per proposal. Members that no longer fit what is held are refused one by one (`stale`) and stay waiting. "Review one by one" opens the group's individual proposals.
+- **The baseline** (`acceptEverythingWaiting`): **Accept everything waiting (N)**: every waiting vendor proposal, in one logged step (`update.baseline`), with the count and a required note. It is for the first night of holding; the database ends exactly as an ungated update would have left it (tested, ratings included).
+- **Standing rules** (`lib/watch/rules.ts`, `watch_rules`, `/api/review/updates/rules`, a panel on the page and "Always accept changes like this" on each group): *any* change to a field, only a *blank being filled*, or a number moving by *at most N*; a fight's `result` and the ranking `lists` can only be accepted whole (*any*). Only an administrator makes or removes one (audit rows `update.rule_add` / `update.rule_remove`). **A rule is applied inside the update, before the old values are put back**, so a change it accepts simply stays, and a result it accepts takes the fighters' totals with it. The flood guard has already looked at the whole night, so **a rule cannot hide a changed format**. Each night's use is written to the audit log (`update.rule_applied`, the rule, how many) and to the rule's own counters, and the night's log says "accepted by standing rule, so not held". There are no rules unless an administrator makes them.
+- The accounts schema gained `watch_rules`, declared on the privacy page like every accounts table.
 
 ## 11. Decisions (owner, 2026-10-09)
 

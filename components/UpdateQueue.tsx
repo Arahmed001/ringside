@@ -5,6 +5,9 @@ import { useT } from "@/components/i18n";
 import { api, useAccount } from "@/lib/useAccount";
 import { explain } from "@/lib/account-text";
 import type { ProposalRow } from "@/lib/watch/proposals";
+import { groupOf } from "@/lib/watch/group-key";
+import { UpdateGroups, fieldTitle } from "@/components/UpdateGroups";
+import type { GroupView } from "@/lib/watch/groups";
 
 type Status = "pending" | "approved" | "rejected" | "superseded";
 interface SourceInfo { id: string; label: string; kind: string; terms: string }
@@ -21,6 +24,8 @@ export function UpdateQueue() {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState<"groups" | "list">("groups");
+  const [focus, setFocus] = useState<GroupView | null>(null);
   const isAdmin = me?.role === "admin";
   const key = status;
   const data = loaded?.key === key ? loaded : null;
@@ -46,15 +51,25 @@ export function UpdateQueue() {
   }
 
   const tabs: [Status, string][] = [["pending", t("Waiting")], ["approved", t("Approved")], ["rejected", t("Not accepted")], ["superseded", t("No longer true")]];
-  const items = data?.items ?? [];
+  const allItems = data?.items ?? [];
+  const items = focus ? allItems.filter((i) => `${i.source}|${i.kind}|${groupOf(i.kind, i.targetKey)}` === focus.key) : allItems;
   const groups = [...new Set(items.map((i) => `${i.source}|${i.kind}`))].map((g) => ({ g, rows: items.filter((i) => `${i.source}|${i.kind}` === g) }));
   return (
     <div className="space-y-5">
       <div role="group" aria-label={t("Show")} className="flex flex-wrap gap-2 text-sm">
-        {tabs.map(([k, text]) => <button key={k} aria-pressed={status === k} onClick={() => { setStatus(k); setMsg(""); }} className={`rounded-full border px-3 py-1 ${status === k ? "border-gold/60 bg-gold/10 text-ink" : "border-line text-muted hover:text-ink"}`}>{text}{data ? ` (${data.counts[k] ?? 0})` : ""}</button>)}
+        {tabs.map(([k, text]) => <button key={k} aria-pressed={status === k} onClick={() => { setStatus(k); setMsg(""); setFocus(null); }} className={`rounded-full border px-3 py-1 ${status === k ? "border-gold/60 bg-gold/10 text-ink" : "border-line text-muted hover:text-ink"}`}>{text}{data ? ` (${data.counts[k] ?? 0})` : ""}</button>)}
       </div>
       <p role="status" aria-live="polite" className="min-h-5 text-sm text-muted">{msg}</p>
-      {data === null ? <p className="text-sm text-muted">{t("Loading…")}</p> : items.length === 0 ? <p className="text-sm text-muted">{status === "pending" ? t("Nothing is waiting.") : t("Nothing here yet.")}</p> : (
+      {status === "pending" && (
+        <div role="group" aria-label={t("View")} className="flex flex-wrap items-center gap-2 text-xs">
+          <button aria-pressed={mode === "groups" && !focus} onClick={() => { setMode("groups"); setFocus(null); }} className={`rounded-full border px-2.5 py-0.5 ${mode === "groups" && !focus ? "border-gold/60 bg-gold/10 text-ink" : "border-line text-muted hover:text-ink"}`}>{t("By group")}</button>
+          <button aria-pressed={mode === "list" || !!focus} onClick={() => { setMode("list"); setFocus(null); }} className={`rounded-full border px-2.5 py-0.5 ${mode === "list" || focus ? "border-gold/60 bg-gold/10 text-ink" : "border-line text-muted hover:text-ink"}`}>{t("One by one")}</button>
+          {focus && <span className="text-muted">{fieldTitle(t, focus.kind, focus.field)} · <button className="underline decoration-dotted hover:text-ink" onClick={() => { setFocus(null); setMode("groups"); }}>{t("Back to the groups")}</button></span>}
+        </div>
+      )}
+      {status === "pending" && mode === "groups" && !focus ? (
+        <UpdateGroups onFocus={(g) => { setFocus(g); setMode("list"); }} onChanged={() => load(status)} setMsg={setMsg} busy={busy} setBusy={setBusy} />
+      ) : data === null ? <p className="text-sm text-muted">{t("Loading…")}</p> : items.length === 0 ? <p className="text-sm text-muted">{status === "pending" ? t("Nothing is waiting.") : t("Nothing here yet.")}</p> : (
         <div className="space-y-8">
           {groups.map(({ g, rows }) => {
             const src = data.sources.find((s) => s.id === rows[0].source);

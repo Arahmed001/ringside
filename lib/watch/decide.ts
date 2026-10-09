@@ -15,11 +15,11 @@ export interface DecideReport { results: Decided[]; approved: number; rejected: 
  *  - approve: the source's `apply` writes the change to the live data, then the proposal is marked approved with who and when, and an audit row names it. A change that no
  *    longer fits what is held (`stale`, `gone`) is refused and stays pending: the next watch run will replace or retire it.
  *  - reject: needs a note (why), and is remembered, so the same change is not raised again while the source says the same.
- * Each id is decided on its own: one that cannot be applied does not stop the others, and the report says which. At most MAX_BATCH ids in a call.
+ * Each id is decided on its own: one that cannot be applied does not stop the others, and the report says which. At most MAX_BATCH ids in a call (a group decision, lib/watch/groups.ts, raises the limit: it decides on exactly the proposals it was shown).
  */
-export function decide(admin: User | null, ids: number[], decision: "approved" | "rejected", note: string, main: DatabaseSync, acc: DatabaseSync): DecideReport | { error: DecideError } {
+export function decide(admin: User | null, ids: number[], decision: "approved" | "rejected", note: string, main: DatabaseSync, acc: DatabaseSync, limit = MAX_BATCH): DecideReport | { error: DecideError } {
   if (!admin || admin.role !== "admin") return { error: "forbidden" };
-  if (!ids.length || ids.length > MAX_BATCH) return { error: "too_many" };
+  if (!ids.length || ids.length > limit) return { error: "too_many" };
   note = note.trim();
   if (decision === "rejected" && !note) return { error: "note_required" };
   const report: DecideReport = { results: [], approved: 0, rejected: 0, changedData: false, ratingsRecomputed: false };

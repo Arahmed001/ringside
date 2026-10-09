@@ -201,7 +201,13 @@ async function main() {
     console.log("vendor gate: --accept-all: this update is let through without being held (logged).");
     try { const { accountsDb, audit } = await import("../lib/accounts/store"); audit(accountsDb(), "operator", "update.accept_all", "vendor:boxing-data-api", JSON.stringify({ command: "vendor:backfill --update" })); } catch (e) { console.log(`vendor gate: could not write the audit row (${(e as Error).message})`); }
   }
-  const vendorGate = mode ? gateHooks({ mode, settings: gateS, log: (m) => console.log(m), baseline: flag("gate-baseline") || flag("baseline"), dataDir: mode === "report" ? undefined : path.dirname(dbFile) }) : undefined;
+  let rules: Awaited<ReturnType<typeof import("../lib/watch/rules")["listRules"]>> = [];
+  if (mode === "hold") { // an administrator's standing rules: a change one of them accepts is not held
+    const { accountsDb } = await import("../lib/accounts/store");
+    rules = (await import("../lib/watch/rules")).listRules(accountsDb());
+    if (rules.length) console.log(`vendor gate: ${rules.length} standing rule(s) in force`);
+  }
+  const vendorGate = mode ? gateHooks({ mode, rules, settings: gateS, log: (m) => console.log(m), baseline: flag("gate-baseline") || flag("baseline"), dataDir: mode === "report" ? undefined : path.dirname(dbFile) }) : undefined;
   if (db && foreignFighters(db).total > 0 && !flag("no-backup") && !reportOnly) {
     const { backupDatabases } = await import("../lib/backup");
     const dbPath = process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db");
