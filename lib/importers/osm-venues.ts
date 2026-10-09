@@ -116,7 +116,7 @@ export async function resolvePlaces(db: DatabaseSync, o: { limit?: number; conta
     SELECT e.venue AS name, COALESCE(e.city, '') AS city, e.country, COUNT(*) AS n FROM events e
     LEFT JOIN venues w ON w.name = e.venue AND w.city = e.city AND w.status = 'matched' AND w.lat IS NOT NULL
     LEFT JOIN venue_places p ON p.name = e.venue AND p.city = COALESCE(e.city, '')
-    WHERE e.venue IS NOT NULL AND e.venue <> '' AND e.status <> 'cancelled' AND w.name IS NULL AND (p.name IS NULL OR (p.status <> 'found' AND p.checked_at < ?))
+    WHERE e.venue IS NOT NULL AND e.venue <> '' AND COALESCE(e.status, '') <> 'cancelled' AND w.name IS NULL AND (p.name IS NULL OR (p.status <> 'found' AND p.checked_at < ?))
     GROUP BY e.venue, e.city, e.country ORDER BY n DESC, e.venue LIMIT ?`).all(cutoff, o.limit ?? 100) as unknown as (Subject & { n: number })[];
   const save = db.prepare(`INSERT INTO venue_places (name, city, country, status, reason, lat, lon, address, category, osm_ref, checked_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)
     ON CONFLICT(name, city) DO UPDATE SET country=excluded.country, status=excluded.status, reason=excluded.reason, lat=excluded.lat, lon=excluded.lon, address=excluded.address, category=excluded.category, osm_ref=excluded.osm_ref, checked_at=excluded.checked_at`);
