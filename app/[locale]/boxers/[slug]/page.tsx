@@ -33,6 +33,7 @@ import { JumpNav } from "@/components/JumpNav";
 import { Discussion } from "@/components/Discussion";
 import { NewsList } from "@/components/NewsList";
 import { newsForFighter, videosForFighter } from "@/lib/news/read";
+import { suppliesTotals } from "@/lib/supplier-totals";
 import { Videos } from "@/components/Videos";
 import { Social } from "@/components/Social";
 import { postsFor } from "@/lib/social/store";
@@ -243,6 +244,11 @@ const HONOURS_SHOWN = 8;
               {ko.source === "supplier"
                 ? t("The record and the knockouts are the career totals from the data supplier. Ringside holds {held} of those {total} fights, so the fight list, rating and rates on this page are built from those {held} only.", { held: career.held, total: career.total })
                 : t("The record is the career total from the data supplier. Ringside holds {held} of those {total} fights, so the fight list, knockouts, rating and rates on this page are built from those {held} only.", { held: career.held, total: career.total })}
+            </p>
+          )}
+          {career.source === "loaded" && b.vendorRecord === null && b.bouts > 0 && suppliesTotals(w) && (
+            <p className="mt-3 max-w-2xl text-xs leading-snug text-muted">
+              {t("The data supplier gives no career total for this fighter, so the record is counted from the fights Ringside holds ({held}). Earlier fights, if there were any, are not in it.", { held: b.bouts })}
             </p>
           )}
           {career.source === "disputed" && (

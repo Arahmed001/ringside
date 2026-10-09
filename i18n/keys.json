@@ -13197,6 +13197,12 @@
   ]
  },
  {
+  "key": "The bodies' own lists",
+  "files": [
+   "app/[locale]/rankings/[division]/page.tsx"
+  ]
+ },
+ {
   "key": "The cards do not give either fighter a majority.",
   "files": [
    "app/[locale]/learn/page.tsx"
@@ -13278,6 +13284,12 @@
   "key": "The data has no current promoter for {name}.",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "The data supplier gives no career total for this fighter, so the record is counted from the fights Ringside holds ({held}). Earlier fights, if there were any, are not in it.",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {

@@ -41,12 +41,15 @@ export interface Reconciliation {
 }
 const fmt = (r: CareerRecord) => `${r.wins}-${r.losses}-${r.draws}`;
 
-function reconcile(fighters: { externalId: string; name: string }[], loaded: Map<string, CareerRecord>, vendor: Map<string, CareerRecord>, recent?: Map<string, CareerRecord>): Reconciliation {
+function reconcile(fighters: { externalId: string; name: string }[], loaded: Map<string, CareerRecord>, vendor: Map<string, CareerRecord>, recent?: Map<string, CareerRecord>, longFights?: Set<string>): Reconciliation {
   const out: Reconciliation = { checked: 0, complete: 0, partial: 0, conflict: 0, noVendorRecord: 0, lagging: 0, share: 0, conflicts: [], partials: [], laggards: [] };
   for (const f of fighters) {
     const v = vendor.get(f.externalId);
     if (!v) { out.noVendorRecord++; continue; }
     const l = loaded.get(f.externalId) ?? { wins: 0, losses: 0, draws: 0 };
+    // a supplier total of 0-0-0 beside a fight of more than three rounds (a professional fight) is an unfilled field, not a career of no fights (257 of the first full load's 1,030 "conflicts"):
+    // there is no total to check against. Beside only short fights it stays what it was: an exhibition or amateur bout the professional total leaves out
+    if (v.wins + v.losses + v.draws === 0 && l.wins + l.losses + l.draws > 0 && longFights?.has(f.externalId)) { out.noVendorRecord++; continue; }
     let status: RecordStatus | "lagging" = classifyRecord(l, v);
     // a conflict that disappears once the last few days' fights are set aside is explained by the vendor's total trailing them
     const r = recent?.get(f.externalId);
@@ -67,9 +70,11 @@ export function reconcileFeed(feed: FeedData, vendor: Map<string, CareerRecord>,
   // with `lag`, the fights of the last `days` days are also counted apart: a conflict that goes away without them is the vendor's total trailing its results (`lagging`), not the feed contradicting itself
   const recent = lag ? new Map<string, CareerRecord>() : undefined;
   const dateOf = new Map(feed.events.map((e) => [e.externalId, e.date]));
+  const longFights = new Set<string>();
   const cutoff = lag ? new Date(Date.parse(`${lag.today}T00:00:00Z`) - lag.days * 86_400_000).toISOString().slice(0, 10) : "";
   for (const b of feed.bouts) {
     if (b.status === "cancelled") continue;
+    if ((b.rounds ?? 10) > 3) { longFights.add(b.redExternalId); longFights.add(b.blueExternalId); }
     const isRecent = !!recent && (dateOf.get(b.eventExternalId) ?? "") >= cutoff && !!dateOf.get(b.eventExternalId);
     const count = (id: string, k: keyof CareerRecord) => { add(loaded, id, k); if (isRecent) add(recent!, id, k); };
     if (b.winnerExternalId) {
@@ -77,7 +82,7 @@ export function reconcileFeed(feed: FeedData, vendor: Map<string, CareerRecord>,
       count(b.winnerExternalId === b.redExternalId ? b.blueExternalId : b.redExternalId, "losses");
     } else if (b.method === "DRAW") { count(b.redExternalId, "draws"); count(b.blueExternalId, "draws"); }
   }
-  return reconcile(feed.boxers, loaded, vendor, recent);
+  return reconcile(feed.boxers, loaded, vendor, recent, longFights);
 }
 
 /**
@@ -89,12 +94,14 @@ export function reconcileDb(db: DatabaseSync, vendor: Map<string, CareerRecord>,
   const wanted = only ? new Set(only) : null;
   const byId = new Map(boxers.map((b) => [b.id, b.external_id]));
   const loaded = new Map<string, CareerRecord>();
-  const rows = db.prepare("SELECT b.red_id, b.blue_id, b.winner_id, b.method, b.status, e.date AS date FROM bouts b LEFT JOIN events e ON e.id = b.event_id").all() as { red_id: number; blue_id: number; winner_id: number | null; method: string | null; status: string | null; date: string | null }[];
+  const rows = db.prepare("SELECT b.red_id, b.blue_id, b.winner_id, b.method, b.status, b.rounds, e.date AS date FROM bouts b LEFT JOIN events e ON e.id = b.event_id").all() as { red_id: number; blue_id: number; winner_id: number | null; rounds: number | null; method: string | null; status: string | null; date: string | null }[];
   const recent = lag ? new Map<string, CareerRecord>() : undefined;
+  const longFights = new Set<string>();
   const cutoff = lag ? new Date(Date.parse(`${lag.today}T00:00:00Z`) - lag.days * 86_400_000).toISOString().slice(0, 10) : "";
   for (const b of rows) {
     if (b.status === "cancelled") continue;
     const red = byId.get(b.red_id), blue = byId.get(b.blue_id);
+    if ((b.rounds ?? 10) > 3) { if (red) longFights.add(red); if (blue) longFights.add(blue); }
     const isRecent = !!recent && !!b.date && b.date >= cutoff;
     const count = (id: string | undefined, k: keyof CareerRecord) => { if (!id) return; add(loaded, id, k); if (isRecent) add(recent!, id, k); };
     if (b.winner_id) {
@@ -102,7 +109,7 @@ export function reconcileDb(db: DatabaseSync, vendor: Map<string, CareerRecord>,
       count(byId.get(b.winner_id), "wins"); count(l, "losses");
     } else if (b.method === "DRAW") { count(red, "draws"); count(blue, "draws"); }
   }
-  return reconcile(boxers.filter((b) => !wanted || wanted.has(b.external_id)).map((b) => ({ externalId: b.external_id, name: b.name })), loaded, vendor, recent);
+  return reconcile(boxers.filter((b) => !wanted || wanted.has(b.external_id)).map((b) => ({ externalId: b.external_id, name: b.name })), loaded, vendor, recent, longFights);
 }
 
 export interface Core {

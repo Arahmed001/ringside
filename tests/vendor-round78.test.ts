@@ -79,8 +79,8 @@ const withBouts = (events: [string, string][], bouts: ProviderBout[]): FeedData 
 
 test("in a load, a surplus that is only the last days' fights is the vendor's total trailing (lagging), and an older one is still a conflict", () => {
   const feed = withBouts([["new", "2026-10-01"], ["old", "2026-08-01"]], [bout("1", "A", "B", "new"), bout("2", "C", "B", "old")]);
-  const vendor = new Map([["A", rec(0, 0, 0)], ["B", rec(0, 1, 0)], ["C", rec(0, 0, 0)]]);
-  // A: a win 4 days old against a vendor total of none; C: the same win 2 months old; B: two losses against one, one of them 4 days old
+  const vendor = new Map([["A", rec(0, 0, 1)], ["B", rec(0, 1, 0)], ["C", rec(0, 0, 1)]]);
+  // A: a win 4 days old against a vendor total with no win; C: the same win 2 months old; B: two losses against one, one of them 4 days old
   const strict = reconcileFeed(feed, vendor);
   assert.deepEqual([strict.conflict, strict.lagging], [3, 0], "strictly all three exceed the vendor's totals");
   const r = reconcileFeed(feed, vendor, { today: "2026-10-05", days: 7 });
@@ -91,13 +91,13 @@ test("in a load, a surplus that is only the last days' fights is the vendor's to
 
 test("--drop-conflicts: the conflicted fighters leave with their fights, the others stay, and nobody becomes a conflict", () => {
   const feed = withBouts([["e", "2020-01-01"]], [bout("1", "A", "B", "e"), bout("2", "B", "C", "e", { winnerExternalId: "C" })]);
-  const vendor = new Map([["A", rec(1, 0, 0)], ["B", rec(0, 0, 0)], ["C", rec(1, 0, 0)]]); // B: loaded 0-2-0 against 0-0-0
+  const vendor = new Map([["A", rec(1, 0, 0)], ["B", rec(1, 0, 0)], ["C", rec(1, 0, 0)]]); // B: loaded 0-2-0 against 1-0-0
   const before = reconcileFeed(feed, vendor);
   assert.deepEqual(before.conflicts.map((m) => m.externalId), ["B"]);
   const out = dropConflicted(feed, before);
   assert.deepEqual(out.feed.boxers.map((b) => b.externalId), ["A", "C"]);
   assert.equal(out.feed.bouts.length, 0); assert.equal(out.fightsDropped, 2);
-  assert.deepEqual(out.dropped.map((m) => [m.name, m.loaded, m.vendor]), [["Fighter B", "0-2-0", "0-0-0"]]);
+  assert.deepEqual(out.dropped.map((m) => [m.name, m.loaded, m.vendor]), [["Fighter B", "0-2-0", "1-0-0"]]);
   const after = reconcileFeed(out.feed, vendor);
   assert.equal(after.conflict, 0); assert.equal(after.partial, 2, "A and C each lost the fight with B: shorter, so partial, not a conflict");
   const clean = dropConflicted(out.feed, after);

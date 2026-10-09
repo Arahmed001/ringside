@@ -67,7 +67,10 @@ test("a country the app cannot place is a warning when it is a handful of a larg
 });
 
 test("a record the fights contradict must be marked disputed, unless the supplier's total could not have caught up with a fight just before the load", () => {
-  const over = "UPDATE boxers SET vendor_wins = 0, vendor_losses = 0, vendor_draws = 0 WHERE name = 'Fighter A'";
+  const over = "UPDATE boxers SET vendor_wins = 0, vendor_losses = 1, vendor_draws = 0 WHERE name = 'Fighter A'";
+  const zero = "UPDATE boxers SET vendor_wins = 0, vendor_losses = 0, vendor_draws = 0 WHERE name = 'Fighter A'";
+  assert.equal(level(broken(zero), "records-marked"), "pass", "a supplier total of nothing beside a professional fight is no total, as the loader reads it (round 137)");
+  assert.equal(level(broken(zero + "; UPDATE bouts SET rounds = 3"), "records-marked"), "fail", "beside only a three-round fight it is still a contradiction");
   assert.equal(level(broken(over), "records-marked"), "fail");
   assert.equal(level(broken(over + "; UPDATE boxers SET record_disputed = 1 WHERE name = 'Fighter A'"), "records-marked"), "pass", "marked: as the loader does");
   const recent = broken(over + "; UPDATE events SET date = '2026-09-28'");
