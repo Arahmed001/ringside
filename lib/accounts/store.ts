@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { waveFingerprint } from "../forum/fp";
 import { WAVE_MIN_CHARS, WAVE_WINDOW_MS } from "../forum/rules";
+import { PROPOSAL_SCHEMA } from "../watch/schema";
 
 /**
  * People's accounts live in their OWN SQLite file, not in ringside.db: the sports database is rebuilt, re-ingested and (for the demo)
@@ -125,6 +126,7 @@ export function accountsDb(): DatabaseSync {
   const db = new DatabaseSync(file);
   db.exec("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 3000;");
   db.exec(SCHEMA);
+  db.exec(PROPOSAL_SCHEMA);
   // forward-only migration for accounts files created before sessions carried a device label
   const cols = (db.prepare("PRAGMA table_info(sessions)").all() as { name: string }[]).map((c) => c.name);
   if (!cols.includes("label")) db.exec("ALTER TABLE sessions ADD COLUMN label TEXT");
