@@ -14,7 +14,7 @@ So names are reviewed **a word at a time** and written to the page by joining th
 
 ## Doing a round of review
 1. `DATABASE_PATH=path/to/real.db npm run i18n:words -- todo 1000` lists the most useful words first, and says how many fighters each completes.
-2. `npm run i18n:words -- suggest file.json` stores machine suggestions for words that have none (`{ "Word": "Arabic" }`). A reviewed word is never overwritten, and a suggestion with Latin letters left in is refused. The first 1,000 suggestions are already in the file.
+2. `npm run i18n:words -- suggest file.json` stores machine suggestions for words that have none (`{ "Word": "Arabic" }`). A reviewed word is never overwritten, and a suggestion with Latin letters left in is refused. The first 3,000 words (ranked 2026-10-09, covering about 9,500 fighters once reviewed) already carry suggestions in the file.
 3. `DATABASE_PATH=… npm run i18n:words -- export` writes `review/name-words-review.html`: one offline file, loads nothing from the web, progress kept in the browser. For each word the reviewer presses *Looks right*, edits the Arabic, or skips. *Download my review* gives one JSON file.
 4. `npm run i18n:words -- import their-file.json` marks approved words reviewed (and edited ones with `source: "reviewer"`). Commit `i18n/name-words.ar.json`.
 5. `DATABASE_PATH=… npm run i18n:words -- status` shows how many fighters now have an Arabic name on a page.
