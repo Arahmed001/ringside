@@ -1,3 +1,4 @@
+import { EMBED_HOSTS } from "../lib/social/post";
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -14,10 +15,11 @@ import { makeBoxer, miniFeed, tempDb } from "./helpers";
  */
 const directive = (csp: string, name: string) => csp.split("; ").find((d) => d.startsWith(name + " ")) ?? "";
 
-test("the embed policy differs from the standard one in exactly one directive: who may frame the page", () => {
+test("the embed policy differs from the standard one in exactly two directives: who may frame the page, and what the page may frame (a page here may hold the five platforms' players and embeds, an embed holds nothing)", () => {
   const std = contentSecurityPolicy({ nonce: "N" }), emb = contentSecurityPolicy({ nonce: "N", embed: true });
   assert.equal(directive(std, "frame-ancestors"), "frame-ancestors 'none'"); assert.equal(directive(emb, "frame-ancestors"), "frame-ancestors *");
-  const without = (csp: string) => csp.split("; ").filter((d) => !d.startsWith("frame-ancestors")).join("; ");
+  assert.equal(directive(std, "frame-src"), `frame-src ${Object.values(EMBED_HOSTS).map((h) => `https://${h}`).join(" ")}`); assert.equal(directive(emb, "frame-src"), "frame-src 'none'");
+  const without = (csp: string) => csp.split("; ").filter((d) => !d.startsWith("frame-ancestors") && !d.startsWith("frame-src")).join("; ");
   assert.equal(without(emb), without(std), "the same nonce policy, the same everything else");
   assert.ok(/script-src 'self' 'nonce-N' 'strict-dynamic'/.test(emb) && !/unsafe-inline/.test(directive(emb, "script-src")), "scripts stay nonce-only");
 });

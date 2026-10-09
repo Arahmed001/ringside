@@ -164,7 +164,7 @@ export interface NightlyOutcome { exitCode: number; status: NightlyStatus | null
 export async function runNightly(o: NightlyOptions): Promise<NightlyOutcome> {
   const now = o.now ?? (() => new Date());
   const cfg = configFromEnv(o.settings);
-  const secrets = [o.env.BOXING_API_KEY?.trim(), o.env.ANTHROPIC_API_KEY?.trim()];
+  const secrets = [o.env.BOXING_API_KEY?.trim(), o.env.ANTHROPIC_API_KEY?.trim(), o.env.YOUTUBE_API_KEY?.trim()];
   const say = (m: string) => (o.log ?? ((l: string) => console.log(l)))(`[nightly] ${redact(m, secrets)}`);
   const root = o.root ?? ROOT;
   const dbPath = o.env.DATABASE_PATH?.trim() || path.join(root, "data", "ringside.db");
@@ -251,7 +251,7 @@ export async function runNightly(o: NightlyOptions): Promise<NightlyOutcome> {
     else {
       const t0 = Date.now();
       // the command is the owner's own: it gets the environment minus the secrets it has no use for, and the folder as its one argument ($1)
-      const env = { ...o.env }; delete env.BOXING_API_KEY; delete env.ANTHROPIC_API_KEY;
+      const env = { ...o.env }; delete env.BOXING_API_KEY; delete env.ANTHROPIC_API_KEY; delete env.YOUTUBE_API_KEY;
       const out = await runChild({
         file: "sh", args: ["-c", `${cfg.offsiteCmd} "$1"`, "nightly-offsite", backupDir], env, cwd: dataDir, timeoutMs: cfg.offsiteTimeoutMs, signal: o.signal, detached: true,
         onLine: (l) => { if (l.trim()) say(`  | offsite: ${oneLine(l, 300)}`); },

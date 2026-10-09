@@ -50,4 +50,4 @@ export const NAV_GROUPS: NavGroup[] = [
 export const NAV_KEY = "ringside-nav";
 
 /** Pages that exist but are not sections of the site: reached from the account menu or a link on another page, so they are not in the rail. */
-export const OFF_NAV = ["/account", "/news", "/contribute", "/report", "/review", "/review/reports", "/review/updates", "/review/forum", "/forum", "/forum/rules", "/privacy", "/terms", "/tour", "/developers"];
+export const OFF_NAV = ["/account", "/news", "/contribute", "/report", "/review", "/review/reports", "/review/updates", "/review/forum", "/review/social", "/forum", "/forum/rules", "/privacy", "/terms", "/tour", "/developers"];

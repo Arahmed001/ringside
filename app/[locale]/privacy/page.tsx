@@ -4,7 +4,7 @@ import { metaFor } from "@/lib/seo-server";
 import { hasKey } from "@/lib/ai";
 import { isDemoData } from "@/lib/seo";
 import { siteContact } from "@/lib/site-info";
-import { AI_USES, HELD, STORAGE_KEYS, pictureHosts } from "@/lib/privacy";
+import { AI_USES, CLICK_TO_LOAD, HELD, STORAGE_KEYS, pictureHosts } from "@/lib/privacy";
 import { RESET_MINUTES, SESSION_COOKIE, SESSION_DAYS } from "@/lib/accounts/users";
 import { DEFAULT_BACKUPS_KEPT } from "@/lib/backup";
 import Link from "@/components/L";
@@ -97,6 +97,9 @@ export default async function Privacy() {
         ) : (
           <p>{t("All pictures on this site come from this site itself.")}</p>
         )}
+        <p>{t("Some things are contacted only if you press a button for them; while the page is just open nothing is requested from them:")}</p>
+        <ul className="list-disc space-y-2 ps-6 marker:text-muted">{CLICK_TO_LOAD.map((c) => <li key={c.host} className={li}><span lang="en" dir="ltr">{c.host}</span>: {t(c.what)}.</li>)}</ul>
+        <p>{t("Headlines from other outlets are links: your browser contacts an outlet only if you follow one.")}</p>
         <p>{t("When an editor checks a link that someone proposed as a source, the server (not your browser) fetches that page.")}</p>
       </section>
 

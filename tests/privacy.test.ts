@@ -181,6 +181,7 @@ test("nothing is loaded from another website that runs or styles the page, and t
   for (const d of csp.split("; ")) {
     const [name, ...vals] = d.split(" ");
     if (name === "img-src") continue; // pictures may come from https hosts: the page says which
+    if (name === "frame-src") { const { CLICK_TO_LOAD } = await import("../lib/privacy"); const { EMBED_HOSTS } = await import("../lib/social/post"); assert.deepEqual(vals.map((v) => v.replace("https://", "")).sort(), Object.values(EMBED_HOSTS).sort(), "one host per platform"); assert.deepEqual(Object.values(EMBED_HOSTS).filter((h) => !CLICK_TO_LOAD.some((c) => c.host === h)), [], "each is declared on the privacy page as opened only by a press"); continue; }
     assert.ok(!vals.some((v) => /^(https?:|\*|[a-z0-9-]+\.[a-z]{2,})/i.test(v) && !v.startsWith("'")), `${name} allows another origin: ${vals.join(" ")}`);
   }
   assert.match(csp, /img-src [^;]*https:/, "the one allowance, which the page explains");
@@ -224,7 +225,7 @@ test("text goes to the model provider from exactly the places the page lists", a
 
 test("the page reads the code's own numbers and lists rather than repeating them", async () => {
   const page = src("app/[locale]/privacy/page.tsx");
-  for (const used of ["SESSION_DAYS", "RESET_MINUTES", "SESSION_COOKIE", "DEFAULT_BACKUPS_KEPT", "STORAGE_KEYS", "HELD", "AI_USES", "pictureHosts", "hasKey()", "siteContact()"]) assert.ok(page.includes(used), `the page does not use ${used}`);
+  for (const used of ["SESSION_DAYS", "RESET_MINUTES", "SESSION_COOKIE", "DEFAULT_BACKUPS_KEPT", "STORAGE_KEYS", "HELD", "AI_USES", "CLICK_TO_LOAD", "pictureHosts", "hasKey()", "siteContact()"]) assert.ok(page.includes(used), `the page does not use ${used}`);
   assert.ok(!/\b(30|60|14)\b days|\b(30|60) minutes/.test(page), "a number written into the page that the code owns");
   // and the numbers reach the sentences through the constants, not through a copy
   assert.match(page, /days: SESSION_DAYS/);

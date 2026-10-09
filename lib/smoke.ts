@@ -318,7 +318,8 @@ export function problemsIn(route: SmokeRoute, locale: Locale, status: number, co
   if (!new RegExp(`<html[^>]*dir="${dir}"`).test(body)) bad.push(`<html dir> is not "${dir}"`);
   if (!/<h1[\s>]/i.test(body)) bad.push("no <h1>");
   // the picture the fighter page waits on is fetched first, not lazily (a lazy hero image is the slowest way to paint the page)
-  if (route.label === "top-rated fighter" && !/<img[^>]*fetchpriority="high"/i.test(body)) bad.push("the fighter page's portrait is not marked fetchpriority=high");
+  // a fighter with no licensed photo has a name plate (no picture to fetch first): only a page that has a portrait picture must mark it
+  if (route.label === "top-rated fighter" && !/<img[^>]*fetchpriority="high"/i.test(body) && !/font-extrabold uppercase leading-none tracking-wide text-ink\/90/.test(body)) bad.push("the fighter page's portrait is not marked fetchpriority=high");
   if (route.label === "home") {
     // the home page's two commitments: one heading (the next fight, or the brand line between seasons) and a question box that goes to /ask
     if ((body.match(/<h1[\s>]/gi) ?? []).length !== 1) bad.push("the home page should have exactly one <h1>");

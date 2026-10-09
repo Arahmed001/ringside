@@ -11,7 +11,7 @@ const page = read("app/[locale]/boxers/[slug]/page.tsx");
 test("every section the strip links to exists on the page, once, and the page leaves room above whatever it scrolls to for the sticky bars", () => {
   const strip = page.slice(page.indexOf("<JumpNav sections={["), page.indexOf("]} />", page.indexOf("<JumpNav sections={[")));
   const ids = [...strip.matchAll(/id: "([a-z]+)"/g)].map((m) => m[1]);
-  assert.deepEqual(ids, ["numbers", "highlights", "profile", "scouting", "form", "similar", "news", "record", "discussion"], "in page order");
+  assert.deepEqual(ids, ["numbers", "highlights", "profile", "scouting", "form", "similar", "news", "videos", "posts", "record", "discussion"], "in page order");
   for (const id of ids) {
     assert.equal([...page.matchAll(new RegExp(`<section id="${id}"`, "g"))].length, 1, `#${id}: one section carries it`);
   }

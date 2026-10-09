@@ -20,7 +20,10 @@ import { ShareButton } from "@/components/ShareButton";
 import { AddToCalendar } from "@/components/AddToCalendar";
 import { metaFor } from "@/lib/seo-server";
 import { NewsList } from "@/components/NewsList";
-import { newsForEvent } from "@/lib/news/read";
+import { newsForEvent, videosForEvent } from "@/lib/news/read";
+import { Videos } from "@/components/Videos";
+import { Social } from "@/components/Social";
+import { postsFor } from "@/lib/social/store";
 import { SectionTitle } from "@/components/ui";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; id: string }> }) => metaFor(params, async ({ id }, t) => {
@@ -49,6 +52,8 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
   const night = buildNight(w, e.id);
   const nightText = night ? nightLines(night, w, t) : [];
   const news = await newsForEvent(w, e.id);
+  const videos = await videosForEvent(w, e.id);
+  const posts = postsFor("event", String(e.id));
   return (
     <div className="grid gap-8 lg:grid-cols-[360px_1fr]">
       <BreadcrumbLd locale={t.locale} trail={[{ name: t("Events"), path: "/events" }, { name: t.name(e.name), path: `/events/${e.id}` }]} />
@@ -114,6 +119,8 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
             );
           })}
         </div>
+        {posts.length > 0 && <section className="mt-8"><SectionTitle eyebrow={t("Posts")} title={t("Chosen from official accounts")} /><Social items={posts} t={t} /></section>}
+        {videos.length > 0 && <section className="mt-8"><SectionTitle eyebrow={t("Official videos")} title={t("Videos about this card")} /><Videos items={videos} t={t} /></section>}
         {news.length > 0 && <section className="mt-8"><SectionTitle eyebrow={t("In the news")} title={t("Headlines about this card")} href="/news" cta={t("All headlines")} /><NewsList items={news} t={t} /></section>}
       </div>
     </div>

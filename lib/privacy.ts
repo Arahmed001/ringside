@@ -29,9 +29,19 @@ export const HELD: Record<string, { columns: string[]; what: string }> = {
   forum_threads: { columns: ["id", "kind", "subject_ext", "title", "user_id", "created_at", "last_post_at", "post_count", "locked", "hidden"], what: msg("the forum threads you started: the title (on the general board; it is cleared if you delete your account), the fighter or fight it is about, and when; the thread under a fighter or a fight is made by the first post written there") },
   forum_posts: { columns: ["id", "thread_id", "user_id", "body", "fingerprint", "created_at", "edited_at", "status", "hidden_by", "hidden_at", "hidden_reason", "wave_fp", "withdrawn_body", "withdrawn_at", "appeal_at", "appeal_result"], what: msg("what you wrote in the forum: the words, when, any edit, and two hashes of the words that are used to refuse the same post twice in a day, from you or from several accounts; if you delete a post that had been hidden or reported, the words are kept for the editors for 90 days; if a post of yours was hidden by reports and you asked for a review, when you asked and the outcome; deleting your account wipes the words, including any kept for the editors, and leaves the empty place, so the replies still read") },
   forum_reports: { columns: ["id", "post_id", "user_id", "reason", "note", "status", "created_at", "reviewed_by", "reviewed_at"], what: msg("the forum posts you reported and why, with any note you added (the note is cleared if you delete your account)") },
+  social_posts: { columns: ["id", "provider", "post_id", "url", "subject_kind", "subject_ext", "account", "note", "added_by", "added_at"], what: msg("the public posts an editor chose to show, with where each shows and which editor added it (nothing about visitors)") },
   proposals: { columns: ["id", "source", "kind", "target_key", "label", "old_json", "new_json", "evidence_json", "fingerprint", "status", "first_seen", "last_seen", "decided_by", "decided_at", "note"], what: msg("changes to our data that a public source seems to have made, waiting for an administrator to accept or reject them: what changes, where it was read, and which administrator decided and when (nothing a reader wrote)") },
   audit: { columns: ["id", "at", "actor", "action", "target", "detail"], what: msg("a log of account and review actions (sign-ups, password changes, decisions on proposals and reports), naming the people involved") },
 };
+
+/** Outside services a visitor's browser contacts ONLY after the visitor presses a button (nothing is requested while the page is just open), and what that service can then see. */
+export const CLICK_TO_LOAD: { host: string; what: string }[] = [
+  { host: "www.youtube-nocookie.com", what: msg("YouTube’s video player (Google), when you press play on a video: it can then see your network address, your browser and that you played that video") },
+  { host: "platform.twitter.com", what: msg("X’s post embed, when you press the button to show an X post: it can then see your network address, your browser and which post you opened") },
+  { host: "embed.reddit.com", what: msg("Reddit’s post embed, when you press the button to show a Reddit post: it can then see your network address, your browser and which post you opened") },
+  { host: "www.instagram.com", what: msg("Instagram’s post embed (Meta), when you press the button to show an Instagram post: it can then see your network address, your browser and which post you opened") },
+  { host: "www.facebook.com", what: msg("Facebook’s post embed (Meta), when you press the button to show a Facebook post: it can then see your network address, your browser and which post you opened") },
+];
 
 /** Every place that sends text to the model provider when a key is configured, and exactly what is in it. A test fails if `claude(` is called anywhere else. */
 export const AI_USES: { files: string[]; what: string }[] = [

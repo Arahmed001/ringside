@@ -44,9 +44,9 @@ test("every setting the doctor knows is in the handbook's table, and the table l
   for (const [name, cols] of table) assert.equal(cols.length, 3, `${name}: three columns (what it does | safe default | secret?)`);
 });
 
-test("only the two keys are marked secret, and every row says so either way", () => {
+test("only the three keys are marked secret, and every row says so either way", () => {
   const secret = [...settingsTable()].filter(([, cols]) => /^\*\*yes\*\*$/i.test(cols[2]) || /^yes$/i.test(cols[2])).map(([k]) => k).sort();
-  assert.deepEqual(secret, ["ANTHROPIC_API_KEY", "BOXING_API_KEY"]);
+  assert.deepEqual(secret, ["ANTHROPIC_API_KEY", "BOXING_API_KEY", "YOUTUBE_API_KEY"]);
   for (const [name, cols] of settingsTable()) assert.match(cols[2], /^(?:\*\*yes\*\*|no)(?:\s|$)/i, `${name}: the last column starts with yes or no`);
 });
 

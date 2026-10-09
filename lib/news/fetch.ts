@@ -33,7 +33,7 @@ export async function refreshNews(db: DatabaseSync, o: RefreshOptions): Promise<
   const setState = db.prepare("INSERT INTO news_feeds (source, etag, last_modified, checked_at, status, items) VALUES (?,?,?,?,?,?) ON CONFLICT(source) DO UPDATE SET etag = COALESCE(excluded.etag, news_feeds.etag), last_modified = COALESCE(excluded.last_modified, news_feeds.last_modified), checked_at = excluded.checked_at, status = excluded.status, items = excluded.items");
   const out: FeedOutcome[] = [];
   const hostCheck = o.hostCheck ?? publicHostOnly;
-  for (const s of o.sources ?? sourcesFor()) {
+  for (const s of o.sources ?? sourcesFor().filter((x) => x.kind !== "video")) {
     const res = async (): Promise<FeedOutcome> => {
       const u = new URL(s.feed);
       const refused = await hostCheck(u.hostname);

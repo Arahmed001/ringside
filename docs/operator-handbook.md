@@ -493,8 +493,10 @@ Set in the host's settings (secrets screen for the secret ones), then restart. `
 | `MEDIA_RESOLVER` | `wikimedia` fetches photos automatically after each ingest. | unset (by hand only) | no |
 | `MEDIA_RESOLVER_BATCH` | How many fighters that automatic step handles per run. | 100 | no |
 | `RESEARCH_CONTACT` | Your email or website for the money-research bot's User-Agent. Without it the bot will not run and "check the source" on edits answers "unavailable". | none | no |
+| `CLIENT_IP_HEADER` | The name of the request header your host sets to the visitor's real address (Fly.io: `Fly-Client-IP`), so per-visitor limits use it instead of an address a visitor could type. Unset: the limits fall back to the forwarded address. See docs/fly-deploy.md, step 9. | unset | no |
 | `NEWS_CONTACT` | Your email or website for the news refresh's User-Agent (`npm run news:refresh`). Required for it to run; an outlet can reach you with it. | none | no |
 | `NEWS_NONCOMMERCIAL` | `1` is your statement that the site earns nothing; it adds the feeds of outlets (BBC Sport, The Guardian, Sky Sports) that allow their feeds on non-commercial sites only. | unset (open feeds only) | no |
+| `YOUTUBE_API_KEY` | Your own key for YouTube's Data API (free), used by `npm run news:refresh` to list the newest uploads of the official boxing channels. Without it no official videos are listed; the headlines still work. | unset | **yes** |
 | `RESEARCH_DELAY_MS` | Pause between the research bot's requests. | 3,000 | no |
 | `RESEARCH_BLOCKLIST` | Comma-separated sites that asked not to be fetched. | none | no |
 | `RINGSIDE_NOW` | Pins "today" for tests and rehearsals. **Never set in production**; it freezes the site's clock. | unset | no |

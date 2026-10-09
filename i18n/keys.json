@@ -2042,6 +2042,12 @@
   ]
  },
  {
+  "key": "A card's page",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
   "key": "A check of a public source found these differences from what we hold. Nothing is applied until you approve it, and approving writes it to the live data at once. A rejected change is not raised again unless the source says something different.",
   "files": [
    "app/[locale]/review/updates/page.tsx"
@@ -2191,6 +2197,12 @@
   "key": "A fighter’s details are the fighter’s to state. Give the fighter’s own official page. Other sources are kept as a note, but cannot change what the site shows. If you are this fighter, choose “This is about me”.",
   "files": [
    "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "A fighter's page",
+  "files": [
+   "components/SocialQueue.tsx"
   ]
  },
  {
@@ -2445,6 +2457,12 @@
   ]
  },
  {
+  "key": "Account (optional)",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
   "key": "Accounts and contributions",
   "files": [
    "app/[locale]/terms/page.tsx"
@@ -2539,6 +2557,12 @@
   ]
  },
  {
+  "key": "Add the post",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
   "key": "Add to calendar",
   "files": [
    "components/AddToCalendar.tsx",
@@ -2549,6 +2573,12 @@
   "key": "Add to the discussion",
   "files": [
    "components/Discussion.tsx"
+  ]
+ },
+ {
+  "key": "Added.",
+  "files": [
+   "components/SocialQueue.tsx"
   ]
  },
  {
@@ -3826,6 +3856,12 @@
   ]
  },
  {
+  "key": "Card number",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
   "key": "Cards",
   "files": [
    "app/[locale]/money/page.tsx",
@@ -4029,6 +4065,20 @@
   "key": "Choose…",
   "files": [
    "components/ReportForm.tsx"
+  ]
+ },
+ {
+  "key": "Chosen from official accounts",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/events/[id]/page.tsx",
+   "app/[locale]/news/page.tsx"
+  ]
+ },
+ {
+  "key": "Chosen posts",
+  "files": [
+   "app/[locale]/review/social/page.tsx"
   ]
  },
  {
@@ -5130,7 +5180,8 @@
    "app/[locale]/data/page.tsx",
    "app/[locale]/review/forum/page.tsx",
    "app/[locale]/review/page.tsx",
-   "app/[locale]/review/reports/page.tsx"
+   "app/[locale]/review/reports/page.tsx",
+   "app/[locale]/review/social/page.tsx"
   ]
  },
  {
@@ -5155,6 +5206,12 @@
   "key": "Editors check suggested team-history edits against their sources.",
   "files": [
    "app/[locale]/review/page.tsx"
+  ]
+ },
+ {
+  "key": "Editors choose public posts from official accounts to show on fighter and card pages.",
+  "files": [
+   "app/[locale]/review/social/page.tsx"
   ]
  },
  {
@@ -5576,6 +5633,12 @@
   ]
  },
  {
+  "key": "Facebook’s post embed (Meta), when you press the button to show a Facebook post: it can then see your network address, your browser and which post you opened",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
   "key": "Factor",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -5866,6 +5929,12 @@
    "components/TenureTable.tsx",
    "components/TrainerImpactCard.tsx",
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Fighter (page address ending)",
+  "files": [
+   "components/SocialQueue.tsx"
   ]
  },
  {
@@ -6350,7 +6419,8 @@
   "key": "Forum moderation",
   "files": [
    "app/[locale]/review/forum/page.tsx",
-   "app/[locale]/review/reports/page.tsx"
+   "app/[locale]/review/reports/page.tsx",
+   "app/[locale]/review/social/page.tsx"
   ]
  },
  {
@@ -6415,6 +6485,13 @@
   "key": "From an official record: a commission disclosure, a company filing or the promoter’s own statement.",
   "files": [
    "components/Money.tsx"
+  ]
+ },
+ {
+  "key": "From the promoters' and networks' own channels",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/news/page.tsx"
   ]
  },
  {
@@ -6719,6 +6796,12 @@
   "key": "Headlines from boxing outlets. Each one links to the original story on the outlet's own site; we show only the headline and the short excerpt the outlet itself publishes.",
   "files": [
    "app/[locale]/news/page.tsx"
+  ]
+ },
+ {
+  "key": "Headlines from other outlets are links: your browser contacts an outlet only if you follow one.",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
   ]
  },
  {
@@ -7165,6 +7248,12 @@
   "key": "Insights engine",
   "files": [
    "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "Instagram’s post embed (Meta), when you press the button to show an Instagram post: it can then see your network address, your browser and which post you opened",
+  "files": [
+   "lib/privacy.ts"
   ]
  },
  {
@@ -7807,6 +7896,12 @@
   ]
  },
  {
+  "key": "Link to the post",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
   "key": "Links are not allowed in posts.",
   "files": [
    "lib/forum/text.ts"
@@ -7888,6 +7983,7 @@
    "components/ReportForm.tsx",
    "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx",
+   "components/SocialQueue.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -8952,6 +9048,12 @@
   ]
  },
  {
+  "key": "No posts have been chosen yet.",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
   "key": "No posts yet.",
   "files": [
    "components/ForumQueue.tsx"
@@ -9220,6 +9322,12 @@
   ]
  },
  {
+  "key": "Note (optional, shown above the post)",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
   "key": "Note it",
   "files": [
    "components/ReportQueue.tsx"
@@ -9402,6 +9510,14 @@
   ]
  },
  {
+  "key": "Official videos",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/events/[id]/page.tsx",
+   "app/[locale]/news/page.tsx"
+  ]
+ },
+ {
   "key": "Official weight",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -9531,6 +9647,18 @@
   ]
  },
  {
+  "key": "Only editors can choose posts.",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
+  "key": "Only editors can do that.",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
   "key": "Only editors can moderate the forum.",
   "files": [
    "components/ForumQueue.tsx"
@@ -9576,6 +9704,12 @@
   "key": "Open in the dream-fight builder",
   "files": [
    "components/Matchmaking.tsx"
+  ]
+ },
+ {
+  "key": "Open the post",
+  "files": [
+   "components/Social.tsx"
   ]
  },
  {
@@ -9785,6 +9919,12 @@
   "key": "Password changed. Your other devices were signed out.",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Paste the link to one public post by an official account on YouTube, X, Reddit, Instagram or Facebook, and say where it shows. A visitor sees only the account and your note until they press the button; then the platform's own player or embed opens. Only choose posts by accounts you have checked are the real ones.",
+  "files": [
+   "app/[locale]/review/social/page.tsx"
   ]
  },
  {
@@ -10012,6 +10152,12 @@
   ]
  },
  {
+  "key": "Play the video",
+  "files": [
+   "components/Videos.tsx"
+  ]
+ },
+ {
   "key": "Please do not repeat one character over and over.",
   "files": [
    "lib/forum/text.ts"
@@ -10070,6 +10216,14 @@
   "plural": "Postponed · now {n} day away",
   "files": [
    "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Posts",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/events/[id]/page.tsx",
+   "app/[locale]/news/page.tsx"
   ]
  },
  {
@@ -10794,6 +10948,12 @@
   ]
  },
  {
+  "key": "Reddit’s post embed, when you press the button to show a Reddit post: it can then see your network address, your browser and which post you opened",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
   "key": "Referee",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
@@ -10881,6 +11041,12 @@
   ]
  },
  {
+  "key": "Remove",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
   "key": "Remove from watchlist",
   "files": [
    "components/WatchlistPage.tsx"
@@ -10890,6 +11056,12 @@
   "key": "Removed at once: your name, password hash, picks, watchlist, sign-ins, one-time codes and any fighter linked to you. The contact you gave on a report is erased, and in the activity log your name is replaced by “deleted account”.",
   "files": [
    "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
+  "key": "Removed.",
+  "files": [
+   "components/SocialQueue.tsx"
   ]
  },
  {
@@ -11309,6 +11481,12 @@
   ]
  },
  {
+  "key": "Say which fighter (the last part of the fighter's page address) or which card (its number) the post belongs to.",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
   "key": "Say why, in a few words.",
   "files": [
    "lib/account-text.ts"
@@ -11681,6 +11859,12 @@
   ]
  },
  {
+  "key": "Show the post",
+  "files": [
+   "components/Social.tsx"
+  ]
+ },
+ {
   "key": "Showing {n} of {total}.",
   "files": [
    "components/AskResults.tsx",
@@ -11736,6 +11920,12 @@
   ]
  },
  {
+  "key": "Shows on",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
   "key": "Sign",
   "files": [
    "app/[locale]/upset-watch/page.tsx"
@@ -11748,6 +11938,7 @@
    "components/AccountPanel.tsx",
    "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx",
+   "components/SocialQueue.tsx",
    "components/UpdateQueue.tsx"
   ]
  },
@@ -11755,6 +11946,12 @@
   "key": "Sign in as an administrator to decide on source updates.",
   "files": [
    "components/UpdateQueue.tsx"
+  ]
+ },
+ {
+  "key": "Sign in as an editor to choose posts.",
+  "files": [
+   "components/SocialQueue.tsx"
   ]
  },
  {
@@ -11965,6 +12162,12 @@
   ]
  },
  {
+  "key": "Some things are contacted only if you press a button for them; while the page is just open nothing is requested from them:",
+  "files": [
+   "app/[locale]/privacy/page.tsx"
+  ]
+ },
+ {
   "key": "Someone has already decided this.",
   "files": [
    "lib/account-text.ts"
@@ -11999,6 +12202,7 @@
  {
   "key": "Something went wrong. Try again.",
   "files": [
+   "components/SocialQueue.tsx",
    "lib/account-text.ts",
    "lib/forum/text.ts"
   ]
@@ -12543,6 +12747,7 @@
   "files": [
    "app/[locale]/review/forum/page.tsx",
    "app/[locale]/review/reports/page.tsx",
+   "app/[locale]/review/social/page.tsx",
    "app/[locale]/review/updates/page.tsx"
   ]
  },
@@ -12653,6 +12858,12 @@
   ]
  },
  {
+  "key": "That is not a link to one public post on YouTube, X, Reddit, Instagram or Facebook.",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
   "key": "That is not there any more.",
   "files": [
    "lib/forum/text.ts"
@@ -12701,6 +12912,12 @@
   ]
  },
  {
+  "key": "That page already shows the most posts it can.",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
   "key": "That page doesn’t exist, or the fighter or event was removed.",
   "files": [
    "app/[locale]/not-found.tsx"
@@ -12722,6 +12939,12 @@
   "key": "That password is too long.",
   "files": [
    "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "That post is already shown there.",
+  "files": [
+   "components/SocialQueue.tsx"
   ]
  },
  {
@@ -13315,6 +13538,12 @@
   ]
  },
  {
+  "key": "The news page",
+  "files": [
+   "components/SocialQueue.tsx"
+  ]
+ },
+ {
   "key": "The next card is {event} on {date}, headlined by {fight}.",
   "files": [
    "lib/ask/tools.ts"
@@ -13366,6 +13595,12 @@
   "key": "The public API and the embeds are not available on this site.",
   "files": [
    "app/[locale]/developers/page.tsx"
+  ]
+ },
+ {
+  "key": "the public posts an editor chose to show, with where each shows and which editor added it (nothing about visitors)",
+  "files": [
+   "lib/privacy.ts"
   ]
  },
  {
@@ -14644,6 +14879,12 @@
   ]
  },
  {
+  "key": "Videos about this card",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "View all",
   "files": [
    "components/ui.tsx"
@@ -14737,6 +14978,12 @@
   "key": "warning",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Watch on YouTube",
+  "files": [
+   "components/Videos.tsx"
   ]
  },
  {
@@ -15668,6 +15915,12 @@
   ]
  },
  {
+  "key": "X’s post embed, when you press the button to show an X post: it can then see your network address, your browser and which post you opened",
+  "files": [
+   "lib/privacy.ts"
+  ]
+ },
+ {
   "key": "Year",
   "files": [
    "app/[locale]/fight-of-the-year/page.tsx",
@@ -16059,6 +16312,12 @@
   "key": "Your watchlist is saved to your account.",
   "files": [
    "components/WatchlistPage.tsx"
+  ]
+ },
+ {
+  "key": "YouTube’s video player (Google), when you press play on a video: it can then see your network address, your browser and that you played that video",
+  "files": [
+   "lib/privacy.ts"
   ]
  }
 ]
