@@ -1,6 +1,6 @@
 # Boxing news headlines
 
-The site lists headlines from boxing outlets' own public feeds, each a link to the original story. It keeps the title, the date, the link and the short excerpt the feed itself publishes. It never keeps an article body or an image, and it shows nothing of an outlet's work beyond that.
+The site lists headlines from boxing outlets' own public feeds, each a link to the original story. It keeps the title, the date, the link and the short excerpt the feed itself publishes. It also saves the one picture the feed offers for the headline (see "The pictures of headlines" below). It never keeps an article body, and it shows nothing of an outlet's work beyond that.
 
 ## Turn it on
 
@@ -32,9 +32,15 @@ Each headline gets a link to a Wayback Machine copy when the Internet Archive ha
 
 ## What the visitor sees and sends
 
-Links open the outlet's own page in a new tab with `noopener noreferrer nofollow`. Nothing is loaded from an outlet's site when a page is viewed: no image, script or frame. The privacy page needs no change.
+Links open the outlet's own page in a new tab with `noopener noreferrer nofollow`. Nothing is loaded from an outlet's site when a page is viewed: no image, script or frame (the pictures are files this site saved and serves itself). The privacy page needs no change.
 
 The news page has two tabs, **Videos to watch** (the official videos, newest 24) and **News to read** (the outlet filter, chosen posts and headlines), as plain links: `/news?tab=videos` and `/news?tab=news`. Videos open first unless there are none.
+
+## The pictures of headlines
+
+Three of the four open outlets' feeds offer a picture for each headline (Boxing News, Boxing News 24, World Boxing News; 15Rounds offers none). `news:refresh` saves it: only from an outlet listed as open (never the BBC, The Guardian or Sky Sports), only an https address the feed itself gave, at a public host whose `robots.txt` allows it, with no redirect, and only a real JPEG, PNG or WebP of at most 600 KB (60 a run, 25 an outlet). It goes in `news-images/` beside the database (`/data/news-images` on Fly) and the cards show it from `/api/news-image/<id>`, with "Picture from <outlet>" under it and the picture linking to the story. A visitor's browser never contacts the outlet's image host. A picture is deleted when its headline is pruned (after 120 days) or its outlet is switched off.
+
+**These pictures belong to the outlets**, and often to the agencies they license from. The owner chose to show them; this has not been read by a lawyer, and no outlet has been asked. To stop for one outlet (if it asks, or you would rather ask first): set `NEWS_IMAGE_SOURCES` to the list of outlets you keep (`boxing-news,boxing-news-24,world-boxing-news,15-rounds`), or `none`; the next refresh deletes what was saved from the others.
 
 ## Official videos
 

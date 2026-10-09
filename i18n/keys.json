@@ -6959,7 +6959,7 @@
   ]
  },
  {
-  "key": "Headlines from boxing outlets. Each one links to the original story on the outlet's own site; we show only the headline and the short excerpt the outlet itself publishes.",
+  "key": "Headlines from boxing outlets. Each one links to the original story on the outlet's own site; we show the headline, the short excerpt and the picture the outlet itself publishes in its feed.",
   "files": [
    "app/[locale]/news/page.tsx"
   ]
@@ -10409,6 +10409,12 @@
   "key": "Picture address",
   "files": [
    "components/PhotoQueue.tsx"
+  ]
+ },
+ {
+  "key": "Picture from <o>{name}</o>",
+  "files": [
+   "components/NewsList.tsx"
   ]
  },
  {
