@@ -204,7 +204,7 @@ test("the flood guard: one field changing in most of the rows the feed touched i
 test("the report is written to <data>/gate-reports/ as JSON and only the newest 90 are kept", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gate-reports-"));
   try {
-    const mk = (n: number): import("../lib/watch/vendor-gate").GateReport => ({ version: 1, at: new Date(Date.UTC(2026, 0, 1, 0, n)).toISOString(), mode: "observe", touched: {}, newRows: {}, fields: [], results: { arrived: 0, changed: 0, cleared: 0, details: 0, samples: [] }, rankings: { firstSnapshot: false, changed: 0, removed: 0, added: 0, unchanged: 0, samples: [] }, wouldHold: 0, passes: {}, ungated: {}, refuse: [] });
+    const mk = (n: number): import("../lib/watch/vendor-gate").GateReport => ({ version: 1, at: new Date(Date.UTC(2026, 0, 1, 0, n)).toISOString(), mode: "observe", touched: {}, newRows: {}, fields: [], results: { arrived: 0, changed: 0, cleared: 0, details: 0, samples: [] }, rankings: { firstSnapshot: false, changed: 0, removed: 0, added: 0, unchanged: 0, samples: [] }, wouldHold: 0, passes: {}, ungated: {}, refuse: [], acceptedByRule: [] });
     for (let i = 0; i < 95; i++) assert.ok(gate.writeGateReport(dir, mk(i)));
     const files = fs.readdirSync(path.join(dir, "gate-reports")).sort();
     assert.equal(files.length, 90); assert.match(files[0], /00-05-00/, "the five oldest were removed");
