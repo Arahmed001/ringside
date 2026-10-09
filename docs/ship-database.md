@@ -4,7 +4,7 @@
 
 Use this **once, for the first load**, before real visitors and before the nightly job is turned on. After that the nightly update keeps the host's database current; do not ship over it again. A ship replaces the host's sports database, including its prediction ledger (`prediction_snapshots`). The host's accounts database (people, picks, edits) is never touched: the packed folder does not contain one.
 
-Do this after `vendor:enrich` and `post-load` are finished, so the file you ship is the final one. The empty site must already be deployed and healthy ([fly-deploy.md](fly-deploy.md) steps 1–8).
+Check `fly secrets list` for `DATABASE_PATH` and `fly ssh console` `echo $DATABASE_PATH`: that is the live file, and it is the one this guide replaces. Do this after `vendor:enrich` and `post-load` are finished, so the file you ship is the final one. The empty site must already be deployed and healthy ([fly-deploy.md](fly-deploy.md) steps 1–8).
 
 ## On your Mac
 
@@ -32,11 +32,11 @@ Do this after `vendor:enrich` and `post-load` are finished, so the file you ship
    *You should see* `backup is good: every database opens, passes integrity_check, has its tables and matches its checksums`. If a checksum does not match, the upload was cut short: delete the folder and upload again.
 5. **Look first (changes nothing).**
    `su node -c "cd /app && npm run backup -- restore /data/incoming/<folder name> --dry-run --even-if-running"`
-   *You should see* `verifies`, `the backup has no accounts.db: the current accounts.db is left exactly as it is`, `would copy the current data to /data/backups/before-restore/<time> first`, one `would replace ... ringside.db` line, and `dry run: nothing was changed`. (`--even-if-running` is needed because the site is the container's main program and cannot be stopped from inside it; it is safe here because no visitors or accounts exist yet.)
-6. **Restore.** The same command without `--dry-run`. *You should see* `saved the current data to ... (checked)`, `replaced ringside.db`, a `now in place:` line with the fighter, fight and card counts, `integrity ok`, and `Restored.` **Copy down the `To undo` line it prints.**
+   *You should see* `verifies`, `the backup has no accounts.db: the current accounts.db is left exactly as it is`, `would copy the current data to /data/backups/before-restore/<time> first`, one `would replace /data/real.db` line (the restore writes to whatever `DATABASE_PATH` names; on your Fly app that is `/data/real.db`, and the file inside the packed folder is called `ringside.db` whatever the live one is called), and `dry run: nothing was changed`. (`--even-if-running` is needed because the site is the container's main program and cannot be stopped from inside it; it is safe here because no visitors or accounts exist yet.)
+6. **Restore.** The same command without `--dry-run`. *You should see* `saved the current data to ... (checked)`, `replaced real.db`, a `now in place:` line with the fighter, fight and card counts, `integrity ok`, and `Restored.` **Copy down the `To undo` line it prints.**
 7. **Restart the site** so it opens the new file: leave the console (`exit`), then `fly machine restart`. The first start can take up to two minutes (it builds its tables before accepting visitors).
 8. **Check it.** Open `https://YOURAPP.fly.dev/api/health`: *`"status":"ok"`* and counts that match step 1. Open a fighter page and the rankings. In `fly ssh console`: `su node -c "cd /app && npm run doctor -- --production"` should show no failure lines.
-9. **Tidy.** `rm -r /data/incoming/<folder name>` (it is a copy; the live file is `/data/ringside.db`).
+9. **Tidy.** `rm -r /data/incoming/<folder name>` (it is a copy; the live file is `/data/real.db`; a `/data/ringside.db` beside it is the first deploy's empty demo and the site does not use it).
 
 ## If something is wrong
 
