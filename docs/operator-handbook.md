@@ -511,7 +511,7 @@ Set in the host's settings (secrets screen for the secret ones), then restart. `
 | `NIGHTLY_PING_URL` | The heartbeat address a free uptime monitor gives you; pinged when a night ends (`/fail` added for a failed night). A night that never ends sends nothing, which is what the monitor alerts on. See `docs/monitoring.md`. | unset | **yes** |
 | `OFFSITE_S3_ENDPOINT` | The https address of your S3-compatible storage (Cloudflare R2, Backblaze B2, Amazon S3) for the off-host backup (`docs/offsite-backups.md`). | none | no |
 | `OFFSITE_S3_BUCKET` | The bucket the encrypted backups go to. | none | no |
-| `OFFSITE_S3_ACCESS_KEY_ID` | The storage access key's id. | none | **yes** |
+| `OFFSITE_S3_ACCESS_KEY_ID` | The storage access key's id (not a secret on its own; the secret key below is). | none | no |
 | `OFFSITE_S3_SECRET_ACCESS_KEY` | The storage access key's secret. | none | **yes** |
 | `BACKUP_PASSPHRASE` | Encrypts every off-host file (12 characters or more). Nothing is sent without it. Keep a copy away from this server: without it a copy cannot be read. | none | **yes** |
 | `OFFSITE_S3_REGION` | The storage region (R2 and B2 accept `auto`). | `auto` | no |
