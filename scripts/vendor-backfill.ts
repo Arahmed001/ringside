@@ -95,7 +95,7 @@ async function main() {
       base.since = arg("since") ?? since;
       log(`updating from ${base.since}`);
       // fights the database already holds, unchanged, are not fetched again (their fighters would cost an hour-limited request each, for nothing); --refetch-all brings the old behaviour back
-      if (!flag("refetch-all")) { const { knownSignatures } = await import("../lib/vendor-unchanged"); base.known = knownSignatures(db, base.since); log(`${base.known.size} fights from ${base.since} on are already in the database`); }
+      if (!flag("refetch-all")) { const { knownSignatures } = await import("../lib/vendor-unchanged"); base.known = knownSignatures(db, base.since); if (arg("fighter-max-age-days") !== undefined) base.fighterMaxAgeDays = Number(arg("fighter-max-age-days")); log(`${base.known.size} fights from ${base.since} on are already in the database`); }
     } else if (f.fromFeed > 0) log(`the database already holds ${f.fromFeed} fighters from this feed: this load updates them in place`);
   }
 

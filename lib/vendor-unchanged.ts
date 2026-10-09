@@ -24,12 +24,19 @@ export function knownSignatures(db: DatabaseSync, since: string): Map<string, st
   return out;
 }
 
-/** The fights that are new or changed (the ones to load), the count left out, and the fighters of the ones kept. */
-export function dropUnchanged(bouts: ProviderBout[], events: Map<string, ProviderEvent>, known: Map<string, string>): { kept: ProviderBout[]; skipped: number; fighters: Set<string> } {
+/**
+ * The fights to load, the count left out, and the fighters of the ones kept. A fight that is new or changed is kept. So is an unchanged fight when `needsRefresh` says one of its
+ * fighters has not been fetched lately (a profile change, such as a corrected country, never shows in a fight, so each fighter is still fetched again every few days).
+ */
+export function dropUnchanged(bouts: ProviderBout[], events: Map<string, ProviderEvent>, known: Map<string, string>, needsRefresh: (fighterExternalId: string) => boolean = () => false): { kept: ProviderBout[]; skipped: number; keptForAge: number; fighters: Set<string> } {
   const kept: ProviderBout[] = [], fighters = new Set<string>();
+  let keptForAge = 0;
   for (const b of bouts) {
-    if (known.get(b.externalId) === boutSignature(b, events.get(b.eventExternalId)?.date)) continue;
+    if (known.get(b.externalId) === boutSignature(b, events.get(b.eventExternalId)?.date)) {
+      if (!needsRefresh(b.redExternalId) && !needsRefresh(b.blueExternalId)) continue;
+      keptForAge++;
+    }
     kept.push(b); fighters.add(b.redExternalId); fighters.add(b.blueExternalId);
   }
-  return { kept, skipped: bouts.length - kept.length, fighters };
+  return { kept, skipped: bouts.length - kept.length, keptForAge, fighters };
 }

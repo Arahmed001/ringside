@@ -94,7 +94,7 @@ test("the first night of holding: no flag to remember, and a night over the guar
   const worldWith = (ids: string[]) => { const { world } = nextDay(makeLeague()); for (const id of ids) world.fighters.set(id, { ...world.fighters.get(id)!, country: "Ireland" }); return world; };
   const v = makeVolume(tpl, "first-night");
   v.accounts = path.join(v.dir, "accounts-real.db");
-  const run = async (world: ReturnType<typeof worldWith>) => { const vendor = await serveFaulty(world); try { return await startNightly(v, { url: vendor.url, env: { VENDOR_GATE: "hold", VENDOR_GATE_MAX_NIGHT: "2", RINGSIDE_NIGHTLY_UPDATE_ARGS: "--gap-ms 0 --retries 0 --patience-min 0" } }).wait(); } finally { await vendor.close(); } };
+  const run = async (world: ReturnType<typeof worldWith>) => { const vendor = await serveFaulty(world); try { return await startNightly(v, { url: vendor.url, env: { VENDOR_GATE: "hold", VENDOR_GATE_MAX_NIGHT: "2", RINGSIDE_NIGHTLY_UPDATE_ARGS: "--refetch-all --gap-ms 0 --retries 0 --patience-min 0" } }).wait(); } finally { await vendor.close(); } };
   const first = await run(worldWith(["f0", "f1", "f2"])); // three changes, over a ceiling of two
   assert.equal(first.code, 0, first.out);
   assert.match(first.out, /first night of holding/);

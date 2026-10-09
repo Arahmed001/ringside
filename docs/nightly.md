@@ -49,7 +49,8 @@ One lock (`ringside-nightly.lock` in `RINGSIDE_LOCK_DIR`, default the temp folde
 
 The update reads the vendor's fight list for the last 14 days (so a late result is caught) and the coming weeks. The list is cheap: a few pages. What costs is each **fighter** (about 450 an hour is all the vendor allows). Fighters are fetched only for fights that are **new or changed** compared with the database: a different date, fighters, winner, method, round, rounds, belt, status, knockdowns or round time. A fight already held with the same values is left out, with its fighters. The log says so: `N of M listed fights are already loaded and unchanged: left out, with their fighters; K new or changed`.
 
-- A normal night fetches the fighters of one day's results and any changed fights: tens of fighters, minutes, not hours.
+- A normal night fetches the fighters of one day's results and any changed fights, plus any fighter whose saved record is **more than 7 days old** (a profile change such as a corrected country never shows in a fight, so each fighter is still fetched again about weekly; `--fighter-max-age-days N` changes the 7). With the window's roughly 1,800 fighters that is about 100 to 150 for new fights and about 260 for the weekly rotation: well under an hour, not four.
+- A fighter with no saved record on the volume counts as due: the first nights after a fresh volume fetch more, then it settles.
 - The first update after a long gap (or after loading from an old cache) still has many changed fights and is slow, once.
 - The comparison errs towards fetching: a result the feed called unsettled, or one an approved source filled in, makes a fight count as changed. It costs a fetch, never a missed update.
 - The "records" check after an update covers the fighters fetched that night, so it can say "2 of 2 fighters" on a quiet night.

@@ -276,6 +276,15 @@ test("--update is the daily job: it sees today's result and fresh career records
   assert.equal(again.code, 0, again.out);
   assert.deepEqual(since(m2), ["/v2/fights/", "/v2/fights/schedule", "/v2/rankings/"], "a second update with nothing new asks for the lists (yesterday's cached answers would hide today's results) and fetches no fighter at all");
   assert.match(again.out, /2 of 2 listed fights are already loaded and unchanged: left out, with their fighters; 0 new or changed/);
+  // a fighter whose saved record is more than a week old is fetched again even when nothing about the fights changed (a profile change never shows in a fight)
+  const stale = path.join(cache, "v2-fighters-f5.json"), old = new Date(Date.now() - 8 * 86_400_000);
+  assert.ok(fs.existsSync(stale), "the saved record of f5 (the file name is the endpoint with its slashes turned into dashes)");
+  fs.utimesSync(stale, old, old);
+  const mAge = mark();
+  const aged = await run(["--update", "--cache-dir", cache], live);
+  assert.equal(aged.code, 0, aged.out);
+  assert.deepEqual(since(mAge), ["/v2/fights/", "/v2/fights/schedule", "/v2/fighters/f5", "/v2/fighters/f6", "/v2/rankings/"], "the coming fight's two fighters are fetched again because one record is 8 days old; nothing else is");
+  assert.match(aged.out, /1 unchanged but a fighter's saved record is more than 7 days old/);
   const m3 = mark();
   const all = await run(["--update", "--refetch-all", "--cache-dir", cache], live);
   assert.equal(all.code, 0, all.out);

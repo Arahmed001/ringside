@@ -49,3 +49,11 @@ test("every field that changes what a page shows makes a fight count as changed:
   assert.equal(dropUnchanged([bout("never-seen")], events, known).kept.length, 1, "a fight the database does not hold is new");
   assert.equal(dropUnchanged([bout("b1")], events, new Map()).kept.length, 1, "with nothing known, nothing is skipped");
 });
+
+test("an unchanged fight is still kept when one of its fighters is due for a fresh record, and counted as kept for age", () => {
+  const known = knownSignatures(db(), "2026-09-01"), events = new Map([["e1", ev("e1", "2026-10-01")]]);
+  const r = dropUnchanged([bout("b1")], events, known, (f) => f === "bda-f-b");
+  assert.deepEqual([r.kept.length, r.skipped, r.keptForAge], [1, 0, 1]);
+  assert.deepEqual([...r.fighters].sort(), ["bda-f-a", "bda-f-b"]);
+  assert.deepEqual([dropUnchanged([bout("b1")], events, known, () => false).kept.length], [0]);
+});

@@ -576,6 +576,8 @@ export interface BoxingDataApiOptions {
    * unchanged, so it and its fighters are left out of this run (no fighter fetch is spent on it). New and changed fights, and the fighters in them, are loaded as before.
    */
   known?: Map<string, string>;
+  /** with `known`: an unchanged fight is still loaded (its fighters fetched) when a fighter's saved record is older than this many days or missing, so a profile change reaches the site within that time. Default 7. */
+  fighterMaxAgeDays?: number;
   /** extra attempts after a 429, a 500/502/503/504 or a network failure, waiting out Retry-After or backing off 1, 2, 4 ... seconds (max 30). Default 0. */
   retries?: number;
   /**
@@ -892,10 +894,13 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
       }
     }
     if (o.known && o.known.size) {
-      const d = dropUnchanged(bouts, events, o.known);
+      const maxAge = (o.fighterMaxAgeDays ?? 7) * 86_400_000, now = Date.now();
+      // without a cache there is no record of when a fighter was last fetched, so every fighter counts as due
+      const due = (ext: string) => { if (!o.cacheDir) return true; try { return now - fs.statSync(cacheFile(`/v2/fighters/${ext.startsWith(fighterId("")) ? ext.slice(fighterId("").length) : ext}`, {})).mtimeMs > maxAge; } catch { return true; } };
+      const d = dropUnchanged(bouts, events, o.known, due);
       bouts.splice(0, bouts.length, ...d.kept);
       ids.clear(); for (const x of d.fighters) ids.add(x.startsWith(fighterId("")) ? x.slice(fighterId("").length) : x);
-      log(`${d.skipped} of ${d.skipped + d.kept.length} listed fights are already loaded and unchanged: left out, with their fighters; ${d.kept.length} new or changed`);
+      log(`${d.skipped} of ${d.skipped + d.kept.length} listed fights are already loaded and unchanged: left out, with their fighters; ${d.kept.length - d.keptForAge} new or changed${d.keptForAge ? `, and ${d.keptForAge} unchanged but a fighter's saved record is more than ${o.fighterMaxAgeDays ?? 7} days old (fetched again)` : ""}`);
     }
     log(`fights: ${bouts.length}, events: ${events.size}, fighters to fetch: ${ids.size}`);
     return { events, bouts, ids };
