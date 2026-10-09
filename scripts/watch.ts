@@ -4,6 +4,7 @@
  *   npm run watch -- --source champions            read the Wikipedia lists (cached), compare with the reigns held, store the differences
  *   npm run watch -- --source champions --dry-run  show the differences and store nothing
  *   npm run watch -- --source results --limit 40  read the Wikipedia records of 40 fighters with past fights held without a result, propose the results found
+ *   npm run watch -- --replay                      put every approved result back after the database was loaded again (the approvals live in the accounts database)
  *   npm run watch -- --list                        the pending proposals
  *
  * Options: --org WBO,IBF (only some bodies)  --cache-dir <dir> (default data/wikipedia-cache)  --refresh (ignore the cache)  --gap-ms 1500
@@ -16,6 +17,8 @@ import { CHAMPION_SOURCES } from "../lib/importers/wikipedia-champions";
 import { SOURCES, runWatch } from "../lib/watch/run";
 import { listProposals } from "../lib/watch/proposals";
 import { reportLines } from "../lib/watch/report";
+import { replayApproved } from "../lib/watch/results";
+import { recomputeRatings } from "../lib/ingest";
 import { readVendorOutcomes } from "../lib/watch/vendor-outcomes";
 import { defaultCacheDir } from "../lib/vendor-fetch";
 
@@ -28,6 +31,13 @@ async function main() {
     const rows = listProposals(acc);
     for (const p of rows) console.log(`#${p.id} [${p.source}] ${p.kind}: ${p.label}`);
     console.log(`${rows.length} pending`);
+    return;
+  }
+  if (flag("replay")) {
+    const m = await getDb();
+    const r = replayApproved(m, acc);
+    if (r.applied) recomputeRatings(m);
+    console.log(`approved results: ${r.applied} put back, ${r.alreadyThere} already in place, ${r.skipped} left alone (the fight has the vendor's own result, or is gone); ${r.marked} fighter(s) newly marked disputed${r.applied ? "; ratings recomputed" : ""}.`);
     return;
   }
   const id = arg("source");

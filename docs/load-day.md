@@ -47,6 +47,8 @@ npm run vendor:load -- --storage-confirmed   # asks you to type LOAD; --storage-
 
 It writes `~/ringside-real/real.db` (new), `disputed.csv` beside it, and a backup if there was a database. Undo: delete `real.db` and its `-wal` and `-shm` files and load again; the cache is the source and costs nothing.
 
+**Approved results survive a reload only if you put them back.** A load replaces the sports database, and the results an administrator approved from the Wikipedia records (`/review/updates`) live in the accounts database. After the load (and `vendor:enrich`) run `npm run watch -- --replay`: it puts every approved result back, leaves a fight that has the vendor's own result alone, marks any fighter the results leave above the vendor's total as disputed, and recomputes the ratings once. Safe to run twice.
+
 **What a clean reload does not have to fetch again.** The staged Wikidata boxers (about 19,650, the slow part of `vendor:enrich`) are kept in `wikidata-staging.json` beside the database and put back into the new database's empty staging table (for 30 days); the links to your fighters are made afresh by the next enrich. `disputed.csv` now says *why* each fighter is disputed (the causes, and what the opponent's own record says about a reversed winner), so it can be read by hand.
 
 ## 4b. Check the load, in a second

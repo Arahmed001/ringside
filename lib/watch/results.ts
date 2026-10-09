@@ -169,5 +169,48 @@ export function applyResult(main: DatabaseSync, p: { kind: string; targetKey: st
     winnerId = w.id;
   }
   main.prepare("UPDATE bouts SET method = ?, winner_id = ?, end_round = ? WHERE id = ?").run(a.method, winnerId, a.endRound ?? null, row.id);
+  markExcess(main, [row.red_id, row.blue_id]);
   return { ok: true, changed: true, ratings: true };
+}
+
+/**
+ * A fighter whose held fights now come to more wins, losses or draws than the vendor's own career total is marked disputed, as the loader marks them (the page then shows the vendor's
+ * total and says the two disagree, and the audit's "a record the fights contradict is marked disputed" holds). A vendor total of nothing beside a professional fight is no total.
+ * Returns how many fighters were newly marked.
+ */
+export function markExcess(main: DatabaseSync, fighterIds: number[]): number {
+  const count = main.prepare(`SELECT SUM(CASE WHEN b.winner_id = ? THEN 1 ELSE 0 END) w, SUM(CASE WHEN b.winner_id IS NOT NULL AND b.winner_id <> ? THEN 1 ELSE 0 END) l, SUM(CASE WHEN b.method = 'DRAW' THEN 1 ELSE 0 END) d
+    FROM bouts b WHERE (b.red_id = ? OR b.blue_id = ?) AND COALESCE(b.status, '') <> 'cancelled' AND b.method IS NOT NULL`);
+  const boxer = main.prepare("SELECT vendor_wins vw, vendor_losses vl, vendor_draws vd, COALESCE(record_disputed, 0) disp FROM boxers WHERE id = ?");
+  const longFight = main.prepare("SELECT 1 x FROM bouts q WHERE (q.red_id = ? OR q.blue_id = ?) AND COALESCE(q.status, '') <> 'cancelled' AND COALESCE(q.rounds, 10) > 3 LIMIT 1");
+  const mark = main.prepare("UPDATE boxers SET record_disputed = 1 WHERE id = ?");
+  let n = 0;
+  for (const id of new Set(fighterIds)) {
+    const b = boxer.get(id) as { vw: number | null; vl: number | null; vd: number | null; disp: number } | undefined;
+    if (!b || b.vw === null || b.disp === 1) continue;
+    if (b.vw + (b.vl ?? 0) + (b.vd ?? 0) === 0 && longFight.get(id, id)) continue;
+    const c = count.get(id, id, id, id) as { w: number | null; l: number | null; d: number | null };
+    if ((c.w ?? 0) > b.vw || (c.l ?? 0) > (b.vl ?? 0) || (c.d ?? 0) > (b.vd ?? 0)) { mark.run(id); n++; }
+  }
+  return n;
+}
+
+/**
+ * Puts every approved result back after the database was loaded again (a reload replaces the sports database; the approvals live in the accounts database). Safe to run twice and on a
+ * database that has since got a result from the vendor: such a fight is left as the vendor has it (`stale`). Returns what happened to each approved proposal.
+ */
+export function replayApproved(main: DatabaseSync, acc: DatabaseSync): { applied: number; alreadyThere: number; skipped: number; marked: number } {
+  const rows = acc.prepare("SELECT kind, target_key, old_json, new_json, evidence_json FROM proposals WHERE source = ? AND status = 'approved' AND kind LIKE 'result_set%'").all(RESULTS_SOURCE_ID) as { kind: string; target_key: string; old_json: string | null; new_json: string | null; evidence_json: string | null }[];
+  const out = { applied: 0, alreadyThere: 0, skipped: 0, marked: 0 };
+  const fighters: number[] = [];
+  const find = main.prepare("SELECT id, red_id, blue_id, method, winner_id FROM bouts WHERE external_id = ?");
+  for (const r of rows) {
+    const ev = JSON.parse(r.evidence_json ?? "{}") as { apply?: { boutExternalId?: string; method?: string; winnerExternalId?: string | null } };
+    const bout = ev.apply?.boutExternalId ? (find.get(ev.apply.boutExternalId) as { id: number; red_id: number; blue_id: number; method: string | null; winner_id: number | null } | undefined) : undefined;
+    const res = applyResult(main, { kind: r.kind, targetKey: r.target_key, old: JSON.parse(r.old_json ?? "null"), new: JSON.parse(r.new_json ?? "null"), evidence: ev });
+    if (bout) fighters.push(bout.red_id, bout.blue_id);
+    if (res.ok) out.applied++; else if (res.error === "stale" && bout?.method === ev.apply?.method) out.alreadyThere++; else out.skipped++;
+  }
+  out.marked = markExcess(main, fighters);
+  return out;
 }

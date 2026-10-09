@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
-import { applyResult, compareFighter, fightersToLook, isoDate, parseRecordTable, resultsSource, vendorAgrees } from "../lib/watch/results";
+import { applyResult, compareFighter, fightersToLook, isoDate, markExcess, parseRecordTable, replayApproved, resultsSource, vendorAgrees } from "../lib/watch/results";
 import { PROPOSAL_SCHEMA } from "../lib/watch/schema";
 import { reconcile } from "../lib/watch/proposals";
 
@@ -35,10 +35,10 @@ test("the record table is read by its header: results, methods, rounds and three
 
 const world = () => {
   const db = new DatabaseSync(":memory:");
-  db.exec(`CREATE TABLE boxers (id INTEGER PRIMARY KEY, external_id TEXT, name TEXT, wikipedia_title TEXT);
+  db.exec(`CREATE TABLE boxers (id INTEGER PRIMARY KEY, external_id TEXT, name TEXT, wikipedia_title TEXT, vendor_wins INT, vendor_losses INT, vendor_draws INT, record_disputed INT);
     CREATE TABLE events (id INTEGER PRIMARY KEY, name TEXT, date TEXT);
     CREATE TABLE bouts (id INTEGER PRIMARY KEY, external_id TEXT, event_id INT, red_id INT, blue_id INT, rounds INT, method TEXT, winner_id INT, end_round INT, status TEXT);
-    INSERT INTO boxers VALUES (1,'f1','Ana Cruz','Ana Cruz'),(2,'f2','Jose Nunez',NULL),(3,'f3','Bo Lee',NULL);
+    INSERT INTO boxers (id, external_id, name, wikipedia_title) VALUES (1,'f1','Ana Cruz','Ana Cruz'),(2,'f2','Jose Nunez',NULL),(3,'f3','Bo Lee',NULL);
     INSERT INTO events VALUES (1,'Card A','2026-04-29'),(2,'Card B','2026-05-11'),(3,'Card C','2099-01-01');
     INSERT INTO bouts VALUES (1,'b1',1,1,2,10,NULL,NULL,NULL,NULL),(2,'b2',2,3,1,8,NULL,NULL,NULL,NULL),(3,'b3',3,1,3,8,NULL,NULL,NULL,NULL);`);
   return db;
@@ -155,4 +155,35 @@ test("a result is sorted by what the vendor's own copy says: agrees, nothing to 
   // every kind can be applied
   const db = world();
   assert.equal(applyResult(db, { kind: "result_set_conflict", targetKey: "result|b1|", old: null, new: null, evidence: changes[0].evidence }).ok, true);
+});
+
+const withTotals = (totals: Record<string, [number, number, number]>) => {
+  const db = world();
+  for (const [ext, [w, l, d]] of Object.entries(totals)) db.prepare("UPDATE boxers SET vendor_wins = ?, vendor_losses = ?, vendor_draws = ? WHERE external_id = ?").run(w, l, d, ext);
+  return db;
+};
+
+test("a result that leaves a fighter above the vendor's own total marks the record disputed, as the loader does", () => {
+  const db = withTotals({ f1: [0, 0, 0], f2: [5, 0, 0], f3: [1, 1, 0] });
+  const { changes } = compareFighter(db, FIGHTER, ART, "77");
+  assert.equal(applyResult(db, { kind: changes[0].kind, targetKey: changes[0].targetKey, old: null, new: null, evidence: changes[0].evidence }).ok, true);
+  const disp = (id: number) => (db.prepare("SELECT COALESCE(record_disputed, 0) d FROM boxers WHERE id = ?").get(id) as { d: number }).d;
+  assert.equal(disp(1), 0, "a vendor total of nothing beside a professional fight is no total");
+  assert.equal(disp(2), 1, "Jose Nunez lost a fight the vendor's total (5-0-0) does not hold");
+  assert.equal(markExcess(db, [2, 3]), 0, "marking twice changes nothing; Bo Lee is within the total");
+});
+
+test("approved results are put back after the database is loaded again", () => {
+  const acc = new DatabaseSync(":memory:"); acc.exec(`CREATE TABLE users (id INTEGER PRIMARY KEY); ${PROPOSAL_SCHEMA}`);
+  const first = world();
+  const { changes } = compareFighter(first, FIGHTER, ART, "77");
+  const ins = acc.prepare("INSERT INTO proposals (source, kind, target_key, label, old_json, new_json, evidence_json, fingerprint, status, first_seen, last_seen) VALUES (?,?,?,?,?,?,?,?, 'approved', 'a', 'a')");
+  for (const c of changes) ins.run(resultsSource.id, c.kind, c.targetKey, c.label, JSON.stringify(c.old), JSON.stringify(c.new), JSON.stringify(c.evidence), c.targetKey);
+  const fresh = withTotals({ f1: [10, 0, 0], f2: [5, 0, 0], f3: [1, 1, 0] }); // a new load: no results, other row numbers would not matter
+  fresh.exec("UPDATE bouts SET method = 'KO', winner_id = 3 WHERE external_id = 'b2'"); // the vendor has this one itself
+  const r = replayApproved(fresh, acc);
+  assert.deepEqual({ applied: r.applied, skipped: r.skipped }, { applied: 1, skipped: 0 + 1 }, "b1 is put back; b2 already has the vendor's own result");
+  assert.deepEqual({ ...fresh.prepare("SELECT method, winner_id FROM bouts WHERE external_id = 'b1'").get() }, { method: "TKO", winner_id: 1 });
+  assert.deepEqual({ ...fresh.prepare("SELECT method, winner_id FROM bouts WHERE external_id = 'b2'").get() }, { method: "KO", winner_id: 3 }, "the vendor's result is not overwritten");
+  assert.deepEqual(replayApproved(fresh, acc).applied, 0, "running it again changes nothing");
 });
