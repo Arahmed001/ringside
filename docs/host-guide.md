@@ -1,6 +1,7 @@
 # Choosing a host: a guide for the owner
 
 You have not chosen a host yet. This page helps you choose one and then deploy to it. It is the "which host" companion to [go-live.md](go-live.md) (the plain steps once you have one) and [deploy.md](deploy.md) (the technical detail). It covers four options: Fly.io, Render, Railway, and a plain rented server (a VPS) at Hetzner or DigitalOcean.
+> Fly.io chosen: see [fly-deploy.md](fly-deploy.md) and `fly.toml` (they supersede the Fly section's "needs an image change" notes).
 
 **Two updates since this page was written.** (1) The nightly job can now run **inside the one container**: see [nightly.md](nightly.md) (`NIGHTLY_SCHEDULE='HH:MM'` starts it beside the site, with a verified backup first). So where this guide says the nightly job "needs an image change that is not built" (Fly, Render, Railway), that change now exists; it is untested on a real host, so run `npm run nightly` by hand on the first night. (2) A parallel price-and-regions comparison is in [hosting-options.md](hosting-options.md); where the two differ on a price or a plan, the provider's own page wins. That page also names `npm run data:ingest` as the nightly job; for the real vendor data it is the update in [nightly.md](nightly.md) and [load-day.md](load-day.md) step 8.
 
