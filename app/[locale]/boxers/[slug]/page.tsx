@@ -36,6 +36,7 @@ import { newsForFighter } from "@/lib/news/read";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
+import { reachIndex } from "@/lib/reach";
 import { finishRoundsOf } from "@/lib/finish-rounds";
 import { oppositionOf } from "@/lib/opposition";
 import { countryName, flag, fmtDate, fmtPartialDate, methodLabel, pct } from "@/lib/format";
@@ -104,6 +105,8 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const similar = similarTo(b, w, 4);
   const news = await newsForFighter(w, b.id);
   const divBoxers = w.boxers.filter((x) => x.sex === b.sex && x.weightClass === b.weightClass && x.bouts >= 5);
+  const ape = reachIndex(b, divBoxers);
+  const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `\u2212${-n}` : "0");
   const norm = (v: number, arr: number[]) => { if (!arr.length) return 0.5; const mn = Math.min(...arr), mx = Math.max(...arr); return mx === mn ? 0.5 : (v - mn) / (mx - mn); };
   const radar = [
     { label: t("Power"), v: norm(b.koRate, divBoxers.map((x) => x.koRate)) },
@@ -420,7 +423,20 @@ const HONOURS_SHOWN = 8;
           <div className="eyebrow mb-1">{t("Scouting report")}</div>
           <ScoutingReport slug={b.slug} initial={rulesReport(b, w, t)} />
         </div>
-        <div className="card flex items-center justify-center p-5"><Radar axes={radar} /></div>
+        <div className="card flex flex-col items-center justify-center gap-4 p-5">
+          <Radar axes={radar} />
+          {ape && (
+            <div className="w-full border-t border-line/60 pt-4 text-sm">
+              <div className="text-xs uppercase tracking-widest text-muted">{t("Reach and height")}</div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <bdi dir="ltr" className="font-display text-3xl font-bold tabular">{t("{n} cm", { n: signed(ape.diff) })}</bdi>
+                <span className="text-muted">{ape.diff > 0 ? t("reach is longer than height") : ape.diff < 0 ? t("reach is shorter than height") : t("reach equals height")}</span>
+              </div>
+              {ape.divisionDiff !== null && <div className="mt-1 text-xs text-muted">{t("Division average: {d}", { d: t("{n} cm", { n: signed(ape.divisionDiff) }) })} · {t.n(ape.peers, "{n} fighter measured", "{n} fighters measured")}</div>}
+              <div className="mt-1 text-xs text-muted">{t("{h} tall, {r} reach", { h: t("{n} cm", { n: ape.heightCm }), r: t("{n} cm", { n: ape.reachCm }) })}</div>
+            </div>
+          )}
+        </div>
       </section>
 
       <section id="form" className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
