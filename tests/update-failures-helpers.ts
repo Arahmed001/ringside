@@ -135,7 +135,7 @@ export function start(args: string[], env: Env): { child: ChildProcess; wait: ()
 }
 
 /** The daily job as cron runs it, less the pacing (a real run waits seconds between requests; the stand-in does not need it). */
-export const UPDATE = ["--update", "--retries", "0", "--patience-min", "0"];
+export const UPDATE = ["--update", "--refetch-all", "--retries", "0", "--patience-min", "0"];
 
 // ---- looking at a database ----
 

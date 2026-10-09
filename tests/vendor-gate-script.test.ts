@@ -14,7 +14,7 @@ const work = tmp("vendor-gate-script");
 let tpl = "";
 before(async () => { tpl = await makeTemplate(work); });
 after(() => fs.rmSync(work, { recursive: true, force: true }));
-const ARGS = "--gap-ms 0 --retries 0 --patience-min 0";
+const ARGS = "--refetch-all --gap-ms 0 --retries 0 --patience-min 0";
 
 /** the day after the template, with these fighters' country changed (a change to a row we hold) */
 const worldWith = (countries: Record<string, string>) => {
