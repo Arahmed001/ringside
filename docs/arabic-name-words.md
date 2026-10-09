@@ -6,7 +6,7 @@ So names are reviewed **a word at a time** and written to the page by joining th
 
 ## The rule
 - `i18n/name-words.ar.json` holds one Arabic spelling per word, each with `source` and `reviewed`.
-- A word is `reviewed` only when a person approved or edited it through the review sheet and the import recorded it (`source: "reviewer"`). A machine suggestion (`source: "claude-session"`) stays in the file for the reviewer to see and **is never shown on a page**.
+- A word is `reviewed` only when a person approved or edited it: through the review sheet and its import (`source: "reviewer"`), or by the owner accepting the machine's suggestions as they stand (`npm run i18n:words -- accept --yes`, `source: "owner-accepted"`, done on 2026-10-09 for the first 6,000 words). A native reviewer's import later replaces an owner-accepted word with `source: "reviewer"`. A machine suggestion (`source: "claude-session"`) stays in the file for the reviewer to see and **is never shown on a page**.
 - A fighter or person gets a composed Arabic name only if **every** word of the name is reviewed. Otherwise the English name stays, as it does today.
 - A whole name in `i18n/names.ar.json` (or from Wikidata) always wins over a composed one.
 - A single-word name is never composed; it is reviewed as a whole name.

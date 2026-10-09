@@ -47,7 +47,7 @@ test("suggest never overwrites a reviewed word; import marks reviewed and refuse
   const rev = path.join(tmp, "r.json"); fs.writeFileSync(rev, JSON.stringify({ words: { Ana: { ar: "آنا" }, Cy: { ar: "سي", edited: true }, Oops: { ar: "Oops" } } }));
   assert.match(run("import", rev).stdout, /1 approved, 1 edited, 1 refused/);
   f = readWordsFile(path.join(dir, "name-words.ar.json"));
-  assert.equal(f.Ana.reviewed, true); assert.equal(f.Cy.source, "reviewer");
+  assert.equal(f.Ana.reviewed, true); assert.equal(f.Ana.source, "reviewer", "approved in the sheet, so a reviewer's word whether or not it was changed"); assert.equal(f.Cy.source, "reviewer");
 });
 
 test("the review sheet loads nothing from the web and escapes the data", () => {
@@ -60,6 +60,22 @@ test("the committed word list holds Arabic only, and no word is marked reviewed 
   const f = readWordsFile(path.join(process.cwd(), "i18n", "name-words.ar.json"));
   for (const [k, e] of Object.entries(f)) {
     assert.ok(!/[A-Za-z]/.test(e.ar), `${k}: Latin letters in the Arabic`);
-    if (e.reviewed) assert.equal(e.source, "reviewer", `${k}: reviewed words come from the review import`);
+    if (e.reviewed) assert.ok(["reviewer", "owner-accepted"].includes(e.source), `${k}: a reviewed word comes from the review import or from the owner's own acceptance`);
   }
+});
+
+test("the owner can accept every suggestion at once; it is recorded as the owner's, and a later review replaces it", () => {
+  const dir = path.join(tmp, "i18n-accept"); fs.mkdirSync(dir);
+  writeWordsFile({ Jose: { ar: "خوسيه", source: "claude-session", reviewed: false }, Ana: { ar: "آنا", source: "reviewer", reviewed: true } }, path.join(dir, "name-words.ar.json"));
+  const run = (...a: string[]) => spawnSync(process.execPath, ["--import", "tsx", "scripts/i18n-words.ts", ...a], { env: { ...process.env, I18N_DIR: dir, DATABASE_PATH: path.join(tmp, "none.db") }, encoding: "utf8" });
+  assert.notEqual(run("accept").status, 0, "it needs --yes");
+  assert.equal(readWordsFile(path.join(dir, "name-words.ar.json")).Jose.reviewed, false);
+  assert.match(run("accept", "--yes").stdout, /1 suggested words accepted by the owner/);
+  let f = readWordsFile(path.join(dir, "name-words.ar.json"));
+  assert.deepEqual([f.Jose.reviewed, f.Jose.source, f.Ana.source], [true, "owner-accepted", "reviewer"]);
+  assert.equal(composeName("Jose Ana", f), "خوسيه آنا");
+  const rev = path.join(tmp, "r2.json"); fs.writeFileSync(rev, JSON.stringify({ words: { Jose: { ar: "خوسيه" } } }));
+  run("import", rev);
+  f = readWordsFile(path.join(dir, "name-words.ar.json"));
+  assert.equal(f.Jose.source, "reviewer");
 });
