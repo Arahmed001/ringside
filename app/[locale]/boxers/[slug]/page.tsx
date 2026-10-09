@@ -36,6 +36,7 @@ import { newsForFighter } from "@/lib/news/read";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
+import { finishRoundsOf } from "@/lib/finish-rounds";
 import { oppositionOf } from "@/lib/opposition";
 import { countryName, flag, fmtDate, fmtPartialDate, methodLabel, pct } from "@/lib/format";
 import { msg } from "@/lib/i18n/t";
@@ -81,6 +82,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   // counted from every fight, so only for a career held whole (from part of one these would be wrong in a way that reads as right)
   const careerStripOf = career.source !== "loaded" ? careerStrip({ dates: completed.map((x) => x.date), total: career.total, turnedPro: b.turnedPro, debutDate: b.debutDate }) : null;
   const numbers = career.source === "loaded" ? numbersOf(bouts, b.id, (id) => w.eventById.get(id)) : null;
+  const finish = career.source === "loaded" ? finishRoundsOf(bouts, b.id) : null;
   const opposition = career.source === "loaded" ? oppositionOf(bouts, b.id, (id) => w.boutPre.get(id)) : null;
   const duration = (days: number) => (days >= 730 ? t("{n} years", { n: (days / 365.25).toFixed(1) }) : days >= 60 ? t("{n} months", { n: Math.round(days / 30.4) }) : t.n(days, "{n} day", "{n} days"));
   const hl = (id: number) => { const x = w.boutById.get(id); return x ? fmtDate(x.date, { month: "short", year: "numeric" }, t.locale) : ""; };
@@ -257,6 +259,24 @@ const HONOURS_SHOWN = 8;
             {numbers.busiestYear && <Stat label={t("Busiest year")} value={numbers.busiestYear.year} sub={t.n(numbers.busiestYear.n, "{n} fight", "{n} fights")} />}
             {numbers.layoff && <Stat label={t("Longest layoff")} value={duration(numbers.layoff.days)} sub={t("{from} to {to}", { from: fmtDate(numbers.layoff.from, { month: "short", year: "numeric" }, t.locale), to: fmtDate(numbers.layoff.to, { month: "short", year: "numeric" }, t.locale) })} />}
           </div>
+          {finish && (
+            <div className="card mt-3 p-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <div className="text-xs uppercase tracking-widest text-muted">{t("When the stoppages come")}</div>
+                <div className="text-sm text-muted">{t("Average finish: round {avg} · most often round {round}", { avg: finish.average, round: finish.commonRound })}</div>
+              </div>
+              <ol className="ltr-fixed mt-3 flex h-24 items-end gap-1.5" aria-label={t("Stoppage wins by round")}>
+                {finish.byRound.map((n, i) => (
+                  <li key={i} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1 text-xs tabular text-muted" aria-label={t("Round {round}: {n}", { round: i + 1, n })}>
+                    <span className={n ? "text-ink" : "opacity-40"}>{n}</span>
+                    <span className={`w-full rounded-sm ${i + 1 === finish.commonRound ? "bg-red" : "bg-line"}`} style={{ height: `${Math.max(n ? 6 : 2, (n / Math.max(...finish.byRound)) * 52)}px` }} />
+                    <span>{i + 1}</span>
+                  </li>
+                ))}
+              </ol>
+              <div className="mt-2 text-xs text-muted">{finish.finishes < finish.stoppageWins ? t("{n} of {of} stoppage wins; the others have no round on record.", { n: finish.finishes, of: finish.stoppageWins }) : t.n(finish.finishes, "{n} stoppage win", "{n} stoppage wins")}</div>
+            </div>
+          )}
         </section>
       )}
 

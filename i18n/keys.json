@@ -742,6 +742,12 @@
   ]
  },
  {
+  "key": "{n} of {of} stoppage wins; the others have no round on record.",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{n} of {total} shown",
   "files": [
    "components/ListFinder.tsx"
@@ -856,6 +862,13 @@
   "key": "{n} still to come",
   "files": [
    "components/MyPicks.tsx"
+  ]
+ },
+ {
+  "key": "{n} stoppage wins",
+  "plural": "{n} stoppage win",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -3037,6 +3050,12 @@
   "key": "Automated requests to the Nevada site are blocked, so files must be downloaded manually. A parser is not built.",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Average finish: round {avg} · most often round {round}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -10906,6 +10925,12 @@
   ]
  },
  {
+  "key": "Round {round}: {n}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Round and time of stoppage",
   "files": [
    "lib/coverage.ts"
@@ -11935,6 +11960,12 @@
   "key": "Stoppage rate",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Stoppage wins by round",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -14685,6 +14716,12 @@
   "key": "When the model says 70%, is it right 70% of the time?",
   "files": [
    "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "When the stoppages come",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
