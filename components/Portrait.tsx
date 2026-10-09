@@ -3,6 +3,7 @@ import { portraitUrl } from "@/lib/art-url";
 import { isDemoData } from "@/lib/seo";
 import type { Boxer } from "@/lib/types";
 import { plateOf } from "@/lib/name-plate";
+import { sizedCommons } from "@/lib/commons-thumb";
 
 type P = Pick<Boxer, "id" | "slug" | "weightClass" | "stance">;
 
@@ -13,7 +14,7 @@ export async function Headshot({ boxer, size = 64, className = "", rounded = tru
   const r = rounded ? "rounded-xl" : "";
   if (boxer.photoUrl) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={boxer.photoUrl} alt={t.name(boxer.name)} width={size} height={size * 1.25} {...load} decoding="async" referrerPolicy="no-referrer" className={`${r} object-cover object-top ${className}`} style={{ width: size, height: size * 1.25 }} />;
+    return <img src={sizedCommons(boxer.photoUrl, size)} alt={t.name(boxer.name)} width={size} height={size * 1.25} {...load} decoding="async" referrerPolicy="no-referrer" className={`${r} object-cover object-top ${className}`} style={{ width: size, height: size * 1.25 }} />;
   }
   // A real fighter with no licensed photo gets a name plate (the surname in large capitals, the initials in a small block), not an invented silhouette.
   // It is decoration: the name is always beside it, so it is hidden from a screen reader. The illustrated demo portraits stay as they are.
