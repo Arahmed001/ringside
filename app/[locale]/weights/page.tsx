@@ -26,6 +26,19 @@ export default async function Weights() {
   const meanGain = divs.reduce((s, d) => s + d.avgGain * d.n, 0) / Math.max(1, all);
   const maxEdge = Math.max(0.6, ...edge.map((e) => e.winRate));
 
+  if (all === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <div className="eyebrow mb-2">{t("Scale to ring")}</div>
+          <h1 className="font-display text-5xl font-extrabold uppercase">{t("Weigh-ins")}</h1>
+          <p className="mt-2 max-w-2xl text-muted">{t("Official weights the day before, fight-night weights after rehydration, and what the gap does to the result.")}</p>
+        </div>
+        <p className="card max-w-2xl p-6 text-muted">{t("No weigh-ins are on record yet. The data supplier does not provide official or fight-night weights, so this page fills in when a source for them is loaded.")}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-12">
       <div>
@@ -70,7 +83,7 @@ export default async function Weights() {
             ))}
           </ul>
         </div>
-        <p className="mt-4 text-xs text-muted">{t("Heavier fighters are also usually the bigger, stronger natural fighters, so this is a correlation, not proof that rehydration wins fights. In this demo league the effect is built into the simulator.")}</p>
+        <p className="mt-4 text-xs text-muted">{(process.env.BOXING_PROVIDER ?? "demo").trim() === "licensed" ? t("Heavier fighters are also usually the bigger, stronger natural fighters, so this is a correlation, not proof that rehydration wins fights.") : t("Heavier fighters are also usually the bigger, stronger natural fighters, so this is a correlation, not proof that rehydration wins fights. In this demo league the effect is built into the simulator.")}</p>
       </section>
 
       <section>

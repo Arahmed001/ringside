@@ -207,3 +207,34 @@ test("the world carries a fighter's article title, so the profile can link to it
   assert.equal(w.byId.get(a.id)!.wikipediaTitle, "Some Article");
   assert.equal(w.byId.get(b.id)!.wikipediaTitle, null);
 });
+
+test("a life that does not fit the career is not a match, and a link made on a name and a country alone is taken back when it does not fit", () => {
+  assert.ok(wd.careerFits(1990, null, 2010, 2024));
+  assert.ok(!wd.careerFits(1953, null, 2026, 2026), "a man born in 1953 does not debut in 2026");
+  assert.ok(!wd.careerFits(2000, null, 2012, 2020), "a debut at 12");
+  assert.ok(!wd.careerFits(1960, "1999-01-01", 1985, 2005), "a fight after the death");
+  assert.ok(wd.careerFits(null, null, 2010, 2024), "no birth year, nothing to disagree with");
+  const rows = db.prepare(`SELECT b.id, b.name, (SELECT MIN(CAST(substr(e.date,1,4) AS INTEGER)) FROM bouts x JOIN events e ON e.id = x.event_id WHERE x.red_id = b.id OR x.blue_id = b.id) first,
+    (SELECT MAX(CAST(substr(e.date,1,4) AS INTEGER)) FROM bouts x JOIN events e ON e.id = x.event_id WHERE x.red_id = b.id OR x.blue_id = b.id) last FROM boxers b WHERE b.wikidata_id IS NULL ORDER BY b.id LIMIT 40`).all() as { id: number; name: string; first: number | null; last: number | null }[];
+  const withBouts = rows.filter((r) => r.first !== null && new Set(rows.filter((x) => x.name === r.name).map((x) => x.id)).size === 1);
+  const [wrong, right, byYear] = withBouts;
+  const stage = db.prepare("INSERT INTO wikidata_boxers (qid, name, birth_date, birth_year, birth_place, country, residence, nickname, enwiki, matched_boxer_id, match_method) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+  stage.run("QW1", wrong.name, `${wrong.last! - 60}-01-01`, wrong.last! - 60, "Wrong Town", "X", "Wrong Home", "The Wrong One", "Wrong_Person", wrong.id, "name+country");
+  stage.run("QW2", right.name, `${right.last! - 25}-01-01`, right.last! - 25, "Right Town", "X", null, null, null, right.id, "name+country");
+  stage.run("QW3", byYear.name, `${byYear.last! - 60}-01-01`, byYear.last! - 60, "Year Town", "X", null, null, null, byYear.id, "name+birth_year");
+  for (const [id, q, y, place] of [[wrong.id, "QW1", wrong.last! - 60, "Wrong Town"], [right.id, "QW2", right.last! - 25, "Right Town"], [byYear.id, "QW3", byYear.last! - 60, "Year Town"]] as [number, string, number, string][])
+    db.prepare("UPDATE boxers SET wikidata_id = ?, birth_year = ?, birth_date = ?, birth_place = ?, wikipedia_title = ? WHERE id = ?").run(q, y, `${y}-01-01`, place, id === wrong.id ? "Wrong Person" : null, id);
+  db.prepare("UPDATE boxers SET residence = 'Wrong Home', nickname = 'The Wrong One', photo_url = 'x', photo_credit = 'y' WHERE id = ?").run(wrong.id);
+  db.prepare("INSERT OR REPLACE INTO honours (boxer_id, kind, label, year, source) VALUES (?, 'award', 'A wrong award', 2000, 'wikidata')").run(wrong.id);
+  db.prepare("INSERT OR REPLACE INTO boxer_media (boxer_id, status) VALUES (?, 'matched')").run(wrong.id);
+  db.prepare("INSERT OR REPLACE INTO name_translations (en, locale, text, source, reviewed) VALUES (?, 'ar', 'اسم خطأ', 'wikidata', 0)").run(wrong.name);
+  assert.equal(wd.repairWikidataLinks(db), 1, "only the link that does not fit, and only a name-and-country link");
+  const w = db.prepare("SELECT wikidata_id, birth_year, birth_date, birth_place, residence, nickname, wikipedia_title, photo_url FROM boxers WHERE id = ?").get(wrong.id) as Record<string, unknown>;
+  assert.deepEqual(Object.values(w), [null, null, null, null, null, null, null, null], "everything the link brought in is gone");
+  assert.equal((db.prepare("SELECT COUNT(*) c FROM honours WHERE boxer_id = ? AND source = 'wikidata'").get(wrong.id) as { c: number }).c, 0);
+  assert.equal((db.prepare("SELECT COUNT(*) c FROM name_translations WHERE en = ? AND source = 'wikidata'").get(wrong.name) as { c: number }).c, 0);
+  assert.equal((db.prepare("SELECT matched_boxer_id m FROM wikidata_boxers WHERE qid = 'QW1'").get() as { m: number | null }).m, null);
+  assert.equal((db.prepare("SELECT wikidata_id q FROM boxers WHERE id = ?").get(right.id) as { q: string }).q, "QW2", "a link that fits stays");
+  assert.equal((db.prepare("SELECT wikidata_id q FROM boxers WHERE id = ?").get(byYear.id) as { q: string }).q, "QW3", "a link made on a birth year as well is not this rule's to take back");
+  assert.equal(wd.repairWikidataLinks(db), 0, "run again, nothing more");
+});

@@ -60,16 +60,18 @@ test("stoppages carry their round; PTS is a unanimous decision only by approxima
   assert.equal(pts.method, "UD"); assert.equal(n.ptsAsUnanimousDecision, 1);
 });
 
-test("draws and unresolved results: a decision with no winner is a draw; a finished fight with nothing is left 'no result yet', not guessed", () => {
+test("draws and unresolved results: a draw is the feed's \"D\"; a decision with no winner marked is left 'no result yet', not guessed as a draw; a finished fight with nothing is left 'no result yet' too", () => {
   const n = notes();
-  const draw = B.mapFight(fight("f6", "A", "B", { fighters: { fighter_1: side("A", false), fighter_2: side("B", false) }, results: { outcome: "SD", round: null } }), n)!.bout;
-  assert.equal(draw.method, "DRAW"); assert.equal(draw.winnerExternalId, null); assert.equal(n.drawInferred, 1);
+  const draw = B.mapFight(fight("f6", "A", "B", { fighters: { fighter_1: side("A", false), fighter_2: side("B", false) }, results: { outcome: "D", round: null } }), n)!.bout;
+  assert.equal(draw.method, "DRAW"); assert.equal(draw.winnerExternalId, null); assert.equal(n.drawInferred, 0);
+  const split = B.mapFight(fight("f6b", "A", "B", { fighters: { fighter_1: side("A", false), fighter_2: side("B", false) }, results: { outcome: "SD", round: null } }), n)!.bout;
+  assert.equal(split.method, null, "a split decision with no winner marked is a fight whose winner is missing, not a draw"); assert.equal(n.decisionWithoutWinner, 1);
   const none = B.mapFight(fight("f7", "A", "B", { fighters: { fighter_1: side("A", false), fighter_2: side("B", false) }, results: { outcome: null, round: null } }), n)!.bout;
   assert.equal(none.method, null); assert.equal(none.winnerExternalId, null); assert.equal(none.endRound, null); assert.equal(n.resultMissing, 1);
-  assert.equal(n.resultMissingOld, 1); // 2024: long past
+  assert.equal(n.resultMissingOld, 2); // 2024: long past (the decision with no winner counts as old too)
   const day = new Date(nowMs() - 3 * 86400000).toISOString().slice(0, 10); // the app's clock (pinned by tempDb), not the real one: a real-clock date drifts past the pinned "today" and reads as a result from the future
   B.mapFight(fight("f8", "A", "B", { date: day, event: { id: "ev-f8", title: "Recent", date: day }, fighters: { fighter_1: side("A", false), fighter_2: side("B", false) }, results: { outcome: null, round: null } }), n);
-  assert.equal(n.resultMissing, 2); assert.equal(n.resultMissingOld, 1); // three days ago: a result that may still come
+  assert.equal(n.resultMissing, 2); assert.equal(n.resultMissingOld, 2); // three days ago: a result that may still come
 });
 
 test("fights not yet fought carry no result, even if the feed has stray fields; LIVE counts as not finished", () => {
@@ -699,8 +701,8 @@ test("importer hygiene (round 73): a fighter against himself is skipped, a knock
   const noWinner = { fighter_1: side("A", false), fighter_2: side("B", false) };
   const ko = B.mapFight(fight("h2", "A", "B", { fighters: noWinner, results: { outcome: "KO", round: 4 } }), n)!.bout;
   assert.equal(ko.winnerExternalId ?? null, null); assert.equal(ko.method ?? null, null, "no winner, so not a knockout"); assert.equal(n.stoppageWithoutWinner, 1);
-  const draw = B.mapFight(fight("h3", "A", "B", { fighters: noWinner, results: { outcome: "MD", round: null } }), n)!.bout;
-  assert.equal(draw.method, "DRAW", "a decision with no winner is still a draw"); assert.equal(n.stoppageWithoutWinner, 1);
+  const draw = B.mapFight(fight("h3", "A", "B", { fighters: noWinner, results: { outcome: "D", round: null } }), n)!.bout;
+  assert.equal(draw.method, "DRAW", "a draw is the feed's D"); assert.equal(n.stoppageWithoutWinner, 1);
   const long = B.mapFight(fight("h4", "A", "B", { scheduled_rounds: 10, results: { outcome: "KO", round: 12 } }), n)!.bout;
   assert.equal(long.rounds, 12); assert.equal(long.endRound, 12); assert.equal(n.roundsRaisedToEnd, 1);
   const fine = B.mapFight(fight("h5", "A", "B", { scheduled_rounds: 10, results: { outcome: "KO", round: 7 } }), n)!.bout;
@@ -709,7 +711,7 @@ test("importer hygiene (round 73): a fighter against himself is skipped, a knock
 
 test("a drawn fight is kept only where each fighter's career record has room for a draw; one the vendor never recorded becomes 'no result yet' (round 74)", () => {
   const n = notes();
-  const d = (id: string, a: string, b: string) => B.mapFight(fight(id, a, b, { fighters: { fighter_1: side(a, false), fighter_2: side(b, false) }, results: { outcome: "SD", round: null } }), n)!.bout;
+  const d = (id: string, a: string, b: string) => B.mapFight(fight(id, a, b, { fighters: { fighter_1: side(a, false), fighter_2: side(b, false) }, results: { outcome: "D", round: null } }), n)!.bout;
   const bouts = [d("d1", "A", "B"), d("d2", "C", "D"), d("d3", "A", "E"), d("d4", "F", "G")];
   const vendor = new Map([["bda-f-A", { wins: 5, losses: 0, draws: 1 }], ["bda-f-B", { wins: 0, losses: 0, draws: 2 }], ["bda-f-C", { wins: 18, losses: 0, draws: 0 }], ["bda-f-D", { wins: 1, losses: 0, draws: 1 }], ["bda-f-E", { wins: 0, losses: 0, draws: 3 }]]);
   const out = B.demoteUnsupportedDraws(bouts, vendor, n);
@@ -717,20 +719,20 @@ test("a drawn fight is kept only where each fighter's career record has room for
   assert.equal(out[1].endRound, null); assert.equal(out[1].scores, undefined); assert.equal(n.drawDemoted, 2);
 });
 
-test("through a real load: a decision with no winner is a draw only if the vendor's totals have room for it (round 74)", async () => {
+test("through a real load: a draw (the feed's D) is kept only if the vendor's totals have room for it (round 74)", async () => {
   const noWinner = { fighter_1: side("A1", false), fighter_2: side("B1", false) };
   const both: Record<string, B.ApiFighter> = {
     A1: fighter("A1", "Alpha One", { stats: { wins: 18, losses: 0, draws: 0, total_bouts: 18 } }),
     B1: fighter("B1", "Bravo One", { stats: { wins: 3, losses: 1, draws: 1, total_bouts: 5 } }),
     C1: fighter("C1", "Charlie One", { stats: { wins: 2, losses: 0, draws: 1, total_bouts: 3 } }),
   };
-  const fights = [fight("1", "A1", "B1", { fighters: noWinner, results: { outcome: "SD", round: null } }), fight("2", "B1", "C1", { fighters: { fighter_1: side("B1", false), fighter_2: side("C1", false) }, results: { outcome: "MD", round: null }, date: "2025-03-01T20:00:00Z", event: { id: "ev-2", title: "Spring", date: "2025-03-01T20:00:00Z", location: "London, United Kingdom", venue: "O2" } })];
+  const fights = [fight("1", "A1", "B1", { fighters: noWinner, results: { outcome: "D", round: null } }), fight("2", "B1", "C1", { fighters: { fighter_1: side("B1", false), fighter_2: side("C1", false) }, results: { outcome: "D", round: null }, date: "2025-03-01T20:00:00Z", event: { id: "ev-2", title: "Spring", date: "2025-03-01T20:00:00Z", location: "London, United Kingdom", venue: "O2" } })];
   const { impl } = mockFetch((path) => path === "/v2/fights/" ? { body: env(fights) } : path === "/v2/fights/schedule" ? { body: env([]) } : { body: env(both[path.split("/").pop()!]) });
   const p = B.boxingDataApiProvider({ key: KEY, purpose: "evaluation", fetchImpl: impl, scheduleDays: 0 });
   const bouts = await p.fetchBouts();
   const by = Object.fromEntries(bouts.map((b) => [b.externalId, b.method]));
   assert.deepEqual([by["bda-b-1"], by["bda-b-2"]], [null, "DRAW"], "Alpha has no draws (his fight with Bravo is not a draw); Bravo and Charlie each have one");
-  assert.equal(p.notes().drawDemoted, 1); assert.equal(p.notes().drawInferred, 2);
+  assert.equal(p.notes().drawDemoted, 1); assert.equal(p.notes().drawInferred, 0);
 });
 
 test("a run given no --per-hour slows itself after the first rate-limit refusal; one given --per-hour is paced from the start; the run says so (round 75)", async () => {

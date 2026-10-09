@@ -64,12 +64,14 @@ function callsOf(w: World, withFinish: boolean): Call[] {
         const r = winProbability(a, u, weights);
         const pRed = r.pA / (r.pA + r.pB);
         const redWon = b.winnerId === b.redId;
+        // a dead heat is not decided in favour of "red": the feed lists the winner first, so that would score every tie as a right call
+        const pickRed = pRed === 0.5 ? b.id % 2 === 0 : pRed > 0.5;
         const pWinner = redWon ? pRed : 1 - pRed;
         out.push({
           boutId: b.id, date: b.date, division: b.weightClass, sex: red.sex, redId: b.redId, blueId: b.blueId,
           pRed, eloPRed: 1 / (1 + Math.pow(10, (pre.blue - pre.red) / 400)), koProb: stoppageProbability(a, u), ...(withFinish ? { finishX: finishInputs(a, u) } : {}),
-          redWon, finished: isStoppage(b.method), pickedRed: pRed >= 0.5, correct: (pRed >= 0.5) === redWon,
-          pWinner, surprise: -Math.log2(Math.max(pWinner, 1e-6)), eloPick: (pre.red >= pre.blue) === redWon,
+          redWon, finished: isStoppage(b.method), pickedRed: pickRed, correct: pickRed === redWon,
+          pWinner, surprise: -Math.log2(Math.max(pWinner, 1e-6)), eloPick: (pre.red === pre.blue ? b.id % 2 === 0 : pre.red > pre.blue) === redWon,
         });
       }
       // update running state AFTER the bout is used, never before

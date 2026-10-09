@@ -152,3 +152,16 @@ test("two copies under two profiles of the same winner agree: the result is kept
   const m = B.mergeDuplicateFights([bout("c", "H1", "D", "e1", { winnerExternalId: "H1" }), bout("d", "H2", "D", "e1", { winnerExternalId: "D" })], dates, notes(), names);
   assert.equal(m.length, 1); assert.equal(m[0].method, null);
 });
+
+test("one person under two profiles (same name, same birth year, the same career total) becomes one fighter; two people who only share a name and a year stay two", () => {
+  const n = notes();
+  const bx = (id: string, name: string, year: number | null) => ({ externalId: id, name, birthYear: year });
+  const boxers = [bx("P1", "Cane Alvarez", 1990), bx("P2", "Cané Alvarez", 1990), bx("Q1", "Al Gonzalez", 2002), bx("Q2", "Al Gonzalez", 2002), bx("R1", "Ray Lee", null), bx("R2", "Ray Lee", null), bx("O1", "Opp One", 1991), bx("O2", "Opp Two", 1992)];
+  const careers = new Map([["P1", { wins: 60, losses: 3, draws: 2 }], ["P2", { wins: 60, losses: 3, draws: 2 }], ["Q1", { wins: 18, losses: 0, draws: 0 }], ["Q2", { wins: 20, losses: 11, draws: 1 }], ["R1", { wins: 5, losses: 1, draws: 0 }], ["R2", { wins: 5, losses: 1, draws: 0 }]]);
+  const bouts = [bout("b1", "P1", "O1", "e1"), bout("b2", "P2", "O2", "e2"), bout("b3", "P2", "O1", "e3")]; // P1 is the winner of b1 (bout() makes the red corner the winner)
+  const out = B.mergeDuplicateProfiles(boxers, bouts, careers, n);
+  assert.deepEqual(out.boxers.map((b) => b.externalId).sort(), ["O1", "O2", "P2", "Q1", "Q2", "R1", "R2"], "P2 holds more fights and is kept; P1 is gone; different totals and unknown birth years are not merged");
+  assert.deepEqual(out.bouts.map((b) => [b.externalId, b.redExternalId, b.winnerExternalId]), [["b1", "P2", "P2"], ["b2", "P2", "P2"], ["b3", "P2", "P2"]], "the winner is moved with the fighter, or two copies of one fight would read as disagreeing");
+  assert.equal(n.duplicateProfilesMerged, 1);
+  assert.equal(B.mergeDuplicateProfiles(boxers, bouts, new Map(), notes()).boxers.length, boxers.length, "no career totals, nothing to go on");
+});

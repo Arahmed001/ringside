@@ -39,6 +39,13 @@ const KIND: Record<string, string> = { boxer: msg("fighter"), event: msg("event"
 
 export default async function DataPage() {
   const t = await getT();
+  // the source list says what THIS site runs on: on the licensed feed the demo league is not in use, and the feed is loaded (not "planned")
+  const licensed = (process.env.BOXING_PROVIDER ?? "demo").trim() === "licensed";
+  const storingConfirmed = process.env.BOXING_API_STORAGE_CONFIRMED === "1";
+  const sources: Source[] = SOURCES.map((x) => !licensed ? x
+    : x.name === "Demo league" ? { ...x, status: "blocked", note: msg("Not used on this site, which runs on the licensed feed.") }
+    : x.name === "Licensed results feed" ? { ...x, status: "built", note: storingConfirmed ? msg("Loaded into this site's database; storing it is confirmed.") : msg("Loaded into this site's database. Storing it is provisional until the vendor's written confirmation is recorded.") }
+    : x);
   const cov = await coverage();
   const fit = loadFit();
   const ar = await arabicReviewStatus();
@@ -131,7 +138,7 @@ export default async function DataPage() {
         <ScrollRegion className="card p-2" label={t("Source registry")}>
           <table className="w-full text-sm" aria-label={t("Source registry")}>
             <thead><tr className="text-start text-xs uppercase tracking-widest text-muted"><th className="p-3">{t("Source")}</th><th>{t("Supplies")}</th><th>{t("Licence")}</th><th>{t("Status")}</th></tr></thead>
-            <tbody>{SOURCES.map((s) => (
+            <tbody>{sources.map((s) => (
               <tr key={s.name} className="border-t border-line/60 align-top">
                 <td className="p-3 font-semibold">{t(s.name)}<div className="mt-1 max-w-xs text-xs font-normal text-muted">{t(s.note)}</div></td>
                 <td className="py-3 pe-4 text-muted">{t(s.supplies)}</td><td className="py-3 pe-4 text-muted">{t(s.licence)}</td>

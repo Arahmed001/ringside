@@ -54,7 +54,8 @@ test("a winner with an outcome nobody can read, or no outcome, or one that says 
 
 test("a result that needs a winner and has none is no result, as a knockout with no winner always was (and now a disqualification too)", () => {
   for (const word of ["KO", "TKO", "DQ", "RTD"]) { const { b, n } = bout({ outcome: word, round: 3, a: false, b: false }); assert.equal(b.method, null, word); assert.equal(b.winnerExternalId, null); assert.equal(n.stoppageWithoutWinner, 1, word); }
-  const ud = bout({ outcome: "UD", a: false, b: false }); assert.equal(ud.b.method, "DRAW", "a decision with no winner is still taken as a draw"); assert.equal(ud.n.drawInferred, 1);
+  const ud = bout({ outcome: "UD", a: false, b: false }); assert.equal(ud.b.method, null, "a decision with no winner marked is a missing winner, not a draw (the feed writes a draw as D)"); assert.equal(ud.n.drawInferred, 0); assert.equal(ud.n.decisionWithoutWinner, 1);
+  const dr = bout({ outcome: "D", a: false, b: false }); assert.equal(dr.b.method, "DRAW"); assert.equal(dr.b.winnerExternalId, null);
 });
 
 test("both fighters marked the winner: neither is picked and it is not read as a draw", () => {

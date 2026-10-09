@@ -302,6 +302,59 @@ export async function importWikidata(db: DatabaseSync, opts: ImportOptions = {})
 
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[łđðøı]/g, (c) => ({ ł: "l", đ: "d", ð: "d", ø: "o", ı: "i" })[c as "ł"]).replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
 
+/**
+ * Does a Wikidata person's life fit our fighter's career? Used for the one link kind with nothing to corroborate it (a name unique on both sides in one country): the first fight at 14
+ * or later, the last fight no later than 50 years after birth (a comeback at 55 is a tournament link by birth year, not this), and none after the person's death.
+ */
+export function careerFits(birthYear: number | null, deathDate: string | null, firstYear: number | undefined, lastYear: number | undefined): boolean {
+  if (typeof birthYear === "number") {
+    if (firstYear !== undefined && firstYear < birthYear + 14) return false;
+    if (lastYear !== undefined && lastYear > birthYear + 50) return false;
+  }
+  const died = typeof deathDate === "string" ? parseInt(deathDate.slice(0, 4), 10) : NaN;
+  if (Number.isFinite(died) && lastYear !== undefined && lastYear > died) return false;
+  return true;
+}
+
+/**
+ * Takes back the links that were made on a name and a country alone and whose life does not fit the career (a man born in 1953 matched to a boxer who debuted in 2026). Everything the
+ * link brought in is taken out again where it is the entity's own value: the Wikidata ID, birth details, article title, nickname, Hall of Fame and Olympedia IDs, a Commons headshot,
+ * the honours and the Wikidata Arabic name. Returns how many fighters were unlinked.
+ */
+export function repairWikidataLinks(db: DatabaseSync): number {
+  const rows = db.prepare(`SELECT b.id, b.name, w.qid, w.birth_year wy, w.death_date, w.birth_date wd, w.birth_place wp, w.residence wr, w.boxrec_id wbx, w.enwiki, w.nickname wn, w.ibhof_id wi, w.olympedia_id wo,
+      (SELECT MIN(CAST(substr(e.date, 1, 4) AS INTEGER)) FROM bouts x JOIN events e ON e.id = x.event_id WHERE x.red_id = b.id OR x.blue_id = b.id) first,
+      (SELECT MAX(CAST(substr(e.date, 1, 4) AS INTEGER)) FROM bouts x JOIN events e ON e.id = x.event_id WHERE x.red_id = b.id OR x.blue_id = b.id) last
+    FROM wikidata_boxers w JOIN boxers b ON b.id = w.matched_boxer_id WHERE w.match_method = 'name+country'`).all() as unknown as
+    { id: number; name: string; qid: string; wy: number | null; death_date: string | null; wd: string | null; wp: string | null; wr: string | null; wbx: string | null; enwiki: string | null; wn: string | null; wi: string | null; wo: string | null; first: number | null; last: number | null }[];
+  const bad = rows.filter((r) => !careerFits(r.wy, r.death_date, r.first ?? undefined, r.last ?? undefined));
+  if (!bad.length) return 0;
+  const clear = (col: string) => db.prepare(`UPDATE boxers SET ${col} = NULL WHERE id = ? AND ${col} = ?`);
+  const own = { birth_year: clear("birth_year"), birth_date: clear("birth_date"), birth_place: clear("birth_place"), residence: clear("residence"), boxrec_id: clear("boxrec_id"), nickname: clear("nickname"), ibhof_id: clear("ibhof_id"), olympedia_id: clear("olympedia_id") };
+  const hasMedia = (db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='boxer_media'").get() as unknown) !== undefined;
+  db.exec("BEGIN");
+  for (const r of bad) {
+    if (r.wy !== null) own.birth_year.run(r.id, r.wy);
+    if (r.wd) own.birth_date.run(r.id, r.wd);
+    if (r.wp) own.birth_place.run(r.id, r.wp);
+    if (r.wr) own.residence.run(r.id, r.wr);
+    if (r.wbx) own.boxrec_id.run(r.id, r.wbx);
+    if (r.wn) own.nickname.run(r.id, r.wn);
+    if (r.wi) own.ibhof_id.run(r.id, r.wi);
+    if (r.wo) own.olympedia_id.run(r.id, r.wo);
+    if (r.enwiki) db.prepare("UPDATE boxers SET wikipedia_title = NULL WHERE id = ? AND REPLACE(wikipedia_title, '_', ' ') = REPLACE(?, '_', ' ')").run(r.id, r.enwiki);
+    db.prepare("DELETE FROM honours WHERE boxer_id = ? AND source = 'wikidata'").run(r.id);
+    if (hasMedia) { const m = db.prepare("SELECT status FROM boxer_media WHERE boxer_id = ?").get(r.id) as { status: string } | undefined; if (m?.status === "matched") db.prepare("UPDATE boxers SET photo_url = NULL, photo_credit = NULL WHERE id = ?").run(r.id); db.prepare("DELETE FROM boxer_media WHERE boxer_id = ?").run(r.id); }
+    // the Arabic name Wikidata gave belongs to the other person: gone, unless another of our fighters of that name is linked on a firmer ground
+    db.prepare(`DELETE FROM name_translations WHERE en = ? AND locale = 'ar' AND source = 'wikidata'
+      AND NOT EXISTS (SELECT 1 FROM boxers o JOIN wikidata_boxers w2 ON w2.matched_boxer_id = o.id WHERE o.name = ? AND o.id <> ? AND w2.match_method <> 'name+country')`).run(r.name, r.name, r.id);
+    db.prepare("UPDATE boxers SET wikidata_id = NULL WHERE id = ?").run(r.id);
+    db.prepare("UPDATE wikidata_boxers SET matched_boxer_id = NULL, match_method = NULL WHERE qid = ?").run(r.qid);
+  }
+  db.exec("COMMIT");
+  return bad.length;
+}
+
 export interface EnrichSummary { linked: number; byBoxrecId: number; byNameYear: number; byNameCountry: number; ambiguous: number; names: { added: number; kept: number }; filled: { nickname: number; wikipedia: number; birthYear: number; birthDate: number; birthPlace: number; residence: number; boxrecId: number }; honours: { boxers: number; rows: number; hallOfFame: number; olympedia: number } }
 
 /**
@@ -309,6 +362,7 @@ export interface EnrichSummary { linked: number; byBoxrecId: number; byNameYear:
  * Match order: (1) BoxRec ID, if our feed supplies one; (2) normalised name + birth year when exactly one candidate exists; (3) a name unique on both sides in the same country, with a birth year and a career that fit.
  */
 export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
+  repairWikidataLinks(db); // links made on an earlier run that the career does not fit are taken back first
   const staged = db.prepare("SELECT * FROM wikidata_boxers").all() as Record<string, unknown>[];
   const byBoxrec = new Map<string, Record<string, unknown>>();
   const byNameYear = new Map<string, Record<string, unknown>[]>();
@@ -348,8 +402,8 @@ export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
   // fighter of ours and to exactly one staged entity, in the same country (the four home nations are one with the United Kingdom), with a birth year that does not disagree and a career
   // that fits the life (first fight at 14 or later, and before the entity's death). Two people with one name in one country are left alone: nothing is guessed.
   const nation = (c: unknown) => { const n = typeof c === "string" ? norm(c) : ""; return /^(england|scotland|wales|northern ireland|great britain)$/.test(n) ? "united kingdom" : n; };
-  const era = db.prepare("SELECT b.id AS id, MIN(CAST(substr(e.date, 1, 4) AS INTEGER)) AS first FROM boxers b JOIN bouts x ON x.red_id = b.id OR x.blue_id = b.id JOIN events e ON e.id = x.event_id WHERE b.wikidata_id IS NULL GROUP BY b.id").all() as { id: number; first: number }[];
-  const firstYear = new Map(era.map((r) => [r.id, r.first] as const));
+  const era = db.prepare("SELECT b.id AS id, MIN(CAST(substr(e.date, 1, 4) AS INTEGER)) AS first, MAX(CAST(substr(e.date, 1, 4) AS INTEGER)) AS last FROM boxers b JOIN bouts x ON x.red_id = b.id OR x.blue_id = b.id JOIN events e ON e.id = x.event_id WHERE b.wikidata_id IS NULL GROUP BY b.id").all() as { id: number; first: number; last: number }[];
+  const firstYear = new Map(era.map((r) => [r.id, r.first] as const)), lastYear = new Map(era.map((r) => [r.id, r.last] as const));
   const left = db.prepare("SELECT id, name, birth_year, country, boxrec_id, birth_date, birth_place, residence FROM boxers WHERE wikidata_id IS NULL").all() as
     { id: number; name: string; birth_year: number | null; country: string; boxrec_id: string | null; birth_date: string | null; birth_place: string | null; residence: string | null }[];
   const stagedLeft = staged.filter((r) => !claimed.has(r.qid as string) && !r.matched_boxer_id);
@@ -361,14 +415,9 @@ export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
     if (ws.length !== 1 || !ms || ms.length !== 1) continue;
     const hit = ws[0], b = ms[0];
     if (!hit.country || nation(hit.country) !== nation(b.country)) continue;
-    if (typeof hit.birth_year === "number") {
-      if (b.birth_year !== null && Math.abs(hit.birth_year - b.birth_year) > 1) continue;
-      const first = firstYear.get(b.id);
-      if (first !== undefined && first < hit.birth_year + 14) continue;
-    }
-    const died = typeof hit.death_date === "string" ? parseInt(hit.death_date.slice(0, 4), 10) : NaN;
-    const last = firstYear.get(b.id);
-    if (Number.isFinite(died) && last !== undefined && last > died) continue;
+    if (typeof hit.birth_year === "number" && b.birth_year !== null && Math.abs(hit.birth_year - b.birth_year) > 1) continue;
+    // the life must fit the career, at both ends: not a debut before 14, not a last fight more than 50 years after birth, none after the death
+    if (!careerFits(typeof hit.birth_year === "number" ? hit.birth_year : null, typeof hit.death_date === "string" ? hit.death_date : null, firstYear.get(b.id), lastYear.get(b.id))) continue;
     claimed.add(hit.qid as string);
     const str = (v: unknown) => (typeof v === "string" ? v : null);
     upd.run(hit.qid as string, b.boxrec_id ? null : str(hit.boxrec_id), typeof hit.birth_year === "number" ? hit.birth_year : null, str(hit.birth_date), str(hit.birth_place), str(hit.residence), b.id);
