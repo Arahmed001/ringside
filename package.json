@@ -47,6 +47,7 @@
     "accounts": "tsx scripts/accounts.ts",
     "forum:bench": "tsx scripts/forum-bench.ts",
     "backup": "tsx scripts/backup.ts",
+    "ship": "tsx scripts/ship-db.ts",
     "nightly": "tsx scripts/nightly.ts",
     "loadtest": "tsx scripts/loadtest.ts",
     "capacity": "tsx scripts/capacity.ts",
