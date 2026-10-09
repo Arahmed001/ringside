@@ -1,0 +1,144 @@
+"use client";
+import { useCallback, useEffect, useState } from "react";
+import Link from "@/components/L";
+import { useT } from "@/components/i18n";
+import { api, useAccount } from "@/lib/useAccount";
+import { explain } from "@/lib/account-text";
+import type { ProposalRow } from "@/lib/watch/proposals";
+
+type Status = "pending" | "approved" | "rejected" | "superseded";
+interface SourceInfo { id: string; label: string; kind: string; terms: string }
+interface Loaded { key: string; items: ProposalRow[]; counts: Record<string, number>; sources: SourceInfo[]; max: number }
+
+/**
+ * Administrators' queue for changes that public sources seem to have made to data we hold. Nothing here is applied until an administrator approves it; approving writes
+ * the change to the live data at once. A change that no longer fits what is held is refused and stays here until the next check replaces it.
+ */
+export function UpdateQueue() {
+  const t = useT();
+  const me = useAccount();
+  const [status, setStatus] = useState<Status>("pending");
+  const [loaded, setLoaded] = useState<Loaded | null>(null);
+  const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false);
+  const isAdmin = me?.role === "admin";
+  const key = status;
+  const data = loaded?.key === key ? loaded : null;
+
+  const load = useCallback((st: Status) => {
+    void api<{ items: ProposalRow[]; counts: Record<string, number>; sources: SourceInfo[]; max: number }>(`/api/review/updates?status=${st}`, "GET").then((r) => {
+      if (r.ok) setLoaded({ key: st, ...r.data }); else { setLoaded({ key: st, items: [], counts: {}, sources: [], max: 50 }); setMsg(explain(t, r.data.error)); }
+    });
+  }, [t]);
+  useEffect(() => { if (isAdmin) load(status); }, [isAdmin, status, load]);
+
+  if (me === undefined) return <p className="text-sm text-muted">{t("Loading…")}</p>;
+  if (!me || !isAdmin) return <div className="card p-6"><p className="text-muted">{me ? t("Only administrators can decide on source updates.") : t("Sign in as an administrator to decide on source updates.")}</p>{!me && <p className="mt-3"><Link href="/account" className="underline decoration-dotted hover:text-ink">{t("Sign in")}</Link></p>}</div>;
+
+  async function decide(ids: number[], decision: "approved" | "rejected", note: string, done: string) {
+    setBusy(true); setMsg("");
+    const r = await api<{ approved: number; rejected: number; results: { id: number; ok: boolean; error?: string }[] }>("/api/review/updates", "POST", { ids, decision, note });
+    setBusy(false);
+    if (!r.ok) { setMsg(explain(t, r.data.error)); return; }
+    const failed = (r.data.results ?? []).filter((x) => !x.ok);
+    setMsg(failed.length ? `${t("Done for {done} of {all}.", { done: ids.length - failed.length, all: ids.length })} ${[...new Set(failed.map((f) => explain(t, f.error)))].join(" ")}` : done);
+    load(status);
+  }
+
+  const tabs: [Status, string][] = [["pending", t("Waiting")], ["approved", t("Approved")], ["rejected", t("Not accepted")], ["superseded", t("No longer true")]];
+  const items = data?.items ?? [];
+  const groups = [...new Set(items.map((i) => `${i.source}|${i.kind}`))].map((g) => ({ g, rows: items.filter((i) => `${i.source}|${i.kind}` === g) }));
+  return (
+    <div className="space-y-5">
+      <div role="group" aria-label={t("Show")} className="flex flex-wrap gap-2 text-sm">
+        {tabs.map(([k, text]) => <button key={k} aria-pressed={status === k} onClick={() => { setStatus(k); setMsg(""); }} className={`rounded-full border px-3 py-1 ${status === k ? "border-gold/60 bg-gold/10 text-ink" : "border-line text-muted hover:text-ink"}`}>{text}{data ? ` (${data.counts[k] ?? 0})` : ""}</button>)}
+      </div>
+      <p role="status" aria-live="polite" className="min-h-5 text-sm text-muted">{msg}</p>
+      {data === null ? <p className="text-sm text-muted">{t("Loading…")}</p> : items.length === 0 ? <p className="text-sm text-muted">{status === "pending" ? t("Nothing is waiting.") : t("Nothing here yet.")}</p> : (
+        <div className="space-y-8">
+          {groups.map(({ g, rows }) => {
+            const src = data.sources.find((s) => s.id === rows[0].source);
+            return <Group key={g} rows={rows} source={src} max={data.max} pending={status === "pending"} busy={busy} decide={decide} />;
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const kindTitle = (t: ReturnType<typeof useT>, kind: string) => kind === "reign_added" ? t("New title reigns") : kind === "reign_removed" ? t("Title reigns no longer on the page") : kind === "reign_changed" ? t("Changed title reigns") : kind;
+
+function Group({ rows, source, max, pending, busy, decide }: { rows: ProposalRow[]; source?: SourceInfo; max: number; pending: boolean; busy: boolean; decide: (ids: number[], d: "approved" | "rejected", note: string, done: string) => void }) {
+  const t = useT();
+  const [confirm, setConfirm] = useState(false);
+  const shown = rows.slice(0, max);
+  return (
+    <section aria-labelledby={`g-${rows[0].id}`} className="space-y-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 id={`g-${rows[0].id}`} className="font-display text-2xl font-bold">{kindTitle(t, rows[0].kind)} <span className="text-muted">({rows.length})</span></h2>
+          {source && <p className="text-xs text-muted">{source.label} · {source.terms}</p>}
+        </div>
+        {pending && rows.length > 1 && (confirm ? (
+          <div className="flex items-center gap-2 text-sm">
+            <span>{t("Approve {n} changes?", { n: shown.length })}</span>
+            <button className="rounded-xl bg-red-btn px-4 py-2 font-bold text-white hover:brightness-90 disabled:opacity-60" disabled={busy} onClick={() => { setConfirm(false); decide(shown.map((r) => r.id), "approved", "", t("Approved.")); }}>{t("Yes, approve")}</button>
+            <button className="rounded-xl border border-line bg-panel2 px-4 py-2 hover:border-white/30" onClick={() => setConfirm(false)}>{t("Cancel")}</button>
+          </div>
+        ) : <button className="rounded-xl border border-line bg-panel2 px-4 py-2 text-sm hover:border-white/30 disabled:opacity-60" disabled={busy} onClick={() => setConfirm(true)}>{rows.length > max ? t("Approve the first {n}", { n: max }) : t("Approve all {n}", { n: rows.length })}</button>)}
+      </div>
+      <ul className="space-y-4">{rows.map((r) => <Item key={r.id} r={r} pending={pending} busy={busy} decide={decide} />)}</ul>
+    </section>
+  );
+}
+
+const KNOWN = ["name", "status", "start", "end", "current", "wonVs", "defences", "endNote"];
+function fieldLabel(t: ReturnType<typeof useT>, k: string): string {
+  switch (k) {
+    case "name": return t("Holder");
+    case "status": return t("Kind of champion");
+    case "start": return t("Reign began");
+    case "end": return t("Reign ended");
+    case "current": return t("Current champion");
+    case "wonVs": return t("Won it from");
+    case "defences": return t("Defences");
+    default: return t("How it ended");
+  }
+}
+
+function Item({ r, pending, busy, decide }: { r: ProposalRow; pending: boolean; busy: boolean; decide: (ids: number[], d: "approved" | "rejected", note: string, done: string) => void }) {
+  const t = useT();
+  const [note, setNote] = useState("");
+  const ev = (r.evidence ?? {}) as { page?: string; revision?: string; seen?: string; held?: string };
+  const old = (r.old ?? {}) as Record<string, unknown>, now = (r.new ?? {}) as Record<string, unknown>;
+  const fields = [...new Set([...Object.keys(old), ...Object.keys(now)])].filter((k) => KNOWN.includes(k));
+  const show = (v: unknown) => (v === null || v === undefined || v === "" ? "–" : v === true ? t("Yes") : v === false ? t("No") : String(v));
+  const wiki = r.source.startsWith("wikipedia:") && ev.page;
+  const btn = "rounded-xl border border-line bg-panel2 px-4 py-2 transition hover:border-white/30 disabled:opacity-60";
+  return (
+    <li className="card space-y-3 p-5 text-sm">
+      <div className="font-display text-xl font-bold">{r.label.split(": ").slice(0, r.kind === "reign_changed" ? -1 : undefined).join(": ")}</div>
+      <table className="w-full text-start">
+        <caption className="sr-only">{r.label}</caption>
+        <thead><tr className="text-xs uppercase tracking-widest text-muted"><th scope="col" className="py-1 pe-3 text-start font-normal">{t("Detail")}</th><th scope="col" className="py-1 pe-3 text-start font-normal">{t("Held now")}</th><th scope="col" className="py-1 text-start font-normal">{t("Source says")}</th></tr></thead>
+        <tbody>
+          {fields.map((k) => <tr key={k} className="border-t border-line"><th scope="row" className="py-1 pe-3 text-start font-normal text-muted">{fieldLabel(t, k)}</th><td className="py-1 pe-3">{r.kind === "reign_added" ? "–" : show(old[k])}</td><td className="py-1 font-semibold">{r.kind === "reign_removed" ? t("Not on the page") : show(now[k])}</td></tr>)}
+        </tbody>
+      </table>
+      {wiki && <p className="text-muted">{t("Read on")} <a href={`https://en.wikipedia.org/wiki/${encodeURIComponent(ev.page!)}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-gold">{ev.page!.replace(/_/g, " ")}</a>{ev.revision && <> · <a href={`https://en.wikipedia.org/w/index.php?oldid=${encodeURIComponent(ev.revision)}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-gold">{t("revision {n}", { n: ev.revision })}</a></>}</p>}
+      <p className="text-xs text-muted">{t("First seen {date}", { date: r.firstSeen.slice(0, 10) })}{r.lastSeen !== r.firstSeen ? ` · ${t("last seen {date}", { date: r.lastSeen.slice(0, 10) })}` : ""}</p>
+      {pending ? (
+        <div className="flex flex-wrap items-end gap-3 border-t border-line pt-3">
+          <button className="rounded-xl bg-red-btn px-4 py-2 font-bold text-white hover:brightness-90 disabled:opacity-60" disabled={busy} onClick={() => decide([r.id], "approved", note, t("Approved."))}>{t("Approve")}</button>
+          <div className="min-w-[12rem] flex-1">
+            <label htmlFor={`un-${r.id}`} className="mb-1 block text-xs uppercase tracking-widest text-muted">{t("Note (needed to reject)")}</label>
+            <input id={`un-${r.id}`} value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} className="w-full rounded-xl border border-line bg-panel2 px-3 py-2 outline-none focus:border-gold/60" />
+          </div>
+          <button className={`${btn} hover:!border-red/60`} disabled={busy} onClick={() => decide([r.id], "rejected", note, t("Not accepted. It will not be raised again unless the source says something different."))}>{t("Reject")}</button>
+        </div>
+      ) : r.decidedAt ? (
+        <p className="border-t border-line pt-3 text-xs text-muted">{t("Decided by {name} on {date}", { name: r.decidedBy ?? "?", date: r.decidedAt.slice(0, 10) })}{r.note ? ` · ${r.note}` : ""}</p>
+      ) : null}
+    </li>
+  );
+}

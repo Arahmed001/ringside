@@ -73,7 +73,7 @@ async function main() {
   const sweep = fs.readFileSync(path.join("scripts", "a11y-sweep.js"), "utf8");
   await boot();
   await (await fetch(base + "/boxers")).arrayBuffer(); // the first request that reads data builds (and, for a throwaway league, seeds) the database that the sample pages are read from
-  const pathsEn = arg("paths")?.split(",") ?? [...new Set(["/", ...NAV_GROUPS.flatMap((g) => g.items.map((i) => i.href)), ...OFF_NAV.filter((p) => p !== "/review" && p !== "/review/reports"), ...samples()])];
+  const pathsEn = arg("paths")?.split(",") ?? [...new Set(["/", ...NAV_GROUPS.flatMap((g) => g.items.map((i) => i.href)), ...OFF_NAV.filter((p) => p !== "/review" && p !== "/review/reports" && p !== "/review/updates"), ...samples()])];
   const browser = await chromium.launch({ headless: !process.argv.includes("--headed") });
   let pages = 0; const bad: string[] = [];
   for (const lang of langs) for (const w of widths) {

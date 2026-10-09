@@ -99,3 +99,7 @@ Run them where the files are (inside the container: `docker exec ringside npm ru
 ## Privacy
 
 A person's data is a name, a password hash, their picks, the fighters on their watchlist and the edits they proposed. `/account` offers a download of all of it (`/api/account/export`, no secrets) and deletion (password required): it removes the person, their picks, watchlist and sessions; edits they proposed stay in the record, with no name on them, because what was published rests on a source, not on who found it.
+
+## Source updates (administrators)
+
+`/review/updates` lists changes that a watcher (`npm run watch -- --source champions`, PLAN 253) found between a public source and the data we hold. **Nothing is applied until an administrator approves it**; editors and members cannot decide. Approving writes the change to the live data at once and records who and when (an `update.approve` row in the audit log); rejecting needs a note and is remembered, so the same change is not raised again unless the source says something different. A change that no longer fits what is held (the data moved since it was proposed) is refused and stays waiting. `/api/health` shows `data.updatesWaiting` when anything is waiting.

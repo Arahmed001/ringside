@@ -46,9 +46,17 @@ export function reconcile(acc: DatabaseSync, source: string, changes: Change[], 
   return r;
 }
 
-export interface ProposalRow { id: number; source: string; kind: string; targetKey: string; label: string; old: unknown; new: unknown; evidence: unknown; status: string; firstSeen: string; lastSeen: string }
-export function listProposals(acc: DatabaseSync, o: { status?: string; source?: string } = {}): ProposalRow[] {
-  const rows = acc.prepare(`SELECT * FROM proposals WHERE status = ? ${o.source ? "AND source = ?" : ""} ORDER BY source, target_key`).all(...(o.source ? [o.status ?? "pending", o.source] : [o.status ?? "pending"])) as Record<string, string | number | null>[];
+export interface ProposalRow { id: number; source: string; kind: string; targetKey: string; label: string; old: unknown; new: unknown; evidence: unknown; status: string; firstSeen: string; lastSeen: string; decidedBy: string | null; decidedAt: string | null; note: string | null }
+export function listProposals(acc: DatabaseSync, o: { status?: string; source?: string; limit?: number } = {}): ProposalRow[] {
+  const rows = acc.prepare(`SELECT p.*, u.username decided_name FROM proposals p LEFT JOIN users u ON u.id = p.decided_by WHERE p.status = ? ${o.source ? "AND p.source = ?" : ""} ORDER BY p.source, p.kind, p.target_key LIMIT ?`)
+    .all(...(o.source ? [o.status ?? "pending", o.source, o.limit ?? 500] : [o.status ?? "pending", o.limit ?? 500])) as Record<string, string | number | null>[];
   const j = (v: unknown) => (typeof v === "string" ? JSON.parse(v) : null);
-  return rows.map((r) => ({ id: r.id as number, source: r.source as string, kind: r.kind as string, targetKey: r.target_key as string, label: r.label as string, old: j(r.old_json), new: j(r.new_json), evidence: j(r.evidence_json), status: r.status as string, firstSeen: r.first_seen as string, lastSeen: r.last_seen as string }));
+  return rows.map((r) => ({ id: r.id as number, source: r.source as string, kind: r.kind as string, targetKey: r.target_key as string, label: r.label as string, old: j(r.old_json), new: j(r.new_json), evidence: j(r.evidence_json), status: r.status as string, firstSeen: r.first_seen as string, lastSeen: r.last_seen as string, decidedBy: (r.decided_name as string | null) ?? null, decidedAt: (r.decided_at as string | null) ?? null, note: (r.note as string | null) ?? null }));
+}
+
+/** Counts per status, for the tabs. */
+export function proposalCounts(acc: DatabaseSync): Record<string, number> {
+  const out: Record<string, number> = { pending: 0, approved: 0, rejected: 0, superseded: 0 };
+  for (const r of acc.prepare("SELECT status, COUNT(*) c FROM proposals GROUP BY status").all() as { status: string; c: number }[]) out[r.status] = r.c;
+  return out;
 }
