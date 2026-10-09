@@ -48,6 +48,7 @@
     "forum:bench": "tsx scripts/forum-bench.ts",
     "backup": "tsx scripts/backup.ts",
     "ship": "tsx scripts/ship-db.ts",
+    "offsite": "tsx scripts/offsite-backup.ts",
     "nightly": "tsx scripts/nightly.ts",
     "loadtest": "tsx scripts/loadtest.ts",
     "capacity": "tsx scripts/capacity.ts",

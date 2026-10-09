@@ -507,6 +507,16 @@ Set in the host's settings (secrets screen for the secret ones), then restart. `
 | `NEWS_CONTACT` | Your email or website for the news refresh's User-Agent (`npm run news:refresh`). Required for it to run; an outlet can reach you with it. | none | no |
 | `NEWS_NONCOMMERCIAL` | `1` is your statement that the site earns nothing; it adds the feeds of outlets (BBC Sport, The Guardian, Sky Sports) that allow their feeds on non-commercial sites only. | unset (open feeds only) | no |
 | `NEWS_IMAGE_SOURCES` | Which outlets' pictures the news cards show: unset is every open outlet; `none` is no outlet; or a comma list of outlet ids (`boxing-news`, `boxing-news-24`, `15-rounds`, `world-boxing-news`). The pictures are saved by this site and shown from its own address; an outlet left out has its saved pictures deleted at the next refresh. Use it if an outlet asks you to stop. | unset (all open outlets) | no |
+| `NIGHTLY_ENRICH` | `weekly` (Sundays, UTC) or `nightly`: the nightly job also runs `vendor:enrich`'s resumable steps (Wikidata, Commons) for fighters not yet looked up, last, after the off-host copy. Needs `WIKIMEDIA_CONTACT`. A failure is a warning. | unset (off) | no |
+| `NIGHTLY_PING_URL` | The heartbeat address a free uptime monitor gives you; pinged when a night ends (`/fail` added for a failed night). A night that never ends sends nothing, which is what the monitor alerts on. See `docs/monitoring.md`. | unset | **yes** |
+| `OFFSITE_S3_ENDPOINT` | The https address of your S3-compatible storage (Cloudflare R2, Backblaze B2, Amazon S3) for the off-host backup (`docs/offsite-backups.md`). | none | no |
+| `OFFSITE_S3_BUCKET` | The bucket the encrypted backups go to. | none | no |
+| `OFFSITE_S3_ACCESS_KEY_ID` | The storage access key's id (not a secret on its own; the secret key below is). | none | no |
+| `OFFSITE_S3_SECRET_ACCESS_KEY` | The storage access key's secret. | none | **yes** |
+| `BACKUP_PASSPHRASE` | Encrypts every off-host file (12 characters or more). Nothing is sent without it. Keep a copy away from this server: without it a copy cannot be read. | none | **yes** |
+| `OFFSITE_S3_REGION` | The storage region (R2 and B2 accept `auto`). | `auto` | no |
+| `OFFSITE_S3_PREFIX` | The folder in the bucket. | `ringside/` | no |
+| `OFFSITE_KEEP` | How many dated copies stay in the bucket; older ones are deleted after a good upload. | 30 | no |
 | `YOUTUBE_API_KEY` | Your own key for YouTube's Data API (free), used by `npm run news:refresh` to list the newest uploads of the official boxing channels. Without it no official videos are listed; the headlines still work. | unset | **yes** |
 | `RESEARCH_DELAY_MS` | Pause between the research bot's requests. | 3,000 | no |
 | `RESEARCH_BLOCKLIST` | Comma-separated sites that asked not to be fetched. | none | no |

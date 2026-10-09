@@ -15,6 +15,7 @@ import { waitingSummary } from "@/lib/watch/waiting";
  *
  * `data.stale` is true when a licensed feed's daily update has not run for more than two days (the site would otherwise keep serving old
  * results without a word). It never turns the answer into a 503: a stale feed is a reason to look at the cron, not to restart the container.
+ * Add `?strict=1` to make a monitor's life easy: the answer is then 503 (`status: "degraded"` with `reasons`) while the data is stale or the last nightly job failed, and unchanged otherwise.
  * It is null for the demo league and for a file feed, which nobody updates daily.
  *
  * `data.updatesWaiting` appears only when source updates are waiting for an administrator's decision (a count, nothing else), and `data.updatesOverdueDays` only when the oldest of them has waited
@@ -24,7 +25,8 @@ import { waitingSummary } from "@/lib/watch/waiting";
  * next scheduled start. No message, no path, no setting: those stay in the status file and the container log. It does not touch `stale`: that still comes from the
  * database alone, so a job that reports "ok" cannot hide old data, and a failed job only adds a reason.
  */
-export async function GET() {
+export async function GET(req?: Request) {
+  const strict = req ? new URL(req.url).searchParams.get("strict") === "1" : false;
   const headers = { "Cache-Control": "no-store" };
   try {
     const w = await getWorld();
@@ -34,6 +36,10 @@ export async function GET() {
     const nightly = lastNightly(undefined, nowMs());
     const waiting = waitingSummary(accountsDbIfAny(), nowMs());
     const data = { updatedAt: last?.at ?? null, ageHours: age?.ageHours ?? null, stale: daily ? (age ? age.stale : true) : null, ...(nightly ? { nightly } : {}), ...(waiting.waiting ? { updatesWaiting: waiting.waiting } : {}), ...(waiting.overdue ? { updatesOverdueDays: waiting.ageDays } : {}) };
+    // `?strict=1` is for an uptime monitor that only reads the status code: 503 when a licensed feed is stale or the last nightly job failed. The default answer is unchanged (a stale feed is
+    // a reason to look at the cron, not to restart the container, so a load balancer must not use this form).
+    const reasons = strict ? [...(data.stale === true ? ["the data is stale"] : []), ...(nightly?.result === "failed" ? ["the last nightly job failed"] : [])] : [];
+    if (reasons.length) return NextResponse.json({ status: "degraded", reasons, fighters: w.boxers.length, bouts: w.bouts.length, data }, { status: 503, headers });
     return NextResponse.json({ status: "ok", fighters: w.boxers.length, bouts: w.bouts.length, data }, { headers });
   } catch (e) {
     console.error("[ringside] health check failed:", e instanceof Error ? e.message : e);
