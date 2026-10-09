@@ -102,3 +102,17 @@ test("a card held in a place that is not a country (a county, a state, a typo) i
   assert.equal(level(broken("UPDATE events SET country = 'Unknown'"), "event-countries"), "pass");
   assert.match(describeAudit(broken("UPDATE events SET country = 'Lancashire'")).join("\n"), /every card's country[\s\S]*Lancashire 1/);
 });
+
+test("a fighter on two bouts one night is a warning only when the bouts are on different cards; on one card it is a tournament night and only noted (round 139)", () => {
+  const one = broken("INSERT INTO bouts (external_id, event_id, red_id, blue_id, weight_class, rounds, status) SELECT 'extra-1', event_id, red_id, blue_id, weight_class, rounds, NULL FROM bouts LIMIT 1");
+  assert.equal(level(one, "double-booked"), "pass", "the same fighter twice on one card");
+  assert.match(one.find((c) => c.id === "double-booked")!.detail, /0 fighter-night\(s\) on two different cards.*2 more on one card \(a one-night tournament is normal\)/);
+  const two = broken("INSERT INTO events (external_id, name, date, venue, city, country) SELECT 'ev-dup', 'Same Night Elsewhere', date, venue, city, country FROM events LIMIT 1; INSERT INTO bouts (external_id, event_id, red_id, blue_id, weight_class, rounds) SELECT 'extra-2', (SELECT id FROM events WHERE external_id = 'ev-dup'), red_id, blue_id, weight_class, rounds FROM bouts LIMIT 1");
+  assert.equal(level(two, "double-booked"), "warn", "the same fighter on the same night on a second card");
+  assert.match(two.find((c) => c.id === "double-booked")!.detail, /2 fighter-night\(s\) on two different cards/);
+});
+
+test("Kurdistan, a nation fighters list as their own with no flag, is not reported as a country the app cannot place (round 139)", () => {
+  assert.equal(level(broken("UPDATE boxers SET country = 'Kurdistan' WHERE name = 'Fighter B'"), "countries-placed"), "pass");
+  assert.equal(level(broken("UPDATE boxers SET country = 'Atlantis' WHERE name = 'Fighter B'"), "countries-placed") !== "pass", true, "a name the app cannot place is still reported");
+});

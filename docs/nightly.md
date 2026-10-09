@@ -21,6 +21,7 @@ Set these in the host's environment for the one service, next to the ones the up
 | `NIGHTLY_JITTER_MIN` | random delay added to the time, 0 to 60 minutes | 5 |
 | `NIGHTLY_NODE_OPTIONS` | Node options for the update process only | `--max-old-space-size=768` |
 | `WATCH_SOURCES` | which public sources to look at for changes, and how often: `champions`, `champions:nightly` or `champions:weekly` (Mondays, UTC), comma-separated (section 2b). Needs `WIKIMEDIA_CONTACT` in the same environment. | none: nothing is watched |
+| `NEWS_REFRESH` | `1` adds the news step: the boxing headlines and the official videos are refreshed each night (docs/news.md). It needs `NEWS_CONTACT`; videos also need `YOUTUBE_API_KEY`. A failure is a warning in the status and never fails the night. |
 
 `DATABASE_PATH` is already `/data/ringside.db` in the image; the job works in `/data` (backups in `/data/backups`, the vendor cache in `/data/vendor-cache`, the status file `/data/nightly-status.json`). The container still runs as the non-root `node` user and opens no new port.
 
@@ -35,6 +36,7 @@ One lock (`ringside-nightly.lock` in `RINGSIDE_LOCK_DIR`, default the temp folde
 1. **A verified backup** of both databases (and `model-fit.json`) into `/data/backups/<time>/`: the same folder the `npm run backup` command makes, checked with `integrity_check` and the checksum list. Only after it verifies, the oldest dated folders beyond `NIGHTLY_KEEP` are removed. Only folders named like a backup this tool writes are ever removed: `before-restore/` (the safety copies a restore makes), a folder you made by hand, and loose files stay. A copy that fails its checks is discarded and removes nothing.
 2. **The update**: `vendor:backfill -- --update --cache-dir /data/vendor-cache --no-backup`, run as a child process with the container's own environment. It is the runbook's in-container form; `--no-backup` is the only addition, because step 1 has just made a better (complete) backup.
 3. **The watch**, if `WATCH_SOURCES` is set (section 2b).
+3b. **The news**, if `NEWS_REFRESH=1` (section 2c): `npm run news:refresh` reads the outlets' public feeds and the official channels, keeps new headlines and drops old ones; a failure is a warning, not a failed night.
 4. **The off-host copy**, if `NIGHTLY_OFFSITE_CMD` is set.
 5. **The status file**, rewritten after every step so a job killed half-way leaves a true account of how far it got.
 

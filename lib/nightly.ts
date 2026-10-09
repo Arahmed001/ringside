@@ -28,13 +28,14 @@ export const DEFAULT_OFFSITE_TIMEOUT_MIN = 30;
 export const UPDATE_TIMEOUT_MS = 4 * 3_600_000;
 /** one source's look: a few page fetches a second apart, so half an hour is far more than it needs */
 export const WATCH_TIMEOUT_MS = 30 * 60_000;
+export const NEWS_TIMEOUT_MS = 15 * 60_000;
 /** A lock older than this belongs to a run that died (no run lasts so long); it also covers a pid that a restarted container has given to something else. */
 export const LOCK_STALE_MS = 6 * 3_600_000;
 
 type Env = Record<string, string | undefined>;
 const ROOT = path.resolve(__dirname, "..");
 
-export interface NightlyConfig { keep: number; offsiteCmd: string | null; offsiteTimeoutMs: number; childNodeOptions: string; schedule: { hour: number; minute: number } | null; updateArgs: string[]; watch: WatchPlan; warnings: string[] }
+export interface NightlyConfig { keep: number; offsiteCmd: string | null; offsiteTimeoutMs: number; childNodeOptions: string; schedule: { hour: number; minute: number } | null; updateArgs: string[]; watch: WatchPlan; news: boolean; warnings: string[] }
 /** Reads the settings. A value that is not usable is ignored with a warning (the job never refuses to run for a typo in an option). */
 export function configFromEnv(s: Partial<NightlyEnv>): NightlyConfig {
   const warnings: string[] = [];
@@ -52,10 +53,11 @@ export function configFromEnv(s: Partial<NightlyEnv>): NightlyConfig {
   if (s.NIGHTLY_SCHEDULE?.trim() && !schedule) warnings.push(`NIGHTLY_SCHEDULE="${s.NIGHTLY_SCHEDULE}" is not HH:MM (UTC, 24 hours): the scheduler stays off.`);
   const watch = parseWatchSources(s.WATCH_SOURCES);
   warnings.push(...watch.warnings);
+  const news = s.NEWS_REFRESH?.trim() === "1";
   return {
     keep, offsiteCmd: s.NIGHTLY_OFFSITE_CMD?.trim() || null, offsiteTimeoutMs: Math.round(min * 60_000),
     childNodeOptions: s.NIGHTLY_NODE_OPTIONS?.trim() || DEFAULT_CHILD_NODE_OPTIONS, schedule,
-    updateArgs: (s.RINGSIDE_NIGHTLY_UPDATE_ARGS ?? "").split(/\s+/).filter(Boolean), watch, warnings,
+    updateArgs: (s.RINGSIDE_NIGHTLY_UPDATE_ARGS ?? "").split(/\s+/).filter(Boolean), watch, news, warnings,
   };
 }
 
@@ -165,6 +167,9 @@ export interface NightlyOptions {
   /** tests: replace the command that looks at one source (default: node --import tsx scripts/watch.ts --source <name> ...) */
   watchCommand?: (source: string) => { file: string; args: string[] };
   watchTimeoutMs?: number;
+  /** tests: replace the command that refreshes the news (default: node --import tsx scripts/news-refresh.ts --database <db>) */
+  newsCommand?: () => { file: string; args: string[] };
+  newsTimeoutMs?: number;
   sampleMs?: number;
 }
 export interface NightlyOutcome { exitCode: number; status: NightlyStatus | null }
@@ -279,6 +284,25 @@ export async function runNightly(o: NightlyOptions): Promise<NightlyOutcome> {
       }
     }
 
+    // ---- 2c. refresh the boxing headlines and the official videos (optional: NEWS_REFRESH=1). Public feeds, polite (docs/news.md); a failure is a warning in the status, never a reason to
+    // fail the night or to skip the off-host copy. It needs NEWS_CONTACT (the User-Agent's address), and the YouTube key in YOUTUBE_API_KEY if videos are wanted.
+    if (cfg.news) {
+      if (aborted()) record("news", { exitCode: null, ok: false, skipped: true, message: "stopped before the news refresh began", seconds: 0 });
+      else if (!o.newsCommand && !(o.env.NEWS_CONTACT ?? "").trim()) record("news", { exitCode: 1, ok: false, message: "NEWS_REFRESH=1 but NEWS_CONTACT is not set (an email address or web page for the User-Agent): nothing was read", seconds: 0 });
+      else {
+        const t0 = Date.now(); const seen: string[] = [];
+        const cmd = o.newsCommand ? o.newsCommand() : { file: process.execPath, args: ["--import", "tsx", "scripts/news-refresh.ts", "--database", dbPath] };
+        const out = await runChild({
+          file: cmd.file, args: cmd.args, cwd: root, timeoutMs: o.newsTimeoutMs ?? NEWS_TIMEOUT_MS, signal: o.signal,
+          env: { ...o.env, NODE_OPTIONS: cfg.childNodeOptions, MALLOC_ARENA_MAX: o.env.MALLOC_ARENA_MAX ?? DEFAULT_MALLOC_ARENA_MAX },
+          onLine: (l) => { if (l.trim()) { seen.push(l.trim()); say(`  | news: ${oneLine(redact(l, [o.env.YOUTUBE_API_KEY?.trim()]), 300)}`); } },
+        });
+        const code = out.spawnError ? 1 : out.timedOut ? 124 : out.code ?? signalNumber(out.signal) ?? 1;
+        const summary = [...seen].reverse().find((l) => /new headlines; \d+ kept/.test(l)) ?? "";
+        record("news", { exitCode: code, ok: code === 0, message: out.spawnError ? "could not start the news refresh" : out.timedOut ? "the news refresh timed out and was stopped" : code === 0 ? (summary || "refreshed") : `the news refresh failed (exit ${code}): ${oneLine(seen[seen.length - 1] ?? "no output", 160)}`, seconds: Math.round((Date.now() - t0) / 100) / 10 });
+      }
+    }
+
     // ---- 3. off-host copy ----
     if (!cfg.offsiteCmd) record("offsite", { exitCode: null, ok: true, skipped: true, message: "NIGHTLY_OFFSITE_CMD is not set: the backup stays on this volume only", seconds: 0 });
     else if (!backupDir) record("offsite", { exitCode: null, ok: false, skipped: true, message: "no verified backup to copy tonight", seconds: 0 });
@@ -298,13 +322,13 @@ export async function runNightly(o: NightlyOptions): Promise<NightlyOutcome> {
     }
   } finally {
     const get = (n: StepName) => status.steps.find((s) => s.name === n);
-    const upd = get("update"), bak = get("backup"), off = get("offsite"), wat = get("watch");
+    const upd = get("update"), bak = get("backup"), off = get("offsite"), wat = get("watch"), nws = get("news");
     const interrupted = aborted();
     let exitCode = 0, result: NightlyResult = "ok";
     if (interrupted) { exitCode = 130; result = "interrupted"; }
     else if (upd && !upd.ok) { exitCode = upd.exitCode ?? 1; result = "failed"; }
     else if (bak && !bak.ok) { exitCode = 1; result = "failed"; }
-    else if ((off && !off.ok && !off.skipped) || (wat && !wat.ok && !wat.skipped)) result = "warning";
+    else if ((off && !off.ok && !off.skipped) || (wat && !wat.ok && !wat.skipped) || (nws && !nws.ok && !nws.skipped)) result = "warning";
     const end = now();
     Object.assign(status, { finished: end.toISOString(), result, exitCode, exitMeaning: exitMeaning(exitCode), next: cfg.schedule ? nextSlot(end, cfg.schedule).toISOString() : null });
     save();
