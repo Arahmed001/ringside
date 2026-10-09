@@ -53,6 +53,9 @@ export function explain(t: T, code: string | undefined): string {
     case "too_many_open": return t("You have 20 reports waiting. Wait for a decision, or withdraw one.");
     case "source_not_owner": return t("This source is not published by the owner of that fact, so it cannot change what the site shows. Note it instead.");
     case "not_a_correction": return t("That request is not a correction.");
+    case "stale": return t("The data has changed since this was proposed, so nothing was applied. The next check will replace it.");
+    case "gone": return t("The entry this change is about is no longer held, so nothing was applied.");
+    case "bad_proposal": case "unknown_source": case "failed": return t("This change could not be applied.");
     case "network": return t("Could not reach the server. Check your connection and try again.");
     default: return t("Something went wrong. Try again.");
   }
