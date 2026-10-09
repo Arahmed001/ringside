@@ -95,7 +95,7 @@ export async function resolveVenues(db: DatabaseSync, opts: { limit?: number; lo
   const { limit = 50, log = () => {} } = opts;
   userAgent(); // fail fast, before any work, if WIKIMEDIA_CONTACT is not set
   const folded = unifyVenueSpellings(db);
-  if (folded.spellings) log(`venues: ${folded.spellings} spellings folded into ${folded.groups} halls (${folded.events} events renamed)`);
+  if (folded.spellings || folded.cities) log(`venues: ${folded.spellings} spellings folded into ${folded.groups} halls (${folded.events} events renamed); ${folded.cities} events given the hall's real city`);
   const cutoff = new Date(Date.now() - RECHECK_DAYS * 86400000).toISOString();
   const rows = db.prepare(`
     SELECT e.venue AS name, e.city, e.country, COUNT(*) AS n FROM events e

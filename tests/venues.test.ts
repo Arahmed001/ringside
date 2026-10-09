@@ -141,10 +141,23 @@ test("one hall written several ways in one city becomes one venue, and a differe
   for (const [i, [venue, city]] of ([["AT&T Stadium", "Arlington"], ["AT&T Stadium", "Arlington"], ["AT & T Stadium", "Arlington"], ["Casino de Montreal", "Montreal"], ["Casino de Montréal", "Montreal"], ["Casino de Montreal", "Montreal"], ["Arena Two", "Arlington"], ["AT&T Stadium", "Dallas"]] as const).entries())
     ins.run(`E${i}`, `2025-01-0${i + 1}`, venue, city, "X");
   const r = unifyVenueSpellings(db);
-  assert.deepEqual([r.groups, r.spellings, r.events], [2, 2, 2]);
+  assert.deepEqual([r.groups, r.spellings, r.events, r.cities], [2, 2, 2, 0]);
   const names = (city: string) => (db.prepare("SELECT venue, COUNT(*) n FROM events WHERE city = ? GROUP BY venue ORDER BY venue").all(city) as { venue: string; n: number }[]).map((x) => `${x.venue}:${x.n}`);
   assert.deepEqual(names("Arlington"), ["AT&T Stadium:3", "Arena Two:1"]);
   assert.deepEqual(names("Montreal"), ["Casino de Montreal:3"], "the spelling most events use wins");
   assert.deepEqual(names("Dallas"), ["AT&T Stadium:1"], "the same name in another city is another venue");
-  assert.deepEqual(unifyVenueSpellings(db), { groups: 0, spellings: 0, events: 0 }, "running it again changes nothing");
+  assert.deepEqual(unifyVenueSpellings(db), { groups: 0, spellings: 0, events: 0, cities: 0 }, "running it again changes nothing");
+});
+
+test("a city field that only repeats the hall's name takes the real city the same hall has elsewhere, when that is clear", async () => {
+  const { unifyVenueSpellings } = await import("../lib/venue-spellings");
+  const ins = db.prepare("INSERT INTO events (name, date, venue, city, country) VALUES (?,?,?,?,?)");
+  db.exec("DELETE FROM events");
+  const rows: [string, string, string][] = [["Manchester Arena", "Manchester", "England"], ["Manchester Arena", "Manchester", "England"], ["Manchester Arena", "Manchester Arena", "England"], ["Aberdeen", "Aberdeen", "Scotland"], ["Hall X", "Town A", "France"], ["Hall X", "Town B", "France"], ["Hall X", "Hall X", "France"]];
+  rows.forEach(([venue, city, country], i) => ins.run(`F${i}`, `2025-02-0${i + 1}`, venue, city, country));
+  assert.equal(unifyVenueSpellings(db).cities, 1, "only the clear case is changed");
+  const cities = (venue: string) => (db.prepare("SELECT city, COUNT(*) n FROM events WHERE venue = ? GROUP BY city ORDER BY city").all(venue) as { city: string; n: number }[]).map((x) => `${x.city}:${x.n}`);
+  assert.deepEqual(cities("Manchester Arena"), ["Manchester:3"]);
+  assert.deepEqual(cities("Aberdeen"), ["Aberdeen:1"], "a venue that is only a city stays as it is");
+  assert.deepEqual(cities("Hall X"), ["Hall X:1", "Town A:1", "Town B:1"], "an even split between two cities is left alone");
 });
