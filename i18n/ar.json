@@ -2983,5 +2983,39 @@
  "✦ marks the model’s pick. Picks are saved in this browser.": "✦ يشير إلى اختيار النموذج. تُحفظ الاختيارات في هذا المتصفح.",
  "✦ marks the model’s pick. Saved to your account; picks lock when fight day begins.": "✦ يشير إلى اختيار النموذج. محفوظ في حسابك؛ تُقفل الاختيارات عند بدء يوم النزال.",
  "Last five opponents": "آخر خمسة خصوم",
- "Their combined record going in: {w} wins, {l} losses": "سجلهم المجمّع قبل النزال: {w} انتصارات و{l} هزائم"
+ "Their combined record going in: {w} wins, {l} losses": "سجلهم المجمّع قبل النزال: {w} انتصارات و{l} هزائم",
+ "Details of the fight against {name}": "تفاصيل النزال ضد {name}",
+ "Ended": "انتهى",
+ "Scheduled distance": "المسافة المقررة",
+ "Venue": "المكان",
+ "{a} scored · {b} suffered": "سجّل {a} · وتلقّى {b}",
+ "Reach and height": "الذراع والطول",
+ "reach is longer than height": "الذراع أطول من الطول",
+ "reach is shorter than height": "الذراع أقصر من الطول",
+ "reach equals height": "الذراع مساوية للطول",
+ "Division average: {d}": "متوسط الفئة: {d}",
+ "{h} tall, {r} reach": "الطول {h}، ومدى الذراع {r}",
+ "{n} fighters measured": {
+  "zero": "{n} ملاكمين جرى قياسهم",
+  "one": "ملاكم واحد جرى قياسه",
+  "two": "ملاكمان جرى قياسهما",
+  "few": "{n} ملاكمين جرى قياسهم",
+  "many": "{n} ملاكمًا جرى قياسهم",
+  "other": "{n} ملاكم جرى قياسهم"
+ },
+ "When the stoppages come": "متى تأتي الانتصارات بالتوقف",
+ "Average finish: round {avg} · most often round {round}": "متوسط جولة الحسم: الجولة {avg} · الأكثر تكرارًا: الجولة {round}",
+ "Stoppage wins by round": "الانتصارات بالتوقف بحسب الجولة",
+ "Round {round}: {n}": "الجولة {round}: {n}",
+ "{n} of {of} stoppage wins; the others have no round on record.": "{n} من أصل {of} انتصارًا بالتوقف؛ والباقي بلا جولة مسجّلة.",
+ "{n} stoppage wins": {
+  "zero": "{n} انتصارات بالتوقف",
+  "one": "{n} انتصار بالتوقف",
+  "two": "{n} انتصاران بالتوقف",
+  "few": "{n} انتصارات بالتوقف",
+  "many": "{n} انتصارًا بالتوقف",
+  "other": "{n} انتصار بالتوقف"
+ },
+ "Opposition faced": "مستوى الخصوم",
+ "Average rating going in · toughest: {name}, {rating}": "متوسط تصنيف الخصوم قبل النزال · أقواهم: {name}، {rating}"
 }

@@ -1,6 +1,7 @@
 import Link from "@/components/L";
-import type { BoxerFull, BoutRow } from "@/lib/types";
+import type { BoxerFull, BoutRow, EventRow } from "@/lib/types";
 import { Headshot } from "./Portrait";
+import { FightRow } from "./FightRow";
 import { CountUp } from "./CountUp";
 import { archetype, ARCH_COLOR } from "@/lib/style";
 import { countryName, flag, fmtDate, methodLabel } from "@/lib/format";
@@ -66,19 +67,40 @@ export async function ResultPill({ r }: { r: "W" | "L" | "D" | "NC" }) {
   return <span className={`grid h-6 min-w-6 place-items-center rounded-md px-1 text-xs font-bold ${c}`}>{t(RES[r])}</span>;
 }
 
-export async function BoutLine({ bout, focusId, context }: { bout: BoutRow; focusId?: number; /** a line under the opponent: what they were going into this fight */ context?: React.ReactNode }) {
+export async function BoutLine({ bout, focusId, context, event }: { bout: BoutRow; focusId?: number; /** a line under the opponent: what they were going into this fight */ context?: React.ReactNode; /** the card the fight was on, for the details that open under the line */ event?: Pick<EventRow, "venue" | "city" | "country"> }) {
   const t = await getT();
   const opp = focusId === bout.redId ? { n: bout.blueName, s: bout.blueSlug } : { n: bout.redName, s: bout.redSlug };
   const r = bout.method === "NC" ? "NC" : bout.winnerId === null ? "D" : bout.winnerId === focusId ? "W" : "L";
+  const mine = focusId === bout.redId ? bout.kdRed : bout.kdBlue, theirs = focusId === bout.redId ? bout.kdBlue : bout.kdRed;
+  const facts: [string, React.ReactNode][] = [
+    [t("Event"), <Link key="e" href={`/events/${bout.eventId}`} className="hover:text-ink">{t.name(bout.eventName)}</Link>],
+    ...(event?.venue ? [[t("Venue"), [t.name(event.venue), event.city ? t.name(event.city) : null, event.country ? countryName(event.country, t.locale) : null].filter(Boolean).join(t.locale === "ar" ? "، " : ", ")] as [string, React.ReactNode]] : []),
+    ...(bout.title ? [[t("Title"), t.name(bout.title)] as [string, React.ReactNode]] : []),
+    ...(bout.rounds > 0 ? [[t("Scheduled distance"), t.n(bout.rounds, "{n} round", "{n} rounds")] as [string, React.ReactNode]] : []),
+    ...(bout.method && bout.endRound ? [[t("Ended"), bout.roundTime ? t("Round {r}, {time}", { r: bout.endRound, time: bout.roundTime }) : t("Round {r}", { r: bout.endRound })] as [string, React.ReactNode]] : []),
+    ...(bout.method && (mine || theirs) ? [[t("Knockdowns"), t("{a} scored · {b} suffered", { a: mine, b: theirs })] as [string, React.ReactNode]] : []),
+  ];
   return (
-    <tr className="border-t border-line/60 text-sm">
-      <td className="py-2.5 pe-3 tabular text-muted max-sm:w-[4.5rem] sm:whitespace-nowrap">{fmtDate(bout.date, { month: "short", year: "numeric", day: "numeric" }, t.locale)}</td>
-      <td className="pe-3">{bout.method ? <Link href={`/bouts/${bout.id}`} title={t("Full bout details")}><ResultPill r={r} /></Link> : <Link href={`/bouts/${bout.id}`} className={`chip ${bout.status === "cancelled" ? "!border-red/40 !text-red-ink" : ""}`}>{bout.status === "cancelled" ? t("Cancelled") : t("TBA")}</Link>}</td>
-      <td className="pe-3"><Link href={`/boxers/${opp.s}`} className="hover:text-gold">{t.name(opp.n)}</Link>{context && <div className="tabular text-xs text-muted">{context}</div>}</td>
-      <td className="whitespace-nowrap pe-3 tabular text-muted">{methodLabel(bout.method, bout.endRound, t)}</td>
-      <td className="hidden pe-3 text-muted sm:table-cell"><Link href={`/events/${bout.eventId}`} className="hover:text-ink">{t.name(bout.eventName)}</Link></td>
-      <td className="hidden text-end text-xs text-gold md:table-cell">{bout.title ? t.name(bout.title) : ""}</td>
-    </tr>
+    <FightRow
+      label={t("Details of the fight against {name}", { name: t.name(opp.n) })}
+      columns={7}
+      cells={<>
+        <td className="py-2.5 pe-3 tabular text-muted max-sm:w-[4.5rem] sm:whitespace-nowrap">{fmtDate(bout.date, { month: "short", year: "numeric", day: "numeric" }, t.locale)}</td>
+        <td className="pe-3">{bout.method ? <Link href={`/bouts/${bout.id}`} title={t("Full bout details")}><ResultPill r={r} /></Link> : <Link href={`/bouts/${bout.id}`} className={`chip ${bout.status === "cancelled" ? "!border-red/40 !text-red-ink" : ""}`}>{bout.status === "cancelled" ? t("Cancelled") : t("TBA")}</Link>}</td>
+        <td className="pe-3"><Link href={`/boxers/${opp.s}`} className="hover:text-gold">{t.name(opp.n)}</Link>{context && <div className="tabular text-xs text-muted">{context}</div>}</td>
+        <td className="whitespace-nowrap pe-3 tabular text-muted">{methodLabel(bout.method, bout.endRound, t)}</td>
+        <td className="hidden pe-3 text-muted sm:table-cell"><Link href={`/events/${bout.eventId}`} className="hover:text-ink">{t.name(bout.eventName)}</Link></td>
+        <td className="hidden pe-3 text-end text-xs text-gold md:table-cell">{bout.title ? t.name(bout.title) : ""}</td>
+      </>}
+      details={
+        <div className="rounded-lg bg-panel2/60 p-3">
+          <dl className="grid gap-x-6 gap-y-1.5 text-xs sm:grid-cols-2">
+            {facts.map(([k, v]) => <div key={k} className="flex justify-between gap-3"><dt className="text-muted">{k}</dt><dd className="text-end">{v}</dd></div>)}
+          </dl>
+          <Link href={`/bouts/${bout.id}`} className="mt-2 inline-block py-1 text-xs text-gold hover:text-ink">{t("Full bout details")} <span className="inline-block rtl:rotate-180">→</span></Link>
+        </div>
+      }
+    />
   );
 }
 
