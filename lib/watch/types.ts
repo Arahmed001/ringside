@@ -36,6 +36,9 @@ export interface WatchResult {
   compared: number;
 }
 
+/** What applying one approved change came to. `ratings`: a result moved, so the ratings must be recomputed (once, by the caller, after a batch). */
+export type ApplyOutcome = { ok: true; changed: boolean; ratings?: boolean } | { ok: false; error: "stale" | "gone" | "bad_proposal" };
+
 /** A source the watcher can look at. Every source declares what it is for and the terms it is read under; a new one starts disabled until those are recorded. */
 export interface WatchSource {
   id: string;
@@ -44,7 +47,8 @@ export interface WatchSource {
   /** the licence or terms it is read under, and the link; shown on the approval screen */
   terms: string;
   enabled: boolean;
-  run(ctx: WatchContext): Promise<WatchResult>;
+  /** looks at the source; absent for a source that is not watched but whose changes can be applied (the vendor's daily update produces its own) */
+  run?(ctx: WatchContext): Promise<WatchResult>;
   /** writes one approved change to the live data; only an admin's approval ever calls it. Safe to run twice; refuses a change that no longer fits what is held. */
-  apply(main: DatabaseSync, p: { kind: string; targetKey: string; old: unknown; new: unknown; evidence: unknown }): { ok: true; changed: boolean } | { ok: false; error: "stale" | "gone" | "bad_proposal" };
+  apply(main: DatabaseSync, p: { kind: string; targetKey: string; old: unknown; new: unknown; evidence: unknown }): ApplyOutcome;
 }

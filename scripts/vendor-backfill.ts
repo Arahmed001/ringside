@@ -183,16 +183,25 @@ async function main() {
   if (sev.errors > 0 && !flag("allow-errors")) throw new CheckRefusedError(`The validator found ${sev.errors} error(s); nothing was loaded. Fix the cause (or pass --allow-errors to drop those rows and load the rest).`);
 
   const { ingest } = await import("../lib/ingest");
-  // the vendor update gate (docs/vendor-gate-plan.md), step D1: it only OBSERVES. VENDOR_GATE=observe records what each update changed in rows we hold (a report file, and lines in the log);
-  // --gate-report shows the same and rolls the whole update back, writing nothing. Neither holds anything yet.
+  // the vendor update gate (docs/vendor-gate-plan.md). VENDOR_GATE=observe records what each update changed in rows we hold (a report file, and lines in the log);
+  // VENDOR_GATE=hold HOLDS the changes the policy says must wait: they are put back before the commit and become proposals for an administrator (/review/updates);
+  // --gate-report shows the same and rolls the whole update back, writing nothing. A first load into an empty database is never held; --accept-all lets one update through
+  // unheld (logged); --gate-baseline skips the flood guard for one night (the first night of holding, when the pile left from before is recorded).
   const { gateSettings } = await import("../lib/watch/vendor-policy");
-  const { gateHooks, GateRollback } = await import("../lib/watch/vendor-gate");
+  const { gateHooks, GateRollback, GateRefusal } = await import("../lib/watch/vendor-gate");
   const gateS = gateSettings();
   for (const w of gateS.warnings) console.log(`warning: ${w}`);
   const reportOnly = flag("gate-report");
+  const acceptAll = flag("accept-all");
   const dbFile = process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db");
-  const vendorGate = reportOnly ? gateHooks({ mode: "report", settings: gateS, log: console.log, baseline: flag("baseline") })
-    : gateS.mode === "observe" && update ? gateHooks({ mode: "observe", settings: gateS, log: (m) => console.log(m), dataDir: path.dirname(dbFile) }) : undefined;
+  const hasData = !!db && (db.prepare("SELECT COUNT(*) c FROM boxers").get() as { c: number }).c > 0;
+  const mode: "report" | "observe" | "hold" | null = reportOnly ? "report" : !update ? null : gateS.mode === "observe" ? "observe" : gateS.mode === "hold" && !acceptAll && hasData ? "hold" : null;
+  if (gateS.mode === "hold" && update && !hasData && !reportOnly) console.log("vendor gate: the database holds no fighters yet, so there is nothing to hold changes against: this update goes in whole.");
+  if (acceptAll && gateS.mode === "hold" && update) {
+    console.log("vendor gate: --accept-all: this update is let through without being held (logged).");
+    try { const { accountsDb, audit } = await import("../lib/accounts/store"); audit(accountsDb(), "operator", "update.accept_all", "vendor:boxing-data-api", JSON.stringify({ command: "vendor:backfill --update" })); } catch (e) { console.log(`vendor gate: could not write the audit row (${(e as Error).message})`); }
+  }
+  const vendorGate = mode ? gateHooks({ mode, settings: gateS, log: (m) => console.log(m), baseline: flag("gate-baseline") || flag("baseline"), dataDir: mode === "report" ? undefined : path.dirname(dbFile) }) : undefined;
   if (db && foreignFighters(db).total > 0 && !flag("no-backup") && !reportOnly) {
     const { backupDatabases } = await import("../lib/backup");
     const dbPath = process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db");
@@ -209,7 +218,13 @@ async function main() {
   try { report = await ingest(db!, source, { strict: !flag("allow-errors"), gate: vendorGate }); }
   catch (e) {
     if (e instanceof GateRollback) { console.log("\n--gate-report: the update was rolled back; the database was not changed."); return; }
+    if (e instanceof GateRefusal) throw new CheckRefusedError(`${e.message}. If this is a real change of format, look at it first; to record this one night anyway as the baseline use --gate-baseline, to let it through unheld use --accept-all, or tune VENDOR_GATE_MAX_FIELD_SHARE, VENDOR_GATE_MAX_FIELD_ROWS and VENDOR_GATE_MAX_NIGHT.`);
     throw e;
+  }
+  if (vendorGate && mode === "hold") { // the update is committed with the held values put back: now the held changes become proposals
+    const { accountsDb } = await import("../lib/accounts/store");
+    const f = vendorGate.flush(accountsDb());
+    if (f) console.log(`vendor gate: ${f.held} change(s) held for an administrator (${f.added} new proposal(s), ${f.updated} updated, ${f.unchanged} already waiting, ${f.remembered} rejected before and still the same, ${f.superseded} no longer true). Decide on them at /review/updates.`);
   }
   log(`loaded: ${Object.entries(report.counts).filter(([, v]) => v > 0).map(([k, v]) => `${k} ${v}`).join(", ")}; ${report.errors} error(s), ${report.warnings} warning(s) (run ${report.runId})`);
   if (update) { // the feed held only recent fights, so judge the careers as the database now has them

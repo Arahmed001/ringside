@@ -16,7 +16,7 @@ export interface ReconcileReport { added: number; updated: number; unchanged: nu
  *  - a change an admin rejected is not raised again while the source still says the same (same fingerprint), for 30 days after the rejection; then it is raised once more;
  *  - a pending proposal inside `scope` that the run no longer finds (the source went back, or the live data caught up) is marked superseded, so the queue holds only what is still true.
  */
-export function reconcile(acc: DatabaseSync, source: string, changes: Change[], scope: string[], now = new Date().toISOString()): ReconcileReport {
+export function reconcile(acc: DatabaseSync, source: string, changes: Change[], scope: string[] | ((key: string) => boolean), now = new Date().toISOString()): ReconcileReport {
   const r: ReconcileReport = { added: 0, updated: 0, unchanged: 0, remembered: 0, superseded: 0 };
   const pending = new Map((acc.prepare("SELECT id, target_key, fingerprint, new_json, label FROM proposals WHERE source = ? AND status = 'pending'").all(source) as { id: number; target_key: string; fingerprint: string; new_json: string | null; label: string }[]).map((p) => [p.target_key, p]));
   const seen = new Set<string>();
@@ -43,7 +43,7 @@ export function reconcile(acc: DatabaseSync, source: string, changes: Change[], 
     }
     const gone = acc.prepare("UPDATE proposals SET status = 'superseded', last_seen = ? WHERE id = ?");
     for (const [key, p] of pending) {
-      if (seen.has(key) || !scope.some((s) => key.startsWith(s))) continue;
+      if (seen.has(key) || !(typeof scope === "function" ? scope(key) : scope.some((x) => key.startsWith(x)))) continue;
       gone.run(now, p.id); r.superseded++;
     }
     acc.exec("COMMIT");

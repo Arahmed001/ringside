@@ -66,7 +66,7 @@ export function UpdateQueue() {
   );
 }
 
-const kindTitle = (t: ReturnType<typeof useT>, kind: string) => kind === "reign_added" ? t("New title reigns") : kind === "reign_removed" ? t("Title reigns no longer on the page") : kind === "reign_changed" ? t("Changed title reigns") : kind;
+const kindTitle = (t: ReturnType<typeof useT>, kind: string) => kind === "field_change" ? t("Changes to details we hold") : kind === "result_change" ? t("Results") : kind === "list_change" ? t("Official ranking lists") : kind === "reign_added" ? t("New title reigns") : kind === "reign_removed" ? t("Title reigns no longer on the page") : kind === "reign_changed" ? t("Changed title reigns") : kind;
 
 function Group({ rows, source, max, pending, busy, decide }: { rows: ProposalRow[]; source?: SourceInfo; max: number; pending: boolean; busy: boolean; decide: (ids: number[], d: "approved" | "rejected", note: string, done: string) => void }) {
   const t = useT();
@@ -111,18 +111,36 @@ function Item({ r, pending, busy, decide }: { r: ProposalRow; pending: boolean; 
   const [note, setNote] = useState("");
   const ev = (r.evidence ?? {}) as { page?: string; revision?: string; seen?: string; held?: string };
   const old = (r.old ?? {}) as Record<string, unknown>, now = (r.new ?? {}) as Record<string, unknown>;
-  const fields = [...new Set([...Object.keys(old), ...Object.keys(now)])].filter((k) => KNOWN.includes(k));
   const show = (v: unknown) => (v === null || v === undefined || v === "" ? "–" : v === true ? t("Yes") : v === false ? t("No") : String(v));
+  const record = (o: Record<string, unknown>) => { const w = o.vendor_wins, l = o.vendor_losses, d = o.vendor_draws; return [w, l, d].every((x) => x === undefined) ? "–" : `${w ?? "?"}-${l ?? "?"}-${d ?? "?"}${o.vendor_ko_wins !== undefined ? ` (${o.vendor_ko_wins} KO)` : ""}`; };
+  type V = { k: string; label: string; o: string; n: string };
+  let view: V[];
+  if (r.kind === "field_change") {
+    const col = Object.keys(now)[0] ?? "", sh = (r.evidence as { shown?: { old: string | null; new: string | null } } | null)?.shown;
+    view = [{ k: col, label: col, o: show(sh ? sh.old : old[col]), n: show(sh ? sh.new : now[col]) }];
+  } else if (r.kind === "result_change") {
+    const e = (r.evidence ?? {}) as { shown?: { old: string; new: string }; totals?: { name: string; old: Record<string, unknown>; new: Record<string, unknown> }[] };
+    view = [{ k: "result", label: t("Result"), o: e.shown?.old ?? "–", n: e.shown?.new ?? "–" },
+      ...["round_time", "vendor_scores", "kd_red", "kd_blue", "status"].filter((c) => c in now && old[c] !== now[c]).map((c) => ({ k: c, label: c, o: show(old[c]), n: show(now[c]) })),
+      ...(e.totals ?? []).map((x) => ({ k: `t-${x.name}`, label: `${x.name}: ${t("Career totals")}`, o: record(x.old), n: record(x.new) }))];
+  } else if (r.kind === "list_change") {
+    const names = (rows: unknown) => (Array.isArray(rows) ? (rows as { kind: string; rank: number | null; who?: string | null; name?: string | null; vacant?: number }[]) : []);
+    const fmt = (rows: unknown, kind: string) => names(rows).filter((x) => x.kind === kind).map((x) => (x.vacant ? t("Vacant") : `${kind === "contender" && x.rank ? `${x.rank}. ` : ""}${x.who ?? x.name ?? "?"}`)).join(", ") || "–";
+    view = [{ k: "champion", label: t("Champion"), o: fmt(old.rows, "champion"), n: fmt(now.rows, "champion") }, { k: "contenders", label: t("Contenders"), o: fmt(old.rows, "contender"), n: fmt(now.rows, "contender") }];
+  } else {
+    const fields = [...new Set([...Object.keys(old), ...Object.keys(now)])].filter((k) => KNOWN.includes(k));
+    view = fields.map((k) => ({ k, label: fieldLabel(t, k), o: r.kind === "reign_added" ? "–" : show(old[k]), n: r.kind === "reign_removed" ? t("Not on the page") : show(now[k]) }));
+  }
   const wiki = r.source.startsWith("wikipedia:") && ev.page;
   const btn = "rounded-xl border border-line bg-panel2 px-4 py-2 transition hover:border-white/30 disabled:opacity-60";
   return (
     <li className="card space-y-3 p-5 text-sm">
-      <div className="font-display text-xl font-bold">{r.label.split(": ").slice(0, r.kind === "reign_changed" ? -1 : undefined).join(": ")}</div>
+      <div className="font-display text-xl font-bold">{r.kind === "reign_changed" ? r.label.split(": ").slice(0, -1).join(": ") : r.label}</div>
       <table className="w-full text-start">
         <caption className="sr-only">{r.label}</caption>
         <thead><tr className="text-xs uppercase tracking-widest text-muted"><th scope="col" className="py-1 pe-3 text-start font-normal">{t("Detail")}</th><th scope="col" className="py-1 pe-3 text-start font-normal">{t("Held now")}</th><th scope="col" className="py-1 text-start font-normal">{t("Source says")}</th></tr></thead>
         <tbody>
-          {fields.map((k) => <tr key={k} className="border-t border-line"><th scope="row" className="py-1 pe-3 text-start font-normal text-muted">{fieldLabel(t, k)}</th><td className="py-1 pe-3">{r.kind === "reign_added" ? "–" : show(old[k])}</td><td className="py-1 font-semibold">{r.kind === "reign_removed" ? t("Not on the page") : show(now[k])}</td></tr>)}
+          {view.map((v) => <tr key={v.k} className="border-t border-line"><th scope="row" className="py-1 pe-3 text-start font-normal text-muted">{v.label}</th><td className="py-1 pe-3 [overflow-wrap:anywhere]">{v.o}</td><td className="py-1 font-semibold [overflow-wrap:anywhere]">{v.n}</td></tr>)}
         </tbody>
       </table>
       {wiki && <p className="text-muted">{t("Read on")} <a href={`https://en.wikipedia.org/wiki/${encodeURIComponent(ev.page!)}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-gold">{ev.page!.replace(/_/g, " ")}</a>{ev.revision && <> · <a href={`https://en.wikipedia.org/w/index.php?oldid=${encodeURIComponent(ev.revision)}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-gold">{t("revision {n}", { n: ev.revision })}</a></>}</p>}

@@ -12,7 +12,7 @@ export interface WatchPlan { watched: Watched[]; warnings: string[] }
 
 export function parseWatchSources(text: string | undefined, known = SOURCES): WatchPlan {
   const out: WatchPlan = { watched: [], warnings: [] };
-  const find = (name: string) => known.find((s) => s.id === name || s.id.endsWith(`:${name}`));
+  const find = (name: string) => known.find((s) => s.run && (s.id === name || s.id.endsWith(`:${name}`)));
   for (const raw of (text ?? "").split(",").map((s) => s.trim()).filter(Boolean)) {
     // the last part is the frequency when it is one; a source's own id may contain a colon ("wikipedia:champions")
     const parts = raw.split(":"), last = parts[parts.length - 1].toLowerCase();

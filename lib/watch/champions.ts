@@ -1,6 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import { linkReigns, readChampionLists, type ChampionLists, type ParsedReign } from "../importers/wikipedia-champions";
-import type { Change, WatchContext, WatchResult, WatchSource } from "./types";
+import type { ApplyOutcome, Change, WatchContext, WatchResult, WatchSource } from "./types";
 
 /**
  * The watcher for Wikipedia's lists of world champions. It reads the lists exactly as the importer does, compares them with the reigns we hold, and returns the
@@ -97,7 +97,7 @@ export const championsSource: WatchSource = {
 // ---- applying an approved change ---------------------------------------------------------------------------------------------------------------
 
 const COLUMN_OF: Record<(typeof FIELDS)[number], string> = { name: "name", status: "status", start: "start_date", end: "end_date", current: "current", wonVs: "won_vs", defences: "defences", endNote: "end_note" };
-export type ApplyResult = { ok: true; changed: boolean } | { ok: false; error: "stale" | "gone" | "bad_proposal" };
+export type ApplyResult = ApplyOutcome;
 
 /**
  * Writes one approved change to `title_reigns`. Only an admin's approval reaches this (lib/watch/decide.ts). It is safe to run twice, and it refuses a change that no longer

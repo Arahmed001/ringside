@@ -3899,6 +3899,12 @@
   ]
  },
  {
+  "key": "Career totals",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "Catchweight {n} lb",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -3920,6 +3926,7 @@
   "key": "Champion",
   "files": [
    "components/OfficialList.tsx",
+   "components/UpdateQueue.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -3989,6 +3996,12 @@
   "key": "Changed trainer",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Changes to details we hold",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -4326,6 +4339,12 @@
   "key": "Contact left: {contact}",
   "files": [
    "components/ReportQueue.tsx"
+  ]
+ },
+ {
+  "key": "Contenders",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -9551,6 +9570,12 @@
   ]
  },
  {
+  "key": "Official ranking lists",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "Official result",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx"
@@ -11259,6 +11284,7 @@
    "app/[locale]/fight-of-the-year/page.tsx",
    "app/[locale]/weights/page.tsx",
    "components/FighterPrintSheet.tsx",
+   "components/UpdateQueue.tsx",
    "lib/ask/tools.ts",
    "lib/correction-text.ts"
   ]
@@ -11273,7 +11299,8 @@
   "key": "Results",
   "files": [
    "app/[locale]/events/page.tsx",
-   "app/[locale]/on-this-day/page.tsx"
+   "app/[locale]/on-this-day/page.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -14988,7 +15015,8 @@
   "key": "Vacant",
   "files": [
    "app/[locale]/titles/page.tsx",
-   "components/OfficialList.tsx"
+   "components/OfficialList.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {

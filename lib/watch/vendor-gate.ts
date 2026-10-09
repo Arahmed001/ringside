@@ -3,6 +3,8 @@ import path from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 import type { FeedData } from "../feed";
 import { POLICY, type GateSettings, type Table } from "./vendor-policy";
+import { reconcile } from "./proposals";
+import type { Change } from "./types";
 
 /**
  * The vendor update gate, step D1 (docs/vendor-gate-plan.md): it OBSERVES what a daily update changes in rows we already hold and says what the policy would hold for an
@@ -26,7 +28,7 @@ export interface RankingChanges { firstSnapshot: boolean; changed: number; remov
 export interface GateReport {
   version: 1;
   at: string;
-  mode: "observe" | "report";
+  mode: "observe" | "report" | "hold";
   /** rows the feed named that we already held, and rows it named that we did not (those go in at once) */
   touched: Record<string, number>;
   newRows: Record<string, number>;
@@ -44,7 +46,33 @@ export interface GateReport {
 }
 
 export class GateRollback extends Error { constructor() { super("gate report: the transaction was rolled back, nothing was written"); } }
+/** The night would be refused by the flood guard (exit 3, nothing written): the usual cause is a changed format at the vendor, not boxing news. */
+export class GateRefusal extends Error { constructor(public reasons: string[]) { super(`the vendor update gate refused this night, and nothing was written: ${reasons.join("; ")}`); } }
 export interface GateHooks { before(db: DatabaseSync, feed: FeedData): void; after(db: DatabaseSync, feed: FeedData): void }
+
+// ---- the full list of changes (the report summarises it; holding restores it and turns it into proposals) -------------------------------------------
+
+export type Kind = "fill" | "clear" | "replace";
+export interface FieldChange { table: Table; ext: string; id?: number; column: string; label: string; old: unknown; new: unknown; kind: Kind; shown?: { old: string | null; new: string | null } }
+export interface TotalsChange { boxerExt: string; name: string; old: Record<string, unknown>; new: Record<string, unknown> }
+export interface ResultChange {
+  ext: string; id: number; label: string; kind: "arrived" | "changed" | "cleared" | "details";
+  old: Record<string, unknown>; new: Record<string, unknown>; shown: { old: string; new: string };
+  /** the fighters' career totals that this result explains: carried with it, applied with it */
+  totals: TotalsChange[];
+}
+export interface ListRow { kind: string; rank: number | null; boxer_id: number | null; name: string | null; title_type: string | null; vacant: number; updated_at: string | null; position: number; who?: string | null }
+export interface ListChange { key: string; kind: "changed" | "removed"; oldRows: ListRow[]; newRows: ListRow[] }
+export interface ChangeSet {
+  fields: FieldChange[];
+  /** totals changes that ride with a result (counted, not held on their own) */
+  folded: FieldChange[];
+  results: ResultChange[];
+  lists: ListChange[];
+  passes: Record<string, number>;
+  touched: Record<string, number>; newRows: Record<string, number>;
+  rankings: { firstSnapshot: boolean; added: number; unchanged: number };
+}
 
 const TABLES: Table[] = ["boxers", "events", "bouts", "orgs", "people"];
 const SAMPLES = 10;
@@ -79,96 +107,128 @@ export function dropSnapshot(db: DatabaseSync): void {
 }
 
 const median = (xs: number[]) => { if (!xs.length) return undefined; const s = [...xs].sort((a, b) => a - b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
-const kindOf = (o: unknown, n: unknown): "fill" | "clear" | "replace" => (isBlank(o) && !isBlank(n) ? "fill" : !isBlank(o) && isBlank(n) ? "clear" : "replace");
+const kindOf = (o: unknown, n: unknown): Kind => (isBlank(o) && !isBlank(n) ? "fill" : !isBlank(o) && isBlank(n) ? "clear" : "replace");
+const SINGULAR: Record<Table, string> = { boxers: "boxer", events: "event", bouts: "bout", orgs: "org", people: "person" };
+export const TABLE_OF: Record<string, Table> = { boxer: "boxers", event: "events", bout: "bouts", org: "orgs", person: "people" };
+const FK_NAME: Record<string, string> = { "events.promoter_org_id": "orgs", "bouts.title_org_id": "orgs", "bouts.winner_id": "boxers" };
 
-/** Compares the live rows with the copies `snapshotBefore` made. Reads only. */
-export function compareWithSnapshot(db: DatabaseSync, feed: FeedData, settings: GateSettings, o: { mode: "observe" | "report"; now?: Date; baseline?: boolean } = { mode: "observe" }): GateReport {
-  const report: GateReport = {
-    version: 1, at: (o.now ?? new Date()).toISOString(), mode: o.mode, touched: {}, newRows: {}, fields: [],
-    results: { arrived: 0, changed: 0, cleared: 0, details: 0, samples: [] }, rankings: { firstSnapshot: false, changed: 0, removed: 0, added: 0, unchanged: 0, samples: [] },
-    wouldHold: 0, passes: {}, ungated: {}, refuse: [],
-  };
+/** Reads what the update changed in rows we already held. Reads only. */
+export function collectChanges(db: DatabaseSync, feed: FeedData): ChangeSet {
+  const cs: ChangeSet = { fields: [], folded: [], results: [], lists: [], passes: {}, touched: {}, newRows: {}, rankings: { firstSnapshot: false, added: 0, unchanged: 0 } };
   const ids = feedIds(feed);
   for (const t of TABLES) {
-    report.touched[t] = (db.prepare(`SELECT COUNT(*) c FROM temp.gate_${t}`).get() as { c: number }).c;
-    report.newRows[t] = new Set(ids[t]).size - report.touched[t];
+    cs.touched[t] = (db.prepare(`SELECT COUNT(*) c FROM temp.gate_${t}`).get() as { c: number }).c;
+    cs.newRows[t] = new Set(ids[t]).size - cs.touched[t];
   }
-  report.ungated = {
-    "judge-level scorecards": feed.scorecards.length, officials: feed.officials.length, corners: feed.corners.length, "punch stats": feed.punches.length, "weigh-ins": feed.weighIns.length,
-    "team stints": feed.stints.length, "financials, purses, broadcasts, earnings": feed.financials.length + feed.purses.length + feed.broadcasts.length + feed.earnings.length,
-  };
+  const nameOf = (table: string, id: unknown) => (typeof id === "number" ? ((db.prepare(`SELECT name FROM ${table} WHERE id = ?`).get(id) as { name: string } | undefined)?.name ?? null) : null);
+  const pass = (key: string, n = 1) => { cs.passes[key] = (cs.passes[key] ?? 0) + n; };
+
+  // fights that are NEW in this feed: their fighters' totals move with them and go in at once
+  const inNewFight = new Set<number>();
+  for (const r of db.prepare("SELECT n.red_id r, n.blue_id u FROM main.bouts n JOIN temp.gate_ids g ON g.t = 'bouts' AND g.ext = n.external_id WHERE NOT EXISTS (SELECT 1 FROM temp.gate_bouts o WHERE o.external_id = n.external_id)").all() as { r: number; u: number }[]) { inNewFight.add(r.r); inNewFight.add(r.u); }
 
   // fights whose result moved, found first: the fighters in them explain their own totals
-  const resultFights = new Set<number>();
   const boutCols = cols(db, "main", "bouts"), snapBout = cols(db, "temp", "gate_bouts");
   const rc = RESULT_COLS.filter((c) => boutCols.has(c) && snapBout.has(c));
-  const explained = new Set<number>(); // boxer ids with a result change this run
+  const byFighter = new Map<number, ResultChange[]>(); // boxer id -> the result changes (that are not mere details) they are in
   if (rc.length) {
-    const rows = db.prepare(`SELECT n.id id, n.external_id e, n.red_id r, n.blue_id u, ${label.bouts} lbl, ${rc.map((c) => `o.${q(c)} o_${c}, n.${q(c)} n_${c}`).join(", ")},
-        (SELECT name FROM boxers WHERE id = o.winner_id) ow, (SELECT name FROM boxers WHERE id = n.winner_id) nw
-      FROM main.bouts n JOIN temp.gate_bouts o ON o.external_id = n.external_id WHERE ${rc.map((c) => `o.${q(c)} IS NOT n.${q(c)}`).join(" OR ")}`).all() as Record<string, unknown>[];
+    const rows = db.prepare(`SELECT n.id id, n.external_id e, n.red_id r, n.blue_id u, ${label.bouts} lbl, ${rc.map((c) => `o.${q(c)} o_${c}, n.${q(c)} n_${c}`).join(", ")}
+      FROM main.bouts n JOIN temp.gate_bouts o ON o.external_id = n.external_id WHERE ${rc.map((c) => `o.${q(c)} IS NOT n.${q(c)}`).join(" OR ")} ORDER BY n.external_id`).all() as Record<string, unknown>[];
     for (const r of rows) {
       const hadResult = !isBlank(r.o_method), hasResult = !isBlank(r.n_method);
       const methodMoved = ["winner_id", "method", "end_round"].some((c) => r[`o_${c}`] !== r[`n_${c}`]);
-      let kind: "arrived" | "changed" | "cleared" | "details";
-      if (!hadResult && hasResult) kind = "arrived"; else if (hadResult && !hasResult) kind = "cleared"; else if (methodMoved) kind = "changed"; else kind = "details";
-      report.results[kind]++;
-      if (kind !== "details") { explained.add(r.r as number); explained.add(r.u as number); }
-      resultFights.add(r.id as number);
-      if (report.results.samples.length < SAMPLES) {
-        const side = (w: unknown, m: unknown, e: unknown) => (isBlank(m) ? "no result" : `${isBlank(w) ? "no winner" : w} by ${m}${isBlank(e) ? "" : ` in round ${e}`}`);
-        report.results.samples.push({ entity: `bouts ${kind}`, label: r.lbl as string, old: side(r.ow, r.o_method, r.o_end_round), new: side(r.nw, r.n_method, r.n_end_round) });
-      }
+      const kind = !hadResult && hasResult ? "arrived" : hadResult && !hasResult ? "cleared" : methodMoved ? "changed" : "details";
+      const side = (w: unknown, m: unknown, e: unknown) => (isBlank(m) ? "no result" : `${isBlank(w) ? "no winner" : nameOf("boxers", w)} by ${m}${isBlank(e) ? "" : ` in round ${e}`}`);
+      const rcg: ResultChange = {
+        ext: r.e as string, id: r.id as number, label: r.lbl as string, kind,
+        old: Object.fromEntries(rc.map((c) => [c, r[`o_${c}`]])), new: Object.fromEntries(rc.map((c) => [c, r[`n_${c}`]])),
+        shown: { old: side(r.o_winner_id, r.o_method, r.o_end_round), new: side(r.n_winner_id, r.n_method, r.n_end_round) }, totals: [],
+      };
+      cs.results.push(rcg);
+      if (kind !== "details") for (const f of [r.r as number, r.u as number]) (byFighter.get(f) ?? byFighter.set(f, []).get(f)!).push(rcg);
     }
   }
 
-  // every other gated or passing field, one group per column
+  // every other field, one query per column
+  const totalsByBoxer = new Map<number, { change: TotalsChange; fields: FieldChange[] }>();
   for (const f of POLICY) {
     if (f.group === "result") continue;
     const live = cols(db, "main", f.table), snap = cols(db, "temp", `gate_${f.table}`);
     if (!live.has(f.column) || !snap.has(f.column)) continue;
-    const idCol = f.table === "boxers" ? ", n.id id" : "";
-    const rows = db.prepare(`SELECT n.external_id e${idCol}, ${label[f.table]} lbl, o.${q(f.column)} ov, n.${q(f.column)} nv FROM main.${f.table} n JOIN temp.gate_${f.table} o ON o.external_id = n.external_id WHERE o.${q(f.column)} IS NOT n.${q(f.column)}`).all() as { e: string; id?: number; lbl: string; ov: unknown; nv: unknown }[];
+    const rows = db.prepare(`SELECT n.external_id e, n.id id, ${label[f.table]} lbl, o.${q(f.column)} ov, n.${q(f.column)} nv FROM main.${f.table} n JOIN temp.gate_${f.table} o ON o.external_id = n.external_id WHERE o.${q(f.column)} IS NOT n.${q(f.column)} ORDER BY n.external_id`).all() as { e: string; id: number; lbl: string; ov: unknown; nv: unknown }[];
     const key = `${f.table}.${f.column}`;
-    const g: FieldGroup = { key, table: f.table, column: f.column, rule: f.rule, changes: 0, fills: 0, replaces: 0, clears: 0, folded: 0, samples: [] };
-    const deltas: number[] = [];
     for (const r of rows) {
-      if (f.passIf?.(r.ov, r.nv)) { report.passes[key] = (report.passes[key] ?? 0) + 1; continue; }
-      if (f.rule === "pass") { report.passes[key] = (report.passes[key] ?? 0) + 1; continue; }
-      if (f.group === "totals" && r.id !== undefined && explained.has(r.id)) { g.folded++; continue; }
-      g.changes++;
-      const k = kindOf(r.ov, r.nv); if (k === "fill") g.fills++; else if (k === "clear") g.clears++; else g.replaces++;
-      if (f.numeric && typeof r.ov === "number" && typeof r.nv === "number") deltas.push(Math.abs(r.nv - r.ov));
-      if (g.samples.length < SAMPLES) g.samples.push({ entity: r.e, label: r.lbl, old: r.ov, new: r.nv });
+      if (f.rule === "pass" || f.passIf?.(r.ov, r.nv)) { pass(key); continue; }
+      const fk = FK_NAME[key];
+      const ch: FieldChange = { table: f.table, ext: r.e, id: r.id, column: f.column, label: r.lbl, old: r.ov, new: r.nv, kind: kindOf(r.ov, r.nv), ...(fk ? { shown: { old: nameOf(fk, r.ov), new: nameOf(fk, r.nv) } } : {}) };
+      if (f.group === "totals" && f.table === "boxers") {
+        if (inNewFight.has(r.id)) { pass("boxers.totals (with a new fight)"); continue; }
+        const mine = byFighter.get(r.id);
+        if (mine?.length) {
+          const t = totalsByBoxer.get(r.id) ?? (() => { const x = { change: { boxerExt: r.e, name: r.lbl, old: {}, new: {} } as TotalsChange, fields: [] as FieldChange[] }; totalsByBoxer.set(r.id, x); return x; })();
+          t.change.old[f.column] = r.ov; t.change.new[f.column] = r.nv; t.fields.push(ch);
+          continue;
+        }
+      }
+      cs.fields.push(ch);
     }
-    if (deltas.length) { g.medianDelta = median(deltas); g.maxDelta = Math.max(...deltas); }
-    if (f.rule === "wait" && (g.changes || g.folded)) report.fields.push(g);
   }
-  report.fields.sort((a, b) => b.changes - a.changes || a.key.localeCompare(b.key));
+  for (const [boxerId, t] of totalsByBoxer) { // the fighter's totals go with the first of their result changes, by fight id
+    const target = [...byFighter.get(boxerId)!].sort((a, b) => a.ext.localeCompare(b.ext))[0];
+    target.totals.push(t.change); cs.folded.push(...t.fields);
+  }
 
-  // official rankings: one proposal per list that differs
-  const sig = (table: string) => {
-    const lists = new Map<string, string>();
-    const rows = db.prepare(`SELECT body, division, sex, kind, rank, boxer_id, name, title_type, vacant FROM ${table} ORDER BY body, division, sex, position, rank`).all() as Record<string, unknown>[];
-    const by = new Map<string, unknown[]>();
-    for (const r of rows) { const k = `${r.body}|${r.division}|${r.sex}`; (by.get(k) ?? by.set(k, []).get(k)!).push([r.kind, r.rank, r.boxer_id, r.name, r.title_type, r.vacant]); }
-    for (const [k, v] of by) lists.set(k, JSON.stringify(v));
-    return lists;
+  // official rankings: one list is one change
+  const readLists = (table: string) => {
+    const rows = db.prepare(`SELECT kind, rank, boxer_id, name, title_type, vacant, updated_at, position, body, division, sex FROM ${table} ORDER BY body, division, sex, position, rank`).all() as unknown as (ListRow & { body: string; division: string; sex: string })[];
+    const by = new Map<string, ListRow[]>();
+    for (const r of rows) { const k = `${r.body}|${r.division}|${r.sex}`; const { body: _b, division: _d, sex: _s, ...rest } = r; void _b; void _d; void _s; (by.get(k) ?? by.set(k, []).get(k)!).push(rest); }
+    return by;
   };
-  const oldL = sig("temp.gate_rankings"), newL = sig("main.official_rankings");
-  if (oldL.size === 0) { report.rankings.firstSnapshot = newL.size > 0; report.rankings.added = newL.size; }
+  const sig = (rows: ListRow[] | undefined) => JSON.stringify((rows ?? []).map((r) => [r.kind, r.rank, r.boxer_id, r.name, r.title_type, r.vacant]));
+  const oldL = readLists("temp.gate_rankings"), newL = readLists("main.official_rankings");
+  if (oldL.size === 0) { cs.rankings.firstSnapshot = newL.size > 0; cs.rankings.added = newL.size; }
   else for (const k of new Set([...oldL.keys(), ...newL.keys()])) {
     const a = oldL.get(k), b = newL.get(k);
-    if (a === b) report.rankings.unchanged++;
-    else if (a === undefined) report.rankings.added++;
-    else if (b === undefined) { report.rankings.removed++; if (report.rankings.samples.length < SAMPLES) report.rankings.samples.push(`${k.replace(/\|/g, " ")}: list gone`); }
-    else { report.rankings.changed++; if (report.rankings.samples.length < SAMPLES) report.rankings.samples.push(`${k.replace(/\|/g, " ")}: list changed`); }
+    if (a && b && sig(a) === sig(b)) cs.rankings.unchanged++;
+    else if (!a) cs.rankings.added++; // a list we did not have: new data, goes in
+    else {
+      const who = (rows: ListRow[]) => rows.map((r) => ({ ...r, who: r.name ?? nameOf("boxers", r.boxer_id) }));
+      cs.lists.push({ key: k, kind: b ? "changed" : "removed", oldRows: who(a), newRows: who(b ?? []) });
+    }
   }
+  return cs;
+}
 
-  const resultsHeld = report.results.arrived + report.results.changed + report.results.cleared + report.results.details;
-  report.wouldHold = report.fields.reduce((n, f) => n + f.changes, 0) + resultsHeld + report.rankings.changed + report.rankings.removed;
-
-  // what the flood guard would say (it does not apply to the first, baseline night)
+/** The report (and the flood guard's verdict) for a set of changes. */
+export function buildReport(cs: ChangeSet, feed: FeedData, settings: GateSettings, o: { mode: "observe" | "report" | "hold"; now?: Date; baseline?: boolean }): GateReport {
+  const report: GateReport = {
+    version: 1, at: (o.now ?? new Date()).toISOString(), mode: o.mode, touched: cs.touched, newRows: cs.newRows, fields: [],
+    results: { arrived: 0, changed: 0, cleared: 0, details: 0, samples: [] }, rankings: { firstSnapshot: cs.rankings.firstSnapshot, changed: 0, removed: 0, added: cs.rankings.added, unchanged: cs.rankings.unchanged, samples: [] },
+    wouldHold: 0, passes: cs.passes, ungated: {}, refuse: [],
+  };
+  report.ungated = {
+    "judge-level scorecards": feed.scorecards.length, officials: feed.officials.length, corners: feed.corners.length, "punch stats": feed.punches.length, "weigh-ins": feed.weighIns.length,
+    "team stints": feed.stints.length, "financials, purses, broadcasts, earnings": feed.financials.length + feed.purses.length + feed.broadcasts.length + feed.earnings.length,
+  };
+  for (const r of cs.results) {
+    report.results[r.kind]++;
+    if (report.results.samples.length < SAMPLES) report.results.samples.push({ entity: `bouts ${r.kind}`, label: r.label, old: r.shown.old, new: r.shown.new });
+  }
+  const groups = new Map<string, FieldGroup>();
+  const group = (c: FieldChange) => groups.get(`${c.table}.${c.column}`) ?? (() => { const g: FieldGroup = { key: `${c.table}.${c.column}`, table: c.table, column: c.column, rule: "wait", changes: 0, fills: 0, replaces: 0, clears: 0, folded: 0, samples: [] }; groups.set(g.key, g); return g; })();
+  const deltas = new Map<string, number[]>();
+  for (const c of cs.fields) {
+    const g = group(c); g.changes++;
+    if (c.kind === "fill") g.fills++; else if (c.kind === "clear") g.clears++; else g.replaces++;
+    if (policyNumeric(c) && typeof c.old === "number" && typeof c.new === "number") (deltas.get(g.key) ?? deltas.set(g.key, []).get(g.key)!).push(Math.abs(c.new - c.old));
+    if (g.samples.length < SAMPLES) g.samples.push({ entity: c.ext, label: c.label, old: c.old, new: c.new });
+  }
+  for (const c of cs.folded) group(c).folded++;
+  for (const [k, d] of deltas) { const g = groups.get(k)!; g.medianDelta = median(d); g.maxDelta = Math.max(...d); }
+  report.fields = [...groups.values()].sort((a, b) => b.changes - a.changes || a.key.localeCompare(b.key));
+  for (const l of cs.lists) { report.rankings[l.kind === "removed" ? "removed" : "changed"]++; if (report.rankings.samples.length < SAMPLES) report.rankings.samples.push(`${l.key.replace(/\|/g, " ")}: list ${l.kind === "removed" ? "gone" : "changed"}`); }
+  report.wouldHold = cs.fields.length + cs.results.length + cs.lists.length;
   if (!o.baseline) {
     for (const f of report.fields) {
       const rows = report.touched[f.table] || 1, share = f.changes / rows;
@@ -178,12 +238,47 @@ export function compareWithSnapshot(db: DatabaseSync, feed: FeedData, settings: 
   }
   return report;
 }
+const policyNumeric = (c: FieldChange) => !!POLICY.find((f) => f.table === c.table && f.column === c.column)?.numeric;
+
+/** Compares the live rows with the copies `snapshotBefore` made. Reads only. */
+export function compareWithSnapshot(db: DatabaseSync, feed: FeedData, settings: GateSettings, o: { mode: "observe" | "report" | "hold"; now?: Date; baseline?: boolean } = { mode: "observe" }): GateReport {
+  return buildReport(collectChanges(db, feed), feed, settings, o);
+}
+
+// ---- holding: put the old values back, and say what was held -------------------------------------------------------------------------------------
+
+/** Writes the old value back for everything in the change set. Call it inside the update's transaction, after the writes. */
+export function restoreHeld(db: DatabaseSync, cs: ChangeSet): void {
+  const byCol = new Map<string, ReturnType<DatabaseSync["prepare"]>>();
+  const set = (table: string, col: string) => byCol.get(`${table}.${col}`) ?? (() => { const st = db.prepare(`UPDATE ${table} SET ${q(col)} = ? WHERE external_id = ?`); byCol.set(`${table}.${col}`, st); return st; })();
+  for (const c of [...cs.fields, ...cs.folded]) set(c.table, c.column).run(c.old as never, c.ext);
+  for (const r of cs.results) {
+    const cols2 = Object.keys(r.old);
+    db.prepare(`UPDATE bouts SET ${cols2.map((c) => `${q(c)} = ?`).join(", ")} WHERE external_id = ?`).run(...(cols2.map((c) => r.old[c]) as never[]), r.ext);
+  }
+  const del = db.prepare("DELETE FROM official_rankings WHERE body = ? AND division = ? AND sex = ?");
+  const ins = db.prepare("INSERT INTO official_rankings (body, division, sex, kind, rank, boxer_id, name, title_type, vacant, updated_at, position) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+  for (const l of cs.lists) {
+    const [body, division, sex] = l.key.split("|");
+    del.run(body, division, sex);
+    for (const r of l.oldRows) ins.run(body, division, sex, r.kind, r.rank, r.boxer_id, r.name, r.title_type, r.vacant, r.updated_at, r.position);
+  }
+}
+
+/** The held changes as proposals (lib/watch/proposals.ts `reconcile` stores them). One per field, one per fight's result, one per ranking list. */
+export function toProposalChanges(cs: ChangeSet): Change[] {
+  const out: Change[] = [];
+  for (const c of cs.fields) out.push({ kind: "field_change", targetKey: `${SINGULAR[c.table]}|${c.ext}|${c.column}`, label: `${c.label}: ${c.column}`, old: { [c.column]: c.old }, new: { [c.column]: c.new }, evidence: { column: c.column, change: c.kind, ...(c.shown ? { shown: c.shown } : {}) } });
+  for (const r of cs.results) out.push({ kind: "result_change", targetKey: `bout|${r.ext}|result`, label: `${r.label}: ${r.kind === "arrived" ? "result" : r.kind === "cleared" ? "result removed" : r.kind === "changed" ? "result changed" : "result details"}`, old: r.old, new: r.new, evidence: { change: r.kind, shown: r.shown, totals: r.totals } });
+  for (const l of cs.lists) out.push({ kind: "list_change", targetKey: `list|${l.key}`, label: `Official ranking ${l.key.replace(/\|/g, " ")}: ${l.kind === "removed" ? "list gone" : "list changed"}`, old: { rows: l.oldRows }, new: { rows: l.newRows }, evidence: { change: l.kind } });
+  return out;
+}
 
 export function describeGateReport(r: GateReport): string[] {
   const out: string[] = [];
   const nums = (m: Record<string, number>) => Object.entries(m).filter(([, v]) => v > 0).map(([k, v]) => `${v} ${k}`).join(", ") || "none";
   out.push(`vendor gate (${r.mode}): the feed named ${nums(r.touched)} we already hold, and ${nums(r.newRows)} new (those go in at once).`);
-  out.push(`  would wait for an administrator: ${r.wouldHold} change(s)${r.wouldHold ? "" : " (none)"}`);
+  out.push(`  ${r.mode === "hold" ? "held for an administrator" : "would wait for an administrator"}: ${r.wouldHold} change(s)${r.wouldHold ? "" : " (none)"}`);
   const res = r.results;
   if (res.arrived + res.changed + res.cleared + res.details) out.push(`  fights with a result change: ${res.arrived} result(s) arriving, ${res.changed} changed, ${res.cleared} removed, ${res.details} other detail(s) of a result`);
   for (const s of res.samples.slice(0, 5)) out.push(`      ${s.label}: ${s.old} -> ${s.new}`);
@@ -199,7 +294,7 @@ export function describeGateReport(r: GateReport): string[] {
   if (pass.length) out.push(`  go in without approval: ${pass.map(([k, v]) => `${k} ${v}`).join(", ")}`);
   const ug = Object.entries(r.ungated).filter(([, v]) => v > 0);
   if (ug.length) out.push(`  not gated (listed, not held): ${ug.map(([k, v]) => `${k} ${v}`).join(", ")}`);
-  out.push(r.refuse.length ? `  THE FLOOD GUARD WOULD REFUSE THIS NIGHT:\n    - ${r.refuse.join("\n    - ")}` : "  the flood guard would let this night through");
+  out.push(r.refuse.length ? `  THE FLOOD GUARD ${r.mode === "hold" ? "REFUSES" : "WOULD REFUSE"} THIS NIGHT:\n    - ${r.refuse.join("\n    - ")}` : "  the flood guard lets this night through");
   return out;
 }
 
@@ -215,17 +310,22 @@ export function writeGateReport(dir: string, r: GateReport): string | null {
   } catch { return null; }
 }
 
-export interface HookOptions { mode: "observe" | "report"; settings: GateSettings; log: (m: string) => void; dataDir?: string; baseline?: boolean; now?: () => Date }
+export const VENDOR_SOURCE_ID = "vendor:boxing-data-api";
+export interface HookOptions { mode: "observe" | "report" | "hold"; settings: GateSettings; log: (m: string) => void; dataDir?: string; baseline?: boolean; now?: () => Date }
 /**
- * The hooks `ingest` calls. Observe: the update goes on and commits exactly as before; anything wrong in here is logged and never stops it.
- * Report: the report is printed and the update is rolled back (GateRollback), so nothing is written.
+ * The hooks `ingest` calls.
+ *  - observe: the update goes on and commits exactly as before; anything wrong in here is logged and never stops it.
+ *  - report: the report is printed and the update is rolled back (GateRollback), so nothing is written.
+ *  - hold: the changes the policy says must wait are PUT BACK before the commit (so no page can show them) and become proposals (`flush`, after the commit). The flood guard
+ *    can refuse the night (GateRefusal, rolled back, nothing written). A bug in here stops the update and rolls it back: unlike observing, holding must never half-work.
  */
-export function gateHooks(o: HookOptions): GateHooks & { last: () => GateReport | null } {
-  let last: GateReport | null = null, ready = false;
+export function gateHooks(o: HookOptions): GateHooks & { last: () => GateReport | null; flush: (acc: DatabaseSync) => { held: number; added: number; updated: number; unchanged: number; remembered: number; superseded: number } | null } {
+  let last: GateReport | null = null, ready = false, held: ChangeSet | null = null, fed: FeedData | null = null;
   return {
     last: () => last,
     before(db, feed) {
-      if (o.mode === "report") { snapshotBefore(db, feed); ready = true; return; }
+      fed = feed;
+      if (o.mode !== "observe") { snapshotBefore(db, feed); ready = true; return; }
       try { snapshotBefore(db, feed); ready = true; } catch (e) { ready = false; o.log(`vendor gate: could not observe this update (${(e as Error).message}); the update goes on`); }
     },
     after(db, feed) {
@@ -240,9 +340,27 @@ export function gateHooks(o: HookOptions): GateHooks & { last: () => GateReport 
         } catch (e) { o.log(`vendor gate: could not observe this update (${(e as Error).message}); the update goes on`); try { dropSnapshot(db); } catch { /* the transaction will end the same way */ } }
         return;
       }
-      last = compareWithSnapshot(db, feed, o.settings, { mode: "report", now: o.now?.(), baseline: o.baseline });
+      const cs = collectChanges(db, feed);
+      last = buildReport(cs, feed, o.settings, { mode: o.mode, now: o.now?.(), baseline: o.baseline });
       for (const l of describeGateReport(last)) o.log(l);
-      throw new GateRollback();
+      if (o.mode === "report") throw new GateRollback();
+      if (last.refuse.length) throw new GateRefusal(last.refuse);
+      restoreHeld(db, cs);
+      dropSnapshot(db);
+      held = cs;
+      const file = o.dataDir ? writeGateReport(o.dataDir, last) : null;
+      if (file) o.log(`vendor gate: the report is in ${path.relative(process.cwd(), file) || file}`);
+    },
+    /** After the update has committed: store the held changes as proposals for an administrator. Safe to call when nothing was held. */
+    flush(acc) {
+      if (o.mode !== "hold" || !held || !fed) return null;
+      const feed = fed;
+      const prefixes = new Set<string>();
+      for (const t of TABLES) for (const e of feedIds(feed)[t]) prefixes.add(`${SINGULAR[t]}|${e}`);
+      const listsToo = feed.officialRankings.length > 0;
+      const inScope = (key: string) => (key.startsWith("list|") ? listsToo : prefixes.has(key.split("|").slice(0, 2).join("|")));
+      const r = reconcile(acc, VENDOR_SOURCE_ID, toProposalChanges(held), inScope, o.now?.().toISOString());
+      return { held: held.fields.length + held.results.length + held.lists.length, ...r };
     },
   };
 }

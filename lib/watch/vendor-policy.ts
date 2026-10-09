@@ -50,7 +50,7 @@ export const policyFor = (table: Table, column: string) => POLICY.find((f) => f.
 
 // ---- settings -----------------------------------------------------------------------------------------------------------------------------------
 
-export type GateMode = "off" | "observe";
+export type GateMode = "off" | "observe" | "hold";
 export interface GateSettings { mode: GateMode; maxFieldShare: number; maxFieldRows: number; maxNight: number; warnings: string[] }
 export const DEFAULT_MAX_FIELD_SHARE = 0.3, DEFAULT_MAX_FIELD_ROWS = 100, DEFAULT_MAX_NIGHT = 2000;
 
@@ -60,12 +60,12 @@ export const gateEnv = (): GateEnv => ({
   VENDOR_GATE_MAX_FIELD_ROWS: process.env.VENDOR_GATE_MAX_FIELD_ROWS, VENDOR_GATE_MAX_NIGHT: process.env.VENDOR_GATE_MAX_NIGHT,
 });
 
-/** Reads VENDOR_GATE (off | observe) and the three flood-guard numbers. A value that is not usable is ignored with a warning: the update never refuses to run for a typo here. */
+/** Reads VENDOR_GATE (off | observe | hold) and the three flood-guard numbers. A value that is not usable is ignored with a warning: the update never refuses to run for a typo here. */
 export function gateSettings(env: GateEnv = gateEnv()): GateSettings {
   const warnings: string[] = [];
   const raw = (env.VENDOR_GATE ?? "").trim().toLowerCase();
-  const mode: GateMode = raw === "observe" ? "observe" : "off";
-  if (raw && !["0", "off", "observe"].includes(raw)) warnings.push(`VENDOR_GATE="${env.VENDOR_GATE}" is not off or observe: the gate stays off. (Holding changes for approval is not built yet.)`);
+  const mode: GateMode = raw === "observe" ? "observe" : raw === "hold" ? "hold" : "off";
+  if (raw && !["0", "off", "observe", "hold"].includes(raw)) warnings.push(`VENDOR_GATE="${env.VENDOR_GATE}" is not off, observe or hold: the gate stays off.`);
   const num = (name: keyof GateEnv, def: number, ok: (n: number) => boolean) => {
     const v = env[name]?.trim();
     if (!v) return def;
