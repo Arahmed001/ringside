@@ -21,7 +21,7 @@ export function NewsList({ items, t }: { items: NewsItem[]; t: T }) {
                 {/* eslint-disable-next-line @next/next/no-img-element -- a small picture served by this site; the image optimizer adds nothing */}
                 <img src={`/api/news-image/${n.id}`} alt="" width={288} height={216} loading="lazy" decoding="async" className="h-full w-full object-cover" />
               </a>
-              <div className="mt-1 text-[11px] leading-tight text-muted">{t.rich("Picture from <o>{name}</o>", { name: sourceName(n.source), o: (c) => <span lang="en" dir="ltr">{c}</span> })}</div>
+              <div className="mt-1 text-xs leading-tight text-muted">{t.rich("Picture from <o>{name}</o>", { name: sourceName(n.source), o: (c) => <span lang="en" dir="ltr">{c}</span> })}</div>
             </div>
           )}
           <div className="min-w-0 flex-1">
