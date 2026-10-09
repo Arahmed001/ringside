@@ -338,6 +338,12 @@
   ]
  },
  {
+  "key": "{h} tall, {r} reach",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{h}cm tall · {limit}",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -598,6 +604,13 @@
   ]
  },
  {
+  "key": "{n} fighters measured",
+  "plural": "{n} fighter measured",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{n} fights",
   "plural": "{n} fight",
   "files": [
@@ -639,6 +652,13 @@
   "key": "{n} fights of six rounds or more were scored.",
   "files": [
    "app/[locale]/fight-of-the-year/[year]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} headlines",
+  "plural": "{n} headline",
+  "files": [
+   "app/[locale]/news/page.tsx"
   ]
  },
  {
@@ -736,6 +756,12 @@
  },
  {
   "key": "{n} of {of} fights",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} of {of} stoppage wins; the others have no round on record.",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
   ]
@@ -856,6 +882,13 @@
   "key": "{n} still to come",
   "files": [
    "components/MyPicks.tsx"
+  ]
+ },
+ {
+  "key": "{n} stoppage wins",
+  "plural": "{n} stoppage win",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -2651,6 +2684,19 @@
   ]
  },
  {
+  "key": "All headlines",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "All outlets",
+  "files": [
+   "app/[locale]/news/page.tsx"
+  ]
+ },
+ {
   "key": "All pictures on this site come from this site itself.",
   "files": [
    "app/[locale]/privacy/page.tsx"
@@ -2870,6 +2916,12 @@
   ]
  },
  {
+  "key": "Archived copy",
+  "files": [
+   "components/NewsList.tsx"
+  ]
+ },
+ {
   "key": "As expected: the model had {name} at {p}.",
   "files": [
    "lib/recap.ts"
@@ -3018,6 +3070,18 @@
   "key": "Automated requests to the Nevada site are blocked, so files must be downloaded manually. A parser is not built.",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Average finish: round {avg} · most often round {round}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Average rating going in · toughest: {name}, {rating}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -3477,6 +3541,12 @@
   "key": "Boxing intelligence · {fighters} fighters · {bouts} bouts",
   "files": [
    "app/[locale]/page.tsx"
+  ]
+ },
+ {
+  "key": "Boxing news",
+  "files": [
+   "app/[locale]/news/page.tsx"
   ]
  },
  {
@@ -4701,6 +4771,12 @@
    "components/RecordsFilter.tsx",
    "components/StyleMap.tsx",
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Division average: {d}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -6536,6 +6612,24 @@
   ]
  },
  {
+  "key": "Headlines about this card",
+  "files": [
+   "app/[locale]/events/[id]/page.tsx"
+  ]
+ },
+ {
+  "key": "Headlines from boxing outlets",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Headlines from boxing outlets. Each one links to the original story on the outlet's own site; we show only the headline and the short excerpt the outlet itself publishes.",
+  "files": [
+   "app/[locale]/news/page.tsx"
+  ]
+ },
+ {
   "key": "Heavier fighters are also usually the bigger, stronger natural fighters, so this is a correlation, not proof that rehydration wins fights. In this demo league the effect is built into the simulator.",
   "files": [
    "app/[locale]/weights/page.tsx"
@@ -6928,6 +7022,14 @@
   "key": "in {n} different years",
   "files": [
    "app/[locale]/on-this-day/page.tsx"
+  ]
+ },
+ {
+  "key": "In the news",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx",
+   "app/[locale]/events/[id]/page.tsx",
+   "app/[locale]/news/page.tsx"
   ]
  },
  {
@@ -7388,6 +7490,7 @@
  {
   "key": "Latest",
   "files": [
+   "app/[locale]/news/page.tsx",
    "app/[locale]/page.tsx"
   ]
  },
@@ -8645,6 +8748,12 @@
   ]
  },
  {
+  "key": "No headlines yet. They appear once the site's news refresh has run.",
+  "files": [
+   "app/[locale]/news/page.tsx"
+  ]
+ },
+ {
   "key": "No issues found. Rows that fail a check are dropped and listed here; suspicious ones are kept and flagged. Run <c>{cmd}</c> to test a vendor sample first.",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -9313,6 +9422,12 @@
   ]
  },
  {
+  "key": "Opposition faced",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Or start from the calendar",
   "files": [
    "app/[locale]/compare/page.tsx"
@@ -9365,6 +9480,12 @@
   "key": "otherwise a generated portrait",
   "files": [
    "lib/coverage.ts"
+  ]
+ },
+ {
+  "key": "Outlets",
+  "files": [
+   "app/[locale]/news/page.tsx"
   ]
  },
  {
@@ -10321,15 +10442,45 @@
   ]
  },
  {
+  "key": "Reach and height",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Reach edge",
   "files": [
    "app/[locale]/analytics/page.tsx"
   ]
  },
  {
+  "key": "reach equals height",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "reach is longer than height",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "reach is shorter than height",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Reach, power and chin decide fights",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Read at {source}",
+  "files": [
+   "components/NewsList.tsx"
   ]
  },
  {
@@ -10837,6 +10988,12 @@
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
    "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "Round {round}: {n}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -11878,6 +12035,12 @@
   ]
  },
  {
+  "key": "Stoppage wins by round",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Stoppages",
   "files": [
    "app/[locale]/people/[slug]/page.tsx",
@@ -12741,6 +12904,12 @@
   "key": "The latest card was {event} on {date}, headlined by {fight}.",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "The latest headlines from boxing outlets, each linking to the original story.",
+  "files": [
+   "app/[locale]/news/page.tsx"
   ]
  },
  {
@@ -14626,6 +14795,12 @@
   "key": "When the model says 70%, is it right 70% of the time?",
   "files": [
    "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "When the stoppages come",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {

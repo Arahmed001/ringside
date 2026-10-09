@@ -298,13 +298,13 @@ export async function importWikidata(db: DatabaseSync, opts: ImportOptions = {})
   return { listed: listed.length, stored, batches, skipped };
 }
 
-const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[łđðøı]/g, (c) => ({ ł: "l", đ: "d", ð: "d", ø: "o", ı: "i" })[c as "ł"]).replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
 
-export interface EnrichSummary { linked: number; byBoxrecId: number; byNameYear: number; ambiguous: number; names: { added: number; kept: number }; filled: { nickname: number; wikipedia: number; birthYear: number; birthDate: number; birthPlace: number; residence: number; boxrecId: number }; honours: { boxers: number; rows: number; hallOfFame: number; olympedia: number } }
+export interface EnrichSummary { linked: number; byBoxrecId: number; byNameYear: number; byNameCountry: number; ambiguous: number; names: { added: number; kept: number }; filled: { nickname: number; wikipedia: number; birthYear: number; birthDate: number; birthPlace: number; residence: number; boxrecId: number }; honours: { boxers: number; rows: number; hallOfFame: number; olympedia: number } }
 
 /**
  * Links our fighters to Wikidata entities and fills ONLY fields we don't already have (a licensed feed always wins).
- * Match order: (1) BoxRec ID, if our feed supplies one; (2) normalised name + birth year when exactly one candidate exists.
+ * Match order: (1) BoxRec ID, if our feed supplies one; (2) normalised name + birth year when exactly one candidate exists; (3) a name unique on both sides in the same country, with a birth year and a career that fit.
  */
 export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
   const staged = db.prepare("SELECT * FROM wikidata_boxers").all() as Record<string, unknown>[];
@@ -319,7 +319,7 @@ export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
   const claimed = new Set<string>();
   const upd = db.prepare(`UPDATE boxers SET wikidata_id = ?, boxrec_id = COALESCE(boxrec_id, ?), birth_year = COALESCE(birth_year, ?), birth_date = COALESCE(birth_date, ?), birth_place = COALESCE(birth_place, ?), residence = COALESCE(residence, ?) WHERE id = ?`);
   const mark = db.prepare("UPDATE wikidata_boxers SET matched_boxer_id = ?, match_method = ? WHERE qid = ?");
-  const s: EnrichSummary = { linked: 0, byBoxrecId: 0, byNameYear: 0, ambiguous: 0, names: { added: 0, kept: 0 }, filled: { nickname: 0, wikipedia: 0, birthYear: 0, birthDate: 0, birthPlace: 0, residence: 0, boxrecId: 0 }, honours: { boxers: 0, rows: 0, hallOfFame: 0, olympedia: 0 } };
+  const s: EnrichSummary = { linked: 0, byBoxrecId: 0, byNameYear: 0, byNameCountry: 0, ambiguous: 0, names: { added: 0, kept: 0 }, filled: { nickname: 0, wikipedia: 0, birthYear: 0, birthDate: 0, birthPlace: 0, residence: 0, boxrecId: 0 }, honours: { boxers: 0, rows: 0, hallOfFame: 0, olympedia: 0 } };
   db.exec("BEGIN");
   for (const b of mine) {
     let hit: Record<string, unknown> | undefined, method = "";
@@ -337,6 +337,42 @@ export function enrichFromWikidata(db: DatabaseSync): EnrichSummary {
     mark.run(b.id, method, hit.qid as string);
     s.linked++; if (method === "boxrec_id") s.byBoxrecId++; else s.byNameYear++;
     if (b.birth_year === null && typeof hit.birth_year === "number") s.filled.birthYear++; // an unknown birth year is filled from the match, never overwritten
+    if (!b.birth_date && hit.birth_date) s.filled.birthDate++;
+    if (!b.birth_place && hit.birth_place) s.filled.birthPlace++;
+    if (!b.residence && hit.residence) s.filled.residence++;
+    if (!b.boxrec_id && hit.boxrec_id) s.filled.boxrecId++;
+  }
+  // Third pass, for the fighters the first two could not place (most of a real league: no BoxRec number, and a birth year for about half): a name that belongs to exactly one unlinked
+  // fighter of ours and to exactly one staged entity, in the same country (the four home nations are one with the United Kingdom), with a birth year that does not disagree and a career
+  // that fits the life (first fight at 14 or later, and before the entity's death). Two people with one name in one country are left alone: nothing is guessed.
+  const nation = (c: unknown) => { const n = typeof c === "string" ? norm(c) : ""; return /^(england|scotland|wales|northern ireland|great britain)$/.test(n) ? "united kingdom" : n; };
+  const era = db.prepare("SELECT b.id AS id, MIN(CAST(substr(e.date, 1, 4) AS INTEGER)) AS first FROM boxers b JOIN bouts x ON x.red_id = b.id OR x.blue_id = b.id JOIN events e ON e.id = x.event_id WHERE b.wikidata_id IS NULL GROUP BY b.id").all() as { id: number; first: number }[];
+  const firstYear = new Map(era.map((r) => [r.id, r.first] as const));
+  const left = db.prepare("SELECT id, name, birth_year, country, boxrec_id, birth_date, birth_place, residence FROM boxers WHERE wikidata_id IS NULL").all() as
+    { id: number; name: string; birth_year: number | null; country: string; boxrec_id: string | null; birth_date: string | null; birth_place: string | null; residence: string | null }[];
+  const stagedLeft = staged.filter((r) => !claimed.has(r.qid as string) && !r.matched_boxer_id);
+  const wdByName = new Map<string, Record<string, unknown>[]>(), meByName = new Map<string, typeof left>();
+  for (const r of stagedLeft) { const k = norm(r.name as string); (wdByName.get(k) ?? wdByName.set(k, []).get(k)!).push(r); }
+  for (const b of left) { const k = norm(b.name); (meByName.get(k) ?? meByName.set(k, []).get(k)!).push(b); }
+  for (const [k, ws] of wdByName) {
+    const ms = meByName.get(k);
+    if (ws.length !== 1 || !ms || ms.length !== 1) continue;
+    const hit = ws[0], b = ms[0];
+    if (!hit.country || nation(hit.country) !== nation(b.country)) continue;
+    if (typeof hit.birth_year === "number") {
+      if (b.birth_year !== null && Math.abs(hit.birth_year - b.birth_year) > 1) continue;
+      const first = firstYear.get(b.id);
+      if (first !== undefined && first < hit.birth_year + 14) continue;
+    }
+    const died = typeof hit.death_date === "string" ? parseInt(hit.death_date.slice(0, 4), 10) : NaN;
+    const last = firstYear.get(b.id);
+    if (Number.isFinite(died) && last !== undefined && last > died) continue;
+    claimed.add(hit.qid as string);
+    const str = (v: unknown) => (typeof v === "string" ? v : null);
+    upd.run(hit.qid as string, b.boxrec_id ? null : str(hit.boxrec_id), typeof hit.birth_year === "number" ? hit.birth_year : null, str(hit.birth_date), str(hit.birth_place), str(hit.residence), b.id);
+    mark.run(b.id, "name+country", hit.qid as string);
+    s.linked++; s.byNameCountry++;
+    if (b.birth_year === null && typeof hit.birth_year === "number") s.filled.birthYear++;
     if (!b.birth_date && hit.birth_date) s.filled.birthDate++;
     if (!b.birth_place && hit.birth_place) s.filled.birthPlace++;
     if (!b.residence && hit.residence) s.filled.residence++;
