@@ -51,9 +51,11 @@ read -s "k?Paste the YouTube key, then press Return: "; printf '%s\n' "$k" > ~/.
 
 Without the key the videos are skipped and the headlines still refresh. The key goes to Google only; it is never stored, logged or shown (an error message has it replaced with `[key]`).
 
-**What is kept:** the video's title, date and watch address, never the description or the picture.
+**What is kept:** the video's title, date and watch address, never the description. Each video's thumbnail picture is saved by this server (see below).
 
-**How it plays:** the page shows the channel, the title and a "Play the video" button, and nothing else. No request goes to YouTube or Google while the page is just open (no picture, no script, no frame; checked in a real browser: zero requests before the press, then YouTube's privacy-enhanced player, `youtube-nocookie.com`, in a sandboxed frame). The content security policy allows that one frame source and no other, and the privacy page says what YouTube can see after a press of play.
+**The pictures.** `news:refresh` saves each listed video's thumbnail from YouTube's image host (`i.ytimg.com`, the large 16:9 one, else the small one) into a folder beside the database (`video-thumbs/` next to `DATABASE_PATH`; `/data/video-thumbs` on Fly) and the site shows it from its own address (`/api/video-thumb/<id>`). A visitor's browser therefore never contacts YouTube or Google until play is pressed. Limits, to stay within YouTube's terms for data got through its API: a picture is fetched again after 25 days and is never kept or served past 30; one whose video has left the list is deleted at the next refresh; only a real JPEG up to 400 KB is saved, from that one host, with no redirects; at most 80 are fetched per run; the route that serves them reads the folder only and fetches nothing. A video with no saved picture shows the text card as before. About 30–100 KB each: a few MB for a hundred videos.
+
+**How it plays:** the page shows the video's picture (where saved), the channel, the title and a "Play the video" button. No request goes to YouTube or Google while the page is just open (no script, no frame, no picture from them; checked in a real browser: zero requests before the press, then YouTube's privacy-enhanced player, `youtube-nocookie.com`, in a sandboxed frame). The content security policy allows that one frame source and no other, and the privacy page says what YouTube can see after a press of play.
 
 ## Chosen posts (YouTube, X, Reddit, Instagram, Facebook)
 

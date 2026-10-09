@@ -12,6 +12,7 @@ import { DatabaseSync } from "node:sqlite";
 import { refreshNews } from "../lib/news/fetch";
 import { findArchives } from "../lib/news/archive";
 import { refreshVideos } from "../lib/news/youtube";
+import { refreshThumbs } from "../lib/news/thumbs";
 import { ALL_SOURCES, sourcesFor } from "../lib/news/sources";
 
 /** The YouTube key: YOUTUBE_API_KEY if set, else the first line of ~/.ringside-youtube-key (made readable by you only). It is never printed. */
@@ -39,6 +40,7 @@ async function main() {
     const out = await refreshNews(db, { contact, log: (l) => console.log(`  ${l}`) });
     const vids = await refreshVideos(db, { key: youtubeKey(), contact, log: (l) => console.log(`  ${l}`) });
     if (vids.some((v) => v.ok)) console.log(`  official videos: ${vids.reduce((n, v) => n + v.added, 0)} new`);
+    await refreshThumbs(db, { dir: path.join(path.dirname(file), "video-thumbs"), contact, log: (l) => console.log(`  ${l}`) });
     const arc = process.argv.includes("--no-archive") ? null : await findArchives(db, { contact });
     if (arc) console.log(`  Wayback copies: ${arc.found} found of ${arc.checked} asked about`);
     const total = (db.prepare("SELECT COUNT(*) c FROM news_items").get() as { c: number }).c;
