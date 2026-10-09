@@ -469,7 +469,7 @@ const HONOURS_SHOWN = 8;
       <section id="record">
         <SectionTitle eyebrow={t("Fight record")} title={t.n(completed.length, "{n} bout", "{n} bouts")} />
         <ScrollRegion className="card p-4" label={t("Fight record")}>
-          <table className="w-full" aria-label={t("Fight record")}><tbody>{(upcoming ? [upcoming, ...done] : done).map((x) => <BoutLine key={x.id} bout={x} focusId={b.id} context={opponentThen.get(x.id)} />)}</tbody></table>
+          <table className="w-full" aria-label={t("Fight record")}><tbody>{(upcoming ? [upcoming, ...done] : done).map((x) => <BoutLine key={x.id} bout={x} focusId={b.id} context={opponentThen.get(x.id)} event={w.eventById.get(x.eventId)} />)}</tbody></table>
         </ScrollRegion>
       </section>
       <section id="discussion">
