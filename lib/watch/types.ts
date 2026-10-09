@@ -45,4 +45,6 @@ export interface WatchSource {
   terms: string;
   enabled: boolean;
   run(ctx: WatchContext): Promise<WatchResult>;
+  /** writes one approved change to the live data; only an admin's approval ever calls it. Safe to run twice; refuses a change that no longer fits what is held. */
+  apply(main: DatabaseSync, p: { kind: string; targetKey: string; old: unknown; new: unknown; evidence: unknown }): { ok: true; changed: boolean } | { ok: false; error: "stale" | "gone" | "bad_proposal" };
 }

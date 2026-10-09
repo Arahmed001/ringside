@@ -2048,6 +2048,12 @@
   ]
  },
  {
+  "key": "A check of a public source found these differences from what we hold. Nothing is applied until you approve it, and approving writes it to the live data at once. A rejected change is not raised again unless the source says something different.",
+  "files": [
+   "app/[locale]/review/updates/page.tsx"
+  ]
+ },
+ {
   "key": "A clean, economical boxer who wins on timing and distance rather than raw power.",
   "files": [
    "lib/ai.ts"
@@ -2582,6 +2588,18 @@
   ]
  },
  {
+  "key": "Administrators",
+  "files": [
+   "app/[locale]/review/updates/page.tsx"
+  ]
+ },
+ {
+  "key": "Administrators decide on changes that public sources seem to have made to data we hold.",
+  "files": [
+   "app/[locale]/review/updates/page.tsx"
+  ]
+ },
+ {
   "key": "After {date}",
   "files": [
    "components/WatchDigest.tsx"
@@ -2924,20 +2942,46 @@
  {
   "key": "Approve",
   "files": [
-   "components/ReviewQueue.tsx"
+   "components/ReviewQueue.tsx",
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
+  "key": "Approve {n} changes?",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
+  "key": "Approve all {n}",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
+  "key": "Approve the first {n}",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
   "key": "Approved",
   "files": [
    "components/ContributeForm.tsx",
-   "components/ReviewQueue.tsx"
+   "components/ReviewQueue.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
   "key": "Approved and published.",
   "files": [
    "components/ReviewQueue.tsx"
+  ]
+ },
+ {
+  "key": "Approved.",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -3786,7 +3830,8 @@
  {
   "key": "Cancel",
   "files": [
-   "components/Discussion.tsx"
+   "components/Discussion.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -3926,6 +3971,12 @@
   "key": "Change the fight",
   "files": [
    "components/MatchupLab.tsx"
+  ]
+ },
+ {
+  "key": "Changed title reigns",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -4498,7 +4549,8 @@
  {
   "key": "Current champion",
   "files": [
-   "app/[locale]/titles/[slug]/page.tsx"
+   "app/[locale]/titles/[slug]/page.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -4637,7 +4689,8 @@
   "key": "Decided by {name} on {date}",
   "files": [
    "components/ReportQueue.tsx",
-   "components/ReviewQueue.tsx"
+   "components/ReviewQueue.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -4673,6 +4726,7 @@
  {
   "key": "Defences",
   "files": [
+   "components/UpdateQueue.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -4724,6 +4778,7 @@
  {
   "key": "Detail",
   "files": [
+   "components/UpdateQueue.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -4900,6 +4955,12 @@
   "key": "Does the head trainer change how a fighter performs? Fighters’ ratings rising under a trainer proves little: young fighters rise whoever trains them. So each trainer’s effect is estimated together with every fighter’s own ability, using fighters who have worked with more than one trainer, and every estimate comes with its error bars.",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Done for {done} of {all}.",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -6275,6 +6336,12 @@
   ]
  },
  {
+  "key": "First seen {date}",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "Fit on past bouts, tested on the most recent 25%",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -6806,6 +6873,12 @@
   ]
  },
  {
+  "key": "Held now",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "hidden",
   "files": [
    "components/ForumQueue.tsx"
@@ -6878,6 +6951,12 @@
   "key": "hold two or more live belts",
   "files": [
    "app/[locale]/titles/page.tsx"
+  ]
+ },
+ {
+  "key": "Holder",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -6956,6 +7035,7 @@
   "key": "How it ended",
   "files": [
    "components/ReportForm.tsx",
+   "components/UpdateQueue.tsx",
    "lib/correction-text.ts"
   ]
  },
@@ -7332,6 +7412,12 @@
   ]
  },
  {
+  "key": "Kind of champion",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "Knockdowns",
   "files": [
    "components/ui.tsx",
@@ -7606,6 +7692,12 @@
   "key": "last on {date}",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "last seen {date}",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -7891,7 +7983,8 @@
    "components/ReportForm.tsx",
    "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx",
-   "components/SocialQueue.tsx"
+   "components/SocialQueue.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -8595,6 +8688,12 @@
   ]
  },
  {
+  "key": "New title reigns",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "New to boxing?",
   "files": [
    "app/[locale]/learn/page.tsx"
@@ -8705,6 +8804,12 @@
   "key": "no",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "No",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -8907,6 +9012,12 @@
   ]
  },
  {
+  "key": "No longer true",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "No name is spelt exactly “{q}”. These are the closest names.",
   "files": [
    "components/ListFinder.tsx"
@@ -9103,7 +9214,14 @@
    "components/ContributeForm.tsx",
    "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx",
+   "components/UpdateQueue.tsx",
    "lib/correction-text.ts"
+  ]
+ },
+ {
+  "key": "Not accepted. It will not be raised again unless the source says something different.",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -9149,6 +9267,12 @@
   ]
  },
  {
+  "key": "Not on the page",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "Not signed in? Write to",
   "files": [
    "app/[locale]/data/page.tsx"
@@ -9187,7 +9311,8 @@
  {
   "key": "Note (needed to reject)",
   "files": [
-   "components/ReviewQueue.tsx"
+   "components/ReviewQueue.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -9248,7 +9373,8 @@
   "key": "Nothing here yet.",
   "files": [
    "components/ReportQueue.tsx",
-   "components/ReviewQueue.tsx"
+   "components/ReviewQueue.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -9273,7 +9399,8 @@
   "key": "Nothing is waiting.",
   "files": [
    "components/ReportQueue.tsx",
-   "components/ReviewQueue.tsx"
+   "components/ReviewQueue.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -9505,6 +9632,12 @@
   "key": "One-time code",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Only administrators can decide on source updates.",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -10670,6 +10803,12 @@
   ]
  },
  {
+  "key": "Read on",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "Read the preview",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
@@ -10856,6 +10995,18 @@
   ]
  },
  {
+  "key": "Reign began",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
+  "key": "Reign ended",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "reign still on the books",
   "files": [
    "app/[locale]/titles/[slug]/page.tsx"
@@ -10878,7 +11029,8 @@
   "key": "Reject",
   "files": [
    "components/ReportQueue.tsx",
-   "components/ReviewQueue.tsx"
+   "components/ReviewQueue.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -10985,7 +11137,8 @@
   "files": [
    "app/[locale]/review/forum/page.tsx",
    "app/[locale]/review/page.tsx",
-   "app/[locale]/review/reports/page.tsx"
+   "app/[locale]/review/reports/page.tsx",
+   "app/[locale]/review/updates/page.tsx"
   ]
  },
  {
@@ -11096,6 +11249,12 @@
   "key": "Reviewed by a person",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "revision {n}",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -11653,7 +11812,8 @@
  {
   "key": "Show",
   "files": [
-   "components/ReportQueue.tsx"
+   "components/ReportQueue.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -11778,7 +11938,14 @@
    "components/AccountPanel.tsx",
    "components/ReportQueue.tsx",
    "components/ReviewQueue.tsx",
-   "components/SocialQueue.tsx"
+   "components/SocialQueue.tsx",
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
+  "key": "Sign in as an administrator to decide on source updates.",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -12094,6 +12261,20 @@
   "key": "Source registry",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Source says",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
+  "key": "Source updates",
+  "files": [
+   "app/[locale]/review/page.tsx",
+   "app/[locale]/review/reports/page.tsx",
+   "app/[locale]/review/updates/page.tsx"
   ]
  },
  {
@@ -12566,7 +12747,8 @@
   "files": [
    "app/[locale]/review/forum/page.tsx",
    "app/[locale]/review/reports/page.tsx",
-   "app/[locale]/review/social/page.tsx"
+   "app/[locale]/review/social/page.tsx",
+   "app/[locale]/review/updates/page.tsx"
   ]
  },
  {
@@ -12934,6 +13116,12 @@
   ]
  },
  {
+  "key": "The data has changed since this was proposed, so nothing was applied. The next check will replace it.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
   "key": "The data has no current gym for {name}.",
   "files": [
    "lib/ask/tools.ts"
@@ -13001,6 +13189,12 @@
  },
  {
   "key": "The end date is before the start date.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
+  "key": "The entry this change is about is no longer held, so nothing was applied.",
   "files": [
    "lib/account-text.ts"
   ]
@@ -13813,6 +14007,12 @@
   ]
  },
  {
+  "key": "This change could not be applied.",
+  "files": [
+   "lib/account-text.ts"
+  ]
+ },
+ {
   "key": "This device",
   "files": [
    "components/AccountPanel.tsx"
@@ -14005,6 +14205,12 @@
    "app/[locale]/titles/[slug]/page.tsx",
    "app/[locale]/titles/page.tsx",
    "lib/search.ts"
+  ]
+ },
+ {
+  "key": "Title reigns no longer on the page",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -14757,7 +14963,8 @@
   "key": "Waiting",
   "files": [
    "components/ReportQueue.tsx",
-   "components/ReviewQueue.tsx"
+   "components/ReviewQueue.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -15615,6 +15822,12 @@
   ]
  },
  {
+  "key": "Won it from",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
   "key": "Won on the cards by {margin} points on average",
   "files": [
    "lib/fight-score.ts"
@@ -15730,6 +15943,18 @@
   "key": "yes",
   "files": [
    "app/[locale]/data/page.tsx"
+  ]
+ },
+ {
+  "key": "Yes",
+  "files": [
+   "components/UpdateQueue.tsx"
+  ]
+ },
+ {
+  "key": "Yes, approve",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
