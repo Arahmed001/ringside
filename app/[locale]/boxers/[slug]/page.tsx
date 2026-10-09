@@ -37,6 +37,10 @@ import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/gla
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
 import { lateRoundsOf, clearDecisionsOf } from "@/lib/late-rounds";
+import { opponentsLastFive } from "@/lib/opponents-last-five";
+import { reachIndex } from "@/lib/reach";
+import { finishRoundsOf } from "@/lib/finish-rounds";
+import { oppositionOf } from "@/lib/opposition";
 import { countryName, flag, fmtDate, fmtPartialDate, methodLabel, pct } from "@/lib/format";
 import { msg } from "@/lib/i18n/t";
 import { countsInRecord, isDecision, isStoppage } from "@/lib/methods";
@@ -83,6 +87,9 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const numbers = career.source === "loaded" ? numbersOf(bouts, b.id, (id) => w.eventById.get(id)) : null;
   const late = career.source === "loaded" ? lateRoundsOf(bouts, b.id) : null;
   const clearDec = career.source === "loaded" ? clearDecisionsOf(bouts, b.id) : null;
+  const lastFive = career.source === "loaded" ? opponentsLastFive(bouts, b.id, (id) => w.boutsByBoxer.get(id) ?? [], (id) => { const o = w.byId.get(id); return !!o && careerView(o).source === "loaded"; }) : null;
+  const finish = career.source === "loaded" ? finishRoundsOf(bouts, b.id) : null;
+  const opposition = career.source === "loaded" ? oppositionOf(bouts, b.id, (id) => w.boutPre.get(id)) : null;
   const duration = (days: number) => (days >= 730 ? t("{n} years", { n: (days / 365.25).toFixed(1) }) : days >= 60 ? t("{n} months", { n: Math.round(days / 30.4) }) : t.n(days, "{n} day", "{n} days"));
   const hl = (id: number) => { const x = w.boutById.get(id); return x ? fmtDate(x.date, { month: "short", year: "numeric" }, t.locale) : ""; };
   const hasHighlights = !!(highlights.bestWin || highlights.biggestUpset || highlights.longestStreak);
@@ -103,6 +110,8 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const similar = similarTo(b, w, 4);
   const news = await newsForFighter(w, b.id);
   const divBoxers = w.boxers.filter((x) => x.sex === b.sex && x.weightClass === b.weightClass && x.bouts >= 5);
+  const ape = reachIndex(b, divBoxers);
+  const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `\u2212${-n}` : "0");
   const norm = (v: number, arr: number[]) => { if (!arr.length) return 0.5; const mn = Math.min(...arr), mx = Math.max(...arr); return mx === mn ? 0.5 : (v - mn) / (mx - mn); };
   const radar = [
     { label: t("Power"), v: norm(b.koRate, divBoxers.map((x) => x.koRate)) },
@@ -250,7 +259,9 @@ const HONOURS_SHOWN = 8;
           <SectionTitle eyebrow={t("By the numbers")} title={t("Counted from every fight we hold")} />
           <div className="fill-row fill-4">
             {numbers.rounds !== null && <Stat label={t("Rounds boxed")} value={numbers.rounds} sub={t.n(numbers.fights, "{n} fight", "{n} fights")} />}
+            {opposition && <Stat label={t("Opposition faced")} value={Math.round(opposition.average)} sub={t("Average rating going in · toughest: {name}, {rating}", { name: t.name(w.byId.get(opposition.strongest.opponentId)?.name ?? ""), rating: Math.round(opposition.strongest.rating) })} />}
             <Stat label={t("Went the distance")} value={pct(numbers.distance.n / numbers.distance.of)} sub={t("{n} of {of} fights", { n: numbers.distance.n, of: numbers.distance.of })} />
+            {lastFive && <Stat label={t("Last five opponents")} value={`\u2066${lastFive.wins}-${lastFive.losses}${lastFive.draws ? `-${lastFive.draws}` : ""}\u2069`} sub={t("Their combined record going in: {w} wins, {l} losses", { w: lastFive.wins, l: lastFive.losses })} />}
             {numbers.quick !== null && numbers.quick > 0 && <Stat label={t("Quick wins")} value={numbers.quick} sub={t("Stopped an opponent in three rounds or fewer")} />}
             {numbers.countries.length > 0 && <Stat label={t("Fought in")} value={t.n(numbers.countries.length, "{n} country", "{n} countries")} sub={numbers.countries.slice(0, 3).map((c) => countryName(c.name, t.locale)).join(", ")} />}
             {numbers.venue && <Stat label={t("Most-fought venue")} value={t.n(numbers.venue.n, "{n} fight", "{n} fights")} sub={`${t.name(numbers.venue.name)}${numbers.venue.city ? `, ${t.name(numbers.venue.city)}` : ""}`} />}
@@ -259,6 +270,24 @@ const HONOURS_SHOWN = 8;
             {clearDec && <Stat label={t("Clear decisions")} value={pct(clearDec.unanimous / clearDec.wins)} sub={t("{u} of {w} decision wins were unanimous", { u: clearDec.unanimous, w: clearDec.wins })} />}
             {numbers.layoff && <Stat label={t("Longest layoff")} value={duration(numbers.layoff.days)} sub={t("{from} to {to}", { from: fmtDate(numbers.layoff.from, { month: "short", year: "numeric" }, t.locale), to: fmtDate(numbers.layoff.to, { month: "short", year: "numeric" }, t.locale) })} />}
           </div>
+          {finish && (
+            <div className="card mt-3 p-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <div className="text-xs uppercase tracking-widest text-muted">{t("When the stoppages come")}</div>
+                <div className="text-sm text-muted">{t("Average finish: round {avg} · most often round {round}", { avg: finish.average, round: finish.commonRound })}</div>
+              </div>
+              <ol className="ltr-fixed mt-3 flex h-24 items-end gap-1.5" aria-label={t("Stoppage wins by round")}>
+                {finish.byRound.map((n, i) => (
+                  <li key={i} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1 text-xs tabular text-muted" aria-label={t("Round {round}: {n}", { round: i + 1, n })}>
+                    <span className={n ? "text-ink" : "opacity-40"}>{n}</span>
+                    <span className={`w-full rounded-sm ${i + 1 === finish.commonRound ? "bg-red" : "bg-line"}`} style={{ height: `${Math.max(n ? 6 : 2, (n / Math.max(...finish.byRound)) * 52)}px` }} />
+                    <span>{i + 1}</span>
+                  </li>
+                ))}
+              </ol>
+              <div className="mt-2 text-xs text-muted">{finish.finishes < finish.stoppageWins ? t("{n} of {of} stoppage wins; the others have no round on record.", { n: finish.finishes, of: finish.stoppageWins }) : t.n(finish.finishes, "{n} stoppage win", "{n} stoppage wins")}</div>
+            </div>
+          )}
         </section>
       )}
 
@@ -402,7 +431,20 @@ const HONOURS_SHOWN = 8;
           <div className="eyebrow mb-1">{t("Scouting report")}</div>
           <ScoutingReport slug={b.slug} initial={rulesReport(b, w, t)} />
         </div>
-        <div className="card flex items-center justify-center p-5"><Radar axes={radar} /></div>
+        <div className="card flex flex-col items-center justify-center gap-4 p-5">
+          <Radar axes={radar} />
+          {ape && (
+            <div className="w-full border-t border-line/60 pt-4 text-sm">
+              <div className="text-xs uppercase tracking-widest text-muted">{t("Reach and height")}</div>
+              <div className="mt-1 flex items-baseline gap-2">
+                <bdi dir="ltr" className="font-display text-3xl font-bold tabular">{t("{n} cm", { n: signed(ape.diff) })}</bdi>
+                <span className="text-muted">{ape.diff > 0 ? t("reach is longer than height") : ape.diff < 0 ? t("reach is shorter than height") : t("reach equals height")}</span>
+              </div>
+              {ape.divisionDiff !== null && <div className="mt-1 text-xs text-muted">{t("Division average: {d}", { d: t("{n} cm", { n: signed(ape.divisionDiff) }) })} · {t.n(ape.peers, "{n} fighter measured", "{n} fighters measured")}</div>}
+              <div className="mt-1 text-xs text-muted">{t("{h} tall, {r} reach", { h: t("{n} cm", { n: ape.heightCm }), r: t("{n} cm", { n: ape.reachCm }) })}</div>
+            </div>
+          )}
+        </div>
       </section>
 
       <section id="form" className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
@@ -435,7 +477,7 @@ const HONOURS_SHOWN = 8;
       <section id="record">
         <SectionTitle eyebrow={t("Fight record")} title={t.n(completed.length, "{n} bout", "{n} bouts")} />
         <ScrollRegion className="card p-4" label={t("Fight record")}>
-          <table className="w-full" aria-label={t("Fight record")}><tbody>{(upcoming ? [upcoming, ...done] : done).map((x) => <BoutLine key={x.id} bout={x} focusId={b.id} context={opponentThen.get(x.id)} />)}</tbody></table>
+          <table className="w-full" aria-label={t("Fight record")}><tbody>{(upcoming ? [upcoming, ...done] : done).map((x) => <BoutLine key={x.id} bout={x} focusId={b.id} context={opponentThen.get(x.id)} event={w.eventById.get(x.eventId)} />)}</tbody></table>
         </ScrollRegion>
       </section>
       <section id="discussion">

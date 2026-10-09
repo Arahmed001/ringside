@@ -99,6 +99,12 @@
   ]
  },
  {
+  "key": "{a} scored · {b} suffered",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
   "key": "{a} vs {b}",
   "files": [
    "app/[locale]/bouts/[id]/opengraph-image.tsx",
@@ -329,6 +335,12 @@
   "key": "{gate} gate · {ppv} PPV · {n} cards",
   "files": [
    "app/[locale]/money/page.tsx"
+  ]
+ },
+ {
+  "key": "{h} tall, {r} reach",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -592,6 +604,13 @@
   ]
  },
  {
+  "key": "{n} fighters measured",
+  "plural": "{n} fighter measured",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{n} fights",
   "plural": "{n} fight",
   "files": [
@@ -749,6 +768,12 @@
   ]
  },
  {
+  "key": "{n} of {of} stoppage wins; the others have no round on record.",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{n} of {total} shown",
   "files": [
    "components/ListFinder.tsx"
@@ -856,6 +881,7 @@
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
    "app/[locale]/previews/[id]/page.tsx",
+   "components/ui.tsx",
    "lib/calendar.ts"
   ]
  },
@@ -863,6 +889,13 @@
   "key": "{n} still to come",
   "files": [
    "components/MyPicks.tsx"
+  ]
+ },
+ {
+  "key": "{n} stoppage wins",
+  "plural": "{n} stoppage win",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -3053,6 +3086,18 @@
   ]
  },
  {
+  "key": "Average finish: round {avg} · most often round {round}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Average rating going in · toughest: {name}, {rating}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Average rehydration (official → fight night)",
   "files": [
    "app/[locale]/weights/page.tsx"
@@ -4627,6 +4672,12 @@
   ]
  },
  {
+  "key": "Details of the fight against {name}",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
   "key": "Developers",
   "files": [
    "app/[locale]/developers/page.tsx"
@@ -4739,6 +4790,12 @@
    "components/RecordsFilter.tsx",
    "components/StyleMap.tsx",
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Division average: {d}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -5119,6 +5176,12 @@
   ]
  },
  {
+  "key": "Ended",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
   "key": "Ended in {date}",
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx"
@@ -5211,6 +5274,7 @@
  {
   "key": "Event",
   "files": [
+   "components/ui.tsx",
    "lib/ask/tools.ts"
   ]
  },
@@ -7169,6 +7233,7 @@
  {
   "key": "Knockdowns",
   "files": [
+   "components/ui.tsx",
    "lib/fight-score.ts"
   ]
  },
@@ -7370,6 +7435,12 @@
   "key": "Last fight: {result} against {opp}, {n} months ago.",
   "files": [
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "Last five opponents",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -9376,6 +9447,12 @@
   ]
  },
  {
+  "key": "Opposition faced",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Or start from the calendar",
   "files": [
    "app/[locale]/compare/page.tsx"
@@ -10390,9 +10467,33 @@
   ]
  },
  {
+  "key": "Reach and height",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Reach edge",
   "files": [
    "app/[locale]/analytics/page.tsx"
+  ]
+ },
+ {
+  "key": "reach equals height",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "reach is longer than height",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "reach is shorter than height",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -10909,13 +11010,21 @@
   "key": "Round {r}",
   "files": [
    "app/[locale]/bouts/[id]/page.tsx",
+   "components/ui.tsx",
    "lib/correction-text.ts"
   ]
  },
  {
   "key": "Round {r}, {time}",
   "files": [
-   "app/[locale]/bouts/[id]/page.tsx"
+   "app/[locale]/bouts/[id]/page.tsx",
+   "components/ui.tsx"
+  ]
+ },
+ {
+  "key": "Round {round}: {n}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -11061,6 +11170,12 @@
   "key": "scheduled",
   "files": [
    "lib/i18n/dynamic-keys.ts"
+  ]
+ },
+ {
+  "key": "Scheduled distance",
+  "files": [
+   "components/ui.tsx"
   ]
  },
  {
@@ -11948,6 +12063,12 @@
   "key": "Stoppage rate",
   "files": [
    "app/[locale]/people/page.tsx"
+  ]
+ },
+ {
+  "key": "Stoppage wins by round",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -13282,6 +13403,12 @@
   ]
  },
  {
+  "key": "Their combined record going in: {w} wins, {l} losses",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "their pages show the supplier's total and say the two disagree; lower is better",
   "files": [
    "lib/coverage.ts"
@@ -13584,7 +13711,8 @@
  {
   "key": "Title",
   "files": [
-   "components/StartThread.tsx"
+   "components/StartThread.tsx",
+   "components/ui.tsx"
   ]
  },
  {
@@ -14265,6 +14393,12 @@
   ]
  },
  {
+  "key": "Venue",
+  "files": [
+   "components/ui.tsx"
+  ]
+ },
+ {
   "key": "Venue data: Wikidata",
   "files": [
    "app/[locale]/events/[id]/page.tsx"
@@ -14698,6 +14832,12 @@
   "key": "When the model says 70%, is it right 70% of the time?",
   "files": [
    "app/[locale]/accountability/page.tsx"
+  ]
+ },
+ {
+  "key": "When the stoppages come",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
