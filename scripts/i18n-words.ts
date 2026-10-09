@@ -4,6 +4,7 @@
  *   npm run i18n:words -- suggest file.json        store { "Word": "Arabic" } as machine suggestions (never shown on a page; a reviewed word is never overwritten)
  *   npm run i18n:words -- export [file] [N]        write the offline review sheet (default review/name-words-review.html) for the N top words
  *   npm run i18n:words -- import file.json         read a reviewer's downloaded file: approved and edited words become reviewed
+ *   npm run i18n:words -- accept --yes             the owner accepts every machine suggestion as it stands: each becomes reviewed with source "owner-accepted" (a native reviewer's import later replaces it with source "reviewer")
  *   npm run i18n:words -- status                   counts: suggested, reviewed, and how many fighters have a name on a page
  * Set DATABASE_PATH to the database to count against (default data/ringside.db).
  */
@@ -40,6 +41,14 @@ function main() {
     console.log(`${added} suggestions stored, ${kept} reviewed words left alone, ${skipped} skipped (empty, or Latin letters left in).`);
     return;
   }
+  if (cmd === "accept") {
+    if (!process.argv.includes("--yes")) throw new Error("This marks every suggested word as accepted by the owner and shows the names on the site: run it with --yes if that is what you mean.");
+    let n = 0;
+    for (const e of Object.values(words)) if (!e.reviewed) { e.reviewed = true; e.source = "owner-accepted"; n++; }
+    writeWordsFile(words);
+    console.log(`${n} suggested words accepted by the owner (source "owner-accepted"; ${Object.values(words).filter((w) => w.reviewed).length} reviewed in all). Commit i18n/name-words.ar.json.`);
+    return;
+  }
   if (cmd === "import") {
     if (!a) throw new Error("usage: import file.json");
     const inc = (JSON.parse(fs.readFileSync(a, "utf8")) as { words?: Record<string, { ar: string; edited?: boolean }> }).words ?? {};
@@ -49,7 +58,8 @@ function main() {
       if (!ar || !HAS_ARABIC.test(ar) || /[A-Za-z]/.test(ar)) { bad++; continue; }
       const was = words[w];
       const changed = !was || was.ar !== ar;
-      words[w] = { ar, source: changed ? "reviewer" : was.source, reviewed: true };
+      void changed;
+      words[w] = { ar, source: "reviewer", reviewed: true };
       if (changed) edited++; else ok++;
     }
     writeWordsFile(words);

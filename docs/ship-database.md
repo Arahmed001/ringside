@@ -14,29 +14,30 @@ Do this after `vendor:enrich` and `post-load` are finished, so the file you ship
 
 ## On the host
 
-3. **Upload** (the last lines the pack command printed are these, with your folder name):
+3. **Upload.** Fly's upload shell has no `mkdir`, so make the folder first with a one-line command from your Mac (it runs on the host), then upload into it:
    ```
-   fly ssh sftp shell
-     mkdir /data/incoming
-     mkdir /data/incoming/<folder name>
+   fly ssh console -a YOURAPP -C "mkdir -p /data/incoming/<folder name>"
+   fly ssh sftp shell -a YOURAPP
      put ~/ringside-real/ship/<folder name>/ringside.db /data/incoming/<folder name>/ringside.db
      put ~/ringside-real/ship/<folder name>/checksums.sha256 /data/incoming/<folder name>/checksums.sha256
+     ls /data/incoming/<folder name>
    ```
-   *You should see* both files go up. This takes a few minutes for a large file.
-4. **Open a console and check what arrived.**
+   The `put` and `ls` lines are typed at the `»` prompt of the upload shell, **in the terminal pane**: they are not commands for any other shell. *You should see* both files listed with the sizes the pack printed. This takes a minute for a 25 MB file. Tried on 2026-10-09 on the owner's app: a `put` into a folder that does not exist answers "file does not exist"; `mkdir` in the upload shell answers "unrecognized command".
+4. **Check what arrived.** Each line runs on the host through your Mac (no console to open; you can also type the part inside the quotes in `fly ssh console`). Run one at a time:
    ```
-   fly ssh console
-   chown -R node:node /data/incoming
-   su node -c "cd /app && npm run backup -- verify /data/incoming/<folder name>"
+   fly ssh console -a YOURAPP -C "chown -R node:node /data/incoming"
+   fly ssh console -a YOURAPP -C "su node -c 'cd /app && npm run backup -- verify /data/incoming/<folder name>'"
    ```
    *You should see* `backup is good: every database opens, passes integrity_check, has its tables and matches its checksums`. If a checksum does not match, the upload was cut short: delete the folder and upload again.
 5. **Look first (changes nothing).**
-   `su node -c "cd /app && npm run backup -- restore /data/incoming/<folder name> --dry-run --even-if-running"`
-   *You should see* `verifies`, `the backup has no accounts.db: the current accounts.db is left exactly as it is`, `would copy the current data to /data/backups/before-restore/<time> first`, one `would replace ... ringside.db` line, and `dry run: nothing was changed`. (`--even-if-running` is needed because the site is the container's main program and cannot be stopped from inside it; it is safe here because no visitors or accounts exist yet.)
-6. **Restore.** The same command without `--dry-run`. *You should see* `saved the current data to ... (checked)`, `replaced ringside.db`, a `now in place:` line with the fighter, fight and card counts, `integrity ok`, and `Restored.` **Copy down the `To undo` line it prints.**
-7. **Restart the site** so it opens the new file: leave the console (`exit`), then `fly machine restart`. The first start can take up to two minutes (it builds its tables before accepting visitors).
-8. **Check it.** Open `https://YOURAPP.fly.dev/api/health`: *`"status":"ok"`* and counts that match step 1. Open a fighter page and the rankings. In `fly ssh console`: `su node -c "cd /app && npm run doctor -- --production"` should show no failure lines.
-9. **Tidy.** `rm -r /data/incoming/<folder name>` (it is a copy; the live file is `/data/ringside.db`).
+   `fly ssh console -a YOURAPP -C "su node -c 'cd /app && npm run backup -- restore /data/incoming/<folder name> --dry-run --even-if-running'"`
+   *You should see* `verifies`, `the backup has no accounts.db: the current accounts.db is left exactly as it is`, `would copy the current data to /data/backups/before-restore/<time> first`, one `would replace /data/real.db` line (the restore writes to whatever `DATABASE_PATH` names; on the owner's app that is `/data/real.db`, and a `/data/ringside.db` beside it is the first deploy's empty demo that the site does not use) and `dry run: nothing was changed`. (`--even-if-running` is needed because the site is the container's main program and cannot be stopped from inside it; it is safe here because no visitors or accounts exist yet.)
+6. **Restore.** The same command without `--dry-run`. *You should see* `saved the current data to ... (checked)`, `replaced real.db`, a `now in place:` line with the fighter, fight and card counts, `integrity ok`, and `Restored.` **Copy down the `To undo` line it prints.** Running it twice is harmless, but the undo folder to keep is the first one's.
+7. **Restart the site** so it opens the new file: `fly machine restart <machine id> -a YOURAPP` (with no id it asks you to pick the machine and wants Enter pressed in the terminal). The first start can take up to two minutes (it builds its tables before accepting visitors).
+8. **Check it.** Open `https://YOURAPP.fly.dev/api/health`: *`"status":"ok"`*, counts that match step 1 and an `updatedAt` equal to the load time of the file you packed. Open a fighter page and the rankings.
+9. **Tidy.** `fly ssh console -a YOURAPP -C "rm -r /data/incoming/<folder name>"` (it is a copy; the live file is `/data/real.db`).
+
+Code and data are shipped separately: `fly deploy --ha=false -a YOURAPP` (from a checkout of `main`) puts the latest code on the host, and this guide puts the database there. Deploy first, then ship.
 
 ## If something is wrong
 
