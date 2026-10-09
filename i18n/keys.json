@@ -655,6 +655,13 @@
   ]
  },
  {
+  "key": "{n} fights that reached round 8",
+  "plural": "{n} fight that reached round 8",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{n} headlines",
   "plural": "{n} headline",
   "files": [
@@ -1764,6 +1771,12 @@
   "key": "{title}: {who} leads with {value} ({basis}).",
   "files": [
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "{u} of {w} decision wins were unanimous",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -3983,6 +3996,12 @@
   "key": "Clear all your picks from this browser?",
   "files": [
    "components/MyPicks.tsx"
+  ]
+ },
+ {
+  "key": "Clear decisions",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
@@ -10593,6 +10612,12 @@
    "components/StyleMap.tsx",
    "lib/ask/tools.ts",
    "lib/preview.ts"
+  ]
+ },
+ {
+  "key": "Record in late rounds",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
