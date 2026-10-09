@@ -49,6 +49,14 @@ Without the key the videos are skipped and the headlines still refresh. The key 
 
 **How it plays:** the page shows the channel, the title and a "Play the video" button, and nothing else. No request goes to YouTube or Google while the page is just open (no picture, no script, no frame; checked in a real browser: zero requests before the press, then YouTube's privacy-enhanced player, `youtube-nocookie.com`, in a sandboxed frame). The content security policy allows that one frame source and no other, and the privacy page says what YouTube can see after a press of play.
 
-## Social posts (X, Instagram): not built
+## Chosen posts (YouTube, X, Reddit, Instagram, Facebook)
 
-Their embeds need a script from the platform on the page, and neither lets a site discover a fighter's posts without a paid or approved API key. The honest way is a short list, kept by an editor, of specific posts by verified accounts, each opened by a click like the videos. It is a possible later round; nothing of it is in the code.
+An editor or administrator chooses specific public posts; the site cannot find posts by itself (every platform's search is a paid or approved API, and scraping is against their terms, which this site does not do).
+
+1. Sign in as an editor and open **/review/social** ("Chosen posts").
+2. Paste the link to one post by an account you have checked is the real one, say where it shows (a fighter's page: the last part of that page's address; a card's page: its number; or the news page), and optionally the account's name and a short note.
+3. The link is checked on the server: only a link to one public post on youtube.com / youtu.be, x.com / twitter.com (`/handle/status/ID`), reddit.com (`/r/sub/comments/ID`), instagram.com (`/p|reel|tv/CODE`) or facebook.com (`/page/posts/ID`, `/videos/`, `/reel/`, `/watch/?v=`, `permalink.php`) is accepted. The address in the frame is built from the checked parts, never from the pasted text. A place shows at most six posts; the same post is added once per place; removing one takes effect at once; every add and removal is in the audit log.
+
+**What a visitor sees:** the platform's name, the account, your note and a "Show the post" button. Nothing is requested from the platform until they press it (checked in a real browser: no request before the press). Then that platform's own embed opens in a sandboxed frame, one at a time per list. The content security policy allows exactly five frame hosts (`www.youtube-nocookie.com`, `platform.twitter.com`, `embed.reddit.com`, `www.instagram.com`, `www.facebook.com`) and no others; the privacy page lists each and what it can see after a press.
+
+**Limits:** a post its author deletes, or an account that becomes private, shows the platform's own "unavailable" in the frame; remove it. Instagram and Facebook may ask a visitor to sign in to view some posts. Reddit's and Instagram's embed addresses were checked to answer and to allow framing, but with no real post to try the Reddit and Instagram cards show the platform's generic page; try one real post of each before relying on it.

@@ -181,7 +181,7 @@ test("nothing is loaded from another website that runs or styles the page, and t
   for (const d of csp.split("; ")) {
     const [name, ...vals] = d.split(" ");
     if (name === "img-src") continue; // pictures may come from https hosts: the page says which
-    if (name === "frame-src") { assert.equal(vals.join(" "), "https://www.youtube-nocookie.com", "the one frame, opened only by a press of play (CLICK_TO_LOAD on the privacy page)"); continue; }
+    if (name === "frame-src") { const { CLICK_TO_LOAD } = await import("../lib/privacy"); const { EMBED_HOSTS } = await import("../lib/social/post"); assert.deepEqual(vals.map((v) => v.replace("https://", "")).sort(), Object.values(EMBED_HOSTS).sort(), "one host per platform"); assert.deepEqual(Object.values(EMBED_HOSTS).filter((h) => !CLICK_TO_LOAD.some((c) => c.host === h)), [], "each is declared on the privacy page as opened only by a press"); continue; }
     assert.ok(!vals.some((v) => /^(https?:|\*|[a-z0-9-]+\.[a-z]{2,})/i.test(v) && !v.startsWith("'")), `${name} allows another origin: ${vals.join(" ")}`);
   }
   assert.match(csp, /img-src [^;]*https:/, "the one allowance, which the page explains");

@@ -1,3 +1,4 @@
+import { EMBED_HOSTS } from "../lib/social/post";
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -18,7 +19,7 @@ test("the production policy lets only nonced scripts run and nothing be framed, 
   assert.ok(contentSecurityPolicy({ nonce: "n", https: true }).includes("upgrade-insecure-requests"));
   assert.ok(!/ws:/.test(csp), "no websockets in production");
   assert.ok(!/(?:script|style|font|connect)-src[^;]*https:/.test(csp.replace(/img-src[^;]*/, "")), "no third-party script, style, font or connection is allowed");
-  assert.equal(directive(csp, "frame-src"), "frame-src https://www.youtube-nocookie.com", "the only frame: YouTube's privacy-enhanced player, opened by a press of play");
+  assert.equal(directive(csp, "frame-src"), `frame-src ${Object.values(EMBED_HOSTS).map((h) => `https://${h}`).join(" ")}`, "the only frames: the five platforms' own players and embeds, each opened by a press of a button");
 });
 
 test("development loosens exactly what Next's tooling needs", () => {

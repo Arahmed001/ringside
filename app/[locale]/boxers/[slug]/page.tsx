@@ -34,6 +34,8 @@ import { Discussion } from "@/components/Discussion";
 import { NewsList } from "@/components/NewsList";
 import { newsForFighter, videosForFighter } from "@/lib/news/read";
 import { Videos } from "@/components/Videos";
+import { Social } from "@/components/Social";
+import { postsFor } from "@/lib/social/store";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
@@ -101,6 +103,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const similar = similarTo(b, w, 4);
   const news = await newsForFighter(w, b.id);
   const videos = await videosForFighter(w, b.id);
+  const posts = postsFor("boxer", b.slug);
   const divBoxers = w.boxers.filter((x) => x.sex === b.sex && x.weightClass === b.weightClass && x.bouts >= 5);
   const norm = (v: number, arr: number[]) => { if (!arr.length) return 0.5; const mn = Math.min(...arr), mx = Math.max(...arr); return mx === mn ? 0.5 : (v - mn) / (mx - mn); };
   const radar = [
@@ -241,7 +244,7 @@ const HONOURS_SHOWN = 8;
         ...(numbers && numbers.fights >= 5 ? [{ id: "numbers", label: t("By the numbers") }] : []),
         ...(hasHighlights ? [{ id: "highlights", label: t("Career highlights") }] : []),
         { id: "profile", label: t("Profile") }, { id: "scouting", label: t("Scouting report") }, { id: "form", label: t("Rating history") },
-        { id: "similar", label: t("Style similarity") }, ...(news.length ? [{ id: "news", label: t("In the news") }] : []), ...(videos.length ? [{ id: "videos", label: t("Official videos") }] : []), { id: "record", label: t("Fight record") }, { id: "discussion", label: t("Discussion") },
+        { id: "similar", label: t("Style similarity") }, ...(news.length ? [{ id: "news", label: t("In the news") }] : []), ...(videos.length ? [{ id: "videos", label: t("Official videos") }] : []), ...(posts.length ? [{ id: "posts", label: t("Posts") }] : []), { id: "record", label: t("Fight record") }, { id: "discussion", label: t("Discussion") },
       ]} />
 
       {numbers && numbers.fights >= 5 && (
@@ -433,6 +436,13 @@ const HONOURS_SHOWN = 8;
         <section id="videos">
           <SectionTitle eyebrow={t("Official videos")} title={t("From the promoters' and networks' own channels")} href="/news" cta={t("All headlines")} />
           <Videos items={videos} t={t} />
+        </section>
+      )}
+
+      {posts.length > 0 && (
+        <section id="posts">
+          <SectionTitle eyebrow={t("Posts")} title={t("Chosen from official accounts")} />
+          <Social items={posts} t={t} />
         </section>
       )}
 

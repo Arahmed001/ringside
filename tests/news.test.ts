@@ -1,3 +1,4 @@
+import { EMBED_HOSTS } from "../lib/social/post";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
@@ -133,9 +134,9 @@ test("official videos: every channel is a YouTube channel id that says so, a vid
 
 import fs from "node:fs";
 import { contentSecurityPolicy } from "../lib/security";
-test("the only frame a page may hold is YouTube's privacy-enhanced player, the player loads nothing until play, and the embeds for other sites hold no frame", () => {
+test("the only frames a page may hold are the five platforms' own players and embeds (one host each), each loads nothing until a press, and the embeds for other sites hold no frame", () => {
   const csp = contentSecurityPolicy({ nonce: "abc" }), emb = contentSecurityPolicy({ nonce: "abc", embed: true });
-  assert.match(csp, /frame-src https:\/\/www\.youtube-nocookie\.com(;|$)/); assert.match(emb, /frame-src 'none'/); assert.match(csp, /frame-ancestors 'none'/);
+  assert.ok(csp.split("; ").includes(`frame-src ${Object.values(EMBED_HOSTS).map((h) => `https://${h}`).join(" ")}`)); assert.match(emb, /frame-src 'none'/); assert.match(csp, /frame-ancestors 'none'/);
   const c = fs.readFileSync("components/VideoList.tsx", "utf8");
   assert.match(c, /youtube-nocookie\.com\/embed\//); assert.ok(!/youtube\.com\/embed|ytimg|i\.ytimg|<img|<script/.test(c), "no picture, script or ordinary youtube.com frame");
   assert.match(c, /open === v\.videoId \? \(/, "the frame exists only after the visitor opens that video"); assert.match(c, /sandbox=/);

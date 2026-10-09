@@ -87,6 +87,14 @@ CREATE TABLE IF NOT EXISTS forum_reports (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS uq_forum_report_once ON forum_reports(post_id, user_id) WHERE user_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_forum_reports_open ON forum_reports(status, post_id);
+-- Public posts (YouTube, X, Reddit, Instagram, Facebook) that an editor chose to show, each as the platform's own embed behind a button. provider + post_id is the post; the
+-- link itself is rebuilt from checked parts (lib/social/post.ts). subject_kind says where it shows: a fighter (slug), a card (event id), or the news page (general).
+CREATE TABLE IF NOT EXISTS social_posts (
+  id INTEGER PRIMARY KEY, provider TEXT NOT NULL CHECK (provider IN ('youtube','x','reddit','instagram','facebook')), post_id TEXT NOT NULL, url TEXT NOT NULL,
+  subject_kind TEXT NOT NULL CHECK (subject_kind IN ('boxer','event','general')), subject_ext TEXT, account TEXT, note TEXT,
+  added_by INTEGER REFERENCES users(id) ON DELETE SET NULL, added_at TEXT NOT NULL, UNIQUE (provider, post_id, subject_kind, subject_ext)
+);
+CREATE INDEX IF NOT EXISTS idx_social_subject ON social_posts(subject_kind, subject_ext, added_at);
 CREATE TABLE IF NOT EXISTS audit (
   id INTEGER PRIMARY KEY, at TEXT NOT NULL, actor TEXT, action TEXT NOT NULL, target TEXT, detail TEXT
 );

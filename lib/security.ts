@@ -12,7 +12,12 @@
  *  - `'unsafe-eval'`, `ws:` and inline styles only in development (React's debugging, hot reload, Next's error overlay).
  *  - nothing from a third party is loaded as a script, a style, a font or a frame.
  */
+import { EMBED_HOSTS } from "./social/post";
+
 export interface CspOptions { nonce: string; dev?: boolean; https?: boolean; /** a page made to be framed by other sites (`/embed/...`): the only kind that may be */ embed?: boolean }
+
+/** The hosts whose frames a page may hold, one per platform whose posts an editor may choose to show (lib/social/post.ts); each frame opens only after a press of a button. */
+const FRAME_HOSTS = Object.values(EMBED_HOSTS).map((h) => `https://${h}`).join(" ");
 
 export function contentSecurityPolicy({ nonce, dev = false, https = false, embed = false }: CspOptions): string {
   const d = [
@@ -29,7 +34,7 @@ export function contentSecurityPolicy({ nonce, dev = false, https = false, embed
     ["base-uri", "'self'"],
     ["form-action", "'self'"],
     // the only frame a page here may hold: YouTube's privacy-enhanced player, which a visitor opens by pressing play (components/VideoList.tsx); the embeds for other sites hold none
-    ["frame-src", embed ? "'none'" : "https://www.youtube-nocookie.com"],
+    ["frame-src", embed ? "'none'" : FRAME_HOSTS],
     ["frame-ancestors", embed ? "*" : "'none'"],
     ["manifest-src", "'self'"],
   ].map(([k, v]) => `${k} ${v}`);
