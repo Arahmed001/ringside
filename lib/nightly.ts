@@ -7,6 +7,7 @@ import {
   exitMeaning, nextSlot, parseSchedule, publicNightly, statusPath, writeStatus,
   type NightlyEnv, type NightlyResult, type NightlyStatus, type StepName, type StepResult,
 } from "./nightly-status";
+import { isDue, parseWatchSources, type WatchPlan } from "./watch/schedule";
 
 /**
  * The nightly job, run inside the one container that holds the data volume (docs/nightly.md). Three steps, under one lock:
@@ -25,13 +26,15 @@ export const DEFAULT_CHILD_NODE_OPTIONS = "--max-old-space-size=768";
 export const DEFAULT_MALLOC_ARENA_MAX = "2";
 export const DEFAULT_OFFSITE_TIMEOUT_MIN = 30;
 export const UPDATE_TIMEOUT_MS = 4 * 3_600_000;
+/** one source's look: a few page fetches a second apart, so half an hour is far more than it needs */
+export const WATCH_TIMEOUT_MS = 30 * 60_000;
 /** A lock older than this belongs to a run that died (no run lasts so long); it also covers a pid that a restarted container has given to something else. */
 export const LOCK_STALE_MS = 6 * 3_600_000;
 
 type Env = Record<string, string | undefined>;
 const ROOT = path.resolve(__dirname, "..");
 
-export interface NightlyConfig { keep: number; offsiteCmd: string | null; offsiteTimeoutMs: number; childNodeOptions: string; schedule: { hour: number; minute: number } | null; updateArgs: string[]; warnings: string[] }
+export interface NightlyConfig { keep: number; offsiteCmd: string | null; offsiteTimeoutMs: number; childNodeOptions: string; schedule: { hour: number; minute: number } | null; updateArgs: string[]; watch: WatchPlan; warnings: string[] }
 /** Reads the settings. A value that is not usable is ignored with a warning (the job never refuses to run for a typo in an option). */
 export function configFromEnv(s: Partial<NightlyEnv>): NightlyConfig {
   const warnings: string[] = [];
@@ -47,10 +50,12 @@ export function configFromEnv(s: Partial<NightlyEnv>): NightlyConfig {
   }
   const schedule = parseSchedule(s.NIGHTLY_SCHEDULE);
   if (s.NIGHTLY_SCHEDULE?.trim() && !schedule) warnings.push(`NIGHTLY_SCHEDULE="${s.NIGHTLY_SCHEDULE}" is not HH:MM (UTC, 24 hours): the scheduler stays off.`);
+  const watch = parseWatchSources(s.WATCH_SOURCES);
+  warnings.push(...watch.warnings);
   return {
     keep, offsiteCmd: s.NIGHTLY_OFFSITE_CMD?.trim() || null, offsiteTimeoutMs: Math.round(min * 60_000),
     childNodeOptions: s.NIGHTLY_NODE_OPTIONS?.trim() || DEFAULT_CHILD_NODE_OPTIONS, schedule,
-    updateArgs: (s.RINGSIDE_NIGHTLY_UPDATE_ARGS ?? "").split(/\s+/).filter(Boolean), warnings,
+    updateArgs: (s.RINGSIDE_NIGHTLY_UPDATE_ARGS ?? "").split(/\s+/).filter(Boolean), watch, warnings,
   };
 }
 
@@ -157,6 +162,9 @@ export interface NightlyOptions {
   /** tests: replace the update's command (default: node --import tsx scripts/vendor-backfill.ts --update ...) */
   updateCommand?: { file: string; args: string[] };
   updateTimeoutMs?: number;
+  /** tests: replace the command that looks at one source (default: node --import tsx scripts/watch.ts --source <name> ...) */
+  watchCommand?: (source: string) => { file: string; args: string[] };
+  watchTimeoutMs?: number;
   sampleMs?: number;
 }
 export interface NightlyOutcome { exitCode: number; status: NightlyStatus | null }
@@ -244,6 +252,33 @@ export async function runNightly(o: NightlyOptions): Promise<NightlyOutcome> {
       }
     }
 
+    // ---- 2b. look at public sources for changes (optional: WATCH_SOURCES). It only stores proposals for an administrator; it never changes what the site shows,
+    // and a failure here is a warning in the status, never a reason to fail the night or to skip the off-host copy.
+    if (cfg.watch.watched.length) {
+      const due = cfg.watch.watched.filter((w) => isDue(w, now()));
+      if (aborted()) record("watch", { exitCode: null, ok: false, skipped: true, message: "stopped before the watch began", seconds: 0 });
+      else if (!due.length) record("watch", { exitCode: null, ok: true, skipped: true, message: `nothing due tonight (${cfg.watch.watched.map((w) => `${w.id.split(":").pop()}:${w.every}`).join(", ")}; weekly sources run on Mondays, UTC)`, seconds: 0 });
+      else {
+        const t0 = Date.now(); const parts: string[] = []; let worst = 0;
+        for (const w of due) {
+          const name = w.id.split(":").pop()!;
+          if (aborted()) { parts.push(`${name}: stopped`); worst ||= 1; break; }
+          const cmd = o.watchCommand ? o.watchCommand(name) : { file: process.execPath, args: ["--import", "tsx", "scripts/watch.ts", "--source", name, "--cache-dir", path.join(dataDir, "wikipedia-cache")] };
+          const seen: string[] = [];
+          const out = await runChild({
+            file: cmd.file, args: cmd.args, cwd: root, timeoutMs: o.watchTimeoutMs ?? WATCH_TIMEOUT_MS, signal: o.signal,
+            env: { ...o.env, NODE_OPTIONS: cfg.childNodeOptions, MALLOC_ARENA_MAX: o.env.MALLOC_ARENA_MAX ?? DEFAULT_MALLOC_ARENA_MAX },
+            onLine: (l) => { if (l.trim()) { seen.push(l.trim()); say(`  | watch: ${oneLine(l, 300)}`); } },
+          });
+          const code = out.spawnError ? 1 : out.timedOut ? 124 : out.code ?? signalNumber(out.signal) ?? 1;
+          const summary = [...seen].reverse().find((l) => /^proposals: |^not proposed from /.test(l)) ?? "";
+          parts.push(`${name}: ${out.spawnError ? "could not start" : out.timedOut ? "timed out" : code === 0 ? (summary || "looked, nothing to report") : code === 3 ? `a list was refused (${summary || "see the log"})` : `failed (exit ${code}): ${seen[seen.length - 1] ?? "no output"}`}`);
+          if (code !== 0) worst ||= code;
+        }
+        record("watch", { exitCode: worst, ok: worst === 0, message: parts.join("; "), seconds: Math.round((Date.now() - t0) / 100) / 10 });
+      }
+    }
+
     // ---- 3. off-host copy ----
     if (!cfg.offsiteCmd) record("offsite", { exitCode: null, ok: true, skipped: true, message: "NIGHTLY_OFFSITE_CMD is not set: the backup stays on this volume only", seconds: 0 });
     else if (!backupDir) record("offsite", { exitCode: null, ok: false, skipped: true, message: "no verified backup to copy tonight", seconds: 0 });
@@ -263,13 +298,13 @@ export async function runNightly(o: NightlyOptions): Promise<NightlyOutcome> {
     }
   } finally {
     const get = (n: StepName) => status.steps.find((s) => s.name === n);
-    const upd = get("update"), bak = get("backup"), off = get("offsite");
+    const upd = get("update"), bak = get("backup"), off = get("offsite"), wat = get("watch");
     const interrupted = aborted();
     let exitCode = 0, result: NightlyResult = "ok";
     if (interrupted) { exitCode = 130; result = "interrupted"; }
     else if (upd && !upd.ok) { exitCode = upd.exitCode ?? 1; result = "failed"; }
     else if (bak && !bak.ok) { exitCode = 1; result = "failed"; }
-    else if (off && !off.ok && !off.skipped) result = "warning";
+    else if ((off && !off.ok && !off.skipped) || (wat && !wat.ok && !wat.skipped)) result = "warning";
     const end = now();
     Object.assign(status, { finished: end.toISOString(), result, exitCode, exitMeaning: exitMeaning(exitCode), next: cfg.schedule ? nextSlot(end, cfg.schedule).toISOString() : null });
     save();

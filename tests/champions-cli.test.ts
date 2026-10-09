@@ -11,7 +11,7 @@ import { DatabaseSync } from "node:sqlite";
 const root = fs.mkdtempSync(path.join(os.tmpdir(), "champions-cli-"));
 after(() => fs.rmSync(root, { recursive: true, force: true }));
 const fx = (n: string) => fs.readFileSync(path.join(process.cwd(), "tests", "fixtures", "wikipedia", n), "utf8");
-const pages: Record<string, string> = { List_of_WBO_world_champions: fx("wbo-excerpt.wikitext"), List_of_IBF_world_champions: fx("ibf-excerpt.wikitext") };
+let pages: Record<string, string> = { List_of_WBO_world_champions: fx("wbo-excerpt.wikitext"), List_of_IBF_world_champions: fx("ibf-excerpt.wikitext") };
 const requests: string[] = [];
 let server: http.Server, url = "";
 before(async () => {
@@ -57,7 +57,30 @@ test("it stores the reigns, says how many were linked and what to do when none w
   const again = await run(["--org", "WBO,IBF"]);
   assert.equal(again.code, 0, again.out);
   assert.equal(requests.filter((q) => q.startsWith("parse")).length, n, "the pages came from the cache");
-  assert.match(again.out, /129 reigns/);
+  assert.match(again.out, /129 reign\(s\) are already held for (?:IBF, WBO|WBO, IBF): looking for differences instead of replacing them/);
+  assert.match(again.out, /129 rows compared, 0 difference\(s\)/);
+});
+
+test("once reigns are held, the import only proposes: a changed page changes nothing live and leaves a proposal for an administrator; --apply-all replaces, and is logged", async () => {
+  const original = { ...pages };
+  pages = { ...pages, List_of_WBO_world_champions: pages.List_of_WBO_world_champions.replace("|11 Jan – 28 Dec 1991", "|11 Jan – 29 Dec 1991") };
+  try {
+    const held = () => { const db = new DatabaseSync(path.join(root, "r.db"), { readOnly: true }); try { return (db.prepare("SELECT end_date e FROM title_reigns WHERE name = 'Ray Mercer' AND org = 'WBO'").get() as { e: string }).e; } finally { db.close(); } };
+    const r = await run(["--org", "WBO,IBF", "--refresh"]);
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /1 difference\(s\)/); assert.match(r.out, /proposals: 1 new/); assert.match(r.out, /Decide on them at \/review\/updates/);
+    assert.equal(held(), "1991-12-28", "nothing live changed");
+    const acc = new DatabaseSync(path.join(root, "accounts.db"), { readOnly: true });
+    assert.equal((acc.prepare("SELECT COUNT(*) c FROM proposals WHERE status = 'pending'").get() as { c: number }).c, 1);
+    acc.close();
+    const all = await run(["--org", "WBO,IBF", "--refresh", "--apply-all"]);
+    assert.equal(all.code, 0, all.out);
+    assert.match(all.out, /--apply-all: 129 held reign\(s\) replaced by 129 from the pages, without approval \(logged\)/);
+    assert.equal(held(), "1991-12-29");
+    const acc2 = new DatabaseSync(path.join(root, "accounts.db"), { readOnly: true });
+    assert.deepEqual((acc2.prepare("SELECT actor, action, target FROM audit WHERE action = 'update.apply_all'").all() as object[]).map((x) => ({ ...x })), [{ actor: "operator", action: "update.apply_all", target: "wikipedia:champions" }]);
+    acc2.close();
+  } finally { pages = original; }
 });
 
 test("--link-only needs no network, and an unknown body is refused", async () => {

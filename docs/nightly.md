@@ -20,6 +20,7 @@ Set these in the host's environment for the one service, next to the ones the up
 | `NIGHTLY_OFFSITE_TIMEOUT_MIN` | stop that command after this many minutes | 30 |
 | `NIGHTLY_JITTER_MIN` | random delay added to the time, 0 to 60 minutes | 5 |
 | `NIGHTLY_NODE_OPTIONS` | Node options for the update process only | `--max-old-space-size=768` |
+| `WATCH_SOURCES` | which public sources to look at for changes, and how often: `champions`, `champions:nightly` or `champions:weekly` (Mondays, UTC), comma-separated (section 2b). Needs `WIKIMEDIA_CONTACT` in the same environment. | none: nothing is watched |
 
 `DATABASE_PATH` is already `/data/ringside.db` in the image; the job works in `/data` (backups in `/data/backups`, the vendor cache in `/data/vendor-cache`, the status file `/data/nightly-status.json`). The container still runs as the non-root `node` user and opens no new port.
 
@@ -33,10 +34,17 @@ One lock (`ringside-nightly.lock` in `RINGSIDE_LOCK_DIR`, default the temp folde
 
 1. **A verified backup** of both databases (and `model-fit.json`) into `/data/backups/<time>/`: the same folder the `npm run backup` command makes, checked with `integrity_check` and the checksum list. Only after it verifies, the oldest dated folders beyond `NIGHTLY_KEEP` are removed. Only folders named like a backup this tool writes are ever removed: `before-restore/` (the safety copies a restore makes), a folder you made by hand, and loose files stay. A copy that fails its checks is discarded and removes nothing.
 2. **The update**: `vendor:backfill -- --update --cache-dir /data/vendor-cache --no-backup`, run as a child process with the container's own environment. It is the runbook's in-container form; `--no-backup` is the only addition, because step 1 has just made a better (complete) backup.
-3. **The off-host copy**, if `NIGHTLY_OFFSITE_CMD` is set.
-4. **The status file**, rewritten after every step so a job killed half-way leaves a true account of how far it got.
+3. **The watch**, if `WATCH_SOURCES` is set (section 2b).
+4. **The off-host copy**, if `NIGHTLY_OFFSITE_CMD` is set.
+5. **The status file**, rewritten after every step so a job killed half-way leaves a true account of how far it got.
 
 **Why the backup comes first and is always taken.** The update is the only step that changes the data, so the copy that matters is the one from just before it. Taking it only after a successful update would leave no fresh copy on exactly the nights something is wrong with the vendor's data. The update still runs when the backup failed (it is one transaction and repeatable, and a stale site is the worse risk); the failure is recorded and the job exits 1.
+
+### 2b. Watching public sources for changes
+
+With `WATCH_SOURCES=champions` (or `champions:weekly`) the job also looks at the Wikipedia lists of world champions after the update: it compares them with the reigns the site holds and stores every difference as a **proposal**. It never changes what the site shows. An administrator decides on each at `/review/updates`; see [accounts.md](accounts.md#source-updates-administrators) and PLAN 253. Weekly means Mondays (UTC). The step is a **warning at worst**: if a list was refused (a page that changed shape, an empty read), the look failed or the contact is missing, the night's result is `warning` with the reason in the step's message, and neither the update before it nor the off-host copy after it is affected. `/api/health` shows `data.updatesWaiting` when proposals are waiting. By hand: `npm run watch -- --source champions` (`--dry-run` shows the differences without storing them).
+
+`npm run champions:import` follows the same rule once reigns are held: it only proposes. `--apply-all` replaces the stored reigns at once, without approval, and is logged as `update.apply_all` in the audit log.
 
 ## 3. Exit codes (the ones from PLAN.md section 224)
 

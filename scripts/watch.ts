@@ -14,6 +14,7 @@ import { accountsDb } from "../lib/accounts/store";
 import { CHAMPION_SOURCES } from "../lib/importers/wikipedia-champions";
 import { SOURCES, runWatch } from "../lib/watch/run";
 import { listProposals } from "../lib/watch/proposals";
+import { reportLines } from "../lib/watch/report";
 
 const arg = (k: string) => { const i = process.argv.indexOf(`--${k}`); return i > -1 ? process.argv[i + 1] : undefined; };
 const flag = (k: string) => process.argv.includes(`--${k}`);
@@ -35,9 +36,7 @@ async function main() {
     main, log: (m) => console.log(m), championSources: CHAMPION_SOURCES.filter((x) => !orgs || orgs.includes(x.org)),
     fetch: { refresh: flag("refresh"), gapMs: Number(arg("gap-ms") ?? 1500), cacheDir: path.resolve(arg("cache-dir") ?? path.join(process.cwd(), "data", "wikipedia-cache")) },
   }, acc, { dryRun });
-  console.log(`\n${r.source}: ${r.compared} rows compared, ${r.changes} difference(s)${dryRun ? " (dry run: nothing stored)" : ""}`);
-  for (const x of r.refused) console.log(`  not proposed from ${x.scope}: ${x.reason}`);
-  if (r.proposals) console.log(`  proposals: ${r.proposals.added} new, ${r.proposals.updated} updated, ${r.proposals.unchanged} already pending, ${r.proposals.remembered} rejected before and unchanged, ${r.proposals.superseded} no longer true`);
+  console.log(`\n${reportLines(r, dryRun).join("\n")}`);
   if (r.refused.length) process.exitCode = 3;
 }
 main().catch((e) => { console.error(e instanceof Error ? e.message : e); process.exit(1); });
