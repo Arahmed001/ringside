@@ -88,7 +88,7 @@ export interface ProviderPerson {
   wikidataId?: string;
 }
 
-export type OrgKind = "gym" | "promotion" | "sanctioning_body" | "broadcaster";
+export type OrgKind = "gym" | "promotion" | "sanctioning_body" | "magazine" | "broadcaster";
 
 export interface ProviderOrg {
   externalId: string;

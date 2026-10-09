@@ -17,7 +17,7 @@ import { getT } from "@/lib/i18n/server";
 import { msg } from "@/lib/i18n/t";
 import { metaFor } from "@/lib/seo-server";
 
-const KIND: Record<string, string> = { gym: msg("Gym"), promotion: msg("Promotion"), sanctioning_body: msg("Sanctioning body"), broadcaster: msg("Broadcaster") };
+const KIND: Record<string, string> = { gym: msg("Gym"), promotion: msg("Promotion"), sanctioning_body: msg("Sanctioning body"), magazine: msg("Boxing magazine"), broadcaster: msg("Broadcaster") };
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string; slug: string }> }) => metaFor(params, async (q, t) => {
   const w = await getWorld();
@@ -25,7 +25,7 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string;
   if (!o) notFound();
   const name = t.name(o.name);
   let description: string;
-  if (o.kind === "sanctioning_body") description = t("{name} on Ringside: current titleholders by division and recent title fights, drawn from {n} title bouts on record.", { name, n: w.bouts.filter((b) => b.titleOrgId === o.id && !b.upcoming && b.method).length });
+  if (o.kind === "sanctioning_body" || o.kind === "magazine") description = t("{name} on Ringside: current titleholders by division and recent title fights, drawn from {n} title bouts on record.", { name, n: w.bouts.filter((b) => b.titleOrgId === o.id && !b.upcoming && b.method).length });
   else {
     const s = orgStable(w, o.id, o.kind === "gym" ? ["gym"] : ["promoter"]);
     description = t("{name} ({kind}) on Ringside: {now} fighters now, {ever} ever, a {record} combined record and {titles} title wins.", { name, kind: t(KIND[o.kind] ?? "Organisation"), now: s.currentFighters, ever: s.fighters, record: `${s.record.wins}-${s.record.losses}-${s.record.draws}`, titles: s.titleWins });
@@ -46,7 +46,7 @@ export default async function OrgPage({ params, searchParams }: { params: Promis
   if (!o) notFound();
 
   const logo = w.orgLogo(o.id), code = bodyCode(o.name), belt = o.kind === "sanctioning_body" && code ? w.beltPicture(code) : null;
-  if (o.kind === "sanctioning_body") {
+  if (o.kind === "sanctioning_body" || o.kind === "magazine") {
     const title = w.bouts.filter((b) => b.titleOrgId === o.id && !b.upcoming && b.method).reverse();
     const fightsPg = paginate(title.length, first(query.fights), FIGHTS_PAGE);
     const latest = new Map<string, (typeof title)[0]>();

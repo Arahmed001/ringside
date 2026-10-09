@@ -47,7 +47,7 @@ export const PAGES: { href: string; label: string; words: string }[] = [
 
 const ROLE_ORDER = ["trainer", "manager", "judge", "referee"] as const;
 const ROLE_NAME = { trainer: msg("Trainer"), manager: msg("Manager"), judge: msg("Judge"), referee: msg("Referee") };
-const KIND_NAME: Record<string, string> = { gym: msg("Gym"), promotion: msg("Promotion"), sanctioning_body: msg("Sanctioning body"), broadcaster: msg("Broadcaster") };
+const KIND_NAME: Record<string, string> = { gym: msg("Gym"), promotion: msg("Promotion"), sanctioning_body: msg("Sanctioning body"), magazine: msg("Boxing magazine"), broadcaster: msg("Broadcaster") };
 void ROLE_LABEL;
 
 /** The other things the palette finds, as lists with an index of their words, per world and per table of translated names, for the near-spelling guesses. */

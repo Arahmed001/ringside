@@ -13,6 +13,7 @@
  *     it is in our country, because Wikidata files some venues under a district (T-Mobile Arena is in Paradise, not Las Vegas).
  * Capacity is the median of Wikidata's best-ranked values; it is a general figure, not the boxing configuration.
  */
+import { unifyVenueSpellings } from "../venue-spellings";
 import type { DatabaseSync } from "node:sqlite";
 import { api, userAgent } from "../media/wikimedia";
 import { sparql, type Binding } from "./wikidata";
@@ -93,6 +94,8 @@ const RECHECK_DAYS = 45;
 export async function resolveVenues(db: DatabaseSync, opts: { limit?: number; log?: (m: string) => void } = {}): Promise<VenueSummary> {
   const { limit = 50, log = () => {} } = opts;
   userAgent(); // fail fast, before any work, if WIKIMEDIA_CONTACT is not set
+  const folded = unifyVenueSpellings(db);
+  if (folded.spellings) log(`venues: ${folded.spellings} spellings folded into ${folded.groups} halls (${folded.events} events renamed)`);
   const cutoff = new Date(Date.now() - RECHECK_DAYS * 86400000).toISOString();
   const rows = db.prepare(`
     SELECT e.venue AS name, e.city, e.country, COUNT(*) AS n FROM events e

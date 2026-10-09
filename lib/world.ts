@@ -5,6 +5,7 @@ import { applyFittedWeights } from "./model-fit";
 import { snapshotUpcomingSafe } from "./ledger";
 import { currentYear, todayIso } from "./clock";
 import { countsInRecord, isStoppage } from "./methods";
+import { isExhibition } from "./exhibitions";
 import { buildOfficial, type OfficialIndex, type OfficialRow } from "./official";
 import { officialRankingsShown } from "./site-info";
 import type { Boxer, BoxerFull, BoutRow, Broadcast, Corner, Earning, Honour, TitleReign, Venue, EventFinancials, EventRow, Purse, Method, Official, Org, Person, Picture, Scorecard, Status, TeamStint, WeighIn } from "./types";
@@ -303,13 +304,15 @@ async function buildWorldFrom(db: DatabaseSync, main: DatabaseSync, key: string)
   const bouts = (await mapRows(db.prepare("SELECT * FROM bouts"), (b): BoutRow => {
       const ev = evOf.get(b.event_id as number)!;
       const red = nameOf.get(b.red_id as number)!, blue = nameOf.get(b.blue_id as number)!;
+      const exhibition = isExhibition(ev.date, red.name, blue.name);
       return {
+        exhibition: exhibition || undefined,
         id: b.id as number, eventId: ev.id, eventName: ev.name, date: ev.date,
         status: S((b.status as Status | null) ?? (b.method ? "completed" : ev.date > today ? "scheduled" : "completed")),
         upcoming: ev.upcoming && (b.status as string | null) !== "cancelled" && !b.method,
         redId: red.id, blueId: blue.id, redName: red.name, blueName: blue.name, redSlug: red.slug, blueSlug: blue.slug,
-        weightClass: S(b.weight_class as string), rounds: b.rounds as number, winnerId: (b.winner_id as number) ?? null,
-        method: S((b.method as Method) ?? null), endRound: (b.end_round as number) ?? null,
+        weightClass: S(b.weight_class as string), rounds: b.rounds as number, winnerId: exhibition ? null : (b.winner_id as number) ?? null,
+        method: S((exhibition && b.method ? "NC" : (b.method as Method)) ?? null), endRound: (b.end_round as number) ?? null,
         title: S((b.title as string) ?? null), position: b.position as number,
         vendorScores: parseScores(b.vendor_scores), roundTime: S((b.round_time as string) ?? null), kdRed: (b.kd_red as number) ?? 0, kdBlue: (b.kd_blue as number) ?? 0,
         oddsRed: (b.odds_red as number) ?? null, oddsBlue: (b.odds_blue as number) ?? null, contractLb: (b.contract_lb as number) ?? null,

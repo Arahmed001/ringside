@@ -2130,3 +2130,9 @@ Asked: a full content review and cross-check for accuracy. Report: `ringside-rep
 - **Counts.** Analytics now counts fighters and countries by the Countries page's rule (a fighter with at least one fight held and a country; countries by canonical name), and its headline says "fights with a result".
 - **Titles.** The per-belt line reads "N reigns on this belt"; a dormant belt says "last known champion, since …" instead of "since …".
 - Review of the remaining conflicts: Mayweather's extra held wins are three exhibitions; where held fights and the vendor's totals differ, Wikipedia sides with the vendor's totals.
+
+## 285. Exhibitions, stance caveat, The Ring, one venue spelling (round 154, 2026-10-10)
+- **Exhibitions.** `lib/exhibitions.ts` lists bouts billed as exhibitions (Mayweather–Nasukawa, Logan Paul, Moore, Asakura, Olatunji, Gotti III; Tyson–Jones; Pacquiao–Yoo) by date and names. The world loader gives them no winner and the method NC, so they leave every record and rating (Mayweather's held record drops from 53 wins to the vendor's 50); the fight page says "Exhibition". Add a line to the list when another turns up.
+- **Stance.** The two win rates on Analytics now carry a note: how many fighters have a stance on file out of all who have fought, and that they are not a random sample.
+- **The Ring** is a new org kind, `magazine` ("Boxing magazine"): listed under its own heading on /orgs, no longer a sanctioning body; its page and belt lineage are unchanged. Existing databases change at the next load (or with the one-line update in the round notes).
+- **Venues.** `unifyVenueSpellings` folds spellings of one hall in one city (case, accents, punctuation, spaces ignored) into the most used one; it runs at the start of `venues:resolve` (so in `vendor:enrich`), is idempotent, and moves or drops the old venue-check row. On the real data: 101 halls, 107 spellings.

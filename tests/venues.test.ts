@@ -133,3 +133,18 @@ test("verified venues reach the world and the event page data, and unverified on
   worldMod.invalidateWorld();
   assert.equal((await worldMod.getWorld()).venueOf({ venue: "X Arena", city: "Y" }), null, "an ambiguous result is never shown");
 });
+
+test("one hall written several ways in one city becomes one venue, and a different hall in the same city does not", async () => {
+  const { unifyVenueSpellings } = await import("../lib/venue-spellings");
+  const ins = db.prepare("INSERT INTO events (name, date, venue, city, country) VALUES (?,?,?,?,?)");
+  db.exec("DELETE FROM events");
+  for (const [i, [venue, city]] of ([["AT&T Stadium", "Arlington"], ["AT&T Stadium", "Arlington"], ["AT & T Stadium", "Arlington"], ["Casino de Montreal", "Montreal"], ["Casino de Montréal", "Montreal"], ["Casino de Montreal", "Montreal"], ["Arena Two", "Arlington"], ["AT&T Stadium", "Dallas"]] as const).entries())
+    ins.run(`E${i}`, `2025-01-0${i + 1}`, venue, city, "X");
+  const r = unifyVenueSpellings(db);
+  assert.deepEqual([r.groups, r.spellings, r.events], [2, 2, 2]);
+  const names = (city: string) => (db.prepare("SELECT venue, COUNT(*) n FROM events WHERE city = ? GROUP BY venue ORDER BY venue").all(city) as { venue: string; n: number }[]).map((x) => `${x.venue}:${x.n}`);
+  assert.deepEqual(names("Arlington"), ["AT&T Stadium:3", "Arena Two:1"]);
+  assert.deepEqual(names("Montreal"), ["Casino de Montreal:3"], "the spelling most events use wins");
+  assert.deepEqual(names("Dallas"), ["AT&T Stadium:1"], "the same name in another city is another venue");
+  assert.deepEqual(unifyVenueSpellings(db), { groups: 0, spellings: 0, events: 0 }, "running it again changes nothing");
+});

@@ -118,7 +118,12 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
             <Side f={red} color="#e5322d" win={winner?.id === red.id} />
             <div className="max-w-[5.5rem] text-center sm:max-w-none">
               <div className="font-display text-3xl font-extrabold text-gold">{t("VS")}</div>
-              {b.method && (
+              {b.exhibition ? (
+                <div className="mt-3">
+                  <div className="font-display text-2xl font-bold">{t("Exhibition")}</div>
+                  <div className="text-xs text-muted">{t("Not in either fighter’s record")}</div>
+                </div>
+              ) : b.method && (
                 <div className="mt-3">
                   <div className="font-display text-2xl font-bold">{methodLabel(b.method, b.endRound, t)}</div>
                   {t(METHOD_NAME[b.method]) !== methodLabel(b.method, b.endRound, t) && <div className="text-xs text-muted">{t(METHOD_NAME[b.method])}</div>}

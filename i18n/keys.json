@@ -3719,6 +3719,13 @@
   ]
  },
  {
+  "key": "Boxing magazine",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx",
+   "lib/search.ts"
+  ]
+ },
+ {
   "key": "Boxing news",
   "files": [
    "app/[locale]/news/page.tsx"
@@ -5764,6 +5771,12 @@
   "key": "Examples",
   "files": [
    "app/[locale]/ask/page.tsx"
+  ]
+ },
+ {
+  "key": "Exhibition",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
   ]
  },
  {
@@ -8366,6 +8379,12 @@
   ]
  },
  {
+  "key": "Magazine belts, not sanctioned by a body",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
   "key": "Main",
   "files": [
    "components/SideNav.tsx"
@@ -9544,6 +9563,12 @@
   ]
  },
  {
+  "key": "Not in either fighter’s record",
+  "files": [
+   "app/[locale]/bouts/[id]/page.tsx"
+  ]
+ },
+ {
   "key": "Not on the card",
   "files": [
    "app/[locale]/not-found.tsx"
@@ -9948,6 +9973,12 @@
   "key": "One-time code",
   "files": [
    "components/AccountPanel.tsx"
+  ]
+ },
+ {
+  "key": "Only {known} of {all} fighters have a stance on file ({share}), and they are not a random sample, so read these two figures as a pattern in the records, not as proof that one stance is better.",
+  "files": [
+   "app/[locale]/analytics/page.tsx"
   ]
  },
  {
