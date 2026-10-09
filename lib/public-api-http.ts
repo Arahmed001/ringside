@@ -1,4 +1,5 @@
 import { getWorld } from "./world";
+import { clientAddress } from "./client-ip";
 import { getTFor } from "./i18n/dicts";
 import { isLocale, localePath, type Locale } from "./i18n/config";
 import { abs } from "./seo";
@@ -26,7 +27,7 @@ const fail = (status: number, message: string, extra: Record<string, string> = {
 export const preflight = (): Response => new Response(null, { status: 204, headers: { ...CORS, "access-control-max-age": "86400" } });
 
 /** Who is asking, for the limit: the first address in X-Forwarded-For (set by the proxy in front), then X-Real-IP, else one shared bucket. */
-export const clientKey = (req: Request): string => (req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip") || SHARED_KEY).slice(0, 64);
+export const clientKey = (req: Request): string => clientAddress(req.headers) ?? SHARED_KEY;
 
 export async function respond(req: Request, build: (c: Ctx, q: URLSearchParams) => Result | Promise<Result>, env?: Record<string, string | undefined>, lim = limiter, shared = sharedLimiter): Promise<Response> {
   const gate = publicApiGate(env);
