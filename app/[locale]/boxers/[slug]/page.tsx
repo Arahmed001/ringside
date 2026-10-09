@@ -36,6 +36,7 @@ import { newsForFighter } from "@/lib/news/read";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
+import { oppositionOf } from "@/lib/opposition";
 import { countryName, flag, fmtDate, fmtPartialDate, methodLabel, pct } from "@/lib/format";
 import { msg } from "@/lib/i18n/t";
 import { countsInRecord, isDecision, isStoppage } from "@/lib/methods";
@@ -80,6 +81,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   // counted from every fight, so only for a career held whole (from part of one these would be wrong in a way that reads as right)
   const careerStripOf = career.source !== "loaded" ? careerStrip({ dates: completed.map((x) => x.date), total: career.total, turnedPro: b.turnedPro, debutDate: b.debutDate }) : null;
   const numbers = career.source === "loaded" ? numbersOf(bouts, b.id, (id) => w.eventById.get(id)) : null;
+  const opposition = career.source === "loaded" ? oppositionOf(bouts, b.id, (id) => w.boutPre.get(id)) : null;
   const duration = (days: number) => (days >= 730 ? t("{n} years", { n: (days / 365.25).toFixed(1) }) : days >= 60 ? t("{n} months", { n: Math.round(days / 30.4) }) : t.n(days, "{n} day", "{n} days"));
   const hl = (id: number) => { const x = w.boutById.get(id); return x ? fmtDate(x.date, { month: "short", year: "numeric" }, t.locale) : ""; };
   const hasHighlights = !!(highlights.bestWin || highlights.biggestUpset || highlights.longestStreak);
@@ -247,6 +249,7 @@ const HONOURS_SHOWN = 8;
           <SectionTitle eyebrow={t("By the numbers")} title={t("Counted from every fight we hold")} />
           <div className="fill-row fill-4">
             {numbers.rounds !== null && <Stat label={t("Rounds boxed")} value={numbers.rounds} sub={t.n(numbers.fights, "{n} fight", "{n} fights")} />}
+            {opposition && <Stat label={t("Opposition faced")} value={Math.round(opposition.average)} sub={t("Average rating going in · toughest: {name}, {rating}", { name: t.name(w.byId.get(opposition.strongest.opponentId)?.name ?? ""), rating: Math.round(opposition.strongest.rating) })} />}
             <Stat label={t("Went the distance")} value={pct(numbers.distance.n / numbers.distance.of)} sub={t("{n} of {of} fights", { n: numbers.distance.n, of: numbers.distance.of })} />
             {numbers.quick !== null && numbers.quick > 0 && <Stat label={t("Quick wins")} value={numbers.quick} sub={t("Stopped an opponent in three rounds or fewer")} />}
             {numbers.countries.length > 0 && <Stat label={t("Fought in")} value={t.n(numbers.countries.length, "{n} country", "{n} countries")} sub={numbers.countries.slice(0, 3).map((c) => countryName(c.name, t.locale)).join(", ")} />}

@@ -3040,6 +3040,12 @@
   ]
  },
  {
+  "key": "Average rating going in · toughest: {name}, {rating}",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Average rehydration (official → fight night)",
   "files": [
    "app/[locale]/weights/page.tsx"
@@ -9354,6 +9360,12 @@
    "app/[locale]/weights/page.tsx",
    "components/FighterPrintSheet.tsx",
    "lib/ask/tools.ts"
+  ]
+ },
+ {
+  "key": "Opposition faced",
+  "files": [
+   "app/[locale]/boxers/[slug]/page.tsx"
   ]
  },
  {
