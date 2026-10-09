@@ -145,7 +145,7 @@ const src = (f: string) => fs.readFileSync(path.join(ROOT, f), "utf8");
 test("the browser's own storage holds only what the page says, and everything it says is really there", async () => {
   const { STORAGE_KEYS } = await import("../lib/privacy");
   // files that touch browser storage: the hooks, the two components, the layout's first-paint script, and the offline review sheet (a separate file for a translator, not part of the site)
-  const ALLOWED = ["lib/useLocal.ts", "lib/usePicks.ts", "lib/useWatchlist.ts", "components/AccountPanel.tsx", "components/RailControls.tsx", "app/[locale]/layout.tsx", "lib/i18n/review-sheet.ts", "lib/nav.ts"];
+  const ALLOWED = ["lib/useLocal.ts", "lib/usePicks.ts", "lib/useWatchlist.ts", "components/AccountPanel.tsx", "components/RailControls.tsx", "app/[locale]/layout.tsx", "lib/i18n/review-sheet.ts", "lib/i18n/name-words-sheet.ts", "lib/nav.ts"];
   const users = SITE.filter((f) => /\b(localStorage|sessionStorage|indexedDB|caches\.open)\b/.test(src(f).replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "")));
   assert.deepEqual(users.filter((f) => !ALLOWED.includes(f)), [], "a new place that stores things in the browser: declare what it stores in lib/privacy.ts (STORAGE_KEYS) and allow the file here");
   // every key-looking string in the site's code is declared
