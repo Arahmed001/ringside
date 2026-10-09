@@ -36,7 +36,7 @@ import type { DataProvider } from "../lib/providers";
 import { countBySeverity, groupIssues, sanitizeFeed } from "../lib/validate";
 import { todayIso } from "../lib/clock";
 import { CheckRefusedError, acquireBackfillLock, describeNothingToUpdate, describePlan, exitCodeFor, skippedSummary, lagDays, foreignFighters, releaseBackfillLock, updateSince } from "../lib/vendor-backfill";
-import { coherentCore, describeConflictReport, dropConflicted, describeReconciliation, explainConflicts, reconcileDb, reconcileFeed, recordGate, restrictFeed } from "../lib/vendor-verify";
+import { coherentCore, describeConflictReport, disputedCsv, dropConflicted, describeReconciliation, explainConflicts, reconcileDb, reconcileFeed, recordGate, restrictFeed } from "../lib/vendor-verify";
 
 /** how many days the vendor's career totals may trail a result before a surplus counts as a contradiction: one setting for the daily update audit, a longer one for a load */
 const LAG_DAYS = lagDays("update"), LOAD_LAG_DAYS = lagDays("load"); // see lagDays
@@ -136,7 +136,7 @@ async function main() {
     console.log(`--keep-disputed: ${marked.size} fighter(s) whose loaded fights come to more than the vendor's career total are kept and marked (their pages show the vendor's total and say the two disagree)${marked.size ? " (first " + Math.min(20, marked.size) + "):" : "."}`);
     for (const m of before.conflicts.slice(0, 20)) console.log(`  ${m.name}: loaded ${m.loaded}, vendor ${m.vendor}`);
     const file = arg("disputed-file");
-    if (file && marked.size) { fs.writeFileSync(file, ["id,name,loaded,vendor", ...before.conflicts.map((m) => [m.externalId, `"${m.name.replace(/"/g, '""')}"`, m.loaded, m.vendor].join(","))].join("\n") + "\n"); console.log(`  all ${marked.size} are listed in ${file}`); }
+    if (file && marked.size) { fs.writeFileSync(file, disputedCsv(before.conflicts, explainConflicts(raw, provider.vendorRecords(), todayIso(), LOAD_LAG_DAYS))); console.log(`  all ${marked.size} are listed in ${file}`); }
     const boxers = raw.boxers.map((b) => ({ ...b, recordDisputed: marked.has(b.externalId) }));
     raw = { ...raw, boxers };
     source = { ...source, name: provider.name, fetchBoxers: async () => boxers };

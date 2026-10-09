@@ -302,3 +302,14 @@ export function dropConflicted(feed: FeedData, rec: Reconciliation): { feed: Fee
   const cut = restrictFeed(feed, new Set(feed.boxers.map((b) => b.externalId).filter((id) => !gone.has(id))));
   return { feed: cut, dropped: rec.conflicts, fightsDropped: feed.bouts.length - cut.bouts.length };
 }
+
+
+/**
+ * The text of disputed.csv: one line for each fighter whose loaded fights come to more than the supplier's total, with WHY, in the explanation's own words (the causes, and what the opponent's own
+ * record says about a reversed winner), so the file can be read by hand instead of every line being "loaded 3-1-0, vendor 0-1-0". Fighters the report does not explain get empty columns.
+ */
+export function disputedCsv(conflicts: Mismatch[], report?: ConflictReport): string {
+  const why = new Map((report?.fighters ?? []).map((f) => [f.externalId, f]));
+  const q = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  return ["id,name,loaded,vendor,causes,opponent_evidence", ...conflicts.map((m) => { const w = why.get(m.externalId); return [m.externalId, q(m.name), m.loaded, m.vendor, q((w?.causes ?? []).join("; ")), q(w?.flip ?? "")].join(","); })].join("\n") + "\n";
+}

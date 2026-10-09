@@ -117,6 +117,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   const similar = similarTo(b, w, 4);
   const news = await newsForFighter(w, b.id);
   const videos = await videosForFighter(w, b.id);
+  const earliestHeld = completed.length ? Math.min(...completed.map((x) => Number(String(x.date).slice(0, 4)))) : null; // the year of the earliest fight held, for a record counted from the fights alone
   const posts = postsFor("boxer", b.slug);
   const divBoxers = w.boxers.filter((x) => x.sex === b.sex && x.weightClass === b.weightClass && x.bouts >= 5);
   const ape = reachIndex(b, divBoxers);
@@ -249,6 +250,7 @@ const HONOURS_SHOWN = 8;
           {career.source === "loaded" && b.vendorRecord === null && b.bouts > 0 && suppliesTotals(w) && (
             <p className="mt-3 max-w-2xl text-xs leading-snug text-muted">
               {t("The data supplier gives no career total for this fighter, so the record is counted from the fights Ringside holds ({held}). Earlier fights, if there were any, are not in it.", { held: b.bouts })}
+              {earliestHeld !== null && b.turnedPro !== null && earliestHeld > b.turnedPro && <> {t("Turned professional in {year}; the earliest fight held is from {first}, so earlier fights are missing.", { year: b.turnedPro, first: earliestHeld })}</>}
             </p>
           )}
           {career.source === "disputed" && (

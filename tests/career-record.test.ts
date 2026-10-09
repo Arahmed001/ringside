@@ -80,4 +80,5 @@ test("a fighter the supplier gave no total for says so on the page where the sup
   const { suppliesTotals } = await import("../lib/supplier-totals");
   assert.equal(suppliesTotals({ boxers: [{ vendorRecord: null }, { vendorRecord: null }] } as never), false, "the demo league: no totals at all, so no note");
   assert.equal(suppliesTotals({ boxers: [{ vendorRecord: null }, { vendorRecord: { wins: 1, losses: 0, draws: 0 } }] } as never), true);
+  assert.match(page, /earliestHeld > b\.turnedPro/, "and says so when the fighter's known turned-pro year is before the earliest fight held (round 138: 185 of the 209 such fighters of the first full load)");
 });
