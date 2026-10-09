@@ -36,6 +36,7 @@ import { newsForFighter } from "@/lib/news/read";
 import { form as formOf, goingIn, resultFor, since, type Since } from "@/lib/glance";
 import { highlightsOf } from "@/lib/highlights";
 import { numbersOf } from "@/lib/by-the-numbers";
+import { opponentsLastFive } from "@/lib/opponents-last-five";
 import { reachIndex } from "@/lib/reach";
 import { finishRoundsOf } from "@/lib/finish-rounds";
 import { oppositionOf } from "@/lib/opposition";
@@ -83,6 +84,7 @@ export default async function BoxerPage({ params }: { params: Promise<{ slug: st
   // counted from every fight, so only for a career held whole (from part of one these would be wrong in a way that reads as right)
   const careerStripOf = career.source !== "loaded" ? careerStrip({ dates: completed.map((x) => x.date), total: career.total, turnedPro: b.turnedPro, debutDate: b.debutDate }) : null;
   const numbers = career.source === "loaded" ? numbersOf(bouts, b.id, (id) => w.eventById.get(id)) : null;
+  const lastFive = career.source === "loaded" ? opponentsLastFive(bouts, b.id, (id) => w.boutsByBoxer.get(id) ?? [], (id) => { const o = w.byId.get(id); return !!o && careerView(o).source === "loaded"; }) : null;
   const finish = career.source === "loaded" ? finishRoundsOf(bouts, b.id) : null;
   const opposition = career.source === "loaded" ? oppositionOf(bouts, b.id, (id) => w.boutPre.get(id)) : null;
   const duration = (days: number) => (days >= 730 ? t("{n} years", { n: (days / 365.25).toFixed(1) }) : days >= 60 ? t("{n} months", { n: Math.round(days / 30.4) }) : t.n(days, "{n} day", "{n} days"));
@@ -256,6 +258,7 @@ const HONOURS_SHOWN = 8;
             {numbers.rounds !== null && <Stat label={t("Rounds boxed")} value={numbers.rounds} sub={t.n(numbers.fights, "{n} fight", "{n} fights")} />}
             {opposition && <Stat label={t("Opposition faced")} value={Math.round(opposition.average)} sub={t("Average rating going in · toughest: {name}, {rating}", { name: t.name(w.byId.get(opposition.strongest.opponentId)?.name ?? ""), rating: Math.round(opposition.strongest.rating) })} />}
             <Stat label={t("Went the distance")} value={pct(numbers.distance.n / numbers.distance.of)} sub={t("{n} of {of} fights", { n: numbers.distance.n, of: numbers.distance.of })} />
+            {lastFive && <Stat label={t("Last five opponents")} value={`\u2066${lastFive.wins}-${lastFive.losses}${lastFive.draws ? `-${lastFive.draws}` : ""}\u2069`} sub={t("Their combined record going in: {w} wins, {l} losses", { w: lastFive.wins, l: lastFive.losses })} />}
             {numbers.quick !== null && numbers.quick > 0 && <Stat label={t("Quick wins")} value={numbers.quick} sub={t("Stopped an opponent in three rounds or fewer")} />}
             {numbers.countries.length > 0 && <Stat label={t("Fought in")} value={t.n(numbers.countries.length, "{n} country", "{n} countries")} sub={numbers.countries.slice(0, 3).map((c) => countryName(c.name, t.locale)).join(", ")} />}
             {numbers.venue && <Stat label={t("Most-fought venue")} value={t.n(numbers.venue.n, "{n} fight", "{n} fights")} sub={`${t.name(numbers.venue.name)}${numbers.venue.city ? `, ${t.name(numbers.venue.city)}` : ""}`} />}
