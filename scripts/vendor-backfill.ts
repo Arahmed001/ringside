@@ -8,7 +8,7 @@
  *   npm run vendor:backfill                        fetch (resumable), validate (strict), back up, load into the database, recompute ratings
  *   npm run vendor:backfill -- --update            the daily job: fights since the latest card in the database (less 14 days) and the coming weeks, with fresh fighter records
  *
- * Options: --since YYYY-MM-DD  --refresh (fetch everything again)  --gap-ms 300  --retries 4  --max-requests 100000
+ * Options: --since YYYY-MM-DD  --refresh (fetch everything again)  --refetch-all (an update fetches every fighter of the window again, even for unchanged fights)  --gap-ms 300  --retries 4  --max-requests 100000
  *          --per-hour N (never more than N requests an hour, evenly spaced: for a plan with its own hourly limit; or set BOXING_API_PER_HOUR)  --patience-min 90 (how long to wait out a rate-limit refusal before giving up; 0 = don't wait)  --cache-dir <dir>  --offset-limit 10000 (documents a page number can reach; a longer list is read in date windows)
  *          --fighters N (take only the N most recently active fighters, coming fights counting: the fights between two of them are loaded; run again with a bigger N, or none, for the rest: what is fetched is cached)
  *          --with-opponents | --whole-groups (with --fighters N: also fetch every opponent of the N, so each of the N has all his fights; or take whole groups of fighters, newest group first, while they fit in N, so nobody in them has a fight outside: `--plan` prints what each would ask for)
@@ -94,6 +94,8 @@ async function main() {
       if (!since) throw new Error(describeNothingToUpdate(db, todayIso()));
       base.since = arg("since") ?? since;
       log(`updating from ${base.since}`);
+      // fights the database already holds, unchanged, are not fetched again (their fighters would cost an hour-limited request each, for nothing); --refetch-all brings the old behaviour back
+      if (!flag("refetch-all")) { const { knownSignatures } = await import("../lib/vendor-unchanged"); base.known = knownSignatures(db, base.since); log(`${base.known.size} fights from ${base.since} on are already in the database`); }
     } else if (f.fromFeed > 0) log(`the database already holds ${f.fromFeed} fighters from this feed: this load updates them in place`);
   }
 

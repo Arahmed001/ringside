@@ -1,5 +1,6 @@
 import { chooseByMode, previewModes, previewSelection, rankByRecency, selectionSizes, type ModePreview, type SelectionMode, type SelectionPreview } from "../vendor-selection";
 import type { DataProvider, ProviderBoxer, ProviderBout, ProviderEvent, ProviderOfficialRanking, ProviderOrg, RankingBody } from "./index";
+import { dropUnchanged } from "../vendor-unchanged";
 import fs from "node:fs";
 import path from "node:path";
 import type { Method, Stance } from "../types";
@@ -570,6 +571,11 @@ export interface BoxingDataApiOptions {
   refresh?: boolean;
   /** with cacheDir: ignore cached fight-list pages (a daily update must see today's results) but still reuse cached fighters */
   refreshLists?: boolean;
+  /**
+   * A daily update's memory of what the database already holds (fight external id → `boutSignature`, from `knownSignatures`): a listed fight with the same signature is already loaded and
+   * unchanged, so it and its fighters are left out of this run (no fighter fetch is spent on it). New and changed fights, and the fighters in them, are loaded as before.
+   */
+  known?: Map<string, string>;
   /** extra attempts after a 429, a 500/502/503/504 or a network failure, waiting out Retry-After or backing off 1, 2, 4 ... seconds (max 30). Default 0. */
   retries?: number;
   /**
@@ -884,6 +890,12 @@ export function boxingDataApiProvider(o: BoxingDataApiOptions): BoxingDataApiPro
           log(`no coming fights available on this plan (${e2.message}); loading history only`);
         }
       }
+    }
+    if (o.known && o.known.size) {
+      const d = dropUnchanged(bouts, events, o.known);
+      bouts.splice(0, bouts.length, ...d.kept);
+      ids.clear(); for (const x of d.fighters) ids.add(x.startsWith(fighterId("")) ? x.slice(fighterId("").length) : x);
+      log(`${d.skipped} of ${d.skipped + d.kept.length} listed fights are already loaded and unchanged: left out, with their fighters; ${d.kept.length} new or changed`);
     }
     log(`fights: ${bouts.length}, events: ${events.size}, fighters to fetch: ${ids.size}`);
     return { events, bouts, ids };

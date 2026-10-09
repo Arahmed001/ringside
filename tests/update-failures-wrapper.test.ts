@@ -17,7 +17,7 @@ after(() => fs.rmSync(work, { recursive: true, force: true }));
 function viaFetch(db: string, lockDir: string, url: string, cacheDir: string, keyFile: string): Promise<{ code: number | null; out: string }> {
   const clean = { ...process.env } as Record<string, string | undefined>;
   for (const k of ["BOXING_PROVIDER", "VENDOR_RANKINGS_CONFIRMED", "BOXING_API_PER_HOUR", "MEDIA_RESOLVER", "BOXING_API_KEY"]) delete clean[k];
-  const child = spawn(process.execPath, ["--import", "tsx", "scripts/vendor-fetch.ts", "--update", "--key-file", keyFile, "--cache-dir", cacheDir, "--gap-ms", "0", "--retries", "0", "--patience-min", "0", "--per-hour", "3600000"], {
+  const child = spawn(process.execPath, ["--import", "tsx", "scripts/vendor-fetch.ts", "--update", "--refetch-all", "--key-file", keyFile, "--cache-dir", cacheDir, "--gap-ms", "0", "--retries", "0", "--patience-min", "0", "--per-hour", "3600000"], {
     cwd: ROOT, stdio: ["ignore", "pipe", "pipe"],
     env: { ...clean, BOXING_API_URL: url, DATABASE_PATH: db, ACCOUNTS_DB_PATH: path.join(path.dirname(db), "accounts.db"), RINGSIDE_LOCK_DIR: lockDir, BOXING_API_STORAGE_CONFIRMED: "1", RINGSIDE_NO_SEED: "1", RINGSIDE_NOW: DAY1 } as unknown as NodeJS.ProcessEnv,
   });
@@ -31,7 +31,7 @@ async function until(f: () => boolean, ms = 20_000) { const t = Date.now(); whil
 function viaFetchRunning(db: string, lockDir: string, url: string, cacheDir: string, keyFile: string) {
   const clean = { ...process.env } as Record<string, string | undefined>;
   for (const k of ["BOXING_PROVIDER", "VENDOR_RANKINGS_CONFIRMED", "BOXING_API_PER_HOUR", "MEDIA_RESOLVER", "BOXING_API_KEY"]) delete clean[k];
-  const child = spawn(process.execPath, ["--import", "tsx", "scripts/vendor-fetch.ts", "--update", "--key-file", keyFile, "--cache-dir", cacheDir, "--gap-ms", "0", "--retries", "0", "--patience-min", "0", "--per-hour", "3600000"], {
+  const child = spawn(process.execPath, ["--import", "tsx", "scripts/vendor-fetch.ts", "--update", "--refetch-all", "--key-file", keyFile, "--cache-dir", cacheDir, "--gap-ms", "0", "--retries", "0", "--patience-min", "0", "--per-hour", "3600000"], {
     cwd: ROOT, stdio: ["ignore", "pipe", "pipe"],
     env: { ...clean, BOXING_API_URL: url, DATABASE_PATH: db, ACCOUNTS_DB_PATH: path.join(path.dirname(db), "accounts.db"), RINGSIDE_LOCK_DIR: lockDir, BOXING_API_STORAGE_CONFIRMED: "1", RINGSIDE_NO_SEED: "1", RINGSIDE_NOW: DAY1 } as unknown as NodeJS.ProcessEnv,
   });
