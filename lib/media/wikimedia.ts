@@ -17,8 +17,15 @@ const GAP_MS = Number(process.env.WIKIMEDIA_GAP_MS ?? 250); // tests set this to
 
 let lastCall = 0;
 
+/** The contact the operator set, without the quote marks a pasted value often carries (straight or curly). Plain characters only: it travels in an HTTP header. */
+export function cleanContact(raw: string | undefined): string {
+  const c = (raw ?? "").trim().replace(/^[\s"'\u2018\u2019\u201c\u201d]+|[\s"'\u2018\u2019\u201c\u201d]+$/g, "");
+  if (/[^\x20-\x7e]/.test(c)) throw new Error("WIKIMEDIA_CONTACT has characters that cannot be sent (curly quotes or accents). Retype it with plain characters, e.g. you@example.com.");
+  return c;
+}
+
 export function userAgent(): string {
-  const contact = process.env.WIKIMEDIA_CONTACT;
+  const contact = cleanContact(process.env.WIKIMEDIA_CONTACT);
   if (!contact) throw new Error("Set WIKIMEDIA_CONTACT (an email or URL) so Wikimedia can reach you if the bot misbehaves.");
   return `RingsideBot/0.1 (${contact})`;
 }
