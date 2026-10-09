@@ -1,8 +1,9 @@
 /**
  * RSS 2.0 and Atom, read without a library and read defensively: what comes out is plain text with a bounded length and a web address, whatever the feed sent. No markup,
- * no script, no image, and no address that is not http(s). A broken item is skipped, never half-kept.
+ * no script, and no address that is not http(s). The one picture an item's own feed offers for it (media:content, media:thumbnail, an image enclosure, else the first <img> in
+ * its text) is kept only as an https address: it is saved by lib/news/images.ts, never loaded from the visitor's browser. A broken item is skipped, never half-kept.
  */
-export interface NewsEntry { guid: string; title: string; url: string; published: string | null; snippet: string }
+export interface NewsEntry { guid: string; title: string; url: string; published: string | null; snippet: string; image?: string }
 
 export const MAX_TITLE = 180, MAX_SNIPPET = 220, MAX_ITEMS_PER_FEED = 60;
 
@@ -36,6 +37,29 @@ export function cleanUrl(raw: string | undefined): string | null {
   } catch { return null; }
 }
 
+/** An https address for a picture (an http one is asked for as https): no credentials, a bounded length, not a data: address, not a tracking pixel. */
+export function cleanImageUrl(raw: string | undefined): string | null {
+  if (!raw) return null;
+  try {
+    const u = new URL(decode(raw.trim()).replace(/^http:\/\//i, "https://"));
+    if (u.protocol !== "https:" || u.username || u.password || u.href.length > 500) return null;
+    if (/\.(gif|svg)(\?|$)/i.test(u.pathname + u.search) || /(pixel|tracking|spacer|avatar|gravatar|logo)/i.test(u.pathname)) return null;
+    u.hash = "";
+    return u.href;
+  } catch { return null; }
+}
+
+/** The one picture a feed item offers, in the order feeds usually give it. */
+export function imageOf(block: string): string | null {
+  const text = decode(block.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")); // markup that a feed escaped is markup again here
+  const attr = (el: string, name: string) => el.match(new RegExp(`\\s${name}=["']([^"']+)["']`, "i"))?.[1];
+  for (const el of text.match(/<media:content\s[^>]*>/gi) ?? []) { if (/medium=["']image["']|type=["']image\//i.test(el) || /\.(jpe?g|png|webp)(\?|["'])/i.test(el)) { const u = cleanImageUrl(attr(el, "url")); if (u) return u; } }
+  for (const el of text.match(/<media:thumbnail\s[^>]*>/gi) ?? []) { const u = cleanImageUrl(attr(el, "url")); if (u) return u; }
+  for (const el of text.match(/<enclosure\s[^>]*>/gi) ?? []) { if (/type=["']image\//i.test(el)) { const u = cleanImageUrl(attr(el, "url")); if (u) return u; } }
+  for (const el of text.match(/<img\s[^>]*>/gi) ?? []) { const u = cleanImageUrl(attr(el, "src")); if (u) return u; }
+  return null;
+}
+
 const tag = (block: string, name: string): string | undefined => {
   const m = block.match(new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}>`, "i"));
   return m ? m[1] : undefined;
@@ -62,7 +86,8 @@ export function parseFeed(xml: string): NewsEntry[] {
     if (!title || !link) continue;
     const guid = plain(tag(b, "guid") ?? tag(b, "id"), 300) || link;
     const snippet = plain((tag(b, "description") ?? tag(b, "summary") ?? "").replace(/The post .{1,200}? appeared first on .{1,120}$/i, ""), MAX_SNIPPET);
-    out.push({ guid, title, url: link, published: isoDate(tag(b, "pubDate") ?? tag(b, "published") ?? tag(b, "updated") ?? tag(b, "dc:date")), snippet: snippet === title ? "" : snippet });
+    const image = imageOf(b);
+    out.push({ guid, title, url: link, published: isoDate(tag(b, "pubDate") ?? tag(b, "published") ?? tag(b, "updated") ?? tag(b, "dc:date")), snippet: snippet === title ? "" : snippet, ...(image ? { image } : {}) });
     if (out.length >= MAX_ITEMS_PER_FEED) break;
   }
   return out;
