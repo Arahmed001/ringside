@@ -1,11 +1,11 @@
 # The vendor update gate: a plan for review
 
-Status: **plan only, nothing is built.** It follows PLAN 253 (source watchers), whose steps A to C are on main. This page is what to read and decide on before step D starts, because the gate touches `lib/ingest.ts`, the most sensitive code in the project.
+Status: **plan only, nothing is built. The owner's decisions of 2026-10-09 are recorded in section 11 and applied below.** It follows PLAN 253 (source watchers), whose steps A to C are on main. This page is what to read and decide on before step D starts, because the gate touches `lib/ingest.ts`, the most sensitive code in the project.
 
 ## 1. What was asked
 
-- Changes the licensed vendor makes to data we **already hold** wait for an administrator's approval.
-- **Only updates to existing data** wait. New records (a new fighter, fight or card) go in at once.
+- Changes the licensed vendor makes to data we **already hold** wait for an administrator's approval. **That includes a blank being filled** (decision 1): a result arriving for a fight we hold as scheduled is an update to that fight.
+- **Only updates to existing rows** wait. A brand-new record (a new fighter, fight or card) goes in at once.
 - Heavy at first (the first weeks), light afterwards.
 - Administrators only decide.
 
@@ -37,23 +37,27 @@ Why this and not the alternatives:
 
 Policy is a table in code (`lib/watch/vendor-policy.ts`), not scattered conditions, so it can be read in one place and tested.
 
-| Kind of change | Default | Why |
+| Kind of change | Rule | Why |
 |---|---|---|
-| **New row** (fighter, fight, card, organisation, person) | goes in, listed in a "new this run" digest | asked: only updates to existing data wait |
-| **A blank filled** (`NULL` or empty to a value): a result arriving for a scheduled fight, a missing height, a photo | goes in, listed in the digest | it is new information, not a change to something we hold. This is also what keeps the daily flow of results from needing approval |
-| **A value replaced by a different value** in a gated field | **waits** | this is "an update to existing data" |
-| **Odds** (`odds_red`, `odds_blue`), **photo and poster URLs**, `round_time` | goes in | they move constantly or are media paths, not facts anyone would audit |
-| **A fighter's career totals** (`vendor_wins`, `vendor_losses`, `vendor_draws`, `vendor_ko_wins`, `vendor_stopped`) | goes in when the same run adds or fills a fight for that fighter and the change is explained by it (a win is one more win); otherwise **waits** | a result moves the totals; an unexplained jump is exactly what an administrator should see |
-| **A result changed** (`winner`, `method`, `end_round` of a fight that already had one) | **waits**, as one proposal per fight | moves ratings and records; the most important kind |
-| **A fight's `status`** from scheduled to completed alongside a filled result | goes in | part of the result arriving |
-| **A fight's `status`** to cancelled, or an **event's date** moved | **waits** | a real change to something we showed |
-| **Name, country, division, stance, reach, height, birth data, active, retired date, nickname, aliases, ids** | **waits** | facts about a person |
-| **Detail rows** (officials, scorecards, corners, punch stats, weigh-ins, money) | **version 1 does not gate them** (they are replaced per fight as today and listed in the digest); scorecards are the first candidate for version 2 | they are replaced as sets, which needs set-level proposals; worth doing, not worth delaying the rest |
-| **The official-rankings snapshot** | goes in as a whole, listed in the digest (a weekly snapshot, a different thing from correcting a fact); per-list gating is an option | see decision 4 |
+| **A new row** (a fighter, fight, card, organisation or person we do not hold) | **goes in at once**, listed in a "new this run" digest | asked: only updates to existing data wait |
+| **A result arriving** for a fight we hold as scheduled, or **a result changed** | **waits**, as one `result_change` per fight | decision 1. The proposal carries everything that is part of the result: winner, method, end round, round time, knockdowns, status (completed), and the judges' `scores` (decision 3), so approving it publishes the whole result at once |
+| **A fighter's career totals** (`vendor_wins`, `vendor_losses`, `vendor_draws`, `vendor_ko_wins`, `vendor_stopped`) | a change **explained by a result being held** is folded into that result's proposal and applied with it; any other change **waits** on its own | the totals follow the result, so they must not show a record that the results do not yet support |
+| **A blank filled** in anything else (a missing height, birth date, nickname, country) | **waits** | decision 1 |
+| **A value replaced by a different value** in a gated field | **waits** | an update to existing data |
+| **A fight's status** to cancelled, an **event's date** moved, an event's name, venue or attendance changed | **waits** | real changes to something we showed |
+| **A person's facts**: name, country, division, stance, reach, height, birth data, active, retired date, nickname, aliases, Wikidata and BoxRec ids | **waits** | |
+| **Odds** (`odds_red`, `odds_blue`) | **goes in** | prices that move all day; not a fact anyone would audit; no page treats them as a record |
+| **Pictures**: `photo_url`, `poster_url` and the photo credit | **goes in** | media paths, not facts; the fighters' headshots also arrive from Wikimedia and this keeps both routes the same |
+| **The judges' scores** (`vendor_scores`) | in the result's proposal (above) | decision 3. **What the vendor supplies:** three strings such as "116-109" on the fight, stored on the fight's own row, with no judge names and no order we can rely on (the vendor email asks). So scorecards are in version 1 as that column. The judge-level `scorecards` table, officials, corners, punch stats and weigh-ins are not supplied by this vendor today and are not gated; money rows (financials, purses, earnings) are not gated either and are listed in the digest |
+| **Official rankings** | **per list**, see decision 4 below | |
 
-Derived numbers (records, ratings, streaks, rankings) are never gated: they are recomputed from the facts that are.
+Derived numbers (records, ratings, streaks, rankings pages) are never gated: they are recomputed from the facts that are.
+
+**Official rankings (decision 4).** Each body's list for each division (a champion line and the contenders) is one proposal when it differs from the one we hold, so there are at most one per list (four bodies by the divisions they rank), and the group action **"Approve all lists"** is the whole snapshot in one click, while any single list can still be approved or rejected on its own. The first snapshot ever received (nothing held) goes in. This needs a temporary copy of the (small) `official_rankings` table in the gate.
 
 **An approved correction still wins.** `applyCorrections` runs on the live rows after the gate, as now; a vendor value that disagrees with a correction stays on the existing `vendor_changed` flag path and does not also become a proposal.
+
+**What this means day to day.** Because results wait, every day's new results are a queue (a card of 8 fights is 8 results; a busy weekend is dozens), and the site shows a fight as scheduled until you approve its result. The two things that keep it a two-minute job: **approve the group** ("Results: 37, approve all"), and, if you want it, a **standing rule** you write yourself (for example "accept a result whose fight was in the last 3 days"). No such rule exists by default, so nothing is auto-approved unless you make it. If you are away for a week the site simply lags the vendor and says how long it has been waiting (section 7).
 
 ## 5. What a proposal is
 
@@ -62,7 +66,7 @@ It reuses the `proposals` table and the approval page from steps A and B:
 - `source` = `vendor:boxing-data-api`; `kind` = `field_change` (one per fighter or event field) or `result_change` (one per fight, carrying winner, method and round together);
 - `target_key` = `boxer|<external_id>|<field>`, `event|<external_id>|<field>`, `bout|<external_id>|result`;
 - `old`, `new`, and `evidence` = the run id and the vendor's own updated-at if the feed gives one;
-- the fingerprint rule is unchanged: a rejected change is not raised again while the vendor says the same thing. The live value stays ours, and every night the gate puts it back again, so a rejection means "we keep our value" until the vendor says something different.
+- the fingerprint rule: a rejected change is not raised again while the vendor says the same thing, **for 30 days** (decision 5); after that it is raised again, once, for a fresh decision. The live value stays ours meanwhile, and every night the gate puts it back again. This also applies to the source watchers' proposals (a small change to `reconcile`, made in D1, setting `PROPOSAL_REJECT_MEMORY_DAYS`, default 30).
 
 Approving applies one value with a stale check (the live value must still equal `old`), writes the audit row, and recomputes ratings once per approved batch when a result changed. A change that no longer fits is refused and stays waiting.
 
@@ -72,7 +76,7 @@ Approving applies one value with a stale check (the live value must still equal 
 - **Standing rules** (a table in the accounts database, edited by an administrator, each use logged): "accept `height_cm` changes of 3 cm or less", "accept `active` changes", "accept any change to `nickname`". A rule applies on the next run, before a proposal is written, and is shown in the digest ("accepted by rule: 214").
 - **A baseline step**: when the gate is first switched on, the first run's proposals are the pile left from before. The administrator can **accept the present state** group by group, after looking at the samples, in one logged action each; this is the "heavy at first" part and it ends.
 - **Noise is removed before it becomes a proposal**: text compared after trimming and normalising, lists compared as sets, `updated_at` ignored.
-- **A flood guard**: if one run would propose more than a set share of an entity's rows (default 5%, never in baseline mode), the run is refused with exit code 3 ("a check refused the data"), as the existing checks do, and nothing is written. The usual cause is the vendor changing a format, not boxing.
+- **A flood guard**, measured per field and calibrated on real nights (decision 7). A update touches a bounded set of rows (recent and coming fights and their fighters), so "5% of the whole table" would mean nothing: a normal night's results are a large share of the fights it touched. What a format change looks like is **one field changing in a large share of the rows touched** (heights switching units changes nearly every height). The first setting, to be replaced by numbers from real nights: **refuse the run (exit code 3, "a check refused the data", nothing written) when a single field would change in more than 30% of the rows touched and in at least 100 rows, or when a night would propose more than 2,000 changes in all.** Result fields are exempt from the share test (they legitimately change in most of a card's fights) but not from the ceiling. Baseline mode (the first gated run) is exempt from both. `--gate-report` (section 8) is run for the first five to seven nights with the gate off, and the thresholds are then set to about three times the largest legitimate night it shows, so a real night is never refused and a format change always is. The settings are `VENDOR_GATE_MAX_FIELD_SHARE`, `VENDOR_GATE_MAX_FIELD_ROWS` and `VENDOR_GATE_MAX_NIGHT`.
 
 ## 7. If nobody approves
 
@@ -98,18 +102,22 @@ The site keeps serving the last approved data. `/api/health` already shows `upda
 
 | Step | What | Risk |
 |---|---|---|
-| **D1** | The policy table, the diff, and `--gate-report` (reads, rolls back, prints). No reverting yet. | none to data |
+| **D1** | The policy table, the diff and `--gate-report` (reads, rolls back, prints, so the first nights' volume and the flood-guard numbers are seen for real); the 30-day rejection memory in `reconcile`. No reverting yet. | none to data |
 | **D2** | The restore-in-transaction hook in `ingest`, behind `VENDOR_GATE`; proposals written; `apply` for vendor proposals; the equivalence test. | the sensitive one; reviewed alone |
-| **E1** | Group approval by field with samples; standing rules and their screen; the baseline action; Arabic. | screens only |
+| **E1** | Group approval by field and "Approve all lists", with samples; standing rules and their screen; the baseline action; Arabic. | screens only |
 | **E2** | Nightly wiring, health `updatesOverdueDays`, doctor line, runbook and handbook, a rehearsal at full size. | low |
-| **Later** | Scorecards and other detail rows; rankings per list. | separate plan |
+| **Later** | Judge-level scorecards, officials and other detail rows, if the vendor ever supplies them; money rows. | separate plan |
 
-## 11. Decisions I need from you
+## 11. Decisions (owner, 2026-10-09)
 
-1. **Blanks filled go in without approval** (a result arriving, a missing height). Confirm. The alternative, approving every new result, is the permanent heavy workload you did not want.
-2. **The fields that go in without approval**: odds, photo and poster URLs, round time, and career totals when explained by a new result. Add or remove any.
-3. **Detail rows (scorecards, officials, punch stats, money) are not gated in version 1.** Agree, or should scorecards be in the first version?
-4. **Official rankings** (replaced as a whole snapshot): let each snapshot in, or hold each changed list for approval?
-5. **A rejection**: "we keep our value for good", or "ask again after N days" (default for N: never)?
-6. **Overdue threshold** for the health and doctor warning: 7 days?
-7. **The flood guard share**: 5% of an entity's rows in one night?
+| # | Question | Decision |
+|---|---|---|
+| 1 | Do blanks filled go in without approval? | **No, they wait too.** Applied in section 4 (results, missing details). A new row still goes in at once. |
+| 2 | Which fields go in without approval? | **Left to me; recommended and applied in section 4:** odds, picture paths (photo, poster, credit). Career totals ride with the result they follow. Everything else waits. |
+| 3 | Scorecards in version 1? | **Yes, as far as the vendor supplies them:** the judges' `scores` on the fight are part of the result's proposal. Judge-level rows and officials are not supplied. |
+| 4 | Rankings: whole snapshot or per list? | **Both, recommended:** one proposal per list, plus "Approve all lists" for the whole snapshot in one click. |
+| 5 | Is a rejection permanent? | **Asked again after 30 days.** |
+| 6 | Overdue warning threshold | **7 days.** |
+| 7 | Flood guard share | **Left to me; recommended:** per field (30% of rows touched and at least 100 rows) plus a ceiling of 2,000 changes a night, calibrated on five to seven nights of `--gate-report` before it is enforced. See section 6. |
+
+Nothing starts until you say "build D1".
