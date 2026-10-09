@@ -34,6 +34,8 @@ Each headline gets a link to a Wayback Machine copy when the Internet Archive ha
 
 Links open the outlet's own page in a new tab with `noopener noreferrer nofollow`. Nothing is loaded from an outlet's site when a page is viewed: no image, script or frame. The privacy page needs no change.
 
+The news page has two tabs, **Videos to watch** (the official videos, newest 24) and **News to read** (the outlet filter, chosen posts and headlines), as plain links: `/news?tab=videos` and `/news?tab=news`. Videos open first unless there are none.
+
 ## Official videos
 
 The same refresh lists the newest uploads of eight official channels (DAZN Boxing, Matchroom, Top Rank, Queensberry, Sky Sports Boxing, ProBox TV, Premier Boxing Champions, Golden Boy) and shows the ones that name a fighter on that fighter's page and on the card's page, and the newest twelve on `/news`.
