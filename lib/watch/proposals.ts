@@ -2,6 +2,10 @@ import { createHash } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import type { Change } from "./types";
 
+/** A rejected change is remembered, so it is not raised again while the source says the same, for this many days; then it is raised once more for a fresh decision (owner's decision, 2026-10-09). */
+export const REJECT_MEMORY_DAYS = 30;
+export const rejectMemoryDays = (raw: string | undefined = process.env.PROPOSAL_REJECT_MEMORY_DAYS) => { const n = Number(raw); return Number.isFinite(n) && n >= 0 && raw?.trim() ? n : REJECT_MEMORY_DAYS; };
+
 export const fingerprint = (c: Pick<Change, "kind" | "new">) => createHash("sha256").update(JSON.stringify([c.kind, c.new])).digest("hex").slice(0, 32);
 
 export interface ReconcileReport { added: number; updated: number; unchanged: number; remembered: number; superseded: number }
@@ -9,14 +13,15 @@ export interface ReconcileReport { added: number; updated: number; unchanged: nu
 /**
  * Turns a run's differences into pending proposals, and nothing else.
  *  - a change already pending for the same thing is updated (its newer reading, `last_seen`), not duplicated;
- *  - a change an admin rejected is not raised again while the source still says the same (same fingerprint);
+ *  - a change an admin rejected is not raised again while the source still says the same (same fingerprint), for 30 days after the rejection; then it is raised once more;
  *  - a pending proposal inside `scope` that the run no longer finds (the source went back, or the live data caught up) is marked superseded, so the queue holds only what is still true.
  */
 export function reconcile(acc: DatabaseSync, source: string, changes: Change[], scope: string[], now = new Date().toISOString()): ReconcileReport {
   const r: ReconcileReport = { added: 0, updated: 0, unchanged: 0, remembered: 0, superseded: 0 };
   const pending = new Map((acc.prepare("SELECT id, target_key, fingerprint, new_json, label FROM proposals WHERE source = ? AND status = 'pending'").all(source) as { id: number; target_key: string; fingerprint: string; new_json: string | null; label: string }[]).map((p) => [p.target_key, p]));
   const seen = new Set<string>();
-  const rejected = acc.prepare("SELECT 1 x FROM proposals WHERE source = ? AND target_key = ? AND fingerprint = ? AND status = 'rejected' LIMIT 1");
+  const rejected = acc.prepare("SELECT 1 x FROM proposals WHERE source = ? AND target_key = ? AND fingerprint = ? AND status = 'rejected' AND COALESCE(decided_at, '') > ? LIMIT 1");
+  const memoryFrom = new Date(Date.parse(now) - rejectMemoryDays() * 86400000).toISOString();
   const insert = acc.prepare("INSERT INTO proposals (source, kind, target_key, label, old_json, new_json, evidence_json, fingerprint, first_seen, last_seen) VALUES (?,?,?,?,?,?,?,?,?,?)");
   const refresh = acc.prepare("UPDATE proposals SET kind = ?, label = ?, old_json = ?, new_json = ?, evidence_json = ?, fingerprint = ?, last_seen = ? WHERE id = ?");
   const touch = acc.prepare("UPDATE proposals SET last_seen = ? WHERE id = ?");
@@ -32,7 +37,7 @@ export function reconcile(acc: DatabaseSync, source: string, changes: Change[], 
         else { refresh.run(c.kind, c.label, JSON.stringify(c.old), JSON.stringify(c.new), JSON.stringify(c.evidence), fp, now, have.id); r.updated++; }
         continue;
       }
-      if (rejected.get(source, c.targetKey, fp)) { r.remembered++; continue; }
+      if (rejected.get(source, c.targetKey, fp, memoryFrom)) { r.remembered++; continue; }
       insert.run(source, c.kind, c.targetKey, c.label, JSON.stringify(c.old), JSON.stringify(c.new), JSON.stringify(c.evidence), fp, now, now);
       r.added++;
     }

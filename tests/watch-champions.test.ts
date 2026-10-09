@@ -127,9 +127,18 @@ test("running again does not duplicate; a rejected change is not raised again un
   assert.deepEqual([again.proposals!.added, again.proposals!.unchanged], [0, 1]);
   const id = props.listProposals(acc)[0].id;
 
-  acc.prepare("UPDATE proposals SET status = 'rejected' WHERE id = ?").run(id);
+  acc.prepare("UPDATE proposals SET status = 'rejected', decided_at = ? WHERE id = ?").run(new Date().toISOString(), id);
   const after = await run.runWatch("champions", ctx(), acc);
   assert.deepEqual([after.proposals!.added, after.proposals!.remembered], [0, 1], "the same change, rejected before");
+
+  // after 30 days the same change is asked about again, once (the owner's decision); before that it is remembered
+  acc.prepare("UPDATE proposals SET decided_at = ? WHERE id = ?").run(new Date(Date.now() - 29 * 86400000).toISOString(), id);
+  assert.equal((await run.runWatch("champions", ctx(), acc)).proposals!.remembered, 1, "29 days on: still remembered");
+  acc.prepare("UPDATE proposals SET decided_at = ? WHERE id = ?").run(new Date(Date.now() - 31 * 86400000).toISOString(), id);
+  const asked = await run.runWatch("champions", ctx(), acc);
+  assert.deepEqual([asked.proposals!.added, asked.proposals!.remembered], [1, 0], "31 days on: raised again");
+  acc.prepare("UPDATE proposals SET status = 'superseded' WHERE status = 'pending'").run();
+  acc.prepare("UPDATE proposals SET decided_at = ? WHERE id = ?").run(new Date().toISOString(), id);
 
   pages[WBO] = ORIGINAL[WBO].replace("|11 Jan – 28 Dec 1991", "|11 Jan – 30 Dec 1991");
   const different = await run.runWatch("champions", ctx(), acc);
