@@ -239,18 +239,20 @@ export async function runNightly(o: NightlyOptions): Promise<NightlyOutcome> {
       } else {
         const cmd = o.updateCommand ?? { file: process.execPath, args: ["--import", "tsx", "scripts/vendor-backfill.ts", "--update", "--cache-dir", path.join(dataDir, "vendor-cache"), "--no-backup", ...cfg.updateArgs] };
         say(`update: ${path.basename(cmd.file)} ${cmd.args.join(" ")} (node options: ${cfg.childNodeOptions}, MALLOC_ARENA_MAX ${o.env.MALLOC_ARENA_MAX ?? DEFAULT_MALLOC_ARENA_MAX})`);
+        let heldLine = ""; // the update prints it before its last 30 lines, which are all the child's tail keeps
         const out = await runChild({
           file: cmd.file, args: cmd.args, cwd: root, timeoutMs: o.updateTimeoutMs ?? UPDATE_TIMEOUT_MS, signal: o.signal, sampleMs: o.sampleMs,
           env: { ...o.env, NODE_OPTIONS: cfg.childNodeOptions, MALLOC_ARENA_MAX: o.env.MALLOC_ARENA_MAX ?? DEFAULT_MALLOC_ARENA_MAX },
-          onLine: (l) => { if (l.trim()) say(`  | ${l}`); },
+          onLine: (l) => { if (l.trim()) { say(`  | ${l}`); if (/\bchange\(s\) held for an administrator \(/.test(l)) heldLine = l; } },
         });
         updateCode = out.spawnError ? 1 : out.timedOut ? 1 : out.code ?? signalNumber(out.signal) ?? 1;
         const lines = out.tail.map((l) => l.trim()).filter(Boolean);
         const loaded = /\bloaded: (.*)$/.exec(lines.find((l) => /\bloaded: /.test(l)) ?? "")?.[1];
         const skipped = lines.find((l) => /^update done, but /.test(l)); // the update's own last line when it skipped or ignored anything
+        const held = /\b(\d+) change\(s\) held for an administrator \(/.exec(heldLine)?.[1]; // VENDOR_GATE=hold: what waits at /review/updates
         const message = out.spawnError ? `could not start the update: ${out.spawnError}`
           : out.timedOut ? `stopped: still running after ${Math.round((o.updateTimeoutMs ?? UPDATE_TIMEOUT_MS) / 60_000)} minutes`
-          : updateCode === 0 ? `applied${loaded ? `: ${loaded}` : ""}${skipped ? `; ${skipped}` : ""}`
+          : updateCode === 0 ? `applied${loaded ? `: ${loaded}` : ""}${held ? `; ${held} change(s) held for approval` : ""}${skipped ? `; ${skipped}` : ""}`
           : lines[lines.length - 1] ?? "no output";
         record("update", { exitCode: updateCode, ok: updateCode === 0, message, seconds: Math.round((Date.now() - t0) / 100) / 10, peakMemoryMb: out.peakMb });
         if (out.peakMb !== undefined) say(`update peak memory about ${out.peakMb} MB (its own process, beside the site)`);

@@ -15,6 +15,7 @@ import path from "node:path";
 import { assertPlausibleKey } from "./providers/boxing-data-api";
 import { CLOCK_SLACK_HOURS, STALE_DATA_DAYS } from "./freshness";
 import { exitMeaning, parseSchedule, type PublicNightly } from "./nightly-status";
+import { overdueDays } from "./watch/waiting";
 
 export type Level = "fail" | "warn" | "info" | "ok";
 export interface Finding { level: Level; id: string; message: string; fix?: string }
@@ -33,7 +34,7 @@ export const KNOWN_ENV = [
   "BOXING_PROVIDER", "BOXING_FILE", "BOXING_API_URL", "BOXING_API_KEY", "BOXING_API_MAX_REQUESTS", "BOXING_API_PER_HOUR", "BOXING_API_SINCE", "BOXING_API_STORAGE_CONFIRMED", "PUBLIC_API", "VENDOR_REDISTRIBUTION_CONFIRMED",
   "VENDOR_LAG_DAYS", "VENDOR_LOAD_LAG_DAYS", "RINGSIDE_KEY_FILE", "WIKIMEDIA_CONTACT", "WIKIMEDIA_GAP_MS", "WIKIDATA_GAP_MS", "MEDIA_RESOLVER", "MEDIA_RESOLVER_BATCH",
   "RESEARCH_CONTACT", "NEWS_CONTACT", "NEWS_NONCOMMERCIAL", "YOUTUBE_API_KEY", "SITE_CONTACT", "CLIENT_IP_HEADER", "VENDOR_TERMS_URL", "VENDOR_RANKINGS_CONFIRMED", "RESEARCH_DELAY_MS", "RESEARCH_BLOCKLIST", "SITE_URL", "INDEXABLE", "DATABASE_PATH", "ACCOUNTS_DB_PATH",
-  "NIGHTLY_SCHEDULE", "NIGHTLY_KEEP", "NIGHTLY_OFFSITE_CMD", "NIGHTLY_OFFSITE_TIMEOUT_MIN", "NIGHTLY_JITTER_MIN", "NIGHTLY_NODE_OPTIONS", "WATCH_SOURCES", "NEWS_REFRESH", "VENDOR_GATE", "VENDOR_GATE_MAX_FIELD_SHARE", "VENDOR_GATE_MAX_FIELD_ROWS", "VENDOR_GATE_MAX_NIGHT", "PROPOSAL_REJECT_MEMORY_DAYS",
+  "NIGHTLY_SCHEDULE", "NIGHTLY_KEEP", "NIGHTLY_OFFSITE_CMD", "NIGHTLY_OFFSITE_TIMEOUT_MIN", "NIGHTLY_JITTER_MIN", "NIGHTLY_NODE_OPTIONS", "WATCH_SOURCES", "NEWS_REFRESH", "VENDOR_GATE", "VENDOR_GATE_MAX_FIELD_SHARE", "VENDOR_GATE_MAX_FIELD_ROWS", "VENDOR_GATE_MAX_NIGHT", "UPDATES_OVERDUE_DAYS", "PROPOSAL_REJECT_MEMORY_DAYS",
   "RINGSIDE_NOW", "RINGSIDE_WORLD_SETTLE_MS", "RINGSIDE_OG_CACHE_MB", "RINGSIDE_OG_MAX_AGE", "RINGSIDE_SITEMAP_CACHE_MB", "FORUM_AUTO_HIDE_REPORTS",
 ] as const;
 /** Settings that exist for tests and tooling and are deliberately not in .env.example. */
@@ -148,6 +149,8 @@ export interface Probe {
   freeBytes(p: string): number | null;
   /** The nightly job's last result (nightly-status.json in the data folder), or null when it never ran. Optional: a probe without it reports nothing about the job. */
   nightly?(dataDir: string): PublicNightly | null;
+  /** How many source updates wait for an administrator, and since when (the accounts database, read only), or null when there is none or it cannot be read. */
+  updates?(accountsPath: string): { waiting: number; oldestSeen: string | null } | null;
 }
 
 export const SPORTS_TABLES = ["boxers", "events", "bouts"], ACCOUNT_TABLES = ["users", "sessions", "picks", "forum_posts"];
@@ -224,6 +227,15 @@ export function fileFindings(env: Env, probe: Probe, o: { cwd?: string; now?: Da
     else if (night.result === "running") out.push(f("info", "nightly", `A nightly job started ${when} UTC and has not finished.`));
     else out.push(f("ok", "nightly", `The last nightly job finished ${when} UTC with everything done.`));
   } else if (parseSchedule(env.NIGHTLY_SCHEDULE) && probe.nightly) out.push(f("info", "nightly", "The nightly job is scheduled but has not run yet on this volume."));
+
+  const waiting = probe.updates?.(p.accounts) ?? null;
+  if (waiting && waiting.waiting > 0) {
+    const t = waiting.oldestSeen ? Date.parse(waiting.oldestSeen) : NaN;
+    const days = Number.isFinite(t) ? Math.max(0, Math.floor((now.getTime() - t) / 86_400_000)) : 0;
+    const limit = overdueDays(env.UPDATES_OVERDUE_DAYS);
+    if (days >= limit) out.push(f("warn", "updates-waiting", `${waiting.waiting} source update(s) have been waiting for an administrator for ${days} days (the oldest since ${waiting.oldestSeen!.slice(0, 10)}): until they are decided the site shows the last approved data.`, "Decide on them at /review/updates (groups, standing rules and the baseline make a big queue quick)."));
+    else out.push(f("info", "updates-waiting", `${waiting.waiting} source update(s) are waiting for an administrator (the oldest ${days} day(s)): /review/updates.`));
+  }
 
   if (prov === "file" && set(env, "BOXING_FILE") && !probe.file(env.BOXING_FILE!.trim())) out.push(f("fail", "file-feed", `BOXING_FILE ${env.BOXING_FILE} does not exist.`, "Fix the path."));
 

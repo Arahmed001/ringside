@@ -25,8 +25,12 @@ const worldWith = (countries: Record<string, string>) => {
 const one = <T,>(file: string, sql: string, ...args: (string | number)[]) => { const d = new DatabaseSync(file, { readOnly: true }); try { return d.prepare(sql).get(...args) as T; } finally { d.close(); } };
 const all = <T,>(file: string, sql: string) => { const d = new DatabaseSync(file, { readOnly: true }); try { return d.prepare(sql).all() as T[]; } finally { d.close(); } };
 
-async function night(tag: string, world: ReturnType<typeof worldWith>, env: Record<string, string>) {
+async function night(tag: string, world: ReturnType<typeof worldWith>, env: Record<string, string>, o: { priorHold?: boolean } = {}) {
   const v = makeVolume(tpl, tag);
+  if (o.priorHold) { // a night of holding has happened here before: the flood guard applies (the first night skips it by itself)
+    fs.mkdirSync(path.join(v.dir, "gate-reports"), { recursive: true });
+    fs.writeFileSync(path.join(v.dir, "gate-reports", "2026-01-01T00-00-00-000Z.json"), JSON.stringify({ version: 1, mode: "hold" }));
+  }
   v.accounts = path.join(v.dir, "accounts-real.db"); // a real accounts database, made by the update itself
   const vendor = await serveFaulty(world);
   try {
@@ -62,14 +66,14 @@ test("--accept-all lets one update through unheld, and the audit log says so", a
   assert.deepEqual(all<{ actor: string; action: string }>(v.accounts, "SELECT actor, action FROM audit WHERE action = 'update.accept_all'").map((x) => ({ ...x })), [{ actor: "operator", action: "update.accept_all" }]);
 });
 
-test("a night over the flood guard is refused whole (exit 3) and writes nothing; --gate-baseline records it instead", async () => {
+test("a night over the flood guard is refused whole (exit 3) and writes nothing (after the first night of holding); --gate-baseline records it instead", async () => {
   const world = worldWith({ f0: "Ireland", f1: "Ireland", f2: "Ireland" });
-  const refused = await night("refused", world, { VENDOR_GATE: "hold", VENDOR_GATE_MAX_NIGHT: "2" });
+  const refused = await night("refused", world, { VENDOR_GATE: "hold", VENDOR_GATE_MAX_NIGHT: "2" }, { priorHold: true });
   assert.equal(refused.r.code, 3, refused.r.out);
   assert.match(refused.r.out, /the vendor update gate refused this night, and nothing was written/);
   assert.equal(one<{ c: number }>(refused.v.db, "SELECT COUNT(*) c FROM bouts").c, refused.before.fights, "not even the new fight");
   assert.equal(readStatusFile(refused.v).result, "failed");
-  const base = await night("baseline", world, { VENDOR_GATE: "hold", VENDOR_GATE_MAX_NIGHT: "2", EXTRA: "--gate-baseline" });
+  const base = await night("baseline", world, { VENDOR_GATE: "hold", VENDOR_GATE_MAX_NIGHT: "2", EXTRA: "--gate-baseline" }, { priorHold: true });
   assert.equal(base.r.code, 0, base.r.out);
   assert.equal(all(base.v.accounts, "SELECT * FROM proposals WHERE status = 'pending'").length, 3);
 });

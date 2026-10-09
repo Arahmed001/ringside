@@ -313,6 +313,14 @@ export function writeGateReport(dir: string, r: GateReport): string | null {
   } catch { return null; }
 }
 
+/** True once this data folder has had a night of holding (a report written by hold mode exists): from then on the flood guard applies. */
+export function hasHeldBefore(dir: string): boolean {
+  try {
+    const folder = path.join(dir, "gate-reports");
+    return fs.readdirSync(folder).filter((n) => n.endsWith(".json")).some((n) => { try { return (JSON.parse(fs.readFileSync(path.join(folder, n), "utf8")) as { mode?: string }).mode === "hold"; } catch { return false; } });
+  } catch { return false; }
+}
+
 export const VENDOR_SOURCE_ID = "vendor:boxing-data-api";
 export interface HookOptions { mode: "observe" | "report" | "hold"; rules?: Rule[]; settings: GateSettings; log: (m: string) => void; dataDir?: string; baseline?: boolean; now?: () => Date }
 /**

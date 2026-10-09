@@ -186,9 +186,9 @@ async function main() {
   // the vendor update gate (docs/vendor-gate-plan.md). VENDOR_GATE=observe records what each update changed in rows we hold (a report file, and lines in the log);
   // VENDOR_GATE=hold HOLDS the changes the policy says must wait: they are put back before the commit and become proposals for an administrator (/review/updates);
   // --gate-report shows the same and rolls the whole update back, writing nothing. A first load into an empty database is never held; --accept-all lets one update through
-  // unheld (logged); --gate-baseline skips the flood guard for one night (the first night of holding, when the pile left from before is recorded).
+  // unheld (logged); --gate-baseline skips the flood guard for one night (the first night of holding does this by itself, so the pile left from before is recorded).
   const { gateSettings } = await import("../lib/watch/vendor-policy");
-  const { gateHooks, GateRollback, GateRefusal } = await import("../lib/watch/vendor-gate");
+  const { gateHooks, GateRollback, GateRefusal, hasHeldBefore } = await import("../lib/watch/vendor-gate");
   const gateS = gateSettings();
   for (const w of gateS.warnings) console.log(`warning: ${w}`);
   const reportOnly = flag("gate-report");
@@ -207,7 +207,10 @@ async function main() {
     rules = (await import("../lib/watch/rules")).listRules(accountsDb());
     if (rules.length) console.log(`vendor gate: ${rules.length} standing rule(s) in force`);
   }
-  const vendorGate = mode ? gateHooks({ mode, rules, settings: gateS, log: (m) => console.log(m), baseline: flag("gate-baseline") || flag("baseline"), dataDir: mode === "report" ? undefined : path.dirname(dbFile) }) : undefined;
+  // the first night of holding records the pile left from before instead of being refused by the flood guard: no flag to remember (a night that is refused leaves no report, so the next still counts as the first)
+  const firstHold = mode === "hold" && !hasHeldBefore(path.dirname(dbFile));
+  if (firstHold) console.log("vendor gate: this is the first night of holding on this data folder: the flood guard is skipped once, so what the vendor has changed since before is recorded as proposals to decide on (or accept at once with the baseline button at /review/updates).");
+  const vendorGate = mode ? gateHooks({ mode, rules, settings: gateS, log: (m) => console.log(m), baseline: flag("gate-baseline") || flag("baseline") || firstHold, dataDir: mode === "report" ? undefined : path.dirname(dbFile) }) : undefined;
   if (db && foreignFighters(db).total > 0 && !flag("no-backup") && !reportOnly) {
     const { backupDatabases } = await import("../lib/backup");
     const dbPath = process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db");

@@ -428,3 +428,17 @@ npm run capacity -- --base http://localhost:3417 --pid <pid> --steps 5 --seconds
 The settings run ("The leftovers", 3): the same, with `NODE_OPTIONS=--max-old-space-size=1024` and/or `MALLOC_ARENA_MAX=2` in front of `npm start`; for a real 2 GB limit on Linux, start the server inside a memory cgroup (`memory.limit_in_bytes` 2147483648) or a container with `--memory 2g`, and read the process's `VmRSS` and `VmHWM` from `/proc/<pid>/status` as well as the driver's numbers.
 
 On a real host, run the driver from another machine (so it does not take the server's cores), against a copy of the database, never against a site other people use. `RINGSIDE_MEMO_LOG=1` on the server logs every aggregate a first visit computes; `node --cpu-prof` on it gives the profile the hot spots were found with. The per-run JSON from this report was not kept in the repository (it is a few KB each); re-running takes about 12 minutes per core configuration.
+
+## The vendor update gate at full size (measured 2026-10-09)
+
+`npm run vendor:rehearse -- --gate` at the default size (19,000 fighters, 160,000 fights over 35 years, a stand-in vendor on the same machine), after the ordinary steps. One night: 629 fighters of the latest 320 fights change country, and the 11 coming fights are decided; the same night is run on three copies of the 58 MB database.
+
+| Step | Time | Peak memory (the update's own process) |
+|---|---|---|
+| the ordinary daily update, for comparison | 6.8 s | 359 MB |
+| 5. the night, no gate | 6.7 s | 363 MB |
+| 6. the night, `VENDOR_GATE=observe` | 6.7 s | 360 MB |
+| 7. the night, `VENDOR_GATE=hold` (the first night of holding) | 7.2 s | 359 MB |
+| accepting the 361 held changes in one step (baseline) | 2.5 s | this process 276 MB |
+
+Observing saw 361 changes that would wait and holding held the same 361. All checks passed: observing leaves the database exactly as the plain update did; while the changes wait they are not in the database; accepting everything waiting leaves exactly what the plain update left (every fighter, card and fight, and the ratings, hashed). The gate adds well under a second to a night's update and no measurable memory; the update's own peak is what it was. The first night of holding was not refused by the flood guard, as designed.
