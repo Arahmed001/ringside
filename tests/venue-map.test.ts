@@ -81,8 +81,9 @@ test("the lookup keeps OpenStreetMap's rules: an identifying contact, one at a t
   db.exec(`CREATE TABLE events (id INTEGER PRIMARY KEY, venue TEXT, city TEXT, country TEXT, status TEXT);
     CREATE TABLE venues (name TEXT, city TEXT, status TEXT, lat REAL);
     CREATE TABLE venue_places (name TEXT NOT NULL, city TEXT NOT NULL, country TEXT, status TEXT NOT NULL, reason TEXT, lat REAL, lon REAL, address TEXT, category TEXT, osm_ref TEXT, checked_at TEXT, PRIMARY KEY (name, city));`);
-  const ev = db.prepare("INSERT INTO events (venue, city, country, status) VALUES (?,?,?,'completed')");
-  for (const n of [3, 2, 1]) for (let i = 0; i < n; i++) ev.run(["MGM Grand Garden Arena", "Wembley Arena", "Placed Already"][3 - n], ["Las Vegas", "London", "Leeds"][3 - n], ["United States", "United Kingdom", "United Kingdom"][3 - n]);
+  const ev = db.prepare("INSERT INTO events (venue, city, country, status) VALUES (?,?,?,?)");
+  // the live database has no status on its events (NULL); only "cancelled" is excluded
+  for (const n of [3, 2, 1]) for (let i = 0; i < n; i++) ev.run(["MGM Grand Garden Arena", "Wembley Arena", "Placed Already"][3 - n], ["Las Vegas", "London", "Leeds"][3 - n], ["United States", "United Kingdom", "United Kingdom"][3 - n], null);
   db.exec("INSERT INTO venues VALUES ('Placed Already', 'Leeds', 'matched', 53.8)");
   const seen: { url: string; ua: string }[] = [];
   const f = (async (u: URL, init?: RequestInit) => { seen.push({ url: String(u), ua: String((init?.headers as Record<string, string>)["user-agent"]) }); return new Response(JSON.stringify(String(u).includes("Grand") ? [GGA] : []), { status: 200 }); }) as unknown as typeof fetch;
