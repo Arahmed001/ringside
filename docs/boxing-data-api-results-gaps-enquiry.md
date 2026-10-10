@@ -23,6 +23,8 @@ I'm [YOUR NAME] at [COMPANY / PROJECT]. We load your data on the Mega plan and s
 
 We also found fights listed twice under two fighter profiles (a fighter with two profile ids, for example Canelo Alvarez appears as `6715fc1faf69bb50508b79da` and under a second id). That was our side, and we now read such copies as one fight; 24 fights where an outcome and a winner are present still came out as "no result yet" because two copies disagreed. Mentioning it in case you would like to merge duplicate profiles.
 
+**4. One fight that looks attached to the wrong card.** Fight `bda-b-682a7bd271d21b5554e6ba05` (Sebastian Fundora vs Tim Tszyu, outcome UD) is listed under the card "Barrios vs Pacquiao" (`bda-e-681e2837f5b946f4b581d359`, 2025-07-20). Public weigh-in reports and results place Fundora vs Tszyu on 2024-03-30. Is this a date or event link error, or a different fight?
+
 Could you tell us how and how often your results are updated, so that we can refresh these fights when you fill them in? We pull `/v2/fights/` daily.
 
 Thank you,
