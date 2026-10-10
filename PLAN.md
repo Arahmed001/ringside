@@ -2159,3 +2159,6 @@ The owner asked for `/countries` to be a map instead, listing the stadiums and a
 
 ## 292. 589 Arabic name words accepted (round 163, 2026-10-10)
 - The 589 machine suggestions of round 162 are accepted by the owner (`source: "owner-accepted"`, replaceable by a native reviewer's import): 6,941 words reviewed, Arabic names on a page for 15,177 of 33,612 fighters (45.2%, up from 43.1%). About 890 rarer words still have none.
+
+## 293. 515 more Arabic name words accepted (round 164, 2026-10-10)
+- 515 more Arabic name-word spellings (mostly A-names, many Abdul-/Abdel- forms), accepted by the owner (`source: "owner-accepted"`, replaceable by a native reviewer's import): 7,456 words reviewed, Arabic names on a page for 15,451 of 33,612 fighters (46.0%). Central Asian, Uyghur, African and Pacific spellings are phonetic and the likeliest to need a native reviewer. About 370 rarer words still have none.
