@@ -2192,3 +2192,7 @@ The owner asked for `/countries` to be a map instead, listing the stadiums and a
 ## 300. Round 175: weigh-ins for 51 bouts, money for 85 cards
 - Weigh-ins now cover 51 bouts (101 weights) from mid-2024 to 2026, after two more batches (the 2024-25 Riyadh cards, Usyk-Fury 2, Beterbiev-Bivol 1 and 2, Dubois-Joshua, Canelo-Berlanga, Crawford-Madrimov, Benavidez-Morrell, Adames-Sheeraz and others); the code check rejected 3 quotes that did not state the weight. Where two sites differ by less than half a percent the first one read is stored.
 - Money: Dubois-Joshua attendance (96,000, two sites) added; figures on one site only (Canelo-Berlanga gate, attendance and PPV buys, the Bivol-Beterbiev purses, Benavidez-Morrell) are held back.
+
+## 301. Round 176: weigh-ins for 59 bouts, 94 card financials
+- Weigh-ins: 59 bouts (117 weights) after batches P and Q (2024 title cards from June on); money: 94 card financials and 96 purses after second sources for single-source figures (Inoue-Nakatani attendance, Canelo-Berlanga attendance and gate, Barrios-Pacquiao attendance, Benn's purse). The check counts sites, not origins, so two outlets repeating one report count as two: Benn's estimated $15M (Heavy.com, Bleacher Report) and the announced 21,324 at Stevenson-Lopez (Boxing Insider, AP) are examples to read as one report each.
+- Dry run of the clean reload against the cache: 1,837 amateur and games bouts would be left out (the importer rule of round 162); a plain reload keeps what an earlier load wrote, so the old file has to be moved aside first.
