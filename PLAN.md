@@ -2149,3 +2149,6 @@ The owner asked for `/countries` to be a map instead, listing the stadiums and a
 
 ## 289. Every push to main reaches Fly (round 159, 2026-10-10)
 - `.github/workflows/deploy.yml` deploys the code to Fly (`ringsidedb`, `--remote-only`) after CI passes on main: not on a red main, not for Markdown/docs-only changes, not while the nightly update is running (the run says so; "Run workflow" deploys later), one deploy at a time. It needs the `FLY_API_TOKEN` secret (setup in docs/fly-deploy.md, "Deploy on every push"); without it the workflow does nothing. Code only: the database on the volume is untouched. Tested in tests/deploy-workflow.test.ts.
+
+## 290. Menu order: Follow the sport moved under Corners, camps and money (round 161, 2026-10-10)
+- The side menu's "Follow the sport" group (Tonight, Events, Fight previews, News, On this day) now comes after "Corners, camps and money" and before "Learn and data", at the owner's request. Only the order in `lib/nav.ts` changed.

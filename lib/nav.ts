@@ -9,13 +9,6 @@ export interface NavGroup { id: string; title: string; items: NavItem[] }
 
 /** The site's sections, grouped. Labels and titles go through t(); the `msg` marks are what the translation scanner sees. */
 export const NAV_GROUPS: NavGroup[] = [
-  { id: "follow", title: msg("Follow the sport"), items: [
-    { href: "/tonight", label: msg("Tonight"), icon: "tonight" },
-    { href: "/events", label: msg("Events"), icon: "events" },
-    { href: "/previews", label: msg("Fight previews"), icon: "previews" },
-    { href: "/news", label: msg("News"), icon: "news" },
-    { href: "/on-this-day", label: msg("On this day"), icon: "on-this-day" },
-  ] },
   { id: "records", title: msg("Rankings and records"), items: [
     { href: "/rankings", label: msg("Rankings"), icon: "rankings" },
     { href: "/titles", label: msg("Titles"), icon: "titles" },
@@ -38,6 +31,13 @@ export const NAV_GROUPS: NavGroup[] = [
     { href: "/orgs", label: msg("Gyms, promotions & bodies"), icon: "orgs" },
     { href: "/weights", label: msg("Weigh-ins"), icon: "weigh-ins" },
     { href: "/money", label: msg("Money"), icon: "money" },
+  ] },
+  { id: "follow", title: msg("Follow the sport"), items: [
+    { href: "/tonight", label: msg("Tonight"), icon: "tonight" },
+    { href: "/events", label: msg("Events"), icon: "events" },
+    { href: "/previews", label: msg("Fight previews"), icon: "previews" },
+    { href: "/news", label: msg("News"), icon: "news" },
+    { href: "/on-this-day", label: msg("On this day"), icon: "on-this-day" },
   ] },
   { id: "learn", title: msg("Learn and data"), items: [
     { href: "/ask", label: msg("Ask the data"), icon: "ask" },
