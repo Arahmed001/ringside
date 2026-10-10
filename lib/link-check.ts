@@ -91,3 +91,19 @@ export function sharesWord(text: string, heading: string): boolean {
 
 /** Link texts that point at their own page's views (filter chips, sort headers, "next day"): never worth a second look. */
 export const looksLikeControl = (fromPath: string, toPath: string) => fromPath.split("?")[0] === toPath.split("?")[0];
+
+/** Pages that are one named thing (a fighter, a corner man, an organisation, a country, a title): a link to one that shows a name must show that thing's name. */
+export const isNamedPage = (path: string) => /^\/(ar\/)?(boxers|people|orgs|countries|titles|trainers)\/[^/?#]+$/.test(path);
+
+/** Text that reads as a name ("Andriy P. Moroz"): two to six words, no figures, no arrow or markup: not a button, a record or a result. */
+export const looksLikeName = (text: string) => { const w = text.trim().split(/\s+/); return w.length >= 2 && w.length <= 6 && !/[\d→<>]/.test(text); };
+
+/**
+ * A link whose text is a name but whose destination's heading and title share no word with it leads to the wrong place.
+ * (Accents, case and punctuation are ignored; one shared word is enough, so a nickname or a surname alone passes.)
+ */
+export function nameMismatch(text: string, heading: string): boolean {
+  if (!looksLikeName(text)) return false;
+  const h = new Set(fold(heading).split(" ").filter((w) => w.length > 1));
+  return !fold(text).split(" ").filter((w) => w.length > 1).some((w) => h.has(w));
+}
