@@ -70,6 +70,13 @@ const cityIn = (city: string, a: Record<string, string> | undefined, display: st
   return display.split(",").some((piece) => norm(piece) === c);
 };
 
+/** Words that name a kind of building, not a building: "Convention Center" alone is a hundred places. */
+const GENERIC = new Set("the a of and de la le el arena arenas stadium stadiums dome coliseum colosseum theatre theater casino resort hotel hall centre center pavilion forum ballroom palace palais gym gymnasium gimnasio sports sport leisure community convention exhibition expo event events civic municipal national international city town club academy boxing".split(" "));
+export const isGenericName = (name: string) => norm(name).split(" ").every((w) => GENERIC.has(w));
+/** Stored with a place accepted on its name alone once generic names are refused; the older wording marks rows to check again. */
+export const NAME_ALONE = "accepted on the name alone: the city is not in its address (the name is specific)";
+const NAME_ALONE_OLD = "accepted on the name alone: the city is not in its address";
+
 /** The pure decision step, so every rule can be tested without a network. */
 export function decide(s: Subject, results: OsmResult[]): PlaceOutcome {
   if (!results.length) return { status: "no_match", reason: "OpenStreetMap has nothing by that name" };
@@ -83,6 +90,7 @@ export function decide(s: Subject, results: OsmResult[]): PlaceOutcome {
   const inCity = named.filter((x) => cityIn(s.city, x.r.address, x.r.display_name ?? ""));
   const pool = inCity.length ? inCity : named.filter((x) => x.how === "exact");
   if (!pool.length) return { status: "no_match", reason: "a place with a similar name exists, but not in this city" };
+  if (!inCity.length && isGenericName(s.name)) return { status: "ambiguous", reason: "the name is too general to place without its city being confirmed" };
   const pts = pool.map((x) => [Number(x.r.lat), Number(x.r.lon)] as [number, number]);
   if (pts.some((p) => !Number.isFinite(p[0]) || !Number.isFinite(p[1]) || Math.abs(p[0]) > 90 || Math.abs(p[1]) > 180)) return { status: "no_match", reason: "OpenStreetMap gave no usable position" };
   if (pts.some((p) => km(p, pts[0]) > 2)) return { status: "ambiguous", reason: `${pool.length} places share that name in ${inCity.length ? "this city" : "this country"}, more than 2 km apart` };
@@ -116,8 +124,8 @@ export async function resolvePlaces(db: DatabaseSync, o: { limit?: number; conta
     SELECT e.venue AS name, COALESCE(e.city, '') AS city, e.country, COUNT(*) AS n FROM events e
     LEFT JOIN venues w ON w.name = e.venue AND w.city = e.city AND w.status = 'matched' AND w.lat IS NOT NULL
     LEFT JOIN venue_places p ON p.name = e.venue AND p.city = COALESCE(e.city, '')
-    WHERE e.venue IS NOT NULL AND e.venue <> '' AND COALESCE(e.status, '') <> 'cancelled' AND w.name IS NULL AND (p.name IS NULL OR (p.status <> 'found' AND p.checked_at < ?))
-    GROUP BY e.venue, e.city, e.country ORDER BY n DESC, e.venue LIMIT ?`).all(cutoff, o.limit ?? 100) as unknown as (Subject & { n: number })[];
+    WHERE e.venue IS NOT NULL AND e.venue <> '' AND COALESCE(e.status, '') <> 'cancelled' AND w.name IS NULL AND (p.name IS NULL OR (p.status <> 'found' AND p.checked_at < ?) OR p.reason = ?)
+    GROUP BY e.venue, e.city, e.country ORDER BY n DESC, e.venue LIMIT ?`).all(cutoff, NAME_ALONE_OLD, o.limit ?? 100) as unknown as (Subject & { n: number })[];
   const save = db.prepare(`INSERT INTO venue_places (name, city, country, status, reason, lat, lon, address, category, osm_ref, checked_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)
     ON CONFLICT(name, city) DO UPDATE SET country=excluded.country, status=excluded.status, reason=excluded.reason, lat=excluded.lat, lon=excluded.lon, address=excluded.address, category=excluded.category, osm_ref=excluded.osm_ref, checked_at=excluded.checked_at`);
   const s: PlaceSummary = { checked: 0, found: 0, noMatch: 0, ambiguous: 0, errors: 0 };
@@ -125,7 +133,7 @@ export async function resolvePlaces(db: DatabaseSync, o: { limit?: number; conta
     s.checked++;
     try {
       const out = await findPlace(r, { contact: o.contact, fetchImpl: o.fetchImpl }), now = new Date().toISOString();
-      if (out.status === "found") { const m = out.match; save.run(r.name, r.city, r.country, "found", m.cityConfirmed ? null : "accepted on the name alone: the city is not in its address", m.lat, m.lon, m.address, m.category, m.osmRef, now); s.found++; log(`✓ ${r.name}, ${r.city} → ${m.category}${m.address ? `, ${m.address}` : ""}${m.cityConfirmed ? "" : " (city not confirmed)"}`); }
+      if (out.status === "found") { const m = out.match; save.run(r.name, r.city, r.country, "found", m.cityConfirmed ? null : NAME_ALONE, m.lat, m.lon, m.address, m.category, m.osmRef, now); s.found++; log(`✓ ${r.name}, ${r.city} → ${m.category}${m.address ? `, ${m.address}` : ""}${m.cityConfirmed ? "" : " (city not confirmed)"}`); }
       else { save.run(r.name, r.city, r.country, out.status, out.reason, null, null, null, null, null, now); if (out.status === "ambiguous") s.ambiguous++; else s.noMatch++; log(`– ${r.name}, ${r.city}: ${out.reason}`); }
     } catch (e) {
       s.errors++; log(`! ${r.name}: ${(e as Error).message}`);
