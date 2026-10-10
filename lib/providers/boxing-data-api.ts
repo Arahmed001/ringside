@@ -190,8 +190,8 @@ function eventCountry(c: string): string {
 
 /** A finished fight with no result this many days old is counted as missing, not as a result still to come. */
 const RESULT_LAG_DAYS = 30;
-/** Event titles of bouts that are not professional: the Olympic, Asian, Commonwealth and other multi-sport games, and national or international amateur championships. */
-export const AMATEUR_EVENT = /\b(?:olympics|olympic games|asian games|commonwealth games|pan american games|european games|youth olympic\w*|universiade|amateur|aiba)\b/i;
+/** Event titles of bouts that are not professional: the Olympic, Asian, Commonwealth and other multi-sport games, and national or international amateur championships, and the amateur federations' own events (World Boxing's cups and championships, the IBA world championships, EUBC, ASBC, the continental elite championships), which the feed lists beside professional cards. */
+export const AMATEUR_EVENT = /\b(?:olympics|olympic games|asian games|commonwealth games|pan american games|european games|youth olympic\w*|universiade|amateur|aiba|iba (?:men(?:'s|’s)? |women(?:'s|’s)? )?world boxing championships|eubc|asbc|world boxing (?:cup|championships|challenge)|(?:european|oceania|asian|african|south american|pan american) (?:elite )?(?:men's )?(?:& women's )?boxing championships|elite men(?:'s|’s)? (?:&|and) women(?:'s|’s)?)\b/i;
 const DECISIONS = new Set(["UD", "MD", "SD", "PTS"]);
 
 /** The judges' scores that are really scores: "116-109" (two whole numbers, a hyphen or a dash). Anything else is dropped; at most three cards. */

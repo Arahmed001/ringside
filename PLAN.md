@@ -2152,3 +2152,7 @@ The owner asked for `/countries` to be a map instead, listing the stadiums and a
 
 ## 290. Menu order: Follow the sport moved under Corners, camps and money (round 161, 2026-10-10)
 - The side menu's "Follow the sport" group (Tonight, Events, Fight previews, News, On this day) now comes after "Corners, camps and money" and before "Learn and data", at the owner's request. Only the order in `lib/nav.ts` changed.
+
+## 291. Amateur federation events out of the load; 589 more Arabic name suggestions (round 162, 2026-10-10)
+- The feed lists the amateur federations' own events beside professional cards (World Boxing's cups and championships, the IBA world championships, EUBC, ASBC, the continental elite championships: 39 events, 1,229 bouts in the real data, all scheduled for 3 rounds or fewer). `AMATEUR_EVENT` in `lib/providers/boxing-data-api.ts` now skips them like the Olympics and Games; IBA.Pro and IBA Champions Night cards (professional) are kept. It takes effect at the next clean reload; until then the real database still holds those bouts. Test: tests/amateur-events.test.ts.
+- 589 more Arabic name-word spellings stored as machine suggestions (never shown until accepted); about 890 rarer words are still without one.
