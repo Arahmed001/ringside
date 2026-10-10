@@ -18,6 +18,7 @@ import { SOURCES, runWatch } from "../lib/watch/run";
 import { listProposals } from "../lib/watch/proposals";
 import { reportLines } from "../lib/watch/report";
 import { replayApproved } from "../lib/watch/results";
+import { replayTeam } from "../lib/watch/team";
 import { recomputeRatings } from "../lib/ingest";
 import { readVendorOutcomes } from "../lib/watch/vendor-outcomes";
 import { defaultCacheDir } from "../lib/vendor-fetch";
@@ -37,6 +38,8 @@ async function main() {
     const m = await getDb();
     const r = replayApproved(m, acc);
     if (r.applied) recomputeRatings(m);
+    const tm = replayTeam(m, acc);
+    console.log(`approved corners: ${tm.applied} put back, ${tm.alreadyThere} already in place, ${tm.skipped} left alone`);
     console.log(`approved results: ${r.applied} put back, ${r.alreadyThere} already in place, ${r.skipped} left alone (the fight has the vendor's own result, or is gone); ${r.marked} fighter(s) newly marked disputed${r.applied ? "; ratings recomputed" : ""}.`);
     return;
   }

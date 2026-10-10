@@ -81,7 +81,7 @@ export function UpdateQueue() {
   );
 }
 
-const kindTitle = (t: ReturnType<typeof useT>, kind: string) => kind === "field_change" ? t("Changes to details we hold") : kind === "result_change" ? t("Results") : kind === "result_set" ? t("Wikipedia results the vendor's outcome agrees with") : kind === "result_set_alone" ? t("Wikipedia results with no vendor outcome to compare") : kind === "result_set_conflict" ? t("Wikipedia results the vendor's outcome contradicts") : kind === "list_change" ? t("Official ranking lists") : kind === "reign_added" ? t("New title reigns") : kind === "reign_removed" ? t("Title reigns no longer on the page") : kind === "reign_changed" ? t("Changed title reigns") : kind;
+const kindTitle = (t: ReturnType<typeof useT>, kind: string) => kind === "field_change" ? t("Changes to details we hold") : kind === "result_change" ? t("Results") : kind === "result_set" ? t("Wikipedia results the vendor's outcome agrees with") : kind === "result_set_alone" ? t("Wikipedia results with no vendor outcome to compare") : kind === "result_set_conflict" ? t("Wikipedia results the vendor's outcome contradicts") : kind === "team_added" ? t("Trainers, managers, gyms and promoters named in Wikipedia articles") : kind === "list_change" ? t("Official ranking lists") : kind === "reign_added" ? t("New title reigns") : kind === "reign_removed" ? t("Title reigns no longer on the page") : kind === "reign_changed" ? t("Changed title reigns") : kind;
 
 function Group({ rows, source, max, pending, busy, decide }: { rows: ProposalRow[]; source?: SourceInfo; max: number; pending: boolean; busy: boolean; decide: (ids: number[], d: "approved" | "rejected", note: string, done: string) => void }) {
   const t = useT();
@@ -140,6 +140,8 @@ function Item({ r, pending, busy, decide }: { r: ProposalRow; pending: boolean; 
       ...(e.totals ?? []).map((x) => ({ k: `t-${x.name}`, label: `${x.name}: ${t("Career totals")}`, o: record(x.old), n: record(x.new) }))];
   } else if (r.kind.startsWith("result_set")) {
     view = [{ k: "method", label: t("Method"), o: show(old.method), n: show(now.method) }, { k: "winner", label: t("Winner"), o: show(old.winner), n: now.winner ? String(now.winner) : t("No winner (draw or no contest)") }, { k: "round", label: t("Ended in round"), o: show(old.endRound), n: show(now.endRound) }];
+  } else if (r.kind === "team_added") {
+    view = [{ k: "role", label: t("Role"), o: "–", n: show(now.role === "head_trainer" ? t("Trainer") : now.role === "manager" ? t("Manager") : now.role === "gym" ? t("Gym") : t("Promoter")) }, { k: "name", label: t("Name"), o: "–", n: show(now.name) }];
   } else if (r.kind === "list_change") {
     const names = (rows: unknown) => (Array.isArray(rows) ? (rows as { kind: string; rank: number | null; who?: string | null; name?: string | null; vacant?: number }[]) : []);
     const fmt = (rows: unknown, kind: string) => names(rows).filter((x) => x.kind === kind).map((x) => (x.vacant ? t("Vacant") : `${kind === "contender" && x.rank ? `${x.rank}. ` : ""}${x.who ?? x.name ?? "?"}`)).join(", ") || "–";
@@ -152,7 +154,7 @@ function Item({ r, pending, busy, decide }: { r: ProposalRow; pending: boolean; 
   const btn = "rounded-xl border border-line bg-panel2 px-4 py-2 transition hover:border-white/30 disabled:opacity-60";
   return (
     <li className="card space-y-3 p-5 text-sm">
-      <div {...(r.kind.startsWith("result_set") ? { lang: "en", dir: "ltr" as const } : {})} className="font-display text-xl font-bold">{r.kind === "reign_changed" ? r.label.split(": ").slice(0, -1).join(": ") : r.label}</div>
+      <div {...(r.kind.startsWith("result_set") || r.kind === "team_added" ? { lang: "en", dir: "ltr" as const } : {})} className="font-display text-xl font-bold">{r.kind === "reign_changed" ? r.label.split(": ").slice(0, -1).join(": ") : r.label}</div>
       <table className="w-full text-start">
         <caption className="sr-only">{r.label}</caption>
         <thead><tr className="text-xs uppercase tracking-widest text-muted"><th scope="col" className="py-1 pe-3 text-start font-normal">{t("Detail")}</th><th scope="col" className="py-1 pe-3 text-start font-normal">{t("Held now")}</th><th scope="col" className="py-1 text-start font-normal">{t("Source says")}</th></tr></thead>
@@ -161,6 +163,7 @@ function Item({ r, pending, busy, decide }: { r: ProposalRow; pending: boolean; 
         </tbody>
       </table>
       {wiki && <p className="text-muted">{t("Read on")} <a href={`https://en.wikipedia.org/wiki/${encodeURIComponent(ev.page!)}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-gold">{ev.page!.replace(/_/g, " ")}</a>{ev.revision && <> · <a href={`https://en.wikipedia.org/w/index.php?oldid=${encodeURIComponent(ev.revision)}`} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-gold">{t("revision {n}", { n: ev.revision })}</a></>}</p>}
+      {r.kind === "team_added" && ev.quote && <p className="text-xs text-muted"><span dir="ltr" lang="en" className="[overflow-wrap:anywhere]">{ev.quote}</span> · {t("Read from a sentence of the fighter's own article, which can be about someone else (an opponent's trainer, a former one): approve it only if the sentence says it.")}</p>}
       {r.kind.startsWith("result_set") && ev.quote && <p className="text-xs text-muted"><span dir="ltr" lang="en" className="[overflow-wrap:anywhere]">{ev.quote}</span>{ev.corroboration && <> · {t("Single unofficial source: a result is the commission's or the sanctioning body's to state, so approve it only if you can check it.")}</>}{ev.notes && <> · <span dir="ltr" lang="en">{ev.notes}</span></>}{ev.vendor?.outcome && <> · {t("The vendor's own copy says: {outcome}", { outcome: ev.vendor.outcome })}</>}</p>}
       <p className="text-xs text-muted">{t("First seen {date}", { date: r.firstSeen.slice(0, 10) })}{r.lastSeen !== r.firstSeen ? ` · ${t("last seen {date}", { date: r.lastSeen.slice(0, 10) })}` : ""}</p>
       {pending ? (

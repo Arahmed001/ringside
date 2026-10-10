@@ -23,6 +23,7 @@
     "vendor:enrich": "tsx scripts/vendor-enrich.ts",
     "vendor:explain": "tsx scripts/vendor-explain.ts",
     "venues:resolve": "tsx scripts/resolve-venues.ts",
+    "broadcasters:link": "tsx scripts/link-broadcasters.ts",
     "model:fit": "tsx scripts/fit-model.ts",
     "data:check": "tsx scripts/check-feed.ts",
     "data:from-csv": "tsx scripts/csv-to-feed.ts",

@@ -1,12 +1,13 @@
 import type { DatabaseSync } from "node:sqlite";
 import { championsSource } from "./champions";
 import { resultsSource } from "./results";
+import { teamSource } from "./team";
 import { vendorSource } from "./vendor-apply";
 import { reconcile, type ReconcileReport } from "./proposals";
 import type { WatchContext, WatchResult, WatchSource } from "./types";
 
 /** Every source the watcher knows. A new source is added here disabled, with its terms written down, and enabled once someone has read them. */
-export const SOURCES: WatchSource[] = [championsSource, resultsSource, vendorSource];
+export const SOURCES: WatchSource[] = [championsSource, resultsSource, teamSource, vendorSource];
 
 export interface WatchReport { source: string; compared: number; changes: number; refused: WatchResult["refused"]; proposals: ReconcileReport | null }
 

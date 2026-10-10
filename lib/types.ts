@@ -115,6 +115,8 @@ export interface EventRow {
   posterUrl: string | null;
   promoterOrgId: number | null;
   broadcaster: string | null;
+  /** the broadcaster as an organisation (lib/broadcaster-link.ts): one page for every spelling of a channel */
+  broadcasterOrgId?: number | null;
   attendance: number | null;
   status: Status;
 }

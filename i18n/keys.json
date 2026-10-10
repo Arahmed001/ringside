@@ -469,6 +469,20 @@
   ]
  },
  {
+  "key": "{n} cards",
+  "plural": "{n} card",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
+  ]
+ },
+ {
+  "key": "{n} cards on record",
+  "plural": "{n} card on record",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "{n} champions are left out because the data gives no age for them.",
   "files": [
    "lib/ask/tools.ts"
@@ -1439,6 +1453,12 @@
  },
  {
   "key": "{name} on Ringside: current titleholders by division and recent title fights, drawn from {n} title bouts on record.",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "{name} on Ringside: the boxing cards shown on it, newest first.",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx"
   ]
@@ -2907,6 +2927,12 @@
   ]
  },
  {
+  "key": "also listed as",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
+  ]
+ },
+ {
   "key": "Also worked in other corner roles (assistant, strength and conditioning) with {n} further fighters.",
   "files": [
    "app/[locale]/people/[slug]/page.tsx"
@@ -3808,7 +3834,8 @@
  {
   "key": "Boxing news",
   "files": [
-   "app/[locale]/news/page.tsx"
+   "app/[locale]/news/page.tsx",
+   "app/[locale]/page.tsx"
   ]
  },
  {
@@ -3865,7 +3892,8 @@
  {
   "key": "Broadcasters",
   "files": [
-   "app/[locale]/money/page.tsx"
+   "app/[locale]/money/page.tsx",
+   "app/[locale]/orgs/page.tsx"
   ]
  },
  {
@@ -4062,6 +4090,12 @@
   "key": "Cards scored",
   "files": [
    "app/[locale]/people/[slug]/page.tsx"
+  ]
+ },
+ {
+  "key": "Cards shown",
+  "files": [
+   "app/[locale]/orgs/[slug]/page.tsx"
   ]
  },
  {
@@ -6942,6 +6976,7 @@
   "key": "Gym",
   "files": [
    "app/[locale]/orgs/[slug]/page.tsx",
+   "components/UpdateQueue.tsx",
    "lib/search.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
@@ -7536,7 +7571,8 @@
   "files": [
    "app/[locale]/boxers/[slug]/page.tsx",
    "app/[locale]/events/[id]/page.tsx",
-   "app/[locale]/news/page.tsx"
+   "app/[locale]/news/page.tsx",
+   "app/[locale]/page.tsx"
   ]
  },
  {
@@ -8569,6 +8605,7 @@
    "app/[locale]/people/page.tsx",
    "components/ContributeForm.tsx",
    "components/ReviewQueue.tsx",
+   "components/UpdateQueue.tsx",
    "lib/search.ts",
    "lib/i18n/dynamic-keys.ts"
   ]
@@ -8992,7 +9029,8 @@
   "key": "Name",
   "files": [
    "app/[locale]/leaderboard/page.tsx",
-   "components/AccountPanel.tsx"
+   "components/AccountPanel.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -9149,7 +9187,8 @@
  {
   "key": "News to read",
   "files": [
-   "app/[locale]/news/page.tsx"
+   "app/[locale]/news/page.tsx",
+   "app/[locale]/page.tsx"
   ]
  },
  {
@@ -10992,6 +11031,7 @@
  {
   "key": "Promoter",
   "files": [
+   "components/UpdateQueue.tsx",
    "lib/i18n/dynamic-keys.ts"
   ]
  },
@@ -11389,6 +11429,12 @@
   "key": "Read at <o>{name}</o>",
   "files": [
    "components/NewsList.tsx"
+  ]
+ },
+ {
+  "key": "Read from a sentence of the fighter's own article, which can be about someone else (an opponent's trainer, a former one): approve it only if the sentence says it.",
+  "files": [
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -11994,7 +12040,8 @@
  {
   "key": "Role",
   "files": [
-   "components/ContributeForm.tsx"
+   "components/ContributeForm.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -15450,6 +15497,7 @@
    "app/[locale]/people/[slug]/page.tsx",
    "app/[locale]/people/page.tsx",
    "app/[locale]/trainers/page.tsx",
+   "components/UpdateQueue.tsx",
    "lib/ask/tools.ts",
    "lib/search.ts"
   ]
@@ -15504,6 +15552,13 @@
   "key": "Trainers the data can separate",
   "files": [
    "app/[locale]/trainers/page.tsx"
+  ]
+ },
+ {
+  "key": "Trainers, managers, gyms and promoters named in Wikipedia articles",
+  "files": [
+   "components/UpdateGroups.tsx",
+   "components/UpdateQueue.tsx"
   ]
  },
  {
@@ -15909,7 +15964,8 @@
  {
   "key": "Videos to watch",
   "files": [
-   "app/[locale]/news/page.tsx"
+   "app/[locale]/news/page.tsx",
+   "app/[locale]/page.tsx"
   ]
  },
  {
@@ -16377,6 +16433,12 @@
   "key": "Where Ringside’s ratings come from",
   "files": [
    "app/[locale]/learn/page.tsx"
+  ]
+ },
+ {
+  "key": "Where the cards are shown",
+  "files": [
+   "app/[locale]/orgs/page.tsx"
   ]
  },
  {

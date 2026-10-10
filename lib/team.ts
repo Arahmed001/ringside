@@ -17,6 +17,8 @@ const isKO = isStoppage;
 
 /** A fighter's completed bouts that fall inside [start, end). Null bounds are open. */
 export function boutsInWindow(w: World, boxerId: number, start: string | null, end: string | null): BoutRow[] {
+  // a stint with no dates at all (a corner named in a Wikipedia article, with no "from" or "until") does not claim any fight: counting the whole career for a trainer would be a lie
+  if (start === null && end === null) return [];
   return (w.boutsByBoxer.get(boxerId) ?? []).filter((b) => !b.upcoming && countsInRecord(b.method) && (!start || b.date >= start) && (!end || b.date < end));
 }
 

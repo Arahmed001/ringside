@@ -57,3 +57,4 @@ data/research/manual/*
 data/vendor-samples/
 data/vendor-cache/
 data/wikipedia-cache/
+data/research/money-feed.json

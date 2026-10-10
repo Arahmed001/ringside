@@ -297,7 +297,7 @@ async function buildWorldFrom(db: DatabaseSync, main: DatabaseSync, key: string)
     status: ((e.status as Status | null) ?? ((e.date as string) > today ? "scheduled" : "completed")),
     upcoming: (e.date as string) > today && (e.status as string | null) !== "cancelled",
     posterUrl: (e.poster_url as string) ?? null,
-    promoterOrgId: (e.promoter_org_id as number) ?? null, broadcaster: (e.broadcaster as string) ?? null, attendance: (e.attendance as number) ?? null,
+    promoterOrgId: (e.promoter_org_id as number) ?? null, broadcaster: (e.broadcaster as string) ?? null, broadcasterOrgId: (e.broadcaster_org_id as number) ?? null, attendance: (e.attendance as number) ?? null,
   }));
 
   const nameOf = new Map(boxersBase.map((b) => [b.id, b]));

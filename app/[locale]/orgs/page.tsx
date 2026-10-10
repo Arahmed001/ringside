@@ -23,6 +23,9 @@ export default async function Orgs({ searchParams }: { searchParams: Promise<{ k
   const names = await getNames(t.locale);
   const bodies = [...w.orgs.values()].filter((o) => o.kind === "sanctioning_body");
   const magazines = [...w.orgs.values()].filter((o) => o.kind === "magazine");
+  const cards = new Map<number, number>();
+  for (const e of w.events) if (e.broadcasterOrgId) cards.set(e.broadcasterOrgId, (cards.get(e.broadcasterOrgId) ?? 0) + 1);
+  const broadcasters = [...w.orgs.values()].filter((o) => o.kind === "broadcaster").sort((a, b) => (cards.get(b.id) ?? 0) - (cards.get(a.id) ?? 0) || a.name.localeCompare(b.name)).slice(0, 24);
   const ranking = orgsRanking(w);
   const common = { q, page: sp.page, names, size: ORGS_PAGE };
   const promos = kind === "promotion" ? pageRows(ranking.promos, (x) => x.o.name, common) : null;
@@ -38,6 +41,12 @@ export default async function Orgs({ searchParams }: { searchParams: Promise<{ k
         {magazines.length > 0 && <><p className="mb-3 mt-6 text-xs uppercase tracking-widest text-muted">{t("Magazine belts, not sanctioned by a body")}</p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{magazines.map((o) => <Link key={o.id} href={`/orgs/${o.slug}`} className="card card-hover p-4"><div className="font-display text-xl font-bold">{t.name(o.name)}</div></Link>)}</div></>}
       </section>
+      {broadcasters.length > 0 && (
+        <section>
+          <SectionTitle eyebrow={t("Where the cards are shown")} title={t("Broadcasters")} />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{broadcasters.map((o) => <Link key={o.id} href={`/orgs/${o.slug}`} className="card card-hover p-4"><div className="font-display text-xl font-bold">{t.name(o.name)}</div><div className="text-xs text-muted">{t.n(cards.get(o.id) ?? 0, "{n} card", "{n} cards")}</div></Link>)}</div>
+        </section>
+      )}
       <section>
         <div className="mb-4 flex flex-wrap gap-2">
           {KINDS.map(([k, label]) => <Link key={k} href={`/orgs?kind=${k}`} aria-current={kind === k ? "page" : undefined} className={`chip ${kind === k ? "!border-gold/50 !text-gold" : ""}`}>{t(label)}</Link>)}

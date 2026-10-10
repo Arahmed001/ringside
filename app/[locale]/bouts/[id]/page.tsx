@@ -107,7 +107,7 @@ export default async function BoutPage({ params }: { params: Promise<{ id: strin
           <BoutScore w={w} boutId={b.id} />
           {b.contractLb && <span className="chip !border-gold/40 !text-gold">{t("Catchweight {n} lb", { n: b.contractLb })}</span>}
           {b.title && <span className="chip !border-gold/50 !text-gold">{body ? <Link href={`/orgs/${body.slug}`}>{body.name.match(/\(([^)]+)\)/)?.[1] ?? body.name}</Link> : null} {b.titleVacant ? t("{title} (vacant)", { title: t.name(b.title) }) : t.name(b.title)}</span>}
-          {ev.broadcaster && <span className="chip">{t.name(ev.broadcaster)}</span>}
+          {ev.broadcaster && (ev.broadcasterOrgId && w.orgs.get(ev.broadcasterOrgId) ? <Link href={`/orgs/${w.orgs.get(ev.broadcasterOrgId)!.slug}`} className="chip hover:!text-gold">{t.name(ev.broadcaster)}</Link> : <span className="chip">{t.name(ev.broadcaster)}</span>)}
           {ev.attendance && <span className="chip">{t("{n} attended", { n: ev.attendance.toLocaleString("en-US") })}</span>}
           <span className="ms-auto"><PrintButton /></span>
         </div>

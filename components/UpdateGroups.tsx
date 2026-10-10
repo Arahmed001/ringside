@@ -15,6 +15,7 @@ export function fieldTitle(t: T, kind: string, field: string): string {
   if (kind === "result_set") return t("Wikipedia results the vendor's outcome agrees with");
   if (kind === "result_set_alone") return t("Wikipedia results with no vendor outcome to compare");
   if (kind === "result_set_conflict") return t("Wikipedia results the vendor's outcome contradicts");
+  if (kind === "team_added") return t("Trainers, managers, gyms and promoters named in Wikipedia articles");
   if (kind === "list_change") return t("Official ranking lists");
   if (kind === "reign_added") return t("New title reigns");
   if (kind === "reign_removed") return t("Title reigns no longer on the page");

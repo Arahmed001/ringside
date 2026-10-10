@@ -26,6 +26,7 @@ export const generateMetadata = ({ params }: { params: Promise<{ locale: string;
   const name = t.name(o.name);
   let description: string;
   if (o.kind === "sanctioning_body" || o.kind === "magazine") description = t("{name} on Ringside: current titleholders by division and recent title fights, drawn from {n} title bouts on record.", { name, n: w.bouts.filter((b) => b.titleOrgId === o.id && !b.upcoming && b.method).length });
+  else if (o.kind === "broadcaster") description = t("{name} on Ringside: the boxing cards shown on it, newest first.", { name });
   else {
     const s = orgStable(w, o.id, o.kind === "gym" ? ["gym"] : ["promoter"]);
     description = t("{name} ({kind}) on Ringside: {now} fighters now, {ever} ever, a {record} combined record and {titles} title wins.", { name, kind: t(KIND[o.kind] ?? "Organisation"), now: s.currentFighters, ever: s.fighters, record: `${s.record.wins}-${s.record.losses}-${s.record.draws}`, titles: s.titleWins });
@@ -71,6 +72,23 @@ export default async function OrgPage({ params, searchParams }: { params: Promis
           ))}</div>
           <Pager page={fightsPg.page} pages={fightsPg.pages} href={(n) => sectionHref(here, query, "fights", n)} label={t("Pages of title fights")} />
         </section>
+      </div>
+    );
+  }
+
+  if (o.kind === "broadcaster") {
+    const shown = w.events.filter((e) => e.broadcasterOrgId === o.id).sort((a, b) => b.date.localeCompare(a.date));
+    const pg = paginate(shown.length, first(query.events), EVENTS_PAGE);
+    const names = [...new Set(shown.map((e) => e.broadcaster).filter((x): x is string => !!x && x !== o.name))].slice(0, 6);
+    return (
+      <div className="space-y-10">
+        <BreadcrumbLd locale={t.locale} trail={[{ name: t("Gyms, promotions & bodies"), path: "/orgs" }, { name: t.name(o.name), path: `/orgs/${o.slug}` }]} />
+        <div>
+          <div className="eyebrow mb-2">{t(KIND[o.kind])}</div>
+          <h1 className="font-display text-5xl font-extrabold uppercase leading-none">{t.name(o.name)}</h1>
+          <p className="mt-2 text-muted">{t.n(shown.length, "{n} card on record", "{n} cards on record")}{names.length > 0 && <> · {t("also listed as")} <span lang="en" dir="ltr">{names.join(", ")}</span></>}</p>
+        </div>
+        <section><SectionTitle title={t("Cards shown")} /><div className="card divide-y divide-line/60">{shown.slice(pg.first, pg.first + EVENTS_PAGE).map((e) => <Link key={e.id} href={`/events/${e.id}`} className="flex items-center justify-between p-3 text-sm hover:bg-panel2/50"><span><b>{t.name(e.name)}</b> <span className="text-muted">{t.name(e.city)}</span></span><span className="text-muted tabular">{fmtDate(e.date, undefined, t.locale)}</span></Link>)}</div><Pager page={pg.page} pages={pg.pages} href={(n) => sectionHref(here, query, "events", n)} label={t("Pages of events")} /></section>
       </div>
     );
   }
