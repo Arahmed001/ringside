@@ -56,6 +56,7 @@
     "loadtest": "tsx scripts/loadtest.ts",
     "capacity": "tsx scripts/capacity.ts",
     "doctor": "tsx scripts/doctor.ts",
+    "check:links": "tsx scripts/check-links.ts",
     "coldcheck": "tsx scripts/coldcheck.ts",
     "a11y": "tsx scripts/a11y-run.ts",
     "e2e": "tsx scripts/e2e.ts",
