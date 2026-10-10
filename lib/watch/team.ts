@@ -67,7 +67,9 @@ export function extractTeam(wikitext: string, fighter: string): Candidate[] {
   return [...out.values()];
 }
 
-const norm = (title: string) => slugify(title);
+/** The name a page goes by without a section ("Jake Paul#Most Valuable Promotions" is Most Valuable Promotions) or a disambiguation ("Billy Nelson (boxer)", "Don King (boxing promoter)"): two articles that call one person or company by different page titles are one. */
+export const cleanTitle = (title: string): string => (title.includes("#") ? title.split("#").pop()! : title).replace(/\s*\([^)]*\)\s*$/, "").trim();
+const norm = (title: string) => slugify(cleanTitle(title));
 export const ROLE_WORD: Record<TeamRoleFound, string> = { head_trainer: "trainer", manager: "manager", promoter: "promoter", gym: "gym" };
 
 /** Fighters with a Wikipedia article, the best-rated first (the people a visitor looks for). */
@@ -126,10 +128,12 @@ export function applyTeam(main: DatabaseSync, p: { kind: string; targetKey: stri
   let personId: number | null = null, orgId: number | null = null;
   if (role === "head_trainer" || role === "manager") {
     const row = main.prepare("SELECT id FROM people WHERE external_id = ?").get(ext) as { id: number } | undefined;
-    personId = row?.id ?? (main.prepare("INSERT INTO people (external_id, slug, name) VALUES (?, ?, ?) RETURNING id").get(ext, unique("people", a.display), a.display) as { id: number }).id;
+    const shown = a.display.replace(/[’']s$/, "").trim();
+    personId = row?.id ?? (main.prepare("INSERT INTO people (external_id, slug, name) VALUES (?, ?, ?) RETURNING id").get(ext, unique("people", shown), shown) as { id: number }).id;
   } else {
     const row = main.prepare("SELECT id FROM orgs WHERE external_id = ?").get(ext) as { id: number } | undefined;
-    orgId = row?.id ?? (main.prepare("INSERT INTO orgs (external_id, slug, name, kind) VALUES (?, ?, ?, ?) RETURNING id").get(ext, unique("orgs", a.display), a.display, role === "gym" ? "gym" : "promotion") as { id: number }).id;
+    const shown = cleanTitle(a.title); // an organisation goes by its page's name ("Golden Boy Promotions"), not by how one sentence wrote it ("Golden Boy", "Frank Warren's")
+    orgId = row?.id ?? (main.prepare("INSERT INTO orgs (external_id, slug, name, kind) VALUES (?, ?, ?, ?) RETURNING id").get(ext, unique("orgs", shown), shown, role === "gym" ? "gym" : "promotion") as { id: number }).id;
   }
   main.prepare("INSERT INTO team_stints (boxer_id, role, person_id, org_id, start_date, end_date, source, source_url, note) VALUES (?, ?, ?, ?, NULL, NULL, ?, ?, ?)")
     .run(boxer.id, role, personId, orgId, "Wikipedia (CC BY-SA 4.0)", a.url ?? null, `Named in the fighter's Wikipedia article: "${(((p.evidence ?? {}) as { quote?: string }).quote ?? "").slice(0, 280)}"; no dates`);

@@ -70,3 +70,20 @@ test("a sentence about the fighter's relative, or a link that is not a person, i
   assert.deepEqual(extractTeam(a, "Miguel Cotto").map((c) => c.title), ["Freddie Roach"]);
   assert.deepEqual(extractTeam(a, "Joshua Buatsi").map((c) => c.title), [], "the first link after the cue is \"heavyweight\", not a name: nothing is proposed rather than a guess");
 });
+
+test("one person or company is one row however the sentences and page titles spell it: a section, a disambiguation, a possessive", async () => {
+  const { cleanTitle } = await import("../lib/watch/team");
+  assert.equal(cleanTitle("Jake Paul#Most Valuable Promotions"), "Most Valuable Promotions");
+  assert.equal(cleanTitle("Billy Nelson (Boxer)"), "Billy Nelson");
+  assert.equal(cleanTitle("Don King (boxing promoter)"), "Don King");
+  assert.equal(cleanTitle("Top Rank"), "Top Rank");
+  db.exec("DELETE FROM team_stints; DELETE FROM people; DELETE FROM orgs; DELETE FROM boxers");
+  db.prepare("INSERT INTO boxers (external_id, slug, name, country, weight_class) VALUES ('b1', 'jack-rowe', 'Jack Rowe', 'United States', 'Lightweight'), ('b2', 'sam-poe', 'Sam Poe', 'United States', 'Lightweight')").run();
+  const p = (boxer: string, title: string, display: string) => ({ kind: "team_added", targetKey: `team|${boxer}|promoter|x`, old: null, new: {}, evidence: { quote: "q", apply: { boxerExternalId: boxer, role: "promoter", title, display, url: "https://en.wikipedia.org/wiki/X" } } });
+  applyTeam(db, p("b1", "Frank Warren (promoter)", "Frank Warren's"));
+  applyTeam(db, p("b2", "Frank Warren", "Frank Warren"));
+  assert.deepEqual((db.prepare("SELECT name FROM orgs").all() as { name: string }[]).map((o) => o.name), ["Frank Warren"], "both fighters point at one organisation, named by its page");
+  assert.equal((db.prepare("SELECT COUNT(*) n FROM team_stints").get() as { n: number }).n, 2);
+  applyTeam(db, { ...p("b1", "Billy Nelson (Boxer)", "Billy Nelson"), evidence: { quote: "q", apply: { boxerExternalId: "b1", role: "head_trainer", title: "Billy Nelson (Boxer)", display: "Billy Nelson’s", url: "u" } } });
+  assert.deepEqual((db.prepare("SELECT name FROM people").all() as { name: string }[]).map((x) => x.name), ["Billy Nelson"], "a possessive is not part of the name");
+});
