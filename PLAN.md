@@ -2166,3 +2166,6 @@ The owner asked for `/countries` to be a map instead, listing the stadiums and a
 ## 294. 594 more Arabic name words accepted (round 165, 2026-10-10)
 - 594 more Arabic name-word spellings (names from Ais- to Andr-, many Al- and Abdul- forms), accepted by the owner (`source: "owner-accepted"`, replaceable by a native reviewer's import): 8,050 words reviewed, Arabic names on a page for 15,802 of 33,612 fighters (47.0%). The remaining words are a long tail of one-fighter names; each batch now adds about a point.
 - The home page reorder (another session) was checked at phone width in English and Arabic: no sideways scroll, sections in order.
+
+## 295. Review sheet for the owner-accepted Arabic words (round 166, 2026-10-10)
+- `npm run i18n:words -- export-accepted [file] [N]` writes the offline review sheet for the owner-accepted name words (most used first), so a native reviewer can check what is already live; the existing `export` lists only words not yet accepted. The pack in `ringside-reports/arabic-review-pack` now carries the 8,050-word sheet in place of the 6,000-word one. A reviewer's download goes back through `import`.

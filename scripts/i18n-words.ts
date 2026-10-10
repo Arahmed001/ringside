@@ -5,6 +5,7 @@
  *   npm run i18n:words -- export [file] [N]        write the offline review sheet (default review/name-words-review.html) for the N top words
  *   npm run i18n:words -- import file.json         read a reviewer's downloaded file: approved and edited words become reviewed
  *   npm run i18n:words -- accept --yes             the owner accepts every machine suggestion as it stands: each becomes reviewed with source "owner-accepted" (a native reviewer's import later replaces it with source "reviewer")
+ *   npm run i18n:words -- export-accepted [file] [N] write the review sheet for the owner-accepted words (still machine-written, never seen by a native reader), most used first, so a reviewer can check what is already live
  *   npm run i18n:words -- status                   counts: suggested, reviewed, and how many fighters have a name on a page
  * Set DATABASE_PATH to the database to count against (default data/ringside.db).
  */
@@ -82,6 +83,17 @@ function main() {
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, sheet(rows));
     console.log(`${rows.length} words with a suggestion written to ${file}.`);
+    return;
+  }
+  if (cmd === "export-accepted") {
+    const file = a ?? "review/name-words-accepted.html";
+    const uses = new Map<string, number>();
+    for (const { name } of db.prepare("SELECT name FROM boxers").all() as { name: string }[]) for (const w of new Set(wordsOf(name))) uses.set(w, (uses.get(w) ?? 0) + 1);
+    const rows = Object.entries(words).filter(([, e]) => e.source === "owner-accepted" && e.ar).map(([word, e]) => ({ word, fighters: uses.get(word) ?? 0, fully: 0, suggestion: e.ar }))
+      .sort((x, y) => y.fighters - x.fighters || (x.word < y.word ? -1 : 1)).slice(0, Number(b) || 10000);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, sheet(rows));
+    console.log(`${rows.length} owner-accepted words written to ${file}.`);
     return;
   }
   if (cmd === "status") {
