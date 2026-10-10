@@ -2,7 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import yaml from "js-yaml";
+import { createRequire } from "node:module";
+
+const yaml = createRequire(__filename)("js-yaml") as { load: (s: string) => unknown };
 
 const text = fs.readFileSync(path.join(process.cwd(), ".github/workflows/deploy.yml"), "utf8");
 const wf = yaml.load(text) as { on: Record<string, { workflows?: string[]; types?: string[]; branches?: string[] }>; concurrency: { group: string; "cancel-in-progress": boolean }; permissions: Record<string, string>; jobs: Record<string, { if: string }> };
