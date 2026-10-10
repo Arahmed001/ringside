@@ -15,6 +15,7 @@ npm run check:links -- http://localhost:3000 --fast              your own copy, 
 | `--concurrency 2` | requests at a time (default 2); `--fast` is 8 at a time with no pause, for your own copy only |
 | `--external` | also ask each outside address (the official ranking bodies, Google Maps) |
 | `--json report.json` | write every finding to a file |
+| `--dump links.json` | write every link with its text and the heading and title of the page it leads to, for your own checks |
 
 **Be polite to the live site.** The defaults are two requests at a time with a pause; a full run is a few thousand page requests and takes ten minutes or more on the live site. It sends an honest `User-Agent` (`RingsideLinkCheck/1.0`), only ever GETs, and never submits a form. Do not run it during the nightly job (03:30 UTC), and do not raise `--concurrency` against the live site.
 
@@ -26,6 +27,7 @@ npm run check:links -- http://localhost:3000 --fast              your own copy, 
 | **redirected** | the link is answered with a redirect: it should point at the final address | yes |
 | **language** | a page in one language links to a page in the other (the language switch is the one allowed link) | yes |
 | **section** | a `#section` link whose section is not on that page | yes |
+| **name** | a link whose text is a name ("Andriy P. Moroz") but whose page is not about that name: a fighter's name that opens another fighter, a corner man who opens the wrong person | yes |
 | **unnamed** | a link a screen reader would announce as nothing (a link with an `aria-label` or `title` has a name; a deliberately hidden one, such as a dot on the map, is not counted) | yes |
 | **external** | with `--external`: an outside address that does not answer (a 403 is often a site refusing automated visitors: open it in a browser) | yes |
 | **review** | the link's words share nothing with the heading of the page it leads to (for a person to glance at: a filter chip and a "View all" often do not) | no |

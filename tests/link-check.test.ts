@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { classify, extractAnchors, isAsset, localeProblem, looksLikeControl, pageInfo, routePattern, sharesWord } from "../lib/link-check";
+import { classify, extractAnchors, isAsset, isNamedPage, localeProblem, looksLikeControl, looksLikeName, nameMismatch, pageInfo, routePattern, sharesWord } from "../lib/link-check";
 
 const BASE = "https://site.test";
 
@@ -52,4 +52,16 @@ test("review hint: a link's words and the page's heading", () => {
   assert.ok(sharesWord("→", "Anything"), "no words, nothing to compare");
   assert.ok(!sharesWord("Call the card", "Morishita vs Hartmann"));
   assert.ok(looksLikeControl("/boxers", "/boxers?sex=male") && !looksLikeControl("/", "/boxers"));
+});
+
+test("a name must open the page of that name", () => {
+  assert.ok(isNamedPage("/boxers/jo-bloggs") && isNamedPage("/ar/people/x") && isNamedPage("/orgs/blueprint-boxing"));
+  assert.ok(!isNamedPage("/boxers") && !isNamedPage("/boxers/x/compare") && !isNamedPage("/events/12"));
+  assert.ok(looksLikeName("Andriy P. Moroz") && looksLikeName("Tomás Villalba"));
+  for (const t of ["Draw", "27-2-1 +214 Elo", "Full bout details →", "Jul 12, 2025 , TKO R12", "One two three four five six seven"]) assert.ok(!looksLikeName(t), t);
+  assert.equal(nameMismatch("Tomás Villalba", "Tomas Villalba · Ringside"), false, "accents and case do not matter");
+  assert.equal(nameMismatch("Villalba", "Tomás Villalba"), false, "a single word is not a name to check");
+  assert.equal(nameMismatch("Jo Bloggs", "Jo Smith · Ringside"), false, "one shared word is enough");
+  assert.equal(nameMismatch("Rakan Al-Qahtani", "Tomás Villalba · Ringside"), true, "a different fighter's page");
+  assert.equal(nameMismatch("ريوتا موريشيتا", "ريوتا موريشيتا · Ringside"), false);
 });
