@@ -2169,3 +2169,6 @@ The owner asked for `/countries` to be a map instead, listing the stadiums and a
 
 ## 295. Review sheet for the owner-accepted Arabic words (round 166, 2026-10-10)
 - `npm run i18n:words -- export-accepted [file] [N]` writes the offline review sheet for the owner-accepted name words (most used first), so a native reviewer can check what is already live; the existing `export` lists only words not yet accepted. The pack in `ringside-reports/arabic-review-pack` now carries the 8,050-word sheet in place of the 6,000-word one. A reviewer's download goes back through `import`.
+
+## 296. 634 more Arabic name words accepted (round 170, 2026-10-10)
+- 634 more Arabic name-word spellings (names from Andre- to Atth-), accepted by the owner (`source: "owner-accepted"`): 8,684 words reviewed, Arabic names on a page for 16,162 of 33,612 fighters (48.1%, up from 47.0%). The tail is long and each batch adds about a point.
