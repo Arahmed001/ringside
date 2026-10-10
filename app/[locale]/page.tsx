@@ -28,6 +28,9 @@ import { metaFor } from "@/lib/seo-server";
 import { localePath } from "@/lib/i18n/config";
 import { abs } from "@/lib/seo";
 import { JsonLd } from "@/components/JsonLd";
+import { NewsList } from "@/components/NewsList";
+import { Videos } from "@/components/Videos";
+import { recentNews, recentVideos } from "@/lib/news/read";
 
 export const generateMetadata = ({ params }: { params: Promise<{ locale: string }> }) => metaFor(params, (p, t) => ({ path: "/", title: t("Boxing ratings, rankings and predictions"), description: t("Every fighter, every fight, every number. Ratings, rankings, predictions and scouting reports for professional boxing.") }));
 
@@ -45,6 +48,8 @@ export default async function Home() {
   const p4p = pound4pound(w, 8);
   const recent = eventViews(w, recentEvents(w, 5));
   const upset = biggestUpsets(w, 1, `${currentYear() - 1}-01-01`)[0]; // the `since` argument, so it is cached (a spread copy of the world is a new object every request, and never hits the cache)
+
+  const news = (await recentNews()).slice(0, 4), videos = (await recentVideos()).slice(0, 3); // empty until the news refresh has run: the block is then left out
 
   const watchTop = upsetWatch(w, t).find((x) => x.tier === "live") ?? null;
   const fy = featuredYear(w);
@@ -161,6 +166,15 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* Other outlets' headlines and the official videos: a short strip, the whole page is one click away. Marked so a search engine does not quote the outlets' words from our page. */}
+      {(news.length > 0 || videos.length > 0) && (
+        <section data-nosnippet className="space-y-8">
+          <SectionTitle eyebrow={t("In the news")} title={t("Boxing news")} href="/news" />
+          {videos.length > 0 && <div><div className="eyebrow mb-3">{t("Videos to watch")}</div><Videos items={videos} t={t} /></div>}
+          {news.length > 0 && <div><div className="eyebrow mb-3">{t("News to read")}</div><NewsList items={news} t={t} /></div>}
+        </section>
+      )}
 
       {next && <PickEm bouts={pickBouts} />}
 
