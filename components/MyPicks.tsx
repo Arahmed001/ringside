@@ -32,7 +32,7 @@ export function MyPicks() {
     return (
       <div className="card p-6">
         <p className="text-muted">{t("You have not made any picks yet. Call the card on the home page and your record builds here, fight by fight.")}</p>
-        <p className="mt-3"><Link href="/" className="chip !border-gold/40 hover:!text-gold">{t("Call the card")}</Link></p>
+        <p className="mt-3"><Link href="/#pick-em" className="chip !border-gold/40 hover:!text-gold">{t("Call the card")}</Link></p>
       </div>
     );
   }

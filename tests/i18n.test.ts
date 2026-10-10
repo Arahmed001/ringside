@@ -44,6 +44,8 @@ test("locale paths: English stays bare, Arabic gets a prefix, and the two round-
   assert.equal(localePath("ar", "/boxers/x"), "/ar/boxers/x");
   assert.equal(localePath("ar", "/"), "/ar");
   assert.equal(localePath("ar", "/?q=a"), "/ar?q=a");
+  assert.equal(localePath("ar", "/#pick-em"), "/ar#pick-em");
+  assert.equal(localePath("en", "/#pick-em"), "/#pick-em");
   assert.equal(localePath("ar", "https://example.com/x"), "https://example.com/x");
   assert.deepEqual(splitLocale("/ar/boxers/x"), { locale: "ar", path: "/boxers/x" });
   assert.deepEqual(splitLocale("/ar"), { locale: "ar", path: "/" });
