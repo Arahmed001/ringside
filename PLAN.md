@@ -2156,3 +2156,6 @@ The owner asked for `/countries` to be a map instead, listing the stadiums and a
 ## 291. Amateur federation events out of the load; 589 more Arabic name suggestions (round 162, 2026-10-10)
 - The feed lists the amateur federations' own events beside professional cards (World Boxing's cups and championships, the IBA world championships, EUBC, ASBC, the continental elite championships: 39 events, 1,229 bouts in the real data, all scheduled for 3 rounds or fewer). `AMATEUR_EVENT` in `lib/providers/boxing-data-api.ts` now skips them like the Olympics and Games; IBA.Pro and IBA Champions Night cards (professional) are kept. It takes effect at the next clean reload; until then the real database still holds those bouts. Test: tests/amateur-events.test.ts.
 - 589 more Arabic name-word spellings stored as machine suggestions (never shown until accepted); about 890 rarer words are still without one.
+
+## 292. 589 Arabic name words accepted (round 163, 2026-10-10)
+- The 589 machine suggestions of round 162 are accepted by the owner (`source: "owner-accepted"`, replaceable by a native reviewer's import): 6,941 words reviewed, Arabic names on a page for 15,177 of 33,612 fighters (45.2%, up from 43.1%). About 890 rarer words still have none.
