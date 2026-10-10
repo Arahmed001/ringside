@@ -5,7 +5,7 @@ import type { MoneyBasis } from "../providers";
  * and the exact words that say so. Nothing a researcher claims is trusted: `check` re-fetches the page, confirms the quote is
  * really there and that the numbers match it, and only publishes figures that two independent sources agree on.
  */
-export type FactKind = "event_financials" | "purse" | "broadcast" | "earning";
+export type FactKind = "event_financials" | "purse" | "broadcast" | "earning" | "weigh_in";
 
 export interface FactEvent { name: string; date: string; venue?: string; city?: string; fighters: string[] }
 
@@ -50,6 +50,8 @@ export const VALUE_KEYS: Record<FactKind, { numeric: string[]; text: string[] }>
   purse: { numeric: ["guaranteedUsd", "bonusUsd", "totalUsd"], text: [] },
   broadcast: { numeric: ["viewersAvg", "viewersPeak"], text: ["broadcaster", "platform", "region"] },
   earning: { numeric: ["totalUsd", "ringUsd", "offRingUsd"], text: [] },
+  /** pounds: the official weigh-in (usually the day before), the contract limit, and the pre-fight weight where one is published */
+  weigh_in: { numeric: ["officialLb", "limitLb", "fightNightLb"], text: [] },
 };
 
 /**

@@ -22,7 +22,7 @@ export const eventKey = (f: ResearchFact): string =>
 
 function subjectKey(f: ResearchFact): string {
   if (f.kind === "earning") return `${nameKey(f.fighter ?? "")}|${f.year}|${nameKey(f.list ?? "")}`;
-  if (f.kind === "purse") return `${eventKey(f)}|${nameKey(f.fighter ?? "")}`;
+  if (f.kind === "purse" || f.kind === "weigh_in") return `${eventKey(f)}|${nameKey(f.fighter ?? "")}`;
   if (f.kind === "broadcast") return `${eventKey(f)}|${nameKey(String(f.values.broadcaster ?? ""))}|${nameKey(String(f.values.region ?? ""))}`;
   return eventKey(f);
 }
@@ -32,13 +32,13 @@ export const factId = (f: ResearchFact) => crypto.createHash("sha1").update(`${f
 /** Problems with the claim itself, before anything is fetched. */
 export function shapeProblems(f: ResearchFact): string[] {
   const p: string[] = [];
-  const kinds: FactKind[] = ["event_financials", "purse", "broadcast", "earning"];
+  const kinds: FactKind[] = ["event_financials", "purse", "broadcast", "earning", "weigh_in"];
   if (!kinds.includes(f.kind)) return [`unknown kind "${f.kind}"`];
   const keys = VALUE_KEYS[f.kind];
   if (f.kind !== "earning" && f.kind !== undefined) {
     if (!f.event?.name || !ISO.test(f.event.date ?? "") || !Array.isArray(f.event.fighters) || f.event.fighters.length < 2) p.push("event needs name, date (yyyy-mm-dd) and both main-event fighters");
   }
-  if (f.kind === "purse" && !f.fighter) p.push("purse needs the fighter");
+  if ((f.kind === "purse" || f.kind === "weigh_in") && !f.fighter) p.push(`${f.kind === "purse" ? "purse" : "weigh_in"} needs the fighter`);
   if (f.list !== undefined && (f.kind !== "earning" || typeof f.list !== "string" || !f.list.trim())) p.push("list is only for earnings and must name the ranking");
   if (f.kind === "earning" && (!f.fighter || !Number.isInteger(f.year) || (f.year as number) < 1900)) p.push("earning needs fighter and year");
   if (!f.values || typeof f.values !== "object" || !Object.keys(f.values).length) p.push("no values");
@@ -74,7 +74,7 @@ export interface CheckOptions { getPage: PageGetter; getDocument?: DocumentGette
  *    Each value has its own status, so one disputed value no longer holds back the others on the same claim.
  */
 export async function checkFacts(input: ResearchFact[], opts: CheckOptions): Promise<CheckedFact[]> {
-  const tol = opts.tolerance ?? 0.05;
+  const tolOf = (kind: string) => opts.tolerance ?? (kind === "weigh_in" ? 0.005 : 0.05); // a weight is read to the pound: 5% (7 lb at welterweight) would call 140 and 147 the same
   const out: CheckedFact[] = [];
   const pages = new Map<string, Promise<FetchOutcome>>();
   const page = (u: string) => pages.get(u) ?? pages.set(u, opts.getPage(u)).get(u)!;
@@ -122,9 +122,10 @@ export async function checkFacts(input: ResearchFact[], opts: CheckOptions): Pro
   }
   const fieldStatus = new Map<string, Map<string, "verified" | "single_source" | "conflict">>(); // fact id -> field -> status
   const mark = (id: string, field: string, s: "verified" | "single_source" | "conflict") => (fieldStatus.get(id) ?? fieldStatus.set(id, new Map()).get(id)!).set(field, s);
-  const within = (a: number, b: number) => (Math.max(a, b) === 0 ? true : Math.abs(a - b) / Math.max(a, b) <= tol);
+  const withinKind = (kind: string) => (a: number, b: number) => (Math.max(a, b) === 0 ? true : Math.abs(a - b) / Math.max(a, b) <= tolOf(kind));
   for (const [key, members] of groups) {
     const field = key.split("|").pop()!;
+    const within = withinKind(members[0].kind);
     const byHost = new Map<string, CheckedFact[]>();
     for (const m of members) (byHost.get(m.host) ?? byHost.set(m.host, []).get(m.host)!).push(m);
     const val = (m: CheckedFact) => m.values[field] as number;

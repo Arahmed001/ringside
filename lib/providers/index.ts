@@ -119,6 +119,11 @@ export interface ProviderWeighIn {
   limitLb?: number | null; // contract limit for this bout; null/undefined = no limit (heavyweight)
   madeWeight?: boolean;
   source?: string;
+  /** where a researched weight was read, and how sure the source is (the research pipeline fills these; a vendor feed need not) */
+  sourceUrl?: string;
+  basis?: MoneyBasis;
+  retrievedAt?: string;
+  note?: string;
 }
 
 export interface ProviderOfficial {

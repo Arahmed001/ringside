@@ -251,7 +251,7 @@ test("verified facts become money rows on the right bout; the rest are held or r
   // and the rows are accepted by the money validator and the database
   const { ingestMoney } = await import("../lib/ingest-money");
   const r = ingestMoney(db, m.rows, { label: "research-test" });
-  assert.deepEqual(r.written, { financials: 1, purses: 1, broadcasts: 1, earnings: 1 });
+  assert.deepEqual(r.written, { financials: 1, purses: 1, broadcasts: 1, earnings: 1, weighIns: 0 });
   assert.deepEqual(r.dropped, {});
 });
 

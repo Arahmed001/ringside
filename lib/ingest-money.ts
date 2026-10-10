@@ -11,7 +11,7 @@ export interface IdMaps { ev: Map<string, number>; bo: Map<string, number>; bx: 
  * never duplicates its figures, and figures other sources gave for the same card or fighter are left alone.
  */
 export function writeMoney(db: DatabaseSync, { ev, bo, bx }: IdMaps, rows: MoneyRows) {
-  const { financials, purses, broadcasts, earnings } = rows;
+  const { financials, purses, broadcasts, earnings } = rows, weighIns = rows.weighIns ?? [];
   const sourcesOf = (r: { source: string }[]) => [...new Set(r.map((x) => x.source))];
   if (financials.length) {
     for (const s of sourcesOf(financials)) db.prepare("DELETE FROM event_financials WHERE source = ?").run(s);
@@ -31,6 +31,15 @@ export function writeMoney(db: DatabaseSync, { ev, bo, bx }: IdMaps, rows: Money
     for (const s of sourcesOf(broadcasts)) db.prepare("DELETE FROM event_broadcasts WHERE source = ?").run(s);
     const ins = db.prepare("INSERT INTO event_broadcasts (event_id, broadcaster, platform, region, viewers_avg, viewers_peak, basis, source, source_url, retrieved_at, note) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
     for (const b of broadcasts) ins.run(ev.get(b.eventExternalId)!, b.broadcaster.trim(), b.platform, b.region?.trim() ?? "", num(b.viewersAvg), num(b.viewersPeak), b.basis, b.source, b.sourceUrl ?? null, b.retrievedAt ?? null, b.note ?? null);
+  }
+  if (weighIns.length) {
+    // a researched weight is replaced per source and bout, and never overwrites a row another source (the vendor) holds for the same fighter and fight
+    for (const s of sourcesOf(weighIns.map((w) => ({ source: w.source ?? "research" })))) db.prepare("DELETE FROM weigh_ins WHERE source = ?").run(s);
+    const ins = db.prepare("INSERT OR IGNORE INTO weigh_ins (bout_id, boxer_id, official_lb, fight_night_lb, limit_lb, made_weight, source, source_url, basis, retrieved_at, note) VALUES (?,?,?,?,?,?,?,?,?,?,?)");
+    for (const w of weighIns) {
+      const made = w.madeWeight !== undefined ? w.madeWeight : w.officialLb !== undefined && w.limitLb !== undefined && w.limitLb !== null ? w.officialLb <= w.limitLb : undefined;
+      ins.run(bo.get(w.boutExternalId)!, bx.get(w.boxerExternalId)!, num(w.officialLb), num(w.fightNightLb), num(w.limitLb ?? undefined), made === undefined ? null : made ? 1 : 0, w.source ?? "research", w.sourceUrl ?? null, w.basis ?? "reported", w.retrievedAt ?? null, w.note ?? null);
+    }
   }
   if (earnings.length) {
     for (const s of sourcesOf(earnings)) db.prepare("DELETE FROM earnings WHERE source = ?").run(s);
@@ -54,7 +63,7 @@ export function ingestMoney(db: DatabaseSync, rows: MoneyRows, opts: { label?: s
   db.exec("BEGIN");
   try { writeMoney(db, { ev, bo, bx }, clean); db.exec("COMMIT"); } catch (e) { db.exec("ROLLBACK"); throw e; }
   const sev = countBySeverity(issues);
-  const written = { financials: clean.financials.length, purses: clean.purses.length, broadcasts: clean.broadcasts.length, earnings: clean.earnings.length };
+  const written = { financials: clean.financials.length, purses: clean.purses.length, broadcasts: clean.broadcasts.length, earnings: clean.earnings.length, weighIns: (clean.weighIns ?? []).length };
   db.prepare("INSERT INTO ingest_runs (at, provider, errors, warnings, infos, counts, dropped) VALUES (?,?,?,?,?,?,?)").run(new Date().toISOString(), opts.label ?? "money", sev.errors, sev.warnings, sev.infos, JSON.stringify(written), JSON.stringify(dropped));
   return { written, dropped, issues };
 }

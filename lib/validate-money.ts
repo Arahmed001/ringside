@@ -1,6 +1,6 @@
-import type { ProviderBroadcast, ProviderEarning, ProviderEventFinancials, ProviderPurse } from "./providers";
+import type { ProviderBroadcast, ProviderEarning, ProviderEventFinancials, ProviderPurse, ProviderWeighIn } from "./providers";
 
-export interface MoneyRows { financials: ProviderEventFinancials[]; purses: ProviderPurse[]; broadcasts: ProviderBroadcast[]; earnings: ProviderEarning[] }
+export interface MoneyRows { financials: ProviderEventFinancials[]; purses: ProviderPurse[]; broadcasts: ProviderBroadcast[]; earnings: ProviderEarning[]; /** researched weigh-in weights (absent in a feed written before they existed) */ weighIns?: ProviderWeighIn[] }
 /** What the money rows may point at: the events, bouts and fighters that exist (in the feed being checked, or already in the database). */
 export interface MoneyRefs { eventIds: Set<string>; boxerIds: Set<string>; bouts: Map<string, { red: string; blue: string }>; today: string }
 type Add = (severity: "error" | "warning" | "info", code: string, entity: string, ref: string, message: string) => void;
@@ -86,6 +86,21 @@ export function sanitizeMoney(input: MoneyRows, refs: MoneyRefs, add: Add, drop:
     return true;
   });
 
+  const weighKeys = new Set<string>();
+  const weighIns = (input.weighIns ?? []).filter((w) => {
+    const ref = `${w.boutExternalId}/${w.boxerExternalId}/${w.source ?? ""}`;
+    const b = refs.bouts.get(w.boutExternalId);
+    if (!b || !refs.boxerIds.has(w.boxerExternalId)) { add("error", "bad_reference", "weigh_in", ref, "bout or fighter does not exist"); drop("weigh_in"); return false; }
+    if (!(b.red === w.boxerExternalId || b.blue === w.boxerExternalId)) { add("error", "weigh_in_not_in_bout", "weigh_in", ref, "the fighter was not in this bout"); drop("weigh_in"); return false; }
+    if (!nonNeg(w.officialLb, w.fightNightLb, w.limitLb ?? undefined) || (w.officialLb === undefined && w.fightNightLb === undefined)) { add("error", "bad_weight", "weigh_in", ref, "a weight is negative, not a number or missing"); drop("weigh_in"); return false; }
+    if (!provenance({ basis: w.basis ?? "reported", source: w.source, sourceUrl: w.sourceUrl, retrievedAt: w.retrievedAt }, "weigh_in", ref)) return false;
+    if (weighKeys.has(ref)) { add("error", "dup_weigh_in", "weigh_in", ref, "the same source gives this fighter's weight for this bout twice"); drop("weigh_in"); return false; }
+    weighKeys.add(ref);
+    for (const x of [w.officialLb, w.fightNightLb, w.limitLb ?? undefined]) if (x !== undefined && (x < 85 || x > 400)) add("warning", "implausible_weight", "weigh_in", ref, `${x} lb`);
+    if (w.officialLb !== undefined && w.fightNightLb !== undefined && w.fightNightLb < w.officialLb - 3) add("warning", "fight_night_below_weigh_in", "weigh_in", ref, `${w.fightNightLb} lb on fight night, ${w.officialLb} lb at the weigh-in`);
+    return true;
+  });
+
   for (const [entity, n] of noUrl) add("info", "no_source_url", entity, "*", `${n} ${entity} row${n === 1 ? "" : "s"} ha${n === 1 ? "s" : "ve"} no source URL, so a reader cannot check ${n === 1 ? "it" : "them"}`);
-  return { financials, purses, broadcasts, earnings };
+  return { financials, purses, broadcasts, earnings, weighIns };
 }

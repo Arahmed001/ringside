@@ -8,7 +8,7 @@
  *   npm run research -- promote [--allow-single-source]   match verified facts to the database -> data/research/money-feed.json
  *   npm run research -- apply                   write money-feed.json into the database
  *   npm run research -- extract --url U --event "Name|2015-05-02|Fighter A;Fighter B" --want event_financials,purse   (the bot; needs ANTHROPIC_API_KEY)
- *   npm run research -- fetch URL               what the polite fetcher sees at a URL
+ *   npm run research -- fetch URL [--grep WORD | --full]   what the polite fetcher sees at a URL (the first 1,500 characters, the lines holding WORD, or all of it)
  *   npm run research -- add-document FILE --issuer "California State Athletic Commission" --issuer-host dca.ca.gov --received 2026-10-10 --how "public-records response" [--official] [--transcription]
  *                                               register a document you placed in data/research/manual/ (hash recorded); claims then say "document": "FILE" instead of a URL
  *   npm run research -- documents               every registered document and whether it still matches its hash
@@ -125,11 +125,11 @@ async function main() {
     const db = new DatabaseSync(process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db"));
     const m = matchFacts(db, readJsonl<CheckedFact>(CHECKED), { allowSingleSource: flags.has("allow-single-source"), officialHosts: officialHosts() });
     fs.writeFileSync(FEED, JSON.stringify(m.rows, null, 1));
-    console.log(`matched ${m.used.length} facts into ${FEED}: ${m.rows.financials.length} financials, ${m.rows.purses.length} purses, ${m.rows.broadcasts.length} broadcasts, ${m.rows.earnings.length} earnings`);
+    console.log(`matched ${m.used.length} facts into ${FEED}: ${m.rows.financials.length} financials, ${m.rows.purses.length} purses, ${m.rows.broadcasts.length} broadcasts, ${m.rows.earnings.length} earnings, ${(m.rows.weighIns ?? []).length} weigh-ins`);
     console.log(`held back ${m.held.length} (not verified), could not match ${m.unmatched.length}${m.unmatched.length ? ":" : ""}`);
     for (const u of m.unmatched.slice(0, 20)) console.log(`  ${u.fact.kind} ${u.fact.event?.name ?? u.fact.fighter}: ${u.reason}`);
   } else if (cmd === "apply") {
-    const db = new DatabaseSync(process.env.DATABASE_PATH ?? path.join(process.cwd(), "data", "ringside.db"));
+    const db = await (await import("../lib/db")).getDb(); // opened the usual way, so a file older than the code gains the columns the new rows need
     const rows = JSON.parse(fs.readFileSync(FEED, "utf8"));
     const r = ingestMoney(db, rows, { label: "research" });
     console.log("written", r.written, "dropped", r.dropped, `${r.issues.length} issue(s)`);
@@ -148,7 +148,8 @@ async function main() {
     process.exitCode = all.some((e) => !readDocument(MANUAL, e.file).ok) ? 1 : 0;
   } else if (cmd === "fetch") {
     const r = await fetcher().get(rest[0]);
-    console.log(r.ok ? `${r.status}${r.fromCache ? " (cache)" : ""}, ${r.text.length} characters\n${r.text.slice(0, 1500)}` : `not fetched: ${r.reason}: ${r.detail}`);
+    const g = arg("grep"); // --grep WORD: the whole lines that hold the word, to copy a quote from; --full: the whole text
+    console.log(r.ok ? `${r.status}${r.fromCache ? " (cache)" : ""}, ${r.text.length} characters\n${g ? r.text.split("\n").filter((l) => l.toLowerCase().includes(g.toLowerCase())).join("\n") : process.argv.includes("--full") ? r.text : r.text.slice(0, 1500)}` : `not fetched: ${r.reason}: ${r.detail}`);
   } else if (cmd === "extract") {
     const url = arg("url"), ev = arg("event"), fighter = arg("fighter");
     if (!url || (!ev && !fighter)) throw new Error('usage: extract --url U (--event "Name|yyyy-mm-dd|Fighter A;Fighter B" | --fighter "Name" --year 2024) [--want event_financials,purse,broadcast,earning]');

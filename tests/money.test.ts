@@ -141,7 +141,7 @@ test("ingestMoney adds figures to an existing database, replaces per source, and
     broadcasts: [], earnings: [], officialRankings: [],
   };
   const r1 = ingestMoney(db, rows, { label: "research-test" });
-  assert.deepEqual(r1.written, { financials: 1, purses: 1, broadcasts: 0, earnings: 0 });
+  assert.deepEqual(r1.written, { financials: 1, purses: 1, broadcasts: 0, earnings: 0, weighIns: 0 });
   assert.equal(r1.dropped.purse, 1);
   assert.ok(r1.issues.some((i) => i.code === "bad_reference"));
   ingestMoney(db, rows, { label: "research-test" }); // again: replaced, not duplicated

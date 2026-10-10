@@ -18,6 +18,7 @@ A researcher never writes to the database. It writes **claims** to `data/researc
 | `purse` | `event` (the bout's two boxers), `fighter` | `guaranteedUsd bonusUsd totalUsd` |
 | `broadcast` | `event` | `broadcaster` `platform` (ppv, streaming, subscription, free-tv) `region` `viewersAvg viewersPeak` |
 | `earning` | `fighter`, `year`, and `list` (the ranking: `Forbes 2024 list`, `Sportico 2024 list`) | `totalUsd ringUsd offRingUsd` |
+| `weigh_in` | `event` (the bout's two boxers), `fighter` | `officialLb limitLb fightNightLb` (pounds; two sites must agree within half a percent, not 5%; a `limitLb` is needed to say whether the weight was made) |
 
 `basis`: **disclosed** only for an official record (a commission's purse disclosure, a company filing, the promoter's own statement); **reported** when a named
 outlet cites people or documents; **estimated** when the page calls it an estimate or it is worked out from other figures. `npm run research -- check` then:

@@ -24,7 +24,7 @@ interface BoutRef { bout: string; event: string; date: string; red: { ext: strin
  * bout or fighter is returned, not guessed.
  */
 export function matchFacts(db: DatabaseSync, facts: CheckedFact[], opts: { allowSingleSource?: boolean; officialHosts?: string[]; today?: string } = {}): { rows: MoneyRows; used: CheckedFact[]; unmatched: Unmatched[]; held: CheckedFact[] } {
-  const rows: MoneyRows = { financials: [], purses: [], broadcasts: [], earnings: [] };
+  const rows: MoneyRows & { weighIns: NonNullable<MoneyRows["weighIns"]> } = { financials: [], purses: [], broadcasts: [], earnings: [], weighIns: [] };
   const used: CheckedFact[] = [], unmatched: Unmatched[] = [], held: CheckedFact[] = [];
   const today = opts.today ?? new Date().toISOString().slice(0, 10);
   const boutsNear = db.prepare(`SELECT b.external_id bout, e.external_id event, e.date date, r.external_id re, r.name rn, u.external_id ue, u.name un
@@ -45,6 +45,7 @@ export function matchFacts(db: DatabaseSync, facts: CheckedFact[], opts: { allow
   // the same goes for a card's figures, a purse and a broadcast: one row for each (card or fight, source), whatever number of the source's articles gave a figure (the database holds one row
   // per card and source, and ESPN's gate and ESPN's pay-per-view buys are two claims). The first claim of a figure wins; a later one only fills a gap.
   const finRow = new Map<string, MoneyRows["financials"][number]>(), purseRow = new Map<string, MoneyRows["purses"][number]>(), castRow = new Map<string, MoneyRows["broadcasts"][number]>();
+  const weighRow = new Map<string, NonNullable<MoneyRows["weighIns"]>[number]>();
   const fill = <T extends object>(have: T, row: T) => { for (const k of Object.keys(row) as (keyof T)[]) if (have[k] === undefined || have[k] === null) have[k] = row[k]; };
 
   for (const f of facts) {
@@ -81,6 +82,12 @@ export function matchFacts(db: DatabaseSync, facts: CheckedFact[], opts: { allow
       const row = { boutExternalId: b.bout, boxerExternalId: who.ext, guaranteedUsd: num("guaranteedUsd"), bonusUsd: num("bonusUsd"), totalUsd: num("totalUsd"), ...common };
       const k = `${row.boutExternalId}|${row.boxerExternalId}|${row.source}`, have = purseRow.get(k);
       if (have) fill(have, row); else { rows.purses.push(row); purseRow.set(k, row); }
+    } else if (f.kind === "weigh_in") {
+      const who = sameBoxer(b.red.name, f.fighter!) ? b.red : sameBoxer(b.blue.name, f.fighter!) ? b.blue : null;
+      if (!who) { unmatched.push({ fact: f, reason: "the fighter was not in that bout" }); continue; }
+      const row = { boutExternalId: b.bout, boxerExternalId: who.ext, officialLb: num("officialLb"), limitLb: num("limitLb"), fightNightLb: num("fightNightLb"), source: common.source, sourceUrl: common.sourceUrl, basis: common.basis, retrievedAt: common.retrievedAt, note: common.note };
+      const k = `${row.boutExternalId}|${row.boxerExternalId}|${row.source}`, have = weighRow.get(k);
+      if (have) fill(have, row); else { rows.weighIns.push(row); weighRow.set(k, row); }
     } else if (f.kind === "broadcast") { const row = { eventExternalId: b.event, broadcaster: String(f.values.broadcaster), platform: String(f.values.platform) as never, region: f.values.region ? String(f.values.region) : undefined, viewersAvg: num("viewersAvg"), viewersPeak: num("viewersPeak"), ...common }; const k = `${row.eventExternalId}|${row.broadcaster}|${row.region ?? ""}|${row.source}`, have = castRow.get(k); if (have) fill(have, row); else { rows.broadcasts.push(row); castRow.set(k, row); } }
     used.push(f);
   }
