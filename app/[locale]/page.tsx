@@ -100,30 +100,30 @@ export default async function Home() {
         </section>
       )}
 
-      {/* The question box is the product, with a real answer under it (direction C) */}
-      <section aria-labelledby="ask" className="max-w-3xl">
-        <div className="eyebrow mb-2">{t("Boxing intelligence · {fighters} fighters · {bouts} bouts", { fighters: o.boxers, bouts: o.bouts.toLocaleString("en-US") })}</div>
-        <h2 id="ask" className="font-display text-5xl font-extrabold uppercase leading-[.95] sm:text-6xl">{t("Ask the data")}<span className="text-red-ink">.</span></h2>
-        <p className="mt-3 max-w-2xl text-lg text-muted">{t("Ratings, rankings, win-probabilities and scouting reports for the whole sport, in one place. Ask in plain English.")}</p>
-        <form action={localePath(t.locale, "/ask")} className="mt-6 flex flex-col gap-2 sm:flex-row">
-          <input name="q" aria-label={t("Ask the data")} placeholder={t("Who has the most knockouts among women?")} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-4 py-4 text-[15px] outline-none transition placeholder:text-muted focus:border-gold/60 sm:px-6 sm:py-5 sm:text-lg" />
-          <button className="rounded-2xl bg-red-btn px-9 py-3 font-display text-2xl font-bold uppercase tracking-wide text-white transition hover:brightness-90">{t("Ask")}</button>
-        </form>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {examples.slice(0, 5).map((e) => <Link key={e} href={`/ask?q=${encodeURIComponent(e)}`} className="chip transition hover:text-ink">{e}</Link>)}
+      {/* The question box is the product, with a real answer beside it (direction C): side by side on a wide screen, so the card calendar is not pushed a page down */}
+      <section aria-labelledby="ask" className={`grid items-start gap-8 ${answer?.understood ? "xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] xl:gap-12" : "max-w-3xl"}`}>
+        <div>
+          <div className="eyebrow mb-2">{t("Boxing intelligence · {fighters} fighters · {bouts} bouts", { fighters: o.boxers, bouts: o.bouts.toLocaleString("en-US") })}</div>
+          <h2 id="ask" className="font-display text-5xl font-extrabold uppercase leading-[.95] sm:text-6xl">{t("Ask the data")}<span className="text-red-ink">.</span></h2>
+          <p className="mt-3 max-w-2xl text-lg text-muted">{t("Ratings, rankings, win-probabilities and scouting reports for the whole sport, in one place. Ask in plain English.")}</p>
+          <form action={localePath(t.locale, "/ask")} className="mt-6 flex flex-col gap-2 sm:flex-row">
+            <input name="q" aria-label={t("Ask the data")} placeholder={t("Who has the most knockouts among women?")} className="min-w-0 flex-1 rounded-2xl border border-line bg-panel px-4 py-4 text-[15px] outline-none transition placeholder:text-muted focus:border-gold/60 sm:px-6 sm:py-5 sm:text-lg" />
+            <button className="rounded-2xl bg-red-btn px-9 py-3 font-display text-2xl font-bold uppercase tracking-wide text-white transition hover:brightness-90">{t("Ask")}</button>
+          </form>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {examples.slice(0, 5).map((e) => <Link key={e} href={`/ask?q=${encodeURIComponent(e)}`} className="chip transition hover:text-ink">{e}</Link>)}
+          </div>
         </div>
         {answer?.understood && (
-          <div className="mt-8">
+          <div>
             <div className="eyebrow mb-2">{t("Try: {example}", { example: examples[0] })}</div>
-            <AskResults a={answer} compact={{ rows: 5 }} />
+            <AskResults a={answer} compact={{ rows: 3 }} />
           </div>
         )}
       </section>
 
-      {next && (
-      <section className={`grid gap-8 ${ups.length > 1 ? "" : "max-w-xl"}`}>
-        {ups.length > 1 && (
-        <div>
+      {next && ups.length > 1 && (
+        <section>
           <SectionTitle eyebrow={t("Fight calendar")} title={t("Coming up")} href="/events" cta={upcoming.length > STRIP + 1 ? t.n(upcoming.length, "All {n} upcoming card", "All {n} upcoming cards") : undefined} />
           <div className="-mx-5 flex gap-4 overflow-x-auto px-5 pb-3 md:mx-0 md:grid md:grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] md:overflow-visible md:px-0">
             {ups.slice(1).map((e) => (
@@ -132,34 +132,16 @@ export default async function Home() {
               </Link>
             ))}
           </div>
-        </div>
-        )}
-        <PickEm bouts={pickBouts} />
-      </section>
+        </section>
       )}
 
-      {/* Rankings */}
-      <section className="grid gap-8 lg:grid-cols-[1fr_1fr]">
+      {/* The ranking and the latest results, side by side */}
+      <section className="grid gap-8 lg:grid-cols-2">
         <div>
           <SectionTitle eyebrow={t("All divisions")} title={t("Pound for pound")} href="/rankings" cta={t("All division rankings")} />
-          <div className="grid gap-3 sm:grid-cols-2">{p4p.map((b, i) => <BoxerCard key={b.id} b={b} rank={i + 1} />)}</div>
+          <div className="grid gap-3 sm:grid-cols-2">{p4p.slice(0, 6).map((b, i) => <BoxerCard key={b.id} b={b} rank={i + 1} />)}</div>
           <Link href="/rankings?sex=female" className="mt-3 inline-block py-1 text-sm text-muted transition hover:text-ink">{t("Women’s pound for pound")} <span className="inline-block rtl:rotate-180">→</span></Link>
         </div>
-        <div>
-          <SectionTitle eyebrow={t("Official names & limits")} title={t("Divisions")} />
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {DIVISIONS_HEAVIEST_FIRST.map((d) => (
-              <Link key={d.name} href={`/rankings/${slugifyDivision(d.name)}`} className="card card-hover px-3 py-2.5">
-                <div className="text-sm font-semibold leading-tight">{t(d.name)}</div>
-                <div className="text-xs text-muted">{d.lb ? t("{lb} lb", { lb: d.lb }) : t("200+ lb")}</div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Results + upset */}
-      <section className="grid gap-8 lg:grid-cols-[1.2fr_.8fr]">
         <div>
           <SectionTitle eyebrow={t("Latest")} title={t("Recent main events")} href="/events" />
           <div className="card divide-y divide-line/60">
@@ -178,6 +160,12 @@ export default async function Home() {
             })}
           </div>
         </div>
+      </section>
+
+      {next && <PickEm bouts={pickBouts} />}
+
+      {/* Three numbers-with-a-story cards, one row on a wide screen */}
+      <section className="grid gap-8 lg:grid-cols-2 2xl:grid-cols-3">
         <div>
           <SectionTitle eyebrow={t("Analytics")} title={t("Upset of the year")} href="/analytics" cta={t("More analytics")} />
           {upset ? (
@@ -189,27 +177,43 @@ export default async function Home() {
               <div className="mt-3 text-sm text-muted">{t.rich("Winner entered rated <b>{winner}</b> against <b>{loser}</b> — a {gap}-point underdog.", { winner: Math.round(upset.winnerRating), loser: Math.round(upset.loserRating), gap: Math.round(upset.gap), b: (c) => <b className="text-ink">{c}</b> })}</div>
             </div>
           ) : <div className="card p-5 text-sm text-muted">{t("No upsets recorded yet.")}</div>}
-          {watchTop && (
-            <div className="mt-6">
-              <SectionTitle eyebrow={t("Fights to watch")} title={t("Upset watch")} href="/upset-watch" cta={t("All upcoming fights")} />
-              <WatchCard x={watchTop} />
-            </div>
-          )}
-          {foty && (
-            <div className="mt-6">
-              <SectionTitle eyebrow={t("Awards")} title={t("Fight of the year {year}", { year: foty.year })} href={`/fight-of-the-year/${foty.year}`} cta={t("Why it won")} />
-              <Link href={`/bouts/${foty.top.bout.id}`} className="card card-hover block p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 font-display text-2xl font-bold leading-tight">{t.name(foty.top.bout.redName)} <span className="text-muted">{t("vs")}</span> {t.name(foty.top.bout.blueName)}</div>
-                  <ScoreBadge score={foty.top.score} className="shrink-0" />
-                </div>
-                <div className="mt-2 text-sm text-muted">{resultLine(w, foty.top.bout, t)} · {methodLabel(foty.top.bout.method, foty.top.bout.endRound, t)}</div>
-              </Link>
-            </div>
-          )}
-          <div className="mt-6"><SectionTitle title={t("Your watchlist")} href="/watchlist" cta={t("Open watchlist")} /><WatchlistStrip /></div>
         </div>
+        {watchTop && (
+          <div>
+            <SectionTitle eyebrow={t("Fights to watch")} title={t("Upset watch")} href="/upset-watch" cta={t("All upcoming fights")} />
+            <WatchCard x={watchTop} />
+          </div>
+        )}
+        {foty && (
+          <div className={watchTop ? "lg:col-span-2 2xl:col-span-1" : ""}>
+            <SectionTitle eyebrow={t("Awards")} title={t("Fight of the year {year}", { year: foty.year })} href={`/fight-of-the-year/${foty.year}`} cta={t("Why it won")} />
+            <Link href={`/bouts/${foty.top.bout.id}`} className="card card-hover block p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 font-display text-2xl font-bold leading-tight">{t.name(foty.top.bout.redName)} <span className="text-muted">{t("vs")}</span> {t.name(foty.top.bout.blueName)}</div>
+                <ScoreBadge score={foty.top.score} className="shrink-0" />
+              </div>
+              <div className="mt-2 text-sm text-muted">{resultLine(w, foty.top.bout, t)} · {methodLabel(foty.top.bout.method, foty.top.bout.endRound, t)}</div>
+            </Link>
+          </div>
+        )}
       </section>
+
+      {/* The divisions as one wrapped row of links: a way in, not a wall of cards */}
+      <section>
+        <SectionTitle eyebrow={t("Official names & limits")} title={t("Divisions")} href="/rankings" cta={t("All division rankings")} />
+        <ul className="flex flex-wrap gap-2">
+          {DIVISIONS_HEAVIEST_FIRST.map((d) => (
+            <li key={d.name}>
+              <Link href={`/rankings/${slugifyDivision(d.name)}`} className="card card-hover flex min-h-11 items-baseline gap-2 px-3.5 py-2">
+                <span className="text-sm font-semibold leading-tight">{t(d.name)}</span>
+                <span className="tabular text-xs text-muted">{d.lb ? t("{lb} lb", { lb: d.lb }) : t("200+ lb")}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section><SectionTitle title={t("Your watchlist")} href="/watchlist" cta={t("Open watchlist")} /><WatchlistStrip /></section>
     </div>
   );
 }
