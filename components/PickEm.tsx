@@ -16,7 +16,7 @@ export function PickEm({ bouts }: { bouts: PickBout[] }) {
   const made = bouts.filter((b) => picks[b.id]);
   const agree = made.filter((b) => picks[b.id] === b.modelPickId).length;
   return (
-    <div className="card @container p-5">
+    <div id="pick-em" className="card @container scroll-mt-20 p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div><div className="eyebrow">{t("Fight night pick’em")}</div><div className="font-display text-2xl font-bold uppercase">{t("Call the card")}</div></div>
         <div className="text-end text-xs text-muted">

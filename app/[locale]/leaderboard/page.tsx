@@ -36,7 +36,7 @@ export default async function Leaderboard() {
       {!lb || (!lb.standings.length && !lb.unranked) ? (
         <div className="card p-6">
           <p className="text-muted">{t("Nobody is on the board yet. Be the first: create an account and call the next card.")}</p>
-          <p className="mt-3 flex flex-wrap gap-2"><Link href="/account" className="chip !border-gold/40 hover:!text-gold">{t("Create an account")}</Link><Link href="/" className="chip hover:!text-gold">{t("Call the card")}</Link></p>
+          <p className="mt-3 flex flex-wrap gap-2"><Link href="/account" className="chip !border-gold/40 hover:!text-gold">{t("Create an account")}</Link><Link href="/#pick-em" className="chip hover:!text-gold">{t("Call the card")}</Link></p>
         </div>
       ) : (
         <section aria-labelledby="board">

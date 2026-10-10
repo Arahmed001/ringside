@@ -14,7 +14,7 @@ export function localePath(locale: Locale, path: string): string {
   if (/^([a-z][a-z0-9+.-]*:|\/\/|#)/i.test(path)) return path; // absolute URL or fragment
   const p = path.startsWith("/") ? path : `/${path}`;
   if (locale === DEFAULT_LOCALE) return p;
-  return p === "/" ? `/${locale}` : p.startsWith("/?") ? `/${locale}${p.slice(1)}` : `/${locale}${p}`;
+  return p === "/" ? `/${locale}` : p.startsWith("/?") || p.startsWith("/#") ? `/${locale}${p.slice(1)}` : `/${locale}${p}`;
 }
 
 /** Splits `/ar/boxers/x` into its locale and the locale-free path `/boxers/x`. */
