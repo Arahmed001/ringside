@@ -22,3 +22,17 @@ Do one step, check the "You should see", then go to the next.
 12. **Monitor and backups.** Point an uptime monitor at `/api/health` and alert on `"stale":true`. Fly's snapshots are not enough on their own (their docs say the latest data may be missing); copy the newest folder of `/data/backups` somewhere off Fly regularly ([nightly.md](nightly.md)). By hand, from your own computer (not yet tried; flyctl's `ssh sftp` options are from its help text): `fly ssh console -a YOURAPP -C "ls -1 /data/backups"` shows the folder names (the newest is last); then `fly ssh sftp get -R /data/backups/NEWEST ~/ringside-backups/NEWEST -a YOURAPP`, and check the copy with `npm run backup -- verify ~/ringside-backups/NEWEST`. *You should see the verify line say the checksums and integrity checks pass.* Do the same weekly until it is a habit; a scheduled copy from your computer (a calendar reminder is enough) beats none.
 
 **Rolling back code:** deploy the earlier commit again. The disk is not rolled back by a code deploy; use `npm run backup -- restore`.
+
+## Deploy on every push
+
+`.github/workflows/deploy.yml` deploys the code to Fly whenever CI has passed on `main`: what you push to GitHub reaches the live site a few minutes later. It deploys code only; the database on Fly's volume is not touched (shipping data stays a separate step: [ship-database.md](ship-database.md)).
+
+**One-time setup (you, in your own terminal; I cannot run Fly commands):**
+
+1. Make a deploy token for the app: `fly tokens create deploy -a ringsidedb` (it prints a long string starting `FlyV1`; copy it).
+2. Store it as a GitHub secret, pasting the token when asked: `gh secret set FLY_API_TOKEN --repo Arahmed001/ringside`
+3. Done. Check **Actions → Deploy to Fly** after the next push to `main`.
+
+**What it will not do:** deploy a red `main`; deploy a change to Markdown and `docs/` only; deploy while the nightly update is running (it says so in the run and stops; **Run workflow** on the Actions page deploys later); run two deploys at once. Without the secret it does nothing. To switch it off, delete the secret or the workflow file.
+
+**Undo a bad deploy:** deploy the earlier commit again (`fly deploy --ha=false -a ringsidedb` from that commit, or revert on `main` and push). The disk is not rolled back.

@@ -2146,3 +2146,6 @@ The owner asked for `/countries` to be a map instead, listing the stadiums and a
 
 ## 288. 352 more Arabic name words (round 158, 2026-10-10)
 - Arabic spellings for 352 more words in fighters' names (mostly Spanish, English and Arabic-origin names from the unreviewed top 1,000), accepted by the owner (`source: "owner-accepted"`, replaceable by a native reviewer's import). 6,352 words are reviewed; Arabic names show for 14,500 of 33,612 fighters (43.1%), up from 41.9%. About 650 rarer words (mostly Japanese, Thai, Central Asian and African spellings) are still without Arabic.
+
+## 289. Every push to main reaches Fly (round 159, 2026-10-10)
+- `.github/workflows/deploy.yml` deploys the code to Fly (`ringsidedb`, `--remote-only`) after CI passes on main: not on a red main, not for Markdown/docs-only changes, not while the nightly update is running (the run says so; "Run workflow" deploys later), one deploy at a time. It needs the `FLY_API_TOKEN` secret (setup in docs/fly-deploy.md, "Deploy on every push"); without it the workflow does nothing. Code only: the database on the volume is untouched. Tested in tests/deploy-workflow.test.ts.

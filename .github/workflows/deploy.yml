@@ -1,0 +1,74 @@
+name: Deploy to Fly
+
+# What reaches main reaches the live site: when CI has passed on main, the code is deployed to Fly. Only the code: the database lives on Fly's volume and is
+# never touched by a deploy (shipping data is still a separate, deliberate step: docs/ship-database.md).
+# Safeguards:
+#  - it waits for CI (the `verify` check), so a red main is never deployed;
+#  - a change to Markdown and docs/ only is not deployed (nothing the site runs has changed);
+#  - it does not deploy while the nightly update is running (a deploy restarts the machine and interrupts it): the run says so and is skipped, and the next push
+#    (or "Run workflow" on this page) deploys;
+#  - one deploy at a time, in order, never cancelled half way;
+#  - without the FLY_API_TOKEN secret it does nothing (setup: docs/fly-deploy.md, "Deploy on every push").
+# The image is built on Fly's own builder (--remote-only), so no GitHub minutes are spent on it.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: fly-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  FLY_APP: ringsidedb
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - name: Token present?
+        id: token
+        run: |
+          if [ -z "$FLY_API_TOKEN" ]; then echo "::notice::FLY_API_TOKEN is not set, so nothing is deployed (see docs/fly-deploy.md, Deploy on every push)"; echo "ok=false" >> "$GITHUB_OUTPUT"; else echo "ok=true" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/checkout@v7
+        if: steps.token.outputs.ok == 'true'
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 2
+      - name: Anything the site runs changed?
+        id: changed
+        if: steps.token.outputs.ok == 'true'
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then echo "code=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          if git diff --name-only HEAD^ HEAD | grep -qvE '^(docs/|.*\.md$)'; then echo "code=true" >> "$GITHUB_OUTPUT"; else echo "::notice::only docs changed: not deployed"; echo "code=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Is the nightly update running?
+        id: nightly
+        if: steps.changed.outputs.code == 'true'
+        run: |
+          result=$(curl -s --max-time 20 "https://${FLY_APP}.fly.dev/api/health" | sed -n 's/.*"nightly":{"result":"\([a-z]*\)".*/\1/p' || true)
+          echo "nightly result: ${result:-unknown}"
+          if [ "$result" = "running" ]; then echo "::warning::the nightly update is running: not deployed. Run this workflow again when it has finished."; echo "go=false" >> "$GITHUB_OUTPUT"; else echo "go=true" >> "$GITHUB_OUTPUT"; fi
+      - uses: superfly/flyctl-actions/setup-flyctl@1.5
+        if: steps.nightly.outputs.go == 'true'
+      - name: Deploy
+        if: steps.nightly.outputs.go == 'true'
+        run: flyctl deploy --ha=false --remote-only -a "$FLY_APP"
+      - name: The live site answers
+        if: steps.nightly.outputs.go == 'true'
+        run: |
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /tmp/health.json -w '%{http_code}' "https://${FLY_APP}.fly.dev/api/health" || true)
+            [ "$code" = 200 ] && break
+            sleep 6
+          done
+          cat /tmp/health.json; echo
+          [ "$code" = 200 ]
