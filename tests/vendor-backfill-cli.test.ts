@@ -265,8 +265,8 @@ test("--update is the daily job: it sees today's result and fresh career records
   const r = await run(["--update", "--cache-dir", cache], live);
   assert.equal(r.code, 0, r.out);
   assert.match(r.out, /updating from 2026-09-18/, "the latest card in the database (2026-10-02) less 14 days");
-  assert.deepEqual(since(m), ["/v2/fights/", "/v2/fights/schedule", "/v2/fighters/f5", "/v2/fighters/f6", "/v2/fighters/f3", "/v2/fighters/f1", "/v2/rankings/"], "the list, the coming weeks, every fighter in the window fetched fresh, the most recently active first (the coming fight's two, then the latest result's), then the official lists: a cached record predates the result and a cached list the body's latest change");
-  assert.match(r.out, /after the update:\nrecords: 4 of 4 fighters \(100\.0%\)/, `the careers as the database now has them, checked against the vendor's totals: ${r.out.slice(r.out.indexOf("after the update"))}`);
+  assert.deepEqual(since(m), ["/v2/fights/", "/v2/fights/schedule", "/v2/fighters/f3", "/v2/fighters/f1", "/v2/rankings/"], "the list, the coming weeks, then only the fighters of the fight that CHANGED (the late result: f3 and f1), fresh; the coming fight (f5, f6) is already loaded and unchanged, so it is not fetched again; then the official lists: a cached record predates the result and a cached list the body's latest change");
+  assert.match(r.out, /after the update:\nrecords: 2 of 2 fighters \(100.0%\)/, `the careers of the two fighters whose fight changed, as the database now has them, checked against the vendor's totals: ${r.out.slice(r.out.indexOf("after the update"))}`);
   const db = new DatabaseSync(dbFile, { readOnly: true });
   assert.equal(count(db, "SELECT COUNT(*) c FROM bouts WHERE external_id = 'bda-b-g3' AND method = 'UD' AND winner_id = (SELECT id FROM boxers WHERE external_id = 'bda-f-f3')"), 1, "the late result is in");
   assert.equal(count(db, "SELECT COUNT(*) c FROM bouts"), 4, "and nothing was duplicated");
@@ -274,7 +274,21 @@ test("--update is the daily job: it sees today's result and fresh career records
   const m2 = mark();
   const again = await run(["--update", "--cache-dir", cache], live);
   assert.equal(again.code, 0, again.out);
-  assert.equal(since(m2).length, 7, "a second update asks again for everything in the window, and for the official lists: yesterday's cached answers would hide today's results");
+  assert.deepEqual(since(m2), ["/v2/fights/", "/v2/fights/schedule", "/v2/rankings/"], "a second update with nothing new asks for the lists (yesterday's cached answers would hide today's results) and fetches no fighter at all");
+  assert.match(again.out, /2 of 2 listed fights are already loaded and unchanged: left out, with their fighters; 0 new or changed/);
+  // a fighter whose saved record is more than a week old is fetched again even when nothing about the fights changed (a profile change never shows in a fight)
+  const stale = path.join(cache, "v2-fighters-f5.json"), old = new Date(Date.now() - 8 * 86_400_000);
+  assert.ok(fs.existsSync(stale), "the saved record of f5 (the file name is the endpoint with its slashes turned into dashes)");
+  fs.utimesSync(stale, old, old);
+  const mAge = mark();
+  const aged = await run(["--update", "--cache-dir", cache], live);
+  assert.equal(aged.code, 0, aged.out);
+  assert.deepEqual(since(mAge), ["/v2/fights/", "/v2/fights/schedule", "/v2/fighters/f5", "/v2/fighters/f6", "/v2/rankings/"], "the coming fight's two fighters are fetched again because one record is 8 days old; nothing else is");
+  assert.match(aged.out, /1 unchanged but a fighter's saved record is more than 7 days old/);
+  const m3 = mark();
+  const all = await run(["--update", "--refetch-all", "--cache-dir", cache], live);
+  assert.equal(all.code, 0, all.out);
+  assert.equal(since(m3).length, 7, "--refetch-all brings back the old behaviour: every fighter in the window again");
 });
 
 test("--update's audit tells a total that trails yesterday's result (lagging) from a contradiction about an old fight (still a conflict); neither changes the data or the exit code", async () => {
@@ -282,13 +296,13 @@ test("--update's audit tells a total that trails yesterday's result (lagging) fr
   try {
     // the vendor has not yet counted g3 (2026-10-02, yesterday): Cy Three is 1 win short of the fights we hold, Ace One 1 loss
     state.skew = { f3: { wins: -1 }, f1: { losses: -1 } };
-    const lag = await run(["--update", "--cache-dir", cache], live);
+    const lag = await run(["--update", "--refetch-all", "--cache-dir", cache], live);
     assert.equal(lag.code, 0, lag.out);
     const after = lag.out.slice(lag.out.indexOf("after the update"));
     assert.match(after, /2 career total\(s\) probably lagging/); assert.match(after, /Cy Three loaded 2-0-0 vs vendor 1-0-0/); assert.ok(!/CONFLICT/.test(after), after);
     // the vendor contradicts an OLD fight (g1, 2026-08-15): Ace One has a win we hold and it has none
     state.skew = { f1: { wins: -1 } };
-    const old = await run(["--update", "--cache-dir", cache], live);
+    const old = await run(["--update", "--refetch-all", "--cache-dir", cache], live);
     assert.equal(old.code, 0, old.out);
     assert.match(old.out.slice(old.out.indexOf("after the update")), /1 CONFLICT.*Ace One loaded 1-1-0 vs vendor 0-1-0/);
   } finally { state.skew = {}; }

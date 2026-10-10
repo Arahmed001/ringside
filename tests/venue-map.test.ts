@@ -116,3 +116,21 @@ test("the venue list: events counted per venue (cancelled ones not, coming ones 
   assert.deepEqual(venueCounts(w), { all: 3, placed: 2 });
   assert.equal(mapsUrl({ name: "Wembley Arena", city: "London", country: "United Kingdom" }), "https://www.google.com/maps/search/?api=1&query=Wembley%20Arena%2C%20London%2C%20United%20Kingdom");
 });
+
+test("a contact pasted with quote marks is cleaned; one that cannot be sent is refused plainly", async () => {
+  const { cleanContact } = await import("../lib/media/wikimedia");
+  assert.equal(cleanContact("“you@example.com”"), "you@example.com");
+  assert.equal(cleanContact(' "https://example.org" '), "https://example.org");
+  assert.equal(cleanContact(undefined), "");
+  assert.throws(() => cleanContact("café@example.com"), /plain characters/);
+});
+
+test("a name that only names a kind of building is not placed on the name alone", async () => {
+  const { isGenericName } = await import("../lib/importers/osm-venues");
+  assert.ok(isGenericName("Convention Center") && isGenericName("The Arena") && isGenericName("Sports Hall"));
+  assert.ok(!isGenericName("Copper Box Arena") && !isGenericName("Wembley Arena"));
+  const oc: OsmResult = { osm_type: "way", osm_id: 5, lat: "38.33", lon: "-75.08", category: "amenity", type: "events_venue", name: "Convention Center", display_name: "Convention Center, Convention Center Drive, Ocean City, Maryland, United States", address: { city: "Ocean City", road: "Convention Center Drive", country_code: "us" } };
+  const out = decide({ name: "Convention Center", city: "Convention Center", country: "United States" }, [oc]);
+  assert.equal(out.status, "ambiguous", "the city given is not a city, so only the name is left, and the name is generic");
+  assert.equal(decide({ name: "Convention Center", city: "Ocean City", country: "United States" }, [oc]).status, "found", "with the city confirmed it is placed");
+});
